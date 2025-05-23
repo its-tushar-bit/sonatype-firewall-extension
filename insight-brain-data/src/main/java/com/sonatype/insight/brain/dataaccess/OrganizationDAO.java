@@ -404,10 +404,10 @@ public class OrganizationDAO
         (ownerType == null ? "" : "AND oa.ownerType = ?2 ");
 
     if (ownerType == null) {
-      return getList(sQuery, ownerIds);
+      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c));
     }
     else {
-      return getList(sQuery, ownerIds, ownerType);
+      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c, ownerType));
     }
   }
 

@@ -84,7 +84,7 @@ import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
 import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Stream.concat;
 
 @Named
@@ -186,7 +186,7 @@ public class PolicyResource
     Stream<String> repositoryManagerIds = repositoryManagerDAO.getAll().stream().map(RepositoryManager::getId);
 
     List<Policy> policies = concat(containerAndRootIds, concat(repositoryIds, repositoryManagerIds))
-        .collect(collectingAndThen(toList(), policyDAO::getByOwnerIds));
+        .collect(collectingAndThen(toSet(), policyDAO::getByOwnerIds));
 
     for (Policy policy : policies) {
       boolean hasSecurityVulnerabilityCategoryMaliciousCode = false;

@@ -49,9 +49,9 @@ abstract class AbstractApplicationRiskServiceTest
 
   private Organization org;
 
-  private Application app1;
+  protected Application app1;
 
-  private Application app2;
+  protected Application app2;
 
   private Policy orgPolicy;
 

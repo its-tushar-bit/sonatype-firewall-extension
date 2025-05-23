@@ -64,13 +64,13 @@ abstract class AbstractDashboardViolationRiskServiceTest
   @Inject
   private TestProductLicense testProductLicense;
 
-  private Organization org1;
+  protected Organization org1;
 
-  private Organization org2;
+  protected Organization org2;
 
-  private Application app1;
+  protected Application app1;
 
-  private Application app2;
+  protected Application app2;
 
   private Policy org1Policy;
 

@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -56,20 +53,13 @@ public class PolicyInternalDAO
     return getList(sQuery, ids);
   }
 
-  List<PolicyInternal> getByOwnerIds(Collection<String> ownerIds) {
+  List<PolicyInternal> getByOwnerIds(Set<String> ownerIds) {
     String sQuery = "SELECT entity FROM PolicyInternal entity" + //
         " WHERE entity.ownerId IN (?1)" + //
         " ORDER BY entity.nameLowercaseNoWhitespace";
     int inOperatorThreshold = getInOperatorThreshold();
     if (ownerIds != null && ownerIds.size() >= inOperatorThreshold) {
-      List<String> ownerIdentifications = new ArrayList<>(ownerIds);
-      Map<String, PolicyInternal> policiesById = new LinkedHashMap<>();
-      for (int i = 0; i < ownerIds.size(); i += inOperatorThreshold) {
-        int upperBound = Math.min(i + inOperatorThreshold, ownerIdentifications.size());
-        List<PolicyInternal> policies = getList(sQuery, ownerIdentifications.subList(i, upperBound));
-        policies.forEach(policy -> policiesById.put(policy.getId(), policy));
-      }
-      return new ArrayList<>(policiesById.values());
+      return getListWithSqlInClause(ownerIds, c -> getList(sQuery, c));
     }
     else {
       return getList(sQuery, ownerIds);

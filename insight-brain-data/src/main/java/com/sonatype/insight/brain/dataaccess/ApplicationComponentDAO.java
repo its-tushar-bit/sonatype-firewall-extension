@@ -5,18 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.ApplicationComponent;
-import com.sonatype.insight.brain.model.ApplicationComponentRisk;
-import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.dataaccess.TransactionContext;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,6 +14,19 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.ApplicationComponent;
+import com.sonatype.insight.brain.model.ApplicationComponentRisk;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.dataaccess.TransactionContext;
+
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.11
@@ -41,15 +42,19 @@ public class ApplicationComponentDAO
 
   private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
 
+  private final TemporaryTableHelper temporaryTableHelper;
+
   @Inject
   public ApplicationComponentDAO(
       final OperationalDataStore operationalDataStore,
       final AggregateFileDAO aggregateFileDAO,
-      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO)
+      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      final TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore);
     this.aggregateFileDAO = aggregateFileDAO;
     this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
+    this.temporaryTableHelper = temporaryTableHelper;
   }
 
   @Override
@@ -284,72 +289,83 @@ public class ApplicationComponentDAO
       return Collections.emptyList();
     }
 
-    String applicationWhereClause = " pv.application_id IN (?" + StringUtils
-        .repeat(",?", applicationIds.size() - 1) + ")";
-    String stageTypeWhereClause = stageTypes.isEmpty()
-        ? ""
-        : "pv.stage_type_id IN (?" + StringUtils.repeat(",?", stageTypes.size() - 1) + ")";
-    String threatCategoryWhereClause = policyThreatCategoryFilter.isEmpty()
-        ? ""
-        : "pv.threat_category IN (?" + StringUtils.repeat(",?", policyThreatCategoryFilter.size() - 1) + ")";
-    String threatLevelWhereClause = policyThreatLevelFilter == null
-        ? ""
-        : "pv.threat_level BETWEEN ? AND ?";
-    String violationStateWhereClause;
-    if (policyViolationStateFilter.isEmpty()) {
-      violationStateWhereClause = "";
-    }
-    else if (policyViolationStateFilter.containsAll(List.of("WAIVED", "LEGACY_VIOLATION", "OPEN"))) {
-      violationStateWhereClause = "";
-    }
-    else {
-      violationStateWhereClause = "(" + StringUtils.joinWith(" OR ",
-          policyViolationStateFilter.stream().map(state -> switch (state) {
-            case "WAIVED" -> "pv.waive_time IS NOT NULL";
-            case "LEGACY_VIOLATION" -> "pv.legacy_violation_time IS NOT NULL";
-            case "OPEN" -> "(pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL)";
-            default -> throw new IllegalArgumentException("Invalid policy violation state: " + state);
-          }).filter(StringUtils::isNotBlank).toArray()) + ")";
-    }
-
-    String whereClause = StringUtils.joinWith(" AND ",
-        Stream.of(applicationWhereClause, stageTypeWhereClause, threatCategoryWhereClause, threatLevelWhereClause,
-                violationStateWhereClause).filter(StringUtils::isNotBlank).toArray());
-
-    String sQuery = """
-        SELECT  hash, filename,
-              component_id_format AS componentIdFormat,
-              component_id_coordinates_json AS componentIdCoordinatesJson,
-              COUNT(DISTINCT application_id) AS affectedApplications,
-              SUM(threat_level) AS score,
-              SUM(CASE  WHEN threat_level >= 8 THEN threat_level ELSE 0 END) AS scoreCritical,
-              SUM(CASE  WHEN threat_level >= 4 AND threat_level < 8 THEN threat_level ELSE 0 END) AS scoreSevere,
-              SUM(CASE  WHEN threat_level >= 2 AND threat_level < 4 THEN threat_level ELSE 0 END) AS scoreModerate,
-              SUM(CASE  WHEN threat_level < 2 THEN threat_level ELSE 0 END) AS scoreLow
-         FROM  (
-          SELECT  DISTINCT ON (application_id, policy_id, constraint_facts_id, hash, component_id_format,
-                    component_id_coordinates_json)
-                pv.application_id, pv.policy_id, pv.constraint_facts_id, pv.open_time, pv.threat_level, pv.hash,
-                pv.filename, pv.component_id_format, pv.component_id_coordinates_json
-          FROM %s.policy_violation pv WHERE pv.fix_time ISNULL AND %s
-          ORDER BY pv.application_id, pv.policy_id, pv.constraint_facts_id, hash,
-             component_id_format, component_id_coordinates_json, open_time DESC
-        ) x
-         GROUP BY hash, filename, component_id_format, component_id_coordinates_json
-         ORDER BY %s, hash ASC"""
-        .formatted(getDatabaseSchema(), (whereClause.isEmpty() ? "" : whereClause), orderBy);
-
-    if (pageSize < Integer.MAX_VALUE) {
-      sQuery += " LIMIT " + (pageSize + 1);
-      sQuery += " OFFSET " + pageSize * page;
-    }
-
     try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable =
+          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
+
+      String applicationWhereClause = useTemporaryTable ? "" :
+          " pv.application_id IN (?" + StringUtils.repeat(",?", applicationIds.size() - 1) + ")";
+      String stageTypeWhereClause = stageTypes.isEmpty()
+          ? ""
+          : "pv.stage_type_id IN (?" + StringUtils.repeat(",?", stageTypes.size() - 1) + ")";
+      String threatCategoryWhereClause = policyThreatCategoryFilter.isEmpty()
+          ? ""
+          : "pv.threat_category IN (?" + StringUtils.repeat(",?", policyThreatCategoryFilter.size() - 1) + ")";
+      String threatLevelWhereClause = policyThreatLevelFilter == null
+          ? ""
+          : "pv.threat_level BETWEEN ? AND ?";
+      String violationStateWhereClause;
+      if (policyViolationStateFilter.isEmpty()) {
+        violationStateWhereClause = "";
+      }
+      else if (policyViolationStateFilter.containsAll(List.of("WAIVED", "LEGACY_VIOLATION", "OPEN"))) {
+        violationStateWhereClause = "";
+      }
+      else {
+        violationStateWhereClause = "(" + StringUtils.joinWith(" OR ",
+            policyViolationStateFilter.stream().map(state -> switch (state) {
+              case "WAIVED" -> "pv.waive_time IS NOT NULL";
+              case "LEGACY_VIOLATION" -> "pv.legacy_violation_time IS NOT NULL";
+              case "OPEN" -> "(pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL)";
+              default -> throw new IllegalArgumentException("Invalid policy violation state: " + state);
+            }).filter(StringUtils::isNotBlank).toArray()) + ")";
+      }
+
+      String whereClause = StringUtils.joinWith(" AND ",
+          Stream.of(applicationWhereClause, stageTypeWhereClause, threatCategoryWhereClause, threatLevelWhereClause,
+              violationStateWhereClause).filter(StringUtils::isNotBlank).toArray());
+
+      String sQuery = """
+          SELECT  hash, filename,
+                component_id_format AS componentIdFormat,
+                component_id_coordinates_json AS componentIdCoordinatesJson,
+                COUNT(DISTINCT application_id) AS affectedApplications,
+                SUM(threat_level) AS score,
+                SUM(CASE  WHEN threat_level >= 8 THEN threat_level ELSE 0 END) AS scoreCritical,
+                SUM(CASE  WHEN threat_level >= 4 AND threat_level < 8 THEN threat_level ELSE 0 END) AS scoreSevere,
+                SUM(CASE  WHEN threat_level >= 2 AND threat_level < 4 THEN threat_level ELSE 0 END) AS scoreModerate,
+                SUM(CASE  WHEN threat_level < 2 THEN threat_level ELSE 0 END) AS scoreLow
+           FROM  (
+            SELECT  DISTINCT ON (application_id, policy_id, constraint_facts_id, hash, component_id_format,
+                      component_id_coordinates_json)
+                  pv.application_id, pv.policy_id, pv.constraint_facts_id, pv.open_time, pv.threat_level, pv.hash,
+                  pv.filename, pv.component_id_format, pv.component_id_coordinates_json
+            FROM %s.policy_violation pv
+            %s
+            WHERE pv.fix_time ISNULL AND %s
+            ORDER BY pv.application_id, pv.policy_id, pv.constraint_facts_id, hash,
+               component_id_format, component_id_coordinates_json, open_time DESC
+          ) x
+           GROUP BY hash, filename, component_id_format, component_id_coordinates_json
+           ORDER BY %s, hash ASC"""
+          .formatted(
+              getDatabaseSchema(),
+              useTemporaryTable ? "JOIN temporary_ids ti ON pv.application_id = ti.id" : "",
+              (whereClause.isEmpty() ? "" : whereClause),
+              orderBy);
+
+      if (pageSize < Integer.MAX_VALUE) {
+        sQuery += " LIMIT " + (pageSize + 1);
+        sQuery += " OFFSET " + pageSize * page;
+      }
+
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
 
       int i = 1;
-      for (String appId : applicationIds) {
-        query.setParameter(i++, appId);
+      if (!useTemporaryTable) {
+        for (String appId : applicationIds) {
+          query.setParameter(i++, appId);
+        }
       }
       for (String stageType : stageTypes) {
         query.setParameter(i++, stageType);

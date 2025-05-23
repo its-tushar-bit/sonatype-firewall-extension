@@ -328,6 +328,7 @@
                 <include>**/ThirdPartySbomMetadataTestUtil*</include>
                 <include>**/SbomMetadataBuilder*</include>
                 <include>**/ScmUserMappingsHelper*</include>
+                <include>**/TemporaryTableHelperTest*</include>
               </includes>
             </configuration>
           </execution>

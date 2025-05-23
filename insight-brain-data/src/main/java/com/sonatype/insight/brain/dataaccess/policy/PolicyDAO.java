@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -92,7 +93,7 @@ public class PolicyDAO
   /**
    * Gets all policies whose owner id is among the specified collection.
    */
-  public List<Policy> getByOwnerIds(Collection<String> ownerIds) {
+  public List<Policy> getByOwnerIds(Set<String> ownerIds) {
     return PolicyInternal.toPolicies(policyInternalDAO.getByOwnerIds(ownerIds));
   }
 

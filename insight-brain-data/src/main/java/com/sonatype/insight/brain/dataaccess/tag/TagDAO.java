@@ -126,19 +126,18 @@ public class TagDAO
   }
 
   public List<Tag> getByApplicationIds(List<String> applicationIds) {
-    String sQuery = "SELECT DISTINCT tag FROM ApplicationTag appTag, Tag tag" + //
-        " WHERE appTag.tagId=tag.id AND appTag.applicationId IN ?1";
     if (applicationIds == null || applicationIds.isEmpty()) {
       return Collections.emptyList();
     }
+
+    String sQuery = "SELECT DISTINCT tag FROM ApplicationTag appTag, Tag tag" + //
+        " WHERE appTag.tagId=tag.id AND appTag.applicationId IN ?1";
     int inOperatorThreshold = getInOperatorThreshold();
     if (applicationIds.size() >= inOperatorThreshold) {
+      List<Tag> tags = getListWithSqlInClause(applicationIds, c -> getList(sQuery, c));
+      // Remove duplicates
       Map<String, Tag> tagsById = new LinkedHashMap<>();
-      for (int i = 0; i < applicationIds.size(); i += inOperatorThreshold) {
-        List<Tag> tags =
-            getList(sQuery, applicationIds.subList(i, Math.min(i + inOperatorThreshold, applicationIds.size())));
-        tags.forEach(tag -> tagsById.put(tag.getId(), tag));
-      }
+      tags.forEach(tag -> tagsById.put(tag.getId(), tag));
       return new ArrayList<>(tagsById.values());
     }
     else {

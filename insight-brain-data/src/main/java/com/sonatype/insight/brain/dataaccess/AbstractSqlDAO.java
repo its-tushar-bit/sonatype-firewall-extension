@@ -37,7 +37,13 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   public static final int H2_IN_OPERATOR_THRESHOLD = 2000;
 
-  public static final int POSTGRES_IN_OPERATOR_THRESHOLD = Short.MAX_VALUE;
+  public static final int POSTGRES_IN_OPERATOR_THRESHOLD = 65_535;
+
+  // A query passed into `getListWithSqlInClause` which uses POSTGRES_IN_OPERATOR_THRESHOLD might have additional
+  // parameters beyond those in the `IN` clause. The 65,535 Postgres JDBC limit applies to ALL parameters, not just
+  // those in the `IN` clause itself. So we add an arbitrary buffer of 100 when we partition the list of values. This
+  // is to keep the TOTAL parameter count under the max.
+  private static final int PARAMETER_BUFFER = 100;
 
   public static final int DEFAULT_MAX_ALLOWED_DB_RESULTS = 500_000;
 
@@ -201,7 +207,9 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
         inClauseValuesList = new ArrayList<>(inClauseValues);
       }
 
-      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, inOperatorThreshold);
+      // Some tests set the inOperatorThreshold to a low value. This prevents the partition size from being negative.
+      int partitionSize = Math.max(1, inOperatorThreshold - PARAMETER_BUFFER);
+      List<List<E>> inClauseValuesPartitions = Lists.partition(inClauseValuesList, partitionSize);
 
       return inClauseValuesPartitions.stream().map(getter).flatMap(Collection::stream).collect(toList());
     }

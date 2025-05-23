@@ -78,7 +78,14 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.*;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
@@ -178,8 +185,9 @@ public class TestDAOFactory
   public ApplicationComponentDAO createApplicationComponentDAO() {
     AggregateFileDAO aggregateFileDAO = createAggregateFileDAO();
     ApplicationComponentLicenseDAO applicationComponentLicenseDAO = createApplicationComponentLicenseDAO();
+    TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationComponentDAO(dataStoreProvider.getOperationalDataStore(), aggregateFileDAO,
-        applicationComponentLicenseDAO);
+        applicationComponentLicenseDAO, temporaryTableHelper);
   }
 
   @Override
@@ -216,13 +224,14 @@ public class TestDAOFactory
     AutoPolicyWaiverDAO autoPolicyWaiverDAO = createAutoPolicyWaiverDAO();
     CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO = createCpeMatchingConfigurationDAO();
     OrganizationDAO organizationDAO = createOrganizationDAO();
+    TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
-            organizationDAO);
+        organizationDAO, temporaryTableHelper);
   }
 
   @Override
@@ -664,8 +673,9 @@ public class TestDAOFactory
 
   @Override
   public PolicyViolationDAO createPolicyViolationDAO() {
+    TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new PolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
-        createPolicyViolationConstraintFactsDAO());
+        createPolicyViolationConstraintFactsDAO(), temporaryTableHelper);
   }
 
   @Override
@@ -1235,5 +1245,9 @@ public class TestDAOFactory
   @Override
   public ZScalerMetricsDAO createZScalerMetricsDAO() {
     return new ZScalerMetricsDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  private TemporaryTableHelper createTemporaryTableHelper() {
+    return new TemporaryTableHelper();
   }
 }

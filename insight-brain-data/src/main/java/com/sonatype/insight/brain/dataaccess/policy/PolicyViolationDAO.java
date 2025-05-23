@@ -29,6 +29,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -59,12 +60,16 @@ public class PolicyViolationDAO
 
   static final int DELETE_BATCH_SIZE = 100;
 
+  private final TemporaryTableHelper temporaryTableHelper;
+
   @Inject
   public PolicyViolationDAO(
       OperationalDataStore operationalDataStore,
-      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
+      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO,
+      TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore, policyViolationConstraintFactsDAO);
+    this.temporaryTableHelper = temporaryTableHelper;
   }
 
   public List<PolicyViolation> getByApplicationId(String applicationId) {
@@ -792,111 +797,135 @@ public class PolicyViolationDAO
     }
 
     String databaseSchema = getDatabaseSchema();
-    int appIdsParamStartPosition = 1;
-    int stageIdsParamStartPosition = appIdsParamStartPosition + applicationIds.size();
+
     // The aggregationQuery extracts policy violations grouped by app+policy+threat_level+component across stages (i.e.
     // the columns in DISTINCT ON) and extracts the oldest policy violation for each group (because it orders by the
     // same columns it groups by and open_time).
     // It is important that the columns in DISTINCT ON are the first columns in ORDER BY.
     // Note that GROUP BY was tested with this query instead of DISTINCT ON and was found to be slower.
-    String aggregationQuery = //
-        "  SELECT\n" + //
-        "    DISTINCT ON (\n" + //
-        "      application_id,\n" + //
-        "      policy_name,\n" + //
-        "      threat_level,\n" + //
-        "      hash,\n" + //
-        "      component_id_format,\n" + //
-        "      component_id_coordinates_json,\n" + //
-        "      constraint_facts_id\n" + //
-        "    )\n" + //
-        "    application_id,\n" + //
-        "    policy_name,\n" + //
-        "    threat_level,\n" + //
-        "    hash,\n" + //
-        "    component_id_format,\n" + //
-        "    component_id_coordinates_json,\n" + //
-        "    constraint_facts_id,\n" + //
-        "    open_time,\n" + //
-        "    filename,\n" + //
-        "    policy_violation_id,\n" + //
-        "    auto_policy_waiver_id\n" + //
-        "  FROM " + databaseSchema + ".policy_violation\n" + //
-        "  WHERE\n" + //
-        "    application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition) + "\n" + //
-        "    AND stage_type_id IN " + buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition) + "\n" + //
-        "    AND fix_time IS NULL\n";
-    int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
-    int minDateParamPosition = nextParamPosition;
-    if (minDate != null) {
-      aggregationQuery += "    AND open_time >= ?" + minDateParamPosition + "\n";
-      nextParamPosition++;
-    }
-    int minThreatLevelParamPosition = nextParamPosition;
-    if (minPolicyThreatLevel != null) {
-      aggregationQuery += "    AND threat_level >= ?" + minThreatLevelParamPosition + "\n";
-      nextParamPosition++;
-    }
-    int maxThreatLevelParamPosition = nextParamPosition;
-    if (maxPolicyThreatLevel != null) {
-      aggregationQuery += "    AND threat_level <= ?" + maxThreatLevelParamPosition + "\n";
-      nextParamPosition++;
-    }
-    int threatCategoriesParamPosition = nextParamPosition;
-    if (policyThreatCategories != null) {
-      aggregationQuery += "    AND threat_category IN "
-          + buildPositionalParameters(policyThreatCategories, threatCategoriesParamPosition) + "\n";
-      nextParamPosition++;
-    }
-    aggregationQuery +=
-        getPolicyStateFilterForNativeQuery(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
-    aggregationQuery += "  ORDER BY\n" + //
-        "    application_id,\n" + //
-        "    policy_name,\n" + //
-        "    threat_level,\n" + //
-        "    hash,\n" + //
-        "    component_id_format,\n" + //
-        "    component_id_coordinates_json,\n" + //
-        "    constraint_facts_id,\n" + //
-        "    open_time";
-
-    // The final query uses the aggregation query above to extract the columns needed in the results.
-    // We need this "extra" query because the desired order is not the order used in the aggregation query.
-    String sQuery = //
-        "WITH aggregated_policy_violation AS (\n" + //
-        aggregationQuery + "\n" + //
-        ")\n" + //
-        "SELECT\n" + //
-        "  application.application_id,\n" + //
-        "  application.name application_name,\n" + //
-        "  organization.name organization_name,\n" + //
-        "  pv.policy_violation_id,\n" + //
-        "  pv.policy_name,\n" + //
-        "  pv.threat_level,\n" + //
-        "  pv.hash,\n" + //
-        "  pv.filename,\n" + //
-        "  pv.component_id_format,\n" + //
-        "  pv.component_id_coordinates_json,\n" + //
-        "  pv.constraint_facts_id,\n" + //
-        "  pv.open_time,\n" + //
-        "  pv.auto_policy_waiver_id\n" + //
-        "FROM aggregated_policy_violation pv\n" + //
-        "JOIN " + databaseSchema + ".application application USING (application_id)\n" + //
-        "JOIN " + databaseSchema + ".organization organization USING (organization_id)\n";
-    // Adds sorting by policy_violation_id to get repeatable results
-    orderBys.add("policy_violation_id");
-    sQuery += "ORDER BY " + String.join(", ", orderBys) + "\n";
-    // For CSV export, the pageSize is set to Integer.MAX_VALUE, which means unlimited.
-    // We extract pageSize+1 records to be able to know if there are more records available, which tells the UI if there
-    // is a next page or not.
-    if (pageSize < Integer.MAX_VALUE) {
-      sQuery += "LIMIT " + (pageSize + 1) + " OFFSET " + (page * pageSize);
-    }
+    String aggregationQuery;
 
     try (TransactionContext tx = createTransactionContext()) {
+      boolean useTemporaryTable =
+          temporaryTableHelper.maybeCreateTemporaryTableWithIds(tx, applicationIds);
+
+      int appIdsParamStartPosition = 1;
+      int stageIdsParamStartPosition = useTemporaryTable ? 1 : appIdsParamStartPosition + applicationIds.size();
+
+      aggregationQuery = String.format("""
+              SELECT
+                DISTINCT ON (
+                  pv.application_id,
+                  pv.policy_name,
+                  pv.threat_level,
+                  pv.hash,
+                  pv.component_id_format,
+                  pv.component_id_coordinates_json,
+                  pv.constraint_facts_id
+                )
+                pv.application_id,
+                pv.policy_name,
+                pv.threat_level,
+                pv.hash,
+                pv.component_id_format,
+                pv.component_id_coordinates_json,
+                pv.constraint_facts_id,
+                pv.open_time,
+                pv.filename,
+                pv.policy_violation_id,
+                pv.auto_policy_waiver_id
+              FROM %s.policy_violation pv
+              %s
+              WHERE
+                pv.stage_type_id IN %s
+                AND pv.fix_time IS NULL
+                %s
+              """,
+          databaseSchema,
+          useTemporaryTable ? "JOIN temporary_ids ti ON pv.application_id = ti.id" : "",
+          buildPositionalParameters(stageTypeIds, stageIdsParamStartPosition),
+          useTemporaryTable ? "" :
+              "AND pv.application_id IN " + buildPositionalParameters(applicationIds, appIdsParamStartPosition)
+      );
+
+      int nextParamPosition = stageIdsParamStartPosition + stageTypeIds.size();
+      int minDateParamPosition = nextParamPosition;
+      if (minDate != null) {
+        aggregationQuery += "    AND pv.open_time >= ?" + minDateParamPosition + "\n";
+        nextParamPosition++;
+      }
+      int minThreatLevelParamPosition = nextParamPosition;
+      if (minPolicyThreatLevel != null) {
+        aggregationQuery += "    AND pv.threat_level >= ?" + minThreatLevelParamPosition + "\n";
+        nextParamPosition++;
+      }
+      int maxThreatLevelParamPosition = nextParamPosition;
+      if (maxPolicyThreatLevel != null) {
+        aggregationQuery += "    AND pv.threat_level <= ?" + maxThreatLevelParamPosition + "\n";
+        nextParamPosition++;
+      }
+      int threatCategoriesParamPosition = nextParamPosition;
+      if (policyThreatCategories != null) {
+        aggregationQuery += "    AND pv.threat_category IN "
+            + buildPositionalParameters(policyThreatCategories, threatCategoriesParamPosition) + "\n";
+        nextParamPosition++;
+      }
+      aggregationQuery +=
+          getPolicyStateFilterForNativeQuery(violationStateOpen, violationStateWaived, violationStateLegacyViolation);
+      aggregationQuery += """
+          ORDER BY
+            pv.application_id,
+            pv.policy_name,
+            pv.threat_level,
+            pv.hash,
+            pv.component_id_format,
+            pv.component_id_coordinates_json,
+            pv.constraint_facts_id,
+            pv.open_time""";
+
+      // The final query uses the aggregation query above to extract the columns needed in the results.
+      // We need this "extra" query because the desired order is not the order used in the aggregation query.
+      String sQuery = String.format("""
+          WITH aggregated_policy_violation AS (
+          %s
+          )
+          SELECT
+            application.application_id,
+            application.name application_name,
+            organization.name organization_name,
+            apv.policy_violation_id,
+            apv.policy_name,
+            apv.threat_level,
+            apv.hash,
+            apv.filename,
+            apv.component_id_format,
+            apv.component_id_coordinates_json,
+            apv.constraint_facts_id,
+            apv.open_time,
+            apv.auto_policy_waiver_id
+          FROM aggregated_policy_violation apv
+          JOIN %s.application application USING (application_id)
+          JOIN %s.organization organization USING (organization_id)
+          """, aggregationQuery, databaseSchema, databaseSchema);
+      // Adds sorting by policy_violation_id to get repeatable results
+      orderBys.add("policy_violation_id");
+      sQuery += String.format("ORDER BY %s\n", String.join(", ", orderBys));
+      // For CSV export, the pageSize is set to Integer.MAX_VALUE, which means unlimited.
+      // We extract pageSize+1 records to be able to know if there are more records available, which tells the UI if
+      // there is a next page or not.
+      if (pageSize < Integer.MAX_VALUE) {
+        sQuery += String.format("LIMIT %d OFFSET %d", (pageSize + 1), (page * pageSize));
+      }
+
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
-      addPositionalParameters(query, applicationIds, appIdsParamStartPosition);
+
+      // Add parameters based on whether we're using a temporary table or not
+      if (!useTemporaryTable) {
+        addPositionalParameters(query, applicationIds, appIdsParamStartPosition);
+      }
+
       addPositionalParameters(query, stageTypeIds, stageIdsParamStartPosition);
+
       if (minDate != null) {
         query.setParameter(minDateParamPosition, minDate);
       }

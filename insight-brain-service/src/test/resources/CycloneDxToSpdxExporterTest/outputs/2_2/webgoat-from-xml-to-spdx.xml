@@ -48,7 +48,7 @@
             <referenceType>advisory</referenceType>
         </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
-        <licenseConcluded>NOASSERTION</licenseConcluded>
+        <licenseConcluded>(Apache-1.1 AND MIT AND Aladdin)</licenseConcluded>
         <licenseDeclared>Apache-1.1</licenseDeclared>
         <name>log4j:log4j</name>
         <versionInfo>1.2.8</versionInfo>

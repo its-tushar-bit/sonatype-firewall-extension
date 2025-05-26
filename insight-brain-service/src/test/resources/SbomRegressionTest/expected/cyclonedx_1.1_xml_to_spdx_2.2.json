@@ -5,9 +5,12 @@
     "created" : "2025-02-20T14:58:18Z",
     "creators" : [ "Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-ab4945edd61c49b38e915e4d85681446",
+  "name" : "SbomRegressionTestApp",
   "dataLicense" : "CC0-1.0",
   "hasExtractedLicensingInfos" : [ {
+    "licenseId" : "LicenseRef-See-License-Clause",
+    "extractedText" : "Extracted license created by Sonatype SBOM Manager"
+  }, {
     "licenseId" : "LicenseRef-Some-random-license",
     "extractedText" : "Extracted license created by Sonatype SBOM Manager",
     "name" : "Some random license"
@@ -35,7 +38,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-2.0)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "com.acme:tomcat-catalina",
     "originator" : "Organization: Acme Inc",
@@ -90,7 +93,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(EPL-2.0)",
     "licenseDeclared" : "(GPL-2.0 WITH Classpath-exception-2.0 OR EPL-2.0)",
     "name" : "org.example:mylibrary",
     "versionInfo" : "1.0.0"
@@ -153,18 +156,13 @@
     "versionInfo" : "1.0.0"
   }, {
     "SPDXID" : "SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.9-type-jar",
-    "attributionTexts" : [ "Evidence license text for: (See-License-Clause)" ],
+    "attributionTexts" : [ "Evidence license text for: (LicenseRef-See-License-Clause)" ],
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
       "referenceType" : "purl"
-    }, {
-      "comment" : "source: NVD",
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518",
-      "referenceType" : "advisory"
     }, {
       "comment" : "source: NVD",
       "referenceCategory" : "SECURITY",
@@ -178,12 +176,12 @@
     }, {
       "comment" : "source: NVD",
       "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003",
       "referenceType" : "advisory"
     }, {
       "comment" : "source: NVD",
       "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518",
       "referenceType" : "advisory"
     }, {
       "comment" : "source: NVD",
@@ -193,11 +191,16 @@
     }, {
       "comment" : "source: NVD",
       "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: NVD",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814",
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(LicenseRef-See-License-Clause)",
     "licenseDeclared" : "NOASSERTION",
     "name" : "com.fasterxml.jackson.core:jackson-databind",
     "versionInfo" : "2.9.9"
@@ -208,7 +211,7 @@
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
     "licenseDeclared" : "NOASSERTION",
-    "name" : "DUMMY-PUBLIC-ID-ab4945edd61c49b38e915e4d85681446"
+    "name" : "SbomRegressionTestApp"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",

@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -29,7 +28,7 @@ public class SbomComponentDTO
 {
   private static final Logger log = LoggerFactory.getLogger(SbomComponentDTO.class);
 
-  private static final TypeReference<Set<License>> LICENSE_TYPE_REFERENCE = new TypeReference<>() { };
+  private static final TypeReference<Set<ResolvedLicenseDTO>> LICENSE_TYPE_REFERENCE = new TypeReference<>() { };
 
   private String hash;
 
@@ -54,7 +53,7 @@ public class SbomComponentDTO
   @JsonInclude(Include.NON_NULL)
   private Integer policyViolationCount;
 
-  private Set<License> licenses;
+  private Set<ResolvedLicenseDTO> licenses;
 
   private int vulnerabilitySeverityNoneCount;
 
@@ -224,11 +223,11 @@ public class SbomComponentDTO
     this.filenames = filenames;
   }
 
-  public Set<License> getLicenses() {
+  public Set<ResolvedLicenseDTO> getLicenses() {
     return licenses;
   }
 
-  public void setLicenses(Set<License> licenses) {
+  public void setLicenses(Set<ResolvedLicenseDTO> licenses) {
     this.licenses = licenses;
   }
 

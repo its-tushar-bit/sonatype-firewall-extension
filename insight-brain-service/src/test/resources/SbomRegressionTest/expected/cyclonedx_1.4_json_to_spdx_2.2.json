@@ -7,7 +7,7 @@
       "Tool: Sonatype SBOM Manager - build-number"
     ]
   },
-  "name": "552",
+  "name": "SbomRegressionTestApp",
   "dataLicense": "CC0-1.0",
   "documentNamespace": "http://juan.nexus.local:8070/ui/links/sbomManager/management/view/application/552/bom/9.1.1_20241017090043528",
   "packages": [
@@ -99,7 +99,7 @@
         }
       ],
       "filesAnalyzed": false,
-      "licenseConcluded": "NOASSERTION",
+      "licenseConcluded": "(EPL-2.0)",
       "licenseDeclared": "(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)",
       "name": "com.acme:tomcat-catalina",
       "originator": "Organization: Acme Inc",

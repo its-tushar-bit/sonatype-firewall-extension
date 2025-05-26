@@ -32,8 +32,8 @@ public class SpdxPackageAssert
     isNotNull();
     try {
       AnyLicenseInfo license = actual.getLicenseConcluded();
-      if (!StringUtils.equals(license.getId(), expectedLicenseId)) {
-        failWithMessage("Expected concluded license to be %s but  was %s", expectedLicenseId, license.getId());
+      if (!StringUtils.equals(license, expectedLicenseId)) {
+        failWithMessage("Expected concluded license to be %s but  was %s", expectedLicenseId, license);
       }
       return this;
     }
@@ -46,8 +46,8 @@ public class SpdxPackageAssert
     isNotNull();
     try {
       AnyLicenseInfo license = actual.getLicenseDeclared();
-      if (!StringUtils.equals(license.getId(), expectedLicenseId)) {
-        failWithMessage("Expected declared license to be %s but  was %s", expectedLicenseId, license.getId());
+      if (!StringUtils.equals(license, expectedLicenseId)) {
+        failWithMessage("Expected declared license to be %s but  was %s", expectedLicenseId, license);
       }
       return this;
     }

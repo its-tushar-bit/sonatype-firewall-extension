@@ -13,10 +13,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -27,6 +29,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -37,6 +41,8 @@ import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
@@ -66,8 +72,6 @@ public class CycloneDxToCycloneDxExporterTest
     extends AbstractSbomExporterTest
 {
   private CycloneDxToCycloneDxExporter exporter;
-
-  private static final String APP_ID = "webgoat";
 
   private static final String SBOM_VERSION = "v1";
 
@@ -117,9 +121,12 @@ public class CycloneDxToCycloneDxExporterTest
 
   private ThirdPartyFile thirdPartyFile;
 
+  private Application app;
+
   @Before
   public void init() throws SbomExportException {
-    tempEntity.newApplicationWithParent(APP_ID);
+    app = tempEntity.newApplicationWithParent();
+    appId = app.getId();
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToCycloneDxExporter(
         mockInsightWork,
@@ -135,7 +142,8 @@ public class CycloneDxToCycloneDxExporterTest
         baseUrl,
         idUtils,
         versionService,
-        apiReportDataServiceV2
+        apiReportDataServiceV2,
+        licenseResolutionService
     );
   }
 
@@ -160,10 +168,54 @@ public class CycloneDxToCycloneDxExporterTest
   }
 
   @Test
+  public void exportTest_withLicenseOverrides_forLifecycleProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    exportTest_withLicenseOverrides("GPL-3.0", "Artistic-2.0");
+  }
+
+  @Test
+  public void exportTest_withLicenseOverrides_forSbomAndALPProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+    exportTest_withLicenseOverrides("GPL-3.0", "Artistic-2.0");
+  }
+
+  @Test
+  public void exportTest_withLicenseOverrides_forSbomProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    exportTest_withLicenseOverrides("Apache-1.1", null, "Aladdin", "MIT");
+  }
+
+  private void exportTest_withLicenseOverrides(final String... expected) throws Exception {
+    String testFileName = TEST_JSON_SBOM;
+    File testBomFile = prepareTestReportFile(testFileName);
+
+    defineDbTestData(thirdPartyFile);
+    String purl = "pkg:maven/log4j/log4j@1.2.8?type=jar";
+    ComponentIdentifier cid = new PackageUrlIdentifier(purl).toComponentIdentifier();
+    cid.ensureComplete();
+    tempEntity.newLicenseOverride(appId, cid, LicenseOverrideStatus.OVERRIDDEN, Set.of("GPL-3.0", "Artistic-2.0"));
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(),
+        thirdPartyFile);
+    mockOriginalBom(testBomFile);
+
+    exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
+    String exportedBomStr = exporter.export();
+    assertExportedBomString(exportedBomStr);
+
+    Bom exportedNewBom = ThirdPartyUtils.parseAndValidateCycloneDx(exportedBomStr, SbomFormat.JSON);
+    List<Component> exportedComponents = exportedNewBom.getComponents();
+    Component exportedLog4j = findBomComponent(purl, exportedComponents);
+
+    assertThat(exportedLog4j.getLicenses().getLicenses()).hasSize(expected.length)
+        .extracting("id").containsExactlyInAnyOrder(expected);
+  }
+
+  @Test
   public void exportTest_NoVulnerabilitiesInOriginalBom() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -188,7 +240,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_ComponentRef_MatchByBomRef() throws Exception {
     String testFileName = "test-bom-ref-as-component-ref.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_16, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -216,7 +268,7 @@ public class CycloneDxToCycloneDxExporterTest
     ignoreFields.addAll(List.of("components[*].bom-ref", "vulnerabilities[*].affects[*].ref"));
     String testFileName = "test-component-identity-as-component-ref.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -242,7 +294,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_ContainerScan() throws Exception {
     String testFileName = "test-container-bom.json";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.DEFAULT, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -268,7 +320,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_nonNumericCwesReturnedByHDS() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -297,7 +349,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_VulnerabilityRatingFieldsPreserved() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
@@ -322,7 +374,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_componentWithSimilarMatchStateProperty() throws Exception {
     String testFileName = "test-similar-match-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile,
@@ -349,7 +401,7 @@ public class CycloneDxToCycloneDxExporterTest
   public void exportTest_componentWithExactMatchStateProperty() throws Exception {
     String testFileName = "test-bom.xml";
     File testBomFile = prepareTestReportFile(testFileName);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     exporter.setExportParams(withExportParams(sbomMetadata, ExportSpecification.CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fileCoordinate = tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile,
@@ -378,7 +430,7 @@ public class CycloneDxToCycloneDxExporterTest
     String testFileName = "test-bom-duplicate-vuln.xml";
     File testBomFile = prepareTestReportFile(testFileName);
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     ThirdPartyFileCoordinate cp1 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "npm", "vue", "2.2.4", "2b0949b",
             "pkg:npm/vue@2.2.4", "", "exact");
@@ -430,12 +482,11 @@ public class CycloneDxToCycloneDxExporterTest
       throws Exception
   {
     //Given
-    String appId = "hrapp";
     String testFileName = "test-bom-with-initial-vex.json";
-    File testBomFile = mockSbomFileForApp(appId, getGZippedSbom(testFileName));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(testFileName));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
-    tempEntity.newApplicationWithParent(appId);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata =
+        insertTestData(app.getId(), SBOM_VERSION, testBomFile.getName(), thirdPartyFile);
     ThirdPartyFileCoordinate cp1 =
         tempEntity.newThirdPartyFileCoordinateWithMatchState(thirdPartyFile, "SBOM", "maven",
             "org.springframework.boot:spring-boot-autoconfigure", "2.0.3.RELEASE", "2b0949b",
@@ -498,7 +549,7 @@ public class CycloneDxToCycloneDxExporterTest
     File testBomFile = prepareTestReportFile(testFileName);
 
     defineDbTestData(thirdPartyFile);
-    ThirdPartySbomMetadata sbomMetadata = insertTestData(APP_ID, SBOM_VERSION, testBomFile.getName(),
+    ThirdPartySbomMetadata sbomMetadata = insertTestData(appId, SBOM_VERSION, testBomFile.getName(),
         thirdPartyFile);
 
     Bom originalBom = mockOriginalBom(testBomFile);
@@ -687,7 +738,7 @@ public class CycloneDxToCycloneDxExporterTest
   }
 
   private File prepareTestReportFile(String sbomFileName) throws Exception {
-    return mockSbomFileForApp(APP_ID, getGZippedSbom(sbomFileName));
+    return mockSbomFileForApp(appId, getGZippedSbom(sbomFileName));
   }
 
   private void assertExportedBom(Bom exportedNewBom) {

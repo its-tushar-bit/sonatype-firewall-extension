@@ -17,8 +17,10 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -48,6 +50,12 @@ public class AbstractSbomExporterTest
 
   @Inject
   protected MigrationTrackerDAO migrationTrackerDAO;
+
+  @Inject
+  protected ThirdPartyComponentLicenseResolutionService licenseResolutionService;
+
+  @Inject
+  protected TestProductLicense productLicense;
 
   @Mock
   protected InsightWork mockInsightWork;

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -52,7 +53,8 @@ public class CycloneDxToPdfExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ApiReportDataServiceV2 apiReportDataServiceV2)
+      final ApiReportDataServiceV2 apiReportDataServiceV2,
+      final ThirdPartyComponentLicenseResolutionService licenseResolutionService)
   {
     super(
         insightWork,
@@ -68,7 +70,8 @@ public class CycloneDxToPdfExporter
         baseUrl,
         idUtils,
         versionService,
-        apiReportDataServiceV2
+        apiReportDataServiceV2,
+        licenseResolutionService
     );
   }
 

@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
@@ -21,6 +20,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.thirdpartyscans.BomPageSbomSummaryDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomDependencyTypeDTO;
@@ -420,10 +420,10 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId)
+              .extracting(ResolvedLicenseDTO::licenseId)
               .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName)
+              .extracting(ResolvedLicenseDTO::licenseName)
               .containsExactlyInAnyOrder("License 1", "License 2");
         });
   }
@@ -514,10 +514,10 @@ public class ThirdPartyFileCoordinateDAOTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isEqualTo(2);
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isOne();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId)
+              .extracting(ResolvedLicenseDTO::licenseId)
               .containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName)
+              .extracting(ResolvedLicenseDTO::licenseName)
               .containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPercentageAnnotated()).isEqualTo(16.7);
           //for older records where the componentRef is not set.
@@ -1294,9 +1294,9 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(result.getTotalResultsCount()).isOne();
     SbomComponentDTO dto = result.getResults().get(0);
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier1);
-    Set<License> licenses = result.getResults().get(0).getLicenses();
+    Set<ResolvedLicenseDTO> licenses = result.getResults().get(0).getLicenses();
     assertThat(licenses).hasSize(1);
-    assertThat(licenses).extracting(License::getLicenseId).containsExactly("license-1");
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId).containsExactly("license-1");
 
     //testing with license id partial
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
@@ -1312,18 +1312,18 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier1);
     licenses = dto.getLicenses();
     assertThat(licenses).hasSize(1);
-    assertThat(licenses).extracting(License::getLicenseId).containsExactly("license-1");
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId).containsExactly("license-1");
     dto = result.getResults().get(1);
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
     licenses = dto.getLicenses();
     assertThat(licenses).hasSize(3);
-    assertThat(licenses).extracting(License::getLicenseId)
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId)
         .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
     dto = result.getResults().get(2);
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier4); // matches component name 'd-license-blah'
     licenses = dto.getLicenses();
     assertThat(licenses).hasSize(1);
-    assertThat(licenses).extracting(License::getLicenseId).containsExactly("some-5");
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId).containsExactly("some-5");
 
     //testing with license name
     result = thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(
@@ -1336,7 +1336,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
     licenses = dto.getLicenses();
     assertThat(licenses).hasSize(3);
-    assertThat(licenses).extracting(License::getLicenseId)
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId)
         .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
 
     //testing with license name special characters
@@ -1350,7 +1350,7 @@ public class ThirdPartyFileCoordinateDAOTest
     assertThat(dto.getComponentIdentifier()).isEqualTo(componentIdentifier2);
     licenses = dto.getLicenses();
     assertThat(licenses).hasSize(3);
-    assertThat(licenses).extracting(License::getLicenseId)
+    assertThat(licenses).extracting(ResolvedLicenseDTO::licenseId)
         .containsExactlyInAnyOrder("license-2", "license-3", "license-4");
   }
 

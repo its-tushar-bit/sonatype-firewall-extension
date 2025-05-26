@@ -5,138 +5,169 @@
  */
 package com.sonatype.insight.brain.sbom.license;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.product.license.CLMLicenseManager;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
+@Singleton
 public class ThirdPartyComponentLicenseResolutionService
 {
   private final LicenseOverrideDAO licenseOverrideDAO;
 
   private final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  private final ProductLicense productLicense;
+
+  private final ApplicationDAO applicationDAO;
+
   private static final Set<LicenseOverrideStatus> LICENSE_OVERRIDE_STATUSES =
-      Set.of(LicenseOverrideStatus.SELECTED, LicenseOverrideStatus.OVERRIDDEN) ;
+      Set.of(LicenseOverrideStatus.SELECTED, LicenseOverrideStatus.OVERRIDDEN);
 
   @Inject
-  public ThirdPartyComponentLicenseResolutionService(LicenseOverrideDAO licenseOverrideDAO,
-                                                     ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO)
+  public ThirdPartyComponentLicenseResolutionService(
+      final LicenseOverrideDAO licenseOverrideDAO,
+      final ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO,
+      final ProductLicense productLicense,
+      final ApplicationDAO applicationDAO)
   {
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.thirdPartyCoordinateLicenseDAO = thirdPartyCoordinateLicenseDAO;
+    this.productLicense = productLicense;
+    this.applicationDAO = applicationDAO;
   }
 
-  public Map<ThirdPartyFileCoordinate, Set<ResolvedLicenseDTO>> resolveLicenses(
-      Application application,
-      List<ThirdPartyFileCoordinate> thirdPartyFileCoordinates)
+  /**
+   * Retrieves license overrides for a specific component within an application.
+   * <p>
+   * This method checks if there are any license overrides applied to the given package URL within the context of the
+   * specified application. It considers the application hierarchy when looking for overrides.
+   *
+   * @param appInternalId the internal ID of the application
+   * @param packageUrl    the package URL of the component to retrieve license overrides for
+   * @return a set of {@link ResolvedLicenseDTO} objects representing the overridden licenses, or an empty set if no
+   * overrides exist or the component identifier is invalid
+   */
+  public Set<ResolvedLicenseDTO> getLicenseOverrides(
+      String appInternalId,
+      String packageUrl)
   {
-    List<Pair<ThirdPartyFileCoordinate, ComponentIdentifier>> componentIdentifiers = new ArrayList<>();
-    Map<String, ThirdPartyFileCoordinate> thirdPartyFileCoordinateById = new HashMap<>();
-    for (ThirdPartyFileCoordinate thirdPartyFileCoordinate : thirdPartyFileCoordinates) {
-      thirdPartyFileCoordinateById.put(thirdPartyFileCoordinate.getId(), thirdPartyFileCoordinate);
-      if (StringUtils.isNotEmpty(thirdPartyFileCoordinate.getPackageUrl())) {
-        componentIdentifiers.add(Pair.of(thirdPartyFileCoordinate,
-            new PackageUrlIdentifier(thirdPartyFileCoordinate.getPackageUrl()).toComponentIdentifier()));
-      }
+    ComponentIdentifier componentIdentifier = getCompleteIdentifier(packageUrl);
+    if (componentIdentifier == null) {
+      return Collections.emptySet();
     }
-    Set<String> componentIdsWithoutLicenseOverrides = new HashSet<>();
-    Map<ThirdPartyFileCoordinate, LicenseOverride> licenseOverrides = findThirdPartyFileCoordinatesWithOverrides(
-        application, componentIdentifiers, componentIdsWithoutLicenseOverrides);
-    Map<ThirdPartyFileCoordinate, Set<ThirdPartyCoordinateLicense>> componentsToLicenses =
-        findThirdPartyFileCoordinatesWithoutOverrides(thirdPartyFileCoordinateById,
-            componentIdsWithoutLicenseOverrides);
-    return mapThirdPartyFileCoordinateToResolvedLicenseDTO(thirdPartyFileCoordinates, licenseOverrides,
-        componentsToLicenses);
+
+    LicenseOverride licenseOverride = licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(
+        applicationDAO.getByIdNotNull(appInternalId), componentIdentifier);
+    if (licenseOverride != null && LICENSE_OVERRIDE_STATUSES.contains(licenseOverride.getStatus())) {
+      return licenseOverride.getLicenseIds().stream()
+          .map(licenseId -> new ResolvedLicenseDTO(licenseId, null, null, null, licenseOverride.getStatus()))
+          .collect(Collectors.toSet());
+    }
+    return Collections.emptySet();
   }
 
-  private Map<ThirdPartyFileCoordinate, Set<ResolvedLicenseDTO>> mapThirdPartyFileCoordinateToResolvedLicenseDTO(
-      List<ThirdPartyFileCoordinate> thirdPartyFileCoordinates,
-      Map<ThirdPartyFileCoordinate, LicenseOverride> componentsToLicenseOverrides,
-      Map<ThirdPartyFileCoordinate, Set<ThirdPartyCoordinateLicense>> componentsToCoordinateLicenses)
-  {
-    Map<ThirdPartyFileCoordinate, Set<ResolvedLicenseDTO>> licenseDTOs = new HashMap<>();
-    for (ThirdPartyFileCoordinate thirdPartyFileCoordinate : thirdPartyFileCoordinates) {
-      licenseDTOs.put(thirdPartyFileCoordinate, new HashSet<>());
-      if (componentsToLicenseOverrides.containsKey(thirdPartyFileCoordinate)) {
-        LicenseOverride licenseOverride = componentsToLicenseOverrides.get(thirdPartyFileCoordinate);
-        licenseDTOs.get(thirdPartyFileCoordinate).addAll(licenseOverride.getLicenseIds().stream()
-            .map(licenseId -> new ResolvedLicenseDTO(licenseId, null, null, licenseOverride.getStatus()))
-            .collect(Collectors.toSet()));
-      }
-      else if (componentsToCoordinateLicenses.containsKey(thirdPartyFileCoordinate)) {
-        licenseDTOs.get(thirdPartyFileCoordinate).addAll(componentsToCoordinateLicenses.get(thirdPartyFileCoordinate)
-            .stream().map(thirdPartyCoordinateLicense -> new
-                ResolvedLicenseDTO(thirdPartyCoordinateLicense.getLicenseId(), thirdPartyCoordinateLicense.getName(),
-                thirdPartyCoordinateLicense.getUrl(), null)).collect(Collectors.toSet()));
-      }
-    }
-    return licenseDTOs;
+  /**
+   * Determines if license overrides should be considered based on the product license.
+   * <p>
+   * This method checks if the current product license is either an advanced legal pack product or a lifecycle product.
+   *
+   * @return true if license overrides should be considered, false otherwise
+   */
+  public boolean shouldConsiderLicenseOverrides() {
+    return CLMLicenseManager.hasAdvancedLegalPackProduct(productLicense) ||
+        CLMLicenseManager.hasLifecycleProduct(productLicense);
   }
 
-  private Map<ThirdPartyFileCoordinate, Set<ThirdPartyCoordinateLicense>> findThirdPartyFileCoordinatesWithoutOverrides(
-      Map<String, ThirdPartyFileCoordinate> thirdPartyFileCoordinateById,
-      Set<String> componentIdsWithoutLicenseOverrides)
+  /**
+   * Resolves licenses for a component by checking for overrides first, then falling back to third-party licenses.
+   * <p>
+   * This method performs a hierarchical resolution process:
+   * <ol>
+   *   <li>First attempts to find license overrides for the component if the identifier is valid and
+   *       the product license supports overrides</li>
+   *   <li>If no overrides are found, searches for third-party licenses associated with the component</li>
+   *   <li>Returns an empty set if neither overrides nor third-party licenses are found</li>
+   * </ol>
+   *
+   * @param appInternalId            the internal ID of the application context
+   * @param thirdPartyFileCoordinate the component coordinate to resolve licenses for
+   * @return a set of {@link ResolvedLicenseDTO} objects representing the resolved licenses, which may come from
+   * overrides or third-party licenses, or an empty set if none found
+   */
+  public Set<ResolvedLicenseDTO> resolveLicenseOverridesOrThirdPartyLicenses(
+      String appInternalId,
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate)
   {
-    if (CollectionUtils.isEmpty(componentIdsWithoutLicenseOverrides)) {
-      return Collections.emptyMap();
-    }
-    Map<ThirdPartyFileCoordinate, Set<ThirdPartyCoordinateLicense>> thirdPartyFileCoordinatesToLicenses
-        = new HashMap<>();
-    List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenses =
-        thirdPartyCoordinateLicenseDAO.getByFileCoordinateIds(componentIdsWithoutLicenseOverrides);
-    for (ThirdPartyCoordinateLicense thirdPartyCoordinateLicense : thirdPartyCoordinateLicenses) {
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate =
-          thirdPartyFileCoordinateById.get(thirdPartyCoordinateLicense.getFileCoordinateId());
-      if (thirdPartyFileCoordinatesToLicenses.containsKey(thirdPartyFileCoordinate)) {
-        thirdPartyFileCoordinatesToLicenses.get(thirdPartyFileCoordinate).add(thirdPartyCoordinateLicense);
-      }
-      else {
-        Set<ThirdPartyCoordinateLicense> licenses = new HashSet<>();
-        licenses.add(thirdPartyCoordinateLicense);
-        thirdPartyFileCoordinatesToLicenses.put(thirdPartyFileCoordinate, licenses);
-      }
-    }
-    return thirdPartyFileCoordinatesToLicenses;
-  }
+    Application app = applicationDAO.getByIdNotNull(appInternalId);
+    ComponentIdentifier componentId = getCompleteIdentifier(thirdPartyFileCoordinate.getPackageUrl());
 
-  private Map<ThirdPartyFileCoordinate, LicenseOverride> findThirdPartyFileCoordinatesWithOverrides(
-      Application sbomApplication,
-      List<Pair<ThirdPartyFileCoordinate, ComponentIdentifier>> componentIdentifiers,
-      Set<String> componentIdsWithoutLicenseOverrides)
-  {
-    Map<ThirdPartyFileCoordinate, LicenseOverride> thirdPartyFileCoordinateToLicenseOverrides = new HashMap<>();
-    for (Pair<ThirdPartyFileCoordinate, ComponentIdentifier> pair : componentIdentifiers) {
+    // Try to find license overrides if component identifier is valid
+    // and the product belongs to lifecycle products or products with ALP add-on
+    if (componentId != null && shouldConsiderLicenseOverrides()) {
       LicenseOverride licenseOverride =
-          licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(sbomApplication, pair.getRight());
-      ThirdPartyFileCoordinate thirdPartyFileCoordinate = pair.getLeft();
+          licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(app, componentId);
+
       if (licenseOverride != null && LICENSE_OVERRIDE_STATUSES.contains(licenseOverride.getStatus())) {
-        thirdPartyFileCoordinateToLicenseOverrides.put(thirdPartyFileCoordinate, licenseOverride);
-      }
-      else {
-        componentIdsWithoutLicenseOverrides.add(thirdPartyFileCoordinate.getId());
+        return licenseOverride.getLicenseIds().stream()
+            .map(licenseId -> new ResolvedLicenseDTO(licenseId, null, null, null, licenseOverride.getStatus()))
+            .collect(Collectors.toSet());
       }
     }
-    return thirdPartyFileCoordinateToLicenseOverrides;
+
+    // If no overrides found, look for third party licenses
+    Set<ThirdPartyCoordinateLicense> thirdPartyLicenses = new HashSet<>(
+        thirdPartyCoordinateLicenseDAO.getByFileCoordinateIds(
+            Collections.singleton(thirdPartyFileCoordinate.getId())));
+
+    if (!thirdPartyLicenses.isEmpty()) {
+      return thirdPartyLicenses.stream()
+          .map(license -> new ResolvedLicenseDTO(
+              license.getLicenseId(),
+              license.getName(),
+              license.getUrl(),
+              license.getIdentificationSources(),
+              null))
+          .collect(Collectors.toSet());
+    }
+
+    // No results found
+    return Collections.emptySet();
+  }
+
+  private ComponentIdentifier getCompleteIdentifier(final String packageUrl) {
+    ComponentIdentifier id = null;
+    try {
+      if (StringUtils.isNotEmpty(packageUrl)) {
+        id = new PackageUrlIdentifier(packageUrl).toComponentIdentifier();
+        id.ensureComplete();
+      }
+    }
+    catch (InvalidComponentIdentifierException | InvalidPackageURLException e) {
+      //no-op
+    }
+    return id;
   }
 }

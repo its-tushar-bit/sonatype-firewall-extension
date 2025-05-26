@@ -28,6 +28,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.report.pdf.PdfData;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -156,11 +157,12 @@ public class CycloneDxToSpdxExporter
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
-      final VersionService versionService)
+      final VersionService versionService,
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
   {
     super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService);
+        versionService, thirdPartyLicenseResolver);
   }
 
   @Override

@@ -29,7 +29,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-2.0 AND MIT)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "apache:axis",
     "primaryPackagePurpose" : "LIBRARY",

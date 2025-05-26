@@ -9,13 +9,17 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.junit.Before;
@@ -47,7 +51,8 @@ public class CycloneDxToPdfExporterTest
         baseUrl,
         idUtils,
         versionService,
-        apiReportDataServiceV2
+        apiReportDataServiceV2,
+        licenseResolutionService
     );
   }
 
@@ -131,6 +136,67 @@ public class CycloneDxToPdfExporterTest
     assertThat(c2.effectiveLicenses).hasSize(1);
     assertThat(c2.effectiveLicenses.stream().map(c -> c.name)).contains("Apache-2.0");
     assertThat(c2.securityIssues).hasSize(0);
+  }
+
+  @Test
+  public void testExportPdf_withOverriddenLicenses_forLifeCycleProduct() throws Exception {
+    //Given
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    testExportPdf_withOverriddenLicenses("MIT", "Aladdin");
+  }
+
+  @Test
+  public void testExportPdf_withOverriddenLicenses_forSbomAndALPProduct() throws Exception {
+    //Given
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+    testExportPdf_withOverriddenLicenses("MIT", "Aladdin");
+  }
+
+  @Test
+  public void testExportPdf_withOverriddenLicenses_forSbomProduct() throws Exception {
+    //Given
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
+    testExportPdf_withOverriddenLicenses("MPL-2.0", "Apache-2.0");
+  }
+
+  private void testExportPdf_withOverriddenLicenses(final String expected1, final String expected2) throws Exception {
+    File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
+    String purl1 = "pkg:maven/log4j/log4j@1.2.8?type=jar";
+    String purl2 = "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar";
+    ThirdPartySbomMetadata sbomMetadata =
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+    exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
+        purl1, "pkg:maven/log4j/log4j@1.2.8?type=jar:3640dd71069d7986c9a1"
+    );
+    setupFileCoordinateEntity("jackson-databind", "2.9.9", "43482bee60d253ab70b6",
+        purl2, "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+    );
+    ComponentIdentifier id1 = new PackageUrlIdentifier(purl1).toComponentIdentifier();
+    id1.ensureComplete();
+    tempEntity.newLicenseOverride(app.getId(), id1, LicenseOverrideStatus.OVERRIDDEN, "MIT");
+    ComponentIdentifier id2 = new PackageUrlIdentifier(purl2).toComponentIdentifier();
+    id2.ensureComplete();
+    tempEntity.newLicenseOverride(app.getId(), id2, LicenseOverrideStatus.SELECTED, "Aladdin");
+    //When
+    PdfData pdfData = exporter.exportPdf();
+
+    //Then
+    assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
+
+    PdfComponent c1 = pdfData.components.stream().filter(c -> c.displayName.contains("log4j")).findFirst().get();
+    assertThat(c1.displayName).isEqualTo("log4j : log4j : 1.2.8");
+    assertThat(c1.policyViolations).hasSize(0);
+    assertThat(c1.effectiveLicenses.stream().map(c -> c.name)).containsExactlyInAnyOrder(expected1);
+
+    PdfComponent c2 =
+        pdfData.components.stream().filter(c -> c.displayName.contains("jackson-databind")).findFirst().get();
+    assertThat(c2.displayName).isEqualTo("com.fasterxml.jackson.core : jackson-databind : 2.9.9");
+
+    assertThat(c2.effectiveLicenses).hasSize(1);
+    assertThat(c2.effectiveLicenses.stream().map(c -> c.name)).contains(expected2);
   }
 
   @Test

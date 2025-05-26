@@ -48,6 +48,11 @@
     word-break: break-all;
   }
 
+  &__overridden-pill {
+    margin-left: var(--nx-spacing-2x);
+    height: 21px;
+  }
+
   &__pagination-section {
     display: flex;
     align-items: center;

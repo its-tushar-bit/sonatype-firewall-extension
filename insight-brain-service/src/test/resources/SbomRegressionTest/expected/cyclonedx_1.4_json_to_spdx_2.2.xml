@@ -6,7 +6,7 @@
     <created>2024-10-17T15:20:36Z</created>
     <creators>Tool: Sonatype SBOM Manager - build-number</creators>
   </creationInfo>
-  <name>552</name>
+  <name>SbomRegressionTestApp</name>
   <dataLicense>CC0-1.0</dataLicense>
   <documentNamespace>http://juan.nexus.local:8070/ui/links/sbomManager/management/view/application/552/bom/9.1.1_20241017090043528</documentNamespace>
   <packages>
@@ -91,7 +91,7 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(EPL-2.0)</licenseConcluded>
     <licenseDeclared>(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)</licenseDeclared>
     <name>com.acme:tomcat-catalina</name>
     <originator>Organization: Acme Inc</originator>

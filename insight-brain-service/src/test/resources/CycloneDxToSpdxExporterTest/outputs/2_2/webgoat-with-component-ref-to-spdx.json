@@ -48,7 +48,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(GPL-2.0)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "org.example:abc-component",
     "versionInfo" : "1.0-SNAPSHOT"

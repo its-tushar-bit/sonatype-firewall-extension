@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -59,6 +60,8 @@ public abstract class AbstractSbomExporter
 
   protected final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
 
+  protected final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver;
+
   protected SbomExportParams exportParams;
 
   protected static final DateTimeFormatterBuilder DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
@@ -76,7 +79,8 @@ public abstract class AbstractSbomExporter
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO,
       final BaseUrl baseUrl,
       final IdUtils idUtils,
-      final VersionService versionService)
+      final VersionService versionService,
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
   {
     this.insightWork = insightWork;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -87,6 +91,7 @@ public abstract class AbstractSbomExporter
     this.baseUrl = baseUrl;
     this.idUtils = idUtils;
     this.versionService = versionService;
+    this.thirdPartyLicenseResolver = thirdPartyLicenseResolver;
   }
 
   protected File getOriginalSbomFile() {

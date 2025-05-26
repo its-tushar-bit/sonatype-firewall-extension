@@ -5,7 +5,7 @@
     "created" : "2025-02-20T15:09:10Z",
     "creators" : [ "Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-f44b62c91b624ed184490b9a6f36594e",
+  "name" : "SbomRegressionTestApp",
   "dataLicense" : "CC0-1.0",
   "hasExtractedLicensingInfos" : [ {
     "licenseId" : "LicenseRef-Some-random-license",
@@ -86,7 +86,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-2.0)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "com.acme:tomcat-catalina",
     "originator" : "Organization: Acme Inc",
@@ -141,7 +141,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(GPL-2.0-with-classpath-exception AND EPL-2.0)",
     "licenseDeclared" : "(GPL-2.0-with-classpath-exception OR EPL-2.0)",
     "name" : "org.example:mylibrary",
     "originator" : "Person: Example Super Heros",

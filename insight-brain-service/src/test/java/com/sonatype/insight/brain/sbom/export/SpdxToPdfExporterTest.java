@@ -48,7 +48,8 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
         baseUrl,
         idUtils,
         versionService,
-        apiReportDataServiceV2
+        apiReportDataServiceV2,
+        licenseResolutionService
     );
   }
 

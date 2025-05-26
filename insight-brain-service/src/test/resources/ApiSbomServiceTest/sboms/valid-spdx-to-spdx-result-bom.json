@@ -2,23 +2,18 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2024-07-29T19:13:18Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT" ]
+    "created" : "2025-05-09T15:16:58Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-a3f2e01d83a24df6a289d8cbe33c609c",
+  "name" : "DUMMY-PUBLIC-ID-aa046bcc672c4704b50ad2438923fee9",
   "dataLicense" : "CC0-1.0",
-  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-a3f2e01d83a24df6a289d8cbe33c609c/bom/5ef854f5f6d540ff8cd0",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-aa046bcc672c4704b50ad2438923fee9/bom/40626287b691437f82ee",
   "packages" : [ {
     "SPDXID" : "SPDXRef-maven-apache-axis-1.0",
     "attributionTexts" : [ "Evidence license text for: (Apache-2.0 AND MIT)" ],
     "copyrightText" : "",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "comment" : "source: SONATYPE",
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
-      "referenceType" : "advisory"
-    }, {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
       "referenceType" : "purl"
@@ -27,9 +22,14 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353",
       "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
+      "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "Apache-2.0",
+    "licenseConcluded" : "(Apache-2.0 AND MIT)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "apache:axis",
     "versionInfo" : "1.0"

@@ -2,12 +2,12 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2025-02-20T12:37:18Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT" ]
+    "created" : "2025-05-11T05:34:07Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT" ]
   },
   "name" : "webgoat",
   "dataLicense" : "CC0-1.0",
-  "documentNamespace" : "nullui/links/sbomManager/management/view/application/webgoat/bom/v1",
+  "documentNamespace" : "nullui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-057b3f214da24980932d63d6d883a08d/bom/v1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003",
     "copyrightText" : "NOASSERTION",
@@ -49,7 +49,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(GPL-2.0)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "org.example:abc-component",
     "primaryPackagePurpose" : "LIBRARY",

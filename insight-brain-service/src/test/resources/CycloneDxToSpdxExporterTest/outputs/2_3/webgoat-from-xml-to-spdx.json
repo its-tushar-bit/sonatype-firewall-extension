@@ -2,8 +2,8 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2024-06-11T23:03:54Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.178.0-SNAPSHOT" ]
+    "created" : "2025-05-11T05:58:44Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT" ]
   },
   "name" : "webgoat",
   "dataLicense" : "CC0-1.0",
@@ -43,7 +43,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-1.1 AND MIT AND Aladdin)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "log4j:log4j",
     "primaryPackagePurpose" : "LIBRARY",

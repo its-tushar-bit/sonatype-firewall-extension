@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -33,6 +32,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.javacrumbs.jsonunit.assertj.JsonAssert.ConfigurableJsonAssert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
@@ -48,6 +48,7 @@ import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.SPDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttributesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxIgnoreAttributesFilter;
@@ -188,7 +189,7 @@ public class SbomRegressionTest
   @Before
   public void before() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
-    app = tempEntity.newApplicationWithParent();
+    app = tempEntity.newApplicationWithParent("SbomRegressionTestApp", "SbomRegressionTestApp");
   }
 
   @Test
@@ -266,9 +267,11 @@ public class SbomRegressionTest
           .areIdentical();
     }
     else {
-      assertThatJson(sbomContent)
-          .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
-          .isEqualTo(expectedContent);
+      ConfigurableJsonAssert asserter = assertThatJson(sbomContent);
+      asserter =
+          exportSpec.equals("spdx") ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS) :
+              asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
+      asserter.isEqualTo(expectedContent);
     }
   }
 

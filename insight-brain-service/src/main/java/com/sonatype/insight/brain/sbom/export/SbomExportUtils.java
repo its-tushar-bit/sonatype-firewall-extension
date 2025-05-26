@@ -19,6 +19,7 @@ import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.util.SbomUtils;
@@ -114,28 +115,36 @@ public class SbomExportUtils
     return bomVulnerability;
   }
 
-  public static License createCycloneDxLicenseFromDbData(ThirdPartyCoordinateLicense sonatypeComponentLicense) {
-    License license = new License();
-    String licenseId = sonatypeComponentLicense.getLicenseId();
+  public static License createCycloneDxLicenseForThirdpartyLicense(ThirdPartyCoordinateLicense tpLicense) {
+    return createCycloneDxLicense(tpLicense.getLicenseId(), tpLicense.getUrl(), tpLicense.getIdentificationSources());
+  }
 
+  public static License createCycloneDxLicenseForResolvedLicense(ResolvedLicenseDTO resolved) {
+    return createCycloneDxLicense(resolved.licenseId(), resolved.licenseUrl(), resolved.identificationSources());
+  }
+
+  private static License createCycloneDxLicense(String licenseId, String licenseUrl, String identificationSources) {
+    License license = new License();
     if (ListedLicenses.getListedLicenses().isSpdxListedLicenseId(licenseId)) {
       license.setId(licenseId);
     }
     else {
       license.setName(licenseId);
     }
-    return updateCycloneDxLicenseFromDbData(license, sonatypeComponentLicense);
+    return updateCycloneDxLicenseAttributes(license, licenseUrl,
+        identificationSources);
   }
 
-  public static License updateCycloneDxLicenseFromDbData(
+  public static License updateCycloneDxLicenseAttributes(
       License bomLicense,
-      ThirdPartyCoordinateLicense sonatypeComponentLicense)
+      String licenseUrl,
+      String identificationSources)
   {
-    if (sonatypeComponentLicense.getUrl() != null) {
-      bomLicense.setUrl(sonatypeComponentLicense.getUrl());
+    if (licenseUrl != null) {
+      bomLicense.setUrl(licenseUrl);
     }
     bomLicense.setProperties(addOrUpdateBomElementProperty(bomLicense.getProperties(),
-        SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, sonatypeComponentLicense.getIdentificationSources()));
+        SbomTaxonomy.CDX_IDENTIFICATION_SOURCES_PROPERTY_NAME, identificationSources));
     return bomLicense;
   }
 

@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -20,7 +21,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -41,7 +41,9 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -64,6 +66,7 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.test.LogOutput;
@@ -602,15 +605,17 @@ public class ApiSbomServiceTest
     PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
     ThirdPartyFileCoordinate coordinate1 =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae42", thirdPartyFile, "s1",
-        packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(), "h1",
-        packageUrlIdentifier1.getPackageUrl(), "exact", null, List.of("pkg:npm/p1@v1"));
+            packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+            "h1",
+            packageUrlIdentifier1.getPackageUrl(), "exact", null, List.of("pkg:npm/p1@v1"));
 
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("p2", "v2");
     PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
     ThirdPartyFileCoordinate coordinate2 =
         tempEntity.newThirdPartyFileCoordinate("86163fcc32524261bfd2bdbedb7eae43", thirdPartyFile, "s2",
-        packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(), "h2",
-        packageUrlIdentifier2.getPackageUrl(), "similar", null, List.of("pkg:npm/p2@v2,pkg:npm/p3@v3"));
+            packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+            "h2",
+            packageUrlIdentifier2.getPackageUrl(), "similar", null, List.of("pkg:npm/p2@v2,pkg:npm/p3@v3"));
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license-1");
     tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-2", "License 2", "http://license-2");
 
@@ -669,9 +674,9 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isEqualTo(1);
         });
   }
@@ -868,9 +873,9 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isNull();
         });
   }
@@ -952,9 +957,9 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isEqualTo(0);
         });
   }
@@ -1066,6 +1071,92 @@ public class ApiSbomServiceTest
 
   @Test
   @PostgresTest
+  public void testGetSbomComponents_withLicenseOverrides_forLifeCycleProduct() throws IOException {
+    testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "MIT");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_withLicenseOverrides_forSbomAndALPProduct() throws IOException {
+    testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "MIT");
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_withLicenseOverrides_forSbomProduct() throws IOException {
+    testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testGetSbomComponents_withLicenseOverrides(null, "license-1", "license-4", "license-3");
+  }
+
+  private void testGetSbomComponents_withLicenseOverrides(
+      LicenseOverrideStatus overrideStatus,
+      String... expected) throws IOException
+  {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan scan = tempEntity.newThirdPartyScan(thirdPartyFile);
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("cxf-rt-transports-http-jetty",
+        "3.0.4");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j", "2.4.0");
+    PackageUrlIdentifier packageUrlIdentifier3 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier3);
+    tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s3", packageUrlIdentifier3.getFormat(), packageUrlIdentifier3.getName(), packageUrlIdentifier3.getVersion(),
+        "h3", packageUrlIdentifier3.getPackageUrl(), UNSPECIFIED);
+
+    tempEntity.newThirdPartyCoordinateLicense(coordinate1, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
+
+    //mimic license override
+    tempEntity.newLicenseOverride(application.getId(), packageUrlIdentifier2.toComponentIdentifier(),
+        LicenseOverrideStatus.OVERRIDDEN,
+        Set.of("MIT", "Aladdin"));
+
+    File reportFile = insightWork.getReportFile(application.getId(), scan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper
+        .zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, scan.getScanId());
+
+    SbomComponentListDTO result = service.getSbomComponents(
+        sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), null, null,
+        "license-1", null, true, 5, 1);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+    assertThat(
+        result.getResults().stream().filter(r -> r.getComponentIdentifier().equals(componentIdentifier2)))
+        .hasSize(1)
+        .allSatisfy(dto -> {
+          assertThat(dto.getLicenses()).hasSize(expected.length).extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder(expected);
+          if (overrideStatus != null) {
+            assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus).containsOnly(overrideStatus);
+          }
+        });
+  }
+
+  @Test
+  @PostgresTest
   public void testGetSbomComponents_WithResults_EmptyPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -1141,9 +1232,9 @@ public class ApiSbomServiceTest
           assertThat(component.getVulnerabilitySeverityHighCount()).isZero();
           assertThat(component.getVulnerabilitySeverityCriticalCount()).isZero();
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseId).containsExactlyInAnyOrder("license-1", "license-2");
+              .extracting(ResolvedLicenseDTO::licenseId).containsExactlyInAnyOrder("license-1", "license-2");
           assertThat(component.getLicenses())
-              .extracting(License::getLicenseName).containsExactlyInAnyOrder("License 1", "License 2");
+              .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
         });
   }
 
@@ -1529,7 +1620,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
 
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           userFilename,
@@ -1552,7 +1643,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
 
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           userFilename,
@@ -1575,7 +1666,7 @@ public class ApiSbomServiceTest
     try (InputStream inputStream = getClass().getResourceAsStream(
         "/" + getClass().getSimpleName() + "/third-party-simple-bom.xml")) {
 
-      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->  service.importSbom(
+      assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.importSbom(
           app.getId(),
           inputStream,
           userFilename,
@@ -1873,7 +1964,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
-  public void testImport_SPDX_Json_BadStructure_IgnoreValidationError()  throws Exception {
+  public void testImport_SPDX_Json_BadStructure_IgnoreValidationError() throws Exception {
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> importInvalidSbom("spdx-bad-structure.json", true))
         .withMessage("""

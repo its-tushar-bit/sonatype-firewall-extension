@@ -3,8 +3,8 @@
     <SPDXID>SPDXRef-DOCUMENT</SPDXID>
     <spdxVersion>SPDX-2.3</spdxVersion>
     <creationInfo>
-        <created>2024-07-29T17:35:35Z</created>
-        <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
+        <created>2025-05-11T06:00:52Z</created>
+        <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
     </creationInfo>
     <name>webgoat</name>
     <dataLicense>CC0-1.0</dataLicense>
@@ -26,19 +26,19 @@
             <referenceType>advisory</referenceType>
         </externalRefs>
         <externalRefs>
-            <comment>source: SONATYPE</comment>
-            <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2010-0053</referenceLocator>
-            <referenceType>advisory</referenceType>
-        </externalRefs>
-        <externalRefs>
             <comment>source: SOURCE</comment>
             <referenceCategory>SECURITY</referenceCategory>
             <referenceLocator>http://www.source.com/abc-123</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
+        <externalRefs>
+            <comment>source: SONATYPE</comment>
+            <referenceCategory>SECURITY</referenceCategory>
+            <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2010-0053</referenceLocator>
+            <referenceType>advisory</referenceType>
+        </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
-        <licenseConcluded>NOASSERTION</licenseConcluded>
+        <licenseConcluded>(Apache-1.1 AND MIT AND Aladdin)</licenseConcluded>
         <licenseDeclared>Apache-1.1</licenseDeclared>
         <name>log4j:log4j</name>
         <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
@@ -153,16 +153,16 @@
     <relationships>
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
-        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
-    </relationships>
-    <relationships>
-        <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
-        <relationshipType>DEPENDS_ON</relationshipType>
         <relatedSpdxElement>SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c</relatedSpdxElement>
     </relationships>
     <relationships>
         <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
         <relationshipType>DEPENDS_ON</relationshipType>
         <relatedSpdxElement>SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003</relatedSpdxElement>
+    </relationships>
+    <relationships>
+        <spdxElementId>SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b</spdxElementId>
+        <relationshipType>DEPENDS_ON</relationshipType>
+        <relatedSpdxElement>SPDXRef-85e600ff-6842-4b60-bbc5-56a45e3a357c</relatedSpdxElement>
     </relationships>
 </Document>

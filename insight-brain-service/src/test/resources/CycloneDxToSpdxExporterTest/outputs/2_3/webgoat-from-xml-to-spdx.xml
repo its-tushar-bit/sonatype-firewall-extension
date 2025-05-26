@@ -3,8 +3,8 @@
     <SPDXID>SPDXRef-DOCUMENT</SPDXID>
     <spdxVersion>SPDX-2.3</spdxVersion>
     <creationInfo>
-        <created>2024-07-29T17:43:25Z</created>
-        <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
+        <created>2025-05-11T06:09:29Z</created>
+        <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
     </creationInfo>
     <name>webgoat</name>
     <dataLicense>CC0-1.0</dataLicense>
@@ -48,7 +48,7 @@
             <referenceType>advisory</referenceType>
         </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
-        <licenseConcluded>NOASSERTION</licenseConcluded>
+        <licenseConcluded>(Apache-1.1 AND MIT AND Aladdin)</licenseConcluded>
         <licenseDeclared>Apache-1.1</licenseDeclared>
         <name>log4j:log4j</name>
         <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>

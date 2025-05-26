@@ -115,7 +115,7 @@ import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_
 import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseForThirdpartyLicense;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxProperty;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
@@ -620,7 +620,7 @@ public class SbomResultsMerger
       LicenseChoice licenseChoice = new LicenseChoice();
       licenseChoice.setLicenses(new ArrayList<>());
       disclosedLicenses.forEach(license -> {
-        licenseChoice.addLicense(createCycloneDxLicenseFromDbData(license));
+        licenseChoice.addLicense(createCycloneDxLicenseForThirdpartyLicense(license));
       });
       component.setLicenses(licenseChoice);
     }

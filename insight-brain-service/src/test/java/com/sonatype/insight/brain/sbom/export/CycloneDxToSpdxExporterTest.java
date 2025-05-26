@@ -15,10 +15,12 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
@@ -30,16 +32,16 @@ import org.mockito.Mock;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.sbom.SbomTestHelper.SPDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 
-public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
+public class CycloneDxToSpdxExporterTest
+    extends AbstractSbomExporterTest
 {
-  private static final String[] JSON_FIELDS_TO_IGNORE = {"creationInfo.created", "creationInfo.creators[0]"};
-
   private CycloneDxToSpdxExporter exporter;
 
-  private static final String APP_ID = "webgoat";
+  private static final String APP_NAME = "webgoat";
 
   private static final String SBOM_VERSION = "v1";
 
@@ -78,11 +80,16 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   @Inject
   private VersionService versionService;
 
+  @Inject
+  private ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver;
+
   private ThirdPartyFile thirdPartyFile;
+
+  private Application app;
 
   @Before
   public void init() {
-    tempEntity.newApplicationWithParent(APP_ID);
+    app = tempEntity.newApplicationWithParent(APP_NAME, APP_NAME);
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToSpdxExporter(
         mockInsightWork,
@@ -93,13 +100,14 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
         baseUrl,
         idUtils,
-        versionService
+        versionService,
+        thirdPartyLicenseResolver
     );
   }
 
   @Test
   public void exportTest_withXmlInputFormat_toXmlOutputFormat_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_XML_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.xml"))
@@ -110,7 +118,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   @Test
   public void exportTest_withXmlInputFormat_toXmlOutputFormat_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_XML_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.xml"))
@@ -121,27 +129,27 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   @Test
   public void exportTest_withXmlInputFormat_toJsonOutputFormat_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_XML_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.json"));
   }
 
   @Test
   public void exportTest_withXmlInputFormat_toJsonOutputFormat_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_XML_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_XML_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.json"));
   }
 
   @Test
   public void exportTest_withJsonInputFormat_toXmlOutputFormat_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.xml"))
@@ -152,7 +160,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   @Test
   public void exportTest_withJsonInputFormat_toXmlOutputFormat_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.xml"))
@@ -163,101 +171,101 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
 
   @Test
   public void exportTest_withJsonInputFormat_toJsonOutputFormat_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_withJsonInputFormat_toJsonOutputFormat_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr =
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_SonatypeVulnerability_WithMissingCwes_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "cwes", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_SonatypeVulnerability_WithMissingCwes_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "cwes", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_SonatypeVulnerability_WithMissingSeverityDescription_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "severityDescription", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_SonatypeVulnerability_WithMissingSeverityDescription_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom(TEST_JSON_SBOM));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom(TEST_JSON_SBOM));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "severityDescription", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_BomMissingMetadata_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("missing-metadata-bom.json"));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("missing-metadata-bom.json"));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/missing-metadata-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_BomMissingMetadata_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("missing-metadata-bom.json"));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("missing-metadata-bom.json"));
     String exportedBomStr = setupExportSbomScenarioWithNullDbVulnerabilityField(testBomFile,
         SbomFormat.JSON, "", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/missing-metadata-from-json-to-spdx.json"));
   }
 
   @Test
   public void exportTest_mergeDataMatchingByComponentRef_23() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("webgoat-with-component-ref-bom.json"));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("webgoat-with-component-ref-bom.json"));
     String exportedBomStr = setupExportSbomScenarioWithComponentRef(testBomFile,
         SbomFormat.JSON, "", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-with-component-ref-to-spdx.json"));
   }
 
   @Test
   public void exportTest_mergeDataMatchingByComponentRef_22() throws Exception {
-    File testBomFile = mockSbomFileForApp(APP_ID, getGZippedSbom("webgoat-with-component-ref-bom.json"));
+    File testBomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("webgoat-with-component-ref-bom.json"));
     String exportedBomStr = setupExportSbomScenarioWithComponentRef(testBomFile,
         SbomFormat.JSON, "", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
-        .whenIgnoringPaths(JSON_FIELDS_TO_IGNORE)
+        .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-with-component-ref-to-spdx.json"));
   }
 
@@ -324,7 +332,7 @@ public class CycloneDxToSpdxExporterTest extends AbstractSbomExporterTest
   }
 
   private ThirdPartySbomMetadata insertTestData(String testBomFile, ThirdPartyFile thirdPartyFile) {
-    ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(APP_ID, SBOM_VERSION,
+    ThirdPartySbomMetadata dbRecord = tempEntity.createSbomMetadata(app.getId(), SBOM_VERSION,
         thirdPartyFile, ACTIVE);
     dbRecord.setFilename(testBomFile);
     thirdPartySbomMetadataDAO.update(dbRecord);

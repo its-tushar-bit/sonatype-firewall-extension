@@ -3,17 +3,17 @@
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2025-02-20T15:02:57Z</created>
-    <creators>Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT</creators>
+    <created>2025-05-12T06:11:46Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>DUMMY-PUBLIC-ID-b2108fc8fa0e4866b5e54147e9f08279</name>
+  <name>SbomRegressionTestApp</name>
   <dataLicense>CC0-1.0</dataLicense>
   <hasExtractedLicensingInfos>
     <licenseId>LicenseRef-Some-random-license</licenseId>
     <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
     <name>Some random license</name>
   </hasExtractedLicensingInfos>
-  <documentNamespace>http://localhost:10028/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-b2108fc8fa0e4866b5e54147e9f08279/bom/9.1.1</documentNamespace>
+  <documentNamespace>http://localhost:10040/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-pkg-maven-partner-shaded-library-1.0</SPDXID>
     <copyrightText>NOASSERTION</copyrightText>
@@ -98,7 +98,7 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>com.acme:tomcat-catalina</name>
     <originator>Organization: Acme Inc</originator>
@@ -162,7 +162,7 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(GPL-2.0-with-classpath-exception AND EPL-2.0)</licenseConcluded>
     <licenseDeclared>(GPL-2.0-with-classpath-exception OR EPL-2.0)</licenseDeclared>
     <name>org.example:mylibrary</name>
     <originator>Person: Example Super Heros</originator>

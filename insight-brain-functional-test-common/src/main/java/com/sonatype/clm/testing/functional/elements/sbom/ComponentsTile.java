@@ -45,6 +45,16 @@ public class ComponentsTile
         .find(".sbom-manager-bill-of-materials-components-tile__component-name-content");
   }
 
+  public SelenideElement licenseColumn(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-bill-of-materials-components-tile__licenses");
+  }
+
+  public SelenideElement overriddenPill(int row) {
+    return tableBodyRows().get(row)
+        .find(".sbom-manager-bill-of-materials-components-tile__overridden-pill");
+  }
+
   public SelenideElement noComponentsColumn() {
     return tableBodyRows().get(0).find("td");
   }

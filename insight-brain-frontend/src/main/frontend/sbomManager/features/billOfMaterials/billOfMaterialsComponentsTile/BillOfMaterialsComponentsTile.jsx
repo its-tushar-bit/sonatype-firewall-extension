@@ -27,6 +27,8 @@ import {
   T,
   trim,
   when,
+  find,
+  defaultTo,
 } from 'ramda';
 import debounce from 'debounce';
 import classNames from 'classnames';
@@ -39,6 +41,7 @@ import {
   NxSmallThreatCounter,
   NxStatefulTextInput,
   NxTable,
+  NxTag,
   NxTextLink,
   NxTile,
   NxTooltip,
@@ -50,6 +53,8 @@ import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { formatNumberLocale } from 'MainRoot/util/formatUtils';
+import { getStatusName } from 'MainRoot/legal/legalUtility';
+import { statusTagPropsMap } from 'MainRoot/legal/advancedLegalConstants';
 
 import ComponentsFilterDrawer from './componentsFilterDrawer/ComponentsFilterDrawer';
 import {
@@ -164,11 +169,21 @@ export default function BillOfMaterialsComponentsTile() {
     map(ifElse(compose(isNilOrEmpty(), prop('licenseName')), prop('licenseId'), prop('licenseName'))),
     when(isNilOrEmpty, always([]))
   );
+
+  const getLicenseOverriddenStatus = compose(
+    when(Boolean, getStatusName),
+    prop('overrideStatus'),
+    find(prop('overrideStatus')),
+    defaultTo([])
+  );
+
   const hasComponents = !isNilOrEmpty(components);
   const componentRows = hasComponents
     ? components.map((component) => {
         const originalComponent = component.filenames ? component.filenames[0] : null;
         const licenseString = licenseListToString(component.licenses);
+        const licenseOverriddenStatus = getLicenseOverriddenStatus(component.licenses);
+        const tagColor = licenseOverriddenStatus ? statusTagPropsMap[licenseOverriddenStatus] : null;
         const displayNameClasses = classNames('sbom-manager-bill-of-materials-components-tile__display-name', {
           'sbom-manager-bill-of-materials-components-tile__display-name--direct-dependency':
             component.dependencyType === 'direct',
@@ -235,6 +250,13 @@ export default function BillOfMaterialsComponentsTile() {
               <NxTooltip title={licenseString} className="sbom-manager-bill-of-materials-components-tile__tooltip">
                 <span className="sbom-manager-bill-of-materials-components-tile__licenses">{licenseString}</span>
               </NxTooltip>
+              {licenseOverriddenStatus ? (
+                <span>
+                  <NxTag className="sbom-manager-bill-of-materials-components-tile__overridden-pill" color={tagColor}>
+                    {licenseOverriddenStatus}
+                  </NxTag>
+                </span>
+              ) : null}
             </NxTable.Cell>
           </NxTable.Row>
         );

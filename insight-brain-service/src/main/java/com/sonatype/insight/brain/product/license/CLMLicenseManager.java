@@ -124,6 +124,8 @@ public class CLMLicenseManager
   private static final Set<String> SBOM_MANAGER_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
       ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
 
+  private static final Set<String> LEGAL_PACK_PRODUCTS = Set.of(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+
   // Visible for testing
   static final String TASK_NAME = "ProductLicenseLoad";
 
@@ -554,6 +556,10 @@ public class CLMLicenseManager
 
   public static boolean hasSbomManagerProduct(ProductLicense productLicense) {
     return SBOM_MANAGER_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
+  }
+
+  public static boolean hasAdvancedLegalPackProduct(ProductLicense productLicense) {
+    return LEGAL_PACK_PRODUCTS.stream().anyMatch(productLicense::hasProduct);
   }
 
   private String[] getProductLicenseProductsMarketingNames() {

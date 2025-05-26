@@ -11,23 +11,29 @@ import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
@@ -65,6 +71,9 @@ public class SpdxToSpdxExporterTest
   @Inject
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
 
+  @Inject
+  private ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver;
+
   @Mock
   private BaseUrl baseUrl;
 
@@ -82,7 +91,7 @@ public class SpdxToSpdxExporterTest
   public void before() {
     spdxExporter = new SpdxToSpdxExporter(mockInsightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, vulnerabilityExploitabilityExchangeDAO,
-        baseUrl, idUtils, versionService);
+        baseUrl, idUtils, versionService, thirdPartyLicenseResolver);
     when(baseUrl.get()).thenReturn("http://localhost:8070/");
     app = tempEntity.newApplicationWithParent();
   }
@@ -289,16 +298,57 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar")
         .hasVulnerabilityCount(2);
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-core@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
+        .hasConcludedLicense("(BSD-3-Clause AND Apache-2.0)")
         .hasDeclaredLicense("Apache-2.0")
         .containsLicenses("Apache-2.0", "BSD-3-Clause");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
+        .hasConcludedLicense("(Apache-2.0 AND MIT)")
         .hasDeclaredLicense("Apache-2.0")
         .containsLicenses("Apache-2.0", "MIT");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
         .hasConcludedLicense("Apache-2.0")
         .hasDeclaredLicense("Apache-2.0");
+  }
+
+  @Test
+  public void testExport_withLicenseOverrides_forLifecycleProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    testExport_withLicenseOverrides("Apache-2.0", "(GPL-3.0 AND Aladdin)", "GPL-3.0", "Aladdin");
+  }
+
+  @Test
+  public void testExport_withLicenseOverrides_forSbomProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testExport_withLicenseOverrides("Apache-2.0", "(BSD-3-Clause AND Apache-2.0)", "BSD-3-Clause", "Apache-2.0");
+  }
+
+  private void testExport_withLicenseOverrides(String declared, String concluded, String ...contains) throws Exception {
+    Map<String, Object> mockData = mockOriginalThirdPartyScan();
+    ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
+    ThirdPartyFileCoordinate core = (ThirdPartyFileCoordinate) mockData.get("core");
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+    tempEntity.newThirdPartyCoordinateLicense(core, "BSD-3-Clause", "BSD-3-Clause", "", "SONATYPE");
+    ComponentIdentifier cid = new PackageUrlIdentifier(core.getPackageUrl()).toComponentIdentifier();
+    cid.ensureComplete();
+    //mock license override
+    tempEntity.newLicenseOverride(app.getId(), cid, LicenseOverrideStatus.OVERRIDDEN, Set.of("Aladdin", "GPL-3.0"));
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(ExportSpecification.SPDX_23)
+        .withTargetFormat(SbomFormat.XML);
+    spdxExporter.setExportParams(exportParams);
+    String export = spdxExporter.export();
+    SpdxDocument sbom = SbomSpdxUtils.parseContentNoValidation(export, SbomFormat.XML);
+    SpdxDocumentAssert documentAssert = assertThatSpdx(sbom)
+        .isValid();
+    documentAssert.hasPackageWithPurl(core.getPackageUrl())
+        .hasDeclaredLicense(declared)
+        .hasConcludedLicense(concluded)
+        .containsLicenses(contains);
   }
 
   @Test
@@ -334,9 +384,9 @@ public class SpdxToSpdxExporterTest
             "pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar",
             "pkg:maven/org.example/JavaApp@1.0-SNAPSHOT?type=jar");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.3?type=jar")
-        .hasConcludedLicense("Apache-2.0")
+        .hasConcludedLicense("(LicenseRef-Not-Supported AND LicenseRef-Sonatype-Private AND Apache-2.0)")
         .hasDeclaredLicense("Apache-2.0")
-        .containsLicenses("Apache-2.0", "Sonatype-Private", "Not-Supported");
+        .containsLicenses("Apache-2.0", "LicenseRef-Sonatype-Private", "LicenseRef-Not-Supported");
   }
 
   @Test

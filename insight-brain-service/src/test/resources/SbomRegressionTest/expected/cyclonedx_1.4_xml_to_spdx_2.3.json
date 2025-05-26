@@ -2,17 +2,17 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2025-02-20T15:09:10Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT" ]
+    "created" : "2025-05-12T06:20:53Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-f44b62c91b624ed184490b9a6f36594e",
+  "name" : "SbomRegressionTestApp",
   "dataLicense" : "CC0-1.0",
   "hasExtractedLicensingInfos" : [ {
     "licenseId" : "LicenseRef-Some-random-license",
     "extractedText" : "Extracted license created by Sonatype SBOM Manager",
     "name" : "Some random license"
   } ],
-  "documentNamespace" : "http://localhost:10037/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-f44b62c91b624ed184490b9a6f36594e/bom/9.1.1",
+  "documentNamespace" : "http://localhost:10076/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-pkg-maven-partner-shaded-library-1.0",
     "copyrightText" : "NOASSERTION",
@@ -89,7 +89,7 @@
       "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-2.0)",
     "licenseDeclared" : "Apache-2.0",
     "name" : "com.acme:tomcat-catalina",
     "originator" : "Organization: Acme Inc",
@@ -146,7 +146,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(GPL-2.0-with-classpath-exception AND EPL-2.0)",
     "licenseDeclared" : "(GPL-2.0-with-classpath-exception OR EPL-2.0)",
     "name" : "org.example:mylibrary",
     "originator" : "Person: Example Super Heros",

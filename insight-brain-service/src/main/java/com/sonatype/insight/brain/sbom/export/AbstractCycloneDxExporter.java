@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -51,6 +50,8 @@ import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLi
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -83,10 +84,9 @@ import org.spdx.library.model.license.LicenseInfoFactory;
 import org.spdx.library.model.license.ListedLicenses;
 
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.addOrUpdateBomElementProperty;
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseFromDbData;
+import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseForResolvedLicense;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxVulnerabilityFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxLegacyPropertyIfPresent;
-import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxLicenseFromDbData;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.updateCycloneDxVulnerabilityFromDbData;
 import static org.spdx.library.SpdxConstants.NON_STD_LICENSE_ID_PRENUM;
 
@@ -124,7 +124,8 @@ public abstract class AbstractCycloneDxExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ApiReportDataServiceV2 apiReportDataServiceV2)
+      final ApiReportDataServiceV2 apiReportDataServiceV2,
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
   {
     super(
         insightWork,
@@ -135,7 +136,8 @@ public abstract class AbstractCycloneDxExporter
         thirdPartyVulnerabilityExploitabilityExchangeDAO,
         baseUrl,
         idUtils,
-        versionService
+        versionService,
+        thirdPartyLicenseResolver
     );
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);
@@ -173,8 +175,9 @@ public abstract class AbstractCycloneDxExporter
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
         List<ThirdPartyCoordinateSecurity> sonatypeComponentVulnerabilities = thirdPartyCoordinateSecurityDAO
             .getByFileCoordinateId(sonatypeComponent.getId());
-        List<ThirdPartyCoordinateLicense> sonatypeComponentLicenses = thirdPartyCoordinateLicenseDAO
-            .getByFileCoordinateId(sonatypeComponent.getId());
+        Set<ResolvedLicenseDTO> resolvedLicenseDTOS =
+            thirdPartyLicenseResolver.resolveLicenseOverridesOrThirdPartyLicenses(
+                exportParams.sbomMetadata.getApplicationId(), sonatypeComponent);
 
         Optional<Component> bomComponentFound = Optional.empty();
         Component componentByComponentRef = componentRefToBomComponentsMap.get(sonatypeComponent.getComponentRef());
@@ -211,7 +214,7 @@ public abstract class AbstractCycloneDxExporter
 
           // If no new licenses were recovered from db, skip merge process (left current licenses unaltered)
           // Update any legacy property names in the current licenses
-          if (CollectionUtils.isEmpty(sonatypeComponentLicenses)) {
+          if (CollectionUtils.isEmpty(resolvedLicenseDTOS)) {
             if (bomComponent.getLicenses() != null &&
                 CollectionUtils.isNotEmpty(bomComponent.getLicenses().getLicenses())) {
               for (License license : bomComponent.getLicenses().getLicenses()) {
@@ -224,7 +227,7 @@ public abstract class AbstractCycloneDxExporter
           LicenseChoice bomLicenseChoice = getBomComponentLicenses(bomComponent);
 
           //Merge new licenses here
-          updateOrGenerateNewLicenseChoices(sonatypeComponentLicenses, bomLicenseChoice);
+          updateOrGenerateNewLicenseChoices(resolvedLicenseDTOS, bomLicenseChoice);
 
           // Final verification on resulting licenses
           if (bomLicenseChoice != null && CollectionUtils.isEmpty(bomLicenseChoice.getLicenses())) {
@@ -252,7 +255,7 @@ public abstract class AbstractCycloneDxExporter
     Map<String, Component> componentRefMap = new HashMap<>();
     bom.getComponents().forEach(component -> {
       String componentRef = SbomIdentityUtils.getComponentRef(component);
-      if (componentRef != null ) {
+      if (componentRef != null) {
         componentRefMap.put(componentRef, component);
       }
     });
@@ -342,29 +345,37 @@ public abstract class AbstractCycloneDxExporter
   }
 
   private void updateOrGenerateNewLicenseChoices(
-      List<ThirdPartyCoordinateLicense> sonatypeComponentLicenses,
+      Set<ResolvedLicenseDTO> resolvedLicenses,
       LicenseChoice bomLicenseChoice)
   {
-    for (ThirdPartyCoordinateLicense sonatypeComponentLicense : sonatypeComponentLicenses) {
-      if (CollectionUtils.isNotEmpty(bomLicenseChoice.getLicenses())) {
+    boolean resetLicenseChoice = false;
+    for (ResolvedLicenseDTO resolvedLicense : resolvedLicenses) {
+      //in case we have overridden licenses for this component we should only export the overridden licenses
+      // so need to reset/empty any existing collection once if there are
+      if (CollectionUtils.isEmpty(bomLicenseChoice.getLicenses()) ||
+          (!resetLicenseChoice && resolvedLicense.overrideStatus() != null)) {
+        resetLicenseChoice = true;
+        bomLicenseChoice.setLicenses(new ArrayList<>());
+      }
+
+      //merge only if not overridden
+      if (resolvedLicense.overrideStatus() == null) {
         Optional<License> licenseFromBom = bomLicenseChoice.getLicenses().stream()
-            .filter(it -> doLicensesMatch(sonatypeComponentLicense, it)).findFirst();
+            .filter(it -> doLicensesMatch(resolvedLicense, it)).findFirst();
         if (licenseFromBom.isPresent()) {
-          updateCycloneDxLicenseFromDbData(licenseFromBom.get(), sonatypeComponentLicense);
+          SbomExportUtils.updateCycloneDxLicenseAttributes(licenseFromBom.get(), resolvedLicense.licenseUrl(),
+              resolvedLicense.identificationSources());
           continue;
         }
       }
-      else {
-        bomLicenseChoice.setLicenses(new ArrayList<>());
-      }
-      bomLicenseChoice.addLicense(createCycloneDxLicenseFromDbData(sonatypeComponentLicense));
+      bomLicenseChoice.addLicense(createCycloneDxLicenseForResolvedLicense(resolvedLicense));
     }
   }
 
-  private boolean doLicensesMatch(ThirdPartyCoordinateLicense sonatypeComponentLicense, License bomComponentLicense) {
+  private boolean doLicensesMatch(ResolvedLicenseDTO sonatypeComponentLicense, License bomComponentLicense) {
     return bomComponentLicense.getId() != null && bomComponentLicense.getId().equals(sonatypeComponentLicense
-        .getLicenseId()) || (bomComponentLicense.getName() != null && bomComponentLicense.getName()
-        .equals(sonatypeComponentLicense.getName()));
+        .licenseId()) || (bomComponentLicense.getName() != null && bomComponentLicense.getName()
+        .equals(sonatypeComponentLicense.licenseName()));
   }
 
   private LicenseChoice getBomComponentLicenses(Component bomComponent) {

@@ -6,7 +6,7 @@
     <created>2025-02-20T15:02:57Z</created>
     <creators>Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>DUMMY-PUBLIC-ID-b2108fc8fa0e4866b5e54147e9f08279</name>
+  <name>SbomRegressionTestApp</name>
   <dataLicense>CC0-1.0</dataLicense>
   <hasExtractedLicensingInfos>
     <licenseId>LicenseRef-Some-random-license</licenseId>
@@ -95,7 +95,7 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>com.acme:tomcat-catalina</name>
     <originator>Organization: Acme Inc</originator>
@@ -157,7 +157,7 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(GPL-2.0-with-classpath-exception AND EPL-2.0)</licenseConcluded>
     <licenseDeclared>(GPL-2.0-with-classpath-exception OR EPL-2.0)</licenseDeclared>
     <name>org.example:mylibrary</name>
     <originator>Person: Example Super Heros</originator>

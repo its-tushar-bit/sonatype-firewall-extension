@@ -43,7 +43,7 @@
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
+    "licenseConcluded" : "(Apache-1.1 AND MIT AND Aladdin)",
     "licenseDeclared" : "Apache-1.1",
     "name" : "log4j:log4j",
     "versionInfo" : "1.2.8"

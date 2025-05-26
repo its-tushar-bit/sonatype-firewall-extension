@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,6 +29,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -876,6 +878,7 @@ public class SbomManagerBillOfMaterialsPageTest
 
   @Test
   public void testBillOfMaterial_ComponentSearch() {
+    setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER, ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
     insertComponentsTileSbomDataForSearchName();
     refreshOrOpen(IndexPage.url());
     refreshOrOpen(SbomManagerBillOfMaterialsPage.url(application.getPublicId(), sbomMetadata.getSbomVersion()));
@@ -911,6 +914,8 @@ public class SbomManagerBillOfMaterialsPageTest
     componentsTile.inputComponentSearch().setValue("epl");
     tableRows.shouldHave(size(1));
     componentsTile.nameColum(0).shouldHave(text("nexus-rest-jackson2"));
+    componentsTile.licenseColumn(0).shouldHave(text("Aladdin"));
+    componentsTile.overriddenPill(0).shouldHave(text("Selected"));
     componentsTile.inputComponentSearch().setValue("MPL-2.0");
     tableRows.shouldHave(size(1));
     componentsTile.noComponentsColumn().shouldHave(text("No components found"));
@@ -944,14 +949,19 @@ public class SbomManagerBillOfMaterialsPageTest
         "jss-plugin-global", "insight-scanner-tools", "glibc/libc6", "geronimo-jpa_2.2_spec");
     List<String> licenses = List.of("Apache-2.0", "", "EPL-1.0", "Apache-2.0", "", "", "LGPL-3.0", "", "", "");
     for (int i = 0; i < 10; i++) {
+      String componentName = componentNames.get(i);
       ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates(
-          componentNames.get(i), "v-" + i);
+          componentName, "v-" + i);
       PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
       ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(
-          thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", componentNames.get(i), "v1", "h1",
+          thirdPartyScan.getThirdPartyFileId(), "s", "SPDX", componentName, "v1", "h1",
           packageUrlIdentifier.getPackageUrl(), ThirdPartyDependencyType.DIRECT);
       if (StringUtils.isNotEmpty(licenses.get(i))) {
         tempEntity.newThirdPartyCoordinateLicense(thirdPartyFileCoordinate, licenses.get(i), licenses.get(i), null);
+      }
+      if (componentName.equals("nexus-rest-jackson2")) {
+        tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.SELECTED,
+            Set.of("Aladdin"));
       }
     }
   }

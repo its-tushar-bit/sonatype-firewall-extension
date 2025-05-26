@@ -32,7 +32,7 @@
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(Apache-2.0 AND MIT)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>apache:axis</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>

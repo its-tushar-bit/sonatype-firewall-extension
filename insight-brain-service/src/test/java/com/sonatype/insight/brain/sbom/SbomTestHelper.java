@@ -38,8 +38,10 @@ public class SbomTestHelper
 
   public static final List<String> CYCLONEDX_IGNORE_ATTRIBS = Collections.singletonList("serialNumber");
 
-  public static final List<String> SPDX_IGNORE_NODES =
-      Arrays.asList("created", "documentNamespace", "creators");
+  public static final List<String> SPDX_XML_IGNORE_NODES = Arrays.asList("created", "documentNamespace", "creators");
+
+  public static final String[] SPDX_JSON_IGNORE_FIELDS =
+      {"creationInfo.created", "documentNamespace", "creationInfo.creators"};
 
   public static final String[] CYCLONEDX_JSON_IGNORE_FIELDS = {
       "metadata.timestamp", "metadata.tools.components[0].version",
@@ -52,7 +54,7 @@ public class SbomTestHelper
 
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {
     return node -> {
-      if (SPDX_IGNORE_NODES.contains(node.getNodeName())) {
+      if (SPDX_XML_IGNORE_NODES.contains(node.getNodeName())) {
         return false;
       }
 

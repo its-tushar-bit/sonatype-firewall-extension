@@ -48,6 +48,8 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
+import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -62,6 +64,7 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
 import com.sonatype.insight.brain.sbom.ingestion.SbomScanEvaluator;
+import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.policy.SbomPolicyService;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
@@ -84,6 +87,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -139,6 +143,8 @@ public class ApiSbomService
 
   private final ThirdPartyPersistenceService thirdPartyPersistenceService;
 
+  private final ThirdPartyComponentLicenseResolutionService thirdPartyComponentLicenseResolutionService;
+
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -157,6 +163,7 @@ public class ApiSbomService
       final SbomExporterProvider sbomExporterProvider,
       final SbomPolicyService sbomPolicyService,
       final ThirdPartyPersistenceService thirdPartyPersistenceService,
+      final ThirdPartyComponentLicenseResolutionService thirdPartyComponentLicenseResolutionService,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
   {
     this.dao = dao;
@@ -173,6 +180,7 @@ public class ApiSbomService
     this.sbomExporterProvider = sbomExporterProvider;
     this.sbomPolicyService = sbomPolicyService;
     this.thirdPartyPersistenceService = thirdPartyPersistenceService;
+    this.thirdPartyComponentLicenseResolutionService = thirdPartyComponentLicenseResolutionService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
   }
 
@@ -453,6 +461,10 @@ public class ApiSbomService
         thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
             vulnerabilityThreatLevels, dependencyTypes, filterText, sortBy, asc, pageSize, page);
     sbomComponentListDTO.getResults().forEach(sbomComponentDTO -> {
+      if (thirdPartyComponentLicenseResolutionService.shouldConsiderLicenseOverrides()) {
+        applyLicenseOverrides(applicationId, sbomComponentDTO);
+      }
+
       if (SystemConfigurationPropertyFeature.SBOM_POLICIES.isEnabled()) {
         try {
           PolicyThreats.Component component =
@@ -476,6 +488,14 @@ public class ApiSbomService
       }
     });
     return sbomComponentListDTO;
+  }
+
+  private void applyLicenseOverrides(final String applicationId, final SbomComponentDTO sbomComponentDTO) {
+    Set<ResolvedLicenseDTO> licenses = thirdPartyComponentLicenseResolutionService.getLicenseOverrides(applicationId,
+        sbomComponentDTO.getPackageUrl());
+    if (CollectionUtils.isNotEmpty(licenses)) {
+      sbomComponentDTO.setLicenses(licenses);
+    }
   }
 
   private void validatePagination(int pageSize, int page) {
@@ -556,8 +576,8 @@ public class ApiSbomService
   }
 
   /**
-   * @return true if an SBOM was detected and either is valid or has ignorable validation errors
-   * which the caller has opted to ignore.
+   * @return true if an SBOM was detected and either is valid or has ignorable validation errors which the caller has
+   * opted to ignore.
    */
   private boolean isSaveableSbom(SbomDetectionResult sbomDetectionResult, boolean ignoreValidationError) {
     boolean isSbom = sbomDetectionResult.isSbom;

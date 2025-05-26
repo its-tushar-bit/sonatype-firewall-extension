@@ -10,8 +10,10 @@ import java.nio.charset.Charset;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -22,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -31,6 +34,8 @@ import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.IOUtils;
@@ -106,7 +111,8 @@ public class SpdxToCycloneDxExporterTest
         baseUrl,
         idUtils,
         versionService,
-        apiReportDataServiceV2
+        apiReportDataServiceV2,
+        licenseResolutionService
     );
     app = tempEntity.newApplicationWithParent();
   }
@@ -303,6 +309,50 @@ public class SpdxToCycloneDxExporterTest
         .containsLicenses("Apache-2.0", "MIT");
     documentAssert.hasPackageWithPurl("pkg:maven/com.fasterxml.jackson.core/jackson-annotations@2.13.3?type=jar")
         .hasLicenseCount(1);
+  }
+
+  @Test
+  public void testExport_withLicenseOverrides_forLifeCycleProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
+    testExport_withLicenseOverrides("GPL-3.0", "Aladdin");
+  }
+
+  @Test
+  public void testExport_withLicenseOverrides_forSbomAndALPProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
+        ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
+    testExport_withLicenseOverrides("GPL-3.0", "Aladdin");
+  }
+
+  @Test
+  public void testExport_withLicenseOverrides_forSbomProduct() throws Exception {
+    productLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
+    testExport_withLicenseOverrides("Apache-2.0");
+  }
+
+  private void testExport_withLicenseOverrides(final String... expected) throws Exception {
+    Map<String, Object> mockData = mockOriginalThirdPartyScan();
+    ThirdPartyFile tpFile = (ThirdPartyFile) mockData.get("tpFile");
+    ThirdPartyFileCoordinate core = (ThirdPartyFileCoordinate) mockData.get("core");
+
+    File sbomFile = mockSbomFileForApp(app.getId(), getGZippedSbom("spdx-min.json"));
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), "1.0-SNAPSHOT", ACTIVE,
+            sbomFile.getName(), SbomSpecification.SPDX.toString(), SbomFormat.JSON.toString(), "2.3");
+    ComponentIdentifier id = new PackageUrlIdentifier(core.getPackageUrl()).toComponentIdentifier();
+    id.ensureComplete();
+    //mock license override
+    tempEntity.newLicenseOverride(app.getId(), id, LicenseOverrideStatus.OVERRIDDEN, Set.of("GPL-3.0", "Aladdin"));
+
+    SbomExportParams exportParams = SbomExportParams.newSbomExporterParams(sbomMetadata)
+        .withExportSpecification(SbomExportParams.ExportSpecification.CYCLONEDX_15)
+        .withTargetFormat(SbomFormat.XML);
+    spdxToCycloneDxExporter.setExportParams(exportParams);
+    String export = spdxToCycloneDxExporter.export();
+    Bom sbom = SbomCycloneDxUtils.parseContentNoValidation(export);
+    assertThatCycloneDx(sbom).hasPackageWithPurl(core.getPackageUrl())
+        .hasLicenseCount(expected.length)
+        .containsLicenses(expected);
   }
 
   @Test

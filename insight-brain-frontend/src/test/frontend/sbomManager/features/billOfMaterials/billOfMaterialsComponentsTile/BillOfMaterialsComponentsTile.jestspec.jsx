@@ -88,7 +88,11 @@ describe('BillOfMaterialsComponentsTile', () => {
         },
       },
       displayName: `com.package.${name} : artifact-id : 1.2.3`,
-      licenses: licenses.map(([licenseId, licenseName]) => ({ licenseId, licenseName })),
+      licenses: licenses.map(([licenseId, licenseName, overrideStatus]) => ({
+        licenseId,
+        licenseName,
+        overrideStatus,
+      })),
       vulnerabilitySeverityNoneCount: vulnerabilities[0],
       vulnerabilitySeverityLowCount: vulnerabilities[1],
       vulnerabilitySeverityMediumCount: vulnerabilities[2],
@@ -132,8 +136,8 @@ describe('BillOfMaterialsComponentsTile', () => {
       matchStateId: 'similar',
       vulnerabilities: [0, 9, 10, 11, 12],
       licenses: [
-        ['Beer', null],
-        ['GNU', null],
+        ['Beer', null, 'OVERRIDDEN'],
+        ['GNU', null, 'OVERRIDDEN'],
       ],
       releaseStatusPercentage: 100,
       policyViolationCount: 333,
@@ -328,7 +332,7 @@ describe('BillOfMaterialsComponentsTile', () => {
       expect(thirdRowCells[1]).toHaveTextContent('com.package.alice : artifact-id : 1.2.3');
       expect(thirdRowCells[2]).toHaveTextContent('Critical1299+Severe1199+Moderate1099+Low999+');
       expect(thirdRowCells[3]).toHaveTextContent(/100%/);
-      expect(thirdRowCells[4]).toHaveTextContent('Beer, GNU');
+      expect(thirdRowCells[4]).toHaveTextContent('Beer, GNUOverridden');
 
       const similarMatchIcon = await screen.findByTestId('similarMatchIcon');
       expect(similarMatchIcon).toBeInTheDocument();

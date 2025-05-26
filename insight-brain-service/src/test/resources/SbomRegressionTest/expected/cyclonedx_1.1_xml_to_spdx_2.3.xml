@@ -1,19 +1,22 @@
-<?xml version='1.0' encoding='UTF-8'?>
 <Document>
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2025-02-20T14:55:32Z</created>
-    <creators>Tool: Sonatype SBOM Manager - 1.188.0-SNAPSHOT</creators>
+    <created>2025-05-12T05:52:22Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
   </creationInfo>
-  <name>DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f</name>
+  <name>SbomRegressionTestApp</name>
   <dataLicense>CC0-1.0</dataLicense>
+  <hasExtractedLicensingInfos>
+    <licenseId>LicenseRef-See-License-Clause</licenseId>
+    <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
+  </hasExtractedLicensingInfos>
   <hasExtractedLicensingInfos>
     <licenseId>LicenseRef-Some-random-license</licenseId>
     <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
     <name>Some random license</name>
   </hasExtractedLicensingInfos>
-  <documentNamespace>http://localhost:10010/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f/bom/20250220145521806</documentNamespace>
+  <documentNamespace>http://localhost:10013/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-9a217b948d624d128a880e5cc853e0fd/bom/20250512065220052</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-gnrtd0</SPDXID>
     <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
@@ -38,7 +41,7 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(Apache-2.0)</licenseConcluded>
     <licenseDeclared>Apache-2.0</licenseDeclared>
     <name>com.acme:tomcat-catalina</name>
     <originator>Organization: Acme Inc</originator>
@@ -102,7 +105,7 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(EPL-2.0)</licenseConcluded>
     <licenseDeclared>(GPL-2.0 WITH Classpath-exception-2.0 OR EPL-2.0)</licenseDeclared>
     <name>org.example:mylibrary</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
@@ -178,19 +181,13 @@
   </packages>
   <packages>
     <SPDXID>SPDXRef-pkg-maven-com.fasterxml.jackson.core-jackson-databind-2.9.9-type-jar</SPDXID>
-    <attributionTexts>Evidence license text for: (See-License-Clause)</attributionTexts>
+    <attributionTexts>Evidence license text for: (LicenseRef-See-License-Clause)</attributionTexts>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</referenceLocator>
       <referenceType>purl</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <comment>source: NVD</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</referenceLocator>
-      <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
       <comment>source: NVD</comment>
@@ -207,13 +204,13 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</referenceLocator>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</referenceLocator>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-36518</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
@@ -225,11 +222,17 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2022-42003</referenceLocator>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2020-25649</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2019-12814</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
-    <licenseConcluded>NOASSERTION</licenseConcluded>
+    <licenseConcluded>(LicenseRef-See-License-Clause)</licenseConcluded>
     <licenseDeclared>NOASSERTION</licenseDeclared>
     <name>com.fasterxml.jackson.core:jackson-databind</name>
     <primaryPackagePurpose>LIBRARY</primaryPackagePurpose>
@@ -242,7 +245,7 @@
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
     <licenseDeclared>NOASSERTION</licenseDeclared>
-    <name>DUMMY-PUBLIC-ID-1f8f1116a1c54c9d8759cd6fce447d6f</name>
+    <name>DUMMY-PUBLIC-ID-9a217b948d624d128a880e5cc853e0fd</name>
     <primaryPackagePurpose>APPLICATION</primaryPackagePurpose>
   </packages>
   <relationships>

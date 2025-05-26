@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.ws.rs.core.HttpHeaders;
@@ -46,7 +47,9 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomComponentListDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
@@ -308,7 +311,6 @@ public class ApiSbomResourceTest
     assertThat(result.getResults().get(1).getSpecVersion()).isEqualTo(sbom2.getSpecVersion());
     assertThat(result.getResults()).isSortedAccordingTo(
         Comparator.comparing(ThirdPartySbomMetadataSummaryDTO::getImportDate).reversed());
-
   }
 
   @Test
@@ -655,6 +657,69 @@ public class ApiSbomResourceTest
     //componentIdentifier1, componentIdentifier2 match based on license text (license-x)
     //while componentIdentifier4 is matched based on component name (d-license-blah)
     assertThat(result.getTotalResultsCount()).isEqualTo(3);
+  }
+
+  @Test
+  @PostgresTest
+  public void testGetSbomComponents_withLicenseOverrides() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    ThirdPartyScan thirdPartyScan = tempEntity.newThirdPartyScan(thirdPartyFile);
+
+    ThirdPartySbomMetadata sbomMetadata =
+        ThirdPartySbomMetadataTestUtil.createSbomMetadata(ACTIVE, application.getId(), thirdPartyFile.getId());
+    dao.insert(sbomMetadata);
+
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("slf4j-log4j12", "1.7.12");
+    PackageUrlIdentifier packageUrlIdentifier1 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier1);
+    ThirdPartyFileCoordinate coordinate1 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s1", packageUrlIdentifier1.getFormat(), packageUrlIdentifier1.getName(), packageUrlIdentifier1.getVersion(),
+        "h1", packageUrlIdentifier1.getPackageUrl(), TRANSITIVE);
+
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("cxf-rt-transports-http-jetty",
+        "3.0.4");
+    PackageUrlIdentifier packageUrlIdentifier2 = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier2);
+    ThirdPartyFileCoordinate coordinate2 = tempEntity.newThirdPartyFileCoordinate(sbomMetadata.getThirdPartyFileId(),
+        "s2", packageUrlIdentifier2.getFormat(), packageUrlIdentifier2.getName(), packageUrlIdentifier2.getVersion(),
+        "h2", packageUrlIdentifier2.getPackageUrl(), DIRECT);
+
+    tempEntity.newThirdPartyCoordinateLicense(coordinate1, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-1", "License 1", "http://license1");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-3", "SpecialChars %$3", "http://license3");
+    tempEntity.newThirdPartyCoordinateLicense(coordinate2, "license-4", "Another 4", "http://license4");
+    //mock license override
+    tempEntity.newLicenseOverride(application.getId(), componentIdentifier2, LicenseOverrideStatus.SELECTED,
+        Set.of("Aladdin", "MIT"));
+
+    File reportFile = insightWork.getReportFile(application.getId(), thirdPartyScan.getScanId());
+    FileUtils.copyURLToFile(ReportHelper.zipReport("/ApiSbomServicePolicyViolationsTest", tempDir), reportFile);
+
+    tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, thirdPartyScan.getScanId());
+
+    HttpResponse response = restRequest()
+        .path(ApiSbomResource.SBOM_COMPONENTS_PATH)
+        .parameter(application.getId(), sbomMetadata.getSbomVersion())
+        .query("vulnerabilityThreatLevels")
+        .query("dependencyTypes")
+        .query("sortBy")
+        .query("asc", true)
+        .query("page", 1)
+        .query("pageSize", "3")
+        .query("filter", "license")
+        .get();
+
+    assertResponseStatus(200, response);
+    SbomComponentListDTO result = response.getBody(SbomComponentListDTO.class);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalResultsCount()).isEqualTo(2);
+    assertThat(result.getResults().stream().filter(r -> r.getComponentIdentifier().equals(componentIdentifier2)))
+        .hasSize(1).allSatisfy(dto -> {
+          assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::licenseId)
+              .containsExactlyInAnyOrder("Aladdin", "MIT");
+          assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus)
+              .containsOnly(LicenseOverrideStatus.SELECTED);
+        });
   }
 
   @Test

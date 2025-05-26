@@ -3,23 +3,17 @@
     <SPDXID>SPDXRef-DOCUMENT</SPDXID>
     <spdxVersion>SPDX-2.3</spdxVersion>
     <creationInfo>
-        <created>2024-07-29T19:06:15Z</created>
-        <creators>Tool: Sonatype SBOM Manager - 1.180.0-SNAPSHOT</creators>
+        <created>2025-05-09T15:19:25Z</created>
+        <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
     </creationInfo>
-    <name>DUMMY-PUBLIC-ID-3b72fc3cf2c64fec8b67afebb629208e</name>
+    <name>DUMMY-PUBLIC-ID-3b8d8591771c4faf91141dd1b75a7842</name>
     <dataLicense>CC0-1.0</dataLicense>
-    <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-3b72fc3cf2c64fec8b67afebb629208e/bom/f9eab7e06c7e4c929ffe</documentNamespace>
+    <documentNamespace>http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-3b8d8591771c4faf91141dd1b75a7842/bom/249ec58e29d74085b6bb</documentNamespace>
     <packages>
         <SPDXID>SPDXRef-maven-apache-axis-1.0</SPDXID>
         <attributionTexts>Evidence license text for: (Apache-2.0 AND MIT)</attributionTexts>
         <copyrightText></copyrightText>
         <downloadLocation>NOASSERTION</downloadLocation>
-        <externalRefs>
-            <comment>source: SONATYPE</comment>
-            <referenceCategory>SECURITY</referenceCategory>
-            <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
-            <referenceType>advisory</referenceType>
-        </externalRefs>
         <externalRefs>
             <referenceCategory>PACKAGE-MANAGER</referenceCategory>
             <referenceLocator>pkg:maven/apache/axis@1.0?type=jar</referenceLocator>
@@ -31,8 +25,14 @@
             <referenceLocator>https://nvd.nist.gov/vuln/detail/CVE-2007-2353</referenceLocator>
             <referenceType>advisory</referenceType>
         </externalRefs>
+        <externalRefs>
+            <comment>source: SONATYPE</comment>
+            <referenceCategory>SECURITY</referenceCategory>
+            <referenceLocator>http://link.to/vuln/Sonatype-2024-123</referenceLocator>
+            <referenceType>advisory</referenceType>
+        </externalRefs>
         <filesAnalyzed>false</filesAnalyzed>
-        <licenseConcluded>Apache-2.0</licenseConcluded>
+        <licenseConcluded>(Apache-2.0 AND MIT)</licenseConcluded>
         <licenseDeclared>Apache-2.0</licenseDeclared>
         <name>apache:axis</name>
         <versionInfo>1.0</versionInfo>

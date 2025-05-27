@@ -13,6 +13,7 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
+
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -36,10 +37,8 @@ import net.javacrumbs.jsonunit.assertj.JsonAssert.ConfigurableJsonAssert;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
@@ -112,9 +111,6 @@ public class SbomRegressionTest
   private static final String EXPECTED_SBOM_VARIANT_TEMPLATE = "%s_%s_%s_%s_to_%s_%s_%s.%s";
 
   private static final ObjectMapper MAPPER = new ObjectMapper();
-
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
 
   private final String importSpec;
 

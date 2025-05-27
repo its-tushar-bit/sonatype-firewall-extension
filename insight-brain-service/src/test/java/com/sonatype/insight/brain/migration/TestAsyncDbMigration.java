@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.model.HasStringId;
 
-public class TestAsyncDbMigration<T extends HasStringId>
+class TestAsyncDbMigration<T extends HasStringId>
     extends AsyncDbMigration<T>
 {
   private final String migrationName;
@@ -46,8 +46,8 @@ public class TestAsyncDbMigration<T extends HasStringId>
 
   @Override
   protected void migrate(
-      final AbstractSqlDAO dao,
-      final HasStringId entity,
+      final AbstractSqlDAO<T> dao,
+      final T entity,
       final TransactionContext tx)
   {
     // No-op, just to test the migration with the spy

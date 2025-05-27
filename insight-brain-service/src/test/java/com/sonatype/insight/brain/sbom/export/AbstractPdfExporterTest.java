@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.File;
 import java.util.ArrayList;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -14,7 +15,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicenseThreatDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -44,7 +44,7 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
-public class AbstractPdfExporterTest
+abstract class AbstractPdfExporterTest
     extends AbstractSbomExporterTest
 {
   protected static final String THIRD_PARTY_FILE = "testBom.json";
@@ -77,9 +77,6 @@ public class AbstractPdfExporterTest
 
   @Inject
   protected ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
-
-  @Inject
-  protected MigrationTrackerDAO migrationTrackerDAO;
 
   @Inject
   protected ThirdPartyScanDAO thirdPartyScanDAO;

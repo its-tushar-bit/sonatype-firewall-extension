@@ -13,6 +13,8 @@ import java.net.URL;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
+import javax.inject.Inject;
+
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
@@ -42,7 +44,6 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.PolicyEvaluationRequestDTO;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
@@ -56,8 +57,6 @@ import com.sonatype.insight.scan.model.ScanFileNames;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import javax.inject.Inject;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -88,9 +87,6 @@ public class ApplicationEvaluationResourceTest
   @Inject
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
-  @Inject
-  private TestProductLicense testProductLicense;
-
   @Before
   public void setUp() throws Exception {
     licenseManager.setProducts(
@@ -104,7 +100,6 @@ public class ApplicationEvaluationResourceTest
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
     persistedPolicyEvaluationPollingResultDAO = lookup(PersistedPolicyEvaluationPollingResultDAO.class);
-    testProductLicense = lookup(TestProductLicense.class);
   }
 
   private HttpRequest makeRequest(

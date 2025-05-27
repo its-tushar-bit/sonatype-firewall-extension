@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerEmailConfigurationPage;
-
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -52,7 +51,7 @@ public class SbomManagerEmailConfigurationPageTest
 
   private void testUnsavedChangesModal_Cancel() {
     SbomManagerDashboardPage sbomDashboardPage = new SbomManagerDashboardPage();
-    refreshOrOpen(sbomDashboardPage.url());
+    refreshOrOpen(SbomManagerDashboardPage.url());
 
     sbomDashboardPage.container().shouldNotBe(visible);
 
@@ -67,7 +66,7 @@ public class SbomManagerEmailConfigurationPageTest
 
   private void testUnsavedChangesModal_Continue() {
     SbomManagerDashboardPage sbomDashboardPage = new SbomManagerDashboardPage();
-    refreshOrOpen(sbomDashboardPage.url());
+    refreshOrOpen(SbomManagerDashboardPage.url());
 
     sbomDashboardPage.container().shouldNotBe(visible);
 

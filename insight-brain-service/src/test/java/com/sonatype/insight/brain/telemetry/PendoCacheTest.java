@@ -19,19 +19,16 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.Binder;
-
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.junit.rules.TestName;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
@@ -47,9 +44,6 @@ public class PendoCacheTest
 
   private static final byte[] BASIC_ENABLED_TELEMETRY_RESPONSE =
       "{ \"segmentAttributes\": { \"foo\": \"bar\"} }".getBytes();
-
-  @Rule
-  public TestName testName = new TestName();
 
   @Mock
   private HdsClient mockHdsClient;

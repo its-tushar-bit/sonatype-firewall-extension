@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -392,45 +393,6 @@ public class SuccessMetricsReportDataServiceAuthzTest
     assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);
     assertThat(dto.other.applicationsWithViolations).isEqualTo(0);
     assertThat(dto.other.applicationsWithCriticalViolations).isEqualTo(0);
-  }
-
-  private void assertEmptyResults(SuccessMetricsChartDataDTO chartDataDTO) {
-    assertEmptyResults(chartDataDTO.mttrs);
-    assertEmptyResults(chartDataDTO.averages);
-    assertEmptyResults(chartDataDTO.applicationCounts);
-  }
-
-  private void assertEmptyResults(AverageDiscoveredPolicyViolationsDTO dto) {
-    assertThat(dto.evaluationCount).isEqualTo(0.0);
-    assertThat(dto.totalViolations.averageDiscovered).isEqualTo(0.0);
-    assertThat(dto.totalViolations.averageDiscoveredCritical).isEqualTo(0.0);
-    assertThat(dto.securityViolations.averageDiscovered).isEqualTo(0.0);
-    assertThat(dto.securityViolations.averageDiscoveredCritical).isEqualTo(0.0);
-    assertThat(dto.licenseViolations.averageDiscovered).isEqualTo(0.0);
-    assertThat(dto.licenseViolations.averageDiscoveredCritical).isEqualTo(0.0);
-    assertThat(dto.qualityViolations.averageDiscovered).isEqualTo(0.0);
-    assertThat(dto.qualityViolations.averageDiscoveredCritical).isEqualTo(0.0);
-    assertThat(dto.otherViolations.averageDiscovered).isEqualTo(0.0);
-    assertThat(dto.otherViolations.averageDiscoveredCritical).isEqualTo(0.0);
-  }
-
-  private void assertEmptyResults(ApplicationCountsDTO dto) {
-    assertThat(dto.totalApplications).isEqualTo(0);
-    assertThat(dto.activeApplications).isEqualTo(0);
-    assertThat(dto.total.applicationsWithViolations).isEqualTo(0);
-    assertThat(dto.total.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.security.applicationsWithViolations).isEqualTo(0);
-    assertThat(dto.security.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.license.applicationsWithViolations).isEqualTo(0);
-    assertThat(dto.license.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.quality.applicationsWithViolations).isEqualTo(0);
-    assertThat(dto.quality.applicationsWithCriticalViolations).isEqualTo(0);
-    assertThat(dto.other.applicationsWithViolations).isEqualTo(0);
-    assertThat(dto.other.applicationsWithCriticalViolations).isEqualTo(0);
-  }
-
-  private void assertEmptyResults(List<?> dtos) {
-    assertThat(dtos).isEmpty();
   }
 
   @Test

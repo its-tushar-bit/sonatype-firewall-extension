@@ -144,8 +144,8 @@ public class OAuth2UserDAOTest
   public void testDeleteCascadesToUserToken() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
     UserToken userToken1 =
-        tempEntity.newUserToken(oAuth2User.getUsername(), "userCode1", "passCode1", oAuth2User.OAUTH2_REALM_ID);
-    UserToken userToken2 = tempEntity.newUserToken("other", "userCode2", "passCode2", oAuth2User.OAUTH2_REALM_ID);
+        tempEntity.newUserToken(oAuth2User.getUsername(), "userCode1", "passCode1", OAuth2User.OAUTH2_REALM_ID);
+    UserToken userToken2 = tempEntity.newUserToken("other", "userCode2", "passCode2", OAuth2User.OAUTH2_REALM_ID);
     UserToken userToken3 =
         tempEntity.newUserToken(oAuth2User.getUsername(), "userCode3", "passCode3", User.INTERNAL_REALM_ID);
 
@@ -161,11 +161,11 @@ public class OAuth2UserDAOTest
   public void testDeleteCascadesToDashboardFilters() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
     DashboardFilter dashboardFilter1 =
-        tempEntity.newDashboardFilter(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID, "filterName1", "filter1");
+        tempEntity.newDashboardFilter(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID, "filterName1", "filter1");
     DashboardFilter dashboardFilter2 =
-        tempEntity.newDashboardFilter(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID, "filterName2", "filter2");
+        tempEntity.newDashboardFilter(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID, "filterName2", "filter2");
     DashboardFilter dashboardFilter3 =
-        tempEntity.newDashboardFilter("other", oAuth2User.OAUTH2_REALM_ID, "filterName3", "filter3");
+        tempEntity.newDashboardFilter("other", OAuth2User.OAUTH2_REALM_ID, "filterName3", "filter3");
     DashboardFilter dashboardFilter4 =
         tempEntity.newDashboardFilter(oAuth2User.getUsername(), "other", "filterName4", "filter4");
     DashboardFilter dashboardFilter5 =
@@ -185,12 +185,12 @@ public class OAuth2UserDAOTest
   public void testDeleteCascadesToUserFilters() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
     UserFilter userFilter1 =
-        tempEntity.newUserFilter(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID, "filterName1",
+        tempEntity.newUserFilter(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID, "filterName1",
             UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "filter1");
     UserFilter userFilter2 =
-        tempEntity.newUserFilter(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID, "filterName2",
+        tempEntity.newUserFilter(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID, "filterName2",
             UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "filter2");
-    UserFilter userFilter3 = tempEntity.newUserFilter("other", oAuth2User.OAUTH2_REALM_ID, "filterName3",
+    UserFilter userFilter3 = tempEntity.newUserFilter("other", OAuth2User.OAUTH2_REALM_ID, "filterName3",
         UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "filter3");
     UserFilter userFilter4 = tempEntity.newUserFilter(oAuth2User.getUsername(), "other", "filterName4",
         UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD, "filter4");
@@ -211,13 +211,13 @@ public class OAuth2UserDAOTest
   public void testDeleteCascadesToUserViewedProductNotifications() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
     UserViewedProductNotification userViewedProductNotification1 =
-        tempEntity.newUserViewedProductNotification(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID,
+        tempEntity.newUserViewedProductNotification(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID,
             "notificationId1");
     UserViewedProductNotification userViewedProductNotification2 =
-        tempEntity.newUserViewedProductNotification(oAuth2User.getUsername(), oAuth2User.OAUTH2_REALM_ID,
+        tempEntity.newUserViewedProductNotification(oAuth2User.getUsername(), OAuth2User.OAUTH2_REALM_ID,
             "notificationId2");
     UserViewedProductNotification userViewedProductNotification3 =
-        tempEntity.newUserViewedProductNotification("other", oAuth2User.OAUTH2_REALM_ID, "notificationId3");
+        tempEntity.newUserViewedProductNotification("other", OAuth2User.OAUTH2_REALM_ID, "notificationId3");
     UserViewedProductNotification userViewedProductNotification4 =
         tempEntity.newUserViewedProductNotification(oAuth2User.getUsername(), "other", "notificationId4");
     UserViewedProductNotification userViewedProductNotification5 =

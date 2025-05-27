@@ -32,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Category(SlowTest.class)
-public abstract class AbstractApplicationReportPersistenceServiceTest
+abstract class AbstractApplicationReportPersistenceServiceTest
     extends AbstractComponentTest
 {
   private static final Set<String> BAD_NAMES = Set.of(

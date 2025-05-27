@@ -9,14 +9,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static com.sonatype.insight.brain.hds.TelemetryIdGenerator.TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME;
@@ -26,15 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TelemetryIdGeneratorTest
     extends AbstractComponentTest
 {
-  @Mock
-  private InsightConfig mockInsightConfig;
-
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  @Inject
+  private InsightConfig insightConfig;
 
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
-    systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
   }
 
   @Test
@@ -58,7 +55,7 @@ public class TelemetryIdGeneratorTest
     systemConfigurationPropertyDAO.insert(corruptedInstanceId);
 
     // when:
-    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, systemConfigurationPropertyDAO);
+    final var generatedId = TelemetryIdGenerator.generateId(insightConfig, systemConfigurationPropertyDAO);
 
     // then: the generated ID has been fixed
     assertThat(generatedId).matches(TELEMETRY_ID_PATTERN);
@@ -73,7 +70,7 @@ public class TelemetryIdGeneratorTest
     systemConfigurationPropertyDAO.insert(validInstanceId);
 
     // when:
-    final var generatedId = TelemetryIdGenerator.generateId(mockInsightConfig, systemConfigurationPropertyDAO);
+    final var generatedId = TelemetryIdGenerator.generateId(insightConfig, systemConfigurationPropertyDAO);
 
     // then: the telemetry host is unchanged
     assertThat(generatedId).matches(TELEMETRY_ID_PATTERN)

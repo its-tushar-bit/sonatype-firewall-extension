@@ -6,14 +6,11 @@
 package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
-import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -26,23 +23,21 @@ import com.sonatype.clm.testing.functional.elements.componentdetails.ClaimTabCon
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentCoordinatesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.ComponentInformationTile.IdentificationDefinitionList;
 import com.sonatype.clm.testing.functional.elements.componentdetails.EditLicensesPopover;
-import com.sonatype.clm.testing.functional.elements.componentdetails.LegalTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.LicenseDetectionsTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OccurrencesPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.elements.componentdetails.VulnerabilitiesTable;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
+import com.sonatype.clm.testing.functional.pages.AuditLogContent;
+import com.sonatype.clm.testing.functional.pages.ContainerComponentDetailsPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.SimilarWaiverCreator;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.service.Configuration;
@@ -52,11 +47,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness.CweId;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
@@ -70,7 +60,13 @@ import org.openqa.selenium.Keys;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -82,10 +78,6 @@ public class FirewallContainerComponentDetailsPageTest
   private static final String HASH = "fa78f54738ccf77379d1";
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
-
-  private PolicyDAO policyDAO;
-
-  private ApplicationDAO applicationDAO;
 
   private Organization parentOrg;
 
@@ -120,8 +112,6 @@ public class FirewallContainerComponentDetailsPageTest
     refreshOrOpen(FirewallPage.url());
     loginAsAdmin();
 
-    policyDAO = lookup(PolicyDAO.class);
-    applicationDAO = lookup(ApplicationDAO.class);
     configurationService = lookup(Configuration.class);
 
     assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
@@ -577,45 +567,6 @@ public class FirewallContainerComponentDetailsPageTest
     editPopover.observedLicenses().shouldHave(text("Get Advanced Legal Pack (ALP) to view Observed Licenses."));
   }
 
-  /* Part of testPolicyViolationsTab_violationTableEntries. */
-  private void testLegacyViolationIndicator(final ContainerComponentDetailsPage componentDetailsPage) {
-    // Configure legacy violation indicator for the first violation in the report and reload it
-    componentDetailsPage.backButton().click();
-    activateLegacyViolation();
-    refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
-
-    reportPage.aggregateByComponentToggle().click();
-    SelenideElement firstLegacyViolation = reportPage.resultRows().first();
-    firstLegacyViolation.click();
-    waitUntilUrl(ContainerComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
-
-    navigateToComponentDetailsPageViolationsTab(componentDetailsPage);
-
-    PolicyViolationsTable policyViolationsTable = componentDetailsPage.violationsTabContent().policyViolationsTable();
-    policyViolationsTable.getRows().shouldHave(size(1));
-    SelenideElement indicatorsCell = policyViolationsTable.getRows().first().findAll(By.tagName("td")).get(4);
-    indicatorsCell.shouldHave(text("Legacy"));
-  }
-
-  private void activateLegacyViolation() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
-    Policy licenseBannedPolicy = policyDAO.getByName("License-Banned").get(0);
-
-    app.setLegacyViolationEnabled(true);
-    licenseBannedPolicy.setLegacyViolationAllowed(true);
-    applicationDAO.update(app);
-    policyDAO.update(licenseBannedPolicy);
-    LegacyViolationService legacyViolationService =
-        testCLMServer.getCLMServer().getInstance(LegacyViolationService.class);
-    legacyViolationService.grantLegacyViolationStatus(app.getPublicId());
-    try {
-      evaluator.reevaluatePolicy();
-    }
-    catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   @Test
   public void testAuditLogTab_emptyMessage() {
     refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
@@ -629,41 +580,6 @@ public class FirewallContainerComponentDetailsPageTest
     auditLog.emptyMessage().shouldHave(text("No changes were found for this component"));
   }
 
-  private void createAuditLogEntries() {
-    // Using the CIP to create log entries.
-    // Would need to change this to the form in the Component Details Page once the license tab is implemented.
-    refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
-    ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
-
-    mockHdsResponseForFirstComponent();
-
-    ContainerComponentDetailsPage componentDetailsPage = new ContainerComponentDetailsPage();
-    componentDetailsPage.legalTab().shouldBe(visible).click();
-    LegalTabContent tabContent = componentDetailsPage.legalTabContent();
-    tabContent.shouldBe(visible);
-
-    SelenideElement editLicenseButton = tabContent.licenseDetectionsTile().editLicenseButton();
-    editLicenseButton.shouldBe(visible).click();
-
-    EditLicensesPopover editLicensesPopover = new EditLicensesPopover();
-    editLicensesPopover.shouldBe(visible);
-
-    //Move some licenses' status so we can have some entries in audit log
-    editLicensesPopover.status().selectOption("Acknowledged");
-    editLicensesPopover.comment().setValue("AAAA");
-    editLicensesPopover.saveButton().shouldBe(enabled).click();
-    NxSubmitMask.seeAndWaitForDismissal();
-
-    editLicensesPopover.status().selectOption("Open");
-    editLicensesPopover.comment().setValue("BBBB");
-    editLicensesPopover.saveButton().shouldBe(enabled).click();
-    NxSubmitMask.seeAndWaitForDismissal();
-
-    editLicensesPopover.getCloseButton().click();
-  }
-
   private void mockHdsResponseForFirstComponent() {
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-29.50.json"))
@@ -673,49 +589,12 @@ public class FirewallContainerComponentDetailsPageTest
         .atUri("rest/component/dependencies");
   }
 
-  private void mockHdsResponsesForVulnerabilityDetails() {
-    mockHdsResponseForFirstComponent();
-    testCLMServer.getHdsServer()
-        .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-1234-56789.json"))
-        .atUri("rest/vulnerability/details/json/CVE-1234-56789");
-  }
-
-  private void mockHdsResponseForVulnerabilityDetailsWithRefId(String refId) {
-    URI uri = UriBuilder.fromPath("rest/vulnerability/details/json/{arg1}").build(refId);
-
-    SecurityVulnerabilityData securityVulnerabilityData = new SecurityVulnerabilityData(refId);
-    securityVulnerabilityData.isAdvancedVulnerabilityDetection = true;
-    securityVulnerabilityData.researchType = SecurityVulnerabilityResearchType.DEEP_DIVE;
-    securityVulnerabilityData.mainSeverity =
-        new SecurityVulnerabilitySeverity("source-test", "source-test-label", 7.0f, "test/vector");
-    securityVulnerabilityData.weakness = new SecurityVulnerabilityWeakness();
-    securityVulnerabilityData.weakness.cweIds = new ArrayList<>();
-    securityVulnerabilityData.weakness.cweIds.add(new CweId("123", URI.create("http://localhost")));
-
-    testCLMServer.getHdsServer().respondWith(securityVulnerabilityData).atUri(uri);
-  }
-
   private ContainerComponentDetailsPage openComponentDetailsPageForFirstViolation() {
     ElementsCollection violations = reportPage.resultRows();
     SelenideElement firstViolation = violations.first();
     firstViolation.click();
     waitUntilUrl(ContainerComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
     return new ContainerComponentDetailsPage();
-  }
-
-  private void navigateToComponentDetailsPageViolationsTab(final ContainerComponentDetailsPage componentDetailsPage) {
-    componentDetailsPage.violationsTab().click();
-    waitUntilUrl(ContainerComponentDetailsPage.urlToViolations(app, SCAN_ID, HASH));
-    componentDetailsPage.violationsTabContent().shouldBe(visible);
-  }
-
-  private void navigateToLegalObligationsPage(final LicenseDetectionsTile licenseDetectionsTile) {
-    licenseDetectionsTile.reviewObligationsButton().click();
-    String componentIdentifier = "%7B\"format\":\"maven\",\"coordinates\":%7B\"artifactId\":\"license-maven-plugin\","
-        + "\"classifier\":\"\",\"extension\":\"jar\",\"groupId\":\"com.mycila\",\"version\":\"2.11\"%7D%7D";
-    waitUntilUrl(LegalApplicationDetailsPage.urlToComponentAtApplicationScopeByComponentIdentifier(
-        componentIdentifier, app.getPublicId(), HASH, SCAN_ID, "legal"));
-    ComponentLegalOverviewPage.editLicenseFilesButton().shouldBe(visible);
   }
 
   private void testRequiredFormFields(ClaimTabContent claimTabContent) {

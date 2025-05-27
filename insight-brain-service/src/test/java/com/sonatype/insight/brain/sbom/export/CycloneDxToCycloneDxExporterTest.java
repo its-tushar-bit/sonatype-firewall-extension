@@ -16,6 +16,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -207,8 +208,7 @@ public class CycloneDxToCycloneDxExporterTest
     List<Component> exportedComponents = exportedNewBom.getComponents();
     Component exportedLog4j = findBomComponent(purl, exportedComponents);
 
-    assertThat(exportedLog4j.getLicenses().getLicenses()).hasSize(expected.length)
-        .extracting("id").containsExactlyInAnyOrder(expected);
+    assertThat(exportedLog4j.getLicenses().getLicenses()).extracting("id").containsExactlyInAnyOrder(expected);
   }
 
   @Test

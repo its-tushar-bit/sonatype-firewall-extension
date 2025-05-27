@@ -10,10 +10,10 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.ReportDataStoreConfig;
 import com.sonatype.insight.brain.service.config.ReportDataStoreConfig.S3DataStoreConfig;
 
@@ -40,7 +40,7 @@ import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServ
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
@@ -58,9 +58,6 @@ public class S3ApplicationReportPersistenceServiceTest
 
   @Rule
   public LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(S3);
-
-  @Inject
-  private InsightConfig insightConfig;
 
   @Inject
   private S3Client s3Client;

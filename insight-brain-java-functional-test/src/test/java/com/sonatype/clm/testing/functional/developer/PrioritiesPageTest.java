@@ -12,6 +12,7 @@ import java.net.URLEncoder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -1058,9 +1059,9 @@ public class PrioritiesPageTest
 
     page.viewViolationsLink(0).click();
 
-    ComponentDetailsPage detailsPage = new ComponentDetailsPage();
-    detailsPage.title().shouldHave(text("org.openid4java : openid4java : 0.9.5"));
+    ComponentDetailsPage.title().shouldHave(text("org.openid4java : openid4java : 0.9.5"));
 
+    ComponentDetailsPage detailsPage = new ComponentDetailsPage();
     detailsPage.violationsTab().shouldHave(cssClass("active"));
   }
 

@@ -523,48 +523,8 @@ public class IntegrationsPageTest
     tempEntity.newApplicationCountHistoryEntry(now, 100, 0, 0, 0, daysToMilliseconds(5));
   }
 
-  private SelenideElement navigationTabs() {
-    return $(".iq-integrations-content .nx-tab-list");
-  }
-
-  private SelenideElement overviewTab() {
-    return $(".iq-integrations-content .nx-tab:nth-child(1)");
-  }
-
-  private SelenideElement cicdTab() {
-    return $(".iq-integrations-content .nx-tab:nth-child(2)");
-  }
-
-  private SelenideElement scmTab() {
-    return $(".iq-integrations-content .nx-tab:nth-child(3)");
-  }
-
-  private SelenideElement issueTrackingTab() {
-    return $(".iq-integrations-content .nx-tab:nth-child(4)");
-  }
-
-  private SelenideElement ideTab() {
-    return $(".iq-integrations-content .nx-tab:nth-child(5)");
-  }
-
   private SelenideElement overviewSection() {
     return $("#iq-integrations-overview-section");
-  }
-
-  private SelenideElement ciCdSection() {
-    return $("#iq-integrations-cicd-section");
-  }
-
-  private SelenideElement scmSection() {
-    return $("#iq-integrations-scm-section");
-  }
-
-  private SelenideElement issueTrackingSection() {
-    return $("#iq-integrations-issue-tracking-section");
-  }
-
-  private SelenideElement ideSection() {
-    return $("#iq-integrations-ide-section");
   }
 
   private SelenideElement ideUserCount() {

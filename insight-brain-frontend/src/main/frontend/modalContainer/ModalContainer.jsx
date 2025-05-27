@@ -4,6 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import React from 'react';
+import LogoutWarningModal from 'MainRoot/modals/logoutWarningModal/LogoutWarningModal';
+
 export default function ModalContainer() {
-  return null;
+  return <LogoutWarningModal />;
 }

@@ -115,6 +115,7 @@ import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/r
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 import createPRModalSlice from 'MainRoot/manualPullRequest/createPRModalSlice';
+import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -228,4 +229,5 @@ export default combineReducers({
   roiConfigurationPage: roiConfigurationPageSlice,
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
   displayTheme: displayThemeSlice,
+  logoutWarningModal: logoutWarningModalSlice,
 });

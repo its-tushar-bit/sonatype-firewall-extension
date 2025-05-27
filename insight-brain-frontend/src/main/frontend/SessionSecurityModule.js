@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import logoutWarningModalModule from './utility/services/logoutWarningModal/module';
+import { actions as logoutWarningModalActions } from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 
 const COOKIE_NAME = 'IQ-SESSION-EXPIRATION-TIMESTAMP';
 
@@ -13,7 +13,7 @@ const TWO_MINUTES = 2 * 60 * 1000;
  * A service that keeps track of how long it has been since the session was refreshed, and if it has been too long,
  * assumes that the session has expired and refreshes the page for security
  */
-function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModalService, CLMLocations) {
+function SessionSecurityService($cookies, $window, $rootScope, $ngRedux, CLMLocations) {
   /*
    * the approximate difference between the server's clock time and the time on the client.  This is necessary to
    * more reliably determine whether the server session has timed out.  Note that this value cannot be exact because
@@ -92,7 +92,12 @@ function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModa
       if (alertTimeoutMillis > 0) {
         setTimeout(checkSessionExpiredLater, alertTimeoutMillis);
       } else {
-        logoutWarningModalService.open(Math.floor(sessionTimeoutMillis / 1000), $rootScope.productEdition);
+        $ngRedux.dispatch(
+          logoutWarningModalActions.open({
+            startingCount: Math.floor(sessionTimeoutMillis / 1000),
+            productEdition: $rootScope.productEdition,
+          })
+        );
         setTimeout(checkSessionExpired, sessionTimeoutMillis);
       }
     } else {
@@ -114,10 +119,10 @@ function SessionSecurityService($cookies, $window, $rootScope, logoutWarningModa
   };
 }
 
-SessionSecurityService.$inject = ['$cookies', '$window', `$rootScope`, 'logoutWarningModalService', 'CLMLocations'];
+SessionSecurityService.$inject = ['$cookies', '$window', `$rootScope`, '$ngRedux', 'CLMLocations'];
 
 export default angular
-  .module('SessionSecurityModule', ['ngCookies', logoutWarningModalModule.name])
+  .module('SessionSecurityModule', ['ngCookies', 'ngRedux'])
   .service('SessionSecurityService', SessionSecurityService)
   .run([
     '$window',

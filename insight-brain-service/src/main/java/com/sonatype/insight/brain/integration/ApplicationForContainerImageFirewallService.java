@@ -301,7 +301,7 @@ public class ApplicationForContainerImageFirewallService
   }
 
   private void copyMembershipMapping(TransactionContext tx, String originContextId, String targetContextId) {
-    membershipMappingDAO.getByContextId(originContextId).forEach(membership -> {
+    membershipMappingDAO.getByContextId(tx, originContextId).forEach(membership -> {
       MembershipMapping newMembership = new MembershipMapping(
           targetContextId, membership.getRoleId(), membership.getMemberName(), membership.getMemberType());
       membershipMappingDAO.insert(tx, newMembership);

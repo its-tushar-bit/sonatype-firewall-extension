@@ -12,6 +12,11 @@ describe('sbomManagerUtil', () => {
       expect(isSbomManagerOnlyLicenseProduct(products)).toBeTruthy();
     });
 
+    it('returns true when both Sbom manager and ALP are the only products in the license', function () {
+      const products = ['Sonatype SBOM Manager', 'Sonatype Advanced Legal Pack'];
+      expect(isSbomManagerOnlyLicenseProduct(products)).toBeTruthy();
+    });
+
     it('returns true when Sbom manager SaaS is the only product in the license', function () {
       const products = ['Sonatype SBOM Manager SaaS'];
       expect(isSbomManagerOnlyLicenseProduct(products)).toBeTruthy();

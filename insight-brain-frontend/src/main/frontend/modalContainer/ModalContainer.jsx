@@ -6,7 +6,13 @@
 
 import React from 'react';
 import LogoutWarningModal from 'MainRoot/modals/logoutWarningModal/LogoutWarningModal';
+import ExternalLinkModal from 'MainRoot/modals/externalLinkModal/ExternalLinkModal';
 
 export default function ModalContainer() {
-  return <LogoutWarningModal />;
+  return (
+    <>
+      <LogoutWarningModal />
+      <ExternalLinkModal />
+    </>
+  );
 }

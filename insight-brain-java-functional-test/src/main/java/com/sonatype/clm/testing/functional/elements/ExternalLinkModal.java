@@ -13,14 +13,14 @@ public class ExternalLinkModal
     extends BasicElement<ExternalLinkModal>
 {
   public ExternalLinkModal() {
-    super(".test-external-link-modal");
+    super("#external-link-modal");
   }
 
   public SelenideElement body() {
-    return child(".iq-modal-content");
+    return child(".nx-modal-content");
   }
 
   public SelenideElement closeButton() {
-    return child(".iq-btn--dismiss");
+    return child(".nx-btn");
   }
 }

@@ -116,6 +116,7 @@ import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfigu
 import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 import createPRModalSlice from 'MainRoot/manualPullRequest/createPRModalSlice';
 import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
+import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -230,4 +231,5 @@ export default combineReducers({
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
   displayTheme: displayThemeSlice,
   logoutWarningModal: logoutWarningModalSlice,
+  externalLinkModal: externalLinkModalSlice,
 });

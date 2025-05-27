@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@use '../scss/typography' as *;
+@use '../../scss/typography' as *;
 
 .iq-unnavigable-link {
   @extend h3;

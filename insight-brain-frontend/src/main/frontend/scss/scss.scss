@@ -43,9 +43,6 @@
 @use '../directives/directives';
 @use '../OrgsAndPolicies/navigation/ownerTreeView';
 
-// Services
-@use '../externalLink/externalLinkModalService';
-
 // Pages
 @use 'dashboard-filter';
 @use 'dashboard';
@@ -173,6 +170,7 @@
 @use '../react/policyActionTag';
 @use '../manualPullRequest/createPRModal';
 @use '../modalContainer/modalContainer';
+@use '../modals/externalLinkModal/externalLinkModal';
 
 // Overrides
 @use 'responsive';

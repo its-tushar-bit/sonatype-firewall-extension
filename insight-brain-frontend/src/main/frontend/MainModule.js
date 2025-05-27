@@ -24,7 +24,6 @@ import dashboardModule from './dashboard/dashboard.module';
 import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoModule from './pendo/module';
-import externalLinkModule from './externalLink/module';
 import utilityServicesModule from './utility/services/utility.services.module';
 import unsavedChangesModalModule from './unsavedChangesModal/module';
 import loginModalModule from './user/LoginModal/module';
@@ -54,6 +53,7 @@ import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboardin
 import { fab } from '@fortawesome/free-brands-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -88,7 +88,6 @@ export const InitModule = angular
       dashboardModule.name,
       SessionSecurityModule.name,
       pendoModule.name,
-      externalLinkModule.name,
       utilityServicesModule.name,
       unsavedChangesModalModule.name,
       legalModule.name,
@@ -210,7 +209,6 @@ export const InitModule = angular
     'state.history.service',
     'SessionSecurityService',
     'pendoService',
-    'externalLinkModalService',
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
     'routeStateUtilService',
@@ -230,7 +228,6 @@ export const InitModule = angular
       StateHistoryService,
       SessionSecurityService,
       pendoService,
-      externalLinkModalService,
       LoginModalService,
       UnauthenticatedRequestQueueService,
       routeStateUtilService,
@@ -397,7 +394,7 @@ export const InitModule = angular
                 const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
                 const anchor = getAnchor(e.target);
                 if (isExternalLink(anchor)) {
-                  externalLinkModalService.open(anchor.href);
+                  $ngRedux.dispatch(externalLinkModalActions.open(anchor.href));
                   e.stopImmediatePropagation();
                   return false;
                 }

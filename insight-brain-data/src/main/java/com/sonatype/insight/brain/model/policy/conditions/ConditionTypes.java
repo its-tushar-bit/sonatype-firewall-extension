@@ -87,8 +87,6 @@ public class ConditionTypes
 
   public static DerivativeAiModelConditionType DerivativeAiModelConditionType;
 
-  public static KevStatusConditionType KevStatusConditionType;
-
   @Inject
   public static void injectConditionTypes(
       final AgeInDaysConditionType ageInDaysConditionType,
@@ -123,8 +121,7 @@ public class ConditionTypes
       final SecurityVulnerabilityCustomCVSSVectorStringConditionType
           securityVulnerabilityCustomCVSSVectorStringConditionType,
       final ComponentEndOfLifeConditionType componentEndOfLifeConditionType,
-      final DerivativeAiModelConditionType derivativeAiModelConditionType,
-      final KevStatusConditionType kevStatusConditionType)
+      final DerivativeAiModelConditionType derivativeAiModelConditionType)
   {
     ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
     ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
@@ -160,7 +157,6 @@ public class ConditionTypes
         securityVulnerabilityCustomCVSSVectorStringConditionType;
     ConditionTypes.ComponentEndOfLifeConditionType = componentEndOfLifeConditionType;
     ConditionTypes.DerivativeAiModelConditionType = derivativeAiModelConditionType;
-    ConditionTypes.KevStatusConditionType = kevStatusConditionType;
 
     allConditionTypes.clear();
 
@@ -196,7 +192,6 @@ public class ConditionTypes
     addDisabledConditionType(IacControlConditionType);
     add(ComponentEndOfLifeConditionType);
     add(DerivativeAiModelConditionType);
-    add(KevStatusConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

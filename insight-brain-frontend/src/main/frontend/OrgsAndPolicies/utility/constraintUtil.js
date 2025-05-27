@@ -129,7 +129,6 @@ const getConditionValue = (condition, conditionTypesMap) => {
     case 'SecurityVulnerabilitySource':
     case 'IacControlConditionType':
     case 'VulnerabilityGroup':
-    case 'KevStatus':
       return getAvailableValue('name', condition, conditionTypesMap);
     default:
       return condition.value?.value;

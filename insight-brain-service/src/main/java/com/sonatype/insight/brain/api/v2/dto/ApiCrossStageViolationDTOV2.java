@@ -25,12 +25,6 @@ public class ApiCrossStageViolationDTOV2
 
   public String organizationName;
 
-  @JsonSerialize(using = ISODateSerializer.class)
-  public Date openTime;
-
-  @JsonSerialize(using = ISODateSerializer.class)
-  public Date fixTime;
-
   public String hash;
 
   public String policyThreatCategory;

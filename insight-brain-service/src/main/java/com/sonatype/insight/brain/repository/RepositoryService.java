@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -85,7 +84,6 @@ import org.slf4j.LoggerFactory;
 import static java.util.stream.Collectors.toList;
 
 @Named
-@Singleton
 public class RepositoryService
 {
   public static final int MAX_REPOSITORY_EVALUATION_REQUEST_SIZE = 100;

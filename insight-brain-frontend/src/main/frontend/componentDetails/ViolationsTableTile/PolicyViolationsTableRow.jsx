@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { flatten } from 'ramda';
 
@@ -50,9 +50,7 @@ export default function PolicyViolationsTableRow({
     constraints.map((constraint) => constraint.conditions.map((condition) => condition.conditionReason))
   );
   const isRemediated = legacyViolation || waived;
-  const rowClassNames = classnames('iq-policy-violation-row', {
-    'iq-policy-violation-row--remediated': isRemediated,
-  });
+  const [telemetryClass, setTelemetryClass] = React.useState('');
 
   const setPolicyViolationIdToShow = () => {
     setSelectedPolicyViolationId(policyViolationId);
@@ -81,7 +79,11 @@ export default function PolicyViolationsTableRow({
   };
 
   return (
-    <NxTableRow className={rowClassNames} isClickable onClick={setPolicyViolationIdToShow}>
+    <NxTableRow
+      className={classnames('iq-policy-violation-row', telemetryClass)}
+      isClickable
+      onClick={setPolicyViolationIdToShow}
+    >
       <NxTableCell className={classnames({ disabled: isRemediated })}>
         <NxThreatIndicator policyThreatLevel={policyThreatLevel} />
         <span className="nx-threat-number">{policyThreatLevel}</span>
@@ -105,7 +107,12 @@ export default function PolicyViolationsTableRow({
         </NxTableCell>
       )}
       <NxTableCell className="iq-policy-violation-row__actions-and-indicators-cell iq-policy-violation-cell">
-        <WaiverStatus violation={violation} isAutoWaiversEnabled={isAutoWaiversEnabled} waivers={waivers} />
+        <WaiverStatus
+          violation={violation}
+          isAutoWaiversEnabled={isAutoWaiversEnabled}
+          waivers={waivers}
+          setTelemetryClass={setTelemetryClass}
+        />
       </NxTableCell>
       <NxTableCell chevron />
     </NxTableRow>
@@ -157,9 +164,32 @@ PolicyViolationsTableRow.propTypes = {
   isLegalTab: PropTypes.bool,
 };
 
-const WaiverStatus = ({ violation, isAutoWaiversEnabled, waivers }) => {
+const WaiverStatus = ({ violation, isAutoWaiversEnabled, waivers, setTelemetryClass }) => {
   const { waived, legacyViolation, applicableWaivers, waivedWithAutoWaiver = false } = violation;
   const activeWaivers = applicableWaivers?.length || 0;
+
+  useEffect(() => {
+    const determineTelemetryClass = () => {
+      if (waivedWithAutoWaiver && isAutoWaiversEnabled) {
+        return 'iq-policy-violation-row--auto';
+      }
+      if (legacyViolation) {
+        return 'iq-policy-violation-row--legacy';
+      }
+      if (activeWaivers === 0) {
+        return isEarliestWaiverExpirationInRange() ? 'iq-policy-violation-row--expired' : '';
+      }
+      if (activeWaivers > 0 && waived) {
+        const furthestExpiringWaiverDays = getFurthestExpiringWaiverDays(waivers);
+        return 0 <= furthestExpiringWaiverDays && furthestExpiringWaiverDays < 10
+          ? 'iq-policy-violation-row--expiring'
+          : 'iq-policy-violation-row--remediated';
+      }
+      return '';
+    };
+
+    setTelemetryClass(determineTelemetryClass());
+  }, [waivedWithAutoWaiver, isAutoWaiversEnabled, legacyViolation, activeWaivers, waived, waivers]);
 
   /**
    * Calculate the days between today and the given timestamp.
@@ -286,4 +316,5 @@ WaiverStatus.propTypes = {
       expiryTime: PropTypes.number,
     })
   ),
+  setTelemetryClass: PropTypes.func,
 };

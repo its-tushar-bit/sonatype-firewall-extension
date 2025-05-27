@@ -18,6 +18,8 @@ describe('PolicyViolationsTableRow', () => {
     setSelectedPolicyViolationId: jest.fn(),
   };
 
+  const defaultNumberOfClasses = 3;
+
   const renderComponent = (state) => {
     render(<PolicyViolationsTableRow {...state} />);
   };
@@ -44,6 +46,7 @@ describe('PolicyViolationsTableRow', () => {
 
     renderComponent(state);
 
+    expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses);
     expect(screen.getByText(/1/i)).toBeInTheDocument();
     expect(screen.getByText(/test policy/i)).toBeInTheDocument();
     expect(screen.getByText(/not reachable/i)).toBeInTheDocument();
@@ -98,6 +101,8 @@ describe('PolicyViolationsTableRow', () => {
 
       renderComponent(state);
 
+      expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+      expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--auto');
       expect(screen.getByText('Auto')).toBeInTheDocument();
     });
 
@@ -112,6 +117,8 @@ describe('PolicyViolationsTableRow', () => {
 
       renderComponent(state);
 
+      expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+      expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--legacy');
       expect(screen.getByText('Legacy')).toBeInTheDocument();
     });
 
@@ -127,6 +134,7 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses);
         expect(screen.getByText('Open')).toBeInTheDocument();
         expect(screen.queryByText('Waiver expired')).not.toBeInTheDocument();
       });
@@ -149,6 +157,7 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses);
         expect(screen.getByText('Open')).toBeInTheDocument();
         expect(screen.queryByText('Waiver expired')).not.toBeInTheDocument();
       });
@@ -171,6 +180,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expired');
         expect(screen.getByText('Open')).toBeInTheDocument();
         expect(screen.queryByText('Waiver expired')).toBeInTheDocument();
       });
@@ -192,6 +203,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expired');
         expect(screen.getByText('Open')).toBeInTheDocument();
         expect(screen.queryByText('Waiver expired')).toBeInTheDocument();
       });
@@ -220,6 +233,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expired');
         expect(screen.getByText('Open')).toBeInTheDocument();
         expect(screen.queryByText('Waiver expired')).toBeInTheDocument();
       });
@@ -238,6 +253,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
@@ -270,6 +287,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.getByText('Expires today')).toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
@@ -320,6 +339,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
@@ -346,6 +367,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).toBeInTheDocument();
       });
@@ -371,6 +394,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in 2 days/)).toBeInTheDocument();
@@ -397,6 +422,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in 9 days/)).toBeInTheDocument();
@@ -437,6 +464,8 @@ describe('PolicyViolationsTableRow', () => {
 
         renderComponent(state);
 
+        expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
+        expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
         expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
@@ -455,6 +484,7 @@ describe('PolicyViolationsTableRow', () => {
 
       renderComponent(state);
 
+      expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses);
       expect(screen.getByText('Unapplied Waiver')).toBeInTheDocument();
     });
   });

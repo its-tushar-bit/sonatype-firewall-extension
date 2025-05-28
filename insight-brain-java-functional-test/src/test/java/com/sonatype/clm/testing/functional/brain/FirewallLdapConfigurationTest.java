@@ -26,11 +26,13 @@ import static com.codeborne.selenide.Condition.attribute;
 public class FirewallLdapConfigurationTest
     extends LdapConfigurationTest
 {
+  @Override
   @Before
-  public void setFirewallLicense() {
+  public void before() {
+    // Don't call super.before() - it's not needed
     setLicensedProducts(ProductLicenseDetails.PRODUCT_FIREWALL_V2);
-    refresh();
-    waitUntilUrl(FirewallPage.url());
+    createTestLdapServer();
+    refreshOrOpen(FirewallPage.url());
   }
 
   @Override

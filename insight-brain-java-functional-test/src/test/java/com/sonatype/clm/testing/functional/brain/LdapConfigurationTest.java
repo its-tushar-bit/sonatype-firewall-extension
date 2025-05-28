@@ -44,7 +44,17 @@ import org.junit.Test;
 import org.openqa.selenium.Keys;
 
 import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.appear;
+import static com.codeborne.selenide.Condition.checked;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.not;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -77,6 +87,11 @@ public class LdapConfigurationTest
 
   @Before
   public void before() {
+    createTestLdapServer();
+    refreshOrOpen(IndexPage.url());
+  }
+
+  protected void createTestLdapServer() {
     ldapConfigurationPage = getLdapConfigurationPage();
     ldapServerListPage = getLdapServerListPage();
 
@@ -85,7 +100,6 @@ public class LdapConfigurationTest
     ldapUserMappingDAO = lookup(LdapUserMappingDAO.class);
 
     ldapServer = tempEntity.newLdapServer("Test Ldap Server");
-    refreshOrOpen(IndexPage.url());
   }
 
   @After

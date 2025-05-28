@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -116,39 +117,6 @@ public class SourceControlPullRequestCommentDAO
     return getList(
         tx,
         SELECT_ENTITY + "WHERE entity.applicationId=?1",
-        id);
-  }
-
-  /**
-   * This method deletes all comment entries that are associated with the given policy evaluation ID, whether that
-   * represents the source or target policy evaluation.
-   */
-  public void deleteByPolicyEvaluationId(final String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByPolicyEvaluationId(tx, id);
-      tx.commit();
-    }
-  }
-
-  /**
-   * This method deletes all comment entries that are associated with the given policy evaluation ID, whether that
-   * represents the source or target policy evaluation.
-   */
-  public void deleteByPolicyEvaluationId(final TransactionContext tx, final String id) {
-    for (SourceControlPullRequestComment pullRequestComment : getByPolicyEvaluationId(tx, id)) {
-      delete(tx, pullRequestComment);
-    }
-  }
-
-  /**
-   * This method fetches all comment entries associated with the given policy evaluation ID, whether that represents
-   * the source or target policy evaluation.
-   */
-  public List<SourceControlPullRequestComment> getByPolicyEvaluationId(final TransactionContext tx, final String id) {
-    return getList(
-        tx,
-        SELECT_ENTITY + "WHERE entity.sourcePolicyEvaluationId=?1 OR entity.targetPolicyEvaluationId=?1",
         id);
   }
 

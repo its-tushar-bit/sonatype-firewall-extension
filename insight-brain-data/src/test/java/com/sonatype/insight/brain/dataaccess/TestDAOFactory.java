@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -150,6 +149,7 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRe
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationTagDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
+import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.db.datastore.DataStoreProvider;
 import com.sonatype.insight.brain.model.policy.ConditionValidator;
 import com.sonatype.insight.brain.model.policy.ConstraintValidator;
@@ -208,8 +208,6 @@ public class TestDAOFactory
     Provider<ApplicationComponentDAO> applicationComponentDAOProvider = this::createApplicationComponentDAO;
     SourceControlEventDAO sourceControlEventDAO = createSourceControlEventDAO();
     SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO = createSourceControlPullRequestResultDAO();
-    PolicyViolationDAO policyViolationDAO = createPolicyViolationDAO();
-    PolicyEvaluationDAO policyEvaluationDAO = createPolicyEvaluationDAO();
     ApplicationTagDAO applicationTagDAO = createApplicationTagDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     InnerSourceComponentDAO innerSourceComponentDAO = createInnerSourceComponentDAO();
@@ -226,7 +224,7 @@ public class TestDAOFactory
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
-        sourceControlEventDAO, sourceControlPullRequestResultDAO, policyViolationDAO, policyEvaluationDAO,
+        sourceControlEventDAO, sourceControlPullRequestResultDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
@@ -649,13 +647,7 @@ public class TestDAOFactory
   @Override
   public PolicyEvaluationDAO createPolicyEvaluationDAO() {
     LastPolicyEvaluationDAO lastPolicyEvaluationDAO = createLastPolicyEvaluationDAO();
-    Provider<SourceControlPullRequestCommentDAO> pullRequestCommentDAOProvider =
-        this::createSourceControlPullRequestCommentDAO;
-    SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO =
-        createSourceControlDefaultBranchCommitHistoryDAO();
-    SourceControlEventDAO sourceControlEventDAO = createSourceControlEventDAO();
-    return new PolicyEvaluationDAO(dataStoreProvider.getOperationalDataStore(), lastPolicyEvaluationDAO,
-        pullRequestCommentDAOProvider, defaultBranchCommitHistoryDAO, sourceControlEventDAO);
+    return new PolicyEvaluationDAO(dataStoreProvider.getOperationalDataStore(), lastPolicyEvaluationDAO);
   }
 
   @Override

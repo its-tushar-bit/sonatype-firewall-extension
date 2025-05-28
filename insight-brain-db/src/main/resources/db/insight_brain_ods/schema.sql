@@ -422,7 +422,7 @@ CREATE TABLE policy_evaluation (
   client_scan_type varchar(50) NULL,
   branch_name varchar(512) NULL,
   CONSTRAINT policy_evaluation_pk PRIMARY KEY (policy_evaluation_id),
-  CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
+  CONSTRAINT policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE
 );
 CREATE INDEX policy_evaluation_scan_id_idx ON policy_evaluation(scan_id);
 CREATE INDEX policy_evaluation_time_idx ON policy_evaluation(time);
@@ -543,8 +543,10 @@ CREATE TABLE last_policy_evaluation (
   stage_type_id varchar(30) NOT NULL,
   CONSTRAINT last_policy_evaluation_PK PRIMARY KEY (policy_evaluation_id),
   CONSTRAINT last_policy_evaluation_uk UNIQUE (application_id, stage_type_id),
-  CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
-  CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id)
+  CONSTRAINT last_policy_evaluation_eval_fk FOREIGN KEY (policy_evaluation_id)
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
+  CONSTRAINT last_policy_evaluation_app_fk FOREIGN KEY (application_id)
+    REFERENCES application(application_id) ON DELETE CASCADE
 );
 
 CREATE TABLE user_viewed_product_notification (
@@ -897,9 +899,9 @@ CREATE TABLE source_control_pull_request_comment
   CONSTRAINT source_control_pull_request_comment_pk PRIMARY KEY (source_control_pull_request_comment_id),
   CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
   CONSTRAINT source_control_pull_request_source_policy_eval_fk FOREIGN KEY (source_policy_evaluation_id)
-      REFERENCES policy_evaluation(policy_evaluation_id),
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
   CONSTRAINT source_control_pull_request_target_policy_eval_fk FOREIGN KEY (target_policy_evaluation_id)
-      REFERENCES policy_evaluation(policy_evaluation_id),
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
   CONSTRAINT source_control_pull_request_comment_uk UNIQUE (application_id, component_hash, pull_request_id, pathname)
 );
 
@@ -914,7 +916,8 @@ CREATE TABLE source_control_default_branch_commit_history (
   update_time timestamp,
   CONSTRAINT source_control_default_branch_commit_history_pk PRIMARY KEY (source_control_default_branch_commit_history_id),
   CONSTRAINT source_control_default_branch_commit_history_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
-  CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation(policy_evaluation_id),
+  CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id)
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
   CONSTRAINT source_control_default_branch_commit_history_uk UNIQUE (application_id, commit_hash)
 );
 
@@ -955,7 +958,8 @@ CREATE TABLE source_control_event (
   scan_trigger_type varchar(50),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
-  CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id) REFERENCES policy_evaluation (policy_evaluation_id)
+  CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id)
+    REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE
 );
 CREATE INDEX source_control_event_instance_id_idx ON source_control_event(instance_id);
 CREATE INDEX source_control_event_create_time_idx ON source_control_event(create_time);

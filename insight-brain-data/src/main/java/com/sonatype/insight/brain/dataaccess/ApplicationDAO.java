@@ -33,8 +33,6 @@ import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
@@ -61,7 +59,6 @@ import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
@@ -91,10 +88,6 @@ public class ApplicationDAO
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
-
-  private final PolicyViolationDAO policyViolationDAO;
-
-  private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider;
 
@@ -141,8 +134,6 @@ public class ApplicationDAO
       final Provider<SourceControlDAO> sourceControlDAOProvider,
       final SourceControlEventDAO sourceControlEventDAO,
       final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
-      final PolicyViolationDAO policyViolationDAO,
-      final PolicyEvaluationDAO policyEvaluationDAO,
       final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider,
       final Provider<LabelDAO> labelDAOProvider,
       final Provider<PolicyDAO> policyDAOProvider,
@@ -167,8 +158,6 @@ public class ApplicationDAO
     this.sourceControlDAOProvider = sourceControlDAOProvider;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
-    this.policyViolationDAO = policyViolationDAO;
-    this.policyEvaluationDAO = policyEvaluationDAO;
     this.licenseThreatGroupDAOProvider = licenseThreatGroupDAOProvider;
     this.labelDAOProvider = labelDAOProvider;
     this.policyDAOProvider = policyDAOProvider;
@@ -703,23 +692,8 @@ public class ApplicationDAO
     // Cascade to source control pull request results
     sourceControlPullRequestResultDAO.deleteByApplicationId(tx, application.getId());
 
-    // For H2, we do not enroll the policy violation and evaluation deletions in the transaction on purpose.
-    // This improves performance and keeps db operations (including commits) reasonably short, which means other
-    // concurrent db operations are blocked for shorter periods of time (H2 is single threaded).
-    // Since non-transactional, we delete violations first such that no violations without corresponding evaluation
-    // are left behind in case of a failure.
-
-    // Cascade to policy evaluations
-    for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getByApplicationId(tx, application.getId())) {
-      // The update of the last policy evaluation is time consuming. Since the application is deleted and all policy
-      // evaluations are deleted as well, there is no point in updating the last policy evaluation. This improves
-      // performance 75 times.
-
-      // We do not enroll the policy evaluation deletes in the transaction on purpose. For applications with a lot of
-      // policy evaluations, the transaction becomes huge and that slows down the delete operation. By doing the policy
-      // evaluation deletes outside of the transaction, performance is improved 17 times.
-      policyEvaluationDAO.delete(policyEvaluation, false /* updateLastPolicyEvaluation */);
-    }
+    // PolicyViolation deletions are cascaded via foreign key ON DELETE CASCADE
+    // PolicyEvaluation deletions are cascaded via foreign key ON DELETE CASCADE
 
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = this.licenseThreatGroupDAOProvider.get();

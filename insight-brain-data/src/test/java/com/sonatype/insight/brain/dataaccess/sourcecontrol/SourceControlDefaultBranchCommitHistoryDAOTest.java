@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import jakarta.persistence.EntityExistsException;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
@@ -18,6 +17,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 
+import jakarta.persistence.EntityExistsException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -178,30 +178,6 @@ public class SourceControlDefaultBranchCommitHistoryDAOTest
 
     // then : should be the oldest entry
     assertThat(fetchedCommitHistory.getId()).isEqualTo(oldestCommitWithEval.getId());
-  }
-
-  @Test
-  public void testDeleteByPolicyEvaluationId() {
-    // given : commit history linked to policy evaluations
-    String policyEvaluationId =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit1")
-        .getId();
-    String policyEvaluationId2 =
-        tempEntity.newPolicyEvaluation(application.getId(), BuildStageType.ID, "scan", "commit2")
-        .getId();
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit1", new Date(),
-        policyEvaluationId);
-    tempEntity.newSourceControlDefaultBranchCommitHistory(application.getId(), "commit2", new Date(),
-        policyEvaluationId2);
-
-    // when : delete using the policy evaluation ID
-    defaultBranchCommitHistoryDAO.deleteByPolicyEvaluationId(policyEvaluationId);
-
-    // then : entry doesn't exist in DB
-    assertThat(defaultBranchCommitHistoryDAO.getByPolicyEvaluationId(policyEvaluationId)).isEmpty();
-
-    // and : entry for policy eval 2 still exists
-    assertThat(defaultBranchCommitHistoryDAO.getByPolicyEvaluationId(policyEvaluationId2)).isNotEmpty();
   }
 
   @Test

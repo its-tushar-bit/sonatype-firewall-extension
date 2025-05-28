@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -139,22 +140,6 @@ public class SourceControlDefaultBranchCommitHistoryDAO
         getList(tx, SELECT_ENTITY + WHERE_ENTITY_APPLICATION_ID_1, applicationId);
     for (SourceControlDefaultBranchCommitHistory defaultBranchCommitHistory : commitHistoryList) {
       delete(tx, defaultBranchCommitHistory);
-    }
-  }
-
-  void deleteByPolicyEvaluationId(final String id) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByPolicyEvaluationId(tx, id);
-      tx.commit();
-    }
-  }
-
-  public void deleteByPolicyEvaluationId(final TransactionContext tx, final String policyEvaluationId) {
-    log.debug("Deleting SourceControlDefaultBranchCommitHistory for policy evaluation id {}.", policyEvaluationId);
-
-    for (SourceControlDefaultBranchCommitHistory commitHistory : getByPolicyEvaluationId(tx, policyEvaluationId)) {
-      delete(tx, commitHistory);
     }
   }
 

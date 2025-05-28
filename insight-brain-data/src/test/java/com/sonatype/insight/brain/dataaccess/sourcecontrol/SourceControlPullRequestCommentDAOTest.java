@@ -97,11 +97,10 @@ public class SourceControlPullRequestCommentDAOTest
     assertThat(fetchedPullRequestCommentAgain.getUpdateTime()).isNotNull();
 
     // when : delete the comment
-    pullRequestCommentDAO.deleteByPolicyEvaluationId(fetchedPullRequestComment.getSourcePolicyEvaluationId());
+    pullRequestCommentDAO.delete(fetchedPullRequestComment);
 
     // then : the comment no longer exists
-    fetchedPullRequestComment =
-        pullRequestCommentDAO.getByApplicationIdAndPullRequestIdWithoutComponent(application.getId(), pullRequestId);
+    fetchedPullRequestComment = pullRequestCommentDAO.getById(fetchedPullRequestComment.getId());
     assertThat(fetchedPullRequestComment).isNull();
   }
 

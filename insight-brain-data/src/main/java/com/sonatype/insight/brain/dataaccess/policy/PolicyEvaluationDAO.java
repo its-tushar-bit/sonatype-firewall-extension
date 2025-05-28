@@ -10,16 +10,13 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
-import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -40,25 +37,13 @@ public class PolicyEvaluationDAO
 {
   private final LastPolicyEvaluationDAO lastPolicyEvaluationDAO;
 
-  private final Provider<SourceControlPullRequestCommentDAO> pullRequestCommentDAOProvider;
-
-  private final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO;
-
-  private final SourceControlEventDAO sourceControlEventDAO;
-
   @Inject
   public PolicyEvaluationDAO(
       final OperationalDataStore operationalDataStore,
-      final LastPolicyEvaluationDAO lastPolicyEvaluationDAO,
-      final Provider<SourceControlPullRequestCommentDAO> pullRequestCommentDAOProvider,
-      final SourceControlDefaultBranchCommitHistoryDAO defaultBranchCommitHistoryDAO,
-      final SourceControlEventDAO sourceControlEventDAO)
+      final LastPolicyEvaluationDAO lastPolicyEvaluationDAO)
   {
     super(operationalDataStore);
     this.lastPolicyEvaluationDAO = lastPolicyEvaluationDAO;
-    this.pullRequestCommentDAOProvider = pullRequestCommentDAOProvider;
-    this.defaultBranchCommitHistoryDAO = defaultBranchCommitHistoryDAO;
-    this.sourceControlEventDAO = sourceControlEventDAO;
   }
 
   public PolicyEvaluation getLastByApplicationIdAndScanId(TransactionContext tx, String appId, String scanId) {
@@ -246,12 +231,6 @@ public class PolicyEvaluationDAO
     }
   }
 
-  public List<PolicyEvaluation> getByApplicationId(TransactionContext tx, String appId) {
-    String sQuery = "SELECT entity FROM PolicyEvaluation entity" + //
-        " WHERE entity.applicationId=?1";
-    return getList(tx, sQuery, appId);
-  }
-
   /**
    * @since 1.39
    */
@@ -287,32 +266,18 @@ public class PolicyEvaluationDAO
 
   @Override
   public void delete(final TransactionContext tx, PolicyEvaluation policyEvaluation) {
-    delete(tx, policyEvaluation, true /* updateLastPolicyEvaluation */);
-  }
+    // SourceControlPullRequestCommentCascade deletions are cascaded via foreign key ON DELETE CASCADE
+    // SourceControlDefaultBranchCommitHistory deletions are cascaded via foreign key ON DELETE CASCADE
+    // SourceControlEvent deletions are cascaded via foreign key ON DELETE CASCADE
+    // LastPolicyEvaluation deletions are cascaded via foreign key ON DELETE CASCADE
 
-  private void delete(final TransactionContext tx,
-                      PolicyEvaluation policyEvaluation,
-                      boolean updateLastPolicyEvaluation)
-  {
-    // Cascade to last policy evaluation if this is the last policy evaluation
     LastPolicyEvaluation lastPolicyEvaluation = lastPolicyEvaluationDAO.getByEvaluationId(tx, policyEvaluation.getId());
-    if (lastPolicyEvaluation != null) {
-      lastPolicyEvaluationDAO.delete(tx, lastPolicyEvaluation);
-    }
-
-    // Cascade to source control pull request comments
-    pullRequestCommentDAOProvider.get().deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
-
-    // Cascade to source control default branch commit history
-    defaultBranchCommitHistoryDAO.deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
-
-    sourceControlEventDAO.deleteByPolicyEvaluationId(tx, policyEvaluation.getId());
 
     // Delete the policy evaluation itself
     super.delete(tx, policyEvaluation);
 
     // Insert a new last policy evaluation if we just deleted the current last
-    if (updateLastPolicyEvaluation && lastPolicyEvaluation != null) {
+    if (lastPolicyEvaluation != null) {
       PolicyEvaluation newestPolicyEvaluation =
           getNewestPolicyEvaluation(tx, policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
       lastPolicyEvaluationDAO.insertIfPossibleLastPolicyEvaluation(tx, newestPolicyEvaluation);
@@ -326,15 +291,6 @@ public class PolicyEvaluationDAO
         "AND e.isForObsoleteScan = false " + //
         "ORDER BY e.time DESC";
     return createQuery(sQuery, applicationId, stageTypeId).forceSingleResult().get(tx);
-  }
-
-  @SuppressWarnings("PMD.MissingOverride") // maybe a future PMD version gets smarter, until then...
-  public void delete(PolicyEvaluation policyEvaluation, boolean updateLastPolicyEvaluation) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      delete(tx, policyEvaluation, updateLastPolicyEvaluation);
-      tx.commit();
-    }
   }
 
   private void validate(PolicyEvaluation policyEvaluation) {

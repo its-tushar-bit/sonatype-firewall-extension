@@ -469,32 +469,10 @@ public class PolicyEvaluationDAOTest
     assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe2.getId());
 
     // Delete the second evaluation. The last policy eval will be updated to the first policy eval.
-    dao.delete(pe2, true /* updateLastPolicyEvaluation */);
+    dao.delete(pe2);
 
     lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(application.getId(), stageTypeId);
     assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe1.getId());
-  }
-
-  @Test
-  public void testDelete_DoNotUpdateLastPolicyEvaluation() {
-    String stageTypeId = ReleaseStageType.ID;
-    String scanId = "PolicyEvaluationDAOTest";
-
-    Date time1 = new Date();
-    tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, scanId, time1);
-    Date time2 = new Date(time1.getTime() + 1000);
-    PolicyEvaluation pe2 = tempEntity.newPolicyEvaluation(application.getId(), stageTypeId, scanId, time2);
-
-    // Assert we have a last policy evaluation and that it is the second one
-    PolicyEvaluation lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(application.getId(), stageTypeId);
-    assertThat(lastPolicyEvaluation.getId()).isEqualTo(pe2.getId());
-
-    // Delete the second evaluation. The last policy eval will be deleted and there will not be a new last policy eval
-    // because we tell the delete to not update the last policy eval.
-    dao.delete(pe2, false /* updateLastPolicyEvaluation */);
-
-    lastPolicyEvaluation = dao.getLastByApplicationIdAndStageId(application.getId(), stageTypeId);
-    assertThat(lastPolicyEvaluation).isNull();
   }
 
   @Test

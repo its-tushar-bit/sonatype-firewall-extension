@@ -169,6 +169,14 @@ export function getWaiversAndAutoWaiversExportUrl() {
   return uriTemplate`/rest/dashboard/export/policyWaivers?includeAutoWaivers=true`;
 }
 
+export function getWaiverRequestsUrl() {
+  return uriTemplate`/rest/dashboard/policy/policyWaiverRequests`;
+}
+
+export function getWaiverRequestsExportUrl() {
+  return uriTemplate`/rest/dashboard/export/policyWaiverRequests`;
+}
+
 export function getApplicationsUrl() {
   return uriTemplate`/rest/application`;
 }
@@ -932,8 +940,16 @@ export function getWebhookEventTypesUrl() {
   return uriTemplate`/rest/config/webhook/eventTypes`;
 }
 
-export function saveRequestWaiverUrl(policyViolation) {
-  return uriTemplate`/api/v2/policyWaivers/waiverRequests/${policyViolation}`;
+export function getCreatePolicyWaiverRequestUrl(ownerType, ownerId, policyViolationId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/policyViolation/${policyViolationId}`;
+}
+
+export function getViewOrUpdatePolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/${policyWaiverRequestId}`;
+}
+
+export function getReviewPolicyWaiverRequestUrl(ownerType, ownerId, policyWaiverRequestId) {
+  return uriTemplate`/api/v2/policyWaiverRequests/${ownerType}/${ownerId}/review/${policyWaiverRequestId}`;
 }
 
 export function getIsJiraEnabledUrl() {
@@ -1567,12 +1583,6 @@ export const getIdeIntegratedUserCount = () => uriTemplate`/api/v2/scan/applicat
 
 export const getPolicyViolationUiLink = (violationId) => {
   return uriTemplate`/ui/links/policyViolation/${violationId}`;
-};
-
-export const getAddWaiverUiLink = (violationId, comments, reasonId) => {
-  let commentParam = comments ? `?comments=${encodeURIComponent(comments)}` : '';
-  let reasonIdParam = reasonId ? (comments ? '&' : '?') + `reasonId=${encodeURIComponent(reasonId)}` : '';
-  return uriTemplate`/ui/links/addWaiver/${violationId}` + commentParam + reasonIdParam;
 };
 
 export const getDeveloperDashboardGraphsData = () => uriTemplate`/rest/integrations/stats/usage-over-time`;

@@ -11,10 +11,11 @@ import UpgradeAvailableIndicator from 'MainRoot/react/upgradeAvailableIndicator/
 import { NxTable, NxThreatIndicator, NxOverflowTooltip, NxSmallTag } from '@sonatype/react-shared-components';
 import { isWaiverAllVersionsOrExact, shouldShowUpgradeIndicator } from 'MainRoot/util/waiverUtils';
 import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
+  const dispatch = useDispatch();
   const {
     id: waiverId,
     threatLevel,
@@ -34,14 +35,16 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
   const goToWaiverDetails = () => {
     const waiverType = waiver.isAutoWaiver ? 'autoWaiver' : 'waiver';
     const stateToGo = isStandaloneFirewall ? FIREWALL_WAIVER_DETAILS : 'waiver.details';
-    stateGo(stateToGo, {
-      waiverId,
-      ownerId,
-      ownerType,
-      type: waiverType,
-      sidebarReference: 'filter',
-      page: page + 1,
-    });
+    dispatch(
+      stateGo(stateToGo, {
+        waiverId,
+        ownerId,
+        ownerType,
+        type: waiverType,
+        sidebarReference: 'filter',
+        page: page + 1,
+      })
+    );
   };
 
   const waiverCreateTime = moment(createTime).format('YYYY-MM-DD');
@@ -76,7 +79,7 @@ export default function DashboardWaiversTableRow({ stateGo, waiver, page }) {
       </NxTable.Cell>
       <NxTable.Cell>
         <NxOverflowTooltip>
-          <div>{policyName ? policyName : <span>{'—'}</span>}</div>
+          <div>{policyName || <span>{'—'}</span>}</div>
         </NxOverflowTooltip>
       </NxTable.Cell>
       <NxTable.Cell>

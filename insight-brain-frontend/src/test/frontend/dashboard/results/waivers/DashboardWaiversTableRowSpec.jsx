@@ -19,7 +19,20 @@ describe('DashboardWaiversTableRow', function () {
   }
 
   beforeEach(function () {
-    stateGoSpy = jasmine.createSpy('stateGo');
+    stateGoSpy = jasmine.createSpy('stateGo').and.returnValue({
+      type: 'STATE_GO',
+      payload: {
+        state: 'waiver.details',
+        params: {
+          waiverId: 'waiverId',
+          ownerId: 'ownerId',
+          ownerType: 'organization',
+          type: 'waiver',
+          sidebarReference: 'filter',
+          page: 3,
+        },
+      },
+    });
     minimalProps = {
       stateGo: stateGoSpy,
       page: 2,

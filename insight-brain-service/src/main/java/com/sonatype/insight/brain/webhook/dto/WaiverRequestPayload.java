@@ -14,7 +14,13 @@ public class WaiverRequestPayload
 
   public String policyViolationLink;
 
+  /**
+   * @deprecated Legacy field replaced by {@link #reviewWaiverRequestLink}. Kept for backwards compatibility.
+   */
+  @Deprecated(since = "1.192")
   public String addWaiverLink;
+
+  public String reviewWaiverRequestLink;
 
   public String reasonId;
 

@@ -7,27 +7,23 @@
 import { NxTab, NxTabList, NxTabs } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { toUpper, replace } from 'ramda';
+import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 import React from 'react';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
   WAIVERS_RESULTS_TYPE,
+  WAIVER_REQUESTS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
-const capitalizeFirstLetter = replace(/^./, toUpper);
-
-const dashboardTabs = [VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE];
-
 export default function DashboardTabs({ currentTab, stateGo, isDashboardEnabled, isWaiversTabEnabled }) {
-  const handleTabClick = (index) => {
-    stateGo(`dashboard.overview.${getTabsToUse()[index]}`);
-  };
-
-  const getTabsToUse = () => {
+  // Determine which tabs to show in the dashboard
+  // based on which dashboard features are enabled
+  const dashboardTabs = () => {
     const tabsToUse = [];
     if (isDashboardEnabled) {
-      tabsToUse.push(...dashboardTabs);
+      tabsToUse.push(...[VIOLATIONS_RESULTS_TYPE, COMPONENTS_RESULTS_TYPE, APPLICATIONS_RESULTS_TYPE]);
     }
     if (isWaiversTabEnabled) {
       tabsToUse.push(WAIVERS_RESULTS_TYPE);
@@ -35,10 +31,23 @@ export default function DashboardTabs({ currentTab, stateGo, isDashboardEnabled,
     return tabsToUse;
   };
 
+  // Handle the case where the current tab is either of the Waiver sub-tabs
+  const getActiveTab = (currentTab) => {
+    if (currentTab === WAIVERS_RESULTS_TYPE || currentTab === WAIVER_REQUESTS_RESULTS_TYPE) {
+      return dashboardTabs().indexOf(WAIVERS_RESULTS_TYPE);
+    } else {
+      return dashboardTabs().indexOf(currentTab);
+    }
+  };
+
+  const handleTabClick = (index) => {
+    stateGo(`dashboard.overview.${dashboardTabs()[index]}`);
+  };
+
   return (
-    <NxTabs activeTab={getTabsToUse().indexOf(currentTab)} onTabSelect={handleTabClick}>
+    <NxTabs activeTab={getActiveTab(currentTab)} onTabSelect={handleTabClick}>
       <NxTabList>
-        {getTabsToUse().map((tab) => (
+        {dashboardTabs().map((tab) => (
           <NxTab key={tab}>{capitalizeFirstLetter(tab)}</NxTab>
         ))}
       </NxTabList>

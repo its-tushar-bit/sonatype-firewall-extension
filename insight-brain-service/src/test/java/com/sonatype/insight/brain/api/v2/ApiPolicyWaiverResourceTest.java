@@ -844,6 +844,10 @@ public class ApiPolicyWaiverResourceTest
     assertThat(apiPolicyWaiverDTO.threatLevel).isEqualTo(policy.getThreatLevel());
   }
 
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testRequestWaiver_applicationPolicyViolation() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -865,6 +869,10 @@ public class ApiPolicyWaiverResourceTest
     assertThat(post.getStatusCode()).isEqualTo(HttpServletResponse.SC_NO_CONTENT);
   }
 
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testRequestWaiver_unknownOrRepositoryPolicyViolation() throws Exception {
     ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();

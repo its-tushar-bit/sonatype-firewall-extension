@@ -7,13 +7,10 @@ package com.sonatype.insight.brain.dashboard;
 
 import java.util.Comparator;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
-
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 
 public class DashboardPolicyWaiverRequestDTOComparator
     implements Comparator<DashboardPolicyWaiverRequestDTO>
@@ -24,7 +21,7 @@ public class DashboardPolicyWaiverRequestDTOComparator
 
   public DashboardPolicyWaiverRequestDTOComparator(String orderBy) {
     if (StringUtils.isEmpty(orderBy)) {
-      this.orderByField = DashboardPolicyWaiverRequestOrderByEnum.CREATION_DATE;
+      this.orderByField = DashboardPolicyWaiverRequestOrderByEnum.REQUEST_TIME;
       this.isAscending = true;
     }
     else {
@@ -46,9 +43,9 @@ public class DashboardPolicyWaiverRequestDTOComparator
     DashboardPolicyWaiverRequestDTO dto2 = isAscending ? o2 : o1;
 
     switch (orderByField) {
-      case COMPONENT_SCOPE:
-        return compareComponentNames(o1, o2);
-      case CREATION_DATE:
+      case REQUESTER_NAME:
+        return compareRequesterNames(dto1, dto2);
+      case REQUEST_TIME:
         return dto1.requestTime.compareTo(dto2.requestTime);
       case OWNER_SCOPE:
         return compareOwnerScope(dto1, dto2);
@@ -78,51 +75,11 @@ public class DashboardPolicyWaiverRequestDTOComparator
     return sortByPolicyName == 0 ? compareExpirationDates(dto1, dto2) : sortByPolicyName;
   }
 
-  private int compareComponentNames(DashboardPolicyWaiverRequestDTO dto1, DashboardPolicyWaiverRequestDTO dto2) {
-    if (dto1.componentIdentifier != null && dto2.componentIdentifier != null) {
-      return isAscending ? compareNonNullComponentNames(dto1, dto2) : compareNonNullComponentNames(dto2, dto1);
-    }
+  private int compareRequesterNames(DashboardPolicyWaiverRequestDTO dto1, DashboardPolicyWaiverRequestDTO dto2) {
+    int sortByRequesterName = String.CASE_INSENSITIVE_ORDER.compare(dto1.requesterName, dto2.requesterName);
 
-    return compareNullComponentNames(dto1, dto2);
-  }
-
-  private int compareNonNullComponentNames(DashboardPolicyWaiverRequestDTO dto1, DashboardPolicyWaiverRequestDTO dto2) {
-    int initialSorting = compareComponentIdentifiers(dto1.componentIdentifier.toComponentIdentifier(),
-        dto2.componentIdentifier.toComponentIdentifier());
-
-    return initialSorting != 0 ? initialSorting : compareExpirationDates(dto1, dto2);
-  }
-
-  private int compareNullComponentNames(DashboardPolicyWaiverRequestDTO dto1, DashboardPolicyWaiverRequestDTO dto2) {
-    if (dto1.componentIdentifier != null) {
-      return -1;
-    }
-    else if (dto2.componentIdentifier != null) {
-      return 1;
-    }
-
-    if (dto1.componentMatchStrategy == ALL_COMPONENTS && dto2.componentMatchStrategy == ALL_COMPONENTS) {
-      return compareExpirationDates(dto1, dto2);
-    }
-    else {
-      return compareUnknownComponents(dto1, dto2);
-    }
-  }
-
-  private int compareUnknownComponents(DashboardPolicyWaiverRequestDTO dto1, DashboardPolicyWaiverRequestDTO dto2) {
-    if (dto1.componentMatchStrategy == ALL_COMPONENTS) {
-      return -1;
-    }
-    else if (dto2.componentMatchStrategy == ALL_COMPONENTS) {
-      return 1;
-    }
-
-    return compareExpirationDates(dto1, dto2);
-  }
-
-  private int compareComponentIdentifiers(ComponentIdentifier ci1, ComponentIdentifier ci2) {
-    return String.CASE_INSENSITIVE_ORDER.compare(ci1.getCoordinates().values().toString(),
-        ci2.getCoordinates().values().toString());
+    // do secondary sorting by expiration date when policy is same
+    return sortByRequesterName == 0 ? compareExpirationDates(dto1, dto2) : sortByRequesterName;
   }
 
   private int compareExpirationDates(
@@ -159,6 +116,6 @@ public class DashboardPolicyWaiverRequestDTOComparator
   // Test visible enumeration
   enum DashboardPolicyWaiverRequestOrderByEnum
   {
-    COMPONENT_SCOPE, CREATION_DATE, OWNER_SCOPE, POLICY_NAME, THREAT_LEVEL, STATUS
+    REQUESTER_NAME, REQUEST_TIME, OWNER_SCOPE, POLICY_NAME, THREAT_LEVEL, STATUS
   }
 }

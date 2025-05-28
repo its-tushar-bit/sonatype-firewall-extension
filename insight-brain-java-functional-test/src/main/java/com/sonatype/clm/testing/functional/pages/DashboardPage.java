@@ -13,20 +13,19 @@ import com.sonatype.clm.testing.functional.elements.DashboardComponents;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters;
 import com.sonatype.clm.testing.functional.elements.DashboardTab;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations;
+import com.sonatype.clm.testing.functional.elements.DashboardWaiverRequests;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
-import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
-import com.codeborne.selenide.Selenide;
 
 import static com.codeborne.selenide.Condition.clickable;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
-
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
 import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 
@@ -54,6 +53,10 @@ public class DashboardPage extends BasicElement<DashboardPage>
     return BaseUrl.resolvePageUrl("/dashboard/waivers");
   }
 
+  public static String urlToWaiverRequests() {
+    return BaseUrl.resolvePageUrl("/dashboard/waiverRequests");
+  }
+
   public static String urlToNewestRisk() {
     return BaseUrl.resolvePageUrl("/dashboard/newest-risk");
   }
@@ -65,10 +68,6 @@ public class DashboardPage extends BasicElement<DashboardPage>
 
   public static SelenideElement dashboardContainer() {
     return $(ROOT);
-  }
-
-  public ElementsCollection tabs() {
-    return children(".nx-tab-list");
   }
 
   public static DashboardTab violationsTab() {
@@ -113,6 +112,10 @@ public class DashboardPage extends BasicElement<DashboardPage>
 
   public static DashboardWaivers waiversView() {
     return new DashboardWaivers();
+  }
+
+  public static DashboardWaiverRequests waiverRequestsView() {
+    return new DashboardWaiverRequests();
   }
 
   public static SelenideElement needsAcknowledgementMessage() {

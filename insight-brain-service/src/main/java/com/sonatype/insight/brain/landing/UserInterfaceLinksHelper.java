@@ -67,6 +67,9 @@ public class UserInterfaceLinksHelper
 
   public static final String ADD_WAIVER_PATH = "addWaiver/{violationId}";
 
+  public static final String REVIEW_WAIVER_REQUEST_PATH =
+      "requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}";
+
   public static final String SBOM_BOM_VIEW_PATH =
       "sbomManager/management/view/application/{applicationPublicId}/bom/{version}";
   
@@ -202,5 +205,40 @@ public class UserInterfaceLinksHelper
 
   public static String getIntegrationsPrioritiesUrl(String applicationPublicId, String scanId) {
     return buildStableUrl(INTEGRATIONS_PRIORITIES_PATH, applicationPublicId, scanId, "");
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for reviewing a waiver request.
+   *
+   * @since 1.192
+   */
+  public static String getReviewWaiverRequestUrl(String ownerType, String ownerId, String policyWaiverRequestId) {
+    return buildStableUrl(REVIEW_WAIVER_REQUEST_PATH, ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  /**
+   * Builds the relative URL for adding a waiver with optional comments and reasonId.
+   *
+   * @since 1.192
+   */
+  public static String getAddWaiverUrl(String violationId, String comments, String reasonId) {
+    UriBuilder uriBuilder = UriBuilder.fromPath(RESOURCE_PATH)
+        .path(ADD_WAIVER_PATH);
+    if (comments != null) {
+      uriBuilder.queryParam("comments", comments);
+    }
+    if (reasonId != null) {
+      uriBuilder.queryParam("reasonId", reasonId);
+    }
+    return uriBuilder.build(violationId).toString();
+  }
+
+  /**
+   * Builds the relative URL for the policy violation details page.
+   *
+   * @since 1.192
+   */
+  public static String getPolicyViolationDetailsUrl(String violationId) {
+    return buildStableUrl(POLICY_VIOLATION_DETAILS_PATH, violationId);
   }
 }

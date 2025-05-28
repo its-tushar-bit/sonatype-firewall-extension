@@ -14,13 +14,14 @@ function IqScopeDropdown({
   getOptionText,
   currentValue,
   withHiddenOption = false,
+  isDisabled = false,
 }) {
   const onScopeChange = (event) => {
     onChangeHandler(event.currentTarget.value);
   };
 
   return (
-    <NxFormSelect id={id} onChange={onScopeChange} value={currentValue}>
+    <NxFormSelect aria-label="select scope" id={id} onChange={onScopeChange} value={currentValue} disabled={isDisabled}>
       {withHiddenOption && <option hidden>Scope Level</option>}
       {availableScopes &&
         availableScopes.map((scope) => (
@@ -39,6 +40,7 @@ IqScopeDropdown.propTypes = {
   getOptionText: PropTypes.func,
   currentValue: PropTypes.string,
   withHiddenOption: PropTypes.bool,
+  isDateDisabled: PropTypes.bool,
 };
 
 export default IqScopeDropdown;

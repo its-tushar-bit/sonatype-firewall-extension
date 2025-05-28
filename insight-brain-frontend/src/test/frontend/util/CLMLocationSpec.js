@@ -226,8 +226,22 @@ describe('CLMLocation.js', function () {
     expect(CLMLocation.getFindUsersUrl('queryTerm')).toBe('/rest/user/global/global/query?q=queryTerm');
   });
 
-  it('should return the url for saving a waiver request ', function () {
-    expect(CLMLocation.saveRequestWaiverUrl('violationId')).toBe('/api/v2/policyWaivers/waiverRequests/violationId');
+  it('should return the url for creating a waiver request ', function () {
+    expect(CLMLocation.getCreatePolicyWaiverRequestUrl('application', 'applicationPublicId', 'violationId')).toBe(
+      '/api/v2/policyWaiverRequests/application/applicationPublicId/policyViolation/violationId'
+    );
+  });
+
+  it('should return the url for retrieving the waiver request details', function () {
+    expect(
+      CLMLocation.getViewOrUpdatePolicyWaiverRequestUrl('organization', 'organizationId', 'policyWaiverRequestId')
+    ).toBe('/api/v2/policyWaiverRequests/organization/organizationId/policyWaiverRequestId');
+  });
+
+  it('should return the url for reviewing the waiver request', function () {
+    expect(CLMLocation.getReviewPolicyWaiverRequestUrl('organization', 'organizationId', 'policyWaiverRequestId')).toBe(
+      '/api/v2/policyWaiverRequests/organization/organizationId/review/policyWaiverRequestId'
+    );
   });
 
   it('should return the url to get the role info', function () {
@@ -1476,14 +1490,6 @@ describe('CLMLocation.js', function () {
       const expectedUrl = '/ui/links/policyViolation/%23%2Fviolation%2FsomeViolationId';
 
       expect(clmLocation.getPolicyViolationUiLink('#/violation/someViolationId')).toEqual(expectedUrl);
-    });
-  });
-
-  describe('getAddWaiverUiLink', () => {
-    it('returns url for the add waiver form with a comment as a query param', () => {
-      const expectedUrl = '/ui/links/addWaiver/someViolationId?comments=new%20comment&reasonId=reasonId';
-
-      expect(clmLocation.getAddWaiverUiLink('someViolationId', 'new comment', 'reasonId')).toEqual(expectedUrl);
     });
   });
 

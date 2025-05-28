@@ -8,11 +8,18 @@ import { getFutureDate } from './jsUtil';
 import { STANDARD_DATE_FORMAT, formatDate } from './dateUtils';
 import { isUnknownComponent } from 'MainRoot/util/componentNameUtils';
 import * as PropTypes from 'prop-types';
+import moment from 'moment';
 
 export const waiverMatcherStrategy = {
   ALL_COMPONENTS: 'ALL_COMPONENTS',
   ALL_VERSIONS: 'ALL_VERSIONS',
   EXACT_COMPONENT: 'EXACT_COMPONENT',
+};
+
+export const waiverRequestStatus = {
+  REQUESTED: 'REQUESTED',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
 };
 
 // Previous state names for the various routes to the Add Waiver
@@ -45,6 +52,8 @@ export const originNamesForAddRequestPages = {
   REPOSITORY_VIOLATION_WAIVERS: 'repository.componentDetailsPage',
   //PRIORITIES-PAGE ORIGINS
   DASHBOARD_PRIORITIES_PAGE: 'developer.dashboard',
+  // Dashboard -> Waivers -> Requested Waivers
+  DASHBOARD_WAIVERS_REQUESTS_VIEW: 'dashboard.overview.waiverRequests',
   //Policy Violations Tab
   // Side Nav -> Reports -> Priorities -> Component Details -> Policy Violations -> Violation Details Popover -> Add Waiver
   CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS:
@@ -96,11 +105,51 @@ export const useWaiverExpirations = (isExpireWhenRemediationAvailableWaiversEnab
     : waiverExpirations;
 };
 
+export const isCustomExpiryTimeValid = (value) => {
+  if (!value) {
+    return false;
+  }
+  return new Date(value) > new Date();
+};
+
 export const getExpiryTime = (expiration) => {
   if (!expiration) {
     return null;
   }
   return getFutureDate(expiration);
+};
+
+export const isCustomExpiryTimeSelected = (expiryTime) => expiryTime === 'custom';
+
+export const isNeverExpiryTimeSelected = (expiryTime) => expiryTime === 'never' || expiryTime === null;
+
+export const isExpireWhenRemediationAvailableSelected = (expiryTime) => expiryTime === 'remediationAvailable';
+
+export const getExpirationDaysMessage = (expiryTime, customExpiryTime) => {
+  if (isCustomExpiryTimeSelected(expiryTime) && isCustomExpiryTimeValid(customExpiryTime.value)) {
+    const today = moment().startOf('day');
+    const customDate = moment(customExpiryTime.value, 'YYYY-MM-DD');
+    const diff = Math.floor(moment.duration(customDate.diff(today)).asDays());
+    return `This waiver will expire in ${diff} days`;
+  }
+  if (
+    !isCustomExpiryTimeSelected(expiryTime) &&
+    !isNeverExpiryTimeSelected(expiryTime) &&
+    !isExpireWhenRemediationAvailableSelected(expiryTime)
+  ) {
+    return `This waiver will expire in ${expiryTime} days`;
+  }
+  if (isExpireWhenRemediationAvailableSelected(expiryTime)) {
+    return 'This waiver will expire when an upgrade that fixes the violation is available';
+  }
+  return '';
+};
+
+export const formatCustomDate = (date) => {
+  if (date && moment(date).isValid()) {
+    return moment(date).format('YYYY-MM-DD');
+  }
+  return '';
 };
 
 export const displayWaiverScope = (waiver) => {

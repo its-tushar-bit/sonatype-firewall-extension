@@ -25,7 +25,7 @@ import {
   deleteWaiver,
   hideDeleteWaiverModal,
   loadAddWaiverData,
-  returnToAddWaiverOriginPage,
+  returnToAddOrRequestWaiverOriginPage,
   saveWaiverAndLoadPolicyViolationData,
   saveWaiverAndRedirect,
   setComponentMatcherStrategy,
@@ -54,6 +54,7 @@ import {
   WAIVERS_RESET_ADD_WAIVER_DATA,
   setWaiverReason,
   WAIVERS_ADD_WAIVER_SET_REASON,
+  returnToReviewWaiverRequestOriginPage,
 } from 'MainRoot/waivers/waiverActions';
 import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 import {
@@ -1295,9 +1296,9 @@ describe('waiverActions', function () {
     });
   });
 
-  describe('returnToAddWaiverOriginPage', function () {
+  describe('returnToAddOrRequestWaiverOriginPage', function () {
     it('dispatches STATE_GO with the route to ViolationDetails when router comes from violation details', function () {
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1320,7 +1321,7 @@ describe('waiverActions', function () {
       };
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1349,7 +1350,7 @@ describe('waiverActions', function () {
       };
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1379,7 +1380,7 @@ describe('waiverActions', function () {
       };
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1409,7 +1410,7 @@ describe('waiverActions', function () {
       };
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1438,7 +1439,7 @@ describe('waiverActions', function () {
       };
       store = SpecUtil.mockReduxStore(state);
 
-      store.dispatch(returnToAddWaiverOriginPage());
+      store.dispatch(returnToAddOrRequestWaiverOriginPage());
       expect(store.getActions().length).toBe(1);
       expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
       expect(store.getActions()[0].payload).toEqual({
@@ -1465,7 +1466,7 @@ describe('waiverActions', function () {
         };
         store = SpecUtil.mockReduxStore(state);
 
-        store.dispatch(returnToAddWaiverOriginPage());
+        store.dispatch(returnToAddOrRequestWaiverOriginPage());
         expect(store.getActions().length).toBe(1);
         expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
         expect(store.getActions()[0].payload).toEqual({
@@ -1475,6 +1476,53 @@ describe('waiverActions', function () {
         });
       }
     );
+  });
+
+  describe('returnToReviewWaiverRequestOriginPage', function () {
+    it('dispatches STATE_GO with the route to Dashboard -> RequestWaiver list by default', function () {
+      const state = {
+        router: {
+          prevState: { name: '' },
+          prevParams: {},
+          currentParams: {},
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToReviewWaiverRequestOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'dashboard.overview.waiverRequests',
+        params: {},
+        options: undefined,
+      });
+    });
+
+    it('dispatches STATE_GO with the route to Dashboard -> RequestWaiver list when router comes from the dashboard', function () {
+      const state = {
+        router: {
+          prevState: { name: 'dashboard.overview.waiverRequests' },
+          prevParams: {
+            '#': null,
+          },
+          currentParams: {
+            ownerId: 'applicationId',
+            ownerType: 'application',
+            policyWaiverRequestId: 'policyWaiverRequestId',
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+
+      store.dispatch(returnToReviewWaiverRequestOriginPage());
+      expect(store.getActions().length).toBe(1);
+      expect(store.getActions()[0].type).toBe(RouterActions.STATE_GO);
+      expect(store.getActions()[0].payload).toEqual({
+        to: 'dashboard.overview.waiverRequests',
+        params: { '#': null },
+      });
+    });
   });
 
   describe('setWaiverToDelete', function () {

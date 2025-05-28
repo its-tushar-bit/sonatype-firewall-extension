@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -40,7 +39,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
-import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
@@ -64,16 +62,11 @@ import org.assertj.core.api.ThrowableAssert.ThrowingCallable;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_GOLANG;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
-import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_PYPI;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.ALL;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.IN_30_DAYS;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.IN_7_DAYS;
 import static com.sonatype.insight.brain.dashboard.ExpirationDate.NEVER;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
-import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -519,7 +512,7 @@ public class DashboardPolicyWaiverRequestServiceTest
   }
 
   @Test
-  public void testGetDashboardPolicyWaiverRequests_ordersByCreateTime() {
+  public void testGetDashboardPolicyWaiverRequests_ordersByRequestTime() {
     Date now = new Date();
     IntConsumer intConsumer = value -> {
       Policy testPolicy = tempEntity.newPolicy(org.getId());
@@ -528,20 +521,27 @@ public class DashboardPolicyWaiverRequestServiceTest
           .setPolicyId(testPolicy.getId()).setOwnerId(app1.getId()).setRequestTime(waiverRequestDate).build();
       tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
     };
-    IntStream.rangeClosed(0, 4).forEach(intConsumer);
+    IntStream.rangeClosed(1, 3).forEach(intConsumer);
 
-    String orderBy = DashboardPolicyWaiverRequestOrderByEnum.CREATION_DATE.toString();
+    // asc
+    String orderBy = DashboardPolicyWaiverRequestOrderByEnum.REQUEST_TIME.toString();
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(5);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.requestTime)
+        .containsExactly(DateUtils.addDays(now, -3), DateUtils.addDays(now, -2), DateUtils.addDays(now, -1));
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(0).requestTime).isEqualTo(DateUtils.addDays(now, -4));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(1).requestTime).isEqualTo(DateUtils.addDays(now, -3));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).requestTime).isEqualTo(DateUtils.addDays(now, -2));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).requestTime).isEqualTo(DateUtils.addDays(now, -1));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).requestTime).isEqualTo(now);
+
+    // desc
+    orderBy = "-" + DashboardPolicyWaiverRequestOrderByEnum.REQUEST_TIME.toString();
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
+    dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.requestTime)
+        .containsExactly(DateUtils.addDays(now, -1), DateUtils.addDays(now, -2), DateUtils.addDays(now, -3));
+    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
   @Test
@@ -556,41 +556,87 @@ public class DashboardPolicyWaiverRequestServiceTest
     policyWaiverRequestApproved.setStatus(PolicyWaiverRequestStatus.APPROVED);
     policyWaiverRequestDAO.update(policyWaiverRequestApproved);
 
+    // asc
     String orderBy = DashboardPolicyWaiverRequestOrderByEnum.STATUS.toString();
     risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(3);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status).containsExactly(
+        PolicyWaiverRequestStatus.APPROVED, PolicyWaiverRequestStatus.REJECTED, PolicyWaiverRequestStatus.REQUESTED);
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(0).status)
-        .isEqualTo(PolicyWaiverRequestStatus.APPROVED);
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(1).status)
-        .isEqualTo(PolicyWaiverRequestStatus.REJECTED);
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).status)
-        .isEqualTo(PolicyWaiverRequestStatus.REQUESTED);
+
+    // desc
+    orderBy = "-" + DashboardPolicyWaiverRequestOrderByEnum.STATUS.toString();
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
+    dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.status).containsExactly(
+        PolicyWaiverRequestStatus.REQUESTED, PolicyWaiverRequestStatus.REJECTED, PolicyWaiverRequestStatus.APPROVED);
+    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaiverRequests_ordersByRequesterName() {
+    PolicyWaiverRequest policyWaiverRequest3 = createPolicyWaiverRequest(policy, app1.getId());
+    policyWaiverRequest3.setRequesterName("Test User 3");
+    policyWaiverRequestDAO.update(policyWaiverRequest3);
+    PolicyWaiverRequest policyWaiverRequest2 = createPolicyWaiverRequest(policy, org.getId());
+    policyWaiverRequest2.setRequesterName("Test User 2");
+    policyWaiverRequestDAO.update(policyWaiverRequest2);
+    PolicyWaiverRequest policyWaiverRequest1 = createPolicyWaiverRequest(policy, parentOrg.getId());
+    policyWaiverRequest1.setRequesterName("Test User 1");
+    policyWaiverRequestDAO.update(policyWaiverRequest1);
+
+    // Asc
+    String orderBy = DashboardPolicyWaiverRequestOrderByEnum.REQUESTER_NAME.toString();
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
+    DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.requesterName)
+        .containsExactly("Test User 1", "Test User 2", "Test User 3");
+    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
+
+    // Desc
+    orderBy = "-" + DashboardPolicyWaiverRequestOrderByEnum.REQUESTER_NAME.toString();
+    risksFilterDTOBuilder.withApplicationIds(Collections.singleton(app1.getId())).withOrderBy(orderBy).withPageSize(10);
+    dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.requesterName)
+        .containsExactly("Test User 3", "Test User 2", "Test User 1");
+    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
   @Test
   public void testGetDashboardPolicyWaiverRequests_ordersByPolicyName() {
     IntConsumer intConsumer = value -> {
-      Policy testPolicy = tempEntity.newPolicy(org.getId(), "Policy with ordered name " + value);
+      Policy testPolicy = tempEntity.newPolicy(org.getId(), "Policy " + value);
       createPolicyWaiverRequest(testPolicy, org.getId());
     };
-    IntStream.rangeClosed(0, 4).forEach(intConsumer);
+    IntStream.rangeClosed(1, 3).forEach(intConsumer);
 
+    // desc
     String orderBy = "-" + DashboardPolicyWaiverRequestOrderByEnum.POLICY_NAME;
     risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
         dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
 
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(5);
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.policyName)
+        .containsExactly("Policy 3", "Policy 2", "Policy 1");
     assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
 
-    IntConsumer assertConsumer =
-        value -> assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4 - value).policyName)
-            .isEqualTo("Policy with ordered name " + value);
-    IntStream.rangeClosed(0, 4).forEach(assertConsumer);
+    // asc
+    orderBy = DashboardPolicyWaiverRequestOrderByEnum.POLICY_NAME.toString();
+    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withOrderBy(orderBy).withPageSize(10);
+    dashboardPolicyWaiverRequests =
+        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaiverRequests.dashboardResults).extracting(row -> row.policyName)
+        .containsExactly("Policy 1", "Policy 2", "Policy 3");
+    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
   }
 
   @Test
@@ -615,127 +661,6 @@ public class DashboardPolicyWaiverRequestServiceTest
     assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).ownerName).isEqualTo(app3.getName());
     assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).ownerName).isEqualTo(app2.getName());
     assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).ownerName).isEqualTo(app1.getName());
-  }
-
-  @Test
-  public void testGetDashboardPolicyWaiverRequests_ordersByComponentDisplayNameWithMatchStrategy() {
-    String[] chars = "abc".split("");
-    String[] formats = {FORMAT_MAVEN, FORMAT_PYPI, FORMAT_GOLANG};
-    ArrayList<ComponentMatcherStrategyForWaiver> waiverTypes = new ArrayList<>()
-    {
-      {
-        this.add(EXACT_COMPONENT);
-        this.add(EXACT_COMPONENT);
-        this.add(ALL_VERSIONS);
-        this.add(ALL_COMPONENTS);
-        this.add(ALL_COMPONENTS);
-        this.add(EXACT_COMPONENT);
-        this.add(EXACT_COMPONENT);
-      }
-    };
-    ArrayList<ComponentIdentifier> componentIdentifiers = new ArrayList<>();
-
-    IntStream.range(0, waiverTypes.size()).forEachOrdered(i -> {
-      TreeMap<String, String> coordinates = new TreeMap<>();
-      Policy testPolicy = tempEntity.newPolicy(org.getId(), "Policy with ordered name " + i);
-      ComponentMatcherStrategyForWaiver type = waiverTypes.get(i);
-      if (i < chars.length) {
-        String format = formats[i % formats.length];
-        switch (format) {
-          case FORMAT_GOLANG:
-          case FORMAT_PYPI:
-            coordinates.put("name", chars[i] + (i + 1));
-            coordinates.put("version", "v1");
-            break;
-          default:
-            coordinates.put("artifactId", chars[i] + (i + 1));
-            coordinates.put("groupId", chars[i] + (i + 1));
-            coordinates.put("version", "v1");
-            format = FORMAT_MAVEN;
-            break;
-        }
-        ComponentIdentifier componentIdentifier = new ComponentIdentifier(format, coordinates);
-        componentIdentifiers.add(componentIdentifier);
-        String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
-        tempEntity
-            .newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash" + 1).setPolicyId(testPolicy.getId())
-                .setOwnerId(org.getId()).setComponentMatchStrategy(type).setAssociatedPackageUrl(purl).build());
-      }
-      else {
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(testPolicy.getId())
-            .setOwnerId(org.getId()).setComponentMatchStrategy(type).setAssociatedPackageUrl(null).build());
-      }
-    });
-
-    String orderBy = DashboardPolicyWaiverRequestOrderByEnum.COMPONENT_SCOPE.toString();
-    risksFilterDTOBuilder.withOrganizationIds(Collections.singleton(org.getId())).withOrderBy(orderBy).withPageSize(10);
-    DashboardResultsDTO<DashboardPolicyWaiverRequestDTO> dashboardPolicyWaiverRequests =
-        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
-
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(7);
-    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(0).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(0).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(0).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(0));
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(1).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(1).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(1).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(1));
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(2).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(2).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(2));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(3));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(4));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(5).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(5).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(5));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(6).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(6).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(6));
-
-    orderBy = "-" + DashboardPolicyWaiverRequestOrderByEnum.COMPONENT_SCOPE;
-    risksFilterDTOBuilder.withOrderBy(orderBy);
-    dashboardPolicyWaiverRequests =
-        dashboardPolicyWaiverRequestService.getDashboardPolicyWaiverRequests(risksFilterDTOBuilder.build());
-
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults).hasSize(7);
-    assertThat(dashboardPolicyWaiverRequests.hasNextPage).isFalse();
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(0).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(2).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(0).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(2));
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(1).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(1).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(1).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(1));
-    assertThat(
-        dashboardPolicyWaiverRequests.dashboardResults.get(2).componentIdentifier.toComponentIdentifier().toString())
-            .isEqualTo(componentIdentifiers.get(0).toString());
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(2).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(0));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(3).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(3));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(4).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(4));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(5).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(5).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(5));
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(6).componentIdentifier).isNull();
-    assertThat(dashboardPolicyWaiverRequests.dashboardResults.get(6).componentMatchStrategy)
-        .isEqualTo(waiverTypes.get(6));
   }
 
   @Test

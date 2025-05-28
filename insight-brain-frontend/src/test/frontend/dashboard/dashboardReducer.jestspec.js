@@ -58,6 +58,7 @@ describe('dashboardReducer', () => {
         components: { results: [], hasMultiplePages: false, error: 'foo' },
         applications: { results: [], hasMultiplePages: false, error: 'foo' },
         waivers: { results: [], hasMultiplePages: false, error: 'foo' },
+        waiverRequests: { results: [], hasMultiplePages: false, error: 'foo' },
         other: otherObject,
       });
       const newState = reduce(state, action);
@@ -66,6 +67,7 @@ describe('dashboardReducer', () => {
         components: { results: null, hasMultiplePages: null, error: null },
         applications: { results: null, hasMultiplePages: null, error: null },
         waivers: { results: null, hasMultiplePages: null, error: null },
+        waiverRequests: { results: null, hasMultiplePages: null, error: null },
         other: otherObject,
       });
       expect(newState.other).toBe(otherObject); // other properties are not modified

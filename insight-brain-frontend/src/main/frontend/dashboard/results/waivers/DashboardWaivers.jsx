@@ -5,39 +5,40 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { selectDashboardFilter, selectWaiversResults } from '../../dashboardSelectors';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectDashboardFilter, selectCurrentTab, selectWaiversResults } from '../../dashboardSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { WAIVERS_RESULTS_TYPE, WAIVER_REQUESTS_RESULTS_TYPE } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import {
   loadWaiverResults,
-  sortWaiversResults,
   setNextWaiversPage,
   setPreviousWaiversPage,
+  sortWaiversResults,
 } from '../dashboardResultsActions';
-import { stateGo as stateGoAction } from 'MainRoot/reduxUiRouter/routerActions';
 import DashboardWaiversTable from './DashboardWaiversTable';
-import DashboardMask from '../dashboardMask/DashboardMask';
-import { NxInfoAlert, NxTextLink } from '@sonatype/react-shared-components';
-import { prop } from 'ramda';
+import FirewallDashboardWaiversTable from './FirewallDashboardWaiversTable';
+import DashboardWaiverRequestsTable from './DashboardWaiverRequestsTable';
+import { NxTabs, NxTabList, NxTab, NxTabPanel, NxTile } from '@sonatype/react-shared-components';
 
 export default function DashboardWaivers() {
-  const dispatch = useDispatch();
   const loadWaivers = () => dispatch(loadWaiverResults());
-  const stateGo = (...params) => dispatch(stateGoAction(...params));
+  const waiverTabs = [WAIVERS_RESULTS_TYPE, WAIVER_REQUESTS_RESULTS_TYPE];
+  const currentTab = useSelector(selectCurrentTab);
+  const dispatch = useDispatch();
   const sortWaivers = (sortFields) => dispatch(sortWaiversResults(sortFields));
   const dispatchNexPage = () => dispatch(setNextWaiversPage());
   const dispatchPreviousPage = () => dispatch(setPreviousWaiversPage());
 
   const {
-    loading: filterLoading,
     needsAcknowledgement,
-    filtersAreDirty,
     appliedFilter: { maxDaysOld },
   } = useSelector(selectDashboardFilter);
   const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const waivers = useSelector(selectWaiversResults);
-  const waiverSelector = useSelector(prop('waivers'));
 
-  const isLoading = (!waivers.results && !waivers.error) || waiverSelector.waiverReasons.loading;
+  const handleTabClick = (index) => {
+    dispatch(stateGo(`dashboard.overview.${waiverTabs[index]}`));
+  };
 
   const modifiedWaivers = {
     ...waivers,
@@ -61,24 +62,29 @@ export default function DashboardWaivers() {
   };
 
   useEffect(() => {
-    if (isStandaloneFirewall || (!filterLoading && !needsAcknowledgement)) {
+    if (isStandaloneFirewall) {
       loadWaivers();
     }
-  }, [filterLoading, needsAcknowledgement]);
+  }, [isStandaloneFirewall]);
 
   return (
-    <>
-      <NxInfoAlert>
-        This list shows all existing waivers applied at the same or higher hierarchy level, based on your filter
-        selections.{' '}
-        <NxTextLink external href="https://links.sonatype.com/products/nxiq/doc/dashboard-waivers">
-          Learn more about waivers.
-        </NxTextLink>
-      </NxInfoAlert>
-      <div id="dashboard-waivers" className="iq-dashboard-waivers">
-        {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
-        <DashboardWaiversTable {...tableProps} />
-      </div>
-    </>
+    <NxTile id="dashboard-waivers" className="iq-dashboard-waivers">
+      {isStandaloneFirewall ? (
+        <FirewallDashboardWaiversTable {...tableProps} />
+      ) : (
+        <NxTabs activeTab={waiverTabs.indexOf(currentTab)} onTabSelect={handleTabClick}>
+          <NxTabList>
+            <NxTab>Existing Waivers</NxTab>
+            <NxTab>Requested Waivers</NxTab>
+          </NxTabList>
+          <NxTabPanel>
+            <DashboardWaiversTable />
+          </NxTabPanel>
+          <NxTabPanel>
+            <DashboardWaiverRequestsTable />
+          </NxTabPanel>
+        </NxTabs>
+      )}
+    </NxTile>
   );
 }

@@ -142,7 +142,7 @@ export const saveWaiverAndRedirect = (
     waiverReasonId,
     expireWhenRemediationAvailable
   )
-    .then(() => dispatch(returnToAddWaiverOriginPage()))
+    .then(() => dispatch(returnToAddOrRequestWaiverOriginPage()))
     .catch((err) => dispatch(saveWaiverFailed(err)));
 
 export const saveWaiverAndLoadPolicyViolationData = (
@@ -219,13 +219,13 @@ const extractPreloadedReasonIdFromUrl = (state) => {
   return selectCurrentRouteName(state) === 'addWaiver' ? selectRouterCurrentParams(state)?.reasonId : undefined;
 };
 
-export function returnToAddWaiverOriginPage() {
+export function returnToAddOrRequestWaiverOriginPage() {
   return (dispatch, getState) => {
     const { prevParams, prevState, currentParams } = getState().router;
 
     const prevStateName = prevState && prevState.name;
 
-    // If user canceled waiver creation, return to previous view
+    // If user canceled waiver creation or request, return to previous view
     switch (prevStateName) {
       case originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS:
         return dispatch(stateGo(originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS, prevParams));
@@ -305,6 +305,9 @@ export function returnToAddWaiverOriginPage() {
           stateGo(originNamesForAddRequestPages.CDP_WITHIN_PRIORITIES_PAGE_FROM_REPORTS_LEGAL, prevParams)
         );
 
+      case originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW:
+        return dispatch(stateGo(originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW, prevParams));
+
       // Came from a direct link to the Add Waiver Page or some other origin
       default:
         return dispatch(
@@ -317,6 +320,14 @@ export function returnToAddWaiverOriginPage() {
     }
   };
 }
+
+export const returnToReviewWaiverRequestOriginPage = () => {
+  return (dispatch, getState) => {
+    const { prevParams } = getState().router;
+
+    return dispatch(stateGo(originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW, prevParams));
+  };
+};
 
 export const setWaiverComment = payloadParamActionCreator(WAIVERS_ADD_WAIVER_SET_WAIVER_COMMENT);
 

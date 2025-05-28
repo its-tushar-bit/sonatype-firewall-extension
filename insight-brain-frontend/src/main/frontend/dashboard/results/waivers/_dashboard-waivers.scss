@@ -9,6 +9,10 @@
 .iq-dashboard-waivers {
   position: relative;
 
+  .iq-dashboard-form-mask {
+    top: 130px;
+  }
+
   .nx-table-container.nx-scrollable {
     border-bottom-left-radius: 0;
     border-bottom-right-radius: 0;
@@ -26,6 +30,12 @@
     width: 110px;
   }
   .iq-waiver-date-header {
+    width: 150px;
+  }
+  .iq-waiver-request-date-header {
+    width: 155px;
+  }
+  .iq-waiver-request-status-header {
     width: 150px;
   }
   .iq-upgrade-cell {

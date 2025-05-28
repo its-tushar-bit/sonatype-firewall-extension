@@ -15,6 +15,7 @@ import {
 import { LOAD_FILTER_REQUESTED } from './filter/dashboardFilterActions';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 import { addWaiversScopeProp } from 'MainRoot/util/waiverUtils';
+import { WAIVER_REQUESTS_RESULTS_TYPE, WAIVERS_RESULTS_TYPE } from './results/dashboardResultsTypes';
 
 const initState = {
   currentTab: 'violations',
@@ -52,6 +53,14 @@ const initState = {
     hasMultiplePages: false,
     page: null,
   },
+  waiverRequests: {
+    results: null,
+    hasNextPage: false,
+    error: null,
+    sortFields: ['-requestTime'],
+    hasMultiplePages: false,
+    page: null,
+  },
 };
 
 export default function (state = initState, { type, payload }) {
@@ -68,7 +77,10 @@ export default function (state = initState, { type, payload }) {
     case LOAD_RESULTS_FULFILLED: {
       const { resultsType, results, hasNextPage, classyBrew } = payload;
       // map results if type is waivers
-      const mapResults = resultsType === 'waivers' && results ? addWaiversScopeProp(results) : results;
+      const mapResults =
+        (resultsType === WAIVERS_RESULTS_TYPE || resultsType === WAIVER_REQUESTS_RESULTS_TYPE) && results
+          ? addWaiversScopeProp(results)
+          : results;
       let page = state[resultsType].page ?? 0;
       let hasMultiplePages = page > 0 || hasNextPage;
       return updateResults(state, resultsType, {
@@ -123,7 +135,8 @@ function resetAllTabs(state) {
   const components = resetTabState(state.components, true);
   const applications = resetTabState(state.applications, true);
   const waivers = resetTabState(state.waivers, true);
-  return { ...state, violations, components, applications, waivers };
+  const waiverRequests = resetTabState(state.waiverRequests, true);
+  return { ...state, violations, components, applications, waivers, waiverRequests };
 }
 
 function updateResults(state, resultsType, props) {
@@ -147,6 +160,9 @@ function setCurrentTab(state, { toState }) {
     case 'waiver.details':
     case 'dashboard.overview.waivers':
       return { ...state, currentTab: 'waivers' };
+
+    case 'dashboard.overview.waiverRequests':
+      return { ...state, currentTab: 'waiverRequests' };
 
     default:
       return state;

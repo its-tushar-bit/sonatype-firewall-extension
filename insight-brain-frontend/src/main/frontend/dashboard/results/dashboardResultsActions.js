@@ -16,6 +16,7 @@ import {
   getNewestRisks,
   getWaivers,
   getWaiversAndAutoWaivers,
+  getWaiverRequests,
 } from '../services/dashboard.data.service';
 import { isNil, partial } from 'ramda';
 import {
@@ -23,6 +24,7 @@ import {
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
   WAIVERS_RESULTS_TYPE,
+  WAIVER_REQUESTS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
@@ -98,6 +100,7 @@ export const loadViolationResults = partial(loadResults, [VIOLATIONS_RESULTS_TYP
 export const loadComponentResults = partial(loadResults, [COMPONENTS_RESULTS_TYPE]);
 export const loadApplicationResults = partial(loadResults, [APPLICATIONS_RESULTS_TYPE]);
 export const loadWaiverResults = partial(loadResults, [WAIVERS_RESULTS_TYPE]);
+export const loadWaiverRequestsResults = partial(loadResults, [WAIVER_REQUESTS_RESULTS_TYPE]);
 
 export const setNextViolationsPage = partial(setNextPage, [VIOLATIONS_RESULTS_TYPE]);
 export const setPreviousViolationsPage = partial(setPreviousPage, [VIOLATIONS_RESULTS_TYPE]);
@@ -107,6 +110,8 @@ export const setNextApplicationsPage = partial(setNextPage, [APPLICATIONS_RESULT
 export const setPreviousApplicationsPage = partial(setPreviousPage, [APPLICATIONS_RESULTS_TYPE]);
 export const setNextWaiversPage = partial(setNextPage, [WAIVERS_RESULTS_TYPE]);
 export const setPreviousWaiversPage = partial(setPreviousPage, [WAIVERS_RESULTS_TYPE]);
+export const setNextRequestsPage = partial(setNextPage, [WAIVER_REQUESTS_RESULTS_TYPE]);
+export const setPreviousRequestsPage = partial(setPreviousPage, [WAIVER_REQUESTS_RESULTS_TYPE]);
 
 function sortResults(resultsType, sortFields) {
   return (dispatch, getState) => {
@@ -118,6 +123,7 @@ function sortResults(resultsType, sortFields) {
     const dashboardState = getState().dashboard;
     const results = dashboardState[resultsType].results;
     const hasMultiplePages = dashboardState[resultsType].hasMultiplePages;
+
     if (!results || hasMultiplePages) {
       return dispatch(loadResults(resultsType));
     } else {
@@ -146,6 +152,7 @@ export const sortViolationResults = partial(sortResults, [VIOLATIONS_RESULTS_TYP
 export const sortComponentResults = partial(sortResults, [COMPONENTS_RESULTS_TYPE]);
 export const sortApplicationResults = partial(sortResults, [APPLICATIONS_RESULTS_TYPE]);
 export const sortWaiversResults = partial(sortResults, [WAIVERS_RESULTS_TYPE]);
+export const sortWaiverRequests = partial(sortResults, [WAIVER_REQUESTS_RESULTS_TYPE]);
 
 function sortResultsFulfilled(resultsType, results) {
   return {
@@ -187,6 +194,9 @@ function getServiceMethod(resultsType, autoWaiversFeature) {
 
     case 'waivers':
       return autoWaiversFeature ? getWaiversAndAutoWaivers : getWaivers;
+
+    case 'waiverRequests':
+      return getWaiverRequests;
 
     default:
       throw new Error('dashboard results is not supported for ' + resultsType);

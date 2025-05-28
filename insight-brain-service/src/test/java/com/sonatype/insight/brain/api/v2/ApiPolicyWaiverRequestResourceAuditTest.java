@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -44,6 +45,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverRequestResource.POLICY_VIOLATION_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverRequestResource.POLICY_WAIVER_REQUEST_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverRequestResource.POLICY_WAIVER_REQUEST_REVIEW_PATH;
 
 public class ApiPolicyWaiverRequestResourceAuditTest
@@ -107,8 +109,6 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     Repository repository = tempEntity.newRepository();
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
-    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
-    policyWaiverRequestOptionsDTO.comment = "waiver comment";
 
     testAddPolicyWaiverRequestByPolicyViolationId(repository, repositoryPolicyViolation);
   }
@@ -128,8 +128,6 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     Repository repository = tempEntity.newRepository(repositoryManager);
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
-    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
-    policyWaiverRequestOptionsDTO.comment = "waiver comment";
 
     testAddPolicyWaiverRequestByPolicyViolationId(repositoryManager, repositoryPolicyViolation);
   }
@@ -150,8 +148,6 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
     RepositoryPolicyViolation repositoryPolicyViolation =
         tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
-    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
-    policyWaiverRequestOptionsDTO.comment = "waiver comment";
 
     testAddPolicyWaiverRequestByPolicyViolationId(RepositoryContainer.SINGLETON, repositoryPolicyViolation);
   }
@@ -182,6 +178,31 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     assertOwnerData(auditDTO, owner);
   }
 
+  private void testUpdatePolicyWaiverRequest(Owner owner, String policyWaiverRequestId) throws Exception {
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
+    policyWaiverRequestOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(owner.getType(), owner.getId(), policyWaiverRequestId)
+        .body(policyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).put();
+    assertResponseStatus(200, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_WAIVER_REQUEST, null);
+    assertPolicyWaiverRequestData(auditDTO);
+    assertOwnerData(auditDTO, owner);
+  }
+
+  private void testUpdatePolicyWaiverRequest_Unauthorized(Owner owner, String policyWaiverRequestId) throws Exception {
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
+    policyWaiverRequestOptionsDTO.comment = "waiver comment";
+    HttpResponse response = restRequest().path(POLICY_WAIVER_REQUEST_ID_PATH)
+        .parameter(owner.getType(), owner.getId(), policyWaiverRequestId).with(unauthorizedUser())
+        .body(policyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).put();
+    assertResponseStatus(403, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_WAIVER_REQUEST, "unauthorized");
+    assertOwnerData(auditDTO, owner);
+  }
+
   private void testAddPolicyWaiverRequestByPolicyViolationId_Unauthorized(
       Owner owner,
       AbstractPolicyViolation policyViolation) throws Exception
@@ -191,6 +212,20 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     HttpResponse response =
         restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(owner.getType(), owner.getId(), policyViolation.getId())
         .with(unauthorizedUser()).body(policyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
+    assertResponseStatus(403, response);
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER_REQUEST, "unauthorized");
+    assertOwnerData(auditDTO, owner);
+  }
+
+  private void testUpdatePolicyWaiverRequest_Unauthorized(Owner owner, AbstractPolicyViolation policyViolation)
+      throws Exception
+  {
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
+    policyWaiverRequestOptionsDTO.comment = "waiver comment";
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(owner.getType(), owner.getId(), policyViolation.getId())
+            .with(unauthorizedUser()).body(policyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
     assertResponseStatus(403, response);
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER_REQUEST, "unauthorized");
@@ -401,5 +436,194 @@ public class ApiPolicyWaiverRequestResourceAuditTest
   @Override
   public HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.POLICY_WAIVER_REQUEST_PATH);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Application() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "testScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest(app, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Application_Unauthorized() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "testScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest_Unauthorized(app, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Organization() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "testScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest(org, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Organization_Unauthorized() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication(org.getId());
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "testScanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.APPLICATION, app.getId(), policyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest_Unauthorized(org, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Repository() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest(repository, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Repository_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest_Unauthorized(repository, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryManager_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest_Unauthorized(repositoryManager, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryManager() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest(repositoryManager, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryContainer() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest(RepositoryContainer.SINGLETON, apiPolicyWaiverRequestDTO.policyWaiverRequestId);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryContainer_Unauthorized() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    HttpResponse response =
+        restRequest().path(POLICY_VIOLATION_ID_PATH)
+            .parameter(OwnerType.REPOSITORY, repository.getId(), repositoryPolicyViolation.getId())
+            .body(new ApiPolicyWaiverRequestOptionsDTO("waiver comment",
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT, null, null, false), MediaType.APPLICATION_JSON)
+            .post();
+    assertResponseStatus(200, response);
+    ApiPolicyWaiverRequestDTO apiPolicyWaiverRequestDTO = response.getBody(ApiPolicyWaiverRequestDTO.class);
+
+    testUpdatePolicyWaiverRequest_Unauthorized(RepositoryContainer.SINGLETON,
+        apiPolicyWaiverRequestDTO.policyWaiverRequestId);
   }
 }

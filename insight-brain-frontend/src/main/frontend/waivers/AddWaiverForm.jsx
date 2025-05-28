@@ -7,7 +7,6 @@ import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import { find, propEq } from 'ramda';
 import classnames from 'classnames';
-import moment from 'moment';
 import {
   NxFieldset,
   NxTextInput,
@@ -22,15 +21,16 @@ import {
 import ViolationExclamation from '../react/ViolationExclamation';
 import ArtifactNameDisplay from '../react/ArtifactNameDisplay';
 import VulnerabilityDetailsModalContainer from '../vulnerabilityDetails/VulnerabilityDetailsModalContainer';
-import { useWaiverExpirations, waiverMatcherStrategy } from '../util/waiverUtils';
+import {
+  useWaiverExpirations,
+  isCustomExpiryTimeValid,
+  isCustomExpiryTimeSelected,
+  isNeverExpiryTimeSelected,
+  isExpireWhenRemediationAvailableSelected,
+  getExpirationDaysMessage,
+  waiverMatcherStrategy,
+} from 'MainRoot/util/waiverUtils';
 import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
-
-export const isCustomExpiryTimeValid = (value) => {
-  if (!value) {
-    return false;
-  }
-  return new Date(value) > new Date();
-};
 
 export default function AddWaiverForm(props) {
   const {
@@ -74,26 +74,26 @@ export default function AddWaiverForm(props) {
 
   const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
 
-  const isCustomExpiryTimeSelected = expiryTime === 'custom';
+  const customExpiryTimeSelected = isCustomExpiryTimeSelected(expiryTime);
 
-  const isNeverExpiryTimeSelected = expiryTime === 'never' || expiryTime === null;
+  const neverExpiryTimeSelected = isNeverExpiryTimeSelected(expiryTime);
 
-  const isExpireWhenRemediationAvailableSelected = expiryTime === 'remediationAvailable';
+  const expireWhenRemediationAvailableSelected = isExpireWhenRemediationAvailableSelected(expiryTime);
 
   const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
 
   const getExpiration = () => {
-    if (isCustomExpiryTimeSelected) {
+    if (customExpiryTimeSelected) {
       return customExpiryTime.value;
     }
-    if (isNeverExpiryTimeSelected || isExpireWhenRemediationAvailableSelected) {
+    if (neverExpiryTimeSelected || expireWhenRemediationAvailableSelected) {
       return null;
     }
     return parseInt(expiryTime, 10);
   };
 
   const onSubmit = () => {
-    if (isCustomExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)) {
+    if (customExpiryTimeSelected && !isCustomExpiryTimeValid(customExpiryTime.value)) {
       return;
     }
 
@@ -109,7 +109,7 @@ export default function AddWaiverForm(props) {
       componentMatcherStrategy,
       expiration,
       waiverReasonId,
-      isExpireWhenRemediationAvailableSelected
+      expireWhenRemediationAvailableSelected
     );
   };
 
@@ -185,21 +185,7 @@ export default function AddWaiverForm(props) {
     }
   };
 
-  const daysDiff = () => {
-    if (isCustomExpiryTimeSelected && isCustomExpiryTimeValid(customExpiryTime.value)) {
-      const today = moment().startOf('day');
-      const customDate = moment(customExpiryTime.value, 'YYYY-MM-DD');
-      const diff = Math.floor(moment.duration(customDate.diff(today)).asDays());
-      return `This waiver will expire in ${diff} days`;
-    }
-    if (!isCustomExpiryTimeSelected && !isNeverExpiryTimeSelected && !isExpireWhenRemediationAvailableSelected) {
-      return `This waiver will expire in ${expiryTime} days`;
-    }
-    if (isExpireWhenRemediationAvailableSelected) {
-      return 'This waiver will expire when an upgrade that fixes the violation is available';
-    }
-    return '';
-  };
+  const daysDiffMessage = getExpirationDaysMessage(expiryTime, customExpiryTime);
 
   return (
     <NxStatefulForm
@@ -305,8 +291,8 @@ export default function AddWaiverForm(props) {
                   </option>
                 ))}
               </NxFormSelect>
-              <div className="iq-add-waiver-form__expiration-days-diff visual-testing-ignore">{daysDiff()}</div>
-              {isCustomExpiryTimeSelected && (
+              <div className="iq-add-waiver-form__expiration-days-diff visual-testing-ignore">{daysDiffMessage}</div>
+              {customExpiryTimeSelected && (
                 <NxDateInput
                   className="iq-add-waiver-form__date-input"
                   {...customExpiryTime}

@@ -12,18 +12,21 @@ import {
   getNewestRisksExportUrl,
   getWaiversExportUrl,
   getWaiversAndAutoWaiversExportUrl,
+  getWaiverRequestsExportUrl,
 } from '../util/CLMLocation';
 import {
   translateApplicationsSortFields,
   translateComponentsSortFields,
   translateViolationsSortFields,
   translateWaiversSortFields,
+  translateWaiverRequestsSortFields,
 } from './services/sortFieldsUtils';
 import { createDashboardDataRequestPayload } from './utils/dashboardUtils';
 import {
   APPLICATIONS_RESULTS_TYPE,
   COMPONENTS_RESULTS_TYPE,
   VIOLATIONS_RESULTS_TYPE,
+  WAIVER_REQUESTS_RESULTS_TYPE,
   WAIVERS_RESULTS_TYPE,
 } from 'MainRoot/dashboard/results/dashboardResultsTypes';
 
@@ -37,6 +40,7 @@ export const selectExportRequestData = (state) => {
   const componentsSortFields = state.dashboard.components.sortFields;
   const violationsSortFields = state.dashboard.violations.sortFields;
   const waiversSortFields = state.dashboard.waivers.sortFields;
+  const waiversRequestsSortFields = state.dashboard.waiverRequests.sortFields;
 
   switch (routeStateName) {
     case 'dashboard.overview.violations':
@@ -50,6 +54,13 @@ export const selectExportRequestData = (state) => {
 
     case 'dashboard.overview.waivers':
       return createDashboardDataRequestPayload(filters, null, translateWaiversSortFields(waiversSortFields));
+
+    case 'dashboard.overview.waiverRequests':
+      return createDashboardDataRequestPayload(
+        filters,
+        null,
+        translateWaiverRequestsSortFields(waiversRequestsSortFields)
+      );
 
     default:
       return {};
@@ -75,6 +86,9 @@ export const selectExportUrl = (state, isAutoWaiversEnabled) => {
         return getWaiversExportUrl();
       }
 
+    case 'dashboard.overview.waiverRequests':
+      return getWaiverRequestsExportUrl();
+
     default:
       return '';
   }
@@ -85,5 +99,7 @@ export const selectViolationResults = createSelector(selectDashboardSlice, prop(
 export const selectComponentResults = createSelector(selectDashboardSlice, prop(COMPONENTS_RESULTS_TYPE));
 export const selectApplicationResults = createSelector(selectDashboardSlice, prop(APPLICATIONS_RESULTS_TYPE));
 export const selectWaiversResults = createSelector(selectDashboardSlice, prop(WAIVERS_RESULTS_TYPE));
+export const selectWaiverRequests = createSelector(selectDashboardSlice, prop(WAIVER_REQUESTS_RESULTS_TYPE));
+export const selectCurrentTab = createSelector(selectDashboardSlice, prop('currentTab'));
 
 export const selectDashboardFilter = prop('dashboardFilter');

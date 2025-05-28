@@ -5,15 +5,15 @@
  */
 import React from 'react';
 import RequestWaiverPage from 'MainRoot/waivers/RequestWaiverPage';
-import { axiosMockAdapter, fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import RouterStateContext from 'MainRoot/react/RouterStateContext';
 import {
   getApplicableWaiversUrl,
   getSimilarWaiversUrl,
   getApplicationSummaryUrl,
   getPermissionContextTestUrl,
-  saveRequestWaiverUrl,
-  getWaiverRequestWebhooksCountUrl,
+  getCreatePolicyWaiverRequestUrl,
+  getOwnerContextHierarchyUrl,
 } from 'MainRoot/util/CLMLocation';
 import { clone } from 'ramda';
 import { initialState } from 'MainRoot/waivers/requestWaiverSlice';
@@ -22,9 +22,14 @@ import { fetchCrossStageViolation } from 'MainRoot/violation/violationActions';
 describe('RequestWaiverPage', function () {
   let renderComponent;
   let mock;
+  const ownerType = 'application';
+  const ownerId = 'someApplicationPublicId';
   const violationId = 'someViolationId';
+  const rootOrganizationId = 'ROOT_ORGANIZATION_ID';
+  const organizationId = 'someOrgId';
   const applicationPublicId = 'someApplicationPublicId';
   const internalApplicationId = 'someInternalApplicationId';
+  const policyId = 'policyId';
   const violationDetails = {
     constraintViolations: [
       {
@@ -43,10 +48,55 @@ describe('RequestWaiverPage', function () {
     filename: 'componentName',
     policyViolationId: violationId,
     policyName: 'policyName',
+    policyId,
     applicationPublicId,
+    threatLevel: 9,
   };
 
   const defaultPreloadedState = {
+    addWaiver: {
+      availableWaiverScopes: [
+        {
+          type: 'organization',
+          id: rootOrganizationId,
+        },
+        {
+          type: 'organization',
+          id: organizationId,
+        },
+        {
+          type: 'application',
+          id: applicationPublicId,
+        },
+      ],
+      selectedWaiverScope: {
+        type: 'application',
+        id: applicationPublicId,
+      },
+      componentMatcherStrategy: 'EXACT_COMPONENT',
+      loadError: null,
+    },
+    firewall: {
+      componentDetailsPage: {
+        showManageWaiverPage: false,
+      },
+    },
+    requestWaiver: {
+      loading: true,
+      loadError: null,
+      selectedWaiverScope: {
+        type: 'application',
+        id: applicationPublicId,
+      },
+      comments: {
+        isPristine: true,
+        value: '',
+      },
+      noteToReviewer: {
+        isPristine: true,
+        value: '',
+      },
+    },
     router: {
       currentParams: {
         violationId,
@@ -58,14 +108,10 @@ describe('RequestWaiverPage', function () {
       },
       prevState: { name: 'applicationReport.violationWaivers' },
     },
-    firewall: {
-      componentDetailsPage: {
-        showManageWaiverPage: false,
-      },
-    },
     violation: {
       selectedViolationId: violationId,
       violationDetails,
+      loading: false,
     },
     waivers: {
       waiverReasons: {
@@ -124,10 +170,22 @@ describe('RequestWaiverPage', function () {
       publicId: applicationPublicId,
     });
     mock.onGet(fetchCrossStageViolation(violationId)).reply(200, {});
-    mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 1);
     mock
       .onPut(getPermissionContextTestUrl('application', internalApplicationId))
       .reply(200, ['WAIVE_POLICY_VIOLATIONS']);
+    mock.onGet(getOwnerContextHierarchyUrl(ownerType, ownerId, policyId)).reply(200, {
+      id: 'ROOT_ORGANIZATION_ID',
+      name: 'Root Organization',
+      type: 'organization',
+      children: [
+        {
+          id: 'someOrgId',
+          name: 'Some Org',
+          type: 'organization',
+          children: [{ id: 'someApplicationPublicId', name: 'Some App', type: 'application', children: null }],
+        },
+      ],
+    });
 
     renderComponent = (preloadedState, router = routerContext) =>
       render(
@@ -138,12 +196,14 @@ describe('RequestWaiverPage', function () {
       );
   });
 
-  describe('when violationId is null', () => {
+  describe('when neither policyWaiverRequestId or violationId is provided', () => {
     it('renders a LoadWrapper with an error message', async () => {
       const preloadedState = clone(defaultPreloadedState);
       preloadedState.router.currentParams.violationId = null;
       renderComponent(preloadedState);
-      const error = await screen.findByText('An error occurred loading data. No Violation ID provided.');
+      const error = await screen.findByText(
+        'An error occurred loading data. No Violation ID or Waiver Request ID provided.'
+      );
       expect(error).toBeVisible();
     });
   });
@@ -153,11 +213,7 @@ describe('RequestWaiverPage', function () {
     const loading = await screen.findByText('Loading…');
     expect(loading).toBeVisible();
     const title = screen.getByText('Request Waiver');
-    const description = screen.getByText(
-      'A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver requests is configured. If you are unsure about the webhook configuration, share the policy violation ID and the curl command with the designated approver.'
-    );
     expect(title).toBeVisible();
-    expect(description).toBeVisible();
   });
 
   describe('renders error when the loading requests fail', () => {
@@ -186,48 +242,71 @@ describe('RequestWaiverPage', function () {
     });
   });
 
+  describe('renders error when the states fail', () => {
+    it('addWaiverDataError occurs', async () => {
+      const preloadedState = clone(defaultPreloadedState);
+      preloadedState.addWaiver.loadError = 'add waiver data failed';
+      renderComponent(preloadedState);
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toBeVisible();
+      expect(errorAlert).toHaveTextContent('add waiver data failed');
+    });
+  });
+
   it('renders the list of fields to show', async () => {
     renderComponent(defaultPreloadedState);
-    const componentTitle = await screen.findByText('Component');
-    const componentField = screen.getByText('componentName');
+    //We need a delay to make sure the component is loaded
+    await waitFor(() => expect(screen.queryByText('Loading…')).not.toBeInTheDocument());
+
+    const dropdownFields = screen.getAllByRole('combobox');
+    const radioFields = screen.getAllByRole('radio');
+    const textboxFields = screen.getAllByRole('textbox');
+
+    const componentField = screen.getAllByText('componentName');
     const policyTitle = screen.getByText('Policy');
     const policyField = screen.getByText('policyName');
     const constraintTitle = screen.getByText('Constraint Name');
     const constraintField = screen.getByText('constraintName');
     const conditionsTitle = screen.getByText('Conditions');
     const conditionsField = screen.getByText('reason');
-    const policyViolationTitle = screen.getByText('Policy Violation ID');
-    const policyViolationField = screen.getByText('someViolationId');
-    const policyViolationDetailsTitle = screen.getByText('Policy Violation Details Page');
-    const policyViolationDetailsField = screen.getByText('/ui/links/policyViolation/someViolationId');
-    const curlExampleTitle = screen.getByText('Curl Example');
-    const curlExampleField = screen.getByText(
-      `curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" /api/v2/policyWaiver/someViolationId/application --data-binary 'waiver comment (optional)'`
-    );
+    const scopeTitle = screen.getByText('Scope');
+    const scopeValues = Array.from(dropdownFields[0].options).map((option) => option.value);
+    const componentsTitle = screen.getByText('Components');
+    const componentsValues = Array.from(radioFields).map((radio) => radio.parentElement.textContent.trim());
+    const expirationTitle = screen.getByText('Waiver Expiration');
+    const expirationValues = Array.from(dropdownFields[1].options).map((option) => option.value);
     const reasonTitle = screen.getByText('Reason');
-    const dropdownFields = screen.getAllByRole('combobox');
-    const reasonField = dropdownFields[0];
+    const reasonValues = Array.from(dropdownFields[2].options).map((option) => option.value);
     const commentsTitle = screen.getByText('Comments');
-    const textboxFields = screen.getAllByRole('textbox');
-    const commentsField = textboxFields[textboxFields.length - 1];
-    expect(componentTitle).toBeVisible();
-    expect(componentField).toBeVisible();
+    const commentsField = textboxFields[0];
+    const noteToReviewerTitle = screen.getByText('Note to Reviewer');
+    const noteToReviewerField = textboxFields[1];
+
+    expect(componentField[0]).toBeVisible();
+    expect(componentField[1]).toBeVisible();
     expect(policyTitle).toBeVisible();
     expect(policyField).toBeVisible();
     expect(constraintTitle).toBeVisible();
     expect(constraintField).toBeVisible();
     expect(conditionsTitle).toBeVisible();
     expect(conditionsField).toBeVisible();
-    expect(policyViolationTitle).toBeVisible();
-    expect(policyViolationField).toBeVisible();
-    expect(policyViolationDetailsTitle).toBeVisible();
-    expect(policyViolationDetailsField).toBeVisible();
-    expect(curlExampleTitle).toBeVisible();
-    expect(curlExampleField).toBeVisible();
+    expect(scopeTitle).toBeVisible();
+    expect(scopeValues).toEqual([applicationPublicId, organizationId, rootOrganizationId]);
+    expect(componentsTitle).toBeVisible();
+    expect(componentsValues).toEqual(['componentName', 'componentName (all versions)', 'All Components']);
+    expect(expirationTitle).toBeVisible();
+    expect(expirationValues).toEqual(['never', '7', '14', '30', '60', '90', '120', 'custom']);
     expect(reasonTitle).toBeVisible();
-    expect(reasonField.selectedIndex).toBe(0);
+    expect(reasonValues).toEqual([
+      '',
+      '9b704ef5bc064fc29d7fe08a251ee9a6',
+      '42069f58114f4df8b435a40a415d2835',
+      '39984de3d6e64f508df82b4cbfd72f70',
+    ]);
     expect(commentsTitle).toBeVisible();
     expect(commentsField.value).toBe('');
+    expect(noteToReviewerTitle).toBeVisible();
+    expect(noteToReviewerField.value).toBe('');
   });
 
   it('renders empty comments field on first load', async () => {
@@ -235,227 +314,110 @@ describe('RequestWaiverPage', function () {
     renderComponent(defaultPreloadedState);
     const commentsTitle = await screen.findByText('Comments');
     const textboxFields = screen.getAllByRole('textbox');
-    const commentsField = textboxFields[textboxFields.length - 1];
+    const commentsField = textboxFields[0];
     expect(commentsTitle).toBeVisible();
     expect(commentsField.value).toBe('');
   });
 
-  it('submits the form successfully', async () => {
-    mock
-      .onPost(saveRequestWaiverUrl(violationId), {
-        policyViolationLink: '/ui/links/policyViolation/someViolationId',
-        addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment',
-        comment: 'new comment',
-      })
-      .reply(204);
+  it('renders empty note to reviewer field on first load', async () => {
+    defaultPreloadedState.requestWaiver = { ...initialState, noteToReviewer: 'some preloaded note' };
     renderComponent(defaultPreloadedState);
-    const commentsTitle = await screen.findByText('Comments');
+    const noteToReviewerTitle = await screen.findByText('Note to Reviewer');
     const textboxFields = screen.getAllByRole('textbox');
-    const commentsField = textboxFields[textboxFields.length - 1];
-    expect(commentsTitle).toBeVisible();
-    expect(commentsField).toBeVisible();
-    fireEvent.change(commentsField, { target: { value: 'new comment' } });
-    expect(commentsField.value).toBe('new comment');
-    const submitBtn = screen.getByText('Submit');
-    fireEvent.click(submitBtn);
+    const noteToReviewerField = textboxFields[1];
+    expect(noteToReviewerTitle).toBeVisible();
+    expect(noteToReviewerField.value).toBe('');
   });
 
-  describe('waiver request webhook', () => {
-    function mockWaiverRequestWebhook() {
-      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 1);
-    }
+  it('submits the form successfully', async () => {
+    mock
+      .onPost(getCreatePolicyWaiverRequestUrl(ownerType, ownerId, violationId), {
+        comment: 'new comment',
+        noteToReviewer: 'new note to reviewer',
+        matcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        waiverReasonId: null,
+        expireWhenRemediationAvailable: false,
+      })
+      .reply(200, []);
+    renderComponent(defaultPreloadedState);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-    it('sumbit button should be disabled and error is displayed if endpoint fails', async () => {
-      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(500, 'Error message');
+    const textboxFields = screen.getAllByRole('textbox');
+    const commentsTitle = screen.getByText('Comments');
+    const commentsField = textboxFields[0];
+    const noteToReviewerTitle = screen.getByText('Note to Reviewer');
+    const noteToReviewerField = textboxFields[1];
+    expect(commentsTitle).toBeVisible();
+    expect(commentsField).toBeVisible();
+    expect(noteToReviewerTitle).toBeVisible();
+    expect(noteToReviewerField).toBeVisible();
 
-      renderComponent(defaultPreloadedState);
-      const waiverRequestWebhookError = await screen.findByRole('alert');
-      const submitBtn = screen.getByText('Submit');
-      expect(submitBtn).toHaveClass('disabled');
-      expect(waiverRequestWebhookError).toHaveTextContent('An error occurred loading data. Error message');
-    });
+    fireEvent.change(commentsField, { target: { value: 'new comment' } });
+    fireEvent.change(noteToReviewerField, { target: { value: 'new note to reviewer' } });
+    expect(commentsField.value).toBe('new comment');
+    expect(noteToReviewerField.value).toBe('new note to reviewer');
 
-    it('sumbit button should be disabled and alert is displayed', async () => {
-      mock.onGet(getWaiverRequestWebhooksCountUrl()).reply(200, 0);
+    const submitBtn = screen.getByText('Submit');
+    fireEvent.click(submitBtn);
 
-      renderComponent(defaultPreloadedState);
-      const waiverRequestWebhookAlert = await screen.findByText(
-        'Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver manually.'
-      );
-      const submitBtn = screen.getByText('Submit');
-      expect(submitBtn).toHaveClass('disabled');
-      expect(waiverRequestWebhookAlert).toBeVisible();
-    });
+    expect(mock.history.post[0].url).toBe(
+      '/api/v2/policyWaiverRequests/application/someApplicationPublicId/policyViolation/someViolationId'
+    );
+    expect(mock.history.post[0].data).toBe(
+      JSON.stringify({
+        comment: 'new comment',
+        noteToReviewer: 'new note to reviewer',
+        matcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        waiverReasonId: null,
+        expireWhenRemediationAvailable: false,
+      })
+    );
 
-    it('submit button should not to be disabled and alert is not displayed', async () => {
-      mockWaiverRequestWebhook();
+    const success = await screen.findByText('Success!');
+    expect(success).toBeVisible();
+  });
 
-      function findAlert() {
-        return screen.getByText(
-          'Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver manually.'
-        );
-      }
+  it('submits the form and receives error', async () => {
+    mock
+      .onPost(getCreatePolicyWaiverRequestUrl(ownerType, ownerId, violationId), {
+        comment: 'new comment',
+        noteToReviewer: 'new note to reviewer',
+        matcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        waiverReasonId: null,
+        expireWhenRemediationAvailable: false,
+      })
+      .reply(400, []);
+    renderComponent(defaultPreloadedState);
+    await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-      renderComponent(defaultPreloadedState);
+    const textboxFields = screen.getAllByRole('textbox');
+    const commentsField = textboxFields[0];
+    const noteToReviewerField = textboxFields[1];
 
-      const submitBtn = await screen.findByText('Submit');
-      expect(findAlert).toThrowError(/Unable to find an element with the text: Webhook/g);
-      expect(submitBtn).not.toHaveClass('disabled');
-    });
+    fireEvent.change(commentsField, { target: { value: 'new comment' } });
+    fireEvent.change(noteToReviewerField, { target: { value: 'new note to reviewer' } });
 
-    it('submits the form successfully with a comment and reason', async () => {
-      mockWaiverRequestWebhook();
-      mock
-        .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink:
-            '/ui/links/addWaiver/someViolationId?comments=new%20comment&reasonId=42069f58114f4df8b435a40a415d2835',
-          comment: 'new comment',
-          reasonId: '42069f58114f4df8b435a40a415d2835',
-        })
-        .reply(204);
+    const submitBtn = screen.getByText('Submit');
+    fireEvent.click(submitBtn);
 
-      // If the comments are not trimmed fail the test
-      mock.onAny().reply(400);
+    expect(mock.history.post[0].url).toBe(
+      '/api/v2/policyWaiverRequests/application/someApplicationPublicId/policyViolation/someViolationId'
+    );
+    expect(mock.history.post[0].data).toBe(
+      JSON.stringify({
+        comment: 'new comment',
+        noteToReviewer: 'new note to reviewer',
+        matcherStrategy: 'EXACT_COMPONENT',
+        expiryTime: null,
+        waiverReasonId: null,
+        expireWhenRemediationAvailable: false,
+      })
+    );
 
-      renderComponent(defaultPreloadedState);
-      const commentsTitle = await screen.findByText('Comments');
-      const textboxFields = screen.getAllByRole('textbox');
-      const commentsField = textboxFields[textboxFields.length - 1];
-      const reasonTitle = screen.getByText('Reason');
-      const dropdownFields = screen.getAllByRole('combobox');
-      const reasonField = dropdownFields[0];
-      expect(commentsTitle).toBeVisible();
-      expect(commentsField).toBeVisible();
-      expect(reasonTitle).toBeVisible();
-      expect(reasonField).toBeVisible();
-
-      //Comments are trimmed before sending them to backend
-      fireEvent.change(commentsField, { target: { value: '     new comment         ' } });
-      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
-      expect(commentsField.value).toBe('     new comment         ');
-      expect(reasonField.selectedIndex).toBe(2);
-      const submitBtn = screen.getByText('Submit');
-      fireEvent.click(submitBtn);
-
-      const success = await screen.findByText('Success!');
-      expect(success).toBeVisible();
-    });
-
-    it('submits the form successfully with only comment without reason', async () => {
-      mockWaiverRequestWebhook();
-      mock
-        .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink: '/ui/links/addWaiver/someViolationId?comments=new%20comment',
-          comment: 'new comment',
-          reasonId: null,
-        })
-        .reply(204);
-
-      // If the comments are not trimmed fail the test
-      mock.onAny().reply(400);
-
-      renderComponent(defaultPreloadedState);
-      const commentsTitle = await screen.findByText('Comments');
-      const textboxFields = screen.getAllByRole('textbox');
-      const commentsField = textboxFields[textboxFields.length - 1];
-      expect(commentsTitle).toBeVisible();
-      expect(commentsField).toBeVisible();
-
-      //Comments are trimmed before sending them to backend
-      fireEvent.change(commentsField, { target: { value: '     new comment         ' } });
-      expect(commentsField.value).toBe('     new comment         ');
-      const submitBtn = screen.getByText('Submit');
-      fireEvent.click(submitBtn);
-
-      const success = await screen.findByText('Success!');
-      expect(success).toBeVisible();
-    });
-
-    it('submits the form successfully with only reason without comment', async () => {
-      mockWaiverRequestWebhook();
-      mock
-        .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink: '/ui/links/addWaiver/someViolationId?reasonId=42069f58114f4df8b435a40a415d2835',
-          comment: '',
-          reasonId: '42069f58114f4df8b435a40a415d2835',
-        })
-        .reply(204);
-
-      renderComponent(defaultPreloadedState);
-      const reasonTitle = await screen.findByText('Reason');
-      const dropdownFields = screen.getAllByRole('combobox');
-      const reasonField = dropdownFields[0];
-      expect(reasonTitle).toBeVisible();
-      expect(reasonField).toBeVisible();
-
-      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
-      expect(reasonField.selectedIndex).toBe(2);
-      const submitBtn = screen.getByText('Submit');
-      fireEvent.click(submitBtn);
-
-      const success = await screen.findByText('Success!');
-      expect(success).toBeVisible();
-    });
-
-    it('submits the form successfully with no comment or reason', async () => {
-      mockWaiverRequestWebhook();
-      mock
-        .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink: '/ui/links/addWaiver/someViolationId',
-          comment: '',
-          reasonId: null,
-        })
-        .reply(204);
-
-      renderComponent(defaultPreloadedState);
-      const commentsTitle = await screen.findByText('Comments');
-      const textboxFields = screen.getAllByRole('textbox');
-      const commentsField = textboxFields[textboxFields.length - 1];
-      expect(commentsTitle).toBeVisible();
-      expect(commentsField).toBeVisible();
-      expect(commentsField.value).toBe('');
-      const submitBtn = screen.getByText('Submit');
-      fireEvent.click(submitBtn);
-
-      const success = await screen.findByText('Success!');
-      expect(success).toBeVisible();
-    });
-
-    it('fails to submit the form', async () => {
-      mockWaiverRequestWebhook();
-      mock
-        .onPost(saveRequestWaiverUrl(violationId), {
-          policyViolationLink: '/ui/links/policyViolation/someViolationId',
-          addWaiverLink:
-            '/ui/links/addWaiver/someViolationId?comments=new%20comment%20%3C%3E&reasonId=42069f58114f4df8b435a40a415d2835',
-          comment: 'new comment <>',
-          reasonId: '42069f58114f4df8b435a40a415d2835',
-        })
-        .reply(500, 'some saving error');
-
-      renderComponent(defaultPreloadedState);
-      const commentsTitle = await screen.findByText('Comments');
-      const textboxFields = screen.getAllByRole('textbox');
-      const commentsField = textboxFields[textboxFields.length - 1];
-      const reasonTitle = await screen.findByText('Reason');
-      const dropdownFields = screen.getAllByRole('combobox');
-      const reasonField = dropdownFields[0];
-      expect(commentsTitle).toBeVisible();
-      expect(commentsField).toBeVisible();
-      expect(reasonTitle).toBeVisible();
-      expect(reasonField).toBeVisible();
-      fireEvent.change(commentsField, { target: { value: 'new comment <>' } });
-      fireEvent.change(reasonField, { target: { value: '42069f58114f4df8b435a40a415d2835' } });
-      expect(reasonField.selectedIndex).toBe(2);
-      expect(commentsField.value).toBe('new comment <>');
-      const submitBtn = screen.getByText('Submit');
-      fireEvent.click(submitBtn);
-      const errorAlert = await screen.findByRole('alert');
-      expect(errorAlert).toHaveTextContent('An error occurred saving data. some saving error');
-    });
+    const error = await screen.findByText('An error occurred saving data. Error');
+    expect(error).toBeVisible();
   });
 });

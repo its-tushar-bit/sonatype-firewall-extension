@@ -10,7 +10,7 @@ import { always, equals } from 'ramda';
 import { UI_ROUTER_ON_FINISH } from '../reduxUiRouter/routerActions';
 
 import { createReducerFromActionMap, propSetConst } from '../util/reduxUtil';
-import { waiverMatcherStrategy } from '../util/waiverUtils';
+import { isCustomExpiryTimeValid, waiverMatcherStrategy } from '../util/waiverUtils';
 import {
   WAIVERS_LOAD_ADD_WAIVER_DATA_REQUESTED,
   WAIVERS_LOAD_ADD_WAIVER_DATA_FULFILLED,
@@ -28,8 +28,6 @@ import {
   WAIVERS_RESET_ADD_WAIVER_DATA,
   WAIVERS_ADD_WAIVER_SET_REASON,
 } from './waiverActions';
-
-import { isCustomExpiryTimeValid } from './AddWaiverForm';
 
 const initState = Object.freeze({
   isDirty: false,

@@ -4,223 +4,108 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, fireEvent, axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import DashboardWaiversTable from 'MainRoot/dashboard/results/waivers/DashboardWaiversTable';
-import * as DashboardSelectors from 'MainRoot/dashboard/dashboardSelectors';
+import defaultFilter from 'MainRoot/dashboard/filter/defaultFilter';
 import { getWaiversUrl } from 'MainRoot/util/CLMLocation';
 
 describe('DashboardWaiversTable', function () {
-  let renderComponent, dashboardWaiversProps, sortWaiversSpy;
+  let renderComponent;
+  let state;
+  let mock;
 
   beforeEach(function () {
-    sortWaiversSpy = jasmine.createSpy('sortWaivers');
-    dashboardWaiversProps = {
-      waivers: {
-        error: null,
-        hasNextPage: true,
-        sortFields: ['expiryTime'],
-        hasMultiplePages: true,
-        page: 1,
-        results: [
-          {
-            id: 'a815dd98fdfc448fb69c800bb6d13cc9',
-            threatLevel: 7,
-            createTime: 1661485610116,
-            expiryTime: 1664081999999,
-            policyId: '7e2f3dc0202c4f06ae9d288dba0fcf97',
-            policyName: 'Security-Medium',
-            ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
-            ownerName: 'root-org',
-            ownerType: 'organization',
-            scope: 'Organization - root-org',
-            componentMatchStrategy: 'EXACT_COMPONENT',
-            hash: '6a1d836b6a4c77ec11ac',
-          },
-          {
-            id: '9ba41779ad63456788bbdb223ae5322a',
-            threatLevel: 10,
-            createTime: 1661485661600,
-            expiryTime: 1671857999999,
-            policyId: '766012e0acf8464dbd7973ec928e2210',
-            policyName: 'Security-Critical',
-            ownerId: '0305d75f92c04c459b7d24c8bc406f7e',
-            ownerName: 'app1',
-            ownerType: 'application',
-            scope: 'Applicationapp - app1',
-            componentMatchStrategy: 'ALL_COMPONENTS',
-            hash: null,
-          },
-          {
-            id: 'b54ff0c9e37f475ab3028a3312f48634',
-            threatLevel: 10,
-            createTime: 1661527948432,
-            expiryTime: null,
-            policyId: '766012e0acf8464dbd7973ec928e2210',
-            policyName: 'Security-Critical',
-            ownerId: '0305d75f92c04c459b7d24c8bc406f7e',
-            ownerName: 'app1',
-            ownerType: 'application',
-            scope: 'Applicationapp - app1',
-            componentMatchStrategy: 'EXACT_COMPONENT',
-            hash: '20554954120b3cc9f088',
-          },
-          {
-            id: 'd1c20763e4394786afddd154e17e2c6b',
-            threatLevel: 5,
-            createTime: 1661531418904,
-            expiryTime: null,
-            policyId: 'ce6ca7e95261441586a0e3f1f934dd37',
-            policyName: 'Figue-policy',
-            ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
-            ownerName: 'root-org',
-            ownerType: 'organization',
-            scope: 'Organization - root-org',
-            componentMatchStrategy: 'EXACT_COMPONENT',
-            hash: '51031e9c43ae47693c99',
-          },
-          {
-            id: '4ac5e46025c941e68a335b61eb3165d2',
-            threatLevel: 5,
-            createTime: 1661532973306,
-            expiryTime: null,
-            policyId: 'ce6ca7e95261441586a0e3f1f934dd37',
-            policyName: 'Figue-policy',
-            ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
-            ownerName: 'root-org',
-            ownerType: 'organization',
-            scope: 'Organization - root-org',
-            componentMatchStrategy: 'ALL_COMPONENTS',
-            hash: null,
-          },
-        ],
+    state = {
+      dashboard: {
+        waivers: {
+          results: [
+            {
+              id: '9ba41779ad63456788bbdb223ae5322a',
+              threatLevel: 10,
+              createTime: '2025-04-18T12:00:00Z',
+              expiryTime: '2026-04-18T12:00:00Z',
+              policyId: '766012e0acf8464dbd7973ec928e2210',
+              policyName: 'Security-Critical',
+              ownerId: '0305d75f92c04c459b7d24c8bc406f7e',
+              ownerName: 'app1',
+              ownerType: 'application',
+              scope: 'Applicationapp - app1',
+              componentMatchStrategy: 'ALL_COMPONENTS',
+              hash: null,
+            },
+          ],
+          error: null,
+          hasNextPage: true,
+          sortFields: ['expiryTime'],
+          hasMultiplePages: true,
+          page: null,
+        },
       },
-      sortWaivers: sortWaiversSpy,
-      dispatchPagination: () => {},
-      dispatchNexPage: () => {},
-      dispatchPreviousPage: () => {},
-      stateGo: () => {},
-      maxDaysOld: 0,
-      needsAcknowledgement: false,
-      reload: () => {},
+      dashboardFilter: {
+        loading: false,
+        needsAcknowledgement: false,
+        filtersAreDirty: false,
+        appliedFilter: {
+          ...defaultFilter,
+        },
+      },
     };
-    spyOn(DashboardSelectors, 'selectDashboardFilter').and.returnValue({ needsAcknowledgement: false });
-    renderComponent = (additionalProps = {}) => render(<DashboardWaiversTable {...additionalProps} />);
-  });
 
-  it('renders NxTable headers and entries', async () => {
-    renderComponent(dashboardWaiversProps);
-
-    const [tableHeaders, tableEntries] = await screen.findAllByRole('rowgroup');
-    expect(tableHeaders).toBeVisible();
-    expect(screen.getByText('Threat')).toBeVisible();
-    expect(screen.getByText('Date Created')).toBeVisible();
-    expect(screen.getByText('Policy')).toBeVisible();
-    expect(screen.getByText('Scope')).toBeVisible();
-    expect(screen.getByText('Components')).toBeVisible();
-    expect(screen.getByText('Upgrade')).toBeVisible();
-    expect(tableEntries).toBeVisible();
-  });
-
-  it('renders NxTable next page', async () => {
-    let axiosMock;
-    axiosMock = axiosMockAdapter();
-    axiosMock.onPost(getWaiversUrl()).reply(200, {
-      dashboardResults: [],
-      hasNextPage: true,
+    mock = axiosMockAdapter();
+    mock.onPost(getWaiversUrl()).reply(200, {
+      dashboardResults: state.dashboard.waivers.results,
+      hasNextPage: false,
     });
 
-    for (let i = 0; i < 100; i++) {
-      const resultObject = {
-        id: '4ac5e46025c941e68a335b61eb3165d2' + i,
-        threatLevel: 5,
-        createTime: 1661532973306,
-        expiryTime: null,
-        policyId: 'ce6ca7e95261441586a0e3f1f934dd37',
-        policyName: 'Figue-policy',
-        ownerId: '642a106467c74f6eb5f90eade8ceb5f9',
-        ownerName: 'root-org',
-        ownerType: 'organization',
-        scope: 'Organization - root-org',
-        componentMatchStrategy: 'ALL_COMPONENTS',
-        hash: null,
-      };
-      dashboardWaiversProps.waivers.results.push(resultObject);
-    }
-    renderComponent(dashboardWaiversProps);
-    const nextButton = document.querySelector('[aria-label="next page"]');
-    fireEvent.click(nextButton);
+    renderComponent = (preloadedState = state) => render(<DashboardWaiversTable />, { preloadedState });
   });
 
-  it('renders a row with an alert message when the filter needs acknowledgement', () => {
-    dashboardWaiversProps.needsAcknowledgement = true;
+  it('displays a loading spinner and then renders data from the mocked API response', async () => {
+    renderComponent();
 
-    renderComponent(dashboardWaiversProps);
+    expect(screen.getByText('Loading…')).toBeVisible();
 
-    expect(screen.getByText("Select your filter criteria and click 'apply' to see results.")).toBeVisible();
+    expect(await screen.findByText('10')).toBeVisible(); // threat level
+    expect(screen.getByText('2025-04-18')).toBeVisible(); // creation
+    expect(screen.getByText('2026-04-18')).toBeVisible(); // expiration
+    expect(screen.getByText('Security-Critical')).toBeVisible(); // policy
+    expect(screen.getByText('Application - app1')).toBeVisible(); // scope
+    expect(screen.getByText('All Components')).toBeVisible(); // components
   });
 
-  it('renders an empty message on the NxTableBody if there are no components to display', () => {
-    dashboardWaiversProps.waivers.results = [];
-    renderComponent(dashboardWaiversProps);
+  it('renders a row with an alert message when the filter needs acknowledgement', async () => {
+    state.dashboardFilter.needsAcknowledgement = true;
+    renderComponent();
 
-    expect(screen.getByText('No data available given the applied filters and permissions.')).toBeVisible();
+    expect(await screen.findByText(`Select your filter criteria and click 'apply' to see results.`)).toBeVisible();
   });
 
-  it('renders an empty message on the NxTableBody if there are no components to display in the last 20 days', () => {
-    dashboardWaiversProps.waivers.results = [];
-    dashboardWaiversProps.maxDaysOld = 20;
-    renderComponent(dashboardWaiversProps);
+  it('renders a row with an empty message when there are no results to display', async () => {
+    state.dashboard.waivers.results = null;
+    state.dashboardFilter.loading = false;
+
+    mock.onPost(getWaiversUrl()).reply(200, {
+      dashboardResults: [],
+      hasNextPage: false,
+    });
+
+    renderComponent();
 
     expect(
-      screen.getByText('No data available in the last 20 days given the applied filters and permissions.')
+      await screen.findByText('No data available in the last 30 days given the applied filters and permissions.')
     ).toBeVisible();
   });
 
-  describe('Cell sorting', () => {
-    const columns = [
-      {
-        columnName: 'Threat',
-        roleName: /Threat/,
-        filter: ['threatLevel', '-threatLevel'],
-      },
-      {
-        columnName: 'Date Created',
-        roleName: /Date Created/,
-        filter: ['createTime', '-createTime'],
-      },
-      {
-        columnName: 'Expiration',
-        roleName: /Expiration/,
-        filter: ['expiryTime', '-expiryTime'],
-      },
-      {
-        columnName: 'Policy',
-        roleName: /Policy/,
-        filter: ['policyName', '-policyName'],
-      },
-      {
-        columnName: 'Scope',
-        roleName: /Scope/,
-        filter: ['scope', '-scope'],
-      },
-    ];
-    columns.forEach((column) => {
-      column.filter.forEach((filter) => {
-        const ascOrDesc = filter.includes('-') ? 'desc to asc' : 'asc to desc';
-        const expectedFilterAfterClick = filter.includes('-') ? filter.substring(1) : `-${filter}`;
-        it(`calls the sortWaivers function with the ${column.columnName} column fields if clicked: ${ascOrDesc}`, () => {
-          dashboardWaiversProps.waivers.sortFields = [filter];
-          renderComponent(dashboardWaiversProps);
+  it('renders an error message if loading fails', async () => {
+    state.dashboardFilter.loading = false;
 
-          const headerCellButton = screen.getByRole('columnheader', { name: column.roleName }).children[0];
-          expect(headerCellButton).toHaveClass('nx-cell__sort-btn');
-          expect(headerCellButton).toHaveAttribute('title');
-
-          fireEvent.click(headerCellButton);
-
-          expect(sortWaiversSpy).toHaveBeenCalledWith([expectedFilterAfterClick]);
-        });
-      });
+    mock.onPost(getWaiversUrl()).reply(500, {
+      dashboardResults: null,
+      hasNextPage: false,
     });
+
+    renderComponent();
+
+    expect(await screen.findByText('An error occurred loading data. Error')).toBeVisible();
   });
 });

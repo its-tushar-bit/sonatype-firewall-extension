@@ -45,6 +45,9 @@ const getDefaultNavigationId = (props) => {
   if (props?.isStandaloneDeveloper) {
     return originNamesForAddRequestPages.DASHBOARD_PRIORITIES_PAGE;
   }
+  if (props?.isWaiverRequestReview) {
+    return originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW;
+  }
   return originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW;
 };
 
@@ -63,6 +66,10 @@ const NAVIGATION_RULES = {
   [originNamesForAddRequestPages.DASHBOARD_PRIORITIES_PAGE]: {
     backButtonTitle: 'Back to Developer Dashboard',
     paramsExtractor: dashboardParamsExtractor,
+  },
+  [originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW]: {
+    backButtonTitle: 'Back to Waiver Requests',
+    paramsExtractor: (props) => props,
   },
   ...setValueForMultipleKeys(
     [

@@ -3,13 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React from 'react';
-import * as PropTypes from 'prop-types';
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { selectDashboardFilter, selectWaiversResults } from '../../dashboardSelectors';
+import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectWaiverReasonsState } from 'MainRoot/waivers/requestWaiverSelectors';
+import {
+  loadWaiverResults,
+  sortWaiversResults,
+  setNextWaiversPage,
+  setPreviousWaiversPage,
+} from '../dashboardResultsActions';
 import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
-import { equals } from 'ramda';
+import DashboardMask from '../dashboardMask/DashboardMask';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { equals, prop } from 'ramda';
 
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
-import DashboardWaiversTableRow, { waiverPropTypes } from './DashboardWaiversTableRow';
+import DashboardWaiversTableRow from './DashboardWaiversTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -17,26 +28,34 @@ import { extractSortFieldName } from 'MainRoot/util/sortUtils';
 
 const DEFAULT_SORT_FIELDS = [['-threatLevel'], ['createTime'], ['expiryTime'], ['policyName'], ['scope']];
 
-export default function DashboardWaiversTable(props) {
+export default function DashboardWaiversTable() {
+  const dispatch = useDispatch();
+  const loadWaivers = () => dispatch(loadWaiverResults());
+  const sortWaivers = (sortFields) => {
+    dispatch(sortWaiversResults(sortFields));
+  };
+  const dispatchNextPage = () => dispatch(setNextWaiversPage());
+  const dispatchPreviousPage = () => dispatch(setPreviousWaiversPage());
+  const waivers = useSelector(selectWaiversResults);
+  const waiverReasonsState = useSelector(selectWaiverReasonsState);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
   const {
-    waivers: { results, hasNextPage, sortFields, error, hasMultiplePages, page },
-    sortWaivers,
-    dispatchNexPage,
-    dispatchPreviousPage,
-    stateGo,
-    maxDaysOld,
+    loading: filterLoading,
     needsAcknowledgement,
-    reload,
-  } = props;
-  const currentPage = hasMultiplePages ? page : null;
-  const isLoading = !error && !results && !needsAcknowledgement,
+    filtersAreDirty,
+    appliedFilter: { maxDaysOld },
+  } = useSelector(selectDashboardFilter);
+  const { results, hasNextPage, sortFields, error, hasMultiplePages, page } = waivers;
+
+  const isLoading = (!results && !error && !needsAcknowledgement) || waiverReasonsState.loading,
+    currentPage = hasMultiplePages ? page : null,
     sortedColumn = extractSortFieldName(sortFields[0]),
     isSortReversed = sortFields[0].includes('-'),
     emptyMessage =
       'No data available ' +
       (maxDaysOld ? `in the last ${maxDaysOld} days ` : '') +
-      'given the applied filters and permissions.';
-  const colSpan = 6;
+      'given the applied filters and permissions.',
+    colSpan = 6;
 
   const getColumnDirection = (index, sortInverted = false) => {
     if (!results || !results.length || error) {
@@ -79,86 +98,78 @@ export default function DashboardWaiversTable(props) {
     }
     return null;
   };
-  return (
-    <div className="nx-table-container">
-      <NxTable className="nx-table--fixed-layout">
-        <NxTable.Head>
-          <NxTable.Row className="iq-dashboard-waivers-headers">
-            <NxTable.Cell
-              className="iq-size-controlled-cell"
-              onClick={() => doSort(0)}
-              sortDir={getColumnDirection(0)}
-              isSortable
-            >
-              Threat
-            </NxTable.Cell>
-            <NxTable.Cell
-              className="iq-waiver-date-header"
-              onClick={() => doSort(1)}
-              sortDir={getColumnDirection(1)}
-              isSortable
-            >
-              Date Created
-            </NxTable.Cell>
-            <NxTable.Cell
-              className="iq-waiver-date-header"
-              onClick={() => doSort(2)}
-              sortDir={getColumnDirection(2)}
-              isSortable
-            >
-              Expiration
-            </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
-              Policy
-            </NxTable.Cell>
-            <NxTable.Cell onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
-              Scope
-            </NxTable.Cell>
-            <NxTable.Cell>Components</NxTable.Cell>
-            <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
-            <NxTable.Cell chevron />
-          </NxTable.Row>
-        </NxTable.Head>
-        <NxTable.Body
-          className="iq-dashboard-waivers-entries"
-          isLoading={isLoading}
-          emptyMessage={emptyMessage}
-          error={Messages.getHttpErrorMessage(error)}
-          retryHandler={reload}
-        >
-          {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
-        </NxTable.Body>
-      </NxTable>
 
-      {!isLoading &&
-        (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
-          <NxTableContainer.Footer>
-            <NxIndeterminatePagination
-              onPrevPageSelect={dispatchPreviousPage}
-              onNextPageSelect={dispatchNexPage}
-              isFirstPage={currentPage === 0}
-              isLastPage={!hasNextPage}
-            />
-          </NxTableContainer.Footer>
-        ))}
-    </div>
+  useEffect(() => {
+    if (isStandaloneFirewall || (!filterLoading && !needsAcknowledgement)) {
+      loadWaivers();
+    }
+  }, [filterLoading, needsAcknowledgement]);
+
+  return (
+    <>
+      {filtersAreDirty && !needsAcknowledgement && !isLoading && <DashboardMask />}
+      <div className="nx-table-container">
+        <NxTable className="nx-table--fixed-layout">
+          <NxTable.Head>
+            <NxTable.Row className="iq-dashboard-waivers-headers">
+              <NxTable.Cell
+                className="iq-size-controlled-cell"
+                onClick={() => doSort(0)}
+                sortDir={getColumnDirection(0)}
+                isSortable
+              >
+                Threat
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-date-header"
+                onClick={() => doSort(1)}
+                sortDir={getColumnDirection(1)}
+                isSortable
+              >
+                Date Created
+              </NxTable.Cell>
+              <NxTable.Cell
+                className="iq-waiver-date-header"
+                onClick={() => doSort(2)}
+                sortDir={getColumnDirection(2)}
+                isSortable
+              >
+                Expiration
+              </NxTable.Cell>
+              <NxTable.Cell onClick={() => doSort(3)} sortDir={getColumnDirection(3)} isSortable>
+                Policy
+              </NxTable.Cell>
+              <NxTable.Cell onClick={() => doSort(4)} sortDir={getColumnDirection(4)} isSortable>
+                Scope
+              </NxTable.Cell>
+              <NxTable.Cell>Components</NxTable.Cell>
+              <NxTable.Cell className="iq-upgrade-header">Upgrade</NxTable.Cell>
+              <NxTable.Cell chevron />
+            </NxTable.Row>
+          </NxTable.Head>
+          <NxTable.Body
+            className="iq-dashboard-waivers-entries"
+            isLoading={isLoading}
+            emptyMessage={emptyMessage}
+            error={Messages.getHttpErrorMessage(error)}
+            retryHandler={loadWaivers}
+          >
+            {needsAcknowledgement ? <NeedsAcknowledgementInfoRow colSpan={colSpan} /> : bodyFragment()}
+          </NxTable.Body>
+        </NxTable>
+
+        {!isLoading &&
+          (currentPage === null || (currentPage === 0 && !hasNextPage) ? null : (
+            <NxTableContainer.Footer>
+              <NxIndeterminatePagination
+                onPrevPageSelect={dispatchPreviousPage}
+                onNextPageSelect={dispatchNextPage}
+                isFirstPage={currentPage === 0}
+                isLastPage={!hasNextPage}
+              />
+            </NxTableContainer.Footer>
+          ))}
+      </div>
+    </>
   );
 }
-
-DashboardWaiversTable.propTypes = {
-  reload: PropTypes.func.isRequired,
-  stateGo: PropTypes.func.isRequired,
-  sortWaivers: PropTypes.func.isRequired,
-  dispatchNexPage: PropTypes.func.isRequired,
-  dispatchPreviousPage: PropTypes.func.isRequired,
-  maxDaysOld: PropTypes.number,
-  needsAcknowledgement: PropTypes.bool.isRequired,
-  waivers: PropTypes.shape({
-    results: PropTypes.arrayOf(waiverPropTypes),
-    hasNextPage: PropTypes.bool,
-    sortFields: PropTypes.arrayOf(PropTypes.string),
-    error: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Error), PropTypes.object]),
-    hasMultiplePages: PropTypes.bool,
-    page: PropTypes.number,
-  }),
-};

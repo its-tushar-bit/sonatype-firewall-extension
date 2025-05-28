@@ -8,8 +8,11 @@ import {
   convertToWaiverViolationFormat,
   formatWaiverDetails,
   waiverMatcherStrategy,
+  isCustomExpiryTimeValid,
+  getExpirationDaysMessage,
 } from 'MainRoot/util/waiverUtils';
 import { WAIVER_CREATE_TIME, WAIVER_EXPIRATION_TIME } from 'TestRoot/SpecUtil';
+import moment from 'moment';
 
 describe('waiverUtils', function () {
   describe('dislayWaiverScope', () => {
@@ -441,6 +444,50 @@ describe('waiverUtils', function () {
     it('convert incoming data for waiver violation structure', () => {
       const convertResult = convertToWaiverViolationFormat(incomingData);
       expect(convertResult).toEqual(convertData);
+    });
+  });
+
+  describe('isCustomExpiryTimeValid', () => {
+    it('should return false if the value is null or undefined', () => {
+      expect(isCustomExpiryTimeValid(null)).toBe(false);
+      expect(isCustomExpiryTimeValid(undefined)).toBe(false);
+    });
+
+    it('should return false if the value is an invalid date', () => {
+      expect(isCustomExpiryTimeValid('invalid-date')).toBe(false);
+    });
+
+    it('should return false if the value is a past date', () => {
+      const pastDate = new Date();
+      pastDate.setDate(pastDate.getDate() - 1);
+      expect(isCustomExpiryTimeValid(pastDate.toISOString())).toBe(false);
+    });
+
+    it('should return true if the value is a future date', () => {
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + 1);
+      expect(isCustomExpiryTimeValid(futureDate.toISOString())).toBe(true);
+    });
+  });
+
+  describe('getExpirationDaysMessage', () => {
+    it('should return the correct message for expiry time', () => {
+      expect(getExpirationDaysMessage('30', null)).toBe('This waiver will expire in 30 days');
+    });
+
+    it('should return the correct message for "never" expiry time', () => {
+      expect(getExpirationDaysMessage('never', null)).toBe('');
+    });
+
+    it('should return the correct message when remediationAvailable', () => {
+      expect(getExpirationDaysMessage('remediationAvailable', null)).toBe(
+        'This waiver will expire when an upgrade that fixes the violation is available'
+      );
+    });
+
+    it('should return the correct message for custom expiry time', () => {
+      const customExpiryTime = { value: moment().add(5, 'days').format('YYYY-MM-DD') };
+      expect(getExpirationDaysMessage('custom', customExpiryTime)).toBe('This waiver will expire in 5 days');
     });
   });
 });

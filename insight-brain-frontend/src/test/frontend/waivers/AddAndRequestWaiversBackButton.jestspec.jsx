@@ -10,7 +10,7 @@ import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
 
 describe('AddAndRequestWaiversBackButtonSpec', function () {
-  let renderComponent, minimalProps, minimalFirewallProps, routerContextMock, hrefSpy;
+  let renderComponent, minimalProps, minimalFirewallProps, minimalWaiverRequestProps, routerContextMock, hrefSpy;
 
   beforeEach(function () {
     minimalProps = {
@@ -40,6 +40,14 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
       isFirewall: true,
       isFirewallOrRepositoryComponent: true,
     };
+    minimalWaiverRequestProps = {
+      violationId: 'violationId',
+      prevStateName: undefined,
+      prevParams: {
+        '#': null,
+      },
+      isWaiverRequestReview: true,
+    };
     hrefSpy = jest.fn('href').mockImplementation((stateName) => {
       let href;
       if (stateName === originNamesForAddRequestPages.APP_REPORT_COMPONENT_DETAILS) {
@@ -65,6 +73,8 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
         href = 'firewallComponentDetailsHrefLegal';
       } else if (stateName === originNamesForAddRequestPages.DASHBOARD_VIOLATIONS_VIEW) {
         href = 'violationDetailsHref';
+      } else if (stateName === originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW) {
+        href = 'dashboardWaiversRequestsHref';
       } else if (stateName === originNamesForAddRequestPages.FIREWALL_VIOLATION_WAIVERS) {
         href = 'firewallViolationWaiversHref';
       } else if (stateName === originNamesForAddRequestPages.REPOSITORY_VIOLATION_WAIVERS) {
@@ -650,6 +660,51 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
           expect(backBtnLink).toHaveAttribute('href', 'componentDetailsHrefPrioritiesPageFromDashboard_LegalTab');
         });
       });
+    });
+  });
+
+  describe('Navigated to Request Waivers Review Page', () => {
+    it(`renders a MenuBarBackButton with title 'Back to Waiver Requests'
+    and navigates from the Request Waiver Review Page to the Dashboard Requested Waivers tab`, () => {
+      renderComponent({
+        ...minimalWaiverRequestProps,
+        prevStateName: originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW,
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW, {
+        violationId: 'violationId',
+        prevStateName: 'dashboard.overview.waiverRequests',
+        prevParams: {
+          '#': null,
+        },
+        isWaiverRequestReview: true,
+      });
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Waiver Requests' });
+      expect(backBtnLink).toBeInTheDocument();
+      expect(backBtnLink).toHaveAttribute('href', 'dashboardWaiversRequestsHref');
+    });
+
+    it(`renders a MenuBarBackButton with title 'Back to Waiver Requests'
+    and navigates from the Request Waiver Review Page to the Dashboard Requested Waivers tab
+    if prevStateName is not present`, () => {
+      renderComponent({
+        ...minimalWaiverRequestProps,
+        prevStateName: null,
+      });
+
+      expect(hrefSpy).toHaveBeenCalledWith(originNamesForAddRequestPages.DASHBOARD_WAIVERS_REQUESTS_VIEW, {
+        violationId: 'violationId',
+        prevStateName: null,
+        prevParams: {
+          '#': null,
+        },
+        isWaiverRequestReview: true,
+      });
+
+      const backBtnLink = screen.getByRole('link', { name: 'Back to Waiver Requests' });
+      expect(backBtnLink).toBeInTheDocument();
+      expect(backBtnLink).toHaveAttribute('href', 'dashboardWaiversRequestsHref');
     });
   });
 });

@@ -882,17 +882,49 @@ public class ComponentDetailsTest
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
     requestWaiverPage.root().shouldBe(visible);
     requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiverPage.root().shouldHave(text(
-        "A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver" +
-            " requests is configured. If you are unsure about the webhook configuration, share the policy violation" +
-            " ID and the curl command with the designated approver."));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License-Banned"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("License not approved in any situation"));
-    requestWaiverPage.requestWaiverReadOnlyData()
+    requestWaiverPage.requestWaiverTitle().shouldHave(text("Waiver Configuration"));
+
+    requestWaiverPage.requestWaiverComponentName().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
+
+    requestWaiverPage.requestWaiverPolicy().shouldHave(text("Policy"));
+    requestWaiverPage.requestWaiverPolicy().shouldHave(text("License-Banned"));
+
+    requestWaiverPage.requestWaiverConstraint().shouldHave(text("Constraint Name"));
+    requestWaiverPage.requestWaiverConstraint().shouldHave(text("License not approved in any situation"));
+
+    requestWaiverPage.requestWaiverConditions().shouldHave(text("Conditions"));
+    requestWaiverPage.requestWaiverConditions()
         .shouldHave(text("Found licenses in the 'Banned' license threat group ('AGPL-3.0')"));
-    requestWaiverPage.waiverReasonOptions().get(0).shouldBe(selected);
-    requestWaiverPage.comments().shouldBe(empty);
+
+    requestWaiverPage.requestWaiverScope().shouldHave(text("Scope"));
+    requestWaiverPage.requestWaiverScopeOptions().shouldHave(size(2));
+    requestWaiverPage.requestWaiverScopeOptions().shouldHave(
+        exactTexts("Application - ApplicationReportTest", "Organization - Test Organization"));
+    requestWaiverPage.requestWaiverScopeOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverComponents().shouldHave(text("Components"));
+    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(size(3));
+    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(
+        exactTexts("com.mycila : license-maven-plugin : 2.11", "com.mycila : license-maven-plugin (all versions)",
+            "All Components"));
+    requestWaiverPage.requestWaiverComponentsRadios().get(0).shouldBe(checked);
+
+    requestWaiverPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(size(8));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
+        "60 Days", "90 Days", "120 Days", "Custom"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
+    requestWaiverPage.requestWaiverReasonOptions().shouldHave(size(8));
+    requestWaiverPage.requestWaiverReasonOptions().shouldHave(
+        exactTexts("Select a reason", "Acknowledged violation", "Mitigated externally", "No upgrade path",
+            "Not exploitable", "Not reachable", "Researching", "Other"));
+    requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverComments().shouldBe(empty);
+    requestWaiverPage.requestWaiverNoteToReviewer().shouldBe(empty);
+
     requestWaiverPage.saveButton().shouldBe(visible);
     requestWaiverPage.cancelButton().shouldBe(visible);
   }

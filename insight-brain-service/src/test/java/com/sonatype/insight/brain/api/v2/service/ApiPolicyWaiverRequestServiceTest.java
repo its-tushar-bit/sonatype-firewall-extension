@@ -10,7 +10,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -46,6 +48,8 @@ import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.webhook.TestEventHandler;
+import com.sonatype.insight.brain.webhook.WaiverRequestEvent;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -70,6 +74,7 @@ import static com.sonatype.insight.brain.model.repository.RepositoryContainer.RE
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -112,6 +117,9 @@ public class ApiPolicyWaiverRequestServiceTest
   @Mock
   private PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator;
 
+  @Inject
+  private AsyncEventBus asyncEventBus;
+
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
@@ -131,6 +139,10 @@ public class ApiPolicyWaiverRequestServiceTest
         ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "java");
     policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, componentIdentifier, "h1", "r1");
     componentPurl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+
+    // Posting a RequestWaiverReviewEvent requires a base URL to be set
+    // For this test there is no running IQ instance so we need to set a dummy URL
+    setBaseUrl("http://localhost:1234");
   }
 
   @Test
@@ -363,6 +375,36 @@ public class ApiPolicyWaiverRequestServiceTest
     }).isInstanceOf(BadRequestException.class).hasMessage("Expiration date must be in the future.");
   }
 
+  @Test
+  public void testAddPolicyWaiverRequestByPolicyViolationId_PolicyViolationShouldTriggerWebhookEvent()
+      throws InterruptedException
+  {
+    // Set up event handler to capture events
+    TestEventHandler<WaiverRequestEvent> handler = 
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+
+    try {
+      ApiPolicyWaiverRequestOptionsDTO optionsDTO = new ApiPolicyWaiverRequestOptionsDTO(
+          "waiver comment", EXACT_COMPONENT, null, null, false);
+
+      apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(
+          OwnerType.APPLICATION, app.getId(), policyViolation.getId(), optionsDTO);
+
+      // Verify event was sent and check its content
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.initiator).isEqualTo(USERNAME);
+      assertThat(event.timestamp).isNotNull();
+      assertThat(event.comment).isEqualTo("waiver comment");
+      assertThat(event.policyViolationId).isEqualTo(policyViolation.getId());
+      assertThat(event.ownerId).isEqualTo(app.getId());
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
   private void assertPolicyWaiverRequest(
       PolicyWaiverRequest policyWaiverRequest,
       String ownerId,
@@ -477,24 +519,26 @@ public class ApiPolicyWaiverRequestServiceTest
       String hash,
       Date expiryTime,
       ComponentMatcherStrategyForWaiver matcherStrategy,
+      String associatedPackageUrl,
       String policyWaiverReasonId,
       String policyWaiverId)
   {
-    PolicyWaiver policyWaiverRequest = policyWaiverDAO.getById(policyWaiverId);
-    assertThat(policyWaiverRequest.getOwnerId()).isEqualTo(ownerId);
-    assertThat(policyWaiverRequest.getHash()).isEqualTo(hash);
-    assertThat(policyWaiverRequest.getComment()).isEqualTo(comment);
-    assertThat(policyWaiverRequest.getPolicyId()).isEqualTo(policy.getId());
-    assertThat(policyWaiverRequest.getCreatorId()).isEqualTo(reviewerId);
-    assertThat(policyWaiverRequest.getCreatorName()).isEqualTo(reviewerName);
-    assertThat(policyWaiverRequest.getCreateTime()).isNotNull();
-    assertThat(policyWaiverRequest.getExpiryTime()).isEqualTo(expiryTime);
-    assertThat(policyWaiverRequest.getComponentMatchStrategy()).isEqualTo(matcherStrategy);
-    assertThat(policyWaiverRequest.getConstraintFactsJson())
+    PolicyWaiver policyWaiver = policyWaiverDAO.getById(policyWaiverId);
+    assertThat(policyWaiver.getOwnerId()).isEqualTo(ownerId);
+    assertThat(policyWaiver.getHash()).isEqualTo(hash);
+    assertThat(policyWaiver.getAssociatedPackageUrl()).isEqualTo(associatedPackageUrl);
+    assertThat(policyWaiver.getComment()).isEqualTo(comment);
+    assertThat(policyWaiver.getPolicyId()).isEqualTo(policy.getId());
+    assertThat(policyWaiver.getCreatorId()).isEqualTo(reviewerId);
+    assertThat(policyWaiver.getCreatorName()).isEqualTo(reviewerName);
+    assertThat(policyWaiver.getCreateTime()).isNotNull();
+    assertThat(policyWaiver.getExpiryTime()).isEqualTo(expiryTime);
+    assertThat(policyWaiver.getComponentMatchStrategy()).isEqualTo(matcherStrategy);
+    assertThat(policyWaiver.getConstraintFactsJson())
         .isEqualTo(abstractPolicyViolation.getConstraintFactsJson());
-    assertThat(policyWaiverRequest.getWaiverReasonId()).isEqualTo(policyWaiverReasonId);
+    assertThat(policyWaiver.getWaiverReasonId()).isEqualTo(policyWaiverReasonId);
     Date now = new Date();
-    assertThat(policyWaiverRequest.getCreateTime()).isBetween(DateUtils.addSeconds(now, -5), now, true, true);
+    assertThat(policyWaiver.getCreateTime()).isBetween(DateUtils.addSeconds(now, -5), now, true, true);
   }
 
   @Test
@@ -606,7 +650,7 @@ public class ApiPolicyWaiverRequestServiceTest
           policyWaiverRequestDTO.policyWaiverRequestId,
           new ApiPolicyWaiverRequestReviewDTO(null, EXACT_COMPONENT, null, null, false, APPROVED.name()));
     }).isInstanceOf(NotFoundException.class).hasMessage(
-        "Could not find policy waiver request with ID " + policyWaiverRequestDTO.policyWaiverRequestId + ".");
+        "Could not find policy violation with ID " + policyViolation.getId() + ".");
   }
 
   @Test
@@ -621,7 +665,7 @@ public class ApiPolicyWaiverRequestServiceTest
           policyWaiverRequestDTO.policyWaiverRequestId,
           new ApiPolicyWaiverRequestReviewDTO(null, EXACT_COMPONENT, null, null, false, APPROVED.name()));
     }).isInstanceOf(NotFoundException.class).hasMessage(
-        "Could not find policy waiver request with ID " + policyWaiverRequestDTO.policyWaiverRequestId + ".");
+        "Could not find policy violation with ID " + policyViolation.getId() + ".");
   }
 
   @Test
@@ -714,7 +758,8 @@ public class ApiPolicyWaiverRequestServiceTest
         EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
     assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
-        policyViolation.getHash(), null, EXACT_COMPONENT, null, policyWaiverRequest.getPolicyWaiverId());
+        policyViolation.getHash(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
   }
 
   @Test
@@ -736,7 +781,8 @@ public class ApiPolicyWaiverRequestServiceTest
         EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
     assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
-        policyViolation.getHash(), null, EXACT_COMPONENT, waiverReasonId, policyWaiverRequest.getPolicyWaiverId());
+        policyViolation.getHash(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), waiverReasonId,
+        policyWaiverRequest.getPolicyWaiverId());
   }
 
   @Test
@@ -774,7 +820,8 @@ public class ApiPolicyWaiverRequestServiceTest
         expiryTime, EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
     assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
-        policyViolation.getHash(), updatedExpiryTime, EXACT_COMPONENT, null, policyWaiverRequest.getPolicyWaiverId());
+        policyViolation.getHash(), updatedExpiryTime, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
   }
 
   @Test
@@ -810,10 +857,10 @@ public class ApiPolicyWaiverRequestServiceTest
   }
 
   @Test
-  public void testReviewPolicyWaiverRequest_Approved() {
+  public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy_ExactComponent() {
     ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
         .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(), policyViolation.getId(),
-            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, false));
     clearInvocations(telemetrySenderMock);
 
     policyWaiverRequestDTO = apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
@@ -823,37 +870,65 @@ public class ApiPolicyWaiverRequestServiceTest
     PolicyWaiverRequest policyWaiverRequest =
         policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
     assertPolicyWaiverRequest(policyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment", "testuser",
-        "Test User", "testuser", "Test User", policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
-        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
+        "Test User", "testuser", "Test User", null, policyViolation.getConstraintFactsJson(), null, ALL_COMPONENTS,
+        null, null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
+        policyViolation.getHash(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
     assertPolicyWaiverTelemetry(OwnerType.APPLICATION, app.getId(), policyWaiverRequest.getPolicyWaiverId(),
         policyViolation.getId());
   }
 
   @Test
-  public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy() {
+  public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy_AllVersions() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getPublicId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    clearInvocations(telemetrySenderMock);
+
+    policyWaiverRequestDTO = apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        policyWaiverRequestDTO.policyWaiverRequestId, new ApiPolicyWaiverRequestReviewDTO("waiver comment",
+            ALL_VERSIONS, null, null, false, PolicyWaiverRequestStatus.APPROVED.name()));
+
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(policyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment", "testuser",
+        "Test User", "testuser", "Test User", policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
+    assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
+        null /* hash */, null, ALL_VERSIONS, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
+    assertPolicyWaiverTelemetry(OwnerType.APPLICATION, app.getId(), policyWaiverRequest.getPolicyWaiverId(),
+        policyViolation.getId());
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_WithMatcherStrategy_AllComponents() {
     ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
         .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
-            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, false));
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
 
     // Approve the waiver request with a different matcher strategy
     ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO =
-        new ApiPolicyWaiverRequestReviewDTO("waiver comment", EXACT_COMPONENT, null, null, false, APPROVED.name());
+        new ApiPolicyWaiverRequestReviewDTO("waiver comment", ALL_COMPONENTS, null, null, false, APPROVED.name());
     policyWaiverRequestDTO = apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
         policyWaiverRequestDTO.policyWaiverRequestId, apiPolicyWaiverRequestReviewDTO);
 
     PolicyWaiverRequest policyWaiverRequest =
         policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
     assertPolicyWaiverRequest(policyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment", "testuser",
-        "Test User", "testuser", "Test User", null, policyViolation.getConstraintFactsJson(), null, ALL_COMPONENTS,
-        null, null, false, APPROVED);
+        "Test User", "testuser", "Test User", policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
     assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
-        policyViolation.getHash(), null, EXACT_COMPONENT, null, policyWaiverRequest.getPolicyWaiverId());
+        null /* hash */, null, ALL_COMPONENTS, null /* associatedPackageUrl */, null,
+        policyWaiverRequest.getPolicyWaiverId());
   }
 
   @Test
-  public void testReviewPolicyWaiverRequest_Approved_WithOwner() {
+  public void testReviewPolicyWaiverRequest_Approved_WithScope() {
     ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
         .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
             new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, false));
@@ -872,7 +947,31 @@ public class ApiPolicyWaiverRequestServiceTest
         null, ALL_COMPONENTS, null, null, false, APPROVED);
     assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
     assertPolicyWaiver(org.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
-        policyViolation.getHash(), null, EXACT_COMPONENT, null, policyWaiverRequest.getPolicyWaiverId());
+        policyViolation.getHash(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
+  }
+
+  @Test
+  public void testReviewPolicyWaiverRequest_Approved_WithScopeOrgToApp() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, false));
+
+    // Approve the waiver request with a different owner (aka scope)
+    ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO =
+        new ApiPolicyWaiverRequestReviewDTO("waiver comment", EXACT_COMPONENT, null, null, false, APPROVED.name());
+    policyWaiverRequestDTO = apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        policyWaiverRequestDTO.policyWaiverRequestId, apiPolicyWaiverRequestReviewDTO);
+
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(policyWaiverRequest, org.getId(), policyViolation.getId(), "waiver comment", "testuser",
+        "Test User", "testuser", "Test User", null, policyViolation.getConstraintFactsJson(), null, ALL_COMPONENTS,
+        null, null, false, APPROVED);
+    assertPolicyWaiverRequestDTO(policyWaiverRequestDTO, policyWaiverRequest);
+    assertPolicyWaiver(app.getId(), policy, policyViolation, "waiver comment", "testuser", "Test User",
+        policyViolation.getHash(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        policyWaiverRequest.getPolicyWaiverId());
   }
 
   @Test
@@ -1090,5 +1189,454 @@ public class ApiPolicyWaiverRequestServiceTest
 
     assertThat(expiredApplicableWaiverRequests).hasSize(1);
     assertPolicyWaiverRequestDTO(expiredApplicableWaiverRequests.get(0), policyWaiverRequest3);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_ApplicationPublicId() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getPublicId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment updated", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment updated", "testuser", "Test User", null, null, policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false,
+        REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Application() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment updated", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment updated", "testuser", "Test User", null, null, policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false,
+        REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_ApplyToAllComponents() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment updated", ALL_COMPONENTS, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment updated", "testuser", "Test User", null, null, null /* hash */,
+        policyViolation.getConstraintFactsJson(), null, ALL_COMPONENTS, null /* purl */, null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_DuplicatedAllVersions() {
+    apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+        policyViolation.getId(),
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false));
+    PolicyViolation policyViolation1 =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, "g1", "a1", "v2", "c1", "java", "h1", "r1");
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation1.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_VERSIONS, null, null, false));
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("A policy waiver request for the same policy violation already exists.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_ExpirationInThePast() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.ORGANIZATION, org.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    Date yesterday = DateUtils.addDays(new Date(), -1);
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, yesterday, null, false));
+    }).isInstanceOf(BadRequestException.class).hasMessage("Expiration date must be in the future.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_NonParentApplication() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    Application otherApp = tempEntity.newApplicationWithParent();
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, otherApp.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find policy violation with ID " + policyViolation.getId() + ".");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_NonParentOrganization() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    Organization otherOrg = tempEntity.newOrganization();
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.ORGANIZATION, otherOrg.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    }).isInstanceOf(NotFoundException.class)
+        .hasMessage("Could not find policy violation with ID " + policyViolation.getId() + ".");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithComment() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO(null /* comment */, EXACT_COMPONENT, null, null, false));
+
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment updated", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment updated", "testuser", "Test User", null, null, policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false,
+        REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Organization() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.ORGANIZATION, org.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, org.getId(), policyViolation.getId(), "waiver comment",
+        "testuser", "Test User", null, null, policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Repository() {
+    Repository repository = tempEntity.newRepository();
+    policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY_MANAGER,
+            repository.getRepositoryManagerId(), repositoryPolicyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.REPOSITORY, repository.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    componentPurl = PackageUrlIdentifier.fromComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier());
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, repository.getId(), repositoryPolicyViolation.getId(),
+        "waiver comment", "testuser", "Test User", null, null, repositoryPolicyViolation.getHash(),
+        repositoryPolicyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryContainer() {
+    Repository repository = tempEntity.newRepository();
+    policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+            repository.getId(), repositoryPolicyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    componentPurl = PackageUrlIdentifier.fromComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier());
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId(),
+        "waiver comment", "testuser", "Test User", null, null, repositoryPolicyViolation.getHash(),
+        repositoryPolicyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_RepositoryManager() {
+    Repository repository = tempEntity.newRepository();
+    policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.REPOSITORY,
+            repository.getId(), repositoryPolicyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.REPOSITORY_MANAGER, repository.getRepositoryManagerId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    componentPurl = PackageUrlIdentifier.fromComponentIdentifier(repositoryPolicyViolation.getComponentIdentifier());
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, repository.getRepositoryManagerId(),
+        repositoryPolicyViolation.getId(), "waiver comment", "testuser", "Test User", null, null,
+        repositoryPolicyViolation.getHash(), repositoryPolicyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT,
+        componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithExpireWhenRemediationAvailableAndAllComponents() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", ALL_COMPONENTS, null, null, true));
+    }).isInstanceOf(BadRequestException.class)
+        .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithExpiry() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+    Date expiryTime = DateUtils.addDays(new Date(), 1);
+
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO = apiPolicyWaiverRequestService.updatePolicyWaiverRequest(
+        OwnerType.APPLICATION, app.getId(), policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment updated", EXACT_COMPONENT, expiryTime, null, false));
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment updated", "testuser", "Test User", null, null, policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), expiryTime, EXACT_COMPONENT, componentPurl.getPackageUrl(), null,
+        false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithInvalidWaiverReason() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, "WrongId", false));
+    }).isInstanceOf(BadRequestException.class).hasMessage("Policy waiver reason ID WrongId not found.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithNoteToReviewer() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO =
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false);
+    policyWaiverRequestOptionsDTO.noteToReviewer = "note to reviewer";
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+            policyWaiverRequestDTO.policyWaiverRequestId, policyWaiverRequestOptionsDTO);
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(),
+        "waiver comment", "testuser", "Test User", null, null, policyViolation.getHash(),
+        policyViolation.getConstraintFactsJson(), null, EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false,
+        REQUESTED);
+    assertThat(updatedPolicyWaiverRequest.getNoteToReviewer()).isEqualTo("note to reviewer");
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithoutWaiverReason() {
+    String waiverReasonId = policyWaiverReasonDAO.getAll().get(0).getId();
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, waiverReasonId, false));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO =
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null /* waiverReasonId */, false);
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+            policyWaiverRequestDTO.policyWaiverRequestId, policyWaiverRequestOptionsDTO);
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment",
+        "testuser", "Test User", null, null, policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_WithWaiverReason() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null /* waiverReasonId */,
+                false));
+    reset(telemetrySenderMock);
+
+    String waiverReasonId = policyWaiverReasonDAO.getAll().get(0).getId();
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO =
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, waiverReasonId, false);
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+            policyWaiverRequestDTO.policyWaiverRequestId, policyWaiverRequestOptionsDTO);
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment",
+        "testuser", "Test User", null, null, policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), waiverReasonId, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Rejected() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestReviewDTO(null, null, null, null, false, REJECTED.toString()));
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO =
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false);
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+            policyWaiverRequestDTO.policyWaiverRequestId, policyWaiverRequestOptionsDTO);
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment",
+        "testuser", "Test User", null, null, policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Approved() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation.getId(), new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null,
+                null, false));
+    apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+        policyWaiverRequestDTO.policyWaiverRequestId,
+        new ApiPolicyWaiverRequestReviewDTO("waiver comment", EXACT_COMPONENT, null, null, false, APPROVED.toString()));
+
+    assertThatThrownBy(() -> {
+      apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+          policyWaiverRequestDTO.policyWaiverRequestId,
+          new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    }).isInstanceOf(BadRequestException.class).hasMessage("Cannot update an approved policy waiver request.");
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_DifferentRequester() {
+    ApiPolicyWaiverRequestDTO policyWaiverRequestDTO = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(), policyViolation.getId(),
+            new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false));
+    PolicyWaiverRequest policyWaiverRequest =
+        policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
+    policyWaiverRequest.setRequesterId("otherUser");
+    policyWaiverRequest.setRequesterName("Other User");
+    policyWaiverRequestDAO.update(policyWaiverRequest);
+    reset(telemetrySenderMock);
+
+    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO =
+        new ApiPolicyWaiverRequestOptionsDTO("waiver comment", EXACT_COMPONENT, null, null, false);
+    ApiPolicyWaiverRequestDTO updatedPolicyWaiverRequestDTO =
+        apiPolicyWaiverRequestService.updatePolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
+            policyWaiverRequestDTO.policyWaiverRequestId, policyWaiverRequestOptionsDTO);
+
+    PolicyWaiverRequest updatedPolicyWaiverRequest =
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequestDTO.policyWaiverRequestId);
+    assertPolicyWaiverRequest(updatedPolicyWaiverRequest, app.getId(), policyViolation.getId(), "waiver comment",
+        "testuser", "Test User", null, null, policyViolation.getHash(), policyViolation.getConstraintFactsJson(), null,
+        EXACT_COMPONENT, componentPurl.getPackageUrl(), null, false, REQUESTED);
+    assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
+    assertPolicyWaiverRequestTelemetry(policyViolation,
+        policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
   }
 }

@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
@@ -58,6 +57,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.ScopeOwnerUtils;
+import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -108,6 +108,8 @@ public class ApiPolicyWaiverRequestService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final RequestPolicyWaiverEventService requestPolicyWaiverEventService;
+
   @Inject
   public ApiPolicyWaiverRequestService(
       ApiPolicyWaiverService apiPolicyWaiverService,
@@ -121,7 +123,8 @@ public class ApiPolicyWaiverRequestService
       PolicyViolationDAO policyViolationDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO,
       IdUtils idUtils,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      RequestPolicyWaiverEventService requestPolicyWaiverEventService)
   {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.telemetrySender = telemetrySender;
@@ -135,6 +138,7 @@ public class ApiPolicyWaiverRequestService
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.idUtils = idUtils;
     this.telemetryUtils = telemetryUtils;
+    this.requestPolicyWaiverEventService = requestPolicyWaiverEventService;
   }
 
   /**
@@ -153,6 +157,7 @@ public class ApiPolicyWaiverRequestService
     // Check permission before any other validation, to avoid giving away extra information to an unauthorized user.
     checkReadPermission(ownerType, internalOwnerId);
 
+    // Throws NotFoundException if the policy violation does not exist.
     AbstractPolicyViolation abstractPolicyViolation = getAbstractPolicyViolation(policyViolationId);
 
     if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
@@ -188,6 +193,12 @@ public class ApiPolicyWaiverRequestService
     PolicyWaiverRequest policyWaiverRequest = createPolicyWaiverRequest(internalOwnerId, abstractPolicyViolation,
         comment, noteToReviewer, matcherStrategy, expiryTime, waiverReasonId, expireWhenRemediationAvailable);
 
+    // The repository policy violation doesn't support webhooks yet.
+    if (abstractPolicyViolation instanceof PolicyViolation) {
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(policyViolationId, comment,
+          waiverReasonId, ownerType.toString(), ownerId, policyWaiverRequest.getId());
+    }
+
     auditPolicyWaiverRequest(policyWaiverRequest);
 
     PolicyWaiverReason policyWaiverReason =
@@ -215,6 +226,9 @@ public class ApiPolicyWaiverRequestService
     dto.policyName = policyDAO.getById(policyWaiverRequest.getPolicyId()).getName();
     dto.requesterId = policyWaiverRequest.getRequesterId();
     dto.requesterName = policyWaiverRequest.getRequesterName();
+    dto.reviewerName = policyWaiverRequest.getReviewerName();
+    dto.reviewerId = policyWaiverRequest.getReviewerId();
+    dto.rejectionReason = policyWaiverRequest.getRejectionReason();
     dto.componentUpgradeAvailable = policyWaiverRequest.isComponentUpgradeAvailable();
     dto.expireWhenRemediationAvailable = policyWaiverRequest.isExpireWhenRemediationAvailable();
     dto.policyViolationId = policyWaiverRequest.getPolicyViolationId();
@@ -393,8 +407,11 @@ public class ApiPolicyWaiverRequestService
       throw new NotFoundException("Could not find policy waiver request with ID " + policyWaiverRequestId + ".");
     }
 
-    if (!isPolicyWaiverRequestOwnerId(policyWaiverRequest, internalOwnerId)) {
-      throw new NotFoundException("Could not find policy waiver request with ID " + policyWaiverRequestId + ".");
+    // Throws NotFoundException if the policy violation does not exist.
+    AbstractPolicyViolation abstractPolicyViolation =
+        getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
+    if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
+      throw new NotFoundException("Could not find policy violation with ID " + abstractPolicyViolation.getId() + ".");
     }
 
     if (apiPolicyWaiverRequestReviewDTO == null) {
@@ -408,7 +425,8 @@ public class ApiPolicyWaiverRequestService
     switch (status) {
       case APPROVED:
         Owner owner = ownerDAO.getById(internalOwnerId);
-        approvePolicyWaiverRequest(owner, policyWaiverRequest, apiPolicyWaiverRequestReviewDTO);
+        approvePolicyWaiverRequest(owner, policyWaiverRequest, abstractPolicyViolation,
+            apiPolicyWaiverRequestReviewDTO);
         break;
       case REJECTED:
         rejectPolicyWaiverRequest(policyWaiverRequest, apiPolicyWaiverRequestReviewDTO);
@@ -429,6 +447,7 @@ public class ApiPolicyWaiverRequestService
   private void approvePolicyWaiverRequest(
       Owner owner,
       PolicyWaiverRequest policyWaiverRequest,
+      AbstractPolicyViolation abstractPolicyViolation,
       ApiPolicyWaiverRequestReviewDTO apiPolicyWaiverRequestReviewDTO)
   {
     validatePolicyWaiverReasonId(apiPolicyWaiverRequestReviewDTO.waiverReasonId);
@@ -437,56 +456,33 @@ public class ApiPolicyWaiverRequestService
         apiPolicyWaiverRequestReviewDTO.matcherStrategy != null ? apiPolicyWaiverRequestReviewDTO.matcherStrategy
             : EXACT_COMPONENT;
 
-    String hash = null;
-    String associatedPackageUrl = null;
-    if (matcherStrategy != ALL_COMPONENTS && matcherStrategy != ALL_VERSIONS) {
-      AbstractPolicyViolation abstractPolicyViolation =
-          getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
-      hash = abstractPolicyViolation.getHash();
-      associatedPackageUrl = toPackageUrl(abstractPolicyViolation.getComponentIdentifier());
-    }
-
     validateExpiryTime(apiPolicyWaiverRequestReviewDTO.expiryTime);
 
     validateExpireWhenRemediationAvailable(apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable,
         matcherStrategy);
 
-    // Create the policy waiver
-    PolicyWaiver policyWaiver = new PolicyWaiver();
-    policyWaiver.setOwnerId(owner.getId());
-    policyWaiver.setPolicyId(policyWaiverRequest.getPolicyId());
-    policyWaiver.setHash(hash);
-    policyWaiver.setAssociatedPackageUrl(associatedPackageUrl);
-    policyWaiver.setConstraintFacts(policyWaiverRequest.getConstraintFacts());
-    policyWaiver.setConstraintFactsJson(policyWaiverRequest.getConstraintFactsJson());
-    policyWaiver.setComponentMatchStrategy(matcherStrategy);
-    policyWaiver.setComponentUpgradeAvailable(policyWaiverRequest.isComponentUpgradeAvailable());
-    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
-    policyWaiver.setCreatorId(userPrincipal.getUsername());
-    policyWaiver.setCreatorName(userPrincipal.getDisplayName());
-    policyWaiver.setExpiryTime(apiPolicyWaiverRequestReviewDTO.expiryTime);
-    policyWaiver.setWaiverReasonId(apiPolicyWaiverRequestReviewDTO.waiverReasonId);
-    policyWaiver.setExpireWhenRemediationAvailable(apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable);
-    policyWaiver.setComment(apiPolicyWaiverRequestReviewDTO.comment);
-
-    // Update the policy waiver request
-    policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
-    policyWaiverRequest.setReviewerId(userPrincipal.getUsername());
-    policyWaiverRequest.setReviewerName(userPrincipal.getDisplayName());
-    policyWaiverRequest.setReviewTime(new Date());
-
     // Persist the policy waiver and the policy waiver request
+    PolicyWaiver policyWaiver;
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
-      policyWaiverDAO.insert(tx, policyWaiver);
+      // Create the policy waiver
+      policyWaiver = apiPolicyWaiverService.savePolicyWaiver(tx, owner.getId(), abstractPolicyViolation,
+          apiPolicyWaiverRequestReviewDTO.comment, matcherStrategy, apiPolicyWaiverRequestReviewDTO.expiryTime,
+          apiPolicyWaiverRequestReviewDTO.waiverReasonId,
+          apiPolicyWaiverRequestReviewDTO.expireWhenRemediationAvailable);
+
+      // Update the policy waiver request
+      policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.APPROVED);
+      UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+      policyWaiverRequest.setReviewerId(userPrincipal.getUsername());
+      policyWaiverRequest.setReviewerName(userPrincipal.getDisplayName());
+      policyWaiverRequest.setReviewTime(new Date());
       policyWaiverRequest.setPolicyWaiverId(policyWaiver.getId());
       policyWaiverRequestDAO.update(tx, policyWaiverRequest);
       tx.commit();
     }
 
     // Audit and send telemetry for the policy waiver.
-    AbstractPolicyViolation abstractPolicyViolation =
-        getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
     try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, true)) {
       AuditData.get().setOwner(owner);
       apiPolicyWaiverService.auditAndSendTelemetry(owner.getType(), owner.getId(), policyWaiver,
@@ -513,15 +509,6 @@ public class ApiPolicyWaiverRequestService
     policyWaiverRequestDAO.update(policyWaiverRequest);
 
     auditPolicyWaiverRequest(policyWaiverRequest);
-  }
-
-  private boolean isPolicyWaiverRequestOwnerId(PolicyWaiverRequest policyWaiverRequest, String ownerId) {
-    for (Owner owner : ownerDAO.walkHierarchy(policyWaiverRequest.getOwnerId())) {
-      if (owner.getId().equals(ownerId)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   public ApiPolicyWaiverRequestDTO getPolicyWaiverRequest(
@@ -599,5 +586,109 @@ public class ApiPolicyWaiverRequestService
 
   private static boolean isExpired(Date expiryTime) {
     return expiryTime != null && expiryTime.before(new Date());
+  }
+
+  public ApiPolicyWaiverRequestDTO updatePolicyWaiverRequest(
+      OwnerType ownerType,
+      String ownerId,
+      String policyWaiverRequestId,
+      ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO)
+  {
+    log.debug(
+        "Received request to update policy waiver request for ownerType {}, ownerId {}, policy waiver request ID {}",
+        ownerType, ownerId, policyWaiverRequestId);
+
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    // Check permission before any other validation, to avoid giving away extra information to an unauthorized user.
+    checkReadPermission(ownerType, internalOwnerId);
+
+    PolicyWaiverRequest policyWaiverRequest = policyWaiverRequestDAO.getByIdNotNull(policyWaiverRequestId);
+
+    // Throws NotFoundException if the policy violation does not exist.
+    AbstractPolicyViolation abstractPolicyViolation =
+        getAbstractPolicyViolation(policyWaiverRequest.getPolicyViolationId());
+    if (!isViolationOwnerId(abstractPolicyViolation, internalOwnerId)) {
+      throw new NotFoundException("Could not find policy violation with ID " + abstractPolicyViolation.getId() + ".");
+    }
+
+    if (PolicyWaiverRequestStatus.APPROVED.equals(policyWaiverRequest.getStatus())) {
+      throw new BadRequestException("Cannot update an approved policy waiver request.");
+    }
+
+    ComponentMatcherStrategyForWaiver matcherStrategy;
+    if (policyWaiverRequestOptionsDTO != null) {
+      validatePolicyWaiverReasonId(policyWaiverRequestOptionsDTO.waiverReasonId);
+
+      if (policyWaiverRequestOptionsDTO.matcherStrategy != null) {
+        matcherStrategy = policyWaiverRequestOptionsDTO.matcherStrategy;
+      }
+      else {
+        matcherStrategy = EXACT_COMPONENT;
+      }
+    }
+    else {
+      matcherStrategy = EXACT_COMPONENT;
+    }
+
+    String comment = policyWaiverRequestOptionsDTO == null ? null : policyWaiverRequestOptionsDTO.comment;
+    String noteToReviewer = policyWaiverRequestOptionsDTO == null ? null : policyWaiverRequestOptionsDTO.noteToReviewer;
+    Date expiryTime = policyWaiverRequestOptionsDTO == null ? null : policyWaiverRequestOptionsDTO.expiryTime;
+    String waiverReasonId = policyWaiverRequestOptionsDTO == null ? null : policyWaiverRequestOptionsDTO.waiverReasonId;
+    boolean expireWhenRemediationAvailable =
+        policyWaiverRequestOptionsDTO != null && policyWaiverRequestOptionsDTO.expireWhenRemediationAvailable;
+
+    validateExpiryTime(expiryTime);
+
+    validateExpireWhenRemediationAvailable(expireWhenRemediationAvailable, matcherStrategy);
+
+    updatePolicyWaiverRequest(policyWaiverRequest, internalOwnerId, abstractPolicyViolation,
+        comment, noteToReviewer, matcherStrategy, expiryTime, waiverReasonId, expireWhenRemediationAvailable);
+
+    auditPolicyWaiverRequest(policyWaiverRequest);
+
+    PolicyWaiverReason policyWaiverReason =
+        waiverReasonId != null ? policyWaiverReasonDAO.getById(waiverReasonId) : null;
+    sendTelemetryForPolicyWaiverRequest(abstractPolicyViolation, policyWaiverReason);
+
+    return toDto(policyWaiverRequest, policyWaiverReason);
+  }
+
+  private void updatePolicyWaiverRequest(
+      PolicyWaiverRequest policyWaiverRequest,
+      String ownerId,
+      AbstractPolicyViolation abstractPolicyViolation,
+      String comment,
+      String noteToReviewer,
+      ComponentMatcherStrategyForWaiver matcherStrategy,
+      Date expiryTime,
+      String policyWaiverReasonId,
+      boolean expireWhenRemediationAvailable)
+  {
+    String hash =
+        matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS ? null : abstractPolicyViolation.getHash();
+    policyWaiverRequest.setHash(hash);
+    policyWaiverRequest.setOwnerId(ownerId);
+    policyWaiverRequest.setComment(comment);
+    policyWaiverRequest.setNoteToReviewer(noteToReviewer);
+    policyWaiverRequest.setExpiryTime(expiryTime);
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    policyWaiverRequest.setRequesterId(userPrincipal.getUsername());
+    policyWaiverRequest.setRequesterName(userPrincipal.getDisplayName());
+    policyWaiverRequest.setComponentMatchStrategy(matcherStrategy);
+    policyWaiverRequest.setExpireWhenRemediationAvailable(expireWhenRemediationAvailable);
+    if (matcherStrategy != ALL_COMPONENTS && abstractPolicyViolation.getComponentIdentifier() != null) {
+      policyWaiverRequest.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
+    }
+    else {
+      policyWaiverRequest.setAssociatedPackageUrl(null);
+    }
+    policyWaiverRequest.setWaiverReasonId(policyWaiverReasonId);
+    policyWaiverRequest.setReviewerId(null);
+    policyWaiverRequest.setReviewerName(null);
+    policyWaiverRequest.setRejectionReason(null);
+    policyWaiverRequest.setReviewTime(null);
+    policyWaiverRequest.setStatus(PolicyWaiverRequestStatus.REQUESTED);
+
+    policyWaiverRequestDAO.update(policyWaiverRequest);
   }
 }

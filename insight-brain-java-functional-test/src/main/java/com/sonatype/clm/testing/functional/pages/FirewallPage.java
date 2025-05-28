@@ -69,6 +69,10 @@ public class FirewallPage
     return children(".nx-loading-spinner");
   }
 
+  public static String urlToFirewallWaivers() {
+    return BaseUrl.resolvePageUrl("malware-defense/dashboard/waivers");
+  }
+
   public FirewallWaiversTable firewallWaiversTable() {
     return new FirewallWaiversTable(ROOT);
   }

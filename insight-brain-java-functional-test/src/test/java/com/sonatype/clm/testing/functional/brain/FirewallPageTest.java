@@ -17,8 +17,11 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiverTile;
+import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiversResults;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
+import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
@@ -37,6 +40,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
@@ -51,10 +56,13 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -72,6 +80,8 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_QUARANTINED;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.NAMESPACE_ATTACKS_BLOCKED;
@@ -996,5 +1006,51 @@ public class FirewallPageTest
     refreshOrOpen(FirewallPage.url());
     page.roiFirewallMetricsTab().shouldNot(exist);
     page.roiFirewallMetrics().shouldNot(exist);
+  }
+
+  @Test
+  public void testWaiversTable_rendersCorrectly() {
+    Policy policy = tempEntity.newPolicy();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
+    Repository repository = tempEntity.newRepository(repositoryManager, "maven-central", true, false);
+
+    // Component identifier for the waiver
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "1.2.3", "", "jar");
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
+
+    // Dates for the waiver
+    Date now = new Date();
+    Date twoDaysAgo = DateUtils.addDays(now, -2);
+    Date threeDaysFromNow = DateUtils.addDays(now, 3);
+
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
+        .withHash("hash1")
+        .withPolicyId(policy.getId())
+        .withOwnerId(repository.getId())
+        .withAssociatedPackageUrl(purl)
+        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
+        .withComment("comment repository")
+        .withCreateTime(twoDaysAgo)
+        .withExpiryTime(threeDaysFromNow)
+        .withCreatorId("testuser")
+        .withCreatorName("Test User")
+        .withComponentUpgradeAvailable(false)
+        .build());
+
+    refreshOrOpen(FirewallPage.urlToFirewallWaivers());
+    WaiversResults waiversResults = DashboardPage.waiversView().results();
+    WaiverTile waiver1 = waiversResults.firstWaiver();
+
+    page.firewallWaiversTable().shouldBe(visible);
+    waiversResults.waivers().shouldHave(size(1));
+    waiver1.threatIndicator().shouldBe(SEVERE);
+    waiver1.threatNumber().shouldHave(text("5"));
+    waiver1.createTime().shouldHave(text(DateFormatUtils.format(policyWaiver1.getCreateTime(), "yyyy-MM-dd")));
+    waiver1.expiryTime().shouldHave(text(DateFormatUtils.format(policyWaiver1.getExpiryTime(), "yyyy-MM-dd")));
+    waiver1.policy().shouldHave(text(policy.getName()));
+    waiver1.scope().shouldHave(text(repository.getName()));
+    waiver1.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver1.upgradeAvailable().shouldHave(text("—"));
   }
 }

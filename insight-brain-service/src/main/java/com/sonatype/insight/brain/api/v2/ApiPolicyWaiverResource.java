@@ -432,12 +432,19 @@ public class ApiPolicyWaiverResource
 
   /**
    * @since 1.164
+   * @deprecated since 1.192
+   * Workflow changed. Waiver reviewers now review existing waiver requests instead of creating new waivers.
+   * Please use {@link ApiPolicyWaiverRequestResource#addPolicyWaiverRequestByPolicyViolationId}
    */
+  @Deprecated(since = "1.192")
   @POST
   @Path(REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
-  @Operation(description = "Use this method to trigger a waiver request webhook event. The 'Waiver Request' event " +
-      "type should have been configured as one of the IQ Server webhooks, before using this method.",
+  @Operation(
+      description = "Deprecated since IQ Server 1.192. Triggers a 'Waiver Request' webhook event. " +
+          "Deprecated because the webhook event is now integrated into the policy waiver request process. " +
+          "Please use `api/v2/policyWaiverRequests{ownerType}/policyViolation/{policyViolationId}` instead. " +
+          "Scheduled for removal in December 2025.",
       responses =
           {
               @ApiResponse

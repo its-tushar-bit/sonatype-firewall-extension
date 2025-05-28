@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -28,6 +29,7 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -49,6 +51,15 @@ public class RequestPolicyWaiverEventServiceTest
   @Inject
   PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  @Before
+  public void setUpBaseUrl() {
+    setBaseUrl("http://localhost:1234");
+  }
+
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testPostRequestPolicyWaiverEvent_queuesRequestPolicyWaiverInBus() {
     TestEventHandler<WaiverRequestEvent> handler =
@@ -110,6 +121,10 @@ public class RequestPolicyWaiverEventServiceTest
     }
   }
 
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testPostRequestPolicyWaiverEvent_dtoFieldsAreRequiredExceptComment() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
@@ -130,6 +145,10 @@ public class RequestPolicyWaiverEventServiceTest
         .withMessage("both addWaiverLink and policyViolationLink are required");
   }
 
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testPostRequestPolicyWaiverEvent_requiresValidPolicyViolation() {
     final ApiRequestPolicyWaiverDTO dto = new ApiRequestPolicyWaiverDTO();
@@ -141,6 +160,10 @@ public class RequestPolicyWaiverEventServiceTest
         .withMessage("Could not find associated policy violation");
   }
 
+  /**
+   * @deprecated Deprecated because the tested method is deprecated.
+   */
+  @Deprecated(since = "1.192")
   @Test
   public void testPostRequestPolicyWaiverEvent_commentHasMax1_000Characters() {
     Application application = tempEntity.newApplicationWithParent();
@@ -159,5 +182,212 @@ public class RequestPolicyWaiverEventServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> requestPolicyWaiverEventService.postRequestPolicyWaiverEvent(policyViolation.getId(), dto))
         .withMessage("Comment length must not exceed 1000 characters.");
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_queuesPolicyWaiverRequestInBus() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler =
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    var mockTelemetrySender = mock(TelemetrySender.class);
+    requestPolicyWaiverEventService.setTelemetrySender(mockTelemetrySender);
+
+    try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      String reasonId = "9b704ef5bc064fc29d7fe08a251ee9a6";
+      String comment = "waiver comment";
+      String policyWaiverRequestId = "policyWaiverRequestId001";
+
+      String expectedPolicyViolationLink =
+          String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
+      String expectedAddWaiverLink = String.format(
+          "http://localhost:1234/ui/links/addWaiver/%s?comments=%s&reasonId=%s",
+          policyViolation.getId(), comment.replace(" ", "+"), reasonId
+      );
+      String expectedReviewWaiverRequestLink = String.format(
+          "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
+      );
+
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+          policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
+          policyWaiverRequestId);
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.initiator).isEqualTo(USERNAME);
+      assertThat(event.timestamp).isNotNull();
+      assertThat(event.comment).isEqualTo(comment);
+      assertThat(event.reasonId).isEqualTo(reasonId);
+      assertThat(event.policyViolationId).isEqualTo(policyViolation.getId());
+      assertThat(event.policyViolationLink).isEqualTo(expectedPolicyViolationLink);
+      assertThat(event.addWaiverLink).isEqualTo(expectedAddWaiverLink);
+      assertThat(event.reviewWaiverRequestLink).isEqualTo(expectedReviewWaiverRequestLink);
+      assertThat(event.ownerId).isEqualTo(application.getId());
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_requiresValidPolicyViolationId() {
+    assertThatExceptionOfType(NotFoundException.class).isThrownBy(
+            () -> requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+                "invalidPolicyViolationId", "comment", "policyViolationLink", "addWaiverLink",
+                "reviewWaiverRequestLink",
+                "reasonId"))
+        .withMessage("Could not find associated policy violation");
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_commentExceeding1000Characters() {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+    String comment = "a".repeat(1001);
+
+    String policyWaiverRequestId = "policyWaiverRequestId001";
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
+        () -> requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+            policyViolation.getId(), comment, "reasonId", OwnerType.APPLICATION.toString(), application.getId(),
+            policyWaiverRequestId))
+        .withMessage("Comment length must not exceed 1000 characters.");
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_commentWithExactly1000Characters() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler = 
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      String comment = "a".repeat(1000);
+      String reasonId = "9b704ef5bc064fc29d7fe08a251ee9a6";
+      String policyWaiverRequestId = "policyWaiverRequestId001";
+
+      // This should not throw an exception as the comment is exactly 1000 characters
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+          policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
+          policyWaiverRequestId);
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.comment).isEqualTo(comment);
+      assertThat(event.comment.length()).isEqualTo(1000);
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_commentIsNull() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler = 
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      String comment = null;
+      String reasonId = "9b704ef5bc064fc29d7fe08a251ee9a6";
+      String policyWaiverRequestId = "policyWaiverRequestId001";
+
+      String expectedPolicyViolationLink =
+          String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
+      String expectedAddWaiverLink = String.format(
+          "http://localhost:1234/ui/links/addWaiver/%s?reasonId=%s",
+          policyViolation.getId(), reasonId
+      );
+      String expectedReviewWaiverRequestLink = String.format(
+          "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
+      );
+
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+          policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
+          policyWaiverRequestId);
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.initiator).isEqualTo(USERNAME);
+      assertThat(event.timestamp).isNotNull();
+      assertThat(event.comment).isNull();
+      assertThat(event.reasonId).isEqualTo(reasonId);
+      assertThat(event.policyViolationId).isEqualTo(policyViolation.getId());
+      assertThat(event.policyViolationLink).isEqualTo(expectedPolicyViolationLink);
+      assertThat(event.addWaiverLink).isEqualTo(expectedAddWaiverLink);
+      assertThat(event.reviewWaiverRequestLink).isEqualTo(expectedReviewWaiverRequestLink);
+      assertThat(event.ownerId).isEqualTo(application.getId());
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
+  }
+
+  @Test
+  public void testPostPolicyWaiverRequestEvent_reasonIdIsNull() throws InterruptedException {
+    TestEventHandler<WaiverRequestEvent> handler = 
+        new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
+    asyncEventBus.register(handler);
+    try {
+      Application application = tempEntity.newApplicationWithParent();
+      Policy policy = tempEntity.newPolicy(application);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(application.getId(), StageTypes.BUILD.getName(), "scanId");
+      PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+
+      String comment = "waiver comment";
+      String reasonId = null;
+      String policyWaiverRequestId = "policyWaiverRequestId001";
+
+      String expectedPolicyViolationLink =
+          String.format("http://localhost:1234/ui/links/policyViolation/%s", policyViolation.getId());
+      String expectedAddWaiverLink = String.format(
+          "http://localhost:1234/ui/links/addWaiver/%s?comments=%s",
+          policyViolation.getId(), comment.replace(" ", "+")
+      );
+      String expectedReviewWaiverRequestLink = String.format(
+          "http://localhost:1234/ui/links/requestWaiverReview/%s/%s/%s",
+          OwnerType.APPLICATION, application.getId(), policyWaiverRequestId
+      );
+
+      requestPolicyWaiverEventService.postPolicyWaiverRequestEvent(
+          policyViolation.getId(), comment, reasonId, OwnerType.APPLICATION.toString(), application.getId(),
+          policyWaiverRequestId);
+
+      assertThat(handler.getLatch().await(1, TimeUnit.SECONDS)).isTrue();
+      WaiverRequestEvent event = handler.getEvent();
+      assertThat(event.initiator).isEqualTo(USERNAME);
+      assertThat(event.timestamp).isNotNull();
+      assertThat(event.comment).isEqualTo(comment);
+      assertThat(event.reasonId).isNull();
+      assertThat(event.policyViolationId).isEqualTo(policyViolation.getId());
+      assertThat(event.policyViolationLink).isEqualTo(expectedPolicyViolationLink);
+      assertThat(event.addWaiverLink).isEqualTo(expectedAddWaiverLink);
+      assertThat(event.reviewWaiverRequestLink).isEqualTo(expectedReviewWaiverRequestLink);
+      assertThat(event.ownerId).isEqualTo(application.getId());
+    }
+    finally {
+      asyncEventBus.unregister(handler);
+    }
   }
 }

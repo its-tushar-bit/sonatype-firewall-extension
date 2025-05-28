@@ -6,48 +6,101 @@
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { always, prop, isEmpty } from 'ramda';
-import { getWaiverRequestWebhooksCountUrl, saveRequestWaiverUrl } from 'MainRoot/util/CLMLocation';
+import { nxDateInputStateHelpers, nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { always, isEmpty } from 'ramda';
+import {
+  getCreatePolicyWaiverRequestUrl,
+  getReviewPolicyWaiverRequestUrl,
+  getViewOrUpdatePolicyWaiverRequestUrl,
+} from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { selectViolationId } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectComments, selectWaiverReasonId } from './requestWaiverSelectors';
+import {
+  selectSelectedWaiverScope,
+  selectComponentMatcherStrategy,
+  selectWaiverReasonId,
+  selectComments,
+  selectNoteToReviewer,
+  selectRejectionReason,
+} from './requestWaiverSelectors';
+import { selectWaiverRequestDetails } from 'MainRoot/waivers/requestWaiverDetails/requestWaiverDetailsSelectors';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { propSet } from 'MainRoot/util/jsUtil';
-import { returnToAddWaiverOriginPage } from './waiverActions';
+import { getISODateFromDateInput, propSet } from 'MainRoot/util/jsUtil';
+import { returnToAddOrRequestWaiverOriginPage, returnToReviewWaiverRequestOriginPage } from './waiverActions';
+import { getExpiryTime, isCustomExpiryTimeValid, formatCustomDate } from 'MainRoot/util/waiverUtils';
 
 const { initialState: rscInitialState, userInput } = nxTextInputStateHelpers;
 
+const WAIVER_REQUEST_SCOPE_ERROR_MESSAGE = 'Cannot load Waiver Scope for the Waiver Request.';
+
 const REDUCER_NAME = `requestWaiver`;
+
 export const initialState = {
-  loading: false,
+  loading: true,
+  loadError: null,
   submitError: null,
   isDirty: false,
-  comments: rscInitialState(''),
   submitMaskState: null,
   waiverReasonId: null,
-  webhooks: {
-    loading: false,
-    error: null,
-    waiverRequestWebhookAvailable: false,
-  },
+  selectedWaiverScope: null,
+  componentMatcherStrategy: null,
+  expiryTime: null,
+  customExpiryTime: nxDateInputStateHelpers.initialState(''),
+  comments: rscInitialState(''),
+  noteToReviewer: rscInitialState(''),
 };
 
-const submitRequestWaiverRequested = (state) => {
-  state.submitMaskState = false;
-  state.submitError = null;
+export const initialStateForReview = {
+  submitError: null,
+  rejectionReason: rscInitialState(''),
 };
 
-const submitRequestWaiverFulfilled = (state) => {
-  state.submitMaskState = true;
-  state.comments = userInput(null, '');
-  state.isDirty = false;
-  state.submitError = null;
+const initializeStateFromDetails = (state, { payload }) => {
+  const waiverRequestDetails = payload;
+  state.selectedWaiverScope = {
+    id: waiverRequestDetails.scopeOwnerId,
+    type: waiverRequestDetails.scopeOwnerType,
+    name: waiverRequestDetails.scopeOwnerName,
+  };
+  state.componentMatcherStrategy = waiverRequestDetails.matcherStrategy || null;
+  state.expiryTime = state.expiryTime = waiverRequestDetails.expiryTime == null ? null : 'custom'; //since the expiry time is saved as a custom date
+  const customDate = nxDateInputStateHelpers.userInput(
+    customDateValidator,
+    formatCustomDate(waiverRequestDetails.expiryTime)
+  );
+  state.customExpiryTime = customDate || null;
+  state.waiverReasonId = waiverRequestDetails.policyWaiverReasonId || null;
+  state.comments = userInput(null, waiverRequestDetails.comment || '');
+  state.noteToReviewer = userInput(null, waiverRequestDetails.noteToReviewer || '');
 };
 
-const submitRequestWaiverFailed = (state, { payload }) => {
-  state.submitMaskState = null;
-  state.submitError = Messages.getHttpErrorMessage(payload);
+const loadSelectedWaiverScope = (state, { payload }) => {
+  state.selectedWaiverScope = payload || null;
+  state.loading = false;
+  state.loadError = payload ? null : WAIVER_REQUEST_SCOPE_ERROR_MESSAGE;
+};
+
+const setWaiverReasonId = (state, { payload }) => {
+  state.waiverReasonId = payload ? payload : null;
+};
+
+const setSelectedWaiverScope = (state, { payload }) => {
+  state.selectedWaiverScope = payload ? payload : null;
+};
+
+const setComponentMatcherStrategy = (state, { payload }) => {
+  state.componentMatcherStrategy = payload ? payload : null;
+};
+
+const setExpiryTime = (state, { payload }) => {
+  state.expiryTime = payload ? payload : null;
+  state.customExpiryTime = nxDateInputStateHelpers.initialState('');
+};
+
+const customDateValidator = (value) => (isCustomExpiryTimeValid(value) ? null : 'Date must be in the future');
+
+const setCustomExpiryTime = (state, { payload }) => {
+  state.customExpiryTime = nxDateInputStateHelpers.userInput(customDateValidator, payload);
 };
 
 const setRequestWaiverComments = (state, { payload }) => {
@@ -55,23 +108,46 @@ const setRequestWaiverComments = (state, { payload }) => {
   return computeIsDirty(state, payload);
 };
 
-const setWaiverReasonId = (state, { payload }) => {
-  state.waiverReasonId = payload ? payload : null;
-  return state;
+const setNoteToReviewer = (state, { payload }) => {
+  state.noteToReviewer = userInput(null, payload);
+  return computeIsDirty(state, payload);
 };
 
-const submitRequestWaiver = createAsyncThunk(
-  `${REDUCER_NAME}/submitRequestWaiver`,
-  ({ policyViolationLink, addWaiverLink }, { rejectWithValue, getState, dispatch }) => {
+const setRejectionReason = (state, { payload }) => {
+  state.rejectionReason = userInput(null, payload);
+  return computeIsDirty(state, payload);
+};
+
+const computeIsDirty = (state, payload) => {
+  state.isDirty = !isEmpty(payload);
+};
+
+const clearSubmitError = (state) => {
+  state.submitError = null;
+};
+
+const createRequestWaiver = createAsyncThunk(
+  `${REDUCER_NAME}/createRequestWaiver`,
+  ({ expiration, expireWhenRemediationAvailableSelected }, { rejectWithValue, getState, dispatch }) => {
     const state = getState();
+    const selectedWaiverScope = selectSelectedWaiverScope(state);
     const policyViolationId = selectViolationId(state);
     const comment = selectComments(state).trimmedValue;
-    const reasonId = selectWaiverReasonId(state);
+    const noteToReviewer = selectNoteToReviewer(state).trimmedValue;
+    const componentMatcherStrategy = selectComponentMatcherStrategy(state);
+    const waiverReasonId = selectWaiverReasonId(state);
     return axios
-      .post(saveRequestWaiverUrl(policyViolationId), { reasonId, policyViolationLink, addWaiverLink, comment })
+      .post(getCreatePolicyWaiverRequestUrl(selectedWaiverScope.type, selectedWaiverScope.id, policyViolationId), {
+        comment,
+        noteToReviewer,
+        matcherStrategy: componentMatcherStrategy,
+        expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+        waiverReasonId,
+        expireWhenRemediationAvailable: expireWhenRemediationAvailableSelected,
+      })
       .then(({ data }) => {
         startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
-          dispatch(returnToAddWaiverOriginPage());
+          dispatch(returnToAddOrRequestWaiverOriginPage());
         });
         return data;
       })
@@ -79,58 +155,158 @@ const submitRequestWaiver = createAsyncThunk(
   }
 );
 
-const computeIsDirty = (state, comments) => {
-  state.isDirty = !isEmpty(comments);
+const createRequestWaiverRequested = (state) => {
+  state.submitMaskState = false;
+  state.submitError = null;
 };
 
-const getWaiverRequestWebhooksPending = (state) => {
-  state.webhooks.loading = true;
-  state.webhooks.error = null;
-  state.webhooks.waiverRequestWebhookAvailable = false;
+const createRequestWaiverFulfilled = (state) => {
+  state.submitMaskState = true;
+  state.comments = userInput(null, '');
+  state.noteToReviewer = userInput(null, '');
+  state.isDirty = false;
+  state.submitError = null;
 };
 
-const getWaiverRequestWebhooksFailed = (state, { payload }) => {
-  state.webhooks.loading = false;
-  state.webhooks.error = Messages.getHttpErrorMessage(payload);
-  state.webhooks.waiverRequestWebhookAvailable = false;
+const createRequestWaiverFailed = (state, { payload }) => {
+  state.submitMaskState = null;
+  state.submitError = Messages.getHttpErrorMessage(payload);
 };
 
-const getWaiverRequestWebhooksFulfilled = (state, { payload }) => {
-  state.webhooks.loading = false;
-  state.webhooks.error = null;
-  state.webhooks.waiverRequestWebhookAvailable = !!payload;
-};
-
-const getWaiverRequestWebhooks = createAsyncThunk(
-  `${REDUCER_NAME}/getWaiverRequestWebhook`,
-  (_, { rejectWithValue }) => {
-    return axios.get(getWaiverRequestWebhooksCountUrl()).then(prop('data')).catch(rejectWithValue);
+const reviewRequestWaiver = createAsyncThunk(
+  `${REDUCER_NAME}/reviewRequestWaiver`,
+  ({ status, expiration, expireWhenRemediationAvailableSelected }, { rejectWithValue, getState, dispatch }) => {
+    const state = getState();
+    const selectedWaiverScope = selectSelectedWaiverScope(state);
+    const policyWaiverRequestId = selectWaiverRequestDetails(state).policyWaiverRequestId;
+    const comment = selectComments(state).trimmedValue;
+    const componentMatcherStrategy = selectComponentMatcherStrategy(state);
+    const waiverReasonId = selectWaiverReasonId(state);
+    const rejectionReason = selectRejectionReason(state).trimmedValue;
+    return axios
+      .post(getReviewPolicyWaiverRequestUrl(selectedWaiverScope.type, selectedWaiverScope.id, policyWaiverRequestId), {
+        status,
+        comment,
+        matcherStrategy: componentMatcherStrategy,
+        expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+        waiverReasonId,
+        expireWhenRemediationAvailable: expireWhenRemediationAvailableSelected,
+        rejectionReason,
+      })
+      .then(({ data }) => {
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
+          dispatch(returnToReviewWaiverRequestOriginPage());
+        });
+        return data;
+      })
+      .catch(rejectWithValue);
   }
 );
+
+const reviewRequestWaiverRequested = (state) => {
+  state.submitMaskState = false;
+  state.submitError = null;
+};
+
+const reviewRequestWaiverFulfilled = (state) => {
+  state.submitMaskState = true;
+  state.comments = userInput(null, '');
+  state.isDirty = false;
+  state.submitError = null;
+};
+
+const reviewRequestWaiverFailed = (state, { payload }) => {
+  state.submitMaskState = null;
+  state.submitError = Messages.getHttpErrorMessage(payload);
+};
+
+const updatePolicyWaiverRequest = createAsyncThunk(
+  `${REDUCER_NAME}/updatePolicyWaiverRequest`,
+  ({ expiration, expireWhenRemediationAvailableSelected }, { rejectWithValue, getState, dispatch }) => {
+    const state = getState();
+    const selectedWaiverScope = selectSelectedWaiverScope(state);
+    const policyWaiverRequestId = selectWaiverRequestDetails(getState()).policyWaiverRequestId;
+    const comment = selectComments(state).trimmedValue;
+    const noteToReviewer = selectNoteToReviewer(state).trimmedValue;
+    const componentMatcherStrategy = selectComponentMatcherStrategy(state);
+    const waiverReasonId = selectWaiverReasonId(state);
+    return axios
+      .put(
+        getViewOrUpdatePolicyWaiverRequestUrl(selectedWaiverScope.type, selectedWaiverScope.id, policyWaiverRequestId),
+        {
+          comment,
+          noteToReviewer,
+          matcherStrategy: componentMatcherStrategy,
+          expiryTime: typeof expiration === 'string' ? getISODateFromDateInput(expiration) : getExpiryTime(expiration),
+          waiverReasonId,
+          expireWhenRemediationAvailable: expireWhenRemediationAvailableSelected,
+        }
+      )
+      .then(({ data }) => {
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
+          dispatch(returnToAddOrRequestWaiverOriginPage());
+        });
+        return data;
+      })
+      .catch(rejectWithValue);
+  }
+);
+
+const updatePolicyWaiverRequestRequested = (state) => {
+  state.submitMaskState = false;
+  state.submitError = null;
+};
+
+const updatePolicyWaiverRequestFulfilled = (state) => {
+  state.submitMaskState = true;
+  state.comments = userInput(null, '');
+  state.noteToReviewer = userInput(null, '');
+  state.isDirty = false;
+  state.submitError = null;
+};
+
+const updatePolicyWaiverRequestFailed = (state, { payload }) => {
+  state.submitMaskState = null;
+  state.submitError = Messages.getHttpErrorMessage(payload);
+};
 
 const requestWaiverSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
+    initializeStateFromDetails,
+    loadSelectedWaiverScope,
     setWaiverReasonId,
+    setSelectedWaiverScope,
+    setComponentMatcherStrategy,
+    setExpiryTime,
+    setCustomExpiryTime,
     setRequestWaiverComments,
+    setNoteToReviewer,
+    setRejectionReason,
+    clearSubmitError,
     clearInitState: always(initialState),
+    clearStateForReview: always(initialStateForReview),
     saveMaskTimerDone: propSet('submitMaskState', null),
   },
   extraReducers: {
-    [submitRequestWaiver.pending]: submitRequestWaiverRequested,
-    [submitRequestWaiver.fulfilled]: submitRequestWaiverFulfilled,
-    [submitRequestWaiver.rejected]: submitRequestWaiverFailed,
-    [getWaiverRequestWebhooks.pending]: getWaiverRequestWebhooksPending,
-    [getWaiverRequestWebhooks.fulfilled]: getWaiverRequestWebhooksFulfilled,
-    [getWaiverRequestWebhooks.rejected]: getWaiverRequestWebhooksFailed,
+    [createRequestWaiver.pending]: createRequestWaiverRequested,
+    [createRequestWaiver.fulfilled]: createRequestWaiverFulfilled,
+    [createRequestWaiver.rejected]: createRequestWaiverFailed,
+    [reviewRequestWaiver.pending]: reviewRequestWaiverRequested,
+    [reviewRequestWaiver.fulfilled]: reviewRequestWaiverFulfilled,
+    [reviewRequestWaiver.rejected]: reviewRequestWaiverFailed,
+    [updatePolicyWaiverRequest.pending]: updatePolicyWaiverRequestRequested,
+    [updatePolicyWaiverRequest.fulfilled]: updatePolicyWaiverRequestFulfilled,
+    [updatePolicyWaiverRequest.rejected]: updatePolicyWaiverRequestFailed,
   },
 });
 
 export const actions = {
   ...requestWaiverSlice.actions,
-  submitRequestWaiver,
-  getWaiverRequestWebhooks,
+  createRequestWaiver,
+  reviewRequestWaiver,
+  updatePolicyWaiverRequest,
 };
 
 export default requestWaiverSlice.reducer;

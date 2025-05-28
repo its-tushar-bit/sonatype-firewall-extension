@@ -411,6 +411,13 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/enterpriseReportingDashboard/success-metrics");
   }
 
+  @Test
+  public void testLinkToReviewWaiverRequest() throws Exception {
+    HttpResponse response =
+        get(UserInterfaceLinksHelper.REVIEW_WAIVER_REQUEST_PATH, "application", "owner-id", "waiver-request-id");
+    assertRedirect(response, "assets/index.html#/requestWaiverReview/application/owner-id/waiver-request-id");
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException

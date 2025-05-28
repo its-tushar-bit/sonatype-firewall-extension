@@ -46,6 +46,11 @@ public class PolicyWaiverRequestBuilder
     return this;
   }
 
+  public PolicyWaiverRequestBuilder setNoteToReviewer(final String noteToReviewer) {
+    policyWaiverRequest.setNoteToReviewer(noteToReviewer);
+    return this;
+  }
+
   public PolicyWaiverRequestBuilder setWaiverReasonId(final String waiverReasonId) {
     policyWaiverRequest.setWaiverReasonId(waiverReasonId);
     return this;
@@ -116,6 +121,11 @@ public class PolicyWaiverRequestBuilder
 
   public PolicyWaiverRequestBuilder setRequesterId(final String requesterId) {
     policyWaiverRequest.setRequesterId(requesterId);
+    return this;
+  }
+
+  public PolicyWaiverRequestBuilder setRequesterName(final String requesterName) {
+    policyWaiverRequest.setRequesterName(requesterName);
     return this;
   }
 }

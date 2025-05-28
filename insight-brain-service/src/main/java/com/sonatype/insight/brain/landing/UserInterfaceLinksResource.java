@@ -302,6 +302,18 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(REVIEW_WAIVER_REQUEST_PATH)
+  public Response linkToReviewWaiverRequest(
+      @PathParam("ownerType") OwnerType ownerType,
+      @PathParam("ownerId") String ownerId,
+      @PathParam("policyWaiverRequestId") String policyWaiverRequestId)
+  {
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment("/requestWaiverReview/{ownerType}/{ownerId}/{policyWaiverRequestId}");
+    return redirect(uriBuilder, ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  @GET
   @Path(LATEST_VERSION_SBOM_REPORT_PATH)
   public Response linkToSbom(@PathParam("applicationId") String applicationId, @PathParam("scanId") String scanId) {
     UriBuilder uriBuilder = baseUrl.redirect();

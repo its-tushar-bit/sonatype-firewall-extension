@@ -872,7 +872,7 @@ public class ApiPolicyWaiverService
     }
   }
 
-  private PolicyWaiver savePolicyWaiver(
+  PolicyWaiver savePolicyWaiver(
       TransactionContext tx,
       String ownerId,
       AbstractPolicyViolation abstractPolicyViolation,

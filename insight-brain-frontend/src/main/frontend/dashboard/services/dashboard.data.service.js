@@ -10,6 +10,7 @@ import {
   translateComponentsSortFields,
   translateApplicationsSortFields,
   translateWaiversSortFields,
+  translateWaiverRequestsSortFields,
 } from './sortFieldsUtils';
 
 import {
@@ -18,6 +19,7 @@ import {
   getComponentRisksUrl,
   getWaiversUrl,
   getWaiversAndAutoWaiversUrl,
+  getWaiverRequestsUrl,
 } from '../../util/CLMLocation';
 
 import { createDashboardDataRequestPayload } from '../utils/dashboardUtils';
@@ -84,6 +86,16 @@ export function getWaivers(filters, sortFields, page) {
   return axios.post(getWaiversUrl(), request).then(dashboardResponseHandler());
 }
 
+export function getWaiverRequests(filters, sortFields, page) {
+  const request = createDashboardDataRequestPayload(
+    filters,
+    DASHBOARD_PAGE_SIZE,
+    translateWaiverRequestsSortFields(sortFields),
+    page
+  );
+  return axios.post(getWaiverRequestsUrl(), request).then(dashboardResponseHandler());
+}
+
 export function getComponentRisks(filters, sortFields, page) {
   const request = createDashboardDataRequestPayload(
     filters,
@@ -111,6 +123,7 @@ function generateComponentsSeries(components) {
 function dashboardResponseHandler(seriesGenerator) {
   return ({ data }) => {
     const { dashboardResults, hasNextPage } = data;
+
     let series = undefined;
     if (typeof seriesGenerator === 'function') {
       series = seriesGenerator(dashboardResults);

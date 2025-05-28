@@ -166,6 +166,7 @@ public class SecurityModule
     manager.createChain("/rest/dashboard/export/componentRisks", filters);
     manager.createChain("/rest/dashboard/export/applicationRisks", filters);
     manager.createChain("/rest/dashboard/export/policyWaivers", filters);
+    manager.createChain("/rest/dashboard/export/policyWaiverRequests", filters);
   }
 
   private void configureFilterChainsForIntegrations(FilterChainManager manager) {

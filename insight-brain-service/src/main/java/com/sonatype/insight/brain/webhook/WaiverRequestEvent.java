@@ -22,6 +22,8 @@ public class WaiverRequestEvent
 
   public String addWaiverLink;
 
+  public String reviewWaiverRequestLink;
+
   public String ownerId;
 
   public String reasonId;

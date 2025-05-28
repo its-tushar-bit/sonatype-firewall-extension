@@ -32,6 +32,7 @@ describe('dashboardSelectors', function () {
         repositories: { sortFields: [] },
         violations: { sortFields: [] },
         waivers: { sortFields: [] },
+        waiverRequests: { sortFields: [] },
       },
     };
   });
@@ -135,6 +136,27 @@ describe('dashboardSelectors', function () {
         applicationIds: [],
         maxDaysOld: 30,
         orderBy: '-OWNER_SCOPE',
+        organizationIds: [],
+        repositoryIds: [],
+        policyThreatLevelRange: '2,10',
+        policyViolationStates: ['OPEN'],
+        stageIds: [],
+        tagIds: [],
+        expirationDate: 'ALL',
+        policyWaiverReasonIds: ['some-id'],
+      };
+
+      const actual = selectExportRequestData(state);
+      expect(actual).toEqual(expected);
+    });
+
+    it('converts filters to json string with default waivers sortFields for waiver requests', function () {
+      state.router.currentState.name = 'dashboard.overview.waiverRequests';
+      state.dashboard.waivers.sortFields = ['-scope'];
+
+      const expected = {
+        applicationIds: [],
+        maxDaysOld: 30,
         organizationIds: [],
         repositoryIds: [],
         policyThreatLevelRange: '2,10',

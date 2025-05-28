@@ -125,6 +125,14 @@ export const dashboardFilterOptionsTab = {
     showRepositoriesFilter: true,
     showPolicyWaiverReasonFilter: true,
   },
+  'dashboard.overview.waiverRequests': {
+    showAgeFilter: false,
+    showStagesFilter: false,
+    showViolationStateFilter: false,
+    showExpirationDateFilter: true,
+    showRepositoriesFilter: true,
+    showPolicyWaiverReasonFilter: true,
+  },
   default: {
     showAgeFilter: true,
     showStagesFilter: true,

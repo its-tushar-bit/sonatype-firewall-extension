@@ -49,8 +49,20 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
         new ApiPolicyWaiverRequestOptionsDTO(null, DEFAULT, null, null, false));
   }
 
+  private void updatePolicyWaiverRequestWithDefaultOptions(
+      OwnerType ownerType,
+      String ownerId,
+      String policyWaiverRequestId)
+  {
+    apiPolicyWaiverRequestService.updatePolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
+        new ApiPolicyWaiverRequestOptionsDTO(null, DEFAULT, null, null, false));
+  }
+
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_Authorized() {
+    // Posting a RequestWaiverReviewEvent requires a base URL to be set
+    // For this test there is no running IQ instance so we need to set a dummy URL
+    setBaseUrl("http://localhost:1234");
     grantPermission(app.getId(), Permission.READ);
     addPolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getId(),
         createApplicationPolicyViolation().getId());
@@ -69,6 +81,9 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
 
   @Test
   public void testAddPolicyWaiverRequestByPolicyViolationId_AppPublicId_Authorized() {
+    // Posting a RequestWaiverReviewEvent requires a base URL to be set
+    // For this test there is no running IQ instance so we need to set a dummy URL
+    setBaseUrl("http://localhost:1234");
     grantPermission(app.getId(), Permission.READ);
     addPolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(),
         createApplicationPolicyViolation().getId());
@@ -87,8 +102,10 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
 
   private void reviewPolicyWaiverRequestWithDefaultOptions(OwnerType ownerType, String ownerId) {
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
-        .setPolicyId(policy.getId()).setOwnerId(ownerId).setPolicyViolationId("policyViolationId").build());
+        .setPolicyId(policy.getId()).setOwnerId(ownerId).setPolicyViolationId(policyViolation.getId()).build());
     apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequest.getId(),
         new ApiPolicyWaiverRequestReviewDTO(null, DEFAULT, null, null, false,
             PolicyWaiverRequestStatus.REJECTED.name()));
@@ -115,8 +132,10 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
   public void testReviewPolicyWaiverRequest_AppPublicId_Authorized() {
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
     PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
-        .setPolicyId(policy.getId()).setOwnerId(app.getId()).setPolicyViolationId("policyViolationId").build());
+        .setPolicyId(policy.getId()).setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()).build());
     apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getPublicId(),
         policyWaiverRequest.getId(), new ApiPolicyWaiverRequestReviewDTO(null, DEFAULT, null, null, false,
             PolicyWaiverRequestStatus.REJECTED.name()));
@@ -289,5 +308,49 @@ public class ApiPolicyWaiverRequestServiceAuthzTest
     grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.READ);
     assertThat(getApplicableWaiverRequests(OwnerType.REPOSITORY_CONTAINER,
         RepositoryContainer.REPOSITORY_CONTAINER_ID).activeWaiverRequests).hasSize(1);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_Authorized() {
+    PolicyViolation policyViolation = createApplicationPolicyViolation();
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequestBuilder().setPolicyId(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID).getId())
+            .setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()).build());
+
+    grantPermission(app.getId(), Permission.READ);
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getId(), policyWaiverRequest.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiverRequest_Unauthenticated() {
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getId(), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiverRequest_Unauthorized() {
+    login();
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getId(), null);
+  }
+
+  @Test
+  public void testUpdatePolicyWaiverRequest_AppPublicId_Authorized() {
+    PolicyViolation policyViolation = createApplicationPolicyViolation();
+    PolicyWaiverRequest policyWaiverRequest = tempEntity.newPolicyWaiverRequest(
+        new PolicyWaiverRequestBuilder().setPolicyId(tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID).getId())
+            .setOwnerId(app.getId()).setPolicyViolationId(policyViolation.getId()).build());
+
+    grantPermission(app.getId(), Permission.READ);
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(), policyWaiverRequest.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testUpdatePolicyWaiverRequest_AppPublicId_Unauthenticated() {
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(), null);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testUpdatePolicyWaiverRequest_AppPublicId_Unauthorized() {
+    login();
+    updatePolicyWaiverRequestWithDefaultOptions(OwnerType.APPLICATION, app.getPublicId(), null);
   }
 }

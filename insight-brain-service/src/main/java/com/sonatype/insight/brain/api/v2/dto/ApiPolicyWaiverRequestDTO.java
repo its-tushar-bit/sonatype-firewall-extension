@@ -75,6 +75,12 @@ public class ApiPolicyWaiverRequestDTO
 
   public String requesterName;
 
+  @JsonInclude(Include.NON_NULL)
+  public String reviewerName;
+
+  @JsonInclude(Include.NON_NULL)
+  public String reviewerId;
+
   public ComponentMatcherStrategyForWaiver matcherStrategy;
 
   public String associatedPackageUrl;
@@ -83,6 +89,9 @@ public class ApiPolicyWaiverRequestDTO
 
   @JsonInclude(Include.NON_NULL)
   public Integer threatLevel;
+
+  @JsonInclude(Include.NON_NULL)
+  public String rejectionReason;
 
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {

@@ -3,10 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  NxCodeSnippet,
-  NxTextLink,
   NxH1,
   NxPageTitle,
   NxTile,
@@ -14,95 +12,151 @@ import {
   NxPageMain,
   NxFieldset,
   NxTextInput,
-  NxWarningAlert,
   NxFormSelect,
+  NxRadio,
+  NxDateInput,
+  NxTooltip,
+  NxErrorAlert,
 } from '@sonatype/react-shared-components';
 import LoadWrapper from '../react/LoadWrapper';
 import AddAndRequestWaiversBackButton from './AddAndRequestWaiversBackButton';
 
-import { getRequestWaiverUrl, getPolicyViolationUiLink, getAddWaiverUiLink } from '../util/CLMLocation';
 import { extractViolationDetails } from '../util/violationDetailsUtil';
 import { useDispatch, useSelector } from 'react-redux';
-import classNames from 'classnames';
 
 import {
-  selectComments,
-  selectWaiverReasonId,
   selectLoadingViolation,
   selectSubmitError,
   selectSubmitMaskState,
   selectViolationDetails,
   selectViolationDetailsError,
-  selectWaiverRequestWebhookState,
   selectWaiverReasons,
+  selectAddWaiverData,
+  selectAddWaiverDataLoading,
+  selectAddWaiverDataError,
+  selectSelectedWaiverScope,
+  selectWaiverSelectedScopeLoading,
+  selectWaiverSelectedScopeError,
+  selectComponentMatcherStrategy,
+  selectExpiryTime,
+  selectCustomExpiryTime,
+  selectWaiverReasonId,
+  selectComments,
+  selectNoteToReviewer,
 } from './requestWaiverSelectors';
 import {
   selectPreviousRouteName,
   selectRouterPrevParams,
   selectViolationId,
   selectIsStandaloneDeveloper,
+  selectRouterCurrentParams,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
+import { selectIsExpireWhenRemediationAvailableWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { loadViolation as loadViolationAction } from 'MainRoot/violation/violationActions';
 import { actions } from './requestWaiverSlice';
-import { returnToAddWaiverOriginPage } from './waiverActions';
+import { loadAddWaiverData as loadAddWaiverDataAction, returnToAddOrRequestWaiverOriginPage } from './waiverActions';
 import { actions as waiverActions } from './waiverSlice';
 import { selectViolationSlice } from '../violation/violationSelectors';
-
-const WaiverRequestWebhookAlert = () => {
-  const { loading, error, waiverRequestWebhookAvailable } = useSelector(selectWaiverRequestWebhookState);
-
-  return (
-    <LoadWrapper loading={loading} error={error}>
-      {!waiverRequestWebhookAvailable && (
-        <NxWarningAlert id="iq-waiver-request-webhook-warning">
-          Webhook event for Automatic Waiver Request is not configured. Contact your admin or request the waiver
-          manually.
-        </NxWarningAlert>
-      )}
-    </LoadWrapper>
-  );
-};
+import ArtifactNameDisplay from 'MainRoot/react/ArtifactNameDisplay';
+import ViolationExclamation from 'MainRoot/react/ViolationExclamation';
+import IqScopeDropdown from 'MainRoot/react/iqScopeDropdown/IqScopeDropdown';
+import {
+  useWaiverExpirations,
+  isCustomExpiryTimeSelected,
+  isNeverExpiryTimeSelected,
+  isExpireWhenRemediationAvailableSelected,
+  getExpirationDaysMessage,
+  waiverMatcherStrategy,
+  waiverRequestStatus,
+} from 'MainRoot/util/waiverUtils';
+import { find, propEq } from 'ramda';
+import classnames from 'classnames';
+import { actions as requestWaiverDetailsActions } from './requestWaiverDetails/requestWaiverDetailsSlice';
+import {
+  selectWaiverRequestDetails,
+  selectWaiverRequestDetailsLoading,
+  selectWaiverRequestDetailsError,
+} from './requestWaiverDetails/requestWaiverDetailsSelectors';
 
 const RequestWaiversPage = () => {
   const dispatch = useDispatch();
 
+  const currentParams = useSelector(selectRouterCurrentParams);
+  const { policyWaiverRequestId } = currentParams || {};
   const loading = useSelector(selectLoadingViolation);
-  const violationDetailsError = useSelector(selectViolationDetailsError);
-  const violationDetails = useSelector(selectViolationDetails);
-  const violationId = useSelector(selectViolationId);
+  const selectedWaiverScopeLoading = useSelector(selectWaiverSelectedScopeLoading);
+  const selectedWaiverScopeError = useSelector(selectWaiverSelectedScopeError);
+  const waiverRequestDetailsLoading = useSelector(selectWaiverRequestDetailsLoading);
+  const waiverRequestDetails = useSelector(selectWaiverRequestDetails);
   const name = useSelector(selectPreviousRouteName);
   const prevParams = useSelector(selectRouterPrevParams);
-  const submitError = useSelector(selectSubmitError);
-  const waiverComments = useSelector(selectComments);
-  const waiverReasonId = useSelector(selectWaiverReasonId);
-  const submitMaskState = useSelector(selectSubmitMaskState);
-  const { loadApplicableWaiversError, vulnerabilityDetailsError } = useSelector(selectViolationSlice);
-  const { loading: webhookInfoLoading, error: webhookInfoError, waiverRequestWebhookAvailable } = useSelector(
-    selectWaiverRequestWebhookState
-  );
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
+  const { componentIdentifier, componentDisplayName } = useSelector(selectFirewallComponentDetailsPageRouteParams);
+  const isExpireWhenRemediationAvailable = useSelector(selectIsExpireWhenRemediationAvailableWaiversEnabled);
+  const violationDetails = useSelector(selectViolationDetails);
+  const violationDetailsError = useSelector(selectViolationDetailsError);
+  const violationId = useSelector(selectViolationId);
+  const { loadApplicableWaiversError, vulnerabilityDetailsError } = useSelector(selectViolationSlice);
+  const waiverRequestDetailsError = useSelector(selectWaiverRequestDetailsError);
+  const {
+    availableWaiverScopes,
+    selectedWaiverScope: initialSelectedWaiverScope,
+    componentMatcherStrategy: initialComponentMatcherStrategy,
+  } = useSelector(selectAddWaiverData);
+  const addWaiverDataLoading = useSelector(selectAddWaiverDataLoading);
+  const addWaiverDataError = useSelector(selectAddWaiverDataError);
   const waiverReasons = useSelector(selectWaiverReasons);
+  const submitError = useSelector(selectSubmitError);
+  const submitMaskState = useSelector(selectSubmitMaskState);
+  const selectedWaiverScope = useSelector(selectSelectedWaiverScope);
+  const componentMatcherStrategy = useSelector(selectComponentMatcherStrategy);
+  const expiryTime = useSelector(selectExpiryTime);
+  const customExpiryTime = useSelector(selectCustomExpiryTime);
+  const waiverReasonId = useSelector(selectWaiverReasonId);
+  const waiverComments = useSelector(selectComments);
+  const noteToReviewer = useSelector(selectNoteToReviewer);
 
   const loadViolation = (id) => dispatch(loadViolationAction(id));
-  const getWaiverRequestWebhooks = () => dispatch(actions.getWaiverRequestWebhooks());
-  const onSubmitAction = () => dispatch(actions.submitRequestWaiver({ policyViolationLink, addWaiverLink }));
-  const cancelAction = () => dispatch(returnToAddWaiverOriginPage());
-  const setWaiverComments = (comment) => dispatch(actions.setRequestWaiverComments(comment));
+  const loadAddWaiverData = (id) => dispatch(loadAddWaiverDataAction(id));
+  const onSubmitAction = () => {
+    if (policyWaiverRequestId) {
+      // If policyWaiverRequestId exists, we're updating an existing waiver request
+      return dispatch(actions.updatePolicyWaiverRequest({ expiration, expireWhenRemediationAvailableSelected }));
+    } else {
+      // Otherwise, we're creating a new waiver request
+      return dispatch(actions.createRequestWaiver({ expiration, expireWhenRemediationAvailableSelected }));
+    }
+  };
+  const cancelAction = () => dispatch(returnToAddOrRequestWaiverOriginPage());
+  const loadSelectedWaiverScope = (target) => dispatch(actions.loadSelectedWaiverScope(target));
+  const setSelectedWaiverScope = (target) => dispatch(actions.setSelectedWaiverScope(target));
+  const setComponentMatcherStrategy = (strategy) => dispatch(actions.setComponentMatcherStrategy(strategy));
+  const setExpiryTime = (time) => dispatch(actions.setExpiryTime(time));
+  const setCustomExpiryTime = (time) => dispatch(actions.setCustomExpiryTime(time));
   const setWaiverReasonId = (reasonId) => dispatch(actions.setWaiverReasonId(reasonId));
+  const setWaiverComments = (comment) => dispatch(actions.setRequestWaiverComments(comment));
+  const setNoteToReviewer = (note) => dispatch(actions.setNoteToReviewer(note));
 
-  const isSubmitButtonDisabled = webhookInfoLoading || !!webhookInfoError || !waiverRequestWebhookAvailable;
-
-  const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
+  // initialize read-only state
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   const onSubmit = () => {
-    if (!isSubmitButtonDisabled) {
+    // Don't submit if the form is read-only
+    if (!isReadOnly) {
       onSubmitAction();
     }
   };
 
-  const { policyViolationId, policyName, constraintName, componentName, reasons = [] } = extractViolationDetails(
-    violationDetails
-  );
+  const {
+    policyName,
+    artifactName,
+    constraintName,
+    componentName,
+    allVersionsComponentName,
+    reasons = [],
+    threatLevelCategory,
+  } = extractViolationDetails(violationDetails);
 
   const backButtonProps = {
     violationId,
@@ -111,116 +165,361 @@ const RequestWaiversPage = () => {
     isStandaloneDeveloper,
   };
 
-  const error = violationId
+  const error = policyWaiverRequestId
+    ? waiverRequestDetailsError
+    : violationId
     ? violationDetailsError || loadApplicableWaiversError || vulnerabilityDetailsError
-    : 'No Violation ID provided.';
+    : 'No Violation ID or Waiver Request ID provided.';
 
   const load = () => {
-    if (violationId) {
+    if (policyWaiverRequestId) {
+      // When editing an existing waiver request, we'll load the violation after we get the waiver request details
+      return;
+    } else if (violationId) {
+      // For new waiver requests, directly load using violationId
       loadViolation(violationId);
-      getWaiverRequestWebhooks();
+      loadAddWaiverData(violationId);
+    }
+  };
+
+  const retryLoadHandler = () => {
+    if (policyWaiverRequestId) {
+      dispatch(requestWaiverDetailsActions.loadWaiverRequest());
+    } else {
+      load();
     }
   };
 
   useEffect(() => {
     dispatch(waiverActions.loadCachedWaiverReasons());
     dispatch(actions.clearInitState());
+    // Clear any existing waiver request details
+    dispatch(requestWaiverDetailsActions.clearWaiverRequestDetails());
   }, []);
+
+  // Load waiver request details if policyWaiverRequestId is provided
+  useEffect(() => {
+    // Clear previous state when switching between different routes
+    dispatch(actions.clearInitState());
+    dispatch(requestWaiverDetailsActions.clearWaiverRequestDetails());
+
+    if (policyWaiverRequestId) {
+      dispatch(requestWaiverDetailsActions.loadWaiverRequest());
+    }
+  }, [policyWaiverRequestId, violationId]);
+
+  // Initialize form with waiver request details when they are loaded
+  useEffect(() => {
+    if (waiverRequestDetails) {
+      // Check status and make read-only if it's approved
+      if (waiverRequestDetails.status === waiverRequestStatus.APPROVED) {
+        setIsReadOnly(true);
+      }
+      // Now that we have waiver request details, load the associated violation data
+      const violationId = waiverRequestDetails.policyViolationId;
+      if (violationId) {
+        loadViolation(violationId);
+        loadAddWaiverData(violationId);
+      }
+      dispatch(actions.initializeStateFromDetails(waiverRequestDetails));
+    }
+  }, [waiverRequestDetails]);
+
+  useEffect(() => {
+    if (waiverRequestDetails) {
+      loadSelectedWaiverScope({
+        id: waiverRequestDetails.scopeOwnerId,
+        type:
+          waiverRequestDetails.scopeOwnerType === 'root_organization'
+            ? 'organization'
+            : waiverRequestDetails.scopeOwnerType,
+        name: waiverRequestDetails.scopeOwnerName,
+      });
+    } else if (initialSelectedWaiverScope) {
+      loadSelectedWaiverScope(initialSelectedWaiverScope);
+    }
+  }, [initialSelectedWaiverScope, waiverRequestDetails]);
+
+  useEffect(() => {
+    setComponentMatcherStrategy(initialComponentMatcherStrategy);
+  }, [initialComponentMatcherStrategy]);
 
   useEffect(load, [violationId]);
 
-  const curlExample = `curl -X POST -u user:pass -H "Content-Type: text/plain; charset=UTF-8" ${getRequestWaiverUrl(
-    policyViolationId
-  )} --data-binary 'waiver comment (optional)'`;
+  const replaceUnknownComponentNameByComponentDisplayName = (componentName) =>
+    componentName === 'Unknown' ? componentDisplayName : componentName;
 
-  const reasonsElements = reasons.map((reason) => (
-    <dd key={reason} className="nx-read-only__data">
-      {reason}
-    </dd>
-  ));
+  const policyClassnames = classnames('iq-threat-level', `iq-threat-level--${threatLevelCategory}`);
+
+  const handleScopeChange = (selectedId) => {
+    const target = find(propEq('id', selectedId), availableWaiverScopes);
+    setSelectedWaiverScope(target);
+  };
+
+  const extractScopeOptionText = ({ label, name }) => {
+    switch (label) {
+      case 'Repository_container':
+        return name;
+      case 'Repository_manager':
+        return `Repository Manager - ${name}`;
+      default:
+        return `${label} - ${name}`;
+    }
+  };
+
+  const handleComponentsChange = (value) => {
+    setComponentMatcherStrategy(value);
+  };
+
+  const getAllVersionsRadioButton = () => {
+    if (componentIdentifier === null) {
+      return (
+        <NxTooltip title="Claim this component to apply all versions waiver">
+          <NxRadio
+            id="all-versions"
+            name="request-waiver-components"
+            value={waiverMatcherStrategy.ALL_VERSIONS}
+            isChecked={false}
+            onChange={() => {}}
+            disabled={true}
+          >
+            {allVersionsComponentName === 'Unknown' ? 'All Versions' : `${allVersionsComponentName} (all versions)`}
+          </NxRadio>
+        </NxTooltip>
+      );
+    } else {
+      return (
+        <NxRadio
+          id="all-versions"
+          name="add-waiver-components"
+          value={waiverMatcherStrategy.ALL_VERSIONS}
+          isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_VERSIONS}
+          onChange={handleComponentsChange}
+        >
+          {allVersionsComponentName} (all versions)
+        </NxRadio>
+      );
+    }
+  };
+
+  const onExpiryTimeChange = (event) => {
+    const value = event.currentTarget.value === 'never' ? null : event.currentTarget.value;
+    setExpiryTime(value);
+  };
+
+  const waiverExpirations = useWaiverExpirations(isExpireWhenRemediationAvailable);
+
+  const customExpiryTimeSelected = isCustomExpiryTimeSelected(expiryTime);
+
+  const neverExpiryTimeSelected = isNeverExpiryTimeSelected(expiryTime);
+
+  const expireWhenRemediationAvailableSelected = isExpireWhenRemediationAvailableSelected(expiryTime);
+
+  const daysDiffMessage = getExpirationDaysMessage(expiryTime, customExpiryTime);
+
+  const getExpiration = () => {
+    if (customExpiryTimeSelected) {
+      return customExpiryTime.value;
+    }
+    if (neverExpiryTimeSelected || expireWhenRemediationAvailableSelected) {
+      return null;
+    }
+    return parseInt(expiryTime, 10);
+  };
+
+  const expiration = getExpiration();
 
   const onReasonChange = (event) => {
     setWaiverReasonId(event.currentTarget.value ?? null);
   };
 
-  const policyViolationLink = getPolicyViolationUiLink(violationId);
+  const waiverReasonsToRender = [{ id: '', reasonText: 'Select a reason', type: 'system' }, ...waiverReasons];
 
-  const addWaiverLink = getAddWaiverUiLink(violationId, waiverComments?.trimmedValue, waiverReasonId);
+  // Only affects "update" - when editing an existing waiver request, we need to wait for the details to load
+  const isLoadingWaiverRequestDetails = policyWaiverRequestId && waiverRequestDetailsLoading;
 
-  const urlLinkEl = useRef();
   return (
     <NxPageMain id="request-waiver-page">
       <AddAndRequestWaiversBackButton {...backButtonProps} />
       <NxPageTitle>
         <NxH1>Request Waiver</NxH1>
-        <NxPageTitle.Description>
-          A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver requests
-          is configured. If you are unsure about the webhook configuration, share the policy violation ID and the curl
-          command with the designated approver.
-        </NxPageTitle.Description>
       </NxPageTitle>
+
+      {/* Display error alert when waiver request is rejected */}
+      {waiverRequestDetails && waiverRequestDetails.status === waiverRequestStatus.REJECTED && (
+        <NxErrorAlert>
+          This Waiver Request was rejected by {waiverRequestDetails.reviewerName} for the following reason:
+          <br />
+          {waiverRequestDetails.rejectionReason || 'No reason provided.'}
+        </NxErrorAlert>
+      )}
 
       <NxTile>
         <NxTile.Content>
-          <LoadWrapper loading={loading} error={error} retryHandler={load}>
+          <LoadWrapper
+            loading={loading || addWaiverDataLoading || selectedWaiverScopeLoading || isLoadingWaiverRequestDetails}
+            error={error || addWaiverDataError || selectedWaiverScopeError}
+            retryHandler={retryLoadHandler}
+          >
             {() => (
               <NxStatefulForm
                 className="iq-request-waiver-form"
                 onCancel={cancelAction}
                 submitError={submitError}
                 showValidationErrors={!!submitError}
-                submitBtnClasses={classNames('request-waiver-submit', { disabled: isSubmitButtonDisabled })}
+                submitBtnClasses={classnames('request-waiver-submit', { disabled: isReadOnly })}
                 onSubmit={onSubmit}
                 submitMaskState={submitMaskState}
               >
-                <dl className="nx-read-only">
-                  <dt className="nx-read-only__label">Component</dt>
-                  <dd className="nx-read-only__data">{componentName}</dd>
-                  <dt className="nx-read-only__label">Policy</dt>
-                  <dd className="nx-read-only__data">{policyName}</dd>
-                  <dt className="nx-read-only__label">Constraint Name</dt>
-                  <dd className="nx-read-only__data">{constraintName}</dd>
-                  <dt className="nx-read-only__label">Conditions</dt>
-                  {reasonsElements}
-                </dl>
-                <NxFieldset className="iq-request-waiver-form__reason" label="Reason">
-                  <NxFormSelect id="waiver-reason-select" onChange={onReasonChange}>
-                    {waiverReasonsToRender.map(({ id, reasonText }) => (
-                      <option key={id} value={id}>
-                        {reasonText}
-                      </option>
-                    ))}
-                  </NxFormSelect>
-                </NxFieldset>
-                <NxCodeSnippet
-                  label="Policy Violation ID"
-                  content={policyViolationId}
-                  className="visual-testing-ignore iq-request-waivers-popover__violation-id"
-                  id="request-waivers-policy-violation-id"
-                />
-                <NxCodeSnippet
-                  label="Policy Violation Details Page"
-                  content={policyViolationLink}
-                  className="visual-testing-ignore iq-request-waivers-popover__page-url"
-                  onCopyUsingBtn={() => urlLinkEl.current.select()}
-                />
-                <NxTextLink newTab href={policyViolationLink}>
-                  <input
-                    readOnly
-                    ref={urlLinkEl}
-                    value={policyViolationLink}
-                    className="visual-testing-ignore iq-request-waivers-popover__link-input"
-                  />
-                </NxTextLink>
-                <NxCodeSnippet
-                  label="Curl Example"
-                  content={curlExample}
-                  className="visual-testing-ignore iq-request-waivers-popover__curl"
-                />
-                <NxFieldset className="iq-request-waiver-form__comments" label="Comments">
-                  <NxTextInput type="textarea" maxLength={1000} {...waiverComments} onChange={setWaiverComments} />
-                </NxFieldset>
-                <WaiverRequestWebhookAlert />
+                <header className="nx-tile-header">
+                  <div className="nx-tile-header__title">
+                    <h2 className="nx-h2">Waiver Configuration</h2>
+                  </div>
+                </header>
+
+                <div className="nx-tile-content">
+                  {/* Component Info */}
+                  <div className="nx-read-only iq-request-waiver-form__component">
+                    <header className="nx-read-only__label">
+                      <ArtifactNameDisplay
+                        {...{ artifactName: replaceUnknownComponentNameByComponentDisplayName(artifactName) }}
+                      />
+                    </header>
+                    <div className="nx-read-only__data">{componentName}</div>
+                  </div>
+
+                  {/* Policy Info */}
+                  <div className="nx-read-only iq-request-waiver-form__policy">
+                    <header className="nx-read-only__label">Policy</header>
+                    <div className="nx-read-only__data">
+                      <ViolationExclamation threatLevelCategory={threatLevelCategory} />
+                      <span className={policyClassnames}>{policyName}</span>
+                    </div>
+                  </div>
+
+                  {/* Constraint Info */}
+                  <div className="nx-read-only iq-request-waiver-form__constraint">
+                    <header className="nx-read-only__label">Constraint Name</header>
+                    <div className="nx-read-only__data">{constraintName}</div>
+                  </div>
+
+                  {/* Conditions */}
+                  <div className="nx-read-only iq-request-waiver-form__conditions">
+                    <header className="nx-read-only__label">Conditions</header>
+                    {reasons &&
+                      reasons.map((reason, index) => (
+                        <div className="nx-read-only__data" key={index}>
+                          <span>{reason}</span>
+                        </div>
+                      ))}
+                  </div>
+
+                  {/* Scope */}
+                  <NxFieldset className="iq-request-waiver-form__scope" label="Scope" isRequired>
+                    <IqScopeDropdown
+                      id="iq-request-waiver-scope"
+                      onChangeHandler={handleScopeChange}
+                      availableScopes={availableWaiverScopes}
+                      getOptionText={extractScopeOptionText}
+                      currentValue={selectedWaiverScope.id}
+                      isDisabled={isReadOnly}
+                    />
+                  </NxFieldset>
+
+                  {/* Components */}
+                  <NxFieldset className="iq-request-waiver-form__components" label="Components" isRequired>
+                    <NxRadio
+                      id="current-component"
+                      name="request-waiver-components"
+                      value={waiverMatcherStrategy.EXACT_COMPONENT}
+                      isChecked={componentMatcherStrategy === waiverMatcherStrategy.EXACT_COMPONENT}
+                      onChange={handleComponentsChange}
+                      disabled={isReadOnly}
+                    >
+                      {componentName}
+                    </NxRadio>
+                    {getAllVersionsRadioButton()}
+                    <NxRadio
+                      id="all-components"
+                      name="request-waiver-components"
+                      value={waiverMatcherStrategy.ALL_COMPONENTS}
+                      isChecked={componentMatcherStrategy === waiverMatcherStrategy.ALL_COMPONENTS}
+                      onChange={handleComponentsChange}
+                    >
+                      All Components
+                    </NxRadio>
+                  </NxFieldset>
+
+                  {/* Expiry time */}
+                  <NxFieldset className="iq-request-waiver-form__expiryTime" label="Waiver Expiration" isRequired>
+                    <div className="nx-form-row iq-request-waiver-form__expiryTime-block">
+                      <div className="iq-request-waiver-form__select-block">
+                        <NxFormSelect
+                          id="waiver-expiration-select"
+                          onChange={onExpiryTimeChange}
+                          defaultValue={expiryTime}
+                          disabled={isReadOnly}
+                          aria-label="select waiver expiration"
+                        >
+                          {waiverExpirations.map(({ name, value }, index) => (
+                            <option key={index} value={value}>
+                              {name}
+                            </option>
+                          ))}
+                        </NxFormSelect>
+                        <div className="iq-request-waiver-form__expiration-days-diff visual-testing-ignore">
+                          {daysDiffMessage}
+                        </div>
+                        {customExpiryTimeSelected && (
+                          <NxDateInput
+                            className="iq-request-waiver-form__date-input"
+                            {...customExpiryTime}
+                            onChange={setCustomExpiryTime}
+                            validatable={true}
+                            disabled={isReadOnly}
+                          />
+                        )}
+                      </div>
+                    </div>
+                  </NxFieldset>
+
+                  {/* Reason */}
+                  <NxFieldset className="iq-request-waiver-form__reason" label="Reason">
+                    <NxFormSelect id="waiver-reason-select" onChange={onReasonChange} disabled={isReadOnly}>
+                      {waiverReasonsToRender.map(({ id, reasonText }) => (
+                        <option key={id} value={id} selected={waiverReasonId && id === waiverReasonId}>
+                          {reasonText}
+                        </option>
+                      ))}
+                    </NxFormSelect>
+                  </NxFieldset>
+
+                  {/* Comments */}
+                  <NxFieldset className="iq-request-waiver-form__comments" label="Comments">
+                    <NxTextInput
+                      type="textarea"
+                      maxLength={1000}
+                      {...waiverComments}
+                      onChange={setWaiverComments}
+                      disabled={isReadOnly}
+                    />
+                  </NxFieldset>
+
+                  {/* Note to reviewer */}
+                  <NxFieldset
+                    className="iq-request-waiver-form__note-to-reviewer"
+                    label="Note to Reviewer"
+                    sublabel="This note will only be visible on the waiver request. It will not be visible on the waiver if it is approved."
+                  >
+                    <NxTextInput
+                      type="textarea"
+                      maxLength={1000}
+                      {...noteToReviewer}
+                      onChange={setNoteToReviewer}
+                      disabled={isReadOnly}
+                    />
+                  </NxFieldset>
+                </div>
               </NxStatefulForm>
             )}
           </LoadWrapper>

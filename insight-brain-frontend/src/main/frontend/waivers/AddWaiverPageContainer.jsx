@@ -17,7 +17,7 @@ import {
   setExpiryTime,
   setWaiverReason,
   setCustomExpiryTime,
-  returnToAddWaiverOriginPage,
+  returnToAddOrRequestWaiverOriginPage,
 } from './waiverActions';
 import {
   openVulnerabilityDetailsModal,
@@ -85,7 +85,7 @@ const mapDispatchToProps = {
   setExpiryTime,
   setWaiverReason,
   setCustomExpiryTime,
-  cancelAction: returnToAddWaiverOriginPage,
+  cancelAction: returnToAddOrRequestWaiverOriginPage,
 };
 
 const AddWaiverPageContainer = connect(mapStateToProps, mapDispatchToProps)(AddWaiverPage);

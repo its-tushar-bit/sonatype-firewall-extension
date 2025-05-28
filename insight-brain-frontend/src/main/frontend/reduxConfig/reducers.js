@@ -26,6 +26,7 @@ import addWaiverReducer from '../waivers/addWaiverReducer';
 import waiverSlice from '../waivers/waiverSlice';
 import manageWaiversReducer from '../waivers/manageWaiversReducer';
 import requestWaiverReducer from '../waivers/requestWaiverSlice';
+import requestWaiverDetailsReducer from '../waivers/requestWaiverDetails/requestWaiverDetailsSlice';
 import scmOnboardingReducer from '../configuration/scmOnboarding/scmOnboardingReducer';
 import deleteWaiverReducer from '../waivers/deleteWaiverModal/deleteWaiverReducer';
 import userTokenReducer from '../mainHeader/MenuBar/UserMenu/UserToken/userTokenReducer';
@@ -145,6 +146,7 @@ export default combineReducers({
   waivers: waiverSlice,
   manageWaivers: manageWaiversReducer,
   requestWaiver: requestWaiverReducer,
+  requestWaiverDetails: requestWaiverDetailsReducer,
   scmOnboarding: scmOnboardingReducer,
   deleteWaiver: deleteWaiverReducer,
   userToken: userTokenReducer,

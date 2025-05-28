@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -45,7 +46,7 @@ public class ApiPolicyWaiverRequestResource
   private static final String OWNERS_PATH =
       "{ownerType: application|organization|repository|repository_manager|repository_container}/{ownerId}";
 
-  static final String POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/{policyViolationId}";
+  static final String POLICY_VIOLATION_ID_PATH = OWNERS_PATH + "/policyViolation/{policyViolationId}";
 
   static final String POLICY_WAIVER_REQUEST_ID_PATH = OWNERS_PATH + "/{policyWaiverRequestId}";
 
@@ -157,5 +158,39 @@ public class ApiPolicyWaiverRequestResource
           required = true) @PathParam("policyWaiverRequestId") String policyWaiverRequestId)
   {
     return apiPolicyWaiverRequestService.getPolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId);
+  }
+
+  @PUT
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.UPDATE_WAIVER_REQUEST)
+  @Path(POLICY_WAIVER_REQUEST_ID_PATH)
+  @Operation(
+      description = "Use this method to update a policy waiver request." //
+          + "\n" //
+          + "\n" //
+          + "Permissions required: View IQ Elements",
+      responses = {@ApiResponse(responseCode = "200", description = "The updated policy waiver request.",
+          useReturnTypeSchema = true)})
+  public ApiPolicyWaiverRequestDTO updatePolicyWaiverRequest(
+      @Parameter(
+          description = "The scope of the policy waiver request. Possible values are application, "
+              + "organization, repository, repository_manager, repository_container.",
+          required = true) @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the "
+          + "ownerType is application.", required = true) @PathParam("ownerId") String ownerId,
+      @Parameter(description = "The id of the policy waiver request to be updated.",
+          required = true) @PathParam("policyWaiverRequestId") String policyWaiverRequestId,
+      @RequestBody(description = "The request JSON can include the fields<ol>"
+          + "<li>comment (optional, to indicate the reason of the waiver) default value is null</li>"
+          + "<li>matcherStrategy (enumeration, required) can have values DEFAULT, EXACT_COMPONENT, ALL_COMPONENTS, "
+          + "ALL_VERSIONS. DEFAULT will match all components if no hash is provided.</li>"
+          + "<li>expiryTime (default null) to set the datetime when the waiver expires.</li>"
+          + "<li>expireWhenRemediationAvailable (default false) to expire the waiver when a remediation is available."
+          + "</li>" + "<li>noteToReviewer (optional) to add a note to the reviewer</li></ol>",
+          required = true) ApiPolicyWaiverRequestOptionsDTO apiPolicyWaiverRequestOptionsDTO)
+  {
+    return apiPolicyWaiverRequestService.updatePolicyWaiverRequest(ownerType, ownerId, policyWaiverRequestId,
+        apiPolicyWaiverRequestOptionsDTO);
   }
 }

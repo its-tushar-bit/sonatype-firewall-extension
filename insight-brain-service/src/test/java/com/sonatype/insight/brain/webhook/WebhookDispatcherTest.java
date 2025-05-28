@@ -643,7 +643,7 @@ public class WebhookDispatcherTest
     event.comment = "Important waiver";
     event.policyViolationId = "policyViolationId";
     event.policyViolationLink = "https://encoded.policy.violation.link:8182?additionalParameters&anotherOne=yeah";
-    event.addWaiverLink = "https://encoded.add.waiver.link:8182?additionalParameters&anotherOne=yeah";
+    event.reviewWaiverRequestLink = "https://encoded.review.waiver.link:8182?additionalParameters&anotherOne=yeah";
     asyncEventBus.post(event);
 
     ArgumentCaptor<Webhook> webhookArgumentCaptor = ArgumentCaptor.forClass(Webhook.class);
@@ -664,8 +664,8 @@ public class WebhookDispatcherTest
     assertThat(webhookPayload.policyViolationId).isEqualTo("policyViolationId");
     assertThat(webhookPayload.policyViolationLink).isEqualTo(
         "https://encoded.policy.violation.link:8182?additionalParameters&anotherOne=yeah");
-    assertThat(webhookPayload.addWaiverLink).isEqualTo(
-        "https://encoded.add.waiver.link:8182?additionalParameters&anotherOne=yeah");
+    assertThat(webhookPayload.reviewWaiverRequestLink).isEqualTo(
+        "https://encoded.review.waiver.link:8182?additionalParameters&anotherOne=yeah");
   }
 
   @Test

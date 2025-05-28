@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.webhook;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -17,12 +16,15 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
+import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.client.utils.UrlUtils;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -50,17 +52,20 @@ public class RequestPolicyWaiverEventService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final BaseUrl baseUrl;
+
   @VisibleForTesting
   private TelemetrySender telemetrySender;
 
   @Inject
   public RequestPolicyWaiverEventService(
-          final AsyncEventBus eventBus,
-          final CurrentUser currentUser,
-          final PolicyViolationDAO policyViolationDAO,
-          final PolicyWaiverReasonDAO policyWaiverReasonDAO,
-          final TelemetrySender telemetrySender,
-          final TelemetryUtils telemetryUtils)
+      final AsyncEventBus eventBus,
+      final CurrentUser currentUser,
+      final PolicyViolationDAO policyViolationDAO,
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
+      final BaseUrl baseUrl)
   {
     this.eventBus = eventBus;
     this.currentUser = currentUser;
@@ -68,34 +73,87 @@ public class RequestPolicyWaiverEventService
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
+    this.baseUrl = baseUrl;
   }
 
+  /**
+   * @deprecated since 1.192
+   * Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}" which is no longer called by the UI.
+   * Use {@link #postPolicyWaiverRequestEvent(String, String, String, String, String, String)} instead.
+   */
+  @Deprecated(since = "1.192")
   public void postRequestPolicyWaiverEvent(
       final String policyViolationId,
       final ApiRequestPolicyWaiverDTO apiRequestWaiverDTO)
   {
     verifyDtoContainsRequiredInformation(apiRequestWaiverDTO);
     verifyMaxCommentLength(apiRequestWaiverDTO);
-    String ownerId = getEventOwnerIdWithNoAuthChecks(policyViolationId);
+    WaiverRequestEvent waiverRequestEvent = createWaiverRequestEvent(
+        policyViolationId,
+        apiRequestWaiverDTO.comment,
+        apiRequestWaiverDTO.policyViolationLink,
+        apiRequestWaiverDTO.addWaiverLink,
+        null,
+        apiRequestWaiverDTO.reasonId
+    );
+    eventBus.post(waiverRequestEvent);
+    sendTelemetryForWaiverRequest(waiverRequestEvent);
+  }
 
+  public void postPolicyWaiverRequestEvent(
+      final String policyViolationId,
+      final String comment,
+      final String reasonId,
+      final String ownerType,
+      final String ownerId,
+      final String policyWaiverRequestId)
+  {
+    String policyViolationLink =
+        prependBaseUrl(UserInterfaceLinksHelper.getPolicyViolationDetailsUrl(policyViolationId));
+    String addWaiverLink = prependBaseUrl(UserInterfaceLinksHelper.getAddWaiverUrl(policyViolationId, comment,
+        reasonId));
+    String reviewWaiverRequestLink =
+        prependBaseUrl(UserInterfaceLinksHelper.getReviewWaiverRequestUrl(ownerType, ownerId,
+            policyWaiverRequestId));
+    verifyMaxCommentLength(comment);
+    WaiverRequestEvent waiverRequestEvent = createWaiverRequestEvent(
+        policyViolationId,
+        comment,
+        policyViolationLink,
+        addWaiverLink, // New event receivers won't need this link, however legacy ones might still expect it.
+        reviewWaiverRequestLink,
+        reasonId
+    );
+    eventBus.post(waiverRequestEvent);
+  }
+
+  private WaiverRequestEvent createWaiverRequestEvent(
+      final String policyViolationId,
+      final String comment,
+      final String policyViolationLink,
+      final String addWaiverLink,
+      final String reviewWaiverRequestLink,
+      final String reasonId)
+  {
+    String ownerId = getEventOwnerIdWithNoAuthChecks(policyViolationId);
     Map<String, PolicyWaiverReason> policyWaiverReasonMap = policyWaiverReasonDAO
-            .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
+        .getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
     WaiverRequestEvent waiverRequestEvent = new WaiverRequestEvent();
     waiverRequestEvent.initiator = currentUser.getUsername();
     waiverRequestEvent.timestamp = LocalDateTime.now();
-    waiverRequestEvent.comment = apiRequestWaiverDTO.comment;
+    waiverRequestEvent.comment = comment;
     waiverRequestEvent.policyViolationId = policyViolationId;
-    waiverRequestEvent.policyViolationLink = apiRequestWaiverDTO.policyViolationLink;
-    waiverRequestEvent.addWaiverLink = apiRequestWaiverDTO.addWaiverLink;
+    waiverRequestEvent.policyViolationLink = policyViolationLink;
+    waiverRequestEvent.addWaiverLink = addWaiverLink;
+    waiverRequestEvent.reviewWaiverRequestLink = reviewWaiverRequestLink;
     waiverRequestEvent.ownerId = ownerId;
-    waiverRequestEvent.reasonId = apiRequestWaiverDTO.reasonId;
-    if (apiRequestWaiverDTO.reasonId != null && policyWaiverReasonMap.containsKey(apiRequestWaiverDTO.reasonId)) {
-      waiverRequestEvent.reasonText = policyWaiverReasonMap.get(apiRequestWaiverDTO.reasonId).getReasonText();
+    waiverRequestEvent.reasonId = reasonId;
+    if (reasonId != null && policyWaiverReasonMap.containsKey(reasonId)) {
+      waiverRequestEvent.reasonText = policyWaiverReasonMap.get(reasonId).getReasonText();
     }
 
-    eventBus.post(waiverRequestEvent);
-    sendTelemetryForWaiverRequest(waiverRequestEvent);
+    return waiverRequestEvent;
   }
 
   public void setTelemetrySender(TelemetrySender telemetrySender) {
@@ -110,7 +168,11 @@ public class RequestPolicyWaiverEventService
   }
 
   private void verifyMaxCommentLength(final ApiRequestPolicyWaiverDTO apiRequestWaiverDTO) {
-    if (StringUtils.isNotBlank(apiRequestWaiverDTO.comment) && apiRequestWaiverDTO.comment.length() > 1000) {
+    verifyMaxCommentLength(apiRequestWaiverDTO.comment);
+  }
+
+  private void verifyMaxCommentLength(final String comment) {
+    if (StringUtils.isNotBlank(comment) && comment.length() > 1000) {
       throw new BadRequestException("Comment length must not exceed 1000 characters.");
     }
   }
@@ -131,5 +193,9 @@ public class RequestPolicyWaiverEventService
         .put(WAIVER_REASON, waiverRequestEvent.reasonText);
 
     telemetrySender.send(telemetryData);
+  }
+
+  private String prependBaseUrl(String relativeUrl) {
+    return UrlUtils.appendUrlPaths(baseUrl.get(), relativeUrl);
   }
 }

@@ -61,7 +61,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.exactText;
@@ -591,17 +593,7 @@ public class ViolationDetailsTest
       detailsTile.requestWaiverButton().click();
 
       RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-      requestWaiverPage.root().shouldBe(visible);
-      requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
-      requestWaiverPage.root()
-          .shouldHave(text("A waiver request will be sent to the designated approver upon submit, if a webhook " +
-              "event for waiver requests is configured. If you are unsure about the webhook configuration, share " +
-              "the policy violation ID and the curl command with the designated approver."));
-      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
-      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
-      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
-      requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
-      requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
+      verifyRequestWaiverPage(requestWaiverPage);
       requestWaiverPage.backButton().click();
     }
     finally {
@@ -641,21 +633,7 @@ public class ViolationDetailsTest
 
     waitUntilUrl(RequestWaiverPage.url(securityPolicyViolation.getId()));
     RequestWaiverPage requestWaiverPage = new RequestWaiverPage();
-    requestWaiverPage.root().shouldBe(visible);
-    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
-    requestWaiverPage.root().shouldHave(text(
-        "A waiver request will be sent to the designated approver upon submit, if a webhook event for waiver" +
-            " requests is configured. If you are unsure about the webhook configuration, share the policy violation" +
-            " ID and the curl command with the designated approver."));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Group1 : Artifact1 : Version1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Policy 1"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("Test Constraint"));
-    requestWaiverPage.requestWaiverReadOnlyData().shouldHave(text("sonatype-2017-0507"));
-    requestWaiverPage.requestWaiverPolicyViolationId().shouldHave(text(securityPolicyViolation.getId()));
-    requestWaiverPage.waiverReasonOptions().get(0).shouldBe(selected);
-    requestWaiverPage.comments().shouldBe(empty);
-    requestWaiverPage.saveButton().shouldBe(visible);
-    requestWaiverPage.cancelButton().shouldBe(visible);
+    verifyRequestWaiverPage(requestWaiverPage);
   }
 
   @Test
@@ -806,5 +784,53 @@ public class ViolationDetailsTest
 
     ListWaiversTable.ListWaiversTableRow regularWaiverRow = applicableWaiversTable.row(2);
     regularWaiverRow.comments().shouldHave(text("Regular waiver comment"));
+  }
+
+  private void verifyRequestWaiverPage(RequestWaiverPage requestWaiverPage) {
+    requestWaiverPage.root().shouldBe(visible);
+    requestWaiverPage.requestWaiverHeader().shouldHave(text("Request Waiver"));
+    requestWaiverPage.requestWaiverTitle().shouldHave(text("Waiver Configuration"));
+
+    requestWaiverPage.requestWaiverComponentName().shouldHave(text("Group1 : Artifact1 : Version1"));
+
+    requestWaiverPage.requestWaiverPolicy().shouldHave(text("Policy"));
+    requestWaiverPage.requestWaiverPolicy().shouldHave(text("Policy 1"));
+
+    requestWaiverPage.requestWaiverConstraint().shouldHave(text("Constraint Name"));
+    requestWaiverPage.requestWaiverConstraint().shouldHave(text("Test Constraint"));
+
+    requestWaiverPage.requestWaiverConditions().shouldHave(text("Conditions"));
+    requestWaiverPage.requestWaiverConditions().shouldHave(text("sonatype-2017-0507"));
+
+    requestWaiverPage.requestWaiverScope().shouldHave(text("Scope"));
+    requestWaiverPage.requestWaiverScopeOptions().shouldHave(size(3));
+    requestWaiverPage.requestWaiverScopeOptions().shouldHave(
+        exactTexts("Application - App 1", "Organization - Org 1", "Organization - Root Organization"));
+    requestWaiverPage.requestWaiverScopeOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverComponents().shouldHave(text("Components"));
+    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(size(3));
+    requestWaiverPage.requestWaiverComponentsOptions().shouldHave(
+        exactTexts("Group1 : Artifact1 : Version1", "Group1 : Artifact1 (all versions)", "All Components"));
+    requestWaiverPage.requestWaiverComponentsRadios().get(0).shouldBe(checked);
+
+    requestWaiverPage.requestWaiverExpiryTime().shouldHave(text("Waiver Expiration"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(size(8));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().shouldHave(exactTexts("Never", "7 Days", "14 Days", "30 Days",
+        "60 Days", "90 Days", "120 Days", "Custom"));
+    requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
+    requestWaiverPage.requestWaiverReasonOptions().shouldHave(size(8));
+    requestWaiverPage.requestWaiverReasonOptions().shouldHave(
+        exactTexts("Select a reason", "Acknowledged violation", "Mitigated externally", "No upgrade path",
+            "Not exploitable", "Not reachable", "Researching", "Other"));
+    requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
+
+    requestWaiverPage.requestWaiverComments().shouldBe(empty);
+    requestWaiverPage.requestWaiverNoteToReviewer().shouldBe(empty);
+
+    requestWaiverPage.saveButton().shouldBe(visible);
+    requestWaiverPage.cancelButton().shouldBe(visible);
   }
 }

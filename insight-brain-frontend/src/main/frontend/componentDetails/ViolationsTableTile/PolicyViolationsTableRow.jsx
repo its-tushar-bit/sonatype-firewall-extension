@@ -291,7 +291,8 @@ const WaiverStatus = ({ violation, isAutoWaiversEnabled, waivers, setTelemetryCl
       <div>
         Waived
         <div className="expires-in">
-          {0 <= furthestExpiringWaiverDays && furthestExpiringWaiverDays <= 1 && 'Expires today'}
+          {0 === furthestExpiringWaiverDays && 'Expires today'}
+          {furthestExpiringWaiverDays === 1 && 'Expires in 1 day'}
           {1 < furthestExpiringWaiverDays &&
             furthestExpiringWaiverDays < 10 &&
             `Expires in ${furthestExpiringWaiverDays} days`}

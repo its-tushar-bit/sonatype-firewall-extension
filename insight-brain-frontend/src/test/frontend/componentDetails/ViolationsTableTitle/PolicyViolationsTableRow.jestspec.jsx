@@ -256,7 +256,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
       });
 
@@ -290,7 +290,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.getByText('Expires today')).toBeInTheDocument();
+        expect(screen.getByText('Expires in 1 day')).toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
       });
 
@@ -342,7 +342,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
       });
 
@@ -370,7 +370,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).toBeInTheDocument();
       });
 
       it('Should render small text - Expiring close to lower range waiver', () => {
@@ -397,7 +397,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in 2 days/)).toBeInTheDocument();
       });
 
@@ -425,7 +425,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--expiring');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in 9 days/)).toBeInTheDocument();
       });
 
@@ -467,7 +467,7 @@ describe('PolicyViolationsTableRow', () => {
         expect(screen.getByRole('row').className.split(' ')).toHaveLength(defaultNumberOfClasses + 1);
         expect(screen.getByRole('row').className).toContain('iq-policy-violation-row--remediated');
         expect(screen.getByText('Waived')).toBeInTheDocument();
-        expect(screen.queryByText('Expires today')).not.toBeInTheDocument();
+        expect(screen.queryByText('Expires in 1 day')).not.toBeInTheDocument();
         expect(screen.queryByText(/Expires in [2-9] days/)).not.toBeInTheDocument();
       });
     });

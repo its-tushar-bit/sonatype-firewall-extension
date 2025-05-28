@@ -285,12 +285,12 @@ public class DevelopmentPrioritiesService
               ZonedDateTime waiverExpiryTime = policyWaiver.getExpiryTime().toInstant().atZone(ZoneId.systemDefault());
               boolean isWaiverExpired = waiverExpiryTime.toLocalDateTime().isBefore(LocalDateTime.now());
               long daysFromNowToExpiry = ChronoUnit.DAYS.between(LocalDate.now(), waiverExpiryTime.toLocalDate());
-              if (!isWaiverExpired && daysFromNowToExpiry <= 10) {
+              if (!isWaiverExpired && daysFromNowToExpiry < 10) {
                 hasSoonToExpireWaiver = true;
                 soonestToExpireDays = Math.min(soonestToExpireDays, daysFromNowToExpiry);
               }
               // daysFromNowToExpiry is negative if the waiver has expired
-              else if (isWaiverExpired && daysFromNowToExpiry >= -10) {
+              else if (isWaiverExpired && daysFromNowToExpiry > -10) {
                 hasExpiredWaiver = true;
                 oldestHasExpiredDays = Math.max(oldestHasExpiredDays, Math.abs(daysFromNowToExpiry));
               }
@@ -298,13 +298,17 @@ public class DevelopmentPrioritiesService
           }
 
           if (isAllViolationsWaived && hasSoonToExpireWaiver) {
-            waiverExpirationDetails = String.format(
-                "Applied waiver will expire in %d %s", soonestToExpireDays, soonestToExpireDays == 1 ? "day" : "days");
+            waiverExpirationDetails = soonestToExpireDays == 0
+                ? "Applied waiver will expire today"
+                : String.format("Applied waiver will expire in %d %s",
+                soonestToExpireDays, soonestToExpireDays == 1 ? "day" : "days");
           }
 
           else if (!isAllViolationsWaived && hasExpiredWaiver) {
-            waiverExpirationDetails = String.format(
-                "Applied waiver expired %d %s ago", oldestHasExpiredDays, oldestHasExpiredDays == 1 ? "day" : "days");
+            waiverExpirationDetails = oldestHasExpiredDays == 0
+                ? "Applied waiver expired today"
+                : String.format("Applied waiver expired %d %s ago",
+                oldestHasExpiredDays, oldestHasExpiredDays == 1 ? "day" : "days");
           }
 
           return new UnprioritizedComponent(

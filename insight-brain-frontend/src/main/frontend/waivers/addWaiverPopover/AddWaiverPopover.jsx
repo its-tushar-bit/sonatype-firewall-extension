@@ -13,7 +13,7 @@ import AddWaiverForm, { waiverScopePropTypes } from '../AddWaiverForm';
 import { violationDetailsPropTypes } from '../../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../../violation/PolicyViolationConstraintInfo';
 import LoadWrapper from '../../react/LoadWrapper';
-import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
+import UnsavedChangesModal from '../../modals/unsavedChangesModal/UnsavedChangesModal';
 
 const AddWaiversPopover = (props) => {
   const {

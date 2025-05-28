@@ -25,7 +25,6 @@ import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSumma
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoModule from './pendo/module';
 import utilityServicesModule from './utility/services/utility.services.module';
-import unsavedChangesModalModule from './unsavedChangesModal/module';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
@@ -54,6 +53,7 @@ import { fab } from '@fortawesome/free-brands-svg-icons';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
+import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -89,7 +89,6 @@ export const InitModule = angular
       SessionSecurityModule.name,
       pendoModule.name,
       utilityServicesModule.name,
-      unsavedChangesModalModule.name,
       legalModule.name,
       reduxConfigModule.name,
       configurationModule.name,
@@ -213,7 +212,6 @@ export const InitModule = angular
     'routeStateUtilService',
     'Messages',
     'ProductLicense',
-    'unsavedChangesModalService',
     '$ngRedux',
     '$transitions',
     function (
@@ -231,7 +229,6 @@ export const InitModule = angular
       routeStateUtilService,
       Messages,
       ProductLicense,
-      unsavedChangesModalService,
       $ngRedux,
       $transitions
     ) {
@@ -491,8 +488,8 @@ export const InitModule = angular
             if (e.defaultPrevented || isPageDirty()) {
               isProcessingStateChange = true;
               event.preventDefault();
-              unsavedChangesModalService
-                .open($state.current.data.unsavedChangesModal)
+              $ngRedux
+                .dispatch(unsavedChangesModalActions.open())
                 .then(
                   function () {
                     $state.go(toState, toParams);

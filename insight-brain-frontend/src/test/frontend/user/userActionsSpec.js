@@ -5,7 +5,6 @@
  */
 import pendoModule from '../../../main/frontend/pendo/module';
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
-import unsavedChangesModalService from '../../../main/frontend/unsavedChangesModal/module';
 
 describe('userActions', function () {
   let userActions,
@@ -20,7 +19,7 @@ describe('userActions', function () {
     pendoDeferred,
     pendoServiceMock;
 
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name, unsavedChangesModalService.name));
+  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
 
   beforeEach(
     angular.mock.module(pendoModule.name, function ($provide) {

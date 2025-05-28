@@ -18,7 +18,7 @@ import {
 import { selectContactSlice } from './selectContactModalSelectors';
 
 import { actions } from './selectContactModalSlice';
-import UnsavedChangesModal from 'MainRoot/unsavedChangesModal/UnsavedChangesModal';
+import UnsavedChangesModal from 'MainRoot/modals/unsavedChangesModal/UnsavedChangesModal';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 
 const getValidationMessage = (isDirty, isValid) => {

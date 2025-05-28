@@ -7,12 +7,15 @@
 import React from 'react';
 import LogoutWarningModal from 'MainRoot/modals/logoutWarningModal/LogoutWarningModal';
 import ExternalLinkModal from 'MainRoot/modals/externalLinkModal/ExternalLinkModal';
+import UnsavedChangesModal from 'MainRoot/modals/unsavedChangesModal/UnsavedChangesModal';
 
 export default function ModalContainer() {
   return (
     <>
       <LogoutWarningModal />
       <ExternalLinkModal />
+      {/* UnsavedChangesModal is also currently rendered in other places; ideally everywhere should use this one */}
+      <UnsavedChangesModal />
     </>
   );
 }

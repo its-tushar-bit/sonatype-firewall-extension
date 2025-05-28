@@ -5,7 +5,7 @@
  */
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
+import UnsavedChangesModal from '../../modals/unsavedChangesModal/UnsavedChangesModal';
 import {
   NxModal,
   NxH2,

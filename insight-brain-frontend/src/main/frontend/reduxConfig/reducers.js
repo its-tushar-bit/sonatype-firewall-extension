@@ -117,6 +117,7 @@ import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeS
 import createPRModalSlice from 'MainRoot/manualPullRequest/createPRModalSlice';
 import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
+import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -232,4 +233,5 @@ export default combineReducers({
   displayTheme: displayThemeSlice,
   logoutWarningModal: logoutWarningModalSlice,
   externalLinkModal: externalLinkModalSlice,
+  unsavedChangesModal: unsavedChangesModalSlice,
 });

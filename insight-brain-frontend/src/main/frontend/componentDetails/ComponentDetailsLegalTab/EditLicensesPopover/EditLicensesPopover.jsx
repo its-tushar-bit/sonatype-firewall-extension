@@ -10,7 +10,7 @@ import EditLicensesForm from './EditLicensesForm';
 import IqPopover from '../../../react/IqPopover';
 import EditLicensesFormContainer from './EditLicensesFormContainer';
 import { pick } from 'ramda';
-import UnsavedChangesModal from 'MainRoot/unsavedChangesModal/UnsavedChangesModal';
+import UnsavedChangesModal from 'MainRoot/modals/unsavedChangesModal/UnsavedChangesModal';
 
 export default function EditLicensesPopover(props) {
   const {
@@ -58,7 +58,6 @@ export default function EditLicensesPopover(props) {
 
 EditLicensesPopover.propTypes = {
   showEditLicensesPopover: PropTypes.bool.isRequired,
-  unsavedChangesModalService: PropTypes.object,
   showUnsavedChangesModal: PropTypes.bool,
   setShowUnsavedChangesModal: PropTypes.func,
   isDirty: PropTypes.bool,

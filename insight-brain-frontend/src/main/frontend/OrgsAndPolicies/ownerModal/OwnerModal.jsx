@@ -23,7 +23,7 @@ import {
   selectIsRootOrganization,
   selectIsSbomManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import UnsavedChangesModal from '../../unsavedChangesModal/UnsavedChangesModal';
+import UnsavedChangesModal from '../../modals/unsavedChangesModal/UnsavedChangesModal';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
   selectDisplayedOrganization,

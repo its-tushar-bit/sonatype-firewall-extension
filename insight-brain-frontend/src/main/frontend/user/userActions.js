@@ -5,6 +5,7 @@
  */
 import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
@@ -28,7 +29,6 @@ function userActions(
   PermissionService,
   messages,
   pendoService,
-  unsavedChangesModalService,
   $window
 ) {
   function fetchUser() {
@@ -89,7 +89,6 @@ function userActions(
       const state = getState();
       const currentState = state.router.currentState;
       const isDirtyPath = currentState.data && currentState.data.isDirty;
-      const unsavedChangesModal = currentState?.data?.unsavedChangesModal;
       const isCurrentRouteDirty = isDirtyPath ? path(isDirtyPath, state) : false;
 
       function onLogoutConfirmation() {
@@ -108,7 +107,10 @@ function userActions(
       }
 
       if (isCurrentRouteDirty) {
-        unsavedChangesModalService.open(unsavedChangesModal).then(() => dispatch(onLogoutConfirmation()));
+        dispatch(unsavedChangesModalActions.open()).then(
+          () => dispatch(onLogoutConfirmation()),
+          () => {}
+        );
       } else {
         dispatch(onLogoutConfirmation());
       }
@@ -200,7 +202,6 @@ userActions.$inject = [
   'PermissionService',
   'Messages',
   'pendoService',
-  'unsavedChangesModalService',
   '$window',
 ];
 export default userActions;

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
@@ -83,6 +84,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId, ownerDAO, vulnerabilityGroupDAO));
     allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());
+    allConditionValueTypes.add(new AiModelContentValueType());
     return allConditionValueTypes;
   }
 }

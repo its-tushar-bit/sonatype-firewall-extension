@@ -25,6 +25,7 @@ public class ComponentDetailsAdapter
     componentDetails.setIntegrityRating(componentEvaluationData.integrityRating);
     componentDetails.setEndOfLife(componentEvaluationData.endOfLife);
     componentDetails.setDerivedFromAiModel(componentEvaluationData.derivedFromAiModel);
+    componentDetails.setAiModelContentTypes(componentEvaluationData.aiModelContentTypes);
     return componentDetails;
   }
 }

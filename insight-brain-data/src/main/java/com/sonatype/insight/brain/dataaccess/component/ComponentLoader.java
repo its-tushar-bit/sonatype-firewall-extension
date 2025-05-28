@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.clm.dto.model.DerivedFromAiModel;
 import com.sonatype.clm.dto.model.component.AggregateFile;
+import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -65,9 +66,8 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
-
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -449,6 +449,7 @@ public class ComponentLoader
               JsonUtils.getStringSetFromArray(componentJson.path(PARENT_COMPONENT_PURLS_FIELD)));
 
           setDerivedFromAiModel(componentJson.get("derivedFromAiModel"), component);
+          setAiModelContentTypes(componentJson.get("aiModelContentTypes"), component);
 
           bomComponents.components.add(component);
         }
@@ -462,6 +463,22 @@ public class ComponentLoader
     if (derivedFromAiModelJsonNode != null && !derivedFromAiModelJsonNode.isNull()) {
       try {
         component.setDerivedFromAiModel(JsonUtils.asPojo(derivedFromAiModelJsonNode, DerivedFromAiModel.class));
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
+    }
+  }
+
+  private void setAiModelContentTypes(JsonNode aiModelContentTypesJsonNode, Component component) {
+    if (aiModelContentTypesJsonNode != null && !aiModelContentTypesJsonNode.isNull()) {
+      try {
+        Set<AiModelContentType> aiModelContentTypes = new LinkedHashSet<>();
+        for (JsonNode aiModelContentTypeNode : aiModelContentTypesJsonNode) {
+          AiModelContentType aiModelContentType = JsonUtils.asPojo(aiModelContentTypeNode, AiModelContentType.class);
+          aiModelContentTypes.add(aiModelContentType);
+        }
+        component.setAiModelContentTypes(aiModelContentTypes);
       }
       catch (IOException e) {
         throw new UncheckedIOException(e);
@@ -790,6 +807,7 @@ public class ComponentLoader
     loadComponentLabels(component);
 
     component.setDerivedFromAiModel(componentInfo.getDerivedFromAiModel());
+    component.setAiModelContentTypes(componentInfo.getAiModelContentTypes());
 
     return component;
   }

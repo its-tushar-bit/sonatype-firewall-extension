@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.DerivedFromAiModel;
 import com.sonatype.clm.dto.model.component.AggregateFile;
+import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -109,6 +110,8 @@ public class Component
   private ComponentEndOfLifeStatus endOfLife;
 
   private DerivedFromAiModel derivedFromAiModel;
+
+  private Set<AiModelContentType> aiModelContentTypes;
 
   public Component() {
   }
@@ -553,5 +556,13 @@ public class Component
 
   public void setDerivedFromAiModel(DerivedFromAiModel derivedFromAiModel) {
     this.derivedFromAiModel = derivedFromAiModel;
+  }
+
+  public Set<AiModelContentType> getAiModelContentTypes() {
+    return aiModelContentTypes == null ? Collections.emptySet() : aiModelContentTypes;
+  }
+
+  public void setAiModelContentTypes(Set<AiModelContentType> aiModelContentTypes) {
+    this.aiModelContentTypes = aiModelContentTypes;
   }
 }

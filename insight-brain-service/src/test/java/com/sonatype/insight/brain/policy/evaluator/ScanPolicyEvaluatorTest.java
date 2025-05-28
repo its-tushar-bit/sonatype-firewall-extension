@@ -19,8 +19,10 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
@@ -42,7 +44,6 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverExclusionDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationConstraintFactsDAO;
@@ -83,6 +84,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.AiModelContentConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentEndOfLifeConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ComponentFormatConditionType;
@@ -216,9 +218,6 @@ public class ScanPolicyEvaluatorTest
 
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
-
-  @Inject
-  private AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
@@ -4064,6 +4063,8 @@ public class ScanPolicyEvaluatorTest
           .filter(id -> !IacControlConditionType.ID.equals(id))
           // Tested in testEvaluate_PolicyViolationLogger_DerivativeAiModelConditionType
           .filter(id -> !DerivativeAiModelConditionType.ID.equals(id))
+          // Tested in testEvaluate_PolicyViolationLogger_AiModelContentConditionType
+          .filter(id -> !AiModelContentConditionType.ID.equals(id))
           .collect(toSet());
       assertThat(conditions.stream().map(Condition::getConditionTypeId).collect(toSet()))
           .isEqualTo(expectedConditionTypeIds);
@@ -4100,6 +4101,26 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application,
         simulateReportIsAvailable("LogPolicyViolationDerivativeAiModelConditionType"), new Stage(Stage.ID_BUILD),
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(results.allViolations).hasSize(conditions.size());
+    assertPolicyViolationsLogged(PolicyViolationLogEvent.CREATE, results.evaluation.getTime(), results.allViolations,
+        currentUser.getUsernameOrSystem());
+  }
+
+  @Test
+  public void testEvaluate_PolicyViolationLogger_AiModelContentConditionType() throws Exception {
+    when(currentUser.getUsernameOrSystem()).thenReturn(USERNAME);
+    Condition aiModelContentCondition =
+        new Condition(AiModelContentConditionType.ID, "is not", AiModelContentType.OBJECTIONABLE.getId());
+
+    List<Condition> conditions = List.of(aiModelContentCondition);
+    Constraint constraint = new Constraint(null, "constraintName", LogicalOperator.OR);
+    constraint.addCondition(aiModelContentCondition);
+    tempEntity.newPolicy("policyName", constraint);
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application,
+        simulateReportIsAvailable("LogPolicyViolationAiModelContentConditionType"), new Stage(Stage.ID_BUILD),
         ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
 
     assertThat(results.allViolations).hasSize(conditions.size());
@@ -4636,6 +4657,24 @@ public class ScanPolicyEvaluatorTest
         ComponentIdentifier.createHuggingfaceModelCoordinates("testRepoId", "testModel", "testVersion",
             "testModelFormat", "testExtension"),
         "a64cd74171f427720480", policy, constraint, Action.ID_FAIL, DerivativeAiModelConditionType.ID,
+        scanPolicyEvaluatorResults.activeViolations);
+  }
+
+  @Test
+  public void testEvaluate_AiModelContentConditionType() throws Exception {
+    Policy policy =
+        newPolicy(new Condition(AiModelContentConditionType.ID, "is", AiModelContentType.OBJECTIONABLE.getId()));
+    Constraint constraint = policy.getConstraints().get(0);
+
+    String scanId = simulateReportIsAvailable("AiModelContent");
+    ScanPolicyEvaluatorResults scanPolicyEvaluatorResults = scanPolicyEvaluator.evaluate(application, scanId,
+        new Stage(Stage.ID_BUILD), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    assertThat(scanPolicyEvaluatorResults.activeViolations).hasSize(1);
+    assertContainsPolicyViolation(
+        ComponentIdentifier.createHuggingfaceModelCoordinates("testRepoId", "testModel", "testVersion",
+            "testModelFormat", "testExtension"),
+        "a64cd74171f427720480", policy, constraint, Action.ID_FAIL, AiModelContentConditionType.ID,
         scanPolicyEvaluatorResults.activeViolations);
   }
 

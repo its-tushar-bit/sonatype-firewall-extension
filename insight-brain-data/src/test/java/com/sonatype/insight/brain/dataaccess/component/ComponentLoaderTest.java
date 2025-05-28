@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -15,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.DerivedFromAiModel;
+import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVec
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -222,6 +223,7 @@ public class ComponentLoaderTest
         .createHuggingfaceModelCoordinates("repoId", "model", "version", "modelFormat", "modelExtension");
     DerivedFromAiModel derivedFromAiModel = new DerivedFromAiModel(derivedFromAiModelComponentIdentifier, 0.9F);
     matchedComponent.setDerivedFromAiModel(derivedFromAiModel);
+    matchedComponent.setAiModelContentTypes(Set.of(AiModelContentType.OBJECTIONABLE));
 
     Component component = componentLoader.getComponent(matchedComponent, true);
 
@@ -255,6 +257,10 @@ public class ComponentLoaderTest
         .isEqualTo(String.valueOf(componentCategory.getComponentCategoryId()));
     assertThat(component.getEndOfLife()).isEqualTo(END_OF_LIFE_TRUE);
     assertThat(component.getDerivedFromAiModel()).usingRecursiveComparison().isEqualTo(derivedFromAiModel);
+    // The json serialization and deserialization happen in different processes/servers, so we cannot use
+    // AiModelContentType.OBJECTIONABLE to assert here (because in real life it would be a different instance in Java).
+    assertThat(component.getAiModelContentTypes())
+        .containsExactly(new AiModelContentType("OBJECTIONABLE", "Objectionable"));
   }
 
   @Test
@@ -432,7 +438,7 @@ public class ComponentLoaderTest
   }
 
   @Test
-  public void testGetAll_WithSecurityVulnerabilityCustom() throws Exception {
+  public void testGetAll() throws Exception {
     String hash = "abc123";
     String refId = "CVE-123";
     ObjectMapper objectMapper = new ObjectMapper();
@@ -453,6 +459,7 @@ public class ComponentLoaderTest
     DerivedFromAiModel derivedFromAiModel = new DerivedFromAiModel(ComponentIdentifier
         .createHuggingfaceModelCoordinates("repoId", "model", "version", "modelFormat", "modelExtension"), 0.9F);
     component1.set("derivedFromAiModel", objectMapper.valueToTree(derivedFromAiModel));
+    component1.set("aiModelContentTypes", objectMapper.valueToTree(Set.of(AiModelContentType.OBJECTIONABLE)));
 
     ObjectNode component2 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier
@@ -503,6 +510,13 @@ public class ComponentLoaderTest
     // should copy derivedFromAiModel from the bomRow
     assertThat(components.get(0).getDerivedFromAiModel()).usingRecursiveComparison().isEqualTo(derivedFromAiModel);
     assertThat(components.get(1).getDerivedFromAiModel()).isNull();
+
+    // should copy aiModelContentTypes from the bomRow
+    // The json serialization and deserialization happen in different processes/servers, so we cannot use
+    // AiModelContentType.OBJECTIONABLE to assert here (because in real life it would be a different instance in Java).
+    assertThat(components.get(0).getAiModelContentTypes())
+        .containsExactly(new AiModelContentType("OBJECTIONABLE", "Objectionable"));
+    assertThat(components.get(1).getAiModelContentTypes()).isEmpty();
 
     // should be convert missing endOfLife to unknown
     assertThat(components.get(1).getEndOfLife()).isEqualTo(END_OF_LIFE_UNKNOWN);

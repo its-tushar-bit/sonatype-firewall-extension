@@ -206,7 +206,6 @@ export const InitModule = angular
     '$q',
     '$urlRouter',
     '$timeout',
-    'state.history.service',
     'SessionSecurityService',
     'pendoService',
     'LoginModalService',
@@ -225,7 +224,6 @@ export const InitModule = angular
       $q,
       $urlRouter,
       $timeout,
-      StateHistoryService,
       SessionSecurityService,
       pendoService,
       LoginModalService,
@@ -435,9 +433,6 @@ export const InitModule = angular
             pendoService.start();
           })
           .then(initSuccess, initFailure);
-
-        //Init the service on app load
-        StateHistoryService.register();
 
         $rootScope.$on('logout', function (event, toLocation) {
           $rootScope.username = null;

@@ -644,8 +644,7 @@ public class ComponentLoader
               }
             }
             securityVulnerability.setResearchType(SecurityVulnerabilityResearchType.getResearchType(researchType));
-            securityVulnerability.setDetectionType(SecurityVulnerabilityDetectionType.getDetectionType(
-                    detectionType));
+            securityVulnerability.setDetectionType(SecurityVulnerabilityDetectionType.getDetectionType(detectionType));
             if (aliases != null) {
               for (String alias : aliases) {
                 securityVulnerability.addAlias(alias);

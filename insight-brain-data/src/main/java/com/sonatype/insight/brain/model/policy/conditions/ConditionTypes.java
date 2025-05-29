@@ -89,6 +89,8 @@ public class ConditionTypes
 
   public static AiModelContentConditionType AiModelContentConditionType;
 
+  public static SecurityVulnerabilityDetectionConditionType SecurityVulnerabilityDetectionConditionType;
+
   @Inject
   public static void injectConditionTypes(
       final AgeInDaysConditionType ageInDaysConditionType,
@@ -124,7 +126,8 @@ public class ConditionTypes
           securityVulnerabilityCustomCVSSVectorStringConditionType,
       final ComponentEndOfLifeConditionType componentEndOfLifeConditionType,
       final DerivativeAiModelConditionType derivativeAiModelConditionType,
-      final AiModelContentConditionType aiModelContentConditionType)
+      final AiModelContentConditionType aiModelContentConditionType,
+      final SecurityVulnerabilityDetectionConditionType securityVulnerabilityDetectionConditionType)
   {
     ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
     ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
@@ -161,7 +164,7 @@ public class ConditionTypes
     ConditionTypes.ComponentEndOfLifeConditionType = componentEndOfLifeConditionType;
     ConditionTypes.DerivativeAiModelConditionType = derivativeAiModelConditionType;
     ConditionTypes.AiModelContentConditionType = aiModelContentConditionType;
-
+    ConditionTypes.SecurityVulnerabilityDetectionConditionType = securityVulnerabilityDetectionConditionType;
     allConditionTypes.clear();
 
     // Don't add DeprecatedSecurityVulnerabilityConditionType
@@ -187,6 +190,7 @@ public class ConditionTypes
     add(SecurityVulnerabilityCategoryConditionType);
     add(SecurityVulnerabilityCweConditionType);
     add(SecurityVulnerabilityCustomRemediationConditionType);
+    add(SecurityVulnerabilityDetectionConditionType);
     add(SecurityVulnerabilitySourceConditionType);
     add(SecurityVulnerabilityCustomCVSSVectorStringConditionType);
     add(VulnerabilityGroupConditionType);

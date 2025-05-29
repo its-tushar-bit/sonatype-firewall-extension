@@ -24,6 +24,8 @@ import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
 import { isNilOrEmpty } from './jsUtil';
 
+export { getComponentDetailsUrl, getApplicationNamesUrl } from './CLMLocationNoAngular';
+
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
  *
@@ -1212,30 +1214,6 @@ export const getVersionGraphUrl = ({
   return (
     uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
   );
-};
-
-export const getComponentDetailsUrl = ({
-  clientType,
-  ownerType,
-  ownerId,
-  componentIdentifier,
-  hash,
-  matchState,
-  proprietary,
-  pathname,
-  identificationSource,
-  scanId,
-}) => {
-  const params = toURIParams({
-    componentIdentifier,
-    hash,
-    matchState,
-    proprietary,
-    pathname,
-    identificationSource,
-    scanId,
-  });
-  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
 };
 
 export const getPolicyEvaluationTimestampUrl = (repositoryId, componentIdentifier) =>

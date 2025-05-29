@@ -61,7 +61,7 @@ pipeline {
               spotlightText: params.spotlightText
             ]
 
-            dashboardConfig.version = dashboardConfig.version + 1
+            dashboardConfig.version = dashboardConfig.version.toInteger() + 1
             dashboardConfig.dashboards[params.dashboardId] = dashboardEntry
 
             def newDashboardConfigJson = groovy.json.JsonOutput.toJson(dashboardConfig)

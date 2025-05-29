@@ -18,7 +18,7 @@ def s3ConfigurationStaging =  [
   account: "993883856687",
   role: 'jenkins-hds-enterprise-reporting-staging',
   credentialsId: 'hds-enterprise-reporting-external-id-staging',
-  bucketName: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical 
+  bucketName: "hds-staging-enterprise-reporting-us-east-2" // assume east is canonical
 ]
 
 
@@ -76,7 +76,7 @@ pipeline {
               }
 
               echo "selected dashboard id: '${selectedDashboardId}'"
-              
+
               // setting global value to persist across the stages
               selectedDashboardValue = stagingDashboards[selectedDashboardId]
 
@@ -92,7 +92,7 @@ pipeline {
           withAwsRole(region: 'us-east-2', role: s3ConfigurationProd.role, roleAccount: s3ConfigurationProd.account, credentialsId: s3ConfigurationProd.credentialsId) {
             def eastBucketName = s3ConfigurationProd.usEast2Bucket
             def westBucketName = s3ConfigurationProd.usWest2Bucket
-          
+
             uploadFile(eastBucketName, iconsZipFileName)
             uploadFile(westBucketName, iconsZipFileName)
           }
@@ -116,12 +116,12 @@ pipeline {
             prodConfig.dashboards[selectedDashboardValue.dashboardId] = selectedDashboardValue
 
             // bump the version
-            prodConfig.version = prodConfig.version + 1
+            prodConfig.version = prodConfig.version.toInteger() + 1
 
             echo "The updated production configuration will be:"
             echo writeJSON(returnText: true, json: prodConfig, pretty: 2)
             saveConfigToBucket(eastBucketName, configFileName, prodConfig)
-            
+
             echo "Copying the configuration file to the west bucket"
             copyFromEastBucketToWestBucket(s3ConfigurationProd, configFileName)
           }
@@ -186,7 +186,7 @@ def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
   sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
 }
 
-def uploadFile(bucketName, fileName) { 
+def uploadFile(bucketName, fileName) {
  echo "uploading '${fileName}' to bucket '${bucketName}'"
  sh "aws s3 cp ${fileName} s3://${bucketName}/${fileName}"
 }

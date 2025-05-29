@@ -5,7 +5,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angularDebug */
-import commonServicesModule from './utilAngular/CommonServices';
+import commonServicesModule, { Messages } from './utilAngular/CommonServices';
 import CLMLocationModule from './util/CLMLocation';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
@@ -111,8 +111,7 @@ export const InitModule = angular
                 CurrentUser = injector.get('CurrentUser'),
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
-                $ngRedux = injector.get('$ngRedux'),
-                Messages = injector.get('Messages');
+                $ngRedux = injector.get('$ngRedux');
               return $q
                 .all([
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
@@ -210,7 +209,6 @@ export const InitModule = angular
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
     'routeStateUtilService',
-    'Messages',
     'ProductLicense',
     '$ngRedux',
     '$transitions',
@@ -227,7 +225,6 @@ export const InitModule = angular
       LoginModalService,
       UnauthenticatedRequestQueueService,
       routeStateUtilService,
-      Messages,
       ProductLicense,
       $ngRedux,
       $transitions

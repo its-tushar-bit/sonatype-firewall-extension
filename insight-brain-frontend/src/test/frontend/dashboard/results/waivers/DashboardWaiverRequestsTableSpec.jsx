@@ -11,7 +11,7 @@ import defaultFilter from 'MainRoot/dashboard/filter/defaultFilter';
 
 import { getWaiverRequestsUrl } from 'MainRoot/util/CLMLocation';
 
-fdescribe('DashboardWaiverRequestsTable', () => {
+describe('DashboardWaiverRequestsTable', () => {
   let renderComponent;
   let state;
   let mock;

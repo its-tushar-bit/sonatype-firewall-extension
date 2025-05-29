@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import StableBodyService from './StableBodyService';
 import { getBaseUrl } from '../util/urlUtil';
 
 var services = angular.module('CommonServices', []);
@@ -60,26 +59,6 @@ export const Messages = {
   },
 };
 
-services.service('Messages', function () {
-  return Messages;
-});
-
-services.service('Modal', [
-  '$modal',
-  function ($modal) {
-    return {
-      open(config) {
-        return $modal.open({
-          windowClass: 'iq-modal',
-          backdropClass: 'iq-modal-backdrop',
-          animation: false,
-          ...config,
-        });
-      },
-    };
-  },
-]);
-
 /**
  * English language phrases for elapsed time.
  */
@@ -116,27 +95,10 @@ var timeAbbreviations = {
   suffix: '',
 };
 
-services.filter('terseTimeSpan', function () {
-  var rules = angular.extend(
-    {
-      diffFunction: function (date) {
-        return date;
-      },
-    },
-    timeAbbreviations
-  );
-  return new ElapsedTimeFilterFactory(rules);
-});
-
 export const terseAgo = new ElapsedTimeFilterFactory({
   ...timeAbbreviations,
   diffFunction: (date) => new Date().getTime() - date,
 });
-
-/**
- * English language abbreviations for elapsed time.
- */
-services.filter('terseAgo', () => terseAgo);
 
 export const timeAgo = new ElapsedTimeFunctionFactory({
   seconds: 'Just now',
@@ -149,12 +111,6 @@ export const timeAgo = new ElapsedTimeFunctionFactory({
   highlightMultiples: true,
   separator: ' ',
   suffix: ' ago',
-});
-
-services.service('timeAgoService', function () {
-  return {
-    renderDate: timeAgo,
-  };
 });
 
 function ElapsedTimeFilterFactory(rules) {
@@ -234,30 +190,6 @@ services.filter('agoLastDay', function () {
   };
 });
 
-/**
- * Filter strings to fit within a set length, padding the end with ellipsis.
- * Default length is 25, but can be overridden.
- * i.e.
- * {{ value | truncate:20 }}
- *
- * Generally if you are filtering text, it's to ensure that it fits within some boundary element. CSS rules for that
- * element should take into account the possibility of increased font sizes on client machines and prefer to specify
- * boundary sizes in em.
- */
-services.filter('truncate', function () {
-  return function (text, length) {
-    var end = '...';
-    if (isNaN(length)) {
-      length = 25;
-    }
-    if (text.length <= length) {
-      return text;
-    } else {
-      return String(text).substring(0, length - end.length) + end;
-    }
-  };
-});
-
 services.service('BaseUrl', [
   function () {
     return {
@@ -265,36 +197,6 @@ services.service('BaseUrl', [
     };
   },
 ]);
-
-services.service('LastSelectedOrganization', [
-  function () {
-    var lastOrg = {};
-    return {
-      get: function () {
-        return lastOrg;
-      },
-      set: function (org) {
-        lastOrg = angular.copy(org);
-      },
-      clear: function () {
-        lastOrg = {};
-      },
-    };
-  },
-]);
-
-services.filter('EncodeURIComponent', [
-  '$window',
-  function ($window) {
-    return $window.encodeURIComponent;
-  },
-]);
-
-services.filter('safeDivide', function () {
-  return function (value, max) {
-    return max === 0 ? 0 : value / max;
-  };
-});
 
 services.service('ApplicationId', [
   '$state',
@@ -325,31 +227,5 @@ services.service('OrganizationId', [
     };
   },
 ]);
-
-/**
- * Returns the last element of a path with the assumption that it is a file name. Path elements are assumed to be
- * delimited by a '/'.
- */
-services.filter('fileName', function () {
-  return function (path) {
-    var pathDelimiter = '/';
-    var stringPath = String(path);
-    // Avoid checking the last character as paths might end in a delimiter.
-    var lastIndexOfDelimiter = stringPath.lastIndexOf(pathDelimiter, stringPath.length - 2);
-
-    if (lastIndexOfDelimiter > -1) {
-      // If the last character is a delimiter, do not return it.
-      if (stringPath.charAt(stringPath.length - 1) === pathDelimiter) {
-        return stringPath.substring(lastIndexOfDelimiter + 1, stringPath.length - 1);
-      }
-
-      return stringPath.substring(lastIndexOfDelimiter + 1);
-    }
-
-    return stringPath;
-  };
-});
-
-services.service('stable.body.service', StableBodyService);
 
 export default services;

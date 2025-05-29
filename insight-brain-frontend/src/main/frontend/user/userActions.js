@@ -6,6 +6,7 @@
 import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
@@ -27,7 +28,6 @@ function userActions(
   CLMLocations,
   telemetryService,
   PermissionService,
-  messages,
   pendoService,
   $window
 ) {
@@ -130,7 +130,7 @@ function userActions(
           dispatch({
             type: CHANGE_PASSWORD_FAILED,
             payload: {
-              message: messages.getHttpErrorMessage(err),
+              message: Messages.getHttpErrorMessage(err),
             },
           });
         });
@@ -200,7 +200,6 @@ userActions.$inject = [
   'CLMLocations',
   'telemetryService',
   'PermissionService',
-  'Messages',
   'pendoService',
   '$window',
 ];

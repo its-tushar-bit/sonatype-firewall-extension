@@ -204,7 +204,7 @@ public class ScmOnboardingService
     this.executor = new SourceControlImportThreadPoolExecutor(configuration.getSourceControlImportPoolSize());
     this.userMatchingService = userMatchingService;
     this.scmUserMappingService = scmUserMappingService;
-    shutdownHandler.add(() -> executor.getActiveCount() != 0 || !executor.getQueue().isEmpty());
+    shutdownHandler.add(executor);
   }
 
   // Visible for testing

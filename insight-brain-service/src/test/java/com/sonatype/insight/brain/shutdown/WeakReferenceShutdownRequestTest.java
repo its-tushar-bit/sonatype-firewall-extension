@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -30,7 +29,7 @@ public class WeakReferenceShutdownRequestTest
   private final Object object = new Object();
 
   private final WeakReferenceShutdownRequest<Object> spyWeakReferenceShutdownRequestNonNullReferent =
-      spy(new WeakReferenceShutdownRequest<>(new WeakReference<>(object), 0, null)
+      spy(new WeakReferenceShutdownRequest<>(object, 0, null)
       {
         @Override
         public Future<?> execute(final ExecutorService executorService, final Object item) {
@@ -39,7 +38,7 @@ public class WeakReferenceShutdownRequestTest
       });
 
   private final WeakReferenceShutdownRequest<Object> spyWeakReferenceShutdownRequestNullReferent =
-      spy(new WeakReferenceShutdownRequest<>(new WeakReference<>(null), 0, null)
+      spy(new WeakReferenceShutdownRequest<>(null, 0, null)
       {
         @Override
         public Future<?> execute(final ExecutorService executorService, final Object item) {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -28,8 +27,7 @@ public class SchedulerShutdownRequestTest
     Future<?> future = CompletableFuture.completedFuture(null);
     doReturn(future).when(mockExecutorService).submit(any(Runnable.class));
     Scheduler mockScheduler = mock(Scheduler.class);
-    SchedulerShutdownRequest schedulerShutdownRequest =
-        new SchedulerShutdownRequest(new WeakReference<>(mockScheduler), 0, null);
+    SchedulerShutdownRequest schedulerShutdownRequest = new SchedulerShutdownRequest(mockScheduler, 0, null);
 
     Future<?> result = schedulerShutdownRequest.execute(mockExecutorService);
 

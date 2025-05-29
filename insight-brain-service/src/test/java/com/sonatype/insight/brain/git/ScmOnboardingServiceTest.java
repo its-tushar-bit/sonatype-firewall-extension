@@ -16,9 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -202,17 +200,8 @@ public class ScmOnboardingServiceTest
   }
 
   @Test
-  public void testScmOnboardingService_AddsToShutdownHandler() throws Exception {
-    ArgumentCaptor<BooleanSupplier> booleanSupplierArgumentCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
-    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture());
-    BooleanSupplier booleanSupplier = booleanSupplierArgumentCaptor.getValue();
-
-    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
-    Future<?> future = scmOnboardingService.getExecutor().submit(() -> {
-      await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isTrue());
-    });
-    future.get(5, TimeUnit.SECONDS);
-    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
+  public void testScmOnboardingService_AddsToShutdownHandler() {
+    verify(mockShutdownHandler).add(scmOnboardingService.getExecutor());
   }
 
   @Test

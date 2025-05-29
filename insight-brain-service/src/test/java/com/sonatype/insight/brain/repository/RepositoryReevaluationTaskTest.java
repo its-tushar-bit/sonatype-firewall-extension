@@ -58,6 +58,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RepositoryReevaluationTaskTest
@@ -125,7 +127,7 @@ public class RepositoryReevaluationTaskTest
   private final ComponentIdentifier newIdentifier =
       ComponentIdentifier.createMavenCoordinates("com", "new-component", "2.0");
 
-  private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+  private final ExecutorService spyExecutorService = spy(Executors.newFixedThreadPool(1));
 
   @Override
   public void configure(Binder binder) {
@@ -168,7 +170,7 @@ public class RepositoryReevaluationTaskTest
             policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
             repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService),
-        executorService, 10, repositoryComponentDAO, clusterLockManager);
+        spyExecutorService, 10, repositoryComponentDAO, clusterLockManager);
     createHdsResponse();
   }
 
@@ -179,8 +181,8 @@ public class RepositoryReevaluationTaskTest
   public void testTask() throws Exception {
     Date timeBeforeReevaluation = new Date();
     task.run();
-    executorService.shutdown();
-    executorService.awaitTermination(1, TimeUnit.MINUTES);
+    verify(spyExecutorService).shutdown();
+    spyExecutorService.awaitTermination(1, TimeUnit.MINUTES);
 
     List<RepositoryComponent> components = repositoryComponentDAO.getByRepositoryId(repository.getId());
     assertThat(components).hasSize(2);

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,8 +114,7 @@ public class ShutdownHandler
   }
 
   public void add(final ExecutorService executorService, final ShutdownPriority shutdownPriority) {
-    addAndClean(new ExecutorServiceShutdownRequest(new WeakReference<>(executorService), shutdownPriority.ordinal(),
-        getOrigin()));
+    addAndClean(new ExecutorServiceShutdownRequest(executorService, shutdownPriority.ordinal(), getOrigin()));
   }
 
   public void remove(final ExecutorService executorService) {
@@ -130,7 +128,7 @@ public class ShutdownHandler
   }
 
   public void add(final Thread thread, final ShutdownPriority shutdownPriority) {
-    addAndClean(new ThreadShutdownRequest(new WeakReference<>(thread), shutdownPriority.ordinal(), getOrigin()));
+    addAndClean(new ThreadShutdownRequest(thread, shutdownPriority.ordinal(), getOrigin()));
   }
 
   public void add(final Scheduler scheduler) {
@@ -138,7 +136,7 @@ public class ShutdownHandler
   }
 
   public void add(final Scheduler scheduler, final ShutdownPriority shutdownPriority) {
-    addAndClean(new SchedulerShutdownRequest(new WeakReference<>(scheduler), shutdownPriority.ordinal(), getOrigin()));
+    addAndClean(new SchedulerShutdownRequest(scheduler, shutdownPriority.ordinal(), getOrigin()));
   }
 
   public void add(final BooleanSupplier booleanSupplier) {

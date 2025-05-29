@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -14,7 +13,7 @@ public class ExecutorServiceShutdownRequest
     extends WeakReferenceShutdownRequest<ExecutorService>
 {
   public ExecutorServiceShutdownRequest(
-      final WeakReference<ExecutorService> item,
+      final ExecutorService item,
       final int order,
       final String origin)
   {

@@ -13,12 +13,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
@@ -83,7 +80,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -175,20 +171,6 @@ public class RepositoryServiceTest extends AbstractComponentTest
   public void after() {
     // Restore the default value
     SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.setEnabled(false);
-  }
-
-  @Test
-  public void testRepositoryService_AddsToShutdownHandler() throws Exception {
-    ArgumentCaptor<BooleanSupplier> booleanSupplierArgumentCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
-    verify(mockShutdownHandler).add(booleanSupplierArgumentCaptor.capture());
-    BooleanSupplier booleanSupplier = booleanSupplierArgumentCaptor.getValue();
-
-    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
-    Future<?> future = repositoryService.getReevalExecutor().submit(() -> {
-      await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isTrue());
-    });
-    future.get(5, TimeUnit.SECONDS);
-    await().atMost(2, TimeUnit.SECONDS).untilAsserted(() -> assertThat(booleanSupplier.getAsBoolean()).isFalse());
   }
 
   @Test

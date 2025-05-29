@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.Future;
 
 import org.junit.Test;
@@ -19,7 +18,7 @@ public class ThreadShutdownRequestTest
   @Test
   public void testExecute() throws Exception {
     Thread mockThread = mock(Thread.class);
-    ThreadShutdownRequest threadShutdownRequest = new ThreadShutdownRequest(new WeakReference<>(mockThread), 0, null);
+    ThreadShutdownRequest threadShutdownRequest = new ThreadShutdownRequest(mockThread, 0, null);
 
     Future<?> shutdown = threadShutdownRequest.execute(null);
 

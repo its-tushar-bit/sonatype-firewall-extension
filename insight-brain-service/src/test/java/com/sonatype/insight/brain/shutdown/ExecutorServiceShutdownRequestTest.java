@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -29,8 +28,7 @@ public class ExecutorServiceShutdownRequestTest
 
   @Before
   public void before() {
-    executorServiceShutdownRequest =
-        new ExecutorServiceShutdownRequest(new WeakReference<>(mockExecutorService), 0, null);
+    executorServiceShutdownRequest = new ExecutorServiceShutdownRequest(mockExecutorService, 0, null);
   }
 
   @Test

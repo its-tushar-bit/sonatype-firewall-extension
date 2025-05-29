@@ -5,14 +5,13 @@
  */
 package com.sonatype.insight.brain.shutdown;
 
-import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
 public class ThreadShutdownRequest
     extends WeakReferenceShutdownRequest<Thread>
 {
-  public ThreadShutdownRequest(final WeakReference<Thread> item, final int order, final String origin) {
+  public ThreadShutdownRequest(final Thread item, final int order, final String origin) {
     super(item, order, origin);
   }
 

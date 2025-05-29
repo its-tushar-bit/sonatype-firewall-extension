@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
@@ -38,7 +38,7 @@ public class RepositoryReevaluationTask
 
   private final RepositoryPolicyEvaluator repositoryPolicyEvaluator;
 
-  private final Executor executor;
+  private final ExecutorService executor;
 
   private final int maxRepositoryEvaluationRequestSize;
 
@@ -47,7 +47,7 @@ public class RepositoryReevaluationTask
   public RepositoryReevaluationTask(
       Repository repository,
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
-      Executor executor,
+      ExecutorService executor,
       int maxRepositoryEvaluationRequestSize,
       final RepositoryComponentDAO repositoryComponentDAO,
       final ClusterLockManager clusterLockManager)
@@ -104,6 +104,9 @@ public class RepositoryReevaluationTask
       log.error("An error occurred while re-evaluating repository {}:{} ({})", repository.getRepositoryManagerId(),
           repository.getPublicId(), repository.getId(), e);
       AuditData.get().setException(e);
+    }
+    finally {
+      executor.shutdown();
     }
   }
 

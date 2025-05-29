@@ -13,8 +13,8 @@ import java.util.concurrent.Future;
 public abstract class WeakReferenceShutdownRequest<T>
     extends AbstractShutdownRequest<WeakReference<T>>
 {
-  protected WeakReferenceShutdownRequest(final WeakReference<T> item, final int order, final String origin) {
-    super(item, order, origin);
+  protected WeakReferenceShutdownRequest(final T item, final int order, final String origin) {
+    super(new WeakReference<>(item), order, origin);
   }
 
   @Override

@@ -17,7 +17,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -66,7 +65,6 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -114,8 +112,6 @@ public class RepositoryService
 
   private final ClusterLockManager clusterLockManager;
 
-  private final ThreadPoolExecutor reevalExecutor;
-
   @Inject
   public RepositoryService(
       RepositoryPolicyEvaluator repositoryPolicyEvaluator,
@@ -129,8 +125,7 @@ public class RepositoryService
       PolicyDAO policyDAO,
       OwnerDAO ownerDAO,
       OrganizationService organizationService,
-      final ClusterLockManager clusterLockManager,
-      ShutdownHandler shutdownHandler)
+      final ClusterLockManager clusterLockManager)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.policyViolationLoggerFactory = policyViolationLoggerFactory;
@@ -144,13 +139,6 @@ public class RepositoryService
     this.ownerDAO = ownerDAO;
     this.organizationService = organizationService;
     this.clusterLockManager = clusterLockManager;
-    reevalExecutor = createReevaluationExecutor();
-    shutdownHandler.add(() -> reevalExecutor.getActiveCount() != 0 || !reevalExecutor.getQueue().isEmpty());
-  }
-
-  // Visible for testing
-  ThreadPoolExecutor getReevalExecutor() {
-    return reevalExecutor;
   }
 
   /**
@@ -253,6 +241,10 @@ public class RepositoryService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   void reevaluateRepository(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    // Don't add this executor to ShutdownHandler,
+    // a repository re-evaluation can take a long time e.g., hours,
+    // and so we don't want to wait for each repository re-evaluation to finish before shutting down the server
+    ThreadPoolExecutor reevalExecutor = createReevaluationExecutor();
     Repository repository = repositoryDAO.getByIdNotNull(repositoryId);
     AuditData.get().continueAsync(reevalExecutor,
         new RepositoryReevaluationTask(repository, repositoryPolicyEvaluator, reevalExecutor,

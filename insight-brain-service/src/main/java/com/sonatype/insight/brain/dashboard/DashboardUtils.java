@@ -78,7 +78,7 @@ public class DashboardUtils
 
   boolean isAutoWaiverFeatureFlagEnabled() {
     SystemConfigurationProperty autoWaiver = systemConfigurationPropertyDAO.getByName(AUTO_WAIVERS);
-    return autoWaiver == null || (autoWaiver != null && autoWaiver.getValue().equalsIgnoreCase("true"));
+    return autoWaiver == null || (autoWaiver.getValue().equalsIgnoreCase("true"));
   }
 
   Set<StageType> getStageTypes(Set<String> stageTypeIds) {

@@ -39,6 +39,9 @@ public class PublicApiPaths
 
   public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";
 
+  public static final String REPOSITORY_RESULTS_FOR_IMAGE_CONTAINER_PATH = API_VERSION_PATH_V2 + "malware-defense"
+      + "/container-images/repositories/{ownerType: repository_container|repository_manager|repository}";
+
   public static final String POLICY_WAIVER_REASONS_PATH = API_VERSION_PATH_V2 + "policyWaiverReasons";
 
   public static final String POLICY_WAIVER_REQUEST_PATH = API_VERSION_PATH_V2 + "policyWaiverRequests";

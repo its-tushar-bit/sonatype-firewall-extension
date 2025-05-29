@@ -666,8 +666,11 @@ public class TestDAOFactory
   @Override
   public PolicyViolationDAO createPolicyViolationDAO() {
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
-    return new PolicyViolationDAO(dataStoreProvider.getOperationalDataStore(),
-        createPolicyViolationConstraintFactsDAO(), temporaryTableHelper);
+    return new PolicyViolationDAO(
+        dataStoreProvider.getOperationalDataStore(),
+        createPolicyEvaluationDAO(),
+        temporaryTableHelper,
+        createPolicyViolationConstraintFactsDAO());
   }
 
   @Override

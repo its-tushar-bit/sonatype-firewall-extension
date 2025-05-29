@@ -15,10 +15,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -29,9 +32,15 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField.SortableField;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainer;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
@@ -41,7 +50,10 @@ import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools.ThreadPools;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.error.exception.BadRequestException;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +70,8 @@ public class PolicyViolationDAO
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyViolationDAO.class);
 
+  private final PolicyEvaluationDAO policyEvaluationDAO;
+
   static final int DELETE_BATCH_SIZE = 100;
 
   private final TemporaryTableHelper temporaryTableHelper;
@@ -65,10 +79,12 @@ public class PolicyViolationDAO
   @Inject
   public PolicyViolationDAO(
       OperationalDataStore operationalDataStore,
-      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO,
-      TemporaryTableHelper temporaryTableHelper)
+      PolicyEvaluationDAO policyEvaluationDAO,
+      TemporaryTableHelper temporaryTableHelper,
+      PolicyViolationConstraintFactsDAO policyViolationConstraintFactsDAO)
   {
     super(operationalDataStore, policyViolationConstraintFactsDAO);
+    this.policyEvaluationDAO = policyEvaluationDAO;
     this.temporaryTableHelper = temporaryTableHelper;
   }
 
@@ -250,6 +266,294 @@ public class PolicyViolationDAO
         " AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
     return getUnfixed(sQuery, applicationIds, stageTypeIds, minDate, minThreatLevel, maxThreatLevel,
         policyThreatCategories);
+  }
+
+  public List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainer(
+      Collection<String> repositoryIds, Collection<String> applicationIds,
+      RepositoryResultsForImageContainerFilter detailsFilter)
+  {
+    if (detailsFilter.aggregate) {
+      return getRepositoryResultsForImageContainerAggregate(repositoryIds, applicationIds, detailsFilter);
+    }
+    else {
+      return getRepositoryResultsForImageContainerNonAggregate(repositoryIds, applicationIds, detailsFilter);
+    }
+  }
+
+  private List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerNonAggregate(
+      Collection<String> repositoryIds, Collection<String> applicationIds,
+      RepositoryResultsForImageContainerFilter detailsFilter)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      int threatLevelFiltersSize =
+          detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
+      int repositoryIdsSize = repositoryIds.size();
+      int repositoryIdsParamStartPosition = 1;
+      int threatLevelFiltersParamStartPosition = repositoryIdsSize + 1;
+      int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
+
+      List<PolicyEvaluation> policyEvalList =
+          policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
+              Set.of(Stage.ID_PROXY));
+
+      Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
+          .collect(Collectors.toMap(
+              PolicyEvaluation::getApplicationId, // Key: applicationId
+              PolicyEvaluation::getScanId        // Value: scanId
+          ));
+
+      String baseQuery = "SELECT threat_level," + //
+          " policy_name as policy," + //
+          " app.name as object," + //
+          " open_time as quarantine_time," + //
+          " app.application_id," + //
+          " app.public_id" + //
+          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
+          " ON org.organization_id = app.organization_id" + //
+          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
+          " " + getDatabaseSchema() + ".policy_violation pv" + //
+          " ON app.application_id = pv.application_id" + //
+          " WHERE related_repository_id IN "
+          + buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition);
+
+      StringBuilder sQuery = new StringBuilder(baseQuery);
+
+      sQuery.append(addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition));
+
+      sQuery.append(addViolationStateFilters(detailsFilter.violationStateFilters));
+
+      sQuery.append(addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition));
+
+      sQuery.append(validateAndAddSortFields(detailsFilter.sortFields));
+
+      int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
+
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery.toString());
+      addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
+
+      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
+        query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
+        query.setParameter(threatLevelFiltersParamStartPosition + 1, detailsFilter.threatLevelFilters.get(1));
+      }
+      query.setParameter(searchFiltersParamStartPosition, '%' + detailsFilter.searchFilters.get("POLICY_NAME") + '%');
+      query.setParameter(searchFiltersParamStartPosition + 1,
+          '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      query.setParameter(searchFiltersParamStartPosition + 2,
+          '%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
+      query.setFirstResult(offset).setMaxResults(detailsFilter.pageSize +
+          1); // Incremented page size to help UI determine whether to enable / disable NextPage button
+
+      List<RepositoryResultsForImageContainer> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new RepositoryResultsForImageContainer(getInteger(array[0]), (String) array[1], null,
+              (String) array[2],
+              array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
+              applicationIdsToScanIdMap.get((String) array[4]), (String) array[5]))
+          .collect(Collectors.toList());
+
+      return results;
+    }
+  }
+
+  private boolean hasNonViolatingFilter(final Set<String> violationStateFilters) {
+    return violationStateFilters.stream()
+        .anyMatch(filter -> filter.equals("VIOLATION_STATE_ALL") || filter.equals("VIOLATION_STATE_NOT_VIOLATING"));
+  }
+
+  private List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerAggregate(
+      Collection<String> repositoryIds, Collection<String> applicationIds,
+      RepositoryResultsForImageContainerFilter detailsFilter)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      int repositoryIdsSize = repositoryIds.size();
+      int threatLevelFiltersSize =
+          detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
+      // POLICY_NAME, QUARANTINE_TIME, OBJECT_NAME
+      // are the only possible search filters used in the Query (as of May 2025)
+      int repositoryIdsParamStartPosition = 1;
+      int threatLevelFiltersParamStartPosition = repositoryIdsSize + 1;
+      int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
+      int pageSize = detailsFilter.pageSize + 1;
+      int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
+
+      List<PolicyEvaluation> policyEvalList =
+          policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
+          Set.of(Stage.ID_PROXY));
+
+      Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
+          .collect(Collectors.toMap(
+              PolicyEvaluation::getApplicationId, // Key: applicationId
+              PolicyEvaluation::getScanId        // Value: scanId
+          ));
+
+      String baseQuery = "SELECT max(threat_level) as threat_level," + //
+          " count(threat_level) as violation_count," + //
+          " app.name as object," + //
+          " max(open_time) as quarantine_time," + //
+          " app.application_id," + //
+          " app.public_id" + //
+          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
+          " ON org.organization_id = app.organization_id" + //
+          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
+          " " + getDatabaseSchema() + ".policy_violation pv" + //
+          " ON app.application_id = pv.application_id" + //
+          " WHERE related_repository_id IN" + //
+          buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
+          addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
+          addViolationStateFilters(detailsFilter.violationStateFilters) +
+          addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+          " GROUP BY app.application_id, app.name, pv.open_time" + //
+          addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+          validateAndAddSortFields(detailsFilter.sortFields) +
+          " LIMIT " + pageSize +
+          " OFFSET " + offset ;
+
+      jakarta.persistence.Query query = tx.createNativeQuery(baseQuery);
+      addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
+      if (detailsFilter.threatLevelFilters != null && detailsFilter.threatLevelFilters.size() == 2) {
+        query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
+        query.setParameter(threatLevelFiltersParamStartPosition + 1, detailsFilter.threatLevelFilters.get(1));
+      }
+      query.setParameter(searchFiltersParamStartPosition,  detailsFilter.searchFilters
+          .get("VIOLATION_COUNT"));
+      query.setParameter(searchFiltersParamStartPosition + 1,
+          '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
+      query.setParameter(searchFiltersParamStartPosition + 2,
+          '%' + detailsFilter.searchFilters.get("OBJECT_NAME") + '%');
+
+      List<RepositoryResultsForImageContainer> results = ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new RepositoryResultsForImageContainer(
+              getInteger(array[0]),
+              null,
+              getInteger(array[1]),
+              (String) array[2],
+              array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
+              applicationIdsToScanIdMap.get((String) array[4]),
+              (String) array[5]
+              )).collect(Collectors.toList());
+      return results;
+    }
+  }
+
+  private static String addViolationStateFilters(Set<String> filters) {
+    StringBuilder query = new StringBuilder();
+    int filterCount = 0;
+    if (!CollectionUtils.isEmpty(filters)) {
+      for (String filter : filters) {
+        filterCount++;
+        switch (filter) {
+          case "VIOLATION_STATE_ALL":
+            return "";
+          case "VIOLATION_STATE_NOT_VIOLATING":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" pv.policy_name IS NULL");
+            break;
+          case "VIOLATION_STATE_OPEN":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL AND pv.fix_time IS NULL");
+            break;
+          case "VIOLATION_STATE_QUARANTINED":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(
+                " (pv.open_time IS NOT NULL AND pv.action_type_id = 'fail')");
+            break;
+          case "VIOLATION_STATE_WAIVED":
+            query.append(filterCount > 1 ? " OR" : " AND (");
+            query.append(" pv.waive_time IS NOT NULL");
+            break;
+          default:
+        }
+      }
+      query.append(" )");
+    }
+
+    return query.toString();
+  }
+
+  private static String addThreatLevelFilters(List<Integer> filters, int paramStartPosition) {
+    if (filters != null && filters.size() == 2 && (filters.get(0) > 0 || filters.get(1) < 10)) {
+      if (filters.get(0) == 0) {
+        return " AND (pv.threat_level IS NULL OR" +
+            " (pv.threat_level >= ?" + paramStartPosition + " AND pv.threat_level <= ?" +
+            (++paramStartPosition) + "))";
+      }
+      return " AND pv.threat_level >= ?" + paramStartPosition + " AND pv.threat_level <= ?" +
+          (++paramStartPosition);
+    }
+    return "";
+  }
+
+  private static String addSearchFilters(Map<String, String> filters, int paramStartPosition) {
+    StringBuilder query = new StringBuilder();
+    if (!MapUtils.isEmpty(filters)) {
+      for (Entry<String, String> filter : filters.entrySet()) {
+        if (filter.getKey().equals("POLICY_NAME")) {
+          query.append(" AND LOWER(pv.policy_name) LIKE ?" + paramStartPosition);
+        }
+        if (filter.getKey().equals("QUARANTINE_TIME")) {
+          query.append(" AND (pv.open_time IS NOT NULL AND TO_CHAR(pv.open_time, 'YYYY-MM-DD') LIKE ?" +
+              (paramStartPosition + 1) + ")");
+        }
+        if (filter.getKey().equals("OBJECT_NAME")) {
+          query.append(" AND LOWER(app.name) LIKE ?" + (paramStartPosition + 2));
+        }
+      }
+    }
+
+    return query.toString();
+  }
+
+  private static String addPolicyViolationCountForHavingClause(Map<String, String> filters, int paramStartPosition) {
+    StringBuilder query = new StringBuilder();
+    if (!MapUtils.isEmpty(filters)) {
+      for (Entry<String, String> filter : filters.entrySet()) {
+        if (filter.getKey().equals("VIOLATION_COUNT")) {
+          query.append(" HAVING violation_count = ?" + (paramStartPosition));
+        }
+      }
+    }
+
+    return query.toString();
+  }
+
+  private String validateAndAddSortFields(final List<SortField> sortFields) {
+    StringBuilder query = new StringBuilder();
+    List<String> result = new ArrayList<>();
+    if (!CollectionUtils.isEmpty(sortFields)) {
+      sortFields.sort(Comparator.comparing(field -> field.sortPriority));
+      Set<Integer> sortPriorities = new HashSet<>();
+      for (SortField sortField : sortFields) {
+        if (sortPriorities.contains(sortField.sortPriority)) {
+          throw new BadRequestException("sort priority cannot be the same for different fields");
+        }
+        if (sortField.asc) {
+          result.add(getSortField(sortField.sortableField) + " NULLS LAST");
+        }
+        else {
+          result.add(getSortField(sortField.sortableField) + " DESC NULLS LAST");
+        }
+        sortPriorities.add(sortField.sortPriority);
+      }
+      query.append(" ORDER BY ").append(StringUtils.join(result, ", "));
+    }
+
+    return query.toString();
+  }
+
+  private String getSortField(SortableField field) {
+    switch (field) {
+      case POLICY_THREAT_LEVEL:
+        return "threat_level";
+      case POLICY_NAME:
+        return "policy_name";
+      case QUARANTINE_TIME:
+        return "quarantine_time";
+      case OBJECT_NAME:
+        return "app.name";
+      case VIOLATION_COUNT:
+        return "violation_count";
+      default:
+        return "";
+    }
   }
 
   public List<PolicyViolation> getActiveByApplicationIdsAndStageIds(

@@ -1,0 +1,48 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "pecoff",
+      "coordinates" : {
+        "name" : "vcruntime140.dll",
+        "namespace" : "Microsoft Corporation/Microsoft® Visual Studio® 2017",
+        "version" : "14.16.27024.1 built by: vcwrkspc"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "7b4fe24321d2b108eda7",
+    "declaredLicenses" : [ "Not Provided" ],
+    "observedLicenses" : [ "Not Provided" ],
+    "effectiveLicenses" : [ "Not Provided" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 5,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1567763859720,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Namespace",
+        "value" : "Microsoft Corporation/Microsoft® Visual Studio® 2017"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Name",
+        "value" : "vcruntime140.dll"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "14.16.27024.1 built by: vcwrkspc"
+      } ],
+      "name" : "vcruntime140.dll"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

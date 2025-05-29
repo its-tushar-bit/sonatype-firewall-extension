@@ -630,23 +630,21 @@ public class ApiCycloneDxServiceV2
       final Map<String, Map<String, String>> components)
   {
     try {
-      PackageUrlIdentifier purl;
-      if (StringUtils.isNotBlank(reportComponent.packageUrl)) {
-        purl = new PackageUrlIdentifier(reportComponent.packageUrl);
-      }
-      else {
+      String purl = reportComponent.packageUrl;
+      if (StringUtils.isBlank(purl)) {
         purl =
-            PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier());
+            PackageUrlIdentifier.fromComponentIdentifier(reportComponent.componentIdentifier.toComponentIdentifier())
+                .getPackageUrl();
       }
 
       String bomRef = createNewBomRef();
 
-      Map<String, String> componentInfo = components.get(purl.getPackageUrl());
+      Map<String, String> componentInfo = components.get(purl);
 
       if (MapUtils.isEmpty(componentInfo)) {
         componentInfo = new HashMap<>();
         componentInfo.put(reportComponent.hash, bomRef);
-        components.put(purl.getPackageUrl(), componentInfo);
+        components.put(purl, componentInfo);
       }
       else {
         //A component with the same coordinates already exists
@@ -662,7 +660,7 @@ public class ApiCycloneDxServiceV2
         }
       }
 
-      Component bomComponent = createComponent(purl.getPackageUrl(), Type.LIBRARY, bomRef);
+      Component bomComponent = createComponent(purl, Type.LIBRARY, bomRef);
 
       if (Objects.nonNull(bomComponent)) {
         bomComponent.setModified(MatchState.SIMILAR.getId().equals(reportComponent.matchState));
@@ -704,7 +702,7 @@ public class ApiCycloneDxServiceV2
       bomComponent.setType(type);
 
       PackageURL packageUrl = new PackageURL(purl);
-      bomComponent.setPurl(packageUrl);
+      bomComponent.setPurl(purl);
       bomComponent.setGroup(packageUrl.getNamespace());
       bomComponent.setName(packageUrl.getName());
       bomComponent.setVersion(packageUrl.getVersion());

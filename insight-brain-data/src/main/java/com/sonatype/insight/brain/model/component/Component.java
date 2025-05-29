@@ -113,6 +113,8 @@ public class Component
 
   private Set<AiModelContentType> aiModelContentTypes;
 
+  private String packageUrl;
+
   public Component() {
   }
 
@@ -564,5 +566,13 @@ public class Component
 
   public void setAiModelContentTypes(Set<AiModelContentType> aiModelContentTypes) {
     this.aiModelContentTypes = aiModelContentTypes;
+  }
+
+  public String getPackageUrl() {
+    return packageUrl;
+  }
+
+  public void setPackageUrl(final String packageUrl) {
+    this.packageUrl = packageUrl;
   }
 }

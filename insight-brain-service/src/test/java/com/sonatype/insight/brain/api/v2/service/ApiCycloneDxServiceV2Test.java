@@ -285,6 +285,35 @@ public class ApiCycloneDxServiceV2Test
   }
 
   @Test
+  public void testGetByScanId_encodedPurl() throws Exception {
+    when(versionService.getFullVersion()).thenReturn("1.0");
+
+    createReportAndPolicyEvaluation("reportEncodedPurl");
+    Response response = service.getByScanId(application.getId(), scanId, MediaType.APPLICATION_XML, Version.VERSION_16);
+    Bom bom = ThirdPartyUtils.parseAndValidateCycloneDx(response.getEntity().toString(), SbomFormat.XML);
+
+    assertThat(bom.getSerialNumber()).isEqualTo(toUuid(scanId));
+    assertMetadata(bom, application, scanId, Version.VERSION_14, null);
+    assertThat(bom.getExternalReferences()).hasSize(1);
+
+    String commonPurl =
+        "pkg:generic/vcruntime140.dll@14.16.27024.1%20built%20by%3A%20vcwrkspc?" +
+            "nexusnamespace=Microsoft%20Corporation%2FMicrosoft%C2%AE%20Visual%20Studio%C2%AE%202017&nexustype=pecoff";
+
+    Component component =
+        createComponent(Version.VERSION_16, commonPurl, "7b4fe24321d2b108eda7", "vcruntime140.dll",
+            "Not Provided");
+
+    assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
+            RecursiveComparisonConfiguration.builder()
+                .withIgnoreCollectionOrder(true)
+                .withIgnoreAllExpectedNullFields(true)
+                .withIgnoredFields("bomRef", "properties")
+                .build())
+        .containsExactlyInAnyOrder(component);
+  }
+
+  @Test
   public void testGetByScanId_mavenComponent_json_12() throws Exception {
     testGetByScanId_mavenComponent(MediaType.APPLICATION_JSON, Version.VERSION_12);
   }

@@ -67,6 +67,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -457,7 +458,11 @@ public class ApiReportDataServiceV2
       component.sha256 = comp.getSha256();
       component.componentIdentifier = ApiComponentIdentifierDTOV2
           .fromComponentIdentifier(comp.getComponentIdentifier());
-      component.packageUrl = PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());
+
+      component.packageUrl = StringUtils.isNotBlank(comp.getPackageUrl())
+          ? comp.getPackageUrl()
+          : PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());
+
       ComponentDisplayName componentDisplayName =
           ComponentDisplayNameUtil.fromIdentifier(comp.getComponentIdentifier());
       component.displayName = componentDisplayName != null ? componentDisplayName.toString() : null;

@@ -75,6 +75,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -355,6 +356,7 @@ public class ComponentLoader
           final boolean proprietary = componentJson.get("proprietary").booleanValue();
           String hash = JsonUtils.getNullableString(componentJson.get("hash"));
           String sha256 = JsonUtils.getNullableString(componentJson.get("sha256"));
+          String packageUrl = JsonUtils.getNullableString(componentJson.get("packageUrl"));
 
           Component component = new Component();
           component.setHash(hash);
@@ -374,6 +376,10 @@ public class ComponentLoader
           if (componentJson.has(DISPLAY_NAME_FIELD)) {
             component.setDisplayName(JsonUtils.getTypeToString(componentJson.path(DISPLAY_NAME_FIELD),
                 ComponentDisplayName.class));
+          }
+
+          if (StringUtils.isNotBlank(packageUrl)) {
+            component.setPackageUrl(packageUrl);
           }
 
           component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));

@@ -81,7 +81,7 @@ public class ApiPolicyWaiverRequestResource
       @Parameter(description = "The id for the ownerType provided above. E.g. applicationId if the " +
           "ownerType is application.", required = true)
       @PathParam("ownerId") String ownerId,
-      @Parameter(description = "The policyViolationId for the policy on which you want to create a policy "
+      @Parameter(description = "The policyViolationId for the policy violation on which you want to create a policy "
           + "waiver request. Use the Policy Violation REST API or Reports REST API to obtain the policyViolationId.")
       @PathParam("policyViolationId") String policyViolationId,
       @RequestBody(description = "The request JSON can include the fields<ol>"

@@ -9,6 +9,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.scan.model.ItemContentType;
+
 import org.apache.commons.lang3.StringUtils;
 
 public class ThirdPartyScanContext
@@ -38,6 +40,8 @@ public class ThirdPartyScanContext
   private Boolean isValid;
 
   private final List<String> containerUriPaths = new ArrayList<>();
+
+  private ItemContentType containerItemContentType;
 
   public ThirdPartyScanContext(
       final String scanRequestId,
@@ -141,5 +145,13 @@ public class ThirdPartyScanContext
     if (StringUtils.isNotEmpty(path)) {
       this.containerUriPaths.add(path);
     }
+  }
+
+  public ItemContentType getContainerItemContentType() {
+    return containerItemContentType;
+  }
+
+  public void setContainerItemContentType(ItemContentType containerItemContentType) {
+    this.containerItemContentType = containerItemContentType;
   }
 }

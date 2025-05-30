@@ -80,7 +80,11 @@ public class ThirdPartyResultHandlerFactory
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
           telemetrySender, thirdPartyScanContext);
     }
-    else if (ItemContentType.CONTAINER_URI.equals(itemContentType)) {
+    else if (ItemContentType.CONTAINER_URI.equals(itemContentType)
+        || ItemContentType.CONTAINER_URI_SONATYPE.equals(itemContentType)) {
+
+      thirdPartyScanContext.setContainerItemContentType(itemContentType);
+
       return new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
           telemetrySender, thirdPartyScanContext);

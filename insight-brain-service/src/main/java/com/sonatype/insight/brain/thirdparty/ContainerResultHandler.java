@@ -41,6 +41,7 @@ import com.neuvector.model.ModuleCve;
 import com.neuvector.model.ScanModule;
 import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Bom;
@@ -127,7 +128,8 @@ public class ContainerResultHandler
     bom.setVulnerabilities(new ArrayList<>());
 
     Map<String, Vulnerability> cveVulnerabilityMap = new HashMap<>();
-    Vulnerability[] vulnerabilities = scanRepoReportData.getReport().getVulnerabilities();
+    Vulnerability[] vulnerabilities =
+        ObjectUtils.defaultIfNull(scanRepoReportData.getReport().getVulnerabilities(), new Vulnerability[]{});
     for (Vulnerability vulnerability : vulnerabilities) {
       String name = vulnerability.getName();
       cveVulnerabilityMap.put(name, vulnerability);

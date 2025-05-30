@@ -1,0 +1,157 @@
+<scan version="2.23">
+<configuration>
+<properties>
+<property name="anonymizeArtifactIds" value="false"/>
+<property name="jreInfo" value="true"/>
+<property name="maxSymlinkDepth" value="5"/>
+<property name="dirExcludes" value="**/.*, **/CVS"/>
+<property name="hashFiles" value="true"/>
+<property name="anonymizePaths" value="false"/>
+<property name="procArch" value="true"/>
+<property name="proprietaryPackages" value=""/>
+<property name="proprietaryRegexes" value=""/>
+<property name="fileIncludes" value=""/>
+<property name="fileSizes" value="false"/>
+<property name="operatingSystem" value="true"/>
+<property name="archiveNames" value="true"/>
+<property name="fileExcludes" value=""/>
+<property name="maxDepth" value="256"/>
+<property name="resourceNames" value="true"/>
+<property name="dirIncludes" value=""/>
+<property name="pomProperties" value="true"/>
+<property name="ipAddresses" value="false"/>
+<property name="nameHashes" value="true"/>
+<property name="hashJavaTypes" value="true"/>
+</properties>
+</configuration>
+<metadata commitHash="1c72a4b3ec2505439e7aaade1ddbc927bfaba89f"/>
+<item path="sonatypeFirewallContainer:alpine:3.6" contentType="CONTAINER_URI_SONATYPE" sha1="652160a23ec80cb0ed43">
+<content>{
+  &quot;error_message&quot;: &quot;&quot;,
+&quot;report&quot;: {
+&quot;image_id&quot;: &quot;43773d1dba76c4d537b494a8454558a41729b92aa2ad0feb23521c3e58cd0440&quot;,
+&quot;registry&quot;: &quot;&quot;,
+&quot;repository&quot;: &quot;alpine&quot;,
+&quot;tag&quot;: &quot;3.6&quot;,
+&quot;digest&quot;: &quot;sha256:66790a2b79e1ea3e1dabac43990c54aca5d1ddf268d9a5a0285e4167c8b24475&quot;,
+&quot;base_os&quot;: &quot;alpine:3.6.5&quot;,
+&quot;cvedb_version&quot;: &quot;2.349&quot;,
+&quot;cvedb_create_time&quot;: &quot;2021-06-27T10:16:55Z&quot;,
+&quot;layers&quot;: [],
+&quot;modules&quot;: [
+{
+&quot;name&quot;: &quot;alpine-baselayout&quot;,
+&quot;version&quot;: &quot;3.0.4-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;alpine-keys&quot;,
+&quot;version&quot;: &quot;2.1-r1&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;libressl&quot;,
+&quot;version&quot;: &quot;2.5.5-r2&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;zlib&quot;,
+&quot;version&quot;: &quot;1.2.11-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;musl&quot;,
+&quot;version&quot;: &quot;1.1.16-r15&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;busybox&quot;,
+&quot;version&quot;: &quot;1.26.2-r11&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;apk-tools&quot;,
+&quot;version&quot;: &quot;2.7.6-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;pax-utils&quot;,
+&quot;version&quot;: &quot;1.2.2-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+},
+{
+&quot;name&quot;: &quot;libc-dev&quot;,
+&quot;version&quot;: &quot;0.7.1-r0&quot;,
+&quot;source&quot;: &quot;alpine:3.6.5&quot;
+}
+],
+&quot;checks&quot;: [
+{
+&quot;test_number&quot;: &quot;I.4.1&quot;,
+&quot;catalog&quot;: &quot;image&quot;,
+&quot;type&quot;: &quot;image&quot;,
+&quot;profile&quot;: &quot;Level 1&quot;,
+&quot;scored&quot;: true,
+&quot;description&quot;: &quot;Ensure a user for the container has been created&quot;,
+&quot;remediation&quot;: &quot;&quot;,
+&quot;tags&quot;: [],
+&quot;level&quot;: &quot;WARN&quot;,
+&quot;message&quot;: []
+},
+{
+&quot;test_number&quot;: &quot;I.4.6&quot;,
+&quot;catalog&quot;: &quot;image&quot;,
+&quot;type&quot;: &quot;image&quot;,
+&quot;profile&quot;: &quot;Level 1&quot;,
+&quot;scored&quot;: false,
+&quot;description&quot;: &quot;Ensure that HEALTHCHECK instructions have been added to container images&quot;,
+&quot;remediation&quot;: &quot;&quot;,
+&quot;tags&quot;: [],
+&quot;level&quot;: &quot;WARN&quot;,
+&quot;message&quot;: []
+}
+],
+&quot;secrets&quot;: [],
+&quot;setid_perms&quot;: [],
+&quot;envs&quot;: [
+&quot;PATH\u003d/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin&quot;
+],
+&quot;cmds&quot;: [
+&quot;/bin/sh&quot;
+]
+}
+}</content>
+</item>
+<summary>
+<scannerDriver>cli</scannerDriver>
+<scannerVersion>1.119.0-SNAPSHOT</scannerVersion>
+<operatingSystem>Mac OS X</operatingSystem>
+<processorArchitecture>x86_64</processorArchitecture>
+<startTime>2021-06-28T17:45:09+0000</startTime>
+<endTime>2021-06-28T17:46:02+0000</endTime>
+<files>1</files>
+<clientInfo>
+<property name="java.specification.version" value="14"/>
+<property name="java.runtime.version" value="14.0.2+12"/>
+<property name="java.vm.vendor" value="AdoptOpenJDK"/>
+<property name="java.runtime.name" value="OpenJDK Runtime Environment"/>
+<property name="java.vendor.url" value="https://adoptopenjdk.net/"/>
+<property name="insight.scannerVersion" value="1.119.0-SNAPSHOT"/>
+<property name="os.name" value="Mac OS X"/>
+<property name="java.vm.specification.version" value="14"/>
+<property name="java.vm.name" value="OpenJDK 64-Bit Server VM"/>
+<property name="java.vendor.version" value="AdoptOpenJDK"/>
+<property name="java.vendor.url.bug" value="https://github.com/AdoptOpenJDK/openjdk-support/issues"/>
+<property name="insight.scannerDriver" value="cli"/>
+<property name="java.version" value="14.0.2"/>
+<property name="os.arch" value="x86_64"/>
+<property name="java.specification.vendor" value="Oracle Corporation"/>
+<property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
+<property name="java.vm.compressedOopsMode" value="Zero based"/>
+<property name="java.vm.specification.vendor" value="Oracle Corporation"/>
+<property name="java.specification.name" value="Java Platform API Specification"/>
+<property name="java.vm.info" value="mixed mode, sharing"/>
+<property name="java.vm.version" value="14.0.2+12"/>
+</clientInfo>
+</summary>
+</scan>

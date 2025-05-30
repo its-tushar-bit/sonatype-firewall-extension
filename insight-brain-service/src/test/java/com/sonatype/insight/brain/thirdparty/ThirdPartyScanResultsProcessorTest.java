@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 import com.sonatype.insight.brain.utils.Xpp3Util;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.file.ContainerFileSonatypeProcessor;
 import com.sonatype.insight.scan.manifest.ClairScannerResult;
 import com.sonatype.insight.scan.manifest.ClairScannerVulnerability;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -443,10 +444,43 @@ public class ThirdPartyScanResultsProcessorTest
   }
 
   @Test
-  public void testHandle_container_content() throws Exception {
+  public void testHandle_container_neuvector_content() throws Exception {
     mockValidSbomManagerLicense();
 
-    File scanFile = getScanFile("container/scan-with-container-content.xml");
+    File scanFile = getScanFile("container/scan-with-container-neuvector-content.xml");
+    File tempScanFile = tempDir.newFile();
+    final Organization organization = tempEntity.newOrganization("Test Org");
+    final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scanRequestId", application.getId(),
+        SbomScanType.SBOM, scanFile, StageTypes.COMPLIANCE.getName());
+
+    TelemetryData telemetryData = buildThirdPartyScanTelemetryData();
+    thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(), scanContext,
+        telemetryData);
+
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI),
+        any(ThirdPartyScanContext.class));
+    assertThat(scanContext.getContainerUriPaths()).hasSize(1);
+    assertThat(scanContext.getContainerUriPaths().get(0)).isEqualTo("container:alpine:3.6");
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CONTAINER_URI, true, 9);
+    verify(telemetrySender, times(1)).send(telemetryData);
+    assertTelemetryData(telemetryData, List.of(ItemContentType.CONTAINER_URI.name()));
+
+    var sbomMetadatas = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
+    assertThat(sbomMetadatas).hasSize(1);
+    var sbomMetadata = sbomMetadatas.get(0);
+    var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
+    assertThat(sbomMetadata.getFilename()).isNull(); // gets set outside of ThirdPartyScanResultsProcessor
+    assertThat(thirdPartyFile.getFilename()).isEqualTo("container:alpine:3.6");
+    assertThat(scanContext.getApplicationVersion()).isNotNull();
+    assertExistingSbomFiles();
+  }
+
+  @Test
+  public void testHandle_container_sonatype_content() throws Exception {
+    mockValidSbomManagerLicense();
+
+    File scanFile = getScanFile("container/scan-with-container-sonatype-content.xml");
     File tempScanFile = tempDir.newFile();
     final Organization organization = tempEntity.newOrganization("Test Org");
     final Application application = tempEntity.newApplication("Test Application", "TEST", organization.getId());
@@ -458,20 +492,22 @@ public class ThirdPartyScanResultsProcessorTest
     thirdPartyScanResultsProcessorSpy.filterAndSaveData(scanFile, tempScanFile, tempDir.getRoot(),
         scanContext, telemetryData);
 
-    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI),
+    verify(thirdPartyScanResultsProcessorSpy, times(1)).createHandler(eq(ItemContentType.CONTAINER_URI_SONATYPE),
         any(ThirdPartyScanContext.class));
     assertThat(scanContext.getContainerUriPaths()).hasSize(1);
-    assertThat(scanContext.getContainerUriPaths().get(0)).isEqualTo("container:alpine:3.6");
-    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CONTAINER_URI, true, 9);
+    assertThat(scanContext.getContainerUriPaths().get(0))
+        .isEqualTo(ContainerFileSonatypeProcessor.CONTAINER_FILE_PREFIX + "alpine:3.6");
+    assertFilteredThirdPartyScanContentFile(tempScanFile, ItemContentType.CONTAINER_URI_SONATYPE, true, 9);
     verify(telemetrySender, times(1)).send(telemetryData);
-    assertTelemetryData(telemetryData, List.of("CONTAINER_URI"));
+    assertTelemetryData(telemetryData, List.of(ItemContentType.CONTAINER_URI_SONATYPE.name()));
 
     var sbomMetadatas = thirdPartySbomMetadataDAO.getByApplicationId(application.getId());
     assertThat(sbomMetadatas).hasSize(1);
     var sbomMetadata = sbomMetadatas.get(0);
     var thirdPartyFile = thirdPartyFileDAO.getById(sbomMetadata.getThirdPartyFileId());
     assertThat(sbomMetadata.getFilename()).isNull(); // gets set outside of ThirdPartyScanResultsProcessor
-    assertThat(thirdPartyFile.getFilename()).isEqualTo("container:alpine:3.6");
+    assertThat(thirdPartyFile.getFilename())
+        .isEqualTo(ContainerFileSonatypeProcessor.CONTAINER_FILE_PREFIX + "alpine:3.6");
     assertThat(scanContext.getApplicationVersion()).isNotNull();
     assertExistingSbomFiles();
   }
@@ -1009,6 +1045,10 @@ public class ThirdPartyScanResultsProcessorTest
               else if (ItemContentType.CONTAINER_URI == itemContentType) {
                 assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
                     expectedComponentCount, ItemContentType.CONTAINER_URI);
+              }
+              else if (ItemContentType.CONTAINER_URI_SONATYPE == itemContentType) {
+                assertFilteredScanContentFile(contentElement.getValue(), contentType, optionalValuesPresent,
+                    expectedComponentCount, ItemContentType.CONTAINER_URI_SONATYPE);
               }
               else if (IAC_FILE == itemContentType) {
                 final String expectedIacXmlContent = "terraform";

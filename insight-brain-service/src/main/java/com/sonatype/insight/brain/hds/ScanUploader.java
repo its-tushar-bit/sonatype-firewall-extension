@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
@@ -89,14 +90,16 @@ public class ScanUploader
       uploadMetadata.putAll(matcherConfiguration);
     }
 
-    boolean isCpeDataMatchingEnabled;
+    boolean isCpeDataMatchingEnabled = false;
 
     if (ProxyStageType.ID.equals(stageTypeId)
+        && thirdPartyScanContext != null
+        && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
         && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
         && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {
       isCpeDataMatchingEnabled = true;
     }
-    else {
+    else if (thirdPartyScanContext == null || thirdPartyScanContext.getContainerItemContentType() == null) {
       isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(application.getId());
     }
 

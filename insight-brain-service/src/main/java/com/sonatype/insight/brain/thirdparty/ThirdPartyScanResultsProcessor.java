@@ -72,7 +72,7 @@ public class ThirdPartyScanResultsProcessor
 
   private static final List<String> thirdPartyItemContentTypes =
       asList(ItemContentType.CLAIR_SCANNER.name(), ItemContentType.SBOM.name(), ItemContentType.CONTAINER_URI.name(),
-          ItemContentType.SPDX.name(), ItemContentType.IAC_FILE.name());
+          ItemContentType.CONTAINER_URI_SONATYPE.name(), ItemContentType.SPDX.name(), ItemContentType.IAC_FILE.name());
 
   private static final XMLEventFactory EVENT_FACTORY = XMLEventFactory.newInstance();
 
@@ -250,7 +250,8 @@ public class ThirdPartyScanResultsProcessor
     var thirdPartyFile = storeSbom(itemElement, contentElement, scanContext);
 
     ItemContentType contentItemType = ItemContentType.valueOf(contentType);
-    if (ItemContentType.CONTAINER_URI.equals(contentItemType)) {
+    if (ItemContentType.CONTAINER_URI.equals(contentItemType)
+        || ItemContentType.CONTAINER_URI_SONATYPE.equals(contentItemType)) {
       scanContext.addContainerUriPath(path);
     }
     ThirdPartyScanResultHandler handler = createHandler(contentItemType, scanContext);

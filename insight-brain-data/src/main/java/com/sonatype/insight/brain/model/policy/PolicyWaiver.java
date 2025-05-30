@@ -177,39 +177,43 @@ public class PolicyWaiver
     return hash;
   }
 
-  public void setHash(String hash) {
+  public PolicyWaiver setHash(String hash) {
     this.hash = HashHelper.truncateHash(hash);
+    return this;
   }
 
   public String getPolicyId() {
     return policyId;
   }
 
-  public void setPolicyId(String policyId) {
+  public PolicyWaiver setPolicyId(String policyId) {
     this.policyId = policyId;
+    return this;
   }
 
   public String getOwnerId() {
     return ownerId;
   }
 
-  public void setOwnerId(String ownerId) {
+  public PolicyWaiver setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+    return this;
   }
 
   public String getConstraintFactsJson() {
     return constraintFactsJson;
   }
 
-  public void setConstraintFactsJson(String constraintFactsJson) {
+  public PolicyWaiver setConstraintFactsJson(String constraintFactsJson) {
     if (StringUtils.isBlank(constraintFactsJson)) {
       constraintFactsJson = null;
     }
     this.constraintFactsJson = constraintFactsJson;
     constraintFacts = null;
+    return this;
   }
 
-  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+  public PolicyWaiver setConstraintFacts(List<ConstraintFact> constraintFacts) {
     if (constraintFacts == null || constraintFacts.isEmpty()) {
       this.constraintFacts = null;
       constraintFactsJson = null;
@@ -218,6 +222,7 @@ public class PolicyWaiver
       this.constraintFacts = constraintFacts;
       constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     }
+    return this;
   }
 
   public List<ConstraintFact> getConstraintFacts() {
@@ -236,8 +241,9 @@ public class PolicyWaiver
     return comment;
   }
 
-  public void setComment(String comment) {
+  public PolicyWaiver setComment(String comment) {
     this.comment = comment;
+    return this;
   }
 
   public boolean isForContainerImage() {
@@ -248,84 +254,95 @@ public class PolicyWaiver
     return isForContainerImageComponent;
   }
 
-  public void setForContainerImage(final boolean forContainerImage) {
+  public PolicyWaiver setForContainerImage(final boolean forContainerImage) {
     isForContainerImage = forContainerImage;
+    return this;
   }
 
-  public void setForContainerImageComponent(final boolean forContainerImageComponent) {
+  public PolicyWaiver setForContainerImageComponent(final boolean forContainerImageComponent) {
     isForContainerImageComponent = forContainerImageComponent;
+    return this;
   }
 
   public Date getCreateTime() {
     return createTime;
   }
 
-  public void setCreateTime(Date createTime) {
+  public PolicyWaiver setCreateTime(Date createTime) {
     this.createTime = createTime;
+    return this;
   }
 
   public Date getExpiryTime() {
     return expiryTime;
   }
 
-  public void setExpiryTime(Date expiryTime) {
+  public PolicyWaiver setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
+    return this;
   }
 
   public String getCreatorId() {
     return creatorId;
   }
 
-  public void setCreatorId(String creatorId) {
+  public PolicyWaiver setCreatorId(String creatorId) {
     this.creatorId = creatorId;
+    return this;
   }
 
   public String getCreatorName() {
     return creatorName;
   }
 
-  public void setCreatorName(String creatorName) {
+  public PolicyWaiver setCreatorName(String creatorName) {
     this.creatorName = creatorName;
+    return this;
   }
 
   public String getAssociatedPackageUrl() {
     return associatedPackageUrl;
   }
 
-  public void setAssociatedPackageUrl(String associatedPackageUrl) {
+  public PolicyWaiver setAssociatedPackageUrl(String associatedPackageUrl) {
     this.associatedPackageUrl = associatedPackageUrl;
+    return this;
   }
 
   public ComponentMatcherStrategyForWaiver getComponentMatchStrategy() {
     return componentMatchStrategy;
   }
 
-  public void setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
+  public PolicyWaiver setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
     this.componentMatchStrategy = componentMatchStrategy;
+    return this;
   }
 
   public Boolean isComponentUpgradeAvailable() {
     return componentUpgradeAvailable;
   }
 
-  public void setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
+  public PolicyWaiver setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
     this.componentUpgradeAvailable = componentUpgradeAvailable;
+    return this;
   }
 
   public String getWaiverReasonId() {
     return waiverReasonId;
   }
 
-  public void setWaiverReasonId(String waiverReasonId) {
+  public PolicyWaiver setWaiverReasonId(String waiverReasonId) {
     this.waiverReasonId = waiverReasonId;
+    return this;
   }
 
   public boolean isExpireWhenRemediationAvailable() {
     return expireWhenRemediationAvailable;
   }
 
-  public void setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
+  public PolicyWaiver setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
     this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
+    return this;
   }
 
   public ComponentIdentifier getComponentIdentifier() {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -25,7 +24,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.Condition;
@@ -68,7 +66,7 @@ public class RequestWaiverUpdateTest
   private Date threeDaysFromNow;
 
   @Before
-  public void init() throws IOException {
+  public void init() {
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     threeDaysFromNow = DateUtils.addDays(now, 3);
     
@@ -89,7 +87,7 @@ public class RequestWaiverUpdateTest
 
     String waiverReasonIdOfAcknowledgedViolation = "9b704ef5bc064fc29d7fe08a251ee9a6";
     
-    policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+    policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash1")
         .setPolicyId(securityPolicy.getId())
         .setPolicyViolationId(policyViolation.getId())
@@ -103,8 +101,7 @@ public class RequestWaiverUpdateTest
         .setExpiryTime(threeDaysFromNow)
         .setRequesterId("testuser1")
         .setRequesterName("Test User 1")
-        .setComponentUpgradeAvailable(false)
-        .build());
+        .setComponentUpgradeAvailable(false));
     refreshOrOpen(DashboardPage.url());
     loginAsLimitedUser();
   }

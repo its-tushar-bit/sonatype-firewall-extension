@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -798,7 +797,7 @@ public class DashboardResourceTest
 
     Policy policy = tempEntity.newPolicy();
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequestBuilder().setPolicyId(policy.getId()).setOwnerId(app.getId()).build();
+        new PolicyWaiverRequest().setPolicyId(policy.getId()).setOwnerId(app.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
 
     HttpResponse response =
@@ -831,19 +830,19 @@ public class DashboardResourceTest
         new ConstraintFact(sourceConstraint.getId(), sourceConstraint.getName(), sourceConstraint.getOperator().name());
     ComponentIdentifier componentIdentifier =
         ComponentIdentifier.createMavenCoordinates("GroupId", "ArtifactId", "1.0.0", "Classifier", "Extension");
-    PolicyWaiverRequest policyWaiverRequest1 = new PolicyWaiverRequestBuilder().setHash("hash1")
+    PolicyWaiverRequest policyWaiverRequest1 = new PolicyWaiverRequest().setHash("hash1")
         .setPolicyId(policy.getId()).setOwnerId(app.getId())
         .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
         .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
-        .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 1").build();
+        .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 1");
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest1);
     PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("system", "Something");
     PolicyWaiverRequest policyWaiverRequest2 =
-        new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policy.getId()).setOwnerId(org.getId())
+        new PolicyWaiverRequest().setHash("hash2").setPolicyId(policy.getId()).setOwnerId(org.getId())
             .setConstraintFacts(Collections.singletonList(sourceConstraintFact))
             .setAssociatedPackageUrl(PackageUrlIdentifier.toPackageUrl(componentIdentifier))
             .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).setComment("comment 2")
-            .setWaiverReasonId(waiverReason.getId()).build();
+            .setWaiverReasonId(waiverReason.getId());
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest2);
 
     RisksFilterDTO filter = new RisksFilterDTO();

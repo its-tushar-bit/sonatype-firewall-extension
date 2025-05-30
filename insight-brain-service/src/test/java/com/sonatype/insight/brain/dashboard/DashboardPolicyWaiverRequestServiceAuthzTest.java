@@ -14,7 +14,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverRequest;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
 import org.junit.Before;
@@ -54,7 +53,7 @@ public class DashboardPolicyWaiverRequestServiceAuthzTest
 
   private PolicyWaiverRequest createPolicyWaiverRequest(String policyId, String ownerId) {
     PolicyWaiverRequest policyWaiverRequest =
-        new PolicyWaiverRequestBuilder().setOwnerId(ownerId).setPolicyId(policyId).build();
+        new PolicyWaiverRequest().setOwnerId(ownerId).setPolicyId(policyId);
     tempEntity.newPolicyWaiverRequest(policyWaiverRequest);
     return policyWaiverRequest;
   }

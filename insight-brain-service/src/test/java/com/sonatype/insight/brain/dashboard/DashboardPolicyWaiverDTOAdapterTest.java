@@ -17,14 +17,13 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
-import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
-import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
+import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -192,18 +191,17 @@ public class DashboardPolicyWaiverDTOAdapterTest
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
 
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash("hash")
-        .withPolicyId(testPolicy.getId())
-        .withOwnerId(app.getId())
-        .withConstraintFacts(singletonList(constraintFact))
-        .withAssociatedPackageUrl(purl)
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("a comment")
-        .withCreateTime(today)
-        .withExpiryTime(aWeekFromNow)
-        .withComponentUpgradeAvailable(true)
-        .build();
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash("hash")
+        .setPolicyId(testPolicy.getId())
+        .setOwnerId(app.getId())
+        .setConstraintFacts(singletonList(constraintFact))
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("a comment")
+        .setCreateTime(today)
+        .setExpiryTime(aWeekFromNow)
+        .setComponentUpgradeAvailable(true);
 
     return tempEntity.newWaiver(policyWaiver);
   }

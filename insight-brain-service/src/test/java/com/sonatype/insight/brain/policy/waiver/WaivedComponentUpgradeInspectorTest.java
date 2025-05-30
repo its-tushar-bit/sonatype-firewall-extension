@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -125,9 +124,9 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withComponentUpgradeAvailable(null).withAssociatedPackageUrl(null).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setComponentUpgradeAvailable(null).setAssociatedPackageUrl(null);
     tempEntity.newWaiver(waiver);
 
     waivedComponentUpgradeInspector.run();
@@ -143,17 +142,20 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiverAllVersions =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(
-                ComponentMatcherStrategyForWaiver.ALL_VERSIONS).withAssociatedPackageUrl(DUMMY_PURL).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(
+                ComponentMatcherStrategyForWaiver.ALL_VERSIONS)
+            .setAssociatedPackageUrl(DUMMY_PURL);
     PolicyWaiver waiverAllComponents =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(
-                ComponentMatcherStrategyForWaiver.ALL_COMPONENTS).withAssociatedPackageUrl(DUMMY_PURL).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(
+                ComponentMatcherStrategyForWaiver.ALL_COMPONENTS)
+            .setAssociatedPackageUrl(DUMMY_PURL);
     PolicyWaiver waiverExactComponent =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(
-                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).withAssociatedPackageUrl(DUMMY_PURL).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL);
     tempEntity.newWaiver(waiverAllVersions);
     tempEntity.newWaiver(waiverAllComponents);
     tempEntity.newWaiver(waiverExactComponent);
@@ -177,9 +179,9 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withComponentUpgradeAvailable(true).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setComponentUpgradeAvailable(true);
     tempEntity.newWaiver(waiver);
 
     waivedComponentUpgradeInspector.run();
@@ -195,10 +197,10 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withAssociatedPackageUrl(DUMMY_PURL)
-            .build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL)
+    ;
     tempEntity.newWaiver(waiver);
 
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
@@ -223,10 +225,10 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withAssociatedPackageUrl(DUMMY_PURL)
-            .build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL)
+    ;
     tempEntity.newWaiver(waiver);
 
     doReturn(null).when(apiComponentRemediationService)
@@ -248,10 +250,10 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withAssociatedPackageUrl(DUMMY_PURL)
-            .build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL)
+    ;
     tempEntity.newWaiver(waiver);
 
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
@@ -278,16 +280,16 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver1 =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withAssociatedPackageUrl(DUMMY_PURL)
-            .build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL)
+    ;
     tempEntity.newWaiver(waiver1);
     PolicyWaiver waiver2 =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(org.getId())
-            .withComponentMatcherStrategyForWaiver(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
-            .withAssociatedPackageUrl(DUMMY_PURL)
-            .build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(org.getId())
+            .setComponentMatchStrategy(ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL)
+    ;
     tempEntity.newWaiver(waiver2);
     doThrow(new BadRequestException("Something happened while processing waiver")).when(apiComponentRemediationService)
         .getSuggestedRemediationForComponentNoAuthz(any(ApiComponentDTOV2.class), eq(OwnerType.APPLICATION),
@@ -312,9 +314,10 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(
-                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).withAssociatedPackageUrl(DUMMY_PURL).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL);
     tempEntity.newWaiver(waiver);
 
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();
@@ -351,9 +354,10 @@ public class WaivedComponentUpgradeInspectorTest
     Application app1 = tempEntity.newApplication("Application 1", "Application-1", org.getId());
     Policy policy = tempEntity.newPolicy(org);
     PolicyWaiver waiver =
-        new TestPolicyWaiverBuilder().withPolicyId(policy.getId()).withOwnerId(app1.getId())
-            .withComponentMatcherStrategyForWaiver(
-                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT).withAssociatedPackageUrl(DUMMY_PURL).build();
+        new PolicyWaiver().setPolicyId(policy.getId()).setOwnerId(app1.getId())
+            .setComponentMatchStrategy(
+                ComponentMatcherStrategyForWaiver.EXACT_COMPONENT)
+            .setAssociatedPackageUrl(DUMMY_PURL);
     waiver.setExpireWhenRemediationAvailable(true);
     tempEntity.newWaiver(waiver);
     ApiComponentRemediationDTO simpleRemediationResponseWithSuggestion = getSimpleRemediationResponseWithSuggestion();

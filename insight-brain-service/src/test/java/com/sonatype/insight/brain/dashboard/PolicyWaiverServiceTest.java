@@ -47,7 +47,6 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
@@ -302,19 +301,17 @@ public class PolicyWaiverServiceTest
             .withOwnerId(org.getId())
             .build());
 
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(repository.getId())
-        .build();
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId());
 
     tempEntity.newWaiver(policyWaiver);
 
-    PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(app1.getId())
-        .build();
+    PolicyWaiver policyWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
 
     tempEntity.newWaiver(policyWaiver1);
 
@@ -328,11 +325,10 @@ public class PolicyWaiverServiceTest
 
     assertPolicyWaiverWithoutDetails(dashboardPolicyWaivers.dashboardResults.get(0), policyWaiver, repository);
 
-    PolicyWaiver policyWaiver2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .build();
+    PolicyWaiver policyWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     tempEntity.newWaiver(policyWaiver2);
 
@@ -359,38 +355,34 @@ public class PolicyWaiverServiceTest
             .build());
 
     // add app 1 waiver
-    PolicyWaiver policyWaiver1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(app1.getId())
-        .build();
+    PolicyWaiver policyWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
     tempEntity.newWaiver(policyWaiver1);
 
     // add app 3 waiver
     Organization org2 = tempEntity.newOrganization("Org3");
     Application application3 = tempEntity.newApplication("Application-3", " Applicatin-3", org2.getId());
-    PolicyWaiver policyWaiverOrg2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(application3.getId())
-        .build();
+    PolicyWaiver policyWaiverOrg2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(application3.getId());
     tempEntity.newWaiver(policyWaiverOrg2);
 
     // add waiver for empty org
     Organization org3 = tempEntity.newOrganization("Org4");
-    PolicyWaiver policyWaiverOrg3 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(org3.getId())
-        .build();
+    PolicyWaiver policyWaiverOrg3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(org3.getId());
     tempEntity.newWaiver(policyWaiverOrg3);
 
     // add waiver for repo container
-    PolicyWaiver policyWaiverRepoContainer = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
-        .build();
+    PolicyWaiver policyWaiverRepoContainer = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     tempEntity.newWaiver(policyWaiverRepoContainer);
 
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
@@ -404,11 +396,10 @@ public class PolicyWaiverServiceTest
     Repository repository = tempEntity.newRepository();
 
     // add repo waiver
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy.getId())
-        .withOwnerId(repository.getId())
-        .build();
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId());
     tempEntity.newWaiver(policyWaiver);
 
     RepositoryComponent
@@ -907,33 +898,29 @@ public class PolicyWaiverServiceTest
             .withOwnerId(app1.getId())
             .build());
 
-    PolicyWaiver policyWaiver1App1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 11))
-        .build();
+    PolicyWaiver policyWaiver1App1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
-    PolicyWaiver policyWaiver2App1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 7))
-        .build();
+    PolicyWaiver policyWaiver2App1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 7));
 
-    PolicyWaiver policyWaiver1App2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app2.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 1))
-        .build();
+    PolicyWaiver policyWaiver1App2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 1));
 
-    PolicyWaiver policyWaiver2App2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app2.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 2))
-        .build();
+    PolicyWaiver policyWaiver2App2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 2));
 
     tempEntity.newWaiver(policyWaiver1App1);
     tempEntity.newWaiver(policyWaiver2App1);
@@ -986,26 +973,23 @@ public class PolicyWaiverServiceTest
             .withOwnerId(app2.getId())
             .build());
 
-    PolicyWaiver policyWaiver1App1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 11))
-        .build();
+    PolicyWaiver policyWaiver1App1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 11));
 
-    PolicyWaiver policyWaiver2App1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 7))
-        .build();
+    PolicyWaiver policyWaiver2App1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 7));
 
-    PolicyWaiver policyWaiver1App2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy3.getId())
-        .withOwnerId(app2.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 1))
-        .build();
+    PolicyWaiver policyWaiver1App2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy3.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 1));
 
     tempEntity.newWaiver(policyWaiver1App1);
     tempEntity.newWaiver(policyWaiver2App1);
@@ -1049,26 +1033,23 @@ public class PolicyWaiverServiceTest
             .withOwnerId(app1.getId())
             .build());
 
-    PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), -11))
-        .build();
+    PolicyWaiver expiredPolicyWaiverApp1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), -11));
 
-    PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 5))
-        .build();
+    PolicyWaiver activePolicyWaiverApp1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 5));
 
-    PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app2.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 3))
-        .build();
+    PolicyWaiver activePolicyWaiverApp2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 3));
 
     tempEntity.newWaiver(expiredPolicyWaiverApp1);
     tempEntity.newWaiver(activePolicyWaiverApp1);
@@ -1113,26 +1094,23 @@ public class PolicyWaiverServiceTest
             .withOwnerId(app1.getId())
             .build());
 
-    PolicyWaiver expiredPolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy1.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), -11))
-        .build();
+    PolicyWaiver expiredPolicyWaiverApp1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy1.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), -11));
 
-    PolicyWaiver activePolicyWaiverApp1 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app1.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 5))
-        .build();
+    PolicyWaiver activePolicyWaiverApp1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app1.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 5));
 
-    PolicyWaiver activePolicyWaiverApp2 = new TestPolicyWaiverBuilder()
-        .withHash(TemporaryEntity.uuid().substring(0, 5))
-        .withPolicyId(policy2.getId())
-        .withOwnerId(app2.getId())
-        .withExpiryTime(DateUtils.addDays(new Date(), 3))
-        .build();
+    PolicyWaiver activePolicyWaiverApp2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy2.getId())
+        .setOwnerId(app2.getId())
+        .setExpiryTime(DateUtils.addDays(new Date(), 3));
 
     tempEntity.newWaiver(expiredPolicyWaiverApp1);
     tempEntity.newWaiver(activePolicyWaiverApp1);
@@ -1448,18 +1426,17 @@ public class PolicyWaiverServiceTest
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash("hash")
-        .withPolicyId(highThreatPolicy.getId())
-        .withOwnerId(application.getId())
-        .withConstraintFacts(singletonList(constraintFact))
-        .withAssociatedPackageUrl(purl)
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("a comment")
-        .withCreateTime(today)
-        .withExpiryTime(aWeekFromNow)
-        .withComponentUpgradeAvailable(true)
-        .build();
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash("hash")
+        .setPolicyId(highThreatPolicy.getId())
+        .setOwnerId(application.getId())
+        .setConstraintFacts(singletonList(constraintFact))
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("a comment")
+        .setCreateTime(today)
+        .setExpiryTime(aWeekFromNow)
+        .setComponentUpgradeAvailable(true);
 
     return tempEntity.newWaiver(policyWaiver);
   }

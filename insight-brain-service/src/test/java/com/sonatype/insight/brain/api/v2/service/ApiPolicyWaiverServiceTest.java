@@ -58,7 +58,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -1697,13 +1696,12 @@ public class ApiPolicyWaiverServiceTest
   public void testGetPolicyWaiver_ComponentUpgradeAvailable() {
     Application application = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(application);
-    PolicyWaiver policyWaiver = new TestPolicyWaiverBuilder()
-        .withHash("hash")
-        .withPolicyId(policy.getId())
-        .withOwnerId(application.getId())
-        .withComponentUpgradeAvailable(true)
-        .withWaverReasonId(ACKNOWLEDGED_VIOLATION_REASON_ID)
-        .build();
+    PolicyWaiver policyWaiver = new PolicyWaiver()
+        .setHash("hash")
+        .setPolicyId(policy.getId())
+        .setOwnerId(application.getId())
+        .setComponentUpgradeAvailable(true)
+        .setWaiverReasonId(ACKNOWLEDGED_VIOLATION_REASON_ID);
 
     tempEntity.newWaiver(policyWaiver);
 

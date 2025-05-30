@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
@@ -1024,19 +1023,18 @@ public class FirewallPageTest
     Date twoDaysAgo = DateUtils.addDays(now, -2);
     Date threeDaysFromNow = DateUtils.addDays(now, 3);
 
-    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
-        .withHash("hash1")
-        .withPolicyId(policy.getId())
-        .withOwnerId(repository.getId())
-        .withAssociatedPackageUrl(purl)
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("comment repository")
-        .withCreateTime(twoDaysAgo)
-        .withExpiryTime(threeDaysFromNow)
-        .withCreatorId("testuser")
-        .withCreatorName("Test User")
-        .withComponentUpgradeAvailable(false)
-        .build());
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash1")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId())
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment repository")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
 
     refreshOrOpen(FirewallPage.urlToFirewallWaivers());
     WaiversResults waiversResults = DashboardPage.waiversView().results();

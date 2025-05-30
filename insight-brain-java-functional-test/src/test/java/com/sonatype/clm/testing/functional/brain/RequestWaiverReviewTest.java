@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
@@ -34,7 +33,6 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.time.DateFormatUtils;
@@ -100,7 +98,7 @@ public class RequestWaiverReviewTest
   }
 
   @Before
-  public void init() throws IOException {
+  public void init() {
     policyWaiverDAO = lookup(PolicyWaiverDAO.class);
     policyWaiverRequestDAO = lookup(PolicyWaiverRequestDAO.class);
 
@@ -117,7 +115,7 @@ public class RequestWaiverReviewTest
 
     waiverReason = "9b704ef5bc064fc29d7fe08a251ee9a6"; //Acknowledged violation
 
-    policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+    policyWaiverRequest = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash1")
         .setPolicyId(securityPolicy.getId())
         .setPolicyViolationId(policyViolation.getId())
@@ -131,8 +129,7 @@ public class RequestWaiverReviewTest
         .setExpiryTime(threeDaysFromNow)
         .setRequesterId("testuser1")
         .setRequesterName("Test User 1")
-        .setComponentUpgradeAvailable(false)
-        .build());
+        .setComponentUpgradeAvailable(false));
 
     refreshOrOpen(RequestWaiverReviewPage.url(organization.getType().toString(), organization.getId(),
         policyWaiverRequest.getId()));
@@ -221,7 +218,7 @@ public class RequestWaiverReviewTest
 
   @Test
   public void testApproveButton_ApproveWaiverRequestAndCreatesWaiverWithRootOrgScopeAndNoUpdatedValues() {
-    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash2")
         .setPolicyId(securityPolicy.getId())
         .setPolicyViolationId(policyViolation.getId())
@@ -235,8 +232,7 @@ public class RequestWaiverReviewTest
         .setExpiryTime(threeDaysFromNow)
         .setRequesterId("admin")
         .setRequesterName("Admin User")
-        .setComponentUpgradeAvailable(false)
-        .build());
+        .setComponentUpgradeAvailable(false));
 
     refreshOrOpen(RequestWaiverReviewPage.url("organization", ROOT_ORGANIZATION_ID,
         policyWaiverRequest2.getId()));

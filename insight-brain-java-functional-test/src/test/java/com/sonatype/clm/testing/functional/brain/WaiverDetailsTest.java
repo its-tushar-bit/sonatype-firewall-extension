@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.TestPolicyWaiverBuilder;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -113,57 +112,53 @@ public class  WaiverDetailsTest extends AbstractFunctionalTest
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 
-    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
-        .withHash("hash1")
-        .withPolicyId(securityPolicies.get(0).getId())
-        .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(purl)
-            .withConstraintFacts(policyViolations.get(0).getConstraintFacts())
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("comment")
-        .withCreateTime(Date.from(twoDaysAgo))
-        .withExpiryTime(Date.from(threeDaysFromNow))
-        .withCreatorName("Test User")
-        .withComponentUpgradeAvailable(true)
-        .build());
+    PolicyWaiver policyWaiver1 = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash1")
+        .setPolicyId(securityPolicies.get(0).getId())
+        .setOwnerId(application.getId())
+        .setAssociatedPackageUrl(purl)
+            .setConstraintFacts(policyViolations.get(0).getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment")
+        .setCreateTime(Date.from(twoDaysAgo))
+        .setExpiryTime(Date.from(threeDaysFromNow))
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(true));
 
-    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
-        .withHash("hash2")
-        .withPolicyId(securityPolicies.get(1).getId())
-        .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(purl)
-        .withConstraintFacts(policyViolations.get(1).getConstraintFacts())
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("comment")
-        .withCreateTime(Date.from(threeDaysAgo))
-        .withExpiryTime(Date.from(fiveDaysFromNow))
-        .build());
+    PolicyWaiver policyWaiver2 = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash2")
+        .setPolicyId(securityPolicies.get(1).getId())
+        .setOwnerId(application.getId())
+        .setAssociatedPackageUrl(purl)
+        .setConstraintFacts(policyViolations.get(1).getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment")
+        .setCreateTime(Date.from(threeDaysAgo))
+        .setExpiryTime(Date.from(fiveDaysFromNow)));
 
-    PolicyWaiver policyWaiver3 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
-        .withHash("hash3")
-        .withPolicyId(securityPolicies.get(2).getId())
-        .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(purl)
-        .withConstraintFacts(policyViolations.get(2).getConstraintFacts())
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("comment")
-        .withCreateTime(Date.from(fiveDaysAgo))
-        .withExpiryTime(Date.from(sevenFromNow))
-        .build());
+    PolicyWaiver policyWaiver3 = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash3")
+        .setPolicyId(securityPolicies.get(2).getId())
+        .setOwnerId(application.getId())
+        .setAssociatedPackageUrl(purl)
+        .setConstraintFacts(policyViolations.get(2).getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment")
+        .setCreateTime(Date.from(fiveDaysAgo))
+        .setExpiryTime(Date.from(sevenFromNow)));
 
-    PolicyWaiver policyWaiver4 = tempEntity.newWaiver(new TestPolicyWaiverBuilder()
-        .withHash("hash3")
-        .withPolicyId(securityPolicies.get(3).getId())
-        .withOwnerId(application.getId())
-        .withAssociatedPackageUrl(purl)
-        .withConstraintFacts(policyViolations.get(3).getConstraintFacts())
-        .withComponentMatcherStrategyForWaiver(EXACT_COMPONENT)
-        .withComment("comment")
-        .withCreateTime(Date.from(fiveDaysAgo))
-        .withExpiryTime(null)
-        .withCreatorName("Test User")
-        .withWaverReasonId(waiverReason.getId())
-        .build());
+    PolicyWaiver policyWaiver4 = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash3")
+        .setPolicyId(securityPolicies.get(3).getId())
+        .setOwnerId(application.getId())
+        .setAssociatedPackageUrl(purl)
+        .setConstraintFacts(policyViolations.get(3).getConstraintFacts())
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("comment")
+        .setCreateTime(Date.from(fiveDaysAgo))
+        .setExpiryTime(null)
+        .setCreatorName("Test User")
+        .setWaiverReasonId(waiverReason.getId()));
 
     policyWaivers = new ArrayList<>() {{
         add(policyWaiver1);

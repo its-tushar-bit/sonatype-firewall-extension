@@ -176,39 +176,43 @@ public class PolicyWaiverRequest
     return hash;
   }
 
-  public void setHash(String hash) {
+  public PolicyWaiverRequest setHash(String hash) {
     this.hash = HashHelper.truncateHash(hash);
+    return this;
   }
 
   public String getPolicyId() {
     return policyId;
   }
 
-  public void setPolicyId(String policyId) {
+  public PolicyWaiverRequest setPolicyId(String policyId) {
     this.policyId = policyId;
+    return this;
   }
 
   public String getOwnerId() {
     return ownerId;
   }
 
-  public void setOwnerId(String ownerId) {
+  public PolicyWaiverRequest setOwnerId(String ownerId) {
     this.ownerId = ownerId;
+    return this;
   }
 
   public String getConstraintFactsJson() {
     return constraintFactsJson;
   }
 
-  public void setConstraintFactsJson(String constraintFactsJson) {
+  public PolicyWaiverRequest setConstraintFactsJson(String constraintFactsJson) {
     if (StringUtils.isBlank(constraintFactsJson)) {
       constraintFactsJson = null;
     }
     this.constraintFactsJson = constraintFactsJson;
     constraintFacts = null;
+    return this;
   }
 
-  public void setConstraintFacts(List<ConstraintFact> constraintFacts) {
+  public PolicyWaiverRequest setConstraintFacts(List<ConstraintFact> constraintFacts) {
     if (constraintFacts == null || constraintFacts.isEmpty()) {
       this.constraintFacts = null;
       constraintFactsJson = null;
@@ -217,6 +221,7 @@ public class PolicyWaiverRequest
       this.constraintFacts = constraintFacts;
       constraintFactsJson = JsonUtils.writeUnformatted(constraintFacts);
     }
+    return this;
   }
 
   public List<ConstraintFact> getConstraintFacts() {
@@ -235,96 +240,108 @@ public class PolicyWaiverRequest
     return comment;
   }
 
-  public void setComment(String comment) {
+  public PolicyWaiverRequest setComment(String comment) {
     this.comment = comment;
+    return this;
   }
 
   public Date getExpiryTime() {
     return expiryTime;
   }
 
-  public void setExpiryTime(Date expiryTime) {
+  public PolicyWaiverRequest setExpiryTime(Date expiryTime) {
     this.expiryTime = expiryTime;
+    return this;
   }
 
   public String getAssociatedPackageUrl() {
     return associatedPackageUrl;
   }
 
-  public void setAssociatedPackageUrl(String associatedPackageUrl) {
+  public PolicyWaiverRequest setAssociatedPackageUrl(String associatedPackageUrl) {
     this.associatedPackageUrl = associatedPackageUrl;
+    return this;
   }
 
   public ComponentMatcherStrategyForWaiver getComponentMatchStrategy() {
     return componentMatchStrategy;
   }
 
-  public void setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
+  public PolicyWaiverRequest setComponentMatchStrategy(ComponentMatcherStrategyForWaiver componentMatchStrategy) {
     this.componentMatchStrategy = componentMatchStrategy;
+    return this;
   }
 
   public Boolean isComponentUpgradeAvailable() {
     return componentUpgradeAvailable;
   }
 
-  public void setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
+  public PolicyWaiverRequest setComponentUpgradeAvailable(Boolean componentUpgradeAvailable) {
     this.componentUpgradeAvailable = componentUpgradeAvailable;
+    return this;
   }
 
   public String getWaiverReasonId() {
     return waiverReasonId;
   }
 
-  public void setWaiverReasonId(String waiverReasonId) {
+  public PolicyWaiverRequest setWaiverReasonId(String waiverReasonId) {
     this.waiverReasonId = waiverReasonId;
+    return this;
   }
 
   public boolean isExpireWhenRemediationAvailable() {
     return expireWhenRemediationAvailable;
   }
 
-  public void setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
+  public PolicyWaiverRequest setExpireWhenRemediationAvailable(boolean expireWhenRemediationAvailable) {
     this.expireWhenRemediationAvailable = expireWhenRemediationAvailable;
+    return this;
   }
 
   public PolicyWaiverRequestStatus getStatus() {
     return status;
   }
 
-  public void setStatus(final PolicyWaiverRequestStatus status) {
+  public PolicyWaiverRequest setStatus(final PolicyWaiverRequestStatus status) {
     this.status = status;
+    return this;
   }
 
   public String getRequesterId() {
     return requesterId;
   }
 
-  public void setRequesterId(final String requesterId) {
+  public PolicyWaiverRequest setRequesterId(final String requesterId) {
     this.requesterId = requesterId;
+    return this;
   }
 
   public String getRequesterName() {
     return requesterName;
   }
 
-  public void setRequesterName(final String requesterName) {
+  public PolicyWaiverRequest setRequesterName(final String requesterName) {
     this.requesterName = requesterName;
+    return this;
   }
 
   public String getNoteToReviewer() {
     return noteToReviewer;
   }
 
-  public void setNoteToReviewer(String noteToReviewer) {
+  public PolicyWaiverRequest setNoteToReviewer(String noteToReviewer) {
     this.noteToReviewer = noteToReviewer;
+    return this;
   }
 
   public String getRejectionReason() {
     return rejectionReason;
   }
 
-  public void setRejectionReason(final String rejectionReason) {
+  public PolicyWaiverRequest setRejectionReason(final String rejectionReason) {
     this.rejectionReason = rejectionReason;
+    return this;
   }
 
   public ComponentIdentifier getComponentIdentifier() {
@@ -341,47 +358,53 @@ public class PolicyWaiverRequest
     return policyWaiverId;
   }
 
-  public void setPolicyWaiverId(String policyWaiverId) {
+  public PolicyWaiverRequest setPolicyWaiverId(String policyWaiverId) {
     this.policyWaiverId = policyWaiverId;
+    return this;
   }
 
   public Date getRequestTime() {
     return requestTime;
   }
 
-  public void setRequestTime(Date requestTime) {
+  public PolicyWaiverRequest setRequestTime(Date requestTime) {
     this.requestTime = requestTime;
+    return this;
   }
 
   public String getReviewerId() {
     return reviewerId;
   }
 
-  public void setReviewerId(String reviewerId) {
+  public PolicyWaiverRequest setReviewerId(String reviewerId) {
     this.reviewerId = reviewerId;
+    return this;
   }
 
   public String getReviewerName() {
     return reviewerName;
   }
 
-  public void setReviewerName(String reviewerName) {
+  public PolicyWaiverRequest setReviewerName(String reviewerName) {
     this.reviewerName = reviewerName;
+    return this;
   }
 
   public Date getReviewTime() {
     return reviewTime;
   }
 
-  public void setReviewTime(Date reviewTime) {
+  public PolicyWaiverRequest setReviewTime(Date reviewTime) {
     this.reviewTime = reviewTime;
+    return this;
   }
 
   public String getPolicyViolationId() {
     return policyViolationId;
   }
 
-  public void setPolicyViolationId(String policyViolationId) {
+  public PolicyWaiverRequest setPolicyViolationId(String policyViolationId) {
     this.policyViolationId = policyViolationId;
+    return this;
   }
 }

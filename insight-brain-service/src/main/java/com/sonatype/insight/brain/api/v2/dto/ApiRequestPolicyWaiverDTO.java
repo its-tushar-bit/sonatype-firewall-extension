@@ -10,6 +10,7 @@ package com.sonatype.insight.brain.api.v2.dto;
  * @deprecated since 1.192
  * Kept only for the legacy endpoint "/waiverRequests/{policyViolationId}"
  */
+@Deprecated
 public class ApiRequestPolicyWaiverDTO
 {
   public String reasonId;

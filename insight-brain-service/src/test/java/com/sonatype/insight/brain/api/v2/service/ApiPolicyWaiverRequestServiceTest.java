@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -44,7 +45,6 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -709,8 +709,8 @@ public class ApiPolicyWaiverRequestServiceTest
   @Test
   public void testReviewPolicyWaiverRequest_Rejected_StatusApproved() {
     PolicyWaiverRequest policyWaiverRequest =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setOwnerId(app.getId())
-            .setPolicyId(policy.getId()).setPolicyViolationId(policyViolation.getId()).setStatus(APPROVED).build());
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setOwnerId(app.getId())
+            .setPolicyId(policy.getId()).setPolicyViolationId(policyViolation.getId()).setStatus(APPROVED));
 
     assertThatThrownBy(() -> {
       apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.APPLICATION, app.getId(),
@@ -1074,29 +1074,29 @@ public class ApiPolicyWaiverRequestServiceTest
     Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
 
     PolicyWaiverRequest policyWaiverRequest1 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hashX").setPolicyId(policyIdOrg)
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hashX").setPolicyId(policyIdOrg)
             .setOwnerId(orgId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)).build());
-    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)));
+    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash(null).setPolicyId(policyIdOrg).setOwnerId(orgId).setConstraintFacts(constraintFacts)
-        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)).build());
-    PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)));
+    PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash").setPolicyId(policyIdOrg).setOwnerId(appId).setConstraintFacts(constraintFacts)
         .setAssociatedPackageUrl(packageUrlAllVersions1).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)).build());
+        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)));
     PolicyWaiverRequest policyWaiverRequest4 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdOrg)
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdOrg)
             .setOwnerId(appId).setConstraintFacts(constraintFacts).setComponentMatchStrategy(ALL_COMPONENTS)
-            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)).build());
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policyIdApp)
+            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2").setPolicyId(policyIdApp)
         .setOwnerId(appId).setConstraintFacts(null).setAssociatedPackageUrl(packageUrlAllVersions2)
-        .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)).build());
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdApp)
+        .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdApp)
         .setOwnerId(appId).setConstraintFacts(null).setComponentMatchStrategy(ALL_COMPONENTS)
-        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)).build());
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash").setPolicyId(policyIdApp)
+        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash").setPolicyId(policyIdApp)
         .setOwnerId(appId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-        .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now).build());
+        .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now));
 
     ApiPolicyWaiverRequestsApplicableToViolationDTO dto =
         apiPolicyWaiverRequestService.getApplicableWaiverRequests(policyViolation.getId());
@@ -1146,31 +1146,31 @@ public class ApiPolicyWaiverRequestServiceTest
     Date expiringInFutureExpiryTime = DateUtils.addMinutes(now, 1);
 
     PolicyWaiverRequest policyWaiverRequest1 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hashX").setPolicyId(policyIdRootOrg)
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hashX").setPolicyId(policyIdRootOrg)
             .setOwnerId(orgId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)).build());
-    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -10)));
+    PolicyWaiverRequest policyWaiverRequest2 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash(null).setPolicyId(policyIdRootOrg).setOwnerId(orgId).setConstraintFacts(constraintFacts)
-        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)).build());
-    PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder()
+        .setComponentMatchStrategy(ALL_COMPONENTS).setRequestTime(DateUtils.addDays(now, -9)));
+    PolicyWaiverRequest policyWaiverRequest3 = tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest()
         .setHash("hash").setPolicyId(policyIdRootOrg).setOwnerId(repoId).setConstraintFacts(constraintFacts)
         .setAssociatedPackageUrl(packageUrlAllVersions1).setComponentMatchStrategy(EXACT_COMPONENT)
-        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)).build());
+        .setExpiryTime(expiredExpiryTime).setRequestTime(DateUtils.addDays(now, -8)));
     PolicyWaiverRequest policyWaiverRequest4 =
-        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdRootOrg)
+        tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdRootOrg)
             .setOwnerId(repoId).setConstraintFacts(constraintFacts).setComponentMatchStrategy(ALL_COMPONENTS)
-            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)).build());
+            .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -7)));
     tempEntity
-        .newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash2").setPolicyId(policyIdRepoContainer)
+        .newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash2").setPolicyId(policyIdRepoContainer)
             .setOwnerId(repoId).setConstraintFacts(null).setAssociatedPackageUrl(packageUrlAllVersions2)
-            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)).build());
-    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash(null).setPolicyId(policyIdRepoContainer)
+            .setComponentMatchStrategy(ALL_VERSIONS).setRequestTime(DateUtils.addDays(now, -2)));
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setHash(null).setPolicyId(policyIdRepoContainer)
         .setOwnerId(repoId).setConstraintFacts(null).setComponentMatchStrategy(ALL_COMPONENTS)
-        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)).build());
+        .setExpiryTime(expiringInFutureExpiryTime).setRequestTime(DateUtils.addDays(now, -1)));
     tempEntity
-        .newPolicyWaiverRequest(new PolicyWaiverRequestBuilder().setHash("hash").setPolicyId(policyIdRepoContainer)
+        .newPolicyWaiverRequest(new PolicyWaiverRequest().setHash("hash").setPolicyId(policyIdRepoContainer)
             .setOwnerId(repoId).setConstraintFacts(constraintFacts).setAssociatedPackageUrl(packageUrlAllVersions1)
-            .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now).build());
+            .setComponentMatchStrategy(EXACT_COMPONENT).setExpiryTime(expiredExpiryTime).setRequestTime(now));
 
     ApiPolicyWaiverRequestsApplicableToViolationDTO dto =
         apiPolicyWaiverRequestService.getApplicableWaiverRequests(policyViolation.getId());

@@ -38,7 +38,6 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.tag.PolicyTag;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.policy.PolicyWaiverRequestBuilder;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -539,9 +538,8 @@ public class PolicyDAOTest
   public void testDelete_CascadesToPolicyWaiverRequests() {
     Policy policy = tempEntity.newPolicy(application.getId());
 
-    tempEntity.newPolicyWaiverRequest(
-        new PolicyWaiverRequestBuilder().setPolicyId(policy.getId()).setOwnerId("ownerId")
-            .setPolicyViolationId("policyViolationId").build());
+    tempEntity.newPolicyWaiverRequest(new PolicyWaiverRequest().setPolicyId(policy.getId()).setOwnerId("ownerId")
+        .setPolicyViolationId("policyViolationId"));
     List<PolicyWaiverRequest> policyWaiverRequests = policyWaiverRequestDAO.getByPolicyId(policy.getId());
     assertThat(policyWaiverRequests).hasSize(1);
 

@@ -32,7 +32,7 @@ public class HDSMaliciousUrlFetcher
   }
 
   @Override
-  public InputStream fetchMaliciousUrls(ZScalerFormat format) {
+  public InputStream fetchMaliciousUrls(ZScalerSupportedFormat format) {
     log.debug("Updating zScaler Malicious URLs for format: {}", format);
     try {
       return hdsClient.get(InputStream.class, HDS_MALICIOUS_URLS_PATH + "/active/" +

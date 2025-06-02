@@ -142,13 +142,33 @@ public class ZScalerUpdaterTest
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
     when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
         .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
+    when(mockApiZScalerService.getConfiguredFormats()).thenReturn(
+        List.of(ZScalerSupportedFormat.MAVEN, ZScalerSupportedFormat.PYPI, ZScalerSupportedFormat.NPM));
 
     underTest.updateAllZScalerMaliciousCategories();
 
     // Invocation for deleteCategory and then updateCategory
-    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.MAVEN), any());
-    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.NPM), any());
-    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerFormat.PYPI), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerSupportedFormat.MAVEN), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerSupportedFormat.NPM), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerSupportedFormat.PYPI), any());
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NUGET), any());
+  }
+
+  @Test
+  public void testUpdateAllzScalerMaliciousUrls_updatesOnlyConfigured() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+    when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
+        .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
+    when(mockApiZScalerService.getConfiguredFormats()).thenReturn(
+        List.of(ZScalerSupportedFormat.PYPI, ZScalerSupportedFormat.NPM));
+
+    underTest.updateAllZScalerMaliciousCategories();
+
+    // Invocation for deleteCategory and then updateCategory
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.MAVEN), any());
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NUGET), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerSupportedFormat.NPM), any());
+    verify(mockApiZScalerService, times(2)).updateCategory(eq(ZScalerSupportedFormat.PYPI), any());
   }
 
   @Test
@@ -166,16 +186,16 @@ public class ZScalerUpdaterTest
     when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
         .thenReturn(new ByteArrayInputStream("{\"activeThreatUrls\": [\"randomurl.com\"]}".getBytes()));
 
-    underTest.updateCategory(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM);
 
-    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of("randomurl.com")));
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerSupportedFormat.NPM), eq(List.of("randomurl.com")));
   }
 
   @Test(expected = InvalidLicenseException.class)
   public void testUpdate_invalidLicense() {
     when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(false);
 
-    underTest.updateCategory(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM);
   }
 
   @Test
@@ -184,9 +204,9 @@ public class ZScalerUpdaterTest
     when(mockZScalerMaliciousUrlFetcher.fetchMaliciousUrls(any()))
         .thenReturn(new ByteArrayInputStream("{}".getBytes()));
 
-    underTest.updateCategory(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM);
 
-    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of()));
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerSupportedFormat.NPM), eq(List.of()));
     verify(mockZScalerClient, never()).createCustomUrlCategory(any(), any(), any());
     verify(mockZScalerClient, never()).updateCustomUrlCategories(any(), any(), any(), any());
   }
@@ -198,8 +218,55 @@ public class ZScalerUpdaterTest
         .thenReturn(new ByteArrayInputStream(
             "{\"activeThreatUrls\": [\"http://test1.com\", \"https://test2.com\"]}".getBytes()));
 
-    underTest.updateCategory(ZScalerFormat.NPM);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM);
 
-    verify(mockApiZScalerService).updateCategory(eq(ZScalerFormat.NPM), eq(List.of("test1.com", "test2.com")));
+    verify(mockApiZScalerService).updateCategory(eq(ZScalerSupportedFormat.NPM), eq(List.of("test1.com", "test2.com")));
+  }
+
+  @Test
+  public void testDeleteAllZScalerMaliciousUrlCategories() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+
+    underTest.deleteAllZScalerMaliciousUrlCategories();
+
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.MAVEN),
+        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.MAVEN.toString().toLowerCase())));
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NUGET),
+        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NUGET.toString().toLowerCase())));
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NPM),
+        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NPM.toString().toLowerCase())));
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.PYPI),
+        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.PYPI.toString().toLowerCase())));
+  }
+
+  @Test
+  public void testDeleteAllZScalerMaliciousUrlCategories_WithInvalidLicense() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(false);
+
+    underTest.deleteAllZScalerMaliciousUrlCategories();
+
+    verify(mockApiZScalerService, never()).updateCategory(any(), any());
+  }
+
+  @Test
+  public void testDelete() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(true);
+
+    underTest.deleteZScalerMaliciousUrlCategory(ZScalerSupportedFormat.NPM);
+
+    verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NPM),
+        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NPM.toString().toLowerCase())));
+    verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.PYPI), any());
+    verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.MAVEN), any());
+    verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.NUGET), any());
+  }
+
+  @Test
+  public void testDelete_invalidLicense() {
+    when(mockProductLicense.hasFeature(LicensedFeature.FIREWALL)).thenReturn(false);
+
+    underTest.deleteZScalerMaliciousUrlCategory(ZScalerSupportedFormat.MAVEN);
+
+    verify(mockApiZScalerService, never()).updateCategory(any(), any());
   }
 }

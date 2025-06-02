@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
@@ -13,6 +14,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -85,7 +87,12 @@ public class ClusterTelemetryTaskTest
     zScalerConfiguration.setUsername("user");
     zScalerConfiguration.setPassword("password");
     zScalerConfiguration.setApikey("apikey");
-    zScalerConfigurationDAO.set(zScalerConfiguration);
+    List<ZscalerFormat> zscalerFormats = new ArrayList<>();
+    zscalerFormats.add(new ZscalerFormat("maven", false));
+    zscalerFormats.add(new ZscalerFormat("npm", true));
+    zscalerFormats.add(new ZscalerFormat("pypi",true));
+    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    zScalerConfigurationDAO.set(zScalerConfiguration, zscalerFormats);
     zScalerMetricsDAO.set(new ZScalerMetrics());
 
     doAnswer(invocationOnMock -> {

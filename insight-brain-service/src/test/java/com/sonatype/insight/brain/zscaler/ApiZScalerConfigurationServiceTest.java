@@ -8,10 +8,10 @@ package com.sonatype.insight.brain.zscaler;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
-import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -32,6 +32,9 @@ public class ApiZScalerConfigurationServiceTest
   private ZScalerConfigurationDAO zScalerConfigurationDAO;
 
   @Inject
+  private ZscalerFormatDAO zscalerFormatDAO;
+
+  @Inject
   private PasswordHandler passwordHandler;
 
   @Inject
@@ -41,12 +44,13 @@ public class ApiZScalerConfigurationServiceTest
   @Override
   public void setUp() throws Exception {
     super.setUp();
-    underTest = new ApiZScalerConfigurationService(zScalerConfigurationDAO, passwordHandler);
+    underTest = new ApiZScalerConfigurationService(zScalerConfigurationDAO, zscalerFormatDAO, passwordHandler);
   }
 
   @Test
   public void testGetConfiguration() {
-    ZScalerConfiguration config = tempEntity.newZScalerConfiguration("user", "password", "host", "apikey");
+    ZScalerConfiguration config =
+        tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, true);
 
     ApiZScalerConfigurationDTO dto = underTest.getConfiguration();
 
@@ -69,6 +73,7 @@ public class ApiZScalerConfigurationServiceTest
     dto.setPassword("testpassword");
     dto.setHostname("testhostname");
     dto.setApiKey("testapikey");
+    dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
 
     String response = underTest.setConfiguration(dto);
@@ -87,7 +92,7 @@ public class ApiZScalerConfigurationServiceTest
   }
 
   @Test
-  public void testSetConfiguration_badRequestException() {
+  public void testSetConfiguration_badRequestExceptionWhenEulaNotAgreed() {
     ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
@@ -98,8 +103,19 @@ public class ApiZScalerConfigurationServiceTest
   }
 
   @Test
+  public void testSetConfiguration_badRequestExceptionWhenformatNotEnabled() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("testhostname");
+    dto.setEulaAgreed(true);
+    assertThrows("At least one format must be enabled.", BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+  }
+
+  @Test
   public void testDeleteConfiguration() {
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey");
+    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
 
     underTest.deleteConfiguration();
 

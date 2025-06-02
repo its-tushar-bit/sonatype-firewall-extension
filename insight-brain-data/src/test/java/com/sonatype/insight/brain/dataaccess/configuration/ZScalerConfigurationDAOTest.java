@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.dataaccess.configuration;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
-import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 
 import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.PersistenceException;
+
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.After;
 import org.junit.Before;
@@ -25,11 +27,14 @@ public class ZScalerConfigurationDAOTest
 {
   private ZScalerConfigurationDAO dao;
 
+  private ZscalerFormatDAO zscalerFormatDAO;
+
   @Before
   @Override
   public void setup() {
     super.setup();
     dao = daoFactory.createZScalerConfigurationDAO();
+    zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
   }
 
   @After
@@ -40,13 +45,19 @@ public class ZScalerConfigurationDAOTest
   @Test
   public void testCRUD() {
     assertThat(dao.get()).isNull();
+    assertThat(zscalerFormatDAO.getAll()).isEmpty();
 
     ZScalerConfiguration config = new ZScalerConfiguration();
     config.setUsername("testuser");
     config.setPassword("testpass");
     config.setHostname("testhost");
     config.setApikey("testapikey");
-    dao.set(config);
+    List<ZscalerFormat> zscalerFormats = new ArrayList<>();
+    zscalerFormats.add(new ZscalerFormat("maven", true));
+    zscalerFormats.add(new ZscalerFormat("npm", true));
+    zscalerFormats.add(new ZscalerFormat("pypi", false));
+    zscalerFormats.add(new ZscalerFormat("nuget", false));
+    dao.set(config, zscalerFormats);
 
     config = dao.get();
     assertThat(config).isNotNull();
@@ -54,45 +65,47 @@ public class ZScalerConfigurationDAOTest
     assertThat(config.getPassword()).isEqualTo("testpass");
     assertThat(config.getHostname()).isEqualTo("testhost");
     assertThat(config.getApikey()).isEqualTo("testapikey");
+    List<ZscalerFormat> configuredFormats = zscalerFormatDAO.getAll();
+    assertThat(configuredFormats).hasSize(4);
+    for (ZscalerFormat format : configuredFormats) {
+      switch (format.getFormat()) {
+        case "maven", "npm" -> assertThat(format.isEnabled()).isTrue();
+        case "nuget", "pypi" -> assertThat(format.isEnabled()).isFalse();
+        default -> throw new AssertionError("Unexpected format: " + format.getFormat());
+      }
+    }
 
     config.setHostname("newhost");
     config.setApikey("newapikey");
-    dao.set(config);
+    for (ZscalerFormat format : configuredFormats) {
+      if ("pypi".equals(format.getFormat()) || "nuget".equals(format.getFormat())) {
+        format.setEnabled(true);
+      }
+    }
+    dao.set(config, configuredFormats);
 
     config = dao.get();
     assertThat(config).isNotNull();
     assertThat(config.getHostname()).isEqualTo("newhost");
     assertThat(config.getApikey()).isEqualTo("newapikey");
+    List<ZscalerFormat> updatedConfiguredFormats = zscalerFormatDAO.getAll();
+    assertThat(configuredFormats).hasSize(4);
+    for (ZscalerFormat format : updatedConfiguredFormats) {
+      switch (format.getFormat()) {
+        case "maven", "npm", "pypi", "nuget" -> assertThat(format.isEnabled()).isTrue();
+        default -> throw new AssertionError("Unexpected format: " + format.getFormat());
+      }
+    }
 
     dao.delete();
 
     assertThat(dao.get()).isNull();
+    assertThat(zscalerFormatDAO.getAll()).isEmpty();
 
     dao.delete();
     // No exception should be thrown
     assertThat(dao.get()).isNull();
-  }
-
-  @Test
-  public void testInsert_ValidateHostname_Null() {
-    testInsert_ValidateHostname(null);
-  }
-
-  @Test
-  public void testInsert_ValidateHostname_Empty() {
-    testInsert_ValidateHostname("");
-  }
-
-  @Test
-  public void testInsert_ValidateHostname_Blank() {
-    testInsert_ValidateHostname("  ");
-  }
-
-  private void testInsert_ValidateHostname(String hostname) {
-    ZScalerConfiguration config = newValidConfiguration();
-    config.setHostname(hostname);
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.insert(config))
-        .withMessageContaining("The zScaler host is required.");
+    assertThat(zscalerFormatDAO.getAll()).isEmpty();
   }
 
   @Test

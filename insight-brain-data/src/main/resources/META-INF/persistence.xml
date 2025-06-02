@@ -63,6 +63,7 @@
     <class>com.sonatype.insight.brain.model.configuration.DataRetentionPolicy</class>
     <class>com.sonatype.insight.brain.model.configuration.MailConfiguration</class>
     <class>com.sonatype.insight.brain.model.configuration.ZScalerConfiguration</class>
+    <class>com.sonatype.insight.brain.model.configuration.ZscalerFormat</class>
     <class>com.sonatype.insight.brain.model.zscaler.ZScalerMetrics</class>
     <class>com.sonatype.insight.brain.model.configuration.ProprietaryConfig</class>
     <class>com.sonatype.insight.brain.model.configuration.ldap.LdapServer</class>

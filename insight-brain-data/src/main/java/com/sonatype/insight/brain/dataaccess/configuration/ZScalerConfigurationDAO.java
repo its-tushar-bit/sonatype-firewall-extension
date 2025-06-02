@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -12,11 +13,9 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.security.RotatableSecrets;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.error.exception.BadRequestException;
-
-import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Singleton
@@ -29,9 +28,14 @@ public class ZScalerConfigurationDAO
   public static final String QUERY = "SELECT entity FROM ZScalerConfiguration entity" + //
       " WHERE entity.id=?1";
 
+  private final ZscalerFormatDAO zscalerFormatDAO;
+
   @Inject
-  public ZScalerConfigurationDAO(OperationalDataStore operationalDataStore) {
+  public ZScalerConfigurationDAO(OperationalDataStore operationalDataStore,
+                                 ZscalerFormatDAO zscalerFormatDAO)
+  {
     super(operationalDataStore);
+    this.zscalerFormatDAO = zscalerFormatDAO;
   }
 
   /**
@@ -46,28 +50,33 @@ public class ZScalerConfigurationDAO
     return super.getById(tx, SINGLETON_ENTITY_ID);
   }
 
-  public void set(ZScalerConfiguration zscalerConfiguration) {
-    update(zscalerConfiguration);
+  public void set(ZScalerConfiguration zscalerConfiguration, List<ZscalerFormat> zscalerFormats) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      update(tx, zscalerConfiguration);
+      for (ZscalerFormat zscalerFormat : zscalerFormats) {
+        zscalerFormat.setZscalerConfigurationId(SINGLETON_ENTITY_ID);
+        if (zscalerFormat.getId() == null) {
+          zscalerFormatDAO.insert(tx, zscalerFormat);
+        }
+        else {
+          zscalerFormatDAO.update(tx, zscalerFormat);
+        }
+      }
+      tx.commit();
+    }
   }
 
   @Override
   public void insert(TransactionContext tx, ZScalerConfiguration zscalerConfiguration) {
-    validate(zscalerConfiguration);
     zscalerConfiguration.setId(SINGLETON_ENTITY_ID);
     super.insert(tx, zscalerConfiguration);
   }
 
   @Override
   public void update(TransactionContext tx, ZScalerConfiguration zscalerConfiguration) {
-    validate(zscalerConfiguration);
     zscalerConfiguration.setId(SINGLETON_ENTITY_ID);
     super.update(tx, zscalerConfiguration);
-  }
-
-  public void validate(ZScalerConfiguration zscalerConfiguration) {
-    if (StringUtils.isBlank(zscalerConfiguration.getHostname())) {
-      throw new BadRequestException("The zScaler host is required.");
-    }
   }
 
   public void delete() {

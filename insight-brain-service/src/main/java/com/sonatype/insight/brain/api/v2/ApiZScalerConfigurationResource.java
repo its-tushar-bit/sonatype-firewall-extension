@@ -21,10 +21,10 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService;
-import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
+import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationDTO;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
-import com.sonatype.insight.brain.zscaler.ZScalerFormat;
+import com.sonatype.insight.brain.zscaler.ZScalerSupportedFormat;
 import com.sonatype.insight.brain.zscaler.ZScalerUpdater;
 import com.sonatype.insight.license.model.LicensedFeature;
 
@@ -109,6 +109,10 @@ public class ApiZScalerConfigurationResource
           "<li>`hostname` - is the hostname or IP address of the Zscaler server.</li>" +
           "<li>`apiKey` - is the apiKey for the Zscaler Server.</li>" +
           "<li>`eulaAgreed` - is the agreement to the Sonatype's end user license agreement.</li>" +
+          "<li>`mavenFormatEnabled` - is the flag to enable or disable the Maven format for Zscaler.</li>" +
+          "<li>`npmFormatEnabled` - is the flag to enable or disable the Npm format for Zscaler.</li>" +
+          "<li>`pypiFormatEnabled` - is the flag to enable or disable the Pypi format for Zscaler.</li>" +
+          "<li>`nugetFormatEnabled` - is the flag to enable or disable the Nuget format for Zscaler.</li>" +
           "</ul>",
           useParameterTypeSchema = true)
       ApiZScalerConfigurationDTO configurationDTO)
@@ -187,7 +191,7 @@ public class ApiZScalerConfigurationResource
       description = "Zscaler unable to update custom urls for format.",
       useReturnTypeSchema = true
   )
-  public void triggerUpdate(@PathParam("format") ZScalerFormat format) {
+  public void triggerUpdate(@PathParam("format") ZScalerSupportedFormat format) {
     zScalerUpdater.updateZScalerMaliciousCategory(format);
   }
 
@@ -247,7 +251,7 @@ public class ApiZScalerConfigurationResource
       description = "Zscaler updating a format was not successful",
       useReturnTypeSchema = true
   )
-  public void deleteCategory(@PathParam("format") ZScalerFormat format) {
+  public void deleteCategory(@PathParam("format") ZScalerSupportedFormat format) {
     zScalerUpdater.deleteZScalerMaliciousUrlCategory(format);
   }
 }

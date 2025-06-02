@@ -97,7 +97,7 @@ public class ZScalerUpdater
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void updateZScalerMaliciousCategory(ZScalerFormat format) {
+  public void updateZScalerMaliciousCategory(ZScalerSupportedFormat format) {
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();
       deleteCategory(format);
@@ -128,7 +128,6 @@ public class ZScalerUpdater
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void deleteAllZScalerMaliciousUrlCategories() {
-    // TODO: Rather than assuming all formats are needed we may decide to fetch the format types based on configuration
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();
       deleteAllCategories();
@@ -140,7 +139,7 @@ public class ZScalerUpdater
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  public void deleteZScalerMaliciousUrlCategory(ZScalerFormat format) {
+  public void deleteZScalerMaliciousUrlCategory(ZScalerSupportedFormat format) {
     if (productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       apiZScalerService.authenticate();
       deleteCategory(format);
@@ -152,12 +151,26 @@ public class ZScalerUpdater
   }
 
   private void updateAllCategories() {
-    updateCategory(ZScalerFormat.MAVEN);
-    updateCategory(ZScalerFormat.PYPI);
-    updateCategory(ZScalerFormat.NPM);
+    List<ZScalerSupportedFormat> configuredFormats = apiZScalerService.getConfiguredFormats();
+
+    for (ZScalerSupportedFormat format : configuredFormats) {
+      updateCategory(format);
+    }
   }
 
-  void updateCategory(ZScalerFormat format) {
+  private void deleteAllCategories() {
+    deleteCategory(ZScalerSupportedFormat.MAVEN);
+    deleteCategory(ZScalerSupportedFormat.PYPI);
+    deleteCategory(ZScalerSupportedFormat.NPM);
+    deleteCategory(ZScalerSupportedFormat.NUGET);
+  }
+
+  private void deleteCategory(ZScalerSupportedFormat format) {
+    log.debug("deleting zScaler category: {}", format);
+    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
+  }
+
+  void updateCategory(ZScalerSupportedFormat format) {
     log.debug("Updating zScaler for {}", format);
     if (!productLicense.hasFeature(LicensedFeature.FIREWALL)) {
       throw new InvalidLicenseException("zScaler requires a valid license");
@@ -170,17 +183,6 @@ public class ZScalerUpdater
     }
 
     apiZScalerService.updateCategory(format, getActiveUrls(inputStream));
-  }
-
-  private void deleteAllCategories() {
-    deleteCategory(ZScalerFormat.MAVEN);
-    deleteCategory(ZScalerFormat.PYPI);
-    deleteCategory(ZScalerFormat.NPM);
-  }
-
-  private void deleteCategory(ZScalerFormat format) {
-    log.debug("deleting zScaler category: {}", format);
-    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
   }
 
   private static List<String> getActiveUrls(final InputStream inputStream) {

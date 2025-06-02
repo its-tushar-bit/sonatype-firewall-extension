@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -1234,7 +1235,13 @@ public class TestDAOFactory
 
   @Override
   public ZScalerConfigurationDAO createZScalerConfigurationDAO() {
-    return new ZScalerConfigurationDAO(dataStoreProvider.getOperationalDataStore());
+    ZscalerFormatDAO zscalerFormatDAO = createZscalerFormatDAO();
+    return new ZScalerConfigurationDAO(dataStoreProvider.getOperationalDataStore(), zscalerFormatDAO);
+  }
+
+  @Override
+  public ZscalerFormatDAO createZscalerFormatDAO() {
+    return new ZscalerFormatDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

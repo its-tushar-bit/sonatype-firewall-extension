@@ -71,6 +71,7 @@ import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfi
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.crowd.CrowdConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -206,6 +207,7 @@ import com.sonatype.insight.brain.model.configuration.RepositoryClientConfigurat
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.configuration.crowd.CrowdConfiguration;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapAuthenticationMethod;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
@@ -667,6 +669,8 @@ public class TemporaryEntity
 
   private ZScalerConfigurationDAO zScalerConfigurationDAO;
 
+  private ZscalerFormatDAO zscalerFormatDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -955,6 +959,7 @@ public class TemporaryEntity
       delete(componentChangeDetectionEventDAO.getAll(), componentChangeDetectionEventDAO);
       delete(clusterIdentificationDAO.getAll(), clusterIdentificationDAO);
       delete(zScalerConfigurationDAO.getAll(), zScalerConfigurationDAO);
+      delete(zscalerFormatDAO.getAll(), zscalerFormatDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -6385,6 +6390,7 @@ public class TemporaryEntity
     clusterIdentificationDAO = daoFactory.createClusterIdentificationDAO();
     cpeMatchingConfigurationDAO = daoFactory.createCpeMatchingConfigurationDAO();
     zScalerConfigurationDAO = daoFactory.createZScalerConfigurationDAO();
+    zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6435,14 +6441,25 @@ public class TemporaryEntity
       String username,
       String password,
       String hostname,
-      String apikey)
+      String apikey,
+      boolean mavenEnabled,
+      boolean npmEnabled,
+      boolean pypiEnabled,
+      boolean nugetEnabled)
   {
     ZScalerConfiguration zScalerConfiguration = new ZScalerConfiguration();
     zScalerConfiguration.setUsername(username);
     zScalerConfiguration.setPassword(password);
     zScalerConfiguration.setHostname(hostname);
     zScalerConfiguration.setApikey(apikey);
-    zScalerConfigurationDAO.set(zScalerConfiguration);
+
+    List<ZscalerFormat> zscalerFormats = new ArrayList<>();
+    zscalerFormats.add(new ZscalerFormat("maven", mavenEnabled));
+    zscalerFormats.add(new ZscalerFormat("npm", npmEnabled));
+    zscalerFormats.add(new ZscalerFormat("pypi", pypiEnabled));
+    zscalerFormats.add(new ZscalerFormat("nuget", nugetEnabled));
+
+    zScalerConfigurationDAO.set(zScalerConfiguration, zscalerFormats);
 
     return zScalerConfiguration;
   }

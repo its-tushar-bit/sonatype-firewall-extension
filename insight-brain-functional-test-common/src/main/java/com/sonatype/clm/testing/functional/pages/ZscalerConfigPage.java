@@ -12,6 +12,8 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 public class ZscalerConfigPage
     extends BasicElement<ZscalerConfigPage>
 {
@@ -51,6 +53,22 @@ public class ZscalerConfigPage
 
   public SelenideElement apiKey() {
     return child("#zscaler-config-api-key");
+  }
+
+  public SelenideElement formatDropdownButton() {
+    return child(".nx-dropdown .nx-dropdown__toggle");
+  }
+
+  public NxCheckbox getFormatCheckboxAt(int i ) {
+    return new NxCheckbox(child(".nx-dropdown-menu .nx-radio-checkbox", nthChild(i + 1)));
+  }
+
+  public SelenideElement formatTooltipIcon() {
+    return child(".config-format-tooltip__icon");
+  }
+
+  public SelenideElement formatValidationError() {
+    return child("#zscaler-config-format .nx-field-validation-message");
   }
   
   public NxCheckbox eulaCheckbox() {

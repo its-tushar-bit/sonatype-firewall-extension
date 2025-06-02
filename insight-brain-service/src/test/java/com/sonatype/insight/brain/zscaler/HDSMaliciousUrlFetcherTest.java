@@ -48,7 +48,7 @@ public class HDSMaliciousUrlFetcherTest
     when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/maven"))
         .thenReturn(expectedResponse);
 
-    InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerFormat.MAVEN);
+    InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerSupportedFormat.MAVEN);
 
     assertEquals(expectedResponse, actualResponse);
     assertThat(logOutput).atDebugLevel().contains("Updating zScaler Malicious URLs for format: MAVEN");
@@ -59,7 +59,7 @@ public class HDSMaliciousUrlFetcherTest
     when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/npm"))
         .thenThrow(new BadGatewayException("Bad Gateway"));
 
-    InputStream inputStream = underTest.fetchMaliciousUrls(ZScalerFormat.NPM);
+    InputStream inputStream = underTest.fetchMaliciousUrls(ZScalerSupportedFormat.NPM);
 
     assertThat(inputStream).isNull();
     assertThat(logOutput).atWarnLevel().contains("Failed to get zScaler malicious URLs");

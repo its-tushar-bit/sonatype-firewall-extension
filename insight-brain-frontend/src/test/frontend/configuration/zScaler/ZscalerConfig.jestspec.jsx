@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, waitFor, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, waitFor, screen, fireEvent } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
 import ZscalerConfig from 'MainRoot/configuration/zscaler/ZscalerConfig';
@@ -25,9 +25,15 @@ describe('ZscalerConfig', () => {
       validationErrors: 'This field is required',
       disabled: false,
     },
+    configuredFormatState: {
+      formats: new Set(),
+      isPristine: true,
+      validationErrors: 'At least one format must be selected',
+    },
     isDirty: false,
     isValid: false,
     hasAllRequiredData: false,
+    hasAllRequiredDataForTestConfig: false,
     loading: false,
     submitMaskState: null,
     submitMaskMessage: null,
@@ -51,6 +57,7 @@ describe('ZscalerConfig', () => {
     setApiKey: jest.fn(),
     setEulaCheckbox: jest.fn(),
     setShowDeleteModal: jest.fn(),
+    setConfiguredFormats: jest.fn(),
     zscalerConfigLimitsState: {
       loading: false,
       error: null,
@@ -101,6 +108,10 @@ describe('ZscalerConfig', () => {
     const learnMoreLink = screen.getByRole('link', { name: /Learn more about the Zscaler integration/i });
     const apiKeyLink = screen.getByRole('link', { name: /Learn how to retrieve Zscaler API Key/i });
     const licenseTermsLink = screen.getByRole('link', { name: /License Terms/i });
+    const configuredFormatLabel = screen.getByText('Configured Formats');
+    const configuredFormatSubLabel = screen.getByText('Limit the number of urls pushed to Zscaler.');
+    const formatDropdownButton = screen.getByRole('button', { name: 'Formats' });
+    const configuredFormatsTooltip = screen.getByTestId('tooltip-icon');
 
     // heading and description
     expect(screen.getByRole('heading', { level: 2, name: /ZScaler Configuration/i })).toBeInTheDocument();
@@ -133,6 +144,18 @@ describe('ZscalerConfig', () => {
     expect(apiKeyInput).toHaveValue('');
     expect(eulaCheckboxInput).toBeInTheDocument();
     expect(eulaCheckboxInput).not.toBeChecked();
+    // formats dropdown
+    expect(configuredFormatLabel).toBeInTheDocument();
+    expect(configuredFormatSubLabel).toBeInTheDocument();
+    expect(formatDropdownButton).toBeInTheDocument();
+    expect(configuredFormatsTooltip).toBeInTheDocument();
+    fireEvent.mouseOver(configuredFormatsTooltip);
+    const tooltip = await screen.findByRole('tooltip');
+    expect(tooltip).toHaveTextContent(
+      'URLs pushed to Zscaler are based on official package sources. Limiting formats ' +
+        'reduces noise and optimizes security rules. Dependencies from unofficial or custom sources are not fully protected ' +
+        'by this integration.'
+    );
     // buttons
     expect(saveButton).toBeInTheDocument();
     expect(saveButton).not.toBeDisabled();
@@ -157,6 +180,11 @@ describe('ZscalerConfig', () => {
           validationErrors: null,
           disabled: true,
         },
+        configuredFormatState: {
+          formats: new Set(['mavenFormatEnabled', 'npmFormatEnabled']),
+          isPristine: true,
+          validationErrors: null,
+        },
         hasAllRequiredData: true,
         serverData: {
           username: 'testUser',
@@ -172,6 +200,7 @@ describe('ZscalerConfig', () => {
     expect(screen.getByLabelText('Password')).toHaveValue(FAKE_PASSWORD);
     expect(screen.getByLabelText('Hostname')).toHaveValue('https://zsapi.zscalertwo.net');
     expect(screen.getByLabelText('Zscaler API Key')).toHaveValue('123');
+    expect(screen.getByRole('button', { name: '2 of 4' })).toBeInTheDocument();
     expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeChecked();
     expect(screen.getByRole('checkbox', { name: CHECKBOX_NAME })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Update' })).toBeInTheDocument();
@@ -183,6 +212,7 @@ describe('ZscalerConfig', () => {
     const setHostnameMock = jest.fn();
     const setApiKeyMock = jest.fn();
     const setEulaCheckboxMock = jest.fn();
+    const setConfiguredFormatsMock = jest.fn();
 
     renderComponent(
       setState({
@@ -191,6 +221,7 @@ describe('ZscalerConfig', () => {
         setHostname: setHostnameMock,
         setApiKey: setApiKeyMock,
         setEulaCheckbox: setEulaCheckboxMock,
+        setConfiguredFormats: setConfiguredFormatsMock,
       })
     );
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
@@ -200,6 +231,7 @@ describe('ZscalerConfig', () => {
     const hostnameInput = screen.getByLabelText('Hostname');
     const apiKeyInput = screen.getByLabelText('Zscaler API Key');
     const eulaCheckboxInput = screen.getByRole('checkbox', { name: CHECKBOX_NAME });
+    const formatDropdownButton = screen.getByRole('button', { name: 'Formats' });
 
     fireEvent.change(usernameInput, { target: { value: 'admin' } });
     expect(setUsernameMock).toHaveBeenCalledWith('admin', expect.anything());
@@ -212,6 +244,20 @@ describe('ZscalerConfig', () => {
 
     fireEvent.change(apiKeyInput, { target: { value: '111' } });
     expect(setApiKeyMock).toHaveBeenCalledWith('111', expect.anything());
+
+    fireEvent.click(formatDropdownButton);
+    const mavenCheckbox = screen.getByRole('checkbox', { name: 'Maven' });
+    const npmCheckbox = screen.getByRole('checkbox', { name: 'Npm' });
+    const nugetCheckbox = screen.getByRole('checkbox', { name: 'Nuget' });
+    const pypiCheckbox = screen.getByRole('checkbox', { name: 'Pypi' });
+    fireEvent.click(mavenCheckbox);
+    expect(setConfiguredFormatsMock).toHaveBeenCalledWith(new Set(['mavenFormatEnabled']), 'mavenFormatEnabled');
+    fireEvent.click(npmCheckbox);
+    expect(setConfiguredFormatsMock).toHaveBeenCalledWith(new Set(['npmFormatEnabled']), 'npmFormatEnabled');
+    fireEvent.click(nugetCheckbox);
+    expect(setConfiguredFormatsMock).toHaveBeenCalledWith(new Set(['nugetFormatEnabled']), 'nugetFormatEnabled');
+    fireEvent.click(pypiCheckbox);
+    expect(setConfiguredFormatsMock).toHaveBeenCalledWith(new Set(['pypiFormatEnabled']), 'pypiFormatEnabled');
 
     fireEvent.click(eulaCheckboxInput);
     expect(setEulaCheckboxMock).toHaveBeenCalledWith(true);
@@ -248,19 +294,17 @@ describe('ZscalerConfig', () => {
 
     fireEvent.mouseOver(testConfigButton);
     const tooltip = await screen.findByRole('tooltip');
-    expect(
-      within(tooltip).getByText('Username, Password, Hostname and Zscaler API Key are required details.')
-    ).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent('Username, Password, Hostname and Zscaler API Key are required details.');
   });
 
   it('renders testConfig button with tooltips when not re-enter password', async () => {
-    renderComponent(setState({ hasAllRequiredData: true }));
+    renderComponent(setState({ hasAllRequiredDataForTestConfig: true }));
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
     const testConfigButton = screen.getByRole('button', { name: 'Test Configuration' });
 
     fireEvent.mouseOver(testConfigButton);
     const tooltip = await screen.findByRole('tooltip');
-    expect(within(tooltip).getByText('Password must be re-entered for testing configuration.')).toBeInTheDocument();
+    expect(tooltip).toHaveTextContent('Password must be re-entered for testing configuration.');
   });
 
   it('calls testConfig when testConfig button is clicked', async () => {
@@ -272,7 +316,7 @@ describe('ZscalerConfig', () => {
         hostnameState: userInput(null, 'https://zsapi.zscalertwo.net'),
         apiKeyState: userInput(null, '123'),
         testConfig: testConfigMock,
-        hasAllRequiredData: true,
+        hasAllRequiredDataForTestConfig: true,
         isDirty: true,
       })
     );

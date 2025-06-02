@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.zscaler;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.ApiZScalerConfigurationDTO;
 
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
@@ -40,7 +39,7 @@ public class ApiZScalerConfigurationServiceAuthzTest
   @Test
   public void testGetConfiguration() {
     grantConfigureSystemPermission();
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey");
+    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
     apiZScalerConfigurationService.getConfiguration();
   }
 
@@ -63,6 +62,7 @@ public class ApiZScalerConfigurationServiceAuthzTest
     dto.setPassword("testpassword");
     dto.setHostname("testhostname");
     dto.setApiKey("testapikey");
+    dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
     apiZScalerConfigurationService.setConfiguration(dto);
   }
@@ -81,7 +81,7 @@ public class ApiZScalerConfigurationServiceAuthzTest
   @Test
   public void testDeleteConfiguration() {
     grantConfigureSystemPermission();
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey");
+    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
     apiZScalerConfigurationService.getConfiguration();
   }
 

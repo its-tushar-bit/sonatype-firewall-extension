@@ -20,6 +20,7 @@ function mapStateToProps(state) {
         'submitMaskState',
         'submitMaskMessage',
         'hasAllRequiredData',
+        'hasAllRequiredDataForTestConfig',
         'isDirty',
         'isValid',
         'mustReenterPassword',
@@ -38,6 +39,7 @@ function mapStateToProps(state) {
     hostnameState: zscalerConfig.formState.hostname,
     apiKeyState: zscalerConfig.formState.apiKey,
     eulaState: zscalerConfig.formState.eula,
+    configuredFormatState: zscalerConfig.formState.configuredFormatState,
     zscalerConfigLimitsState: zscalerConfigLimits,
   };
 }

@@ -18,7 +18,9 @@ import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.ZscalerConfigPage;
 import com.sonatype.clm.testing.functional.utils.FormUtils;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
@@ -50,6 +52,8 @@ public class ZscalerConfigPageTest
 
   private ZScalerConfigurationDAO zScalerConfigurationDAO;
 
+  private ZscalerFormatDAO zscalerFormatDAO;
+
   private PasswordHandler passwordHandler;
 
   private static final String FAKE_PASSWORD = "\u0000\u0000\u0000\u0000\u0000";
@@ -69,6 +73,7 @@ public class ZscalerConfigPageTest
   @Before
   public void setUp() {
     zScalerConfigurationDAO = lookup(ZScalerConfigurationDAO.class);
+    zscalerFormatDAO = lookup(ZscalerFormatDAO.class);
     passwordHandler = lookup(PasswordHandler.class);
     SystemConfigurationPropertyFeature.ZSCALER.setEnabled(true);
   }
@@ -99,13 +104,9 @@ public class ZscalerConfigPageTest
 
     page.zscalerConfigHeader().shouldHave(text("Zscaler Configuration"));
     assertNoZscalerConfig();
+    page.formatTooltipIcon().shouldBe(visible);
     page.save().shouldBe(enabled);
     page.save().shouldHave(text("Save"));
-    page.delete().shouldBe(disabled);
-    page.cancel().shouldBe(disabled);
-    page.testConfig().shouldHave(attribute("aria-disabled", "true"));
-    page.eulaCheckbox().label().shouldHave(text(EULA_TEXT_STRING));
-    page.eulaCheckbox().shouldNotBe(selected).shouldBe(enabled);
     page.delete().shouldBe(disabled);
     page.cancel().shouldBe(disabled);
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));
@@ -118,13 +119,17 @@ public class ZscalerConfigPageTest
     saveConfiguration();
 
     // Check that the config is saved in the database
-    assertConfigIsSaved("user", "asdf", "https://zsapi.zscalertwo.net", "key");
+    assertConfigIsSaved("user", "asdf", "https://zsapi.zscalertwo.net", "key", true, false, false, false);
 
     // page is updated with new values
     page.username().shouldBe(value("user"));
     page.password().shouldBe(value(FAKE_PASSWORD));
     page.hostname().shouldBe(value("https://zsapi.zscalertwo.net"));
     page.apiKey().shouldBe(value("key"));
+    page.formatDropdownButton().shouldHave(text("1 of 4"));
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).shouldBe(selected);
+    page.formatDropdownButton().click();
     page.eulaCheckbox().shouldBe(selected).shouldBe(disabled);
   }
 
@@ -135,6 +140,9 @@ public class ZscalerConfigPageTest
     page.password().setValue("asdf");
     page.hostname().setValue("https://zsapi.zscalertwo.net");
     page.apiKey().setValue("key");
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).click();
+    page.formatDropdownButton().click();
 
     saveConfiguration();
     assertValidationError("Review the highlighted fields for missing information.");
@@ -152,16 +160,25 @@ public class ZscalerConfigPageTest
     page.password().setValue("foobar");
     page.hostname().setValue("https://zsapi.zscalerthree.net");
     page.apiKey().setValue("key1");
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).click();
+    page.getFormatCheckboxAt(1).click();
+    page.getFormatCheckboxAt(2).click();
     saveConfiguration();
 
     // Check that the config is updated in the database
-    assertConfigIsSaved("user1", "foobar", "https://zsapi.zscalerthree.net", "key1");
+    assertConfigIsSaved("user1", "foobar", "https://zsapi.zscalerthree.net", "key1", false, true, true, false);
 
     // page is updated with new values
     page.username().shouldBe(value("user1"));
     page.password().shouldBe(value(FAKE_PASSWORD));
     page.hostname().shouldBe(value("https://zsapi.zscalerthree.net"));
     page.apiKey().shouldBe(value("key1"));
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).shouldNotBe(selected);
+    page.getFormatCheckboxAt(1).shouldBe(selected);
+    page.getFormatCheckboxAt(2).shouldBe(selected);
+    page.getFormatCheckboxAt(3).shouldNotBe(selected);
   }
 
   @Test
@@ -204,7 +221,8 @@ public class ZscalerConfigPageTest
   public void testAllFieldsRequiredFormValidationErrors() {
     refreshOrOpen(ZscalerConfigPage.url());
     saveConfiguration();
-    assertValidationError("Username, Password, Hostname and Zscaler API Key are required details.");
+    assertValidationError("Username, Password, Hostname, Zscaler API Key and at least one format " +
+        "are required details.");
   }
 
   @Test
@@ -217,12 +235,53 @@ public class ZscalerConfigPageTest
   }
 
   @Test
+  public void testFormatDropdown() {
+    refreshOrOpen(ZscalerConfigPage.url());
+    page.username().setValue("user");
+    page.password().setValue("asdf");
+    page.hostname().setValue("https://zsapi.zscalertwo.net");
+    page.apiKey().setValue("key");
+    page.formatDropdownButton().shouldHave(text("Formats"));
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).click();
+    page.getFormatCheckboxAt(0).shouldBe(selected);
+    page.formatDropdownButton().shouldHave(text("1 of 4"));
+    page.getFormatCheckboxAt(1).click();
+    page.getFormatCheckboxAt(1).shouldBe(selected);
+    page.formatDropdownButton().shouldHave(text("2 of 4"));
+    page.getFormatCheckboxAt(2).click();
+    page.getFormatCheckboxAt(2).shouldBe(selected);
+    page.formatDropdownButton().shouldHave(text("3 of 4"));
+    page.getFormatCheckboxAt(3).click();
+    page.getFormatCheckboxAt(3).shouldBe(selected);
+    page.formatDropdownButton().shouldHave(text("4 of 4"));
+
+    // show validation error when all formats are unchecked
+    page.getFormatCheckboxAt(0).click();
+    page.getFormatCheckboxAt(1).click();
+    page.getFormatCheckboxAt(2).click();
+    page.getFormatCheckboxAt(3).click();
+    page.formatDropdownButton().shouldHave(text("Formats"));
+    page.formatValidationError().shouldBe(visible).shouldHave(text("At least one format must be selected"));
+
+    // show tooltip when hovering over the icon
+    page.formatTooltipIcon().shouldBe(visible).hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("URLs pushed to Zscaler are based on official package sources. " +
+        "Limiting formats reduces noise and optimizes security rules. Dependencies from unofficial or custom sources " +
+        "are not fully protected by this integration."));
+  }
+
+  @Test
   public void testSendTestConfig() {
     refreshOrOpen(ZscalerConfigPage.url());
+    page.testConfig().shouldHave(attribute("aria-disabled", "true"));
+    page.testConfig().hover();
+    Tooltip.get().shouldBe(visible).shouldHave(text("Username, Password, Hostname and Zscaler API Key are " +
+        "required details."));
+
     fillConfigurationFields();
     saveConfiguration();
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));
-    page.testConfig().click();
     page.testConfig().hover();
     Tooltip.get().shouldBe(visible).shouldHave(text("Password must be re-entered for testing configuration."));
 
@@ -275,6 +334,13 @@ public class ZscalerConfigPageTest
     page.hostname().shouldBe(empty);
     page.apiKey().shouldBe(empty);
     page.eulaCheckbox().shouldNotBe(selected).shouldBe(enabled);
+    page.eulaCheckbox().label().shouldHave(text(EULA_TEXT_STRING));
+    page.formatDropdownButton().shouldHave(text("Formats"));
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).shouldBe(enabled).shouldNotBe(selected).shouldHave(text("Maven"));
+    page.getFormatCheckboxAt(1).shouldBe(enabled).shouldNotBe(selected).shouldHave(text("Npm"));
+    page.getFormatCheckboxAt(2).shouldBe(enabled).shouldNotBe(selected).shouldHave(text("Nuget"));
+    page.getFormatCheckboxAt(3).shouldBe(enabled).shouldNotBe(selected).shouldHave(text("Pypi"));
     assertThat(zScalerConfigurationDAO.get()).isNull();
   }
 
@@ -283,6 +349,9 @@ public class ZscalerConfigPageTest
     page.password().setValue("asdf");
     page.hostname().setValue("https://zsapi.zscalertwo.net");
     page.apiKey().setValue("key");
+    page.formatDropdownButton().click();
+    page.getFormatCheckboxAt(0).click();
+    page.formatDropdownButton().click();
     page.eulaCheckbox().click();
   }
 
@@ -291,12 +360,31 @@ public class ZscalerConfigPageTest
     FormMask.seeAndWaitForDismissal();
   }
 
-  private void assertConfigIsSaved(String username, String password, String hostname, String apiKey) {
+  private void assertConfigIsSaved(
+      String username,
+      String password,
+      String hostname,
+      String apiKey,
+      boolean mavenFormatEnabled,
+      boolean npmFormatEnabled,
+      boolean nugetFormatEnabled,
+      boolean pypiFormatEnabled)
+  {
     assertThat(zScalerConfigurationDAO.get()).isNotNull();
     assertThat(zScalerConfigurationDAO.get().getUsername()).isEqualTo(username);
     assertThat(passwordHandler.decryptPassword(zScalerConfigurationDAO.get().getPassword())).isEqualTo(password);
     assertThat(zScalerConfigurationDAO.get().getHostname()).isEqualTo(hostname);
     assertThat(zScalerConfigurationDAO.get().getApikey()).isEqualTo(apiKey);
+    List<ZscalerFormat> zscalerFormats = zscalerFormatDAO.getAll();
+    for (ZscalerFormat format : zscalerFormats) {
+      switch (format.getFormat()) {
+        case "maven" -> assertThat(format.isEnabled()).isEqualTo(mavenFormatEnabled);
+        case "npm" -> assertThat(format.isEnabled()).isEqualTo(npmFormatEnabled);
+        case "nuget" -> assertThat(format.isEnabled()).isEqualTo(nugetFormatEnabled);
+        case "pypi" -> assertThat(format.isEnabled()).isEqualTo(pypiFormatEnabled);
+        default -> throw new IllegalArgumentException("Unknown format: " + format.getFormat());
+      }
+    }
   }
 
   private void assertValidationError(String errorMessage) {

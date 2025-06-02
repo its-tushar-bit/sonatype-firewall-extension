@@ -10,8 +10,10 @@ import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +38,8 @@ public class ApiZScalerConfigurationService
 
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
 
+  private final ZscalerFormatDAO zscalerFormatDAO;
+
   private final PasswordHandler passwordHandler;
 
   public static final String EULA_MESSAGE = """
@@ -44,9 +50,11 @@ public class ApiZScalerConfigurationService
   @Inject
   public ApiZScalerConfigurationService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final ZscalerFormatDAO zscalerFormatDAO,
       final PasswordHandler passwordHandler)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
+    this.zscalerFormatDAO = zscalerFormatDAO;
     this.passwordHandler = passwordHandler;
   }
 
@@ -61,6 +69,19 @@ public class ApiZScalerConfigurationService
     config.setUsername(zScalerConfiguration.getUsername());
     config.setHostname(zScalerConfiguration.getHostname());
     config.setApiKey(zScalerConfiguration.getApikey());
+
+    List<ZscalerFormat> zscalerFormats = zscalerFormatDAO.getAll();
+    for (ZscalerFormat format : zscalerFormats) {
+      switch (format.getFormat()) {
+        case "maven" -> config.setMavenFormatEnabled(format.isEnabled());
+        case "npm" -> config.setNpmFormatEnabled(format.isEnabled());
+        case "pypi" -> config.setPypiFormatEnabled(format.isEnabled());
+        case "nuget" -> config.setNugetFormatEnabled(format.isEnabled());
+        default -> {
+        }
+      }
+    }
+
     config.setEulaAgreed(true); // User must agree EULA to save the configuration. So, it is always true here.
     return config;
   }
@@ -83,7 +104,22 @@ public class ApiZScalerConfigurationService
     zScalerConfiguration.setUsername(configuration.getUsername());
     zScalerConfiguration.setHostname(configuration.getHostname());
     zScalerConfiguration.setApikey(configuration.getApiKey());
-    zScalerConfigurationDAO.set(zScalerConfiguration);
+
+    Map<String, ZscalerFormat> formatMap = zscalerFormatDAO.getAll().stream()
+        .collect(Collectors.toMap(ZscalerFormat::getFormat, f -> f));
+    for (ZScalerSupportedFormat format : ZScalerSupportedFormat.values()) {
+      boolean enabled = switch (format) {
+        case MAVEN -> configuration.isMavenFormatEnabled();
+        case NPM -> configuration.isNpmFormatEnabled();
+        case PYPI -> configuration.isPypiFormatEnabled();
+        case NUGET -> configuration.isNugetFormatEnabled();
+      };
+      formatMap.computeIfAbsent(String.valueOf(format).toLowerCase(),
+          f -> new ZscalerFormat(f, enabled)).setEnabled(enabled);
+    }
+    List<ZscalerFormat> zscalerFormats = new ArrayList<>(formatMap.values());
+
+    zScalerConfigurationDAO.set(zScalerConfiguration, zscalerFormats);
 
     return String.format("You have acknowledged and agreed that %s", EULA_MESSAGE);
   }
@@ -119,6 +155,13 @@ public class ApiZScalerConfigurationService
         throw new BadRequestException("The following fields are required: " + String.join(", ", missingFields));
       }
     }
+
+    if (!configuration.isMavenFormatEnabled() &&
+        !configuration.isNpmFormatEnabled() &&
+        !configuration.isPypiFormatEnabled() &&
+        !configuration.isNugetFormatEnabled()) {
+      throw new BadRequestException("At least one format must be enabled.");
+    }
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -133,62 +176,5 @@ public class ApiZScalerConfigurationService
 
   private RuntimeException newNotFoundException() {
     return new NotFoundException("Zscaler not configured.");
-  }
-
-  public static class ApiZScalerConfigurationDTO
-  {
-    private String username;
-
-    private String password;
-
-    private String hostname;
-
-    private String apiKey;
-
-    private Boolean eulaAgreed;
-
-    public ApiZScalerConfigurationDTO() {
-      //empty
-    }
-
-    public String getUsername() {
-      return username;
-    }
-
-    public void setUsername(final String username) {
-      this.username = username;
-    }
-
-    public String getPassword() {
-      return password;
-    }
-
-    public void setPassword(final String password) {
-      this.password = password;
-    }
-
-    public String getHostname() {
-      return hostname;
-    }
-
-    public void setHostname(final String hostname) {
-      this.hostname = hostname;
-    }
-
-    public String getApiKey() {
-      return apiKey;
-    }
-
-    public void setApiKey(final String apiKey) {
-      this.apiKey = apiKey;
-    }
-
-    public Boolean isEulaAgreed() {
-      return eulaAgreed;
-    }
-
-    public void setEulaAgreed(final boolean eulaAgreed) {
-      this.eulaAgreed = eulaAgreed;
-    }
   }
 }

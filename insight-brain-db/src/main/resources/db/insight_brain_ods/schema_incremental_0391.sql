@@ -1,6 +1,5 @@
 -- since 1.192
 -- SaaS Compatible
-
 CREATE TABLE zscaler_metrics (
     zscaler_metrics_id varchar(50) NOT NULL,
 
@@ -17,4 +16,3 @@ CREATE TABLE zscaler_metrics (
     updated_at TIMESTAMP NOT NULL,
     CONSTRAINT zscaler_metrics_pk PRIMARY KEY (zscaler_metrics_id)
 );
-

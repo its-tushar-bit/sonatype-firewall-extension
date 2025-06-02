@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { __, any, compose, curryN, map, pick, prop, propEq, values } from 'ramda';
+import { any, compose, curryN, equals, map, pick, prop, values, keys, filter, fromPairs } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 import { hasValidationErrors, validateNonEmpty } from '../../util/validationUtil';
@@ -37,10 +37,16 @@ export const initialState = {
       validationErrors: 'This field is required',
       disabled: false,
     },
+    configuredFormatState: {
+      formats: new Set(),
+      isPristine: true,
+      validationErrors: 'At least one format must be selected',
+    },
   },
   isDirty: false,
   isValid: false,
   hasAllRequiredData: false,
+  hasAllRequiredDataForTestConfig: false,
   loading: false,
   submitMaskState: null, // one of null, false, or true as patterned in the NxStatefulSubmitMask examples
   submitMaskMessage: null,
@@ -53,7 +59,8 @@ export const initialState = {
   mustReenterPassword: false,
 };
 
-const textProps = ['username', 'password', 'hostname', 'apiKey'];
+const textProps = ['username', 'password', 'hostname', 'apiKey'],
+  booleanProps = ['mavenFormatEnabled', 'npmFormatEnabled', 'pypiFormatEnabled', 'nugetFormatEnabled'];
 
 const clearedErrors = pick(['loadError', 'saveError', 'deleteError', 'testConfigError'], initialState);
 
@@ -70,6 +77,18 @@ function setFormStateFromServerData(state) {
         validationErrors: null,
         disabled: true,
       },
+      configuredFormatState: {
+        formats: new Set(
+          keys(
+            filter(
+              Boolean,
+              pick(['mavenFormatEnabled', 'npmFormatEnabled', 'pypiFormatEnabled', 'nugetFormatEnabled'], serverData)
+            )
+          )
+        ),
+        isPristine: true,
+        validationErrors: null,
+      },
     };
 
   return computeHasAllRequiredData({ ...state, formState });
@@ -77,11 +96,18 @@ function setFormStateFromServerData(state) {
 
 function computeHasAllRequiredData(state) {
   const {
-      formState: { username, password, hostname, apiKey },
+      formState: { username, password, hostname, apiKey, configuredFormatState },
     } = state,
-    hasAllRequiredData = !!(username.value && password.value && hostname.value && apiKey.value);
+    hasAllRequiredData = !!(
+      username.value &&
+      password.value &&
+      hostname.value &&
+      apiKey.value &&
+      configuredFormatState.formats.size > 0
+    ),
+    hasAllRequiredDataForTestConfig = !!(username.value && password.value && hostname.value && apiKey.value);
 
-  return { ...state, hasAllRequiredData };
+  return { ...state, hasAllRequiredData, hasAllRequiredDataForTestConfig };
 }
 
 function computeIsDirty(state) {
@@ -89,16 +115,18 @@ function computeIsDirty(state) {
 
   if (serverData) {
     const isTextPropDirty = (prop) => formState[prop].trimmedValue !== (serverData[prop] || ''),
+      severConfiguredFormats = new Set(filter((prop) => serverData[prop] === true, booleanProps)),
       textPropsDirty = any(isTextPropDirty, ['username', 'hostname', 'apiKey']),
+      booleanPropsDirty = !equals(severConfiguredFormats, formState.configuredFormatState.formats),
       passwordDirty = formState.password.value !== FAKE_PASSWORD;
 
     return {
       ...state,
-      isDirty: textPropsDirty || passwordDirty,
+      isDirty: textPropsDirty || booleanPropsDirty || passwordDirty,
     };
   } else {
     const textPropsDirty = any((prop) => formState[prop].trimmedValue !== '', textProps),
-      booleanPropsDirty = any(propEq(__, true, formState));
+      booleanPropsDirty = !formState.configuredFormatState.isPristine || !formState.eula.isPristine;
 
     return { ...state, isDirty: textPropsDirty || booleanPropsDirty };
   }
@@ -120,12 +148,14 @@ function computeMustReenterPassword(state) {
   }
 
   const isTextPropDirty = (prop) => formState[prop].trimmedValue !== (serverData[prop] || ''),
+    severConfiguredFormats = new Set(filter((prop) => serverData[prop] === true, booleanProps)),
     textPropsDirty = any(isTextPropDirty, ['username', 'hostname', 'apiKey']),
+    booleanPropsDirty = !equals(severConfiguredFormats, formState.configuredFormatState.formats),
     password = formState.password.value;
 
   return {
     ...state,
-    mustReenterPassword: textPropsDirty && password === FAKE_PASSWORD,
+    mustReenterPassword: (textPropsDirty || booleanPropsDirty) && password === FAKE_PASSWORD,
   };
 }
 
@@ -260,6 +290,21 @@ function setEulaCheckbox(state) {
   };
 }
 
+const setConfiguredFormats = (state, { payload }) => {
+  const stateWithUpdatedValue = {
+    ...state,
+    formState: {
+      ...state.formState,
+      configuredFormatState: {
+        formats: payload,
+        isPristine: false,
+        validationErrors: payload.size > 0 ? null : 'At least one format must be selected',
+      },
+    },
+  };
+  return updatedComputedProps(stateWithUpdatedValue);
+};
+
 const setTextInput = curryN(4, function setTextInput(fieldName, validator, state, { payload }) {
   const stateWithUpdatedValue = pathSet(
     ['formState', fieldName],
@@ -324,6 +369,12 @@ function toServerData(formState) {
     ...map(textPropMapper, pick(['hostname', 'username', 'apiKey'], formState)),
     password: formState.password.value || null,
     eulaAgreed: formState.eula.value || false,
+    ...fromPairs(
+      ['mavenFormatEnabled', 'npmFormatEnabled', 'pypiFormatEnabled', 'nugetFormatEnabled'].map((key) => [
+        key,
+        formState.configuredFormatState.formats.has(key),
+      ])
+    ),
   };
 }
 
@@ -339,6 +390,7 @@ const zscalerConfigSlice = createSlice({
     setShowDeleteModal: propSet('showDeleteModal'),
     submitMaskTimerDone: propSetConst('submitMaskState', null),
     setEulaCheckbox: setEulaCheckbox,
+    setConfiguredFormats: setConfiguredFormats,
   },
   extraReducers: {
     [load.pending]: loadRequested,

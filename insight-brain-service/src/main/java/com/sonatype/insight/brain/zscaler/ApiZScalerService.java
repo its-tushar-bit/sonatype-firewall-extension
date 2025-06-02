@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -15,9 +16,11 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -41,6 +44,8 @@ public class ApiZScalerService
 
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
 
+  private final ZscalerFormatDAO zscalerFormatDAO;
+
   private Cache<String, ZScalerQuota> quotaCache;
 
   private final ZScalerMetricsDAO zScalerMetricsDAO;
@@ -52,11 +57,13 @@ public class ApiZScalerService
   @Inject
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final ZscalerFormatDAO zscalerFormatDAO,
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
+    this.zscalerFormatDAO = zscalerFormatDAO;
     this.zScalerMetricsDAO = zScalerMetricsDAO;
     this.passwordHandler = passwordHandler;
     this.zScalerClient = zScalerClient;
@@ -68,12 +75,13 @@ public class ApiZScalerService
 
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
+      final ZscalerFormatDAO zscalerFormatDAO,
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient,
       final Cache<String, ZScalerQuota> cache)
   {
-    this(zScalerConfigurationDAO, zScalerMetricsDAO, passwordHandler, zScalerClient);
+    this(zScalerConfigurationDAO, zscalerFormatDAO, zScalerMetricsDAO, passwordHandler, zScalerClient);
     this.quotaCache = cache;
   }
 
@@ -113,7 +121,7 @@ public class ApiZScalerService
     zScalerClient.activateChanges(configuration.getHostname());
   }
 
-  public void updateCategory(final ZScalerFormat format, final List<String> activeUrls) {
+  public void updateCategory(final ZScalerSupportedFormat format, final List<String> activeUrls) {
     ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
     if (configuration == null) {
       log.warn("No zScaler configuration found");
@@ -124,7 +132,25 @@ public class ApiZScalerService
     this.quotaCache.invalidate(QUOTA_KEY);
   }
 
-  private void updateCategory(String baseUrl, ZScalerFormat selectedFormat, List<String> activeUrls) {
+  public List<ZScalerSupportedFormat> getConfiguredFormats() {
+    ZScalerConfiguration configuration = zScalerConfigurationDAO.get();
+    if (configuration == null) {
+      log.warn("No zScaler configuration found");
+      throw new BadRequestException("No zScaler configuration found");
+    }
+
+    List<ZScalerSupportedFormat> formats = new ArrayList<>();
+    List<ZscalerFormat> zscalerFormats = zscalerFormatDAO.getAll();
+    for (ZscalerFormat format : zscalerFormats) {
+      if (format.isEnabled()) {
+        formats.add(ZScalerSupportedFormat.valueOf(format.getFormat().toUpperCase()));
+      }
+    }
+
+    return formats;
+  }
+
+  private void updateCategory(String baseUrl, ZScalerSupportedFormat selectedFormat, List<String> activeUrls) {
     List<ZScalerCategory> categories = zScalerClient.getCustomUrlCategories(baseUrl);
 
     String category = zscalerCategoryName(selectedFormat);
@@ -154,7 +180,7 @@ public class ApiZScalerService
   }
 
   private void updateMetrics(
-      final ZScalerFormat selectedFormat,
+      final ZScalerSupportedFormat selectedFormat,
       final List<String> activeUrls,
       final List<String> allowedUrls)
   {
@@ -176,6 +202,10 @@ public class ApiZScalerService
         zScalerMetrics.setPypiUrlsFromHds(activeUrls.size());
         zScalerMetrics.setPypiUrlsToZscaler(allowedUrls.size());
         break;
+      case NUGET:
+        zScalerMetrics.setNugetUrlsFromHds(activeUrls.size());
+        zScalerMetrics.setNugetUrlsToZscaler(allowedUrls.size());
+        break;
       default:
         log.warn("Unsupported zScaler format {}", selectedFormat);
         return;
@@ -183,7 +213,7 @@ public class ApiZScalerService
     zScalerMetricsDAO.set(zScalerMetrics);
   }
 
-  private String zscalerCategoryName(final ZScalerFormat selectedFormat) {
+  private String zscalerCategoryName(final ZScalerSupportedFormat selectedFormat) {
     String formatName = selectedFormat.name().toLowerCase(Locale.getDefault());
     return "sonatype-" + formatName + "-shadow-download-defense";
   }

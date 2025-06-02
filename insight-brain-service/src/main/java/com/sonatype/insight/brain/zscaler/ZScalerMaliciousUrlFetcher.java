@@ -13,5 +13,5 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 @HasFeature(SystemConfigurationPropertyFeature.ZSCALER)
 public interface ZScalerMaliciousUrlFetcher
 {
-  InputStream fetchMaliciousUrls(ZScalerFormat format);
+  InputStream fetchMaliciousUrls(ZScalerSupportedFormat format);
 }

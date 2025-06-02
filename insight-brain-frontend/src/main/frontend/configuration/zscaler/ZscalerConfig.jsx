@@ -25,6 +25,8 @@ import {
   NxTile,
   NxWarningAlert,
   NxLoadError,
+  NxStatefulFilterDropdown,
+  NxTooltip,
 } from '@sonatype/react-shared-components';
 import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
@@ -33,6 +35,7 @@ import classnames from 'classnames';
 import ZscalerConfigLimits from './ZscalerConfigLimits';
 
 import './ZscalerConfig.scss';
+import { faInfoCircle } from '@fortawesome/pro-solid-svg-icons';
 
 const AUTH_ERROR_MESSAGE =
   'It appears you do not have permission to access this page. ' +
@@ -44,11 +47,19 @@ const TEST_CONFIG_ERROR_MESSAGE =
 
 const TEST_CONFIG_SUCCESS_MESSAGE = 'Connection to Zscaler successful.';
 
-const REQUIRED_DETAILS_MESSAGE = 'Username, Password, Hostname and Zscaler API Key are required details.';
+const REQUIRED_DETAILS_MESSAGE =
+  'Username, Password, Hostname, Zscaler API Key and at least one format are required details.';
+
+const REQUIRED_DETAILS_TEST_CONFIG_MESSAGE = 'Username, Password, Hostname and Zscaler API Key are required details.';
 
 const PASSWORD_REENTER_MESSAGE = 'Password must be re-entered when any fields are modified.';
 
 const PASSWORD_REENTER_TEST_CONFIG_MESSAGE = 'Password must be re-entered for testing configuration.';
+
+const TOOLTIP_TITLE =
+  'URLs pushed to Zscaler are based on official package sources. Limiting formats ' +
+  'reduces noise and optimizes security rules. Dependencies from unofficial or custom sources are not fully protected ' +
+  'by this integration.';
 
 export default function ZscalerConfig(props) {
   const {
@@ -64,12 +75,14 @@ export default function ZscalerConfig(props) {
       testConfig,
       setEulaCheckbox,
       loadLimits,
+      setConfiguredFormats,
     } = props,
     {
       loading,
       submitMaskState,
       submitMaskMessage,
       hasAllRequiredData,
+      hasAllRequiredDataForTestConfig,
       isDirty,
       loadError: loadErrorProp,
       saveError,
@@ -82,6 +95,7 @@ export default function ZscalerConfig(props) {
       passwordState,
       apiKeyState,
       eulaState,
+      configuredFormatState,
       mustReenterPassword,
       testConfigSuccess,
       isAuthorized,
@@ -145,14 +159,14 @@ export default function ZscalerConfig(props) {
   );
 
   const formValidationErrors = reject(isNil, [
-    mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
     hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
+    mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
     eulaState.value ? null : 'Review the highlighted fields for missing information.',
     isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
 
-  const testConfigTooltip = !hasAllRequiredData
-    ? REQUIRED_DETAILS_MESSAGE
+  const testConfigTooltip = !hasAllRequiredDataForTestConfig
+    ? REQUIRED_DETAILS_TEST_CONFIG_MESSAGE
     : passwordState.isPristine
     ? PASSWORD_REENTER_TEST_CONFIG_MESSAGE
     : null;
@@ -168,7 +182,7 @@ export default function ZscalerConfig(props) {
 
   const passwordSublabel = hasAllRequiredData && mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null;
 
-  const isTestConfigEnabled = hasAllRequiredData && !passwordState.isPristine;
+  const isTestConfigEnabled = hasAllRequiredDataForTestConfig && !passwordState.isPristine;
 
   const apiKeySublabel = (
     <span>
@@ -203,6 +217,13 @@ export default function ZscalerConfig(props) {
       License Terms.
     </NxTextLink>
   );
+
+  const options = [
+    { id: 'mavenFormatEnabled', displayName: 'Maven' },
+    { id: 'npmFormatEnabled', displayName: 'Npm' },
+    { id: 'nugetFormatEnabled', displayName: 'Nuget' },
+    { id: 'pypiFormatEnabled', displayName: 'Pypi' },
+  ];
 
   function testConfigHandler() {
     if (isTestConfigEnabled) {
@@ -295,14 +316,29 @@ export default function ZscalerConfig(props) {
               'password',
               apiKeySublabel
             )}
-            {testConfigSuccess && <NxSuccessAlert>{TEST_CONFIG_SUCCESS_MESSAGE}</NxSuccessAlert>}
-            {testConfigError && (
-              <NxLoadError
-                titleMessage={TEST_CONFIG_ERROR_MESSAGE}
-                error={learnMoreAboutZscalerLink}
-                retryHandler={testConfig}
-              />
-            )}
+            <NxFieldset
+              id="zscaler-config-format"
+              label="Configured Formats"
+              sublabel="Limit the number of urls pushed to Zscaler."
+              isRequired={true}
+              isPristine={configuredFormatState.isPristine}
+              validationErrors={configuredFormatState.validationErrors}
+            >
+              <NxStatefulFilterDropdown
+                placeholder="Formats"
+                options={options}
+                selectedIds={configuredFormatState.formats}
+                onChange={setConfiguredFormats}
+                showReset={false}
+              ></NxStatefulFilterDropdown>
+              <NxTooltip title={TOOLTIP_TITLE}>
+                <NxFontAwesomeIcon
+                  className="config-format-tooltip__icon"
+                  data-testid="tooltip-icon"
+                  icon={faInfoCircle}
+                />
+              </NxTooltip>
+            </NxFieldset>
             <NxFieldset
               label="End User License Agreement"
               isRequired={true}
@@ -322,6 +358,14 @@ export default function ZscalerConfig(props) {
                 and governed by these {licenseTermsLink}
               </NxCheckbox>
             </NxFieldset>
+            {testConfigSuccess && <NxSuccessAlert>{TEST_CONFIG_SUCCESS_MESSAGE}</NxSuccessAlert>}
+            {testConfigError && (
+              <NxLoadError
+                titleMessage={TEST_CONFIG_ERROR_MESSAGE}
+                error={learnMoreAboutZscalerLink}
+                retryHandler={testConfig}
+              />
+            )}
           </NxTile.Content>
         </NxStatefulForm>
         {showDeleteModal && modal}
@@ -355,6 +399,7 @@ ZscalerConfig.propTypes = {
   setApiKey: PropTypes.func.isRequired,
   setShowDeleteModal: PropTypes.func.isRequired,
   setEulaCheckbox: PropTypes.func.isRequired,
+  setConfiguredFormats: PropTypes.func.isRequired,
   loadLimits: PropTypes.func.isRequired,
   testConfig: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
@@ -382,4 +427,9 @@ ZscalerConfig.propTypes = {
   mustReenterPassword: PropTypes.bool.isRequired,
   isAuthorized: PropTypes.bool.isRequired,
   eulaState: checkboxPropType.isRequired,
+  configuredFormatState: PropTypes.shape({
+    formats: PropTypes.instanceOf(Set).isRequired,
+    isPristine: PropTypes.bool.isRequired,
+    validationErrors: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string.isRequired), PropTypes.string]),
+  }).isRequired,
 };

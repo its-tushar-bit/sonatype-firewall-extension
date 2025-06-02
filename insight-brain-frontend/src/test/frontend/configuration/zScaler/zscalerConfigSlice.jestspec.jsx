@@ -24,6 +24,11 @@ describe('zscalerConfigSlice', () => {
         validationErrors: 'This field is required',
         disabled: false,
       },
+      configuredFormatState: {
+        formats: new Set(),
+        isPristine: true,
+        validationErrors: 'At least one format must be selected',
+      },
     };
     payload = {
       username: 'user',
@@ -33,7 +38,7 @@ describe('zscalerConfigSlice', () => {
     };
   });
 
-  describe('/zscalerConfig/load', () => {
+  describe('zscalerConfig/load', () => {
     it('pending', () => {
       const state = Object.freeze({
         loading: false,
@@ -409,6 +414,40 @@ describe('zscalerConfigSlice', () => {
       expect(newState.formState.eula.isPristine).toBe(false);
       expect(newState.formState.eula.validationErrors).toBe(null);
       expect(newState.formState.eula.disabled).toBe(false);
+    });
+  });
+
+  describe('zscalerConfig/setConfiguredFormats', () => {
+    it('sets the ConfiguredFormatState and a validation error when the payload is empty', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setConfiguredFormats',
+        payload: new Set([]),
+      });
+
+      expect(newState.formState.configuredFormatState.formats).toEqual(new Set());
+      expect(newState.formState.configuredFormatState.isPristine).toBe(false);
+      expect(newState.formState.configuredFormatState.validationErrors).toContain(
+        'At least one format must be selected'
+      );
+    });
+
+    it('sets the ConfiguredFormatState and no validation error when the payload is present', () => {
+      const state = Object.freeze({
+        formState: initialFormState,
+      });
+
+      const newState = reducer(state, {
+        type: 'zscalerConfig/setConfiguredFormats',
+        payload: new Set(['foo', 'bar']),
+      });
+
+      expect(newState.formState.configuredFormatState.formats).toEqual(new Set(['foo', 'bar']));
+      expect(newState.formState.configuredFormatState.isPristine).toBe(false);
+      expect(newState.formState.configuredFormatState.validationErrors).toBeFalsy();
     });
   });
 

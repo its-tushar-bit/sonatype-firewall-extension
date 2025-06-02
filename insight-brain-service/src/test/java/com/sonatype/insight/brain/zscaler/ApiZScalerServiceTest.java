@@ -6,13 +6,16 @@
 package com.sonatype.insight.brain.zscaler;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.model.configuration.ZScalerConfiguration;
+import com.sonatype.insight.brain.model.configuration.ZscalerFormat;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.test.LogOutput;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -46,6 +49,8 @@ public class ApiZScalerServiceTest
 
   private String url = "http://example-url";
 
+  private List<ZscalerFormat> zscalerFormats;
+
   @Mock
   private ZScalerClient client;
 
@@ -54,6 +59,9 @@ public class ApiZScalerServiceTest
 
   @Mock
   private ZScalerConfigurationDAO configurationDAO;
+
+  @Mock
+  private ZscalerFormatDAO zscalerFormatDAO;
 
   @Mock
   private ZScalerMetricsDAO metricsDAO;
@@ -78,7 +86,8 @@ public class ApiZScalerServiceTest
 
     urls = List.of(url);
 
-    underTest = Mockito.spy(new ApiZScalerService(configurationDAO, metricsDAO, passwordHandler, client, cache));
+    underTest = Mockito.spy(new ApiZScalerService(configurationDAO, zscalerFormatDAO,
+        metricsDAO, passwordHandler, client, cache));
   }
 
   @Test
@@ -86,7 +95,7 @@ public class ApiZScalerServiceTest
     when(configurationDAO.get()).thenReturn(config);
     when(client.getZScalerQuota(anyString())).thenReturn(new ZScalerQuota(0, 100));
 
-    underTest.updateCategory(ZScalerFormat.NPM, urls);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM, urls);
 
     verify(client).getCustomUrlCategories(anyString());
     verify(client).createCustomUrlCategory(anyString(), anyString(), anyList());
@@ -99,7 +108,7 @@ public class ApiZScalerServiceTest
     when(configurationDAO.get()).thenReturn(null);
 
     assertThrows("No zScaler configuration found", BadRequestException.class,
-        () -> underTest.updateCategory(ZScalerFormat.NPM, urls));
+        () -> underTest.updateCategory(ZScalerSupportedFormat.NPM, urls));
 
     assertThat(logOutput).atWarnLevel().contains("No zScaler configuration found");
   }
@@ -117,7 +126,7 @@ public class ApiZScalerServiceTest
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
 
-    underTest.updateCategory(ZScalerFormat.NPM, urls);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM, urls);
 
     verify(client).getCustomUrlCategories(config.getHostname());
     verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-npm-shadow-download-defense"),
@@ -135,7 +144,7 @@ public class ApiZScalerServiceTest
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(Collections.emptyList());
 
-    underTest.updateCategory(ZScalerFormat.NPM, urls);
+    underTest.updateCategory(ZScalerSupportedFormat.NPM, urls);
 
     verify(client).getCustomUrlCategories(config.getHostname());
     verify(client, never()).updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList());
@@ -160,7 +169,7 @@ public class ApiZScalerServiceTest
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
 
-    underTest.updateCategory(ZScalerFormat.NPM,
+    underTest.updateCategory(ZScalerSupportedFormat.NPM,
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
     verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
@@ -182,7 +191,7 @@ public class ApiZScalerServiceTest
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
 
-    underTest.updateCategory(ZScalerFormat.NPM,
+    underTest.updateCategory(ZScalerSupportedFormat.NPM,
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
     verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
@@ -204,7 +213,7 @@ public class ApiZScalerServiceTest
     when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
     when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(existingCategory));
 
-    underTest.updateCategory(ZScalerFormat.NPM,
+    underTest.updateCategory(ZScalerSupportedFormat.NPM,
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
     verify(client, never()).updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList());
@@ -260,5 +269,45 @@ public class ApiZScalerServiceTest
 
     assertThat(response).isNotNull();
     assertThat(response.status()).isEqualTo("under");
+  }
+
+  @Test
+  public void getConfiguredFormatsReturnsEmptyListWhenFormatsAreNull() {
+    zscalerFormats = new ArrayList<>();
+    zscalerFormats.add(new ZscalerFormat("maven", false));
+    zscalerFormats.add(new ZscalerFormat("npm", false));
+    zscalerFormats.add(new ZscalerFormat("pypi",false));
+    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    when(zscalerFormatDAO.getAll()).thenReturn(zscalerFormats);
+    when(configurationDAO.get()).thenReturn(config);
+
+    List<ZScalerSupportedFormat> result = underTest.getConfiguredFormats();
+
+    assertThat(result).isEmpty();
+  }
+
+  @Test
+  public void getConfiguredFormatsReturnsSpecifiedFormat() {
+    zscalerFormats = new ArrayList<>();
+    zscalerFormats.add(new ZscalerFormat("maven", false));
+    zscalerFormats.add(new ZscalerFormat("npm", true));
+    zscalerFormats.add(new ZscalerFormat("pypi",true));
+    zscalerFormats.add(new ZscalerFormat("nuget",false));
+    when(zscalerFormatDAO.getAll()).thenReturn(zscalerFormats);
+    when(configurationDAO.get()).thenReturn(config);
+
+    List<ZScalerSupportedFormat> result = underTest.getConfiguredFormats();
+
+    assertThat(result).containsExactly(ZScalerSupportedFormat.NPM, ZScalerSupportedFormat.PYPI);
+  }
+
+  @Test
+  public void getConfiguredFormatsThrowsExceptionWhenConfigurationIsNull() {
+    when(configurationDAO.get()).thenReturn(null);
+
+    assertThrows("No zScaler configuration found", BadRequestException.class,
+        () -> underTest.getConfiguredFormats());
+
+    assertThat(logOutput).atWarnLevel().contains("No zScaler configuration found");
   }
 }

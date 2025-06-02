@@ -1073,7 +1073,7 @@ public class ApiSbomServiceTest
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forLifeCycleProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "MIT");
+    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "3D-Slicer");
   }
 
   @Test
@@ -1081,14 +1081,14 @@ public class ApiSbomServiceTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomAndALPProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
         ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK);
-    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "MIT");
+    testGetSbomComponents_withLicenseOverrides(LicenseOverrideStatus.OVERRIDDEN, "Aladdin", "3D-Slicer");
   }
 
   @Test
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
-    testGetSbomComponents_withLicenseOverrides(null, "license-1", "license-4", "license-3");
+    testGetSbomComponents_withLicenseOverrides(null, "License 1", "SpecialChars %$3", "Another 4");
   }
 
   private void testGetSbomComponents_withLicenseOverrides(
@@ -1129,7 +1129,7 @@ public class ApiSbomServiceTest
     //mimic license override
     tempEntity.newLicenseOverride(application.getId(), packageUrlIdentifier2.toComponentIdentifier(),
         LicenseOverrideStatus.OVERRIDDEN,
-        Set.of("MIT", "Aladdin"));
+        Set.of("3D-Slicer-UNSPECIFIED", "Aladdin"));
 
     File reportFile = insightWork.getReportFile(application.getId(), scan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
@@ -1147,7 +1147,7 @@ public class ApiSbomServiceTest
         result.getResults().stream().filter(r -> r.getComponentIdentifier().equals(componentIdentifier2)))
         .hasSize(1)
         .allSatisfy(dto -> {
-          assertThat(dto.getLicenses()).hasSize(expected.length).extracting(ResolvedLicenseDTO::licenseId)
+          assertThat(dto.getLicenses()).hasSize(expected.length).extracting(ResolvedLicenseDTO::licenseName)
               .containsExactlyInAnyOrder(expected);
           if (overrideStatus != null) {
             assertThat(dto.getLicenses()).extracting(ResolvedLicenseDTO::overrideStatus).containsOnly(overrideStatus);

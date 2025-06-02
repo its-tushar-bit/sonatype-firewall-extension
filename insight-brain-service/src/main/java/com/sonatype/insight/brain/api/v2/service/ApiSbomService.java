@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
@@ -46,6 +47,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
@@ -147,6 +149,8 @@ public class ApiSbomService
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final LicenseDAO licenseDAO;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
@@ -164,7 +168,7 @@ public class ApiSbomService
       final SbomPolicyService sbomPolicyService,
       final ThirdPartyPersistenceService thirdPartyPersistenceService,
       final ThirdPartyComponentLicenseResolutionService thirdPartyComponentLicenseResolutionService,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO, final LicenseDAO licenseDAO)
   {
     this.dao = dao;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -182,6 +186,7 @@ public class ApiSbomService
     this.thirdPartyPersistenceService = thirdPartyPersistenceService;
     this.thirdPartyComponentLicenseResolutionService = thirdPartyComponentLicenseResolutionService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.licenseDAO = licenseDAO;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -494,6 +499,13 @@ public class ApiSbomService
     Set<ResolvedLicenseDTO> licenses = thirdPartyComponentLicenseResolutionService.getLicenseOverrides(applicationId,
         sbomComponentDTO.getPackageUrl());
     if (CollectionUtils.isNotEmpty(licenses)) {
+      licenses = licenses.stream().map(rl -> {
+        //update with license short display name,if available
+        License license = licenseDAO.getById(rl.licenseId());
+        return new ResolvedLicenseDTO(rl.licenseId(),
+            license != null ? license.getShortDisplayName() : rl.licenseId(),
+            null, null, rl.overrideStatus());
+      }).collect(Collectors.toSet());
       sbomComponentDTO.setLicenses(licenses);
     }
   }

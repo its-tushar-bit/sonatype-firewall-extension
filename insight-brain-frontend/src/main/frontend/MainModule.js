@@ -16,7 +16,6 @@ import {
   submitData,
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import reduxConfigModule from './reduxConfig/module';
-import SessionSecurityModule from './SessionSecurityModule';
 import mainHeaderModule from './mainHeader/module';
 import navigationContainer from './navigationContainer/module';
 import ReportModule from './ReportApp';
@@ -54,6 +53,7 @@ import { library } from '@fortawesome/fontawesome-svg-core';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
+import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationManager';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -86,7 +86,6 @@ export const InitModule = angular
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
-      SessionSecurityModule.name,
       pendoModule.name,
       utilityServicesModule.name,
       legalModule.name,
@@ -204,7 +203,6 @@ export const InitModule = angular
     '$q',
     '$urlRouter',
     '$timeout',
-    'SessionSecurityService',
     'pendoService',
     'LoginModalService',
     'UnauthenticatedRequestQueueService',
@@ -220,7 +218,6 @@ export const InitModule = angular
       $q,
       $urlRouter,
       $timeout,
-      SessionSecurityService,
       pendoService,
       LoginModalService,
       UnauthenticatedRequestQueueService,
@@ -277,13 +274,7 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors(
-        SessionSecurityService.setServerDate,
-        $rootScope,
-        $window,
-        LoginModalService,
-        UnauthenticatedRequestQueueService
-      );
+      attachAxiosInterceptors($rootScope, $window, LoginModalService, UnauthenticatedRequestQueueService);
 
       function setRootError(err) {
         $rootScope.error = Messages.getHttpErrorMessage(err);
@@ -354,7 +345,7 @@ export const InitModule = angular
           $state.go(savedState.state, savedState.params);
         }
         requestNotificationPermission();
-        SessionSecurityService.init();
+        checkSessionExpiredLater($ngRedux, $rootScope.productEdition);
         loadFontAwesomeBrandIcons();
       }
 
@@ -522,6 +513,7 @@ export const InitModule = angular
               : undefined;
           }
         }
+        window.unloadListener = unloadListener;
 
         // make sure to cleanup event listeners
         $rootScope.$on('$destroy', function () {

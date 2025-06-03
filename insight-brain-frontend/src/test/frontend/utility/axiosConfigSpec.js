@@ -7,9 +7,10 @@
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 import * as isIqIframeUtil from 'MainRoot/utilAngular/isIqFrame';
 import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
+import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
 
 describe('axiosConfig', () => {
-  let mockAxios, attachAxiosInterceptors;
+  let mockAxios, attachAxiosInterceptors, mockSessionExpired;
 
   beforeEach(function () {
     mockAxios = Object.assign(jasmine.createSpy('axios'), {
@@ -25,17 +26,16 @@ describe('axiosConfig', () => {
   });
 
   describe('attachAxiosInterceptors', () => {
-    let $rootScope, $window, setServerDateSpy, loginModalService, queueService, attachInterceptors;
-
+    let $rootScope, $window, loginModalService, queueService, attachInterceptors;
     beforeEach(
       angular.mock.module(utilityServicesModule.name, loginModalModule.name, function ($provide) {
-        const sessionExpiredSpy = jasmine.createSpy('window.sessionExpired'),
-          $window = {
-            sessionExpired: sessionExpiredSpy,
-            location: {
-              assign: jasmine.createSpy(),
-            },
-          };
+        mockSessionExpired = jasmine.createSpy('mockSessionExpired');
+        const $window = {
+          location: {
+            assign: jasmine.createSpy(),
+          },
+          sessionExpired: mockSessionExpired,
+        };
 
         $window.top = $window;
         $provide.value('$window', $window);
@@ -45,12 +45,10 @@ describe('axiosConfig', () => {
     beforeEach(inject(function (_$rootScope_, _$window_, _UnauthenticatedRequestQueueService_, _LoginModalService_) {
       $rootScope = _$rootScope_.$new();
       $window = _$window_;
-      setServerDateSpy = jasmine.createSpy('setServerDate');
       queueService = _UnauthenticatedRequestQueueService_;
       loginModalService = _LoginModalService_;
 
-      attachInterceptors = () =>
-        attachAxiosInterceptors(setServerDateSpy, $rootScope, $window, loginModalService, queueService);
+      attachInterceptors = () => attachAxiosInterceptors($rootScope, $window, loginModalService, queueService);
     }));
 
     afterEach(() => {
@@ -209,7 +207,7 @@ describe('axiosConfig', () => {
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-              expect($window.sessionExpired).toHaveBeenCalledTimes(1);
+              expect(mockSessionExpired).toHaveBeenCalledTimes(1);
               expect(queueService.getRequests().length).toBe(0);
               delete $rootScope.username;
               done();
@@ -224,7 +222,7 @@ describe('axiosConfig', () => {
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-              expect($window.sessionExpired).toHaveBeenCalledTimes(1);
+              expect(mockSessionExpired).toHaveBeenCalledTimes(1);
               expect(queueService.getRequests().length).toBe(0);
               done();
             });
@@ -365,13 +363,15 @@ describe('axiosConfig', () => {
         const getSeverDateInterceptor = () => getInterceptorHandlerAt(1);
 
         it('calls the setServerDate passed function when the request returns the appropriate header', () => {
+          spyOn(sessionExpirationManager, 'setServerDate');
+
           const serverDateInterceptor = getSeverDateInterceptor();
           serverDateInterceptor.fulfilled({ headers: {} });
-          expect(setServerDateSpy).not.toHaveBeenCalled();
+          expect(sessionExpirationManager.setServerDate).not.toHaveBeenCalled();
 
           const expectedDate = new Date('Thu, 17 Mar 2022 17:36:03 GMT');
           serverDateInterceptor.fulfilled({ headers: { date: 'Thu, 17 Mar 2022 17:36:03 GMT' } });
-          expect(setServerDateSpy).toHaveBeenCalledWith(expectedDate);
+          expect(sessionExpirationManager.setServerDate).toHaveBeenCalledWith(expectedDate);
         });
       });
     });

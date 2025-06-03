@@ -1692,6 +1692,10 @@ export const getRoiConfigurationUrl = (currencyType) => {
 export const getRoiConfigurationRestoreDefaultsUrl = (currencyType) =>
   uriTemplate`/rest/roiConfiguration/defaultValues/currencyType/${currencyType}`;
 
+export const getSessionLogoutUrl = () => {
+  return uriTemplate`/rest/user/session/logout`;
+};
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',
@@ -1752,9 +1756,7 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
 
       getSessionUrl,
 
-      getSessionLogoutUrl: function () {
-        return baseUrl.get() + '/rest/user/session/logout';
-      },
+      getSessionLogoutUrl,
 
       getUserUrl,
 

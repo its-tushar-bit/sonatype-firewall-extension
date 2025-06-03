@@ -4,17 +4,17 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
+
 /**
  * This file contains HttpInterceptors that are needed only in the top-level IQ UI and not in child frames such as
  * reports (HttpInterceptors.js, in contrast, is bundled in the report js as well)
  */
-import SessionSecurityModule from '../SessionSecurityModule';
 
 export default angular
-  .module('IqHttpInterceptors', [SessionSecurityModule.name])
+  .module('IqHttpInterceptors', [])
   .factory('serverDateInterceptor', [
-    'SessionSecurityService',
-    function (SessionSecurityService) {
+    function () {
       return {
         response: function (response) {
           var dateString = response.headers('Date'),
@@ -22,7 +22,7 @@ export default angular
             serverDate = dateString ? new Date(dateString) : undefined;
 
           if (serverDate) {
-            SessionSecurityService.setServerDate(serverDate);
+            setServerDate(serverDate);
           }
 
           return response;

@@ -4,22 +4,10 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import iqHttpInterceptors from '../../../main/frontend/utilAngular/IqHttpInterceptors';
-import * as urlUtil from 'MainRoot/util/urlUtil';
+import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
 
 describe('IqHttpInterceptors', function () {
   var $httpBackend, $http;
-
-  let CLMLocation;
-
-  beforeEach(function () {
-    CLMLocation = require('inject-loader!../../../main/frontend/util/CLMLocation')({
-      './urlUtil': {
-        ...urlUtil,
-      },
-    });
-
-    angular.mock.module(CLMLocation.default.name);
-  });
 
   beforeEach(
     angular.mock.module(iqHttpInterceptors.name, function ($provide) {
@@ -33,14 +21,13 @@ describe('IqHttpInterceptors', function () {
   }));
 
   describe('serverDateInterceptor', function () {
-    var $filter, SessionSecurityService;
+    var $filter;
 
-    beforeEach(inject(function (_$filter_, _SessionSecurityService_) {
+    beforeEach(inject(function (_$filter_) {
       $filter = _$filter_;
-      SessionSecurityService = _SessionSecurityService_;
     }));
 
-    it('calls SessionSecurityService.setServerDate with the parsed value of the Date HTTP header', function () {
+    it('calls sessionExpirationManager.setServerDate with the parsed value of the Date HTTP header', function () {
       // make server date 5 seconds behind
       var currentDate = new Date(),
         serverDate = new Date(currentDate - 5000),
@@ -54,7 +41,7 @@ describe('IqHttpInterceptors', function () {
       // mock response with Date header 5 seconds in the past
       $httpBackend.expectGET('test').respond(200, {}, { Date: dateHeaderValue });
 
-      spyOn(SessionSecurityService, 'setServerDate').and.callFake(function (date) {
+      spyOn(sessionExpirationManager, 'setServerDate').and.callFake(function (date) {
         parsedDate = date;
       });
 
@@ -62,19 +49,19 @@ describe('IqHttpInterceptors', function () {
 
       $httpBackend.flush();
 
-      expect(SessionSecurityService.setServerDate).toHaveBeenCalled();
+      expect(sessionExpirationManager.setServerDate).toHaveBeenCalled();
       expect(getTimeWithoutMilliseconds(parsedDate)).toEqual(getTimeWithoutMilliseconds(serverDate));
     });
 
-    it('does not call SessionSecurityService.setServerDate if there is no Date header', function () {
+    it('does not call sessionExpirationManager.setServerDate if there is no Date header', function () {
       // mock response with Date header 5 seconds in the past
       $httpBackend.expectGET('test').respond(200);
 
-      spyOn(SessionSecurityService, 'setServerDate');
+      spyOn(sessionExpirationManager, 'setServerDate');
 
       $http.get('test');
 
-      expect(SessionSecurityService.setServerDate).not.toHaveBeenCalled();
+      expect(sessionExpirationManager.setServerDate).not.toHaveBeenCalled();
     });
   });
 });

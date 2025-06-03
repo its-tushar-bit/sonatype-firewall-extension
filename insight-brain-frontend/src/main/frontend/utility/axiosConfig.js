@@ -5,22 +5,16 @@
  */
 import axios from 'axios';
 import isIqIframe from '../utilAngular/isIqFrame';
+import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
 
 /**
- * @param setServerDate   Angular service SessionSecurityService setServerDate method.
  * @param rootScope       Angular's $rootScope variable.
  * @param window     Angular's $window variable.
  * @param loginModalService    LoginModalService (open login modal)
  * @param UnauthenticatedRequestQueueService the queue service to provide control of the outstanding requests
  **/
 
-export const attachAxiosInterceptors = (
-  setServerDate,
-  rootScope,
-  window,
-  loginModalService,
-  UnauthenticatedRequestQueueService
-) => {
+export const attachAxiosInterceptors = (rootScope, window, loginModalService, UnauthenticatedRequestQueueService) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -33,7 +27,7 @@ export const attachAxiosInterceptors = (
         // If we are in a child frame (for a report), the username won't be available but we can still detect that
         // we are in a child frame.
         if (rootScope.username || isIqIframe(window)) {
-          // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
+          // session expired - tell sessionExpirationManager of the main IQ UI, which resides in the top frame of
           // the page.
           window.top.sessionExpired();
         } else {

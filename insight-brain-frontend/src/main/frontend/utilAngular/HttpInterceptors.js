@@ -23,7 +23,7 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', [
           // If we are in a child frame (for a report), the username won't be available but we can still detect that
           // we are in a child frame.
           if ($rootScope.username || isIqIframe($window)) {
-            // session expired - tell SessionSecurityService of the main IQ UI, which resides in the top frame of
+            // session expired - tell sessionExpirationManager of the main IQ UI, which resides in the top frame of
             // the page.
             $window.top.sessionExpired();
           } else {

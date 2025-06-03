@@ -19,6 +19,7 @@ import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
 
 import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
+import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerRepositoryResultsPage/ContainerRepositoryResultsPage';
 
 export default angular
   .module('firewallModule', ['ngRedux'])
@@ -31,6 +32,7 @@ export default angular
   .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
   .component('containerReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']))
+  .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -525,6 +527,13 @@ function routes($stateProvider) {
       component: 'containerReport',
       params: {
         policyViolationId: { dynamic: true },
+      },
+    })
+    .state('firewall.containerRepositoryResults', {
+      url: '/container/repository/{repositoryId}/results',
+      component: 'containerRepositoryResults',
+      data: {
+        title: 'Container Repository Results',
       },
     })
     .state('firewall.containerComponentDetails', {

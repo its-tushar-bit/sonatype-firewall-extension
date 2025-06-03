@@ -1853,4 +1853,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getRoiConfigurationRestoreDefaultsUrl('usd')).toEqual(expectedUrl);
     });
   });
+
+  describe('getContainerRepositoryResultsUrl', () => {
+    it('returns the url for the container repository results', () => {
+      const repositoryId = 'someRepositoryId';
+      const expectedUrl = `/api/v2/malware-defense/container-images/repositories/repository/${repositoryId}/results/image-details`;
+      expect(clmLocation.getContainerRepositoryResultsUrl(repositoryId)).toEqual(expectedUrl);
+    });
+  });
 });

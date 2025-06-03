@@ -189,7 +189,11 @@ const RepositoriesConfigurationTile = () => {
               <NxTextLink
                 className="nx-truncate-ellipsis"
                 data-testid="repositories_configuration-link"
-                href={uiRouterState.href('repository-report', { repositoryId: repositoryData.id })}
+                href={
+                  repositoryData.format === 'docker'
+                    ? uiRouterState.href('firewall.containerRepositoryResults', { repositoryId: repositoryData.id })
+                    : uiRouterState.href('repository-report', { repositoryId: repositoryData.id })
+                }
               >
                 {repositoryData.publicId}
               </NxTextLink>

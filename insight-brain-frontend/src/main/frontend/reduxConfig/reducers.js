@@ -116,6 +116,7 @@ import roiConfigurationPageSlice from 'MainRoot/configuration/roiConfiguration/r
 import editRoiConfigurationPageSlice from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 import displayThemeSlice from 'MainRoot/configuration/displayTheme/displayThemeSlice';
 import createPRModalSlice from 'MainRoot/manualPullRequest/createPRModalSlice';
+import containerRepositoryResultsPageSlice from '../OrgsAndPolicies/containerRepositoryResultsPage/containerRepositoryResultsPageSlice';
 import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
@@ -233,6 +234,7 @@ export default combineReducers({
   roiConfigurationPage: roiConfigurationPageSlice,
   editRoiConfigurationPage: editRoiConfigurationPageSlice,
   displayTheme: displayThemeSlice,
+  containerRepositoryResultsPage: containerRepositoryResultsPageSlice,
   logoutWarningModal: logoutWarningModalSlice,
   externalLinkModal: externalLinkModalSlice,
   unsavedChangesModal: unsavedChangesModalSlice,

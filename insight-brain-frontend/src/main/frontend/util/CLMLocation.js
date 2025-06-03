@@ -1692,6 +1692,9 @@ export const getRoiConfigurationUrl = (currencyType) => {
 export const getRoiConfigurationRestoreDefaultsUrl = (currencyType) =>
   uriTemplate`/rest/roiConfiguration/defaultValues/currencyType/${currencyType}`;
 
+export const getContainerRepositoryResultsUrl = (repositoryId) =>
+  uriTemplate`/api/v2/malware-defense/container-images/repositories/repository/${repositoryId}/results/image-details`;
+
 export const getSessionLogoutUrl = () => {
   return uriTemplate`/rest/user/session/logout`;
 };

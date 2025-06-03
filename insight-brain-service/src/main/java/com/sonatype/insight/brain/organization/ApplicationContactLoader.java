@@ -49,7 +49,7 @@ public class ApplicationContactLoader
     ContactDTO[] contacts = new ContactDTO[internalNamesList.size()];
 
     Map<String, ContactDTO> nameToContactMap;
-    UserDirectory.QueryResult result = userDirectory.getUsersByName(new HashSet<>(internalNamesList));
+    UserDirectory.QueryResult result = userDirectory.getUsersByNames(new HashSet<>(internalNamesList));
     if (result.hasException()) {
       log.error("An exception occurred while trying to resolve user names; "
           + "attempting to resolve user names using the local Nexus IQ realm.", result.getException());

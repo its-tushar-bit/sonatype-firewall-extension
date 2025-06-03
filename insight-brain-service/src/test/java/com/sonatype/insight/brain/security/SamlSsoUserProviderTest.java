@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -250,7 +251,7 @@ public class SamlSsoUserProviderTest
   public void testGetSamlUsersByUsernames() {
     Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
-    samlSsoUserProvider.getSsoByUsernames(usernames);
+    samlSsoUserProvider.getSsoUsersByUsernames(usernames);
 
     verify(spySamlUserDAO).getByUsernames(usernames);
   }

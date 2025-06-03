@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,7 +26,7 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 /**
- * This service orchestrate and manage the different SSO User implementations in the application.
+ * This service orchestrates and manages the different SSO User implementations in the application.
  * <p>
  * It dynamically selects the SSO user implementation to use on the application based on the existing configuration. All
  * the business rules to select the proper SSO implementation should live here.
@@ -123,8 +124,8 @@ public class SsoUserService
         .collect(Collectors.toList());
   }
 
-  public List<SsoUser> getSsoByUsernames(Set<String> usernames) {
-    return getEnabledSsoUserProvider().getSsoByUsernames(usernames);
+  public List<SsoUser> getSsoUsersByUsernames(Set<String> usernames) {
+    return getEnabledSsoUserProvider().getSsoUsersByUsernames(usernames);
   }
 
   public List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery) {

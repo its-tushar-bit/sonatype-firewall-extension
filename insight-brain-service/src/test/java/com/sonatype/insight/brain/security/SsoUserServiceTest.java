@@ -13,6 +13,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -230,7 +231,7 @@ public class SsoUserServiceTest
           Collections.singleton(samlGroup.getName()));
       Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
-      List<SsoUser> users = ssoUserService.getSsoByUsernames(usernames);
+      List<SsoUser> users = ssoUserService.getSsoUsersByUsernames(usernames);
 
       assertThat(users.stream().map(SsoUser::getId)).containsExactly(samlUser1.getId(), samlUser2.getId());
     });
@@ -246,7 +247,7 @@ public class SsoUserServiceTest
           Collections.singleton(oauth2Group.getName()));
       Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
-      List<SsoUser> users = ssoUserService.getSsoByUsernames(usernames);
+      List<SsoUser> users = ssoUserService.getSsoUsersByUsernames(usernames);
 
       assertThat(users.stream().map(SsoUser::getId)).containsExactly(oauth2User1.getId(), oauth2User2.getId());
     });

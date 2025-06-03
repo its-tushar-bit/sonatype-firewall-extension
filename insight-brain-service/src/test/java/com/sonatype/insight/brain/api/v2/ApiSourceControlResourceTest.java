@@ -35,6 +35,7 @@ import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -706,7 +707,7 @@ public class ApiSourceControlResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
-        .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or via at the organization level");
+        .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or at the organization level");
   }
 
   /**

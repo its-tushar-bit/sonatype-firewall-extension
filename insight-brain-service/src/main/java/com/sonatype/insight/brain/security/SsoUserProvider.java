@@ -26,7 +26,7 @@ public interface SsoUserProvider
 
   Set<String> filterExistingSsoGroupNames(Set<String> groupNames);
 
-  List<SsoUser> getSsoByUsernames(Set<String> usernames);
+  List<SsoUser> getSsoUsersByUsernames(Set<String> usernames);
 
   List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery);
 

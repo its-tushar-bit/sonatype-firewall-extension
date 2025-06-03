@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -125,12 +126,12 @@ public class UserDirectory
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains user/group information.
    */
-  public QueryResult getMembersByName(Collection<Member> members) {
+  public QueryResult getMembersByNames(Collection<Member> members) {
     if (members == null || members.isEmpty()) {
       return new QueryResult(new ArrayList<>());
     }
 
-    QueryResult result = getUsersByName(getNameByType(members, MemberType.USER));
+    QueryResult result = getUsersByNames(getNameByType(members, MemberType.USER));
 
     Set<String> groupNames = getNameByType(members, MemberType.GROUP);
     purgeNullNames(groupNames);
@@ -219,7 +220,7 @@ public class UserDirectory
    * @return A query result containing members or exceptions. If an exception is encountered it is still likely that the
    *         result contains user information.
    */
-  public QueryResult getUsersByName(Set<String> origUserNames) {
+  public QueryResult getUsersByNames(Set<String> origUserNames) {
     if (origUserNames == null || origUserNames.isEmpty()) {
       return new QueryResult(new ArrayList<>());
     }
@@ -268,7 +269,7 @@ public class UserDirectory
     }
 
     if (!sortedUserNames.isEmpty() && ssoUserService.isSsoConfigured()) {
-      for (SsoUser ssoUser : ssoUserService.getSsoByUsernames(sortedUserNames)) {
+      for (SsoUser ssoUser : ssoUserService.getSsoUsersByUsernames(sortedUserNames)) {
         Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
             ssoUser.getEmail(), ssoUser.getRealmId());
         members.add(member);
@@ -695,7 +696,7 @@ public class UserDirectory
       return Collections.emptySet();
     }
 
-    QueryResult result = getUsersByName(userNames);
+    QueryResult result = getUsersByNames(userNames);
     if (result.hasException()) {
       log.error(
           "An exception occurred while trying to resolve user names; validating users against local IQ Server realm.",

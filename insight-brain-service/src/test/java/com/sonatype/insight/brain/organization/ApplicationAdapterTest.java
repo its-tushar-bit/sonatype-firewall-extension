@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -120,7 +121,7 @@ public class ApplicationAdapterTest
     UserDirectory.QueryResult result = new UserDirectory.QueryResult(new ArrayList<>(),
         new Exception(TEST_MESSAGE));
     UserDirectory mockUserDirectory = mock(UserDirectory.class);
-    when(mockUserDirectory.getUsersByName(Collections.singleton(contactInternalName))).thenReturn(result);
+    when(mockUserDirectory.getUsersByNames(Collections.singleton(contactInternalName))).thenReturn(result);
 
     ContactDTO expectedContactDTO = createExpectedContactDTOForUserDirectoryError(contactInternalName);
     ApplicationDTO expectedApplicationDTO = createExpectedApplicationDTO(applicationName, applicationId,
@@ -251,7 +252,7 @@ public class ApplicationAdapterTest
 
     UserDirectory.QueryResult result = new UserDirectory.QueryResult(members, new Exception(TEST_MESSAGE));
     UserDirectory mockUserDirectory = mock(UserDirectory.class);
-    when(mockUserDirectory.getUsersByName(memberNames)).thenReturn(result);
+    when(mockUserDirectory.getUsersByNames(memberNames)).thenReturn(result);
 
     List<ApplicationManagementSummaryDTO> actualDTOs =
         applicationAdapter.createApplicationManagementSummaries(applications, null);

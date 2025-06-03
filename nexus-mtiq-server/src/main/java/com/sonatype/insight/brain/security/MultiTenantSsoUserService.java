@@ -32,7 +32,7 @@ public class MultiTenantSsoUserService
     getEnabledSsoUserProvider().upsertByUsername(ssoUserFromMtiqUser(ssoUser));
   }
 
-  static SsoUser ssoUserFromMtiqUser(final MtiqUserDTO user) {
+  private static SsoUser ssoUserFromMtiqUser(final MtiqUserDTO user) {
     return new SsoUser(user.getUsername().toLowerCase(), user.getFirstName(), user.getLastName(), user.getEmail());
   }
 }

@@ -28,6 +28,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiCompositeSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiCompositeSourceControlService;
@@ -565,15 +567,15 @@ public class ScmOnboardingService
   // only supported for Github in general, although, the mapping SCM_USER to IQ_USER should work
   // more broadly
   private void importUserRolesBasedOnSCMContributors(final Application app) {
-    final var mappings = scmUserMappingService.getUserMappingsByOwner(OwnerType.APPLICATION, app.getId());
+    final SCMUserMappingsResponseDTO mappings =
+        scmUserMappingService.getUserMappingsByOwnerNoAuthz(OwnerType.APPLICATION, app.getId());
 
     if (nonNull(mappings)) {
       log.info("performing automatic role assignment for app {}", app.getPublicId());
 
       try {
-        final var results = userMatchingService.automaticRoleAssignmentByMapping(
-            app.getPublicId(),
-            mappings.userMapping());
+        final SCMUserMatchingResultDTO results =
+            userMatchingService.automaticRoleAssignmentByMappingNoAuthz(app, mappings.userMapping());
 
         if (!results.matchedUsers().isEmpty()) {
           log.info("{} user(s) imported from SCM for app {}", results.matchedUsers().size(), app.getPublicId());

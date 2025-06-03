@@ -37,7 +37,7 @@ public class MemberAttributeResolver
     List<Member> unresolvedMembers = resolveCachedMembers(members);
 
     // Get new members based on internal user names.
-    UserDirectory.QueryResult result = userDirectory.getMembersByName(unresolvedMembers);
+    UserDirectory.QueryResult result = userDirectory.getMembersByNames(unresolvedMembers);
     if (result.hasException()) {
       log.error("An exception occurred while trying to resolve user names; " +
               "attempting to resolve user names using the local Nexus IQ realm.",

@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -143,7 +144,7 @@ public class OAuth2SsoUserProvider
   }
 
   @Override
-  public List<SsoUser> getSsoByUsernames(Set<String> usernames) {
+  public List<SsoUser> getSsoUsersByUsernames(Set<String> usernames) {
     List<OAuth2User> users = oAuth2UserDAO.getByUsernames(usernames);
     return users.stream().map(SsoUser::fromOAuth2User).collect(Collectors.toList());
   }

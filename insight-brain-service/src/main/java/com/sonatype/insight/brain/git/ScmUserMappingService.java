@@ -10,6 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -110,11 +111,14 @@ public class ScmUserMappingService
       @AuthzContext(Key.TYPE) OwnerType ownerType,
       @AuthzContext(Key.INTERNAL_ID) String ownerId)
   {
+    checkLicense();
+    return getUserMappingsByOwnerNoAuthz(ownerType, ownerId);
+  }
+
+  SCMUserMappingsResponseDTO getUserMappingsByOwnerNoAuthz(OwnerType ownerType, String ownerId) {
     if (!OwnerType.ORGANIZATION.equals(ownerType) && !OwnerType.APPLICATION.equals(ownerType)) {
       throw new BadRequestException("OwnerType not supported: " + ownerType);
     }
-    checkLicense();
-
     Iterator<Owner> ownersHierarchy = ownerDAO.walkHierarchy(ownerId, ownerType).iterator();
     if (OwnerType.APPLICATION.equals(ownerType)) {
       ownersHierarchy.next(); // skip first if ownerType is APPLICATION

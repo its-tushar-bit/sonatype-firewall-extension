@@ -10,6 +10,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -139,7 +140,7 @@ public class SamlSsoUserProvider
   }
 
   @Override
-  public List<SsoUser> getSsoByUsernames(Set<String> usernames) {
+  public List<SsoUser> getSsoUsersByUsernames(Set<String> usernames) {
     List<SamlUser> users = samlUserDAO.getByUsernames(usernames);
     return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
   }

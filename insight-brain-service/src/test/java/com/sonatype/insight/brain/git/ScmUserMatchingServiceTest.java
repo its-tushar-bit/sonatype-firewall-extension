@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
@@ -62,7 +63,7 @@ public class ScmUserMatchingServiceTest
 
   private Application app;
 
-  private final String repoUrl = "https://github.com/myAwesomeOrg/myAwesomeRepo";
+  private static final String REPO_URL = "https://github.com/sonatype/myAwesomeRepo";
 
   @Inject
   private ScmUserMatchingService scmUserMatchingService;
@@ -101,7 +102,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_USERNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("user1");
     tempEntity.newUser("user4");
     tempEntity.newUser("some-other-iq-user-not-found-on-github");
@@ -137,7 +138,7 @@ public class ScmUserMatchingServiceTest
 
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_EMAIL);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -196,7 +197,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_EMAIL);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -255,7 +256,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_FULLNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters11@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith1@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins22@example.com");
@@ -314,7 +315,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_FULLNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -374,7 +375,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_USERNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -438,7 +439,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_FULLNAME, IQ_EMAIL);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -499,7 +500,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_EMAIL);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("jdoe", "John", "Doe", "jdoe29@example.com");
     tempEntity.newUser("j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("ccarlyle42", "Carry", "Carlyle", "c-carlyle@example.com");
@@ -539,7 +540,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_USERNAME, IQ_FULLNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("jdoe", "John", "Doe", "jdoe29@example.com");
     tempEntity.newUser("j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("ccarlyle42", "Carry", "Carlyle", "c-carlyle@example.com");
@@ -577,7 +578,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_USERNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -638,7 +639,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_EMAIL);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -700,7 +701,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_EMAIL, IQ_FULLNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-j-smith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -762,7 +763,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(SCM_FULLNAME, IQ_USERNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters11@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith1@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins22@example.com");
@@ -822,7 +823,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_USERNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters11@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith1@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins22@example.com");
@@ -883,7 +884,7 @@ public class ScmUserMatchingServiceTest
   {
     final var givenMapping = new UserMapping(GITLOG_EMAIL, IQ_FULLNAME);
 
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -942,7 +943,7 @@ public class ScmUserMatchingServiceTest
   public void testAutomaticRoleAssignmentByMapping_shouldReturnAfterFirstMatchFoundOnAnyStrategy()
       throws IOException
   {
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
     tempEntity.newUser("iq-sjenkins", "Sam", "Jenkins", "sjenkins@example.com");
@@ -1031,7 +1032,7 @@ public class ScmUserMatchingServiceTest
 
   @Test
   public void testAutomaticRoleAssignmentByMapping_shouldHandleInstancesWhereNoStrategiesMatch() {
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
 
@@ -1055,7 +1056,7 @@ public class ScmUserMatchingServiceTest
   @Test
   public void testAutomaticRoleAssignmentByMapping_shouldUseARoleOverrideWhenProvided() {
     final var givenRoleName = "Owner";
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
 
@@ -1077,7 +1078,7 @@ public class ScmUserMatchingServiceTest
   @Test
   public void testAutomaticRoleAssignmentByMapping_usesPreConfiguredIfNoneProvidedToMethod() {
     // === Given ===
-    tempEntity.newSourceControl(app.getId(), repoUrl);
+    tempEntity.newSourceControl(app.getId(), REPO_URL);
     tempEntity.newUser("iq-twalters", "Tod", "Walters", "twalters@example.com");
     tempEntity.newUser("iq-jsmith", "Jim", "Smith", "jim.smith@example.com");
 
@@ -1112,8 +1113,8 @@ public class ScmUserMatchingServiceTest
             null
         ));
 
-    assertThat(result.getMessage()).isEqualTo("An SCMUserMappingsDTO must be provided either with the request or via " +
-        "at the organization level");
+    assertThat(result.getMessage())
+        .isEqualTo("An SCMUserMappingsDTO must be provided either with the request or at the organization level");
   }
 
   private void mockGithubClientAndScmUtils(Set<String> githubUsers) {
@@ -1151,7 +1152,7 @@ public class ScmUserMatchingServiceTest
   }
 
   private GitRepositoryInfo getGitRepositoryInfo() {
-    return new GitRepositoryInfo(repoUrl, null, "user", "pass", SourceControlProvider.GITHUB, "main", true, true,
+    return new GitRepositoryInfo(REPO_URL, null, "user", "pass", SourceControlProvider.GITHUB, "main", true, true,
         true, true, true, false, null);
   }
 

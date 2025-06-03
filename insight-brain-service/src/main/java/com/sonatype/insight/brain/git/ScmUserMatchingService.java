@@ -5,7 +5,24 @@
  */
 package com.sonatype.insight.brain.git;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.AbstractMap.SimpleEntry;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
+
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
+import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsResponseDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.ToMappingEnum;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.UserMapping;
@@ -36,21 +53,6 @@ import com.sonatype.nexus.scm.api.model.Contributor;
 import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.GITLOG_EMAIL;
 import static com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum.GITLOG_FULLNAME;
@@ -113,26 +115,30 @@ public class ScmUserMatchingService
       SCMUserMappingsDTO scmUserMappingsDTO
   )
   {
-    // will throw NotFoundException if app is missing
-    final Application application = this.applicationDAO.getByPublicIdNotNull(publicId);
+    final Application application = applicationDAO.getByPublicId(publicId);
+    return automaticRoleAssignmentByMappingNoAuthz(application, scmUserMappingsDTO);
+  }
 
+  SCMUserMatchingResultDTO automaticRoleAssignmentByMappingNoAuthz(
+      Application application,
+      SCMUserMappingsDTO scmUserMappingsDTO)
+  {
     // will either return the supplied mappings or try to fetch from the db by app id when null
     scmUserMappingsDTO = provideConfiguredSCMUserMappingsWhenNull(scmUserMappingsDTO, application.getId());
 
     if (isNull(scmUserMappingsDTO)) {
-      throw new BadRequestException("An SCMUserMappingsDTO must be provided either with the request or via " +
-          "at the organization level");
+      throw new BadRequestException(
+          "An SCMUserMappingsDTO must be provided either with the request or at the organization level");
     }
 
     final List<UserMapping> userMappings = scmUserMappingsDTO.mappings();
 
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
     if (gitRepositoryInfo == null) {
-      throw new NotFoundException(String.format(
-          "Cannot find GitRepositoryInfo for %s", publicId));
+      throw new NotFoundException(String.format("Cannot find GitRepositoryInfo for %s", application.getPublicId()));
     }
 
-    final var scmUserMatchingResultDTO = getMatchingUsers(gitRepositoryInfo, userMappings);
+    final SCMUserMatchingResultDTO scmUserMatchingResultDTO = getMatchingUsers(gitRepositoryInfo, userMappings);
 
     autoCreateDeveloperRoleMatchingForSCMRepositoryUsers(
         application, scmUserMatchingResultDTO.matchedUsers(), scmUserMappingsDTO.role());
@@ -149,7 +155,7 @@ public class ScmUserMatchingService
     Set<String> githubUsernames = null;
     Set<Contributor> contributors = null;
 
-    for (final var mapping : userMappings) {
+    for (final UserMapping mapping : userMappings) {
       if (isNull(githubUsernames) && needsToFetchSCMUserNames(mapping)) {
         githubUsernames = getGithubRepositoryContributorUsernames(gitRepositoryInfo);
       }
@@ -351,7 +357,8 @@ public class ScmUserMatchingService
       return scmUserMappingsDTO;
     }
     else {
-      final var preConfiguredUserMappings = scmUserMappingService.getUserMappingsByOwner(APPLICATION, internalAppId);
+      final SCMUserMappingsResponseDTO preConfiguredUserMappings =
+          scmUserMappingService.getUserMappingsByOwnerNoAuthz(APPLICATION, internalAppId);
       return nonNull(preConfiguredUserMappings) ? preConfiguredUserMappings.userMapping() : null;
     }
   }

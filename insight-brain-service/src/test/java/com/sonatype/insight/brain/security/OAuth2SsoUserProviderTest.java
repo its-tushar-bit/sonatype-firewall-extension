@@ -12,6 +12,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -245,7 +246,7 @@ public class OAuth2SsoUserProviderTest
   public void testGetOAuth2UsersByUsernames() {
     Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
-    oAuth2SsoUserProvider.getSsoByUsernames(usernames);
+    oAuth2SsoUserProvider.getSsoUsersByUsernames(usernames);
 
     verify(spyOAuth2UserDAO).getByUsernames(usernames);
   }

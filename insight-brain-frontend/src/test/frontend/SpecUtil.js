@@ -578,3 +578,6 @@ export const removePortalContainer = () => {
   const backButtonRoot = global.document.querySelector('#menu-bar__back-button-container');
   backButtonRoot && backButtonRoot.remove();
 };
+
+export const getSpecUtil = () => window.SpecUtil;
+export { spyOn };

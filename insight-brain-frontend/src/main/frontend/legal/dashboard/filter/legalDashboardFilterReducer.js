@@ -139,7 +139,7 @@ function setFiltersAreDirty(state) {
 function setAvailable(state, payload) {
   const selectedOrgsLookup = indexBy(prop('id'), payload.organizations);
   const findOrgById = lookup(selectedOrgsLookup);
-  const { applications } = payload;
+  const { applications, isSbomManager } = payload;
 
   // add missing Orgs (no permission to org scenario)
   const appsWithNoOrg = applications.filter((app) => findOrgById(app.organizationId) === undefined);
@@ -152,25 +152,29 @@ function setAvailable(state, payload) {
   const orgsWithoutRoot = payload.organizations.filter((organization) => organization.id !== 'ROOT_ORGANIZATION_ID');
   const organizations = [...orgsWithoutRoot, ...missingOrgs];
 
-  // populate categories owner
-  const categoriesWithOwner = payload.categories.map((category) => {
-    const relatedOrg = findOrgById(category.organizationId);
-    // we will want to sort app categories by nameLowercase
-    category.nameLowercase = category.name.toLocaleLowerCase('en-US');
-    return relatedOrg ? { ...category, owner: relatedOrg.name } : category;
-  });
+  let categories = [];
+  let stages = [];
+  if (!isSbomManager) {
+    // populate categories owner
+    const categoriesWithOwner = payload.categories.map((category) => {
+      const relatedOrg = findOrgById(category.organizationId);
+      // we will want to sort app categories by nameLowercase
+      category.nameLowercase = category.name.toLocaleLowerCase('en-US');
+      return relatedOrg ? { ...category, owner: relatedOrg.name } : category;
+    });
 
-  // the "uncategorized applications" category should always be first, so we need to sort the rest of them here
-  const sortedCategories = sortBy(prop('nameLowercase'), categoriesWithOwner);
+    // the "uncategorized applications" category should always be first, so we need to sort the rest of them here
+    const sortedCategories = sortBy(prop('nameLowercase'), categoriesWithOwner);
 
-  // add "uncategorized applications" Category
-  const categories = [uncategorizedCategory, ...sortedCategories];
+    // add "uncategorized applications" Category
+    categories = [uncategorizedCategory, ...sortedCategories];
 
-  // normalize stages
-  const stages = payload.stages.map(({ stageTypeId, stageName }) => ({
-    id: stageTypeId,
-    name: stageName,
-  }));
+    // normalize stages
+    stages = payload.stages.map(({ stageTypeId, stageName }) => ({
+      id: stageTypeId,
+      name: stageName,
+    }));
+  }
 
   return { ...state, organizations, applications, categories, stages };
 }
@@ -191,13 +195,18 @@ const applyFilter = ({ filter }) => (state) => {
   const appsFromSelectedOrgs = state.applications.filter(belongsToSelectedOrg).map(prop('id'));
   const applications = new Set([...filter.applicationFilters, ...appsFromSelectedOrgs]);
 
-  // categories: avoid adding no-longer-existing category ids to selected.categories
-  const categoryFilters = filter.categoryFilters || [];
-  const existingCategoryIds = new Set(state.categories.map(prop('id')));
-  const selectedCategoryIds = categoryFilters.filter((categoryId) => existingCategoryIds.has(categoryId));
-  const categories = new Set(selectedCategoryIds);
+  let categories = new Set([]);
+  let stages = new Set([]);
+  if (!state.isSbomManager) {
+    // categories: avoid adding no-longer-existing category ids to selected.categories
+    const categoryFilters = filter.categoryFilters || [];
+    const existingCategoryIds = new Set(state.categories.map(prop('id')));
+    const selectedCategoryIds = categoryFilters.filter((categoryId) => existingCategoryIds.has(categoryId));
+    categories = new Set(selectedCategoryIds);
 
-  const stages = new Set(filter.stageTypeFilters);
+    stages = new Set(filter.stageTypeFilters);
+  }
+
   const progressOptionFilters = new Set(filter.progressOptionsFilters);
 
   const selected = Object.freeze({

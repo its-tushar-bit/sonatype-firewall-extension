@@ -19,6 +19,7 @@ import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSi
 import { filterToJson } from './legalDashboardFilterService';
 import { fetchSavedFilters } from './manageLegalFiltersActions';
 import defaultFilter from './defaultFilter';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 export const LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED = 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED';
 export const LEGAL_DASHBOARD_LOAD_FILTER_FAILED = 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED';
@@ -39,12 +40,13 @@ export const LEGAL_DASHBOARD_TOGGLE_FILTER_SIDEBAR = 'LEGAL_DASHBOARD_TOGGLE_FIL
 
 export function loadFilter() {
   return (dispatch, getState) => {
+    const isSbomManager = selectIsSbomManager(getState());
     dispatch({ type: LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED });
 
     const promises = [
       axios.get(getApplicationsUrl()),
       axios.get(getOrganizationsUrl()),
-      axios.get(getApplicationTagsUrl()),
+      !isSbomManager ? axios.get(getApplicationTagsUrl()) : null,
       axios.get(getLegalDashboardFilters()),
       dispatch(fetchStageTypes('dashboard')),
       dispatch(fetchSavedFilters()),
@@ -62,8 +64,9 @@ export function loadFilter() {
           fetchAvailableFilterOptionsFulfilled(
             applications.data,
             organizations.data,
-            categoriesData.data,
-            dashboard.stageTypes
+            categoriesData ? categoriesData.data : null,
+            dashboard.stageTypes,
+            isSbomManager
           )
         );
         return dispatch(fetchCurrentFilterFulfilled(filterData.data));
@@ -75,7 +78,7 @@ export function loadFilter() {
   };
 }
 
-function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages) {
+function fetchAvailableFilterOptionsFulfilled(applications, organizations, categories, stages, isSbomManager) {
   return {
     type: LEGAL_DASHBOARD_FETCH_AVAILABLE_FILTER_OPTIONS_FULFILLED,
     payload: {
@@ -83,6 +86,7 @@ function fetchAvailableFilterOptionsFulfilled(applications, organizations, categ
       organizations,
       categories,
       stages,
+      isSbomManager,
     },
   };
 }

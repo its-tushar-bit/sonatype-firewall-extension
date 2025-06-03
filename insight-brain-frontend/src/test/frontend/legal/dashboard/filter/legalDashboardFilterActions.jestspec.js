@@ -22,8 +22,11 @@ import {
 } from '../../../../../main/frontend/util/CLMLocation';
 import { filterToJson } from '../../../../../main/frontend/legal/dashboard/filter/legalDashboardFilterService';
 import defaultFilter from '../../../../../main/frontend/legal/dashboard/filter/defaultFilter';
+import * as specUtilFunctions from 'TestRoot/SpecUtil';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('legalDashboardFilterActions', function () {
+  const SpecUtil = specUtilFunctions.getSpecUtil();
   let store;
 
   const filterJson = {
@@ -101,6 +104,42 @@ describe('legalDashboardFilterActions', function () {
           expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
           expect(axios.get).toHaveBeenCalledWith(getApplicationTagsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getLegalDashboardFilters());
+
+          expect(store.getActions().length).toBe(5);
+
+          expect(store.getActions()[3]).toEqual({
+            type: 'LEGAL_DASHBOARD_FETCH_SAVE_FILTERS_FULFILLED',
+            payload: 'saved filters data',
+          });
+
+          expect(store.getActions()[4]).toEqual({
+            type: 'LEGAL_DASHBOARD_LOAD_FILTER_FAILED',
+            payload: 'failed to get applications data',
+          });
+          done();
+        });
+
+        expect(store.getActions()[0]).toEqual({
+          type: 'LEGAL_DASHBOARD_LOAD_FILTER_REQUESTED',
+        });
+      });
+
+      it('will not fire getApplicationTagsUrl() when isSbomManager is true', function (done) {
+        specUtilFunctions.spyOn(routerSelectors, 'selectIsSbomManager', () => true);
+        mockAxiosCalls({
+          get: {
+            ...mockGetData,
+            [getApplicationsUrl()]: () => Promise.reject('failed to get applications data'),
+          },
+        });
+
+        store = SpecUtil.mockReduxStore(initialState);
+
+        store.dispatch(loadFilter()).catch(() => {
+          expect(axios.get).toHaveBeenCalledWith(getApplicationsUrl());
+          expect(axios.get).toHaveBeenCalledWith(getOrganizationsUrl());
+          expect(axios.get).not.toHaveBeenCalledWith(getApplicationTagsUrl());
           expect(axios.get).toHaveBeenCalledWith(getLegalDashboardFilters());
 
           expect(store.getActions().length).toBe(5);

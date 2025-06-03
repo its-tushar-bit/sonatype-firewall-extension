@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -65,6 +66,8 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.annotations.VisibleForTesting;
@@ -256,6 +259,10 @@ public class ThirdPartyDataService
     dto.ratingMethod = coordinateSecurity.getRatingMethod();
     dto.recommendations = coordinateSecurity.getRecommendations();
     dto.advisories = coordinateSecurity.getAdvisories();
+    dto.identificationSource = coordinateSecurity.getIdentificationSources();
+    dto.researchType = getResearchTypeForThirdPartyVulnerability(coordinateSecurity.getVulnerabilitySource(),
+        coordinateSecurity.getRefId());
+    dto.detectionType = SecurityVulnerabilityDetectionType.OTHER.getDisplayName();
 
     ThirdPartyVulnerabilityExploitabilityExchange vex = getVex(coordinateSecurity);
     if (vex != null) {
@@ -267,6 +274,17 @@ public class ThirdPartyDataService
     }
 
     return dto;
+  }
+
+  private String getResearchTypeForThirdPartyVulnerability(String vulnerabilitySource, String refId) {
+    if (vulnerabilitySource != null) {
+      if (StringUtils.containsIgnoreCase(refId, SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId()) ||
+          vulnerabilitySource.equalsIgnoreCase("NVD")) {
+        return SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.name();
+      }
+      return SecurityVulnerabilityResearchType.VENDOR_RESEARCH.name();
+    }
+    return null;
   }
 
   private ThirdPartyVulnerabilityExploitabilityExchange getVex(

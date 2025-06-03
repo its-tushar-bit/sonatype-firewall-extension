@@ -13,6 +13,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
+import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -23,6 +24,8 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -173,6 +176,9 @@ public class ReportDataReaderTest
     assertThat(vulnerability.getCvssVector()).isEqualTo("vector-string");
     assertThat(vulnerability.getCwe()).isEqualTo("cwe-1,2.cwe");
     assertThat(vulnerability.getAliases()).containsExactlyInAnyOrder("Sonatype-2023-1234");
+    assertThat(vulnerability.getResearchType()).isEqualTo(SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.getId());
+    assertThat(vulnerability.getDetectionType()).isEqualTo(SecurityVulnerabilityDetectionType.CPE_MATCH.getId());
+    assertThat(vulnerability.getIdentificationSource()).isEqualTo(IdentificationSource.SONATYPE.getId());
     assertAnalyzerFeatures(details, analyzerFeatures);
   }
 

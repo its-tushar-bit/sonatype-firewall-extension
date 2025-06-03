@@ -27,7 +27,10 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "1.1.23-r2",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -56,7 +59,10 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : "1.2.2_pre2-r0",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -85,7 +91,10 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "2.12.5-r0",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -114,7 +123,10 @@
     "severity" : "Medium",
     "ratingMethod" : null,
     "recommendations" : "1.27.2-r4",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -143,7 +155,10 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "1.28.3-r2",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -172,7 +187,10 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "1.29.3-r10",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -201,7 +219,10 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "1.30.1-r2",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -230,6 +251,9 @@
     "severity" : "High",
     "ratingMethod" : null,
     "recommendations" : "1.33.0-r5",
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   } ]
 }

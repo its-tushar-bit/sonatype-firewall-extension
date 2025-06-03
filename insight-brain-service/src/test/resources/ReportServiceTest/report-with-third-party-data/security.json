@@ -22,6 +22,9 @@
     "cvssVectorString" : "AV:N/AC:M/Au:N/C:P/I:P/A:N",
     "cvssVectorSource" : "NVD",
     "matchState" : "exact",
-    "proprietary" : false
+    "proprietary" : false,
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   } ]
 }

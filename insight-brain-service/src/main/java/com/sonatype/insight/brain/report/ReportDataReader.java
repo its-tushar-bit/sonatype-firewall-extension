@@ -245,6 +245,9 @@ public class ReportDataReader
     securityVulnerability.setVulnerabilityCategories(secRow.vulnerabilityCategories);
     securityVulnerability.setAliases(secRow.aliases);
     securityVulnerability.setCwe(secRow.cwe);
+    securityVulnerability.setIdentificationSource(secRow.identificationSource);
+    securityVulnerability.setResearchType(secRow.researchType);
+    securityVulnerability.setDetectionType(secRow.detectionType);
     return securityVulnerability;
   }
 }

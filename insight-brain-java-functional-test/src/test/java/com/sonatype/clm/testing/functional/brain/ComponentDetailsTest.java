@@ -106,12 +106,19 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.interactions.Actions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -1111,16 +1118,16 @@ public class ComponentDetailsTest
     vulnerabilitiesTable.shouldBe(visible);
 
     vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
-        .shouldHave(exactTexts("CVSS", "ISSUES", "STATUS", ""));
+        .shouldHave(exactTexts("CVSS", "ISSUES", "IDENTIFICATION SOURCE", "CONFIDENCE", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHave(size(3));
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(4));
-    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Open", ""));
+    rowCells.shouldHave(size(6));
+    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "High", "Open", ""));
     rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
-    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Open", ""));
+    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Disclosed in SBOM", "Low", "Open", ""));
     rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
-    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "Open", ""));
+    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "", "", "Open", ""));
   }
 
   @Test
@@ -1139,6 +1146,7 @@ public class ComponentDetailsTest
     firstRow.click();
 
     VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
+    waitUntilVulnerabilityDetailsPopoverIsVisible();
     vulnerabilityDetailsPopover.shouldBe(visible);
 
     vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details"));
@@ -1158,10 +1166,31 @@ public class ComponentDetailsTest
     weaknessContent.shouldHave(text("CWE123 (Custom)"));
     weaknessContent.shouldHave(text("Sonatype CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    SelenideElement detectionTypeContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    detectionTypeContent.shouldHave(text("Primary"));
+    assertVulnerabilityDetailsTooltip(detectionTypeContent);
+
+    // Check tooltip text for the primary detection type
+    SelenideElement primarySpan = detectionTypeContent.find("span");
+    String expectedTooltipTextOnPrimary =
+        "Research has validated the association between the component and the vulnerability";
+    primarySpan.shouldHave(attribute("title", expectedTooltipTextOnPrimary));
+
+    SelenideElement identificationSourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
+    identificationSourceContent.shouldHave(text("Sonatype Identified"));
+    assertVulnerabilityDetailsTooltip(identificationSourceContent);
+
+    SelenideElement confidenceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
+    confidenceContent.shouldHave(text("High"));
+    assertVulnerabilityDetailsTooltip(confidenceContent);
+
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
-    SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
+    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(8);
+    categoriesContent.shouldHave(text("Data"));
+
+    SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByLabel("CVSS Details");
     cvssDetailsContent.shouldHave(text("Severity8.0 (Custom)"));
     cvssDetailsContent.shouldHave(text("Vector Stringtest/vector (Custom)"));
 
@@ -1189,7 +1218,7 @@ public class ComponentDetailsTest
     vulnerabilityDetailsPopover.shouldNotBe(visible);
 
     vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
-        .shouldHave(exactTexts("9", "CVE-1234-56789", "Confirmed", ""));
+        .shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "High", "Confirmed", ""));
 
     firstRow.click();
     vulnerabilityOverrideForm.status().getElement().shouldHave(text("CONFIRMED"));
@@ -1811,6 +1840,16 @@ public class ComponentDetailsTest
     observedLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
   }
 
+  private void assertVulnerabilityDetailsTooltip(SelenideElement element) {
+    SelenideElement elementLabel = element.parent().find(".nx-read-only__label");
+    SelenideElement infoIcon = elementLabel.$(".fa-info-circle");
+
+    // Hover over the info icon and check that the tooltip is visible
+    Actions actions = new Actions(WebDriverRunner.getWebDriver());
+    actions.moveToElement(infoIcon).perform();
+    $("[role='tooltip']").shouldBe(visible);
+  }
+
   /**
    * This method is a convenience method to click on a policy violation row, click on manage waivers, go to the list
    * waivers page, click on add waiver, submit and return to the policy violation table page.
@@ -1824,5 +1863,16 @@ public class ComponentDetailsTest
   private static void waitUntilSpinnersGone() {
     final var pageLoadSpinner = $(".nx-loading-spinner");
     pageLoadSpinner.shouldNotBe(visible, Duration.ofSeconds(10));
+  }
+
+  private void waitUntilVulnerabilityDetailsPopoverIsVisible() {
+    final var popover = $(VulnerabilityDetailsPopover.POPOVER_SELECTOR);
+    Wait<WebDriver> wait = getWebDriverAwait();
+    wait.until(ExpectedConditions.visibilityOf(popover));
+  }
+
+  private Wait<WebDriver> getWebDriverAwait() {
+    return new FluentWait<>(getWebDriver()).withTimeout(Duration.ofSeconds(10)).pollingEvery(Duration.ofSeconds(2))
+        .ignoring(NoSuchElementException.class);
   }
 }

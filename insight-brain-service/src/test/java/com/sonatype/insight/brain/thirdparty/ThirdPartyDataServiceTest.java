@@ -588,6 +588,9 @@ public class ThirdPartyDataServiceTest
             assertThat(securityRow.ratingMethod).isEqualTo(expectedSecRow.getRatingMethod());
             assertThat(securityRow.recommendations).isEqualTo(expectedSecRow.getRecommendations());
             assertThat(securityRow.advisories).isEqualTo(expectedSecRow.getAdvisories());
+            assertThat(securityRow.researchType).isNotNull();
+            assertThat(securityRow.detectionType).isNotNull();
+            assertThat(securityRow.identificationSource).isEqualTo(expectedSecRow.getIdentificationSources());
           });
     }
   }

@@ -588,5 +588,61 @@ describe('violationActions', function () {
 
       expect(store.getActions().length).toBe(1);
     });
+
+    it('includes scanId and identificationSource in the extra query params when building the URL', function (done) {
+      const state = {
+        router: {
+          currentParams: {
+            publicId: 'appPublicId',
+            scanId: 'scan-123',
+            hash: 'component-hash-1',
+          },
+        },
+        violation: {
+          violationDetails: {
+            policyViolationId: 'bar',
+            constraintViolations: [
+              {
+                reasons: [
+                  {
+                    reference: {
+                      type: 'SECURITY_VULNERABILITY_REFID',
+                      value: 'CVE-2016-1000027',
+                    },
+                  },
+                ],
+              },
+            ],
+            componentIdentifier: 'foo : bar : 1.0',
+          },
+        },
+        applicationReport: {
+          selectedReport: {
+            allEntries: [
+              {
+                hash: 'component-hash-1',
+                identificationSource: 'MAVEN',
+              },
+            ],
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(state);
+
+      const expectedUrl = getVulnerabilityJsonDetailUrl('CVE-2016-1000027', 'foo : bar : 1.0', {
+        ownerType: 'application',
+        ownerId: 'appPublicId',
+        scanId: 'scan-123',
+        identificationSource: 'MAVEN',
+      });
+
+      spyOn(axios, 'get').and.returnValue(Promise.resolve({}));
+
+      store.dispatch(loadVulnerabilityDetails()).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(expectedUrl);
+        done();
+      });
+    });
   });
 });

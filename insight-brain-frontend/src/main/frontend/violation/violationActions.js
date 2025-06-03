@@ -24,7 +24,10 @@ import {
   selectRepositoryId,
   selectRepositoryPolicyId,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectIsFirewallOrRepositoryAndNotProxyStage } from 'MainRoot/applicationReport/applicationReportSelectors';
+import {
+  selectIsFirewallOrRepositoryAndNotProxyStage,
+  selectSelectedComponent,
+} from 'MainRoot/applicationReport/applicationReportSelectors';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 
 export const VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED = 'VIOLATION_RESET_VIOLATION_DETAILS_REQUESTED';
@@ -183,10 +186,12 @@ const isNotNil = complement(isNil),
 
 export function loadVulnerabilityDetails() {
   return function (dispatch, getState) {
+    const component = selectSelectedComponent(getState());
+    const identificationSource = component?.identificationSource;
     const {
         violation: { violationDetails },
         router: {
-          currentParams: { publicId },
+          currentParams: { publicId, scanId },
         },
       } = getState(),
       { constraintViolations, componentIdentifier } = violationDetails;
@@ -205,7 +210,7 @@ export function loadVulnerabilityDetails() {
 
       const extraQueryParameters = isFirewallOrRepositoryAndNotContainer
         ? null
-        : { ownerType: 'application', ownerId: publicId };
+        : { ownerType: 'application', ownerId: publicId, scanId: scanId, identificationSource: identificationSource };
 
       return axios
         .get(getVulnerabilityJsonDetailUrl(refId, componentIdentifier, extraQueryParameters))

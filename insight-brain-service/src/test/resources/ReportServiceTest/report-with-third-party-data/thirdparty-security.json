@@ -25,7 +25,10 @@
     "severity" : "Critical",
     "ratingMethod" : null,
     "recommendations" : null,
-    "advisories" : null
+    "advisories" : null,
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   }, {
     "componentIdentifier" : {
       "format" : "pypi",
@@ -52,6 +55,9 @@
     "severity" : "Critical",
     "ratingMethod" : "CVSSv3",
     "recommendations" : "Upgrade||",
-    "advisories" : "https://github.com/FasterXML/jackson-databind/issues/1931||http://www.securityfocus.com/bid/103203||http://www.securitytracker.com/id/1040693||http://www.securitytracker.com/id/1041890||"
+    "advisories" : "https://github.com/FasterXML/jackson-databind/issues/1931||http://www.securityfocus.com/bid/103203||http://www.securitytracker.com/id/1040693||http://www.securitytracker.com/id/1041890||",
+    "identificationSource" : "SBOM",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "OTHER"
   } ]
 }

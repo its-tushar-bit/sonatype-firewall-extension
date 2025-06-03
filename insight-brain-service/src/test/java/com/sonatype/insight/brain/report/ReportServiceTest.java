@@ -81,6 +81,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -314,11 +316,16 @@ public class ReportServiceTest
 
     // Verify security.json
     assertSecurityVulnerability(components.get(0), "cve", "CVE-2012-5783", 5.8F,
-        "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783");
+        "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2012-5783",
+        SecurityVulnerabilityResearchType.DEEP_DIVE.getId(), SecurityVulnerabilityDetectionType.PRIMARY.getId(),
+        IdentificationSource.SONATYPE.getId());
     assertSecurityVulnerability(components.get(1), "CVE", "CVE-2017-16997", 10.0F,
-        "https://security-tracker.debian.org/tracker/CVE-2017-16997");
+        "https://security-tracker.debian.org/tracker/CVE-2017-16997",
+        SecurityVulnerabilityResearchType.DEEP_DIVE.getId(), SecurityVulnerabilityDetectionType.OTHER.getId(),
+        IdentificationSource.SBOM.getId());
     assertSecurityVulnerability(components.get(2), "NVD", "CVE-2018-7489", 9.8F,
-        "https://nvd.nist.gov/vuln/detail/CVE-2018-7489");
+        "https://nvd.nist.gov/vuln/detail/CVE-2018-7489", SecurityVulnerabilityResearchType.DEEP_DIVE.getId(),
+        SecurityVulnerabilityDetectionType.OTHER.getId(), IdentificationSource.SBOM.getId());
 
     // Verify licenses.json
     assertLicenses(components.get(0), Collections.singleton("Apache-2.0"), Collections.singleton("No-Sources"));
@@ -354,11 +361,15 @@ public class ReportServiceTest
       String source,
       String refId,
       float severity,
-      String url)
+      String url,
+      String researchType,
+      String detectionType,
+      String identificationSource)
   {
     assertThat(component.getSecurityVulnerabilities()).hasSize(1);
     SecurityVulnerability securityVulnerability = component.getSecurityVulnerabilities().get(0);
-    assertSecurityVulnerability(securityVulnerability, source, refId, severity, url);
+    assertSecurityVulnerability(securityVulnerability, source, refId, severity, url, researchType, detectionType,
+        identificationSource);
   }
 
   private void assertSecurityVulnerability(
@@ -366,12 +377,18 @@ public class ReportServiceTest
       final String source,
       final String refId,
       final float severity,
-      final String url)
+      final String url,
+      final String researchType,
+      final String detectionType,
+      final String identificationSource)
   {
     assertThat(securityVulnerability.getSource()).isEqualTo(source);
     assertThat(securityVulnerability.getRefId()).isEqualTo(refId);
     assertThat(securityVulnerability.getSeverity()).isEqualTo(severity);
     assertThat(securityVulnerability.getUrl()).isEqualTo(url);
+    assertThat(securityVulnerability.getResearchType().getId()).isEqualTo(researchType);
+    assertThat(securityVulnerability.getDetectionType().getId()).isEqualTo(detectionType);
+    assertThat(securityVulnerability.getIdentificationSource().getId()).isEqualTo(identificationSource);
   }
 
   private void assertComponent(
@@ -688,7 +705,9 @@ public class ReportServiceTest
 
     List<SecurityVulnerability> securityVulnerabilities = component.getSecurityVulnerabilities();
     assertSecurityVulnerability(securityVulnerabilities.get(0), "Sonatype", "CVE-2021-30139", 7.5F,
-        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139");
+        "https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-30139",
+        SecurityVulnerabilityResearchType.DEEP_DIVE.getId(),
+        SecurityVulnerabilityDetectionType.PRIMARY.getId(), IdentificationSource.SONATYPE.getId());
   }
 
   @Test

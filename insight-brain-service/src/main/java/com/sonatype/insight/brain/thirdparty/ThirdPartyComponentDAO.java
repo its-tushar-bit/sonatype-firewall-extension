@@ -468,6 +468,9 @@ public class ThirdPartyComponentDAO
     SecurityVulnerability securityVulnerability =
         new SecurityVulnerability(secRow.reference, secRow.source, secRow.score, secRow.description);
     securityVulnerability.setUrl(secRow.url);
+    securityVulnerability.setIdentificationSource(secRow.identificationSource);
+    securityVulnerability.setResearchType(secRow.researchType);
+    securityVulnerability.setDetectionType(secRow.detectionType);
     return securityVulnerability;
   }
 
@@ -482,6 +485,9 @@ public class ThirdPartyComponentDAO
     result.analysis = securityRow.analysis;
     result.cvssVectorString = securityRow.cvssVectorString;
     result.cvssVectorSource = securityRow.cvssVectorSource;
+    result.identificationSource = securityRow.identificationSource;
+    result.researchType = securityRow.researchType;
+    result.detectionType = securityRow.detectionType;
     return result;
   }
 

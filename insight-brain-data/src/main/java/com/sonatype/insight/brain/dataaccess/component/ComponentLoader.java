@@ -624,6 +624,8 @@ public class ComponentLoader
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorString"));
           final String cvssVectorSource =
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorSource"));
+          final String identificationSource =
+              JsonUtils.getNullableString(securityVulnerabilityJson.get("identificationSource"));
 
           Component component = componentsByHash.get(hash);
 
@@ -637,6 +639,10 @@ public class ComponentLoader
             securityVulnerability.setCwe(cweString);
             securityVulnerability.setVector(cvssVectorString);
             securityVulnerability.setVectorSource(cvssVectorSource);
+            //The Identification source Enum for vulnerability will be the same as the component initially,
+            //and it might be updated later. This is for consistency with what was done for SBOM manager,
+            //and a new Enum for vulnerability will be created in the future.
+            securityVulnerability.setIdentificationSource(IdentificationSource.getById(identificationSource));
             if (vulnerabilityCategories != null) {
               for (String categoryStr : vulnerabilityCategories) {
                 SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);

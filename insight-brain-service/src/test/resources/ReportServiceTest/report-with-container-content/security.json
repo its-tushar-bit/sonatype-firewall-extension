@@ -38,7 +38,10 @@
         "value" : "2.7.6-r0"
       } ],
       "name" : "apk-tools : alpine:3.6.5 : 2.7.6-r0"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -78,7 +81,10 @@
         "value" : "1.1.16-r15"
       } ],
       "name" : "musl : alpine:3.6.5 : 1.1.16-r15"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -118,7 +124,10 @@
         "value" : "1.1.16-r15"
       } ],
       "name" : "musl : alpine:3.6.5 : 1.1.16-r15"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -158,7 +167,10 @@
         "value" : "1.26.2-r11"
       } ],
       "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -198,7 +210,10 @@
         "value" : "1.26.2-r11"
       } ],
       "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -238,7 +253,10 @@
         "value" : "1.26.2-r11"
       } ],
       "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -278,7 +296,10 @@
         "value" : "1.26.2-r11"
       } ],
       "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "container",
@@ -318,6 +339,9 @@
         "value" : "1.26.2-r11"
       } ],
       "name" : "busybox : alpine:3.6.5 : 1.26.2-r11"
-    }
+    },
+    "identificationSource" : "Sonatype",
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY"
   } ]
 }

@@ -33,7 +33,10 @@
       "severity": "High",
       "ratingMethod": null,
       "recommendations": "1.recommendations",
-      "advisories": "1.advisories"
+      "advisories": "1.advisories",
+      "researchType": "PUBLIC_RESEARCH",
+      "detectionType": "CPE_MATCH",
+      "identificationSource": "Sonatype"
     }
   ]
 }

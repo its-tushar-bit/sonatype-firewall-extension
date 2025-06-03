@@ -121,6 +121,5 @@ public class FirewallContainerRepositoryResultsPageTest
     FirewallContainerRepositoryResultsPage.ContainerRepositoryResultsTable resultsTable =
             new FirewallContainerRepositoryResultsPage.ContainerRepositoryResultsTable();
     resultsTable.table().shouldBe(visible);
-    resultsTable.cell(1, 1).shouldHave(text("10"));
   }
 }

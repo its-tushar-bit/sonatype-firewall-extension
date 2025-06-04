@@ -111,7 +111,6 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityDetectionConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
@@ -154,7 +153,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Sets;
@@ -684,6 +682,7 @@ public class ScanPolicyEvaluatorTest
       assertThat(activeViolation.getPolicyWaiverId()).isNull();
       assertThat(activeViolation.getPolicyWaiverComment()).isNull();
     });
+
   }
 
   @Test
@@ -816,12 +815,12 @@ public class ScanPolicyEvaluatorTest
     String vulnerabilityIdentifier = "CVE-2012-0022";
 
     VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
-        application.getId(),
-        scanId,
-        componentIdentifier,
-        vulnerabilityIdentifier,
-        insightWork
-    );
+            application.getId(),
+            scanId,
+            componentIdentifier,
+            vulnerabilityIdentifier,
+            insightWork
+        );
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, analysisDTO, false);
@@ -1453,7 +1452,7 @@ public class ScanPolicyEvaluatorTest
 
     ScanPolicyEvaluatorResults evalTwo =
         scanPolicyEvaluator.evaluate(application, scanIdTwo, stageTwo, ScanTriggerType.CLI,
-            ClientScanType.SONATYPE, false);
+            ClientScanType.SONATYPE,false);
 
     assertThat(evalTwo.allViolations).hasSize(36);
     assertThat(evalTwo.autoWaivedViolations).hasSize(36);
@@ -1493,7 +1492,7 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     /*
-     * Auto-waivers were not skipped so they should be applied
+    * Auto-waivers were not skipped so they should be applied
      */
     assertThat(reevaluationResults.allViolations).hasSize(36);
     assertThat(reevaluationResults.autoWaivedViolations).hasSize(36);
@@ -3670,7 +3669,7 @@ public class ScanPolicyEvaluatorTest
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(2);
     assertThat(data.get("grandfatheredPolicyViolationCount").asInt()).isZero();
     assertThat(data.get("legacyViolationCount").asInt()).isZero();
-    validatePolicyValidationOwner(policyThreats.aaData, application);
+    validatePolicyValidationOwner(policyThreats.aaData,application);
   }
 
   private void validatePolicyValidationOwner(List<PolicyThreats.Component> components, Owner owner) {
@@ -4030,9 +4029,6 @@ public class ScanPolicyEvaluatorTest
     Condition vulnerabilityGroupCondition = new Condition(VulnerabilityGroupConditionType.ID, "is", vg.getId());
     Condition securityVulnerabilityResearchCondition = new Condition(SecurityVulnerabilityResearchConditionType.ID,
         "is", SecurityVulnerabilityResearch.DEEP_DIVE_RESEARCH.getId());
-    Condition securityVulnerabilityDetectionTypeCondition = new Condition(
-        SecurityVulnerabilityDetectionConditionType.ID, "is not", SecurityVulnerabilityDetectionType.OTHER.getId());
-
     Condition packageUrlCondition = new Condition(PackageUrlConditionType.ID, "matches", "pkg:maven/*/*@*");
     Condition componentCategoryCondition = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
     Condition hygieneCondition = new Condition(HygieneRatingConditionType.ID, "is not", "1");
@@ -4057,8 +4053,7 @@ public class ScanPolicyEvaluatorTest
         componentCategoryCondition, hygieneCondition, dataSourceCondition, dependencyCondition,
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition,
-        securityVulnerabilityCustomRemediationCondition, endOfLifeCondition,
-        securityVulnerabilityDetectionTypeCondition);
+        securityVulnerabilityCustomRemediationCondition, endOfLifeCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);
@@ -4552,7 +4547,7 @@ public class ScanPolicyEvaluatorTest
   public void testPerformPolicyEvaluation_SbomUpdateStatus() throws Exception {
     String scanId = simulateReportIsAvailable("report");
     ThirdPartyFile file = tempEntity.newThirdPartyFile();
-    tempEntity.newThirdPartyScan("request", scanId, file);
+    tempEntity.newThirdPartyScan("request", scanId,file);
     tempEntity.createSbomMetadata(application.getId(), scanId, file, PENDING);
 
     newSecurityPolicy();
@@ -5226,11 +5221,11 @@ public class ScanPolicyEvaluatorTest
   }
 
   /**
-   * Adds a reachable component vulnerability to the map for each package URL identifier.
-   *
-   * @param packageUrlIdentifiers the list of package URL identifiers
-   * @param reachableComponentVulnerabilitiesMap the map to add the reachable component vulnerabilities to
-   */
+    * Adds a reachable component vulnerability to the map for each package URL identifier.
+    *
+    * @param packageUrlIdentifiers the list of package URL identifiers
+    * @param reachableComponentVulnerabilitiesMap the map to add the reachable component vulnerabilities to
+  */
   private void addReachabilityMap(
       List<String> packageUrlIdentifiers,
       Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableComponentVulnerabilitiesMap)

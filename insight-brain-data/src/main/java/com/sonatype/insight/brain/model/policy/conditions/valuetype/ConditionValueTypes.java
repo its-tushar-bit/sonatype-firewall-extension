@@ -80,7 +80,6 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityCategoryValueType());
     allConditionValueTypes.add(new SecurityVulnerabilitySourceValueType());
     allConditionValueTypes.add(new SecurityVulnerabilityCweValueType());
-    allConditionValueTypes.add(new SecurityVulnerabilityDetectionValueType(features));
     allConditionValueTypes.add(new SecurityVulnerabilityResearchValueType(features));
     allConditionValueTypes.add(new IacControlValueType());
     allConditionValueTypes.add(new VulnerabilityGroupValueType(ownerId, ownerDAO, vulnerabilityGroupDAO));

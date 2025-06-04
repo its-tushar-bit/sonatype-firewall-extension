@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 /**
@@ -74,6 +75,9 @@ public class LastPolicyEvaluationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChangeForInsert(LastPolicyEvaluation entity) {
+    if (ProxyStageType.ID.equals(entity.getStageTypeId())) {
+      return null;
+    }
     return new SearchIndexChange(ChangeType.LAST_POLICY_EVALUATION,
         entity.getApplicationId() + ':' + entity.getStageTypeId());
   }

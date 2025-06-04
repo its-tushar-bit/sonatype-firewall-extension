@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.LastPolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 
 import org.junit.Before;
@@ -122,5 +123,13 @@ public class LastPolicyEvaluationDAOTest
     assertThat(searchIndexChanges.get(0).getChangeType()).isEqualTo(ChangeType.LAST_POLICY_EVALUATION);
     assertThat(searchIndexChanges.get(0).getChangeData())
         .isEqualTo(eval.getApplicationId() + ':' + eval.getStageTypeId());
+  }
+
+  @Test
+  public void testInsert_RecordSearchIndexChange_SkipForProxyStage() {
+    systemConfigurationPropertyDAO
+        .update(new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    tempEntity.newPolicyEvaluation(application.getId(), ProxyStageType.ID, "scanId", new Date());
+    assertThat(searchIndexChangeDAO.getAll()).isEmpty();
   }
 }

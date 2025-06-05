@@ -16,7 +16,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifierDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiHashComponentIdentifiersDTO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
+import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
+import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
@@ -85,6 +87,11 @@ public class ApiHashComponentIdentifierResourceTest
     HashComponentIdentifier storedHashComponentIdentifier =
         hashComponentIdentifierDAO.getByHash(givenDTO.hash);
     ApiHashComponentIdentifierDTO returnedDTO = response.getBody(ApiHashComponentIdentifierDTO.class);
+
+    UserDAO userDAO = lookup(UserDAO.class);
+    givenDTO.claimerId = User.ADMIN_USERNAME;
+    givenDTO.claimerName = userDAO.getByUsername(User.ADMIN_USERNAME).calculateDisplayName();
+
     assertThat(givenDTO).usingRecursiveComparison().isEqualTo(returnedDTO);
     assertClaimedComponent(returnedDTO, storedHashComponentIdentifier);
   }

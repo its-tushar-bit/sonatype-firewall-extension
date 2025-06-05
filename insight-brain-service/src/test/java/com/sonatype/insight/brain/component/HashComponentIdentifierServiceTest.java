@@ -149,6 +149,62 @@ public class HashComponentIdentifierServiceTest
     assertThatExceptionOfType(NotFoundException.class).isThrownBy(() -> hashComponentIdentifierService.get(HASH));
   }
 
+  @Test
+  public void testGet_ClaimerInfo() {
+    tempEntity.newClaimedComponent(HASH, COMPONENT_IDENTIFIER, "oldUser", "Old User");
+
+    HashComponentIdentifierDTO getResponseDTO = hashComponentIdentifierService.get(HASH);
+
+    assertThat(getResponseDTO.claimerId).isEqualTo("oldUser");
+    assertThat(getResponseDTO.claimerName).isEqualTo("Old User");
+  }
+
+  @Test
+  public void testSet_Insert_ClaimerInfo() {
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifier.setComment(COMMENT);
+    hashComponentIdentifier.setCreateTime(CREATED_TIME);
+
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    HashComponentIdentifierDTO setResponseDTO = hashComponentIdentifierService.set(hashComponentIdentifier);
+    HashComponentIdentifier persisted = hashComponentIdentifierDAO.getByHash(HASH);
+
+    String userPrincipalUsername = USERNAME;
+    String userPrincipalDisplayName = "Test User";
+
+    assertThat(setResponseDTO.claimerId).isEqualTo(userPrincipalUsername);
+    assertThat(setResponseDTO.claimerName).isEqualTo(userPrincipalDisplayName);
+
+    assertThat(persisted.getClaimerId()).isEqualTo(userPrincipalUsername);
+    assertThat(persisted.getClaimerName()).isEqualTo(userPrincipalDisplayName);
+  }
+
+  @Test
+  public void testSet_Update_ClaimerInfo() {
+    tempEntity.newClaimedComponent(HASH, COMPONENT_IDENTIFIER, "oldUser", "Old User");
+
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(HASH, COMPONENT_IDENTIFIER);
+    hashComponentIdentifier.setComment(COMMENT);
+    hashComponentIdentifier.setCreateTime(CREATED_TIME);
+
+    HashComponentIdentifierDTO setResponseDTO = hashComponentIdentifierService.update(hashComponentIdentifier);
+    HashComponentIdentifier persisted = hashComponentIdentifierDAO.getByHash(HASH);
+
+    String userPrincipalUsername = USERNAME;
+    String userPrincipalDisplayName = "Test User";
+
+    assertThat(setResponseDTO.claimerId).isEqualTo(userPrincipalUsername);
+    assertThat(setResponseDTO.claimerName).isEqualTo(userPrincipalDisplayName);
+
+    assertThat(persisted.getClaimerId()).isEqualTo(userPrincipalUsername);
+    assertThat(persisted.getClaimerName()).isEqualTo(userPrincipalDisplayName);
+  }
+
   private void assertHashComponentIdentifierDTO(final HashComponentIdentifierDTO hashComponentIdentifierDTO,
                                                 final ComponentIdentifier componentIdentifier,
                                                 final String comment,

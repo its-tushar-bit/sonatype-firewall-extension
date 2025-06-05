@@ -42,6 +42,12 @@ public class HashComponentIdentifier
 
   @Column(name = "create_time")
   private Date createTime;
+  
+  @Column(name = "claimer_id")
+  private String claimerId;
+
+  @Column(name = "claimer_name")
+  private String claimerName;
 
   public HashComponentIdentifier() {
   }
@@ -83,6 +89,22 @@ public class HashComponentIdentifier
 
   public void setCreateTime(Date createTime) {
     this.createTime = createTime;
+  }
+  
+  public String getClaimerId() {
+    return claimerId;
+  }
+
+  public void setClaimerId(String claimerId) {
+    this.claimerId = claimerId;
+  }
+  
+  public String getClaimerName() {
+    return claimerName;
+  }
+
+  public void setClaimerName(String claimerName) {
+    this.claimerName = claimerName;
   }
 
   @JsonIgnore

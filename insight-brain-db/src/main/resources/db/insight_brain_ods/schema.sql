@@ -91,6 +91,8 @@ CREATE TABLE hash_component_identifier (
   component_id_coordinates_json varchar(1000) NOT NULL, -- the component identifier coordinates stored in json format
   comment varchar(1000) NULL,
   create_time timestamp NULL,
+  claimer_id varchar(60) NULL,
+  claimer_name varchar(210) NULL,
   CONSTRAINT hash_component_identifier_pk PRIMARY KEY (hash_component_identifier_id),
   CONSTRAINT hash_component_identifier_component_id_uk UNIQUE (component_id_format, component_id_coordinates_json),
   CONSTRAINT hash_component_identifier_hash_uk UNIQUE (hash)

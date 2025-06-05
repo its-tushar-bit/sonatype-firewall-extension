@@ -28,6 +28,10 @@ public class HashComponentIdentifierDTO
 
   public Date createTime;
 
+  public String claimerId;
+
+  public String claimerName;
+
   public ComponentIdentifier componentIdentifier;
 
   /**
@@ -48,6 +52,8 @@ public class HashComponentIdentifierDTO
     this.hash = hashComponentIdentifier.getHash();
     this.comment = hashComponentIdentifier.getComment();
     this.createTime = hashComponentIdentifier.getCreateTime();
+    this.claimerId = hashComponentIdentifier.getClaimerId();
+    this.claimerName = hashComponentIdentifier.getClaimerName();
     this.componentIdentifier = hashComponentIdentifier.getComponentIdentifier();
     this.displayName = displayName;
     this.coordinates = displayName.toString();

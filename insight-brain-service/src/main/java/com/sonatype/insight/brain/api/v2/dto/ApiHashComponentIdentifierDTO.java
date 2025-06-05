@@ -27,6 +27,10 @@ public class ApiHashComponentIdentifierDTO
   @JsonSerialize(using = ISODateSerializer.class)
   public Date createTime;
 
+  public String claimerId;
+
+  public String claimerName;
+
   public ApiComponentIdentifierDTOV2 componentIdentifier;
 
   public String packageUrl;
@@ -39,6 +43,8 @@ public class ApiHashComponentIdentifierDTO
     hash = hashComponentIdentifier.getHash();
     comment = hashComponentIdentifier.getComment();
     createTime = hashComponentIdentifier.getCreateTime();
+    claimerId = hashComponentIdentifier.getClaimerId();
+    claimerName = hashComponentIdentifier.getClaimerName();
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(hashComponentIdentifier.getComponentIdentifier());
     packageUrl =
@@ -49,6 +55,8 @@ public class ApiHashComponentIdentifierDTO
     hash = hashComponentIdentifierDTO.hash;
     comment = hashComponentIdentifierDTO.comment;
     createTime = hashComponentIdentifierDTO.createTime;
+    claimerId = hashComponentIdentifierDTO.claimerId;
+    claimerName = hashComponentIdentifierDTO.claimerName;
     componentIdentifier =
         ApiComponentIdentifierDTOV2.fromComponentIdentifier(hashComponentIdentifierDTO.componentIdentifier);
     packageUrl =
@@ -61,6 +69,8 @@ public class ApiHashComponentIdentifierDTO
     HashComponentIdentifier hashComponentIdentifier = new HashComponentIdentifier(hash, componentIdentifier);
     hashComponentIdentifier.setComment(comment);
     hashComponentIdentifier.setCreateTime(createTime);
+    hashComponentIdentifier.setClaimerId(claimerId);
+    hashComponentIdentifier.setClaimerName(claimerName);
     return hashComponentIdentifier;
   }
 }

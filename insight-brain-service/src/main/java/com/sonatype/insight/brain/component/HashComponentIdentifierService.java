@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.component;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -23,7 +22,9 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -42,14 +43,18 @@ public class HashComponentIdentifierService
 
   private final LicenseOverrideDAO licenseOverrideDAO;
 
+  private final CurrentUser currentUser;
+
   @Inject
   public HashComponentIdentifierService(final HdsClient hdsClient,
                                         final HashComponentIdentifierDAO hashComponentIdentifierDAO,
-                                        final LicenseOverrideDAO licenseOverrideDAO)
+                                        final LicenseOverrideDAO licenseOverrideDAO,
+                                        final CurrentUser currentUser)
   {
     this.client = hdsClient;
     this.hashComponentIdentifierDAO = hashComponentIdentifierDAO;
     this.licenseOverrideDAO = licenseOverrideDAO;
+    this.currentUser = currentUser;
   }
 
   @Authorize(permission = Permission.CLAIM_COMPONENT)
@@ -72,6 +77,10 @@ public class HashComponentIdentifierService
 
     ensureUnknownComponent(hashComponentIdentifier);
 
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    hashComponentIdentifier.setClaimerId(userPrincipal.getUsername());
+    hashComponentIdentifier.setClaimerName(userPrincipal.getDisplayName());
+
     hashComponentIdentifier.setId(null);
     hashComponentIdentifierDAO.insert(hashComponentIdentifier);
 
@@ -88,6 +97,10 @@ public class HashComponentIdentifierService
 
     HashComponentIdentifier existingHashComponentIdentifier = hashComponentIdentifierDAO
         .getByHashNotNull(hashComponentIdentifier.getHash());
+        
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    hashComponentIdentifier.setClaimerId(userPrincipal.getUsername());
+    hashComponentIdentifier.setClaimerName(userPrincipal.getDisplayName());
 
     try (TransactionContext tx = hashComponentIdentifierDAO.createTransactionContext()) {
       tx.begin();

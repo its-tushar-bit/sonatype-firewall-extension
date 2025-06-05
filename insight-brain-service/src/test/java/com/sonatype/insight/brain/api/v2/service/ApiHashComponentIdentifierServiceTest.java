@@ -323,6 +323,60 @@ public class ApiHashComponentIdentifierServiceTest
         .withMessageContaining("Cannot find component claim for hash doesNotExist");
   }
 
+  @Test
+  public void testGet_ClaimerInfo() {
+    tempEntity.newClaimedComponent("hash", ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+        "oldUser", "Old User");
+
+    ApiHashComponentIdentifierDTO getResponseDTO = apiHashComponentIdentifierService.get("hash");
+
+    assertThat(getResponseDTO.claimerId).isEqualTo("oldUser");
+    assertThat(getResponseDTO.claimerName).isEqualTo("Old User");
+  }
+
+  @Test
+  public void testSet_Insert_ClaimerInfo() {
+    ApiHashComponentIdentifierDTO givenDTO = newApiHashComponentIdentifierDTO("hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null);
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+
+    ApiHashComponentIdentifierDTO setResponseDTO = apiHashComponentIdentifierService.set(givenDTO);
+    HashComponentIdentifier persisted = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+
+    String userPrincipalUsername = USERNAME;
+    String userPrincipalDisplayName = "Test User";
+
+    assertThat(setResponseDTO.claimerId).isEqualTo(userPrincipalUsername);
+    assertThat(setResponseDTO.claimerName).isEqualTo(userPrincipalDisplayName);
+
+    assertThat(persisted.getClaimerId()).isEqualTo(userPrincipalUsername);
+    assertThat(persisted.getClaimerName()).isEqualTo(userPrincipalDisplayName);
+  }
+
+  @Test
+  public void testSet_Update_ClaimerInfo() {
+    tempEntity.newClaimedComponent("hash", ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"),
+        "oldUser", "Old User");
+
+    when(mockHdsClient.get(eq(ComponentSummary.class), eq("rest/component/summary"), anyMap()))
+        .thenReturn(ComponentSummary.create(false));
+    ApiHashComponentIdentifierDTO givenDTO = newApiHashComponentIdentifierDTO("hash",
+        ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e"), null);
+
+    ApiHashComponentIdentifierDTO setResponseDTO = apiHashComponentIdentifierService.set(givenDTO);
+    HashComponentIdentifier persisted = hashComponentIdentifierDAO.getByHash(givenDTO.hash);
+
+    String userPrincipalUsername = USERNAME;
+    String userPrincipalDisplayName = "Test User";
+
+    assertThat(setResponseDTO.claimerId).isEqualTo(userPrincipalUsername);
+    assertThat(setResponseDTO.claimerName).isEqualTo(userPrincipalDisplayName);
+
+    assertThat(persisted.getClaimerId()).isEqualTo(userPrincipalUsername);
+    assertThat(persisted.getClaimerName()).isEqualTo(userPrincipalDisplayName);
+  }
+
   private void assertClaimedComponent(ApiHashComponentIdentifierDTO actual, HashComponentIdentifier expected) {
     assertThat(actual).isNotNull();
     assertThat(actual.hash).isEqualTo(expected.getHash());

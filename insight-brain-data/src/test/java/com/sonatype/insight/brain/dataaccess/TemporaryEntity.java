@@ -2537,6 +2537,18 @@ public class TemporaryEntity
     return newClaimedComponent(claimedComponent);
   }
 
+  public HashComponentIdentifier newClaimedComponent(
+      String hash, ComponentIdentifier componentIdentifier,
+      String claimerId, String claimerName)
+  {
+    HashComponentIdentifier claimedComponent = new HashComponentIdentifier(hash, componentIdentifier);
+    claimedComponent.setComment("testing");
+    claimedComponent.setCreateTime(new Date());
+    claimedComponent.setClaimerId(claimerId);
+    claimedComponent.setClaimerName(claimerName);
+    return newClaimedComponent(claimedComponent);
+  }
+
   public HashComponentIdentifier newClaimedComponent(HashComponentIdentifier claimedComponent) {
     hashComponentIdentifierDAO.insert(claimedComponent);
     return claimedComponent;

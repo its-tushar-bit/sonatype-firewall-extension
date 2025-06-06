@@ -7,9 +7,6 @@ package com.sonatype.insight.brain.model;
 
 import java.util.Locale;
 
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.StringUtils;
 
 public class NameHelper
@@ -64,34 +61,33 @@ public class NameHelper
   }
 
   public static String convertContainerImageToApplicationPublicIdAndName(
-      String repositoryId,
+      String repositoryManagerBaseUrl,
+      String repositoryPublicId,
       String namespace,
       String name,
       String version)
   {
-    if (StringUtils.isAnyBlank(repositoryId, namespace, name, version)) {
-      throw new InvalidNameException(
-          "repositoryId, namespace, name and version are all required for a container image");
+    if (StringUtils.isAnyBlank(repositoryManagerBaseUrl, repositoryPublicId, namespace, name, version)) {
+      throw new InvalidNameException("repositoryManagerBaseUrl, repositoryPublicId, namespace, name and version are all"
+          + " required for a container image");
     }
 
-    try {
-      // The same container image can be pulled from multiple repos, using the repositoryId as prefix allows uniqueness
-      // Using the Base 64 representation reduces the length of the UUID bytes from 32 to 22
-      byte[] bytes = Hex.decodeHex(repositoryId);
-      String repositoryIdPrefix = Base64.encodeBase64URLSafeString(bytes) + "-";
+    String repositoryManagerBaseUrlWithoutProtocol =
+        StringUtils.removeStartIgnoreCase(repositoryManagerBaseUrl.trim(), "https://");
+    repositoryManagerBaseUrlWithoutProtocol =
+        StringUtils.removeStartIgnoreCase(repositoryManagerBaseUrlWithoutProtocol, "http://");
 
-      String applicationPublicId = String.format("%s-%s-%s", namespace, name, version);
-      applicationPublicId = StringUtils.deleteWhitespace(applicationPublicId);
-      applicationPublicId =
-          StringUtils.right(applicationPublicId, MAX_NAME_LENGTH_APP_ORG - repositoryIdPrefix.length());
-      applicationPublicId = repositoryIdPrefix + applicationPublicId;
-      applicationPublicId = applicationPublicId.replaceAll("[^a-zA-Z0-9\\-._]", "_");
+    String repositoryIdentifiersPrefix =
+        String.format("%s-%s-", repositoryManagerBaseUrlWithoutProtocol, repositoryPublicId);
 
-      return applicationPublicId;
-    }
-    catch (DecoderException e) {
-      throw new IllegalArgumentException("Invalid repositoryId: " + repositoryId, e);
-    }
+    String applicationPublicId = String.format("%s-%s-%s", namespace, name, version);
+    applicationPublicId = StringUtils.deleteWhitespace(applicationPublicId);
+    applicationPublicId =
+        StringUtils.right(applicationPublicId, MAX_NAME_LENGTH_APP_ORG - repositoryIdentifiersPrefix.length());
+    applicationPublicId = repositoryIdentifiersPrefix + applicationPublicId;
+    applicationPublicId = applicationPublicId.replaceAll("[^a-zA-Z0-9\\-._]", "_");
+
+    return applicationPublicId;
   }
 
   public static String convertToValidName(String value) {
@@ -99,7 +95,9 @@ public class NameHelper
       throw new InvalidNameException("A name cannot be empty or blank");
     }
 
-    String name = value.trim().replaceAll("[^a-zA-Z0-9\\-._]", "_");
+    String name = StringUtils.removeStartIgnoreCase(value.trim(), "https://");
+    name = StringUtils.removeStartIgnoreCase(name, "http://");
+    name = name.replaceAll("[^a-zA-Z0-9\\-._]", "_");
     name = StringUtils.left(name, MAX_NAME_LENGTH);
 
     return name;

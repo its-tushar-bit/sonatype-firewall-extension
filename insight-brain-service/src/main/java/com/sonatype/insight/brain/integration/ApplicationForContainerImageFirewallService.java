@@ -102,8 +102,12 @@ public class ApplicationForContainerImageFirewallService
             + repositoryManager.getInstanceId());
       }
 
-      String applicationPublicId = NameHelper.convertContainerImageToApplicationPublicIdAndName(repository.getId(),
-          dto.getContainerImageNamespace(), dto.getContainerImageName(), dto.getContainerImageVersion());
+      String applicationPublicId = NameHelper.convertContainerImageToApplicationPublicIdAndName(
+          dto.getBaseUrl(),
+          dto.getRepositoryPublicId(),
+          dto.getContainerImageNamespace(),
+          dto.getContainerImageName(),
+          dto.getContainerImageVersion());
 
       Application application = getExistingApplication(tx, repository, applicationPublicId);
 

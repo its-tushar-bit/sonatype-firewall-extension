@@ -486,8 +486,9 @@ public class ApplicationForContainerImageFirewallServiceTest
       tempEntity.newMembershipMapping(organizationForRepository.getId(), roleRepository.getId(), USERNAME);
 
       application = tempEntity.newApplicationWithParent(organizationForRepository);
-      application.setPublicId(NameHelper.convertContainerImageToApplicationPublicIdAndName(repository.getId(),
-          this.containerImageNamespace, this.containerImageName, this.containerImageVersion));
+      application.setPublicId(NameHelper.convertContainerImageToApplicationPublicIdAndName(
+          repositoryManager.getBaseUrl(), repository.getPublicId(), this.containerImageNamespace,
+          this.containerImageName, this.containerImageVersion));
       applicationDAO.update(application);
     }
 

@@ -9,7 +9,6 @@ import pendoModule from '../pendo/module';
 import CLMLocationModule from '../util/CLMLocation';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import telemetryServiceModule from '../services/telemetryService';
-import currentUserService from '../user/CurrentUserService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import reactComponentsModule from '../react/module.js';
@@ -28,7 +27,6 @@ export default angular
     reactComponentsModule.name,
     pendoModule.name,
   ])
-  .factory('CurrentUser', currentUserService)
   .factory('userActions', userActions)
   .value('userReducer', userReducer)
   .component('mainHeader', mainHeader)

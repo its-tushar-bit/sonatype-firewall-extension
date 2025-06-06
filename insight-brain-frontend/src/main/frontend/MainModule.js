@@ -54,6 +54,7 @@ import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/product
 import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationManager';
+import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
 
 // this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
 $.fn.modal.Constructor.prototype.enforceFocus = function () {
@@ -107,7 +108,6 @@ export const InitModule = angular
             url: '^',
             redirectTo: function (transition) {
               const injector = transition.injector(),
-                CurrentUser = injector.get('CurrentUser'),
                 $rootScope = injector.get('$rootScope'),
                 $q = injector.get('$q'),
                 $ngRedux = injector.get('$ngRedux');
@@ -116,7 +116,7 @@ export const InitModule = angular
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
                   $ngRedux.dispatch(loadProductLicense()),
                   $ngRedux.dispatch(firewallOnboardingActions.loadUnconfiguredRepoManagers()),
-                  CurrentUser.waitForLogin(),
+                  waitForLogin(),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
@@ -199,13 +199,11 @@ export const InitModule = angular
     '$rootScope',
     '$state',
     '$window',
-    'CurrentUser',
     '$q',
     '$urlRouter',
     '$timeout',
     'pendoService',
     'LoginModalService',
-    'UnauthenticatedRequestQueueService',
     'routeStateUtilService',
     'ProductLicense',
     '$ngRedux',
@@ -214,13 +212,11 @@ export const InitModule = angular
       $rootScope,
       $state,
       $window,
-      currentUser,
       $q,
       $urlRouter,
       $timeout,
       pendoService,
       LoginModalService,
-      UnauthenticatedRequestQueueService,
       routeStateUtilService,
       ProductLicense,
       $ngRedux,
@@ -274,7 +270,7 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors($rootScope, $window, LoginModalService, UnauthenticatedRequestQueueService);
+      attachAxiosInterceptors($rootScope, $window, LoginModalService);
 
       function setRootError(err) {
         $rootScope.error = Messages.getHttpErrorMessage(err);
@@ -399,7 +395,7 @@ export const InitModule = angular
       }
 
       function attemptLogin() {
-        currentUser.fetch();
+        fetchUser();
       }
 
       function doStart() {
@@ -408,7 +404,7 @@ export const InitModule = angular
         })($rootScope);
         $rootScope.$on('$destroy', unsubscribe);
 
-        $q.all([currentUser.waitForLogin(), checkLicenseInfo()])
+        $q.all([waitForLogin(), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
             $ngRedux.dispatch(loadProductLicense());
             $rootScope.username = authenticationStatus.username;
@@ -526,7 +522,7 @@ export const InitModule = angular
 
         // Try to fetch the current user in order to see if we are already logged in, but do not attempt
         // to initiate a login here (we might be on a page that doesn't require auth)
-        currentUser.fetch(false);
+        fetchUser(false);
 
         pendoService.start();
       }

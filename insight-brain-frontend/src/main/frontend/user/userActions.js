@@ -7,6 +7,7 @@ import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { waitForLogin } from 'MainRoot/user/userSession';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
@@ -20,17 +21,7 @@ export const CHANGE_PASSWORD_FAILED = 'CHANGE_PASSWORD_FAILED';
 export const CHANGE_PASSWORD_STATUS_RESET = 'CHANGE_PASSWORD_STATUS_RESET';
 export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 
-function userActions(
-  $rootScope,
-  $q,
-  $http,
-  CurrentUser,
-  CLMLocations,
-  telemetryService,
-  PermissionService,
-  pendoService,
-  $window
-) {
+function userActions($rootScope, $q, $http, CLMLocations, telemetryService, PermissionService, pendoService, $window) {
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
       shouldDisplayWarningPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true)
@@ -47,7 +38,7 @@ function userActions(
         .catch(always(false));
 
     return $q.all({
-      currentUser: CurrentUser.waitForLogin(),
+      currentUser: waitForLogin(),
       shouldDisplayWarning: shouldDisplayWarningPromise,
     });
   }
@@ -196,7 +187,6 @@ userActions.$inject = [
   '$rootScope',
   '$q',
   '$http',
-  'CurrentUser',
   'CLMLocations',
   'telemetryService',
   'PermissionService',

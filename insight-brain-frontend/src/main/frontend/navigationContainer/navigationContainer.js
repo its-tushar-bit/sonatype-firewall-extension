@@ -36,9 +36,10 @@ import {
   selectLoadingProducts,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { getReleaseVersion } from 'MainRoot/util/versionUtil';
+import { waitForLogin } from 'MainRoot/user/userSession';
 
 /* global clmServerVersion */
-function NavigationContainerController($rootScope, $state, $scope, CurrentUser, $ngRedux) {
+function NavigationContainerController($rootScope, $state, $scope, $ngRedux) {
   var vm = this;
   vm.$state = $state;
   vm.isDashboardAvailable = isDashboardAvailable;
@@ -74,7 +75,7 @@ function NavigationContainerController($rootScope, $state, $scope, CurrentUser, 
 
   function doLoad() {
     const { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
-    CurrentUser.waitForLogin().then(function () {
+    waitForLogin().then(function () {
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
       $ngRedux.dispatch(loadProductLicense());
@@ -129,7 +130,7 @@ function mapStateToThis(state) {
   };
 }
 
-NavigationContainerController.$inject = ['$rootScope', '$state', '$scope', 'CurrentUser', '$ngRedux'];
+NavigationContainerController.$inject = ['$rootScope', '$state', '$scope', '$ngRedux'];
 
 export default {
   controller: NavigationContainerController,

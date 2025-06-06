@@ -8,6 +8,7 @@ import utilityServicesModule from '../utility/services/utility.services.module';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 
 import isIqIframe from './isIqFrame';
+import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 export var httpInterceptors = angular.module('HttpInterceptors', []);
 
@@ -88,15 +89,14 @@ export var unauthenticatedResponseHttpInterceptor = angular
     '$q',
     '$http',
     '$ngRedux',
-    'UnauthenticatedRequestQueueService',
     'LoginModalService',
-    function ($rootScope, $q, $http, $ngRedux, UnauthenticatedRequestQueueService, LoginModalService) {
+    function ($rootScope, $q, $http, $ngRedux, LoginModalService) {
       $rootScope.$on('userNeedsAuthentication', function (event, response, deferred) {
         if (response.config && response.config.waitForLogin === false) {
           deferred.reject(response);
         } else {
           // add a new function to the queue that will handle resolving the promise retrieved from event emitter
-          UnauthenticatedRequestQueueService.addRequest(function () {
+          addRequest(function () {
             // simply replay the request
             $http(response.config).then(
               function () {
@@ -106,22 +106,20 @@ export var unauthenticatedResponseHttpInterceptor = angular
                 deferred.reject(arguments[0]);
               }
             );
-          });
+          }, deferred.reject);
           // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
           // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-          if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-            LoginModalService.authenticate(response.headers('WWW-Authenticate') === 'SAML').then(
-              function () {
+          if (getRequests().length === 1) {
+            (async () => {
+              try {
+                await LoginModalService.authenticate(response.headers['www-authenticate'] === 'SAML');
                 // retry failed requests and then clear the queue
-                $q.all(UnauthenticatedRequestQueueService.getPromises()).finally(function () {
-                  UnauthenticatedRequestQueueService.clearRequests();
-                });
-              },
-              function () {
-                // login was cancelled
-                UnauthenticatedRequestQueueService.clearRequests();
+                await settleAll();
+              } catch (e) {
+                // Login was cancelled or failed
+                rejectAll();
               }
-            );
+            })();
           }
         }
       });

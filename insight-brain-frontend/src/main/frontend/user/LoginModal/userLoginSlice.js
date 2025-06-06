@@ -72,7 +72,7 @@ const userLoginFailed = (state, { payload }) => {
   return {
     ...state,
     loginModalSubmitState: {
-      loginSubmitError: Messages.getHttpErrorMessage(payload.data),
+      loginSubmitError: Messages.getHttpErrorMessage(payload),
       loginSubmitMaskState: null,
     },
   };

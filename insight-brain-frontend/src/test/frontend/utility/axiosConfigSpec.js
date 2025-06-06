@@ -8,17 +8,21 @@ import loginModalModule from 'MainRoot/user/LoginModal/module';
 import * as isIqIframeUtil from 'MainRoot/utilAngular/isIqFrame';
 import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
 import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
+import { addRequest, clearRequests, getRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 describe('axiosConfig', () => {
   let mockAxios, attachAxiosInterceptors, mockSessionExpired;
 
   beforeEach(function () {
-    mockAxios = Object.assign(jasmine.createSpy('axios'), {
-      interceptors: {
-        response: { use: jasmine.createSpy('axios.interceptors.response.use') },
-        request: { use: jasmine.createSpy('axios.interceptors.response.use') },
-      },
-    });
+    mockAxios = Object.assign(
+      jasmine.createSpy('axios').and.returnValue(Promise.resolve({ data: 'mocked response' })),
+      {
+        interceptors: {
+          response: { use: jasmine.createSpy('axios.interceptors.response.use') },
+          request: { use: jasmine.createSpy('axios.interceptors.response.use') },
+        },
+      }
+    );
 
     const axiosConfig = require('inject-loader!MainRoot/utility/axiosConfig')({ axios: mockAxios });
 
@@ -26,7 +30,7 @@ describe('axiosConfig', () => {
   });
 
   describe('attachAxiosInterceptors', () => {
-    let $rootScope, $window, loginModalService, queueService, attachInterceptors;
+    let $rootScope, $window, loginModalService, attachInterceptors;
     beforeEach(
       angular.mock.module(utilityServicesModule.name, loginModalModule.name, function ($provide) {
         mockSessionExpired = jasmine.createSpy('mockSessionExpired');
@@ -42,18 +46,17 @@ describe('axiosConfig', () => {
       })
     );
 
-    beforeEach(inject(function (_$rootScope_, _$window_, _UnauthenticatedRequestQueueService_, _LoginModalService_) {
+    beforeEach(inject(function (_$rootScope_, _$window_, _LoginModalService_) {
       $rootScope = _$rootScope_.$new();
       $window = _$window_;
-      queueService = _UnauthenticatedRequestQueueService_;
       loginModalService = _LoginModalService_;
 
-      attachInterceptors = () => attachAxiosInterceptors($rootScope, $window, loginModalService, queueService);
+      attachInterceptors = () => attachAxiosInterceptors($rootScope, $window, loginModalService);
     }));
 
     afterEach(() => {
       // clear any requests/promises in queue
-      queueService.clearRequests();
+      clearRequests();
     });
 
     it('attaches interceptors for the request and response of the rest calls', () => {
@@ -194,7 +197,7 @@ describe('axiosConfig', () => {
 
           interceptorResolution.then(promiseShouldNotBeResolvedFailure, (error) => {
             expect(error).toEqual(errorFromRequest);
-            expect(queueService.getRequests().length).toBe(0);
+            expect(getRequests().length).toBe(0);
             done();
           });
         });
@@ -208,7 +211,7 @@ describe('axiosConfig', () => {
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
               expect(mockSessionExpired).toHaveBeenCalledTimes(1);
-              expect(queueService.getRequests().length).toBe(0);
+              expect(getRequests().length).toBe(0);
               delete $rootScope.username;
               done();
             });
@@ -223,7 +226,7 @@ describe('axiosConfig', () => {
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
               expect(mockSessionExpired).toHaveBeenCalledTimes(1);
-              expect(queueService.getRequests().length).toBe(0);
+              expect(getRequests().length).toBe(0);
               done();
             });
           });
@@ -238,15 +241,21 @@ describe('axiosConfig', () => {
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, (error) => {
-              expect(queueService.getRequests().length).toBe(0);
-              expect(error).toEqual(errorFromRequest.response);
+              expect(getRequests().length).toBe(0);
+              expect(error).toEqual(errorFromRequest);
               done();
             });
           }
         );
 
         describe('intercepts a request that is waiting for login and is rejected due to authentication', () => {
-          it('adds the request to the UnauthenticatedRequestQueueService if it was waiting for login', (done) => {
+          it('adds the request to the unauthenticatedRequestsQueue if it was waiting for login', (done) => {
+            let deferred;
+            spyOn(loginModalService, 'authenticate').and.callFake(() => {
+              return new Promise((resolve, reject) => {
+                deferred = { resolve, reject };
+              });
+            });
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = {
               response: {
@@ -256,16 +265,25 @@ describe('axiosConfig', () => {
             };
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
-            interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-              expect(queueService.getRequests().length).toBe(1);
-              done();
+
+            expect(getRequests().length).toBe(1);
+            interceptorResolution.then(() => {
+              setTimeout(() => {
+                expect(getRequests().length).toBe(0);
+                done();
+              }, 0);
             });
+            deferred.resolve();
           });
 
           describe('when there is a single request in the queue', () => {
             it('requests the opening of the login modal without SSO if the appropriate header is not present', (done) => {
-              // Spy on the opening of the login modal but don't resolve or reject the promise yet
-              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callThrough();
+              let deferred;
+              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
+                return new Promise((resolve, reject) => {
+                  deferred = { resolve, reject };
+                });
+              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
@@ -275,16 +293,21 @@ describe('axiosConfig', () => {
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
-              interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-                expect(queueService.getRequests().length).toBe(1);
+
+              interceptorResolution.then(() => {
                 expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(false);
                 done();
               });
+              deferred.resolve();
             });
 
             it('requests the opening of the login modal with SSO if the appropriate header is present', (done) => {
-              // Spy on the opening of the login modal but don't resolve or reject the promise yet
-              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callThrough();
+              let deferred;
+              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
+                return new Promise((resolve, reject) => {
+                  deferred = { resolve, reject };
+                });
+              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
@@ -294,66 +317,69 @@ describe('axiosConfig', () => {
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
-              interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-                expect(queueService.getRequests().length).toBe(1);
+
+              interceptorResolution.then(() => {
                 expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(true);
                 done();
               });
+              deferred.resolve();
             });
 
             it('Resolves all promises in the queue and clears any requests after authentication is successful', (done) => {
-              const newRequestedPromise = new Promise((resolve) => {
-                // Simple timeout to hold the promises in the queue for a moment to check they are correctly held
-                // until cleanup
-                setTimeout(() => {
-                  return resolve();
-                }, 50);
+              let deferred1;
+              let deferred2;
+              const newRequestedPromise = new Promise((resolve, reject) => {
+                deferred2 = { resolve, reject };
               });
               spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                queueService.addRequest(() => newRequestedPromise);
-                return Promise.resolve();
+                addRequest(() => newRequestedPromise);
+                return new Promise((resolve, reject) => {
+                  deferred1 = { resolve, reject };
+                });
               });
-
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
-                  config: { url: 'dummyUrl', method: 'get' },
                   status: 401,
                   headers: {},
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
-              interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-                expect(queueService.getRequests().length).toBe(2);
-                newRequestedPromise.finally(() => {
-                  // Simple timeout to yield to the originally finally of the Promise.all in the interceptor before
-                  // checking that it cleans up the queue
-                  setTimeout(() => {
-                    expect(queueService.getRequests().length).toBe(0);
-                    done();
-                  }, 10);
-                });
+
+              interceptorResolution.then(() => {
+                expect(getRequests().length).toBe(2);
+                deferred2.resolve();
+                setTimeout(() => {
+                  expect(getRequests().length).toBe(0);
+                  done();
+                }, 0);
               });
+              deferred1.resolve();
             });
 
             it('clears any remaining requests if authentication is not successful or cancelled', (done) => {
-              spyOn(loginModalService, 'authenticate').and.rejectWith('canceled login modal');
+              let deferred;
+              spyOn(loginModalService, 'authenticate').and.callFake(() => {
+                return new Promise((resolve, reject) => {
+                  deferred = { resolve, reject };
+                });
+              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
-                  config: { url: 'dummyUrl' },
                   status: 401,
                   headers: {},
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
-              interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-                expect(queueService.getRequests().length).toBe(0);
 
+              interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
+                expect(getRequests().length).toBe(0);
                 done();
               });
+              deferred.reject();
             });
           });
         });

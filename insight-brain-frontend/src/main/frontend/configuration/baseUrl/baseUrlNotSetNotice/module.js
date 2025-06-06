@@ -5,11 +5,9 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import BaseUrlNotSetNotice from './BaseUrlNotSetNotice';
-import currentUserService from 'MainRoot/user/CurrentUserService';
 
 const baseUrlNotSetNoticeModule = angular
   .module('baseUrlNotSetNoticeModule', [])
-  .factory('CurrentUser', currentUserService)
   .component(
     'baseUrlNotSetNotice',
     iqReact2Angular(BaseUrlNotSetNotice, ['login', 'isLoggedIn'], ['$ngRedux', '$state'])

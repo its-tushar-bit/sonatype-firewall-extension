@@ -5,6 +5,7 @@
  */
 import pendoModule from '../../../main/frontend/pendo/module';
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+import * as userSession from 'MainRoot/user/userSession';
 
 describe('userActions', function () {
   let userActions,
@@ -12,7 +13,6 @@ describe('userActions', function () {
     currentState,
     CLMLocations,
     telemetryService,
-    CurrentUser,
     $httpBackend,
     $rootScope,
     loginDeferred,
@@ -32,27 +32,18 @@ describe('userActions', function () {
     })
   );
 
-  beforeEach(inject((
-    $q,
-    _$httpBackend_,
-    _CLMLocations_,
-    _userActions_,
-    _telemetryService_,
-    _$rootScope_,
-    _CurrentUser_
-  ) => {
+  beforeEach(inject(($q, _$httpBackend_, _CLMLocations_, _userActions_, _telemetryService_, _$rootScope_) => {
     $httpBackend = _$httpBackend_;
     CLMLocations = _CLMLocations_;
     userActions = _userActions_;
     telemetryService = _telemetryService_;
     $rootScope = _$rootScope_;
-    CurrentUser = _CurrentUser_;
 
     loginDeferred = $q.defer();
     pendoDeferred = $q.defer();
 
     spyOn(telemetryService, 'submitData');
-    spyOn(CurrentUser, 'waitForLogin').and.returnValue(loginDeferred.promise);
+    spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
     spyOn($rootScope, '$broadcast').and.callThrough();
     spyOn($rootScope, '$emit').and.callThrough();
 

@@ -6,12 +6,12 @@
 import mainHeaderModule from 'MainRoot/mainHeader/module';
 import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
+import * as userSession from 'MainRoot/user/userSession';
 
 describe('mainHeaderSpec', function () {
   var $scope,
     $rootScope,
     mockSystemConfigurationPropertyService,
-    mockCurrentUser,
     mockPermissionService,
     mockRouteStateUtilService,
     routeStateUtilServiceDeferred,
@@ -38,10 +38,8 @@ describe('mainHeaderSpec', function () {
       isSuccessMetricsEnabled: jasmine.createSpy().and.returnValue(isSuccessMetricsEnabledDeferred.promise),
     };
 
-    mockCurrentUser = {
-      fetch: jasmine.createSpy('fetch'),
-      waitForLogin: jasmine.createSpy('waitForLogin').and.returnValue(loginDeferred.promise),
-    };
+    spyOn(userSession, 'fetchUser');
+    spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
 
     mockPermissionService = {
       getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
@@ -55,7 +53,6 @@ describe('mainHeaderSpec', function () {
 
     vm = $componentController('mainHeader', {
       PermissionService: mockPermissionService,
-      CurrentUser: mockCurrentUser,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       $scope: $scope,
       routeStateUtilService: mockRouteStateUtilService,
@@ -122,14 +119,14 @@ describe('mainHeaderSpec', function () {
   });
 
   describe('login', function () {
-    it('calls CurrentUser.fetch', function () {
+    it('calls userSession.fetchUser', function () {
       vm.$onInit();
 
-      expect(mockCurrentUser.fetch).not.toHaveBeenCalled();
+      expect(userSession.fetchUser).not.toHaveBeenCalled();
 
       vm.login();
 
-      expect(mockCurrentUser.fetch).toHaveBeenCalled();
+      expect(userSession.fetchUser).toHaveBeenCalled();
     });
   });
 

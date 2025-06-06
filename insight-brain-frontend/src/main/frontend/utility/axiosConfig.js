@@ -6,15 +6,15 @@
 import axios from 'axios';
 import isIqIframe from '../utilAngular/isIqFrame';
 import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
+import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 /**
  * @param rootScope       Angular's $rootScope variable.
  * @param window     Angular's $window variable.
  * @param loginModalService    LoginModalService (open login modal)
- * @param UnauthenticatedRequestQueueService the queue service to provide control of the outstanding requests
  **/
 
-export const attachAxiosInterceptors = (rootScope, window, loginModalService, UnauthenticatedRequestQueueService) => {
+export const attachAxiosInterceptors = (rootScope, window, loginModalService) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -32,28 +32,28 @@ export const attachAxiosInterceptors = (rootScope, window, loginModalService, Un
           window.top.sessionExpired();
         } else {
           if (error.response.config && error.response.config.waitForLogin === false) {
-            return Promise.reject(error.response);
+            return Promise.reject(error);
           } else {
-            UnauthenticatedRequestQueueService.addRequest(() => {
-              // simply replay the request
-              axios(error.response.config);
+            return new Promise((resolve, reject) => {
+              addRequest(() => {
+                // simply replay the request
+                axios(error.response.config).then(resolve, reject);
+              }, reject);
+              // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
+              // the other messages, the data will be added to the queue, but the dialog portion will be ignored
+              if (getRequests().length === 1) {
+                (async () => {
+                  try {
+                    await loginModalService.authenticate(error.response.headers['www-authenticate'] === 'SAML');
+                    // retry failed requests and then clear the queue
+                    await settleAll();
+                  } catch (e) {
+                    // Login was cancelled or failed
+                    rejectAll();
+                  }
+                })();
+              }
             });
-            // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
-            // the other messages, the data will be added to the queue, but the dialog portion will be ignored
-            if (UnauthenticatedRequestQueueService.getRequests().length === 1) {
-              loginModalService.authenticate(error.response.headers['www-authenticate'] === 'SAML').then(
-                () => {
-                  // retry failed requests and then clear the queue
-                  Promise.all(UnauthenticatedRequestQueueService.getPromises()).finally(() =>
-                    UnauthenticatedRequestQueueService.clearRequests()
-                  );
-                },
-                () => {
-                  // login was cancelled
-                  UnauthenticatedRequestQueueService.clearRequests();
-                }
-              );
-            }
           }
         }
       }

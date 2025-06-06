@@ -5,7 +5,6 @@
  */
 import utilityServicesModule from '../utility/services/utility.services.module';
 import telemetryServiceModule from '../services/telemetryService';
-import currentUserService from '../user/CurrentUserService';
 import navigationContainer from './navigationContainer';
 import reactComponentsModule from '../react/module.js';
 
@@ -17,5 +16,4 @@ export default angular
     telemetryServiceModule.name,
     reactComponentsModule.name,
   ])
-  .factory('CurrentUser', currentUserService)
   .component('navigationContainer', navigationContainer);

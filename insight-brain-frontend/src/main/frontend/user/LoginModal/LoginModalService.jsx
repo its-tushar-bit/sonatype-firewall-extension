@@ -9,8 +9,9 @@ import { getOidcLoginUrl, getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
 import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
+import { clearRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
-export default function LoginModalService(rootScope, ngRedux, $window, UnauthenticatedRequestQueueService) {
+export default function LoginModalService(rootScope, ngRedux, $window) {
   let modalPromise = null;
   let resolveModalPromise;
   let rejectModalPromise;
@@ -52,7 +53,7 @@ export default function LoginModalService(rootScope, ngRedux, $window, Unauthent
     const isOAuth2Enabled = await loadOAuth2Enabled();
 
     if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled) && !isBackupLogin()) {
-      UnauthenticatedRequestQueueService.clearRequests();
+      clearRequests();
       return await redirectToIdP(isOAuth2Enabled);
     }
 
@@ -110,4 +111,4 @@ export default function LoginModalService(rootScope, ngRedux, $window, Unauthent
   return { onClickSSO, onSubmit, dismiss, open, redirectToIdP, authenticate };
 }
 
-LoginModalService.$inject = ['$rootScope', '$ngRedux', '$window', 'UnauthenticatedRequestQueueService'];
+LoginModalService.$inject = ['$rootScope', '$ngRedux', '$window'];

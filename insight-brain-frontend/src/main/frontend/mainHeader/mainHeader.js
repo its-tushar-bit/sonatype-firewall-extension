@@ -32,11 +32,12 @@ import {
   selectIsFirewallOnlyLicense,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { selectIsStandaloneDeveloper, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
 
-function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser, routeStateUtilService, $ngRedux) {
+function MainHeaderController($rootScope, $scope, PermissionService, routeStateUtilService, $ngRedux) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
   vm.permissions = {};
@@ -72,7 +73,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
       'MANAGE_AUTOMATIC_SCM_CONFIGURATION',
     ];
 
-    CurrentUser.waitForLogin().then(function () {
+    waitForLogin().then(function () {
       PermissionService.getValidPermissions(validPermissions).then(function (data) {
         const perms = {};
         angular.forEach(data, function (permission) {
@@ -89,7 +90,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, CurrentUser
   }
 
   function login() {
-    CurrentUser.fetch();
+    fetchUser();
   }
 
   $rootScope.$on('$stateChangeSuccess', checkShowLoginButton);
@@ -123,14 +124,7 @@ export const mapStateToThis = (state) => ({
   isZscalerEnabled: selectIsZscalerEnabled(state),
 });
 
-MainHeaderController.$inject = [
-  '$rootScope',
-  '$scope',
-  'PermissionService',
-  'CurrentUser',
-  'routeStateUtilService',
-  '$ngRedux',
-];
+MainHeaderController.$inject = ['$rootScope', '$scope', 'PermissionService', 'routeStateUtilService', '$ngRedux'];
 
 export default {
   controller: MainHeaderController,

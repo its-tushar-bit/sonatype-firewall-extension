@@ -9,7 +9,6 @@ import telemetryServiceModule from '../services/telemetryService';
 import permissionServiceModule from '../utilAngular/PermissionService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
-import currentUserService from '../user/CurrentUserService';
 import pendoModule from '../pendo/module';
 
 export default angular
@@ -20,6 +19,5 @@ export default angular
     pendoModule.name,
   ])
   .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
-  .factory('CurrentUser', currentUserService)
   .factory('userActions', userActions)
   .value('userReducer', userReducer);

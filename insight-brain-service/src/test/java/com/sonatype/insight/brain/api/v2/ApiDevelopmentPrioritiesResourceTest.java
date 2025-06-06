@@ -143,22 +143,22 @@ public class ApiDevelopmentPrioritiesResourceTest
     assertThat(lines[0]).isEqualTo("Display Name,Component Identifier,Component Hash,Dependency Type," +
         "Has Fail Action On Component,Action,Highest Threat,Highest Threat Policy Name," +
         "Highest Threat Policy Constraint Name,Security Reachable,Priority,Remediation Type,Remediation Version," +
-        "Highest Reachable Threat,Has Expired Waiver,Has Soon To Expire Waiver,Is All Violations Waived," +
-        "Waiver Expiration Details,Waived Violations Count,Has Auto Waiver");
+        "Highest Reachable Threat,Has Same Violations On Main,Has Expired Waiver,Has Soon To Expire Waiver," +
+        "Is All Violations Waived,Waiver Expiration Details,Waived Violations Count,Has Auto Waiver");
     assertThat(lines[1]).isEqualTo("displayName,maven: {artifactId=jclouds-bouncycastle, " +
         "groupId=org.jclouds.driver, version=1.3.1},1fbeda8a0725179493e9,Unknown,false,none,10,Security-Critical," +
-        "Medium risk CVSS score,,1,,,0,false,false,false,,0,false");
+        "Medium risk CVSS score,,1,,,0,false,false,false,false,,0,false");
     assertThat(lines[2]).isEqualTo("displayName,maven: {artifactId=tomcat-util, groupId=tomcat, " +
         "version=5.5.23},1249e25aebb15358be45,Unknown,false,none,9,Security-High,High risk CVSS score,,2,,,0" +
-        ",false,false,false,,0,false");
+        ",false,false,false,false,,0,false");
     assertThat(lines[3]).isEqualTo("displayName,maven: {artifactId=geronimo-tomcat, groupId=geronimo, " +
         "version=1.0},30a69958223a2c6215e2,Unknown,false,none,7,Security-Medium,Medium risk CVSS score,,3,,,0" +
-        ",false,false,false,,0,false");
+        ",false,false,false,false,,0,false");
     assertThat(lines[4]).isEqualTo("displayName,maven: {artifactId=com.alkacon.opencms.v8.twitter, " +
         "groupId=org.opencms.modules, version=8.0.2},2c2a4719e64a7e39545c,Unknown,false,none,2,Security-Low," +
-        "Medium risk CVSS score,,4,,,0,false,false,false,,0,false");
+        "Medium risk CVSS score,,4,,,0,false,false,false,false,,0,false");
     assertThat(lines[5]).isEqualTo("displayName,maven: {artifactId=logback-access, groupId=ch.qos.logback, " +
         "version=0.6},47b6857af4a1cc50875a,Unknown,false,none,2,Security-Low,Medium risk CVSS score,,5,,,0," +
-        "false,false,false,,0,false");
+        "false,false,false,false,,0,false");
   }
 }

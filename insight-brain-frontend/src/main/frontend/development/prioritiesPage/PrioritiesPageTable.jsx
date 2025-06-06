@@ -19,7 +19,6 @@ import {
 import { debounce } from 'debounce';
 import { isNil } from 'ramda';
 import { faArrowDownWideShort } from '@fortawesome/pro-solid-svg-icons';
-import classnames from 'classnames';
 import PrioritiesPageRow from 'MainRoot/development/prioritiesPage/PrioritiesPageRow';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -45,6 +44,7 @@ export default function PrioritiesPageTable() {
     filterOnPolicyActions: filterOnPolicyActionsValue,
     hasDefaultFilters,
     integrationType: storedIntegrationType,
+    scanIdFromLatestBuildStageEvaluation,
   } = useSelector(selectPrioritiesPageSlice);
 
   const metadata = useSelector(selectApplicationReportMetaData);
@@ -216,7 +216,10 @@ export default function PrioritiesPageTable() {
               error={loadErrorTableData}
               emptyMessage={getEmptyMessage()}
             >
-              <DataRows dataset={priorities} />
+              <DataRows
+                dataset={priorities}
+                scanIdFromLatestBuildStageEvaluation={scanIdFromLatestBuildStageEvaluation}
+              />
             </NxTable.Body>
           </NxTable>
           <div className="nx-table-container__footer">
@@ -233,7 +236,7 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset }) {
+function DataRows({ dataset, scanIdFromLatestBuildStageEvaluation }) {
   const routerState = useRouterState();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);
@@ -253,6 +256,7 @@ function DataRows({ dataset }) {
   const violationsState = `${getCurrentPrioritiesContainer()}.componentDetails.violations`;
   const getComponentHref = (hash) => routerState.href(prioritiesState, { hash, publicId: publicAppId, scanId });
   const getViolationHref = (hash) => routerState.href(violationsState, { hash, publicId: publicAppId, scanId });
+  const getPrioritiesHref = (scanId) => routerState.href('prioritiesPageFromReports', { publicAppId, scanId });
 
   return (dataset ?? []).map((component) => {
     const { componentHash } = component;
@@ -263,6 +267,7 @@ function DataRows({ dataset }) {
         component={component}
         componentHref={getComponentHref(componentHash)}
         violationsHref={getViolationHref(componentHash)}
+        latestBuildPrioritiesHref={getPrioritiesHref(scanIdFromLatestBuildStageEvaluation)}
       />
     );
   });

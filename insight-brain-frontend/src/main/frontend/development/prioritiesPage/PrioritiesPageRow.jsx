@@ -57,7 +57,7 @@ export const recommendationTypeMap = {
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
 };
 
-export default function PrioritiesPageRow({ component, componentHref, violationsHref }) {
+export default function PrioritiesPageRow({ component, componentHref, violationsHref, latestBuildPrioritiesHref }) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -83,6 +83,7 @@ export default function PrioritiesPageRow({ component, componentHref, violations
     waiverExpirationDetails,
     waivedViolationsCount,
     hasAutoWaiver,
+    hasSameViolationsOnMain,
   } = component;
 
   const policyAction = action === 'none' ? null : action;
@@ -182,6 +183,33 @@ export default function PrioritiesPageRow({ component, componentHref, violations
     startPRStatusPollingAndSaveReference(payload?.data?.id, componentHash);
   };
 
+  const getNextStep = () => {
+    if (hasSameViolationsOnMain) {
+      return (
+        <NxTextLink href={latestBuildPrioritiesHref} className="iq-pr-status__view-violations-link">
+          Go to Build stage
+        </NxTextLink>
+      );
+    }
+
+    return (
+      <PRStatus
+        automatedRemediationStatus={automatedRemediationStatus}
+        onCreatePR={openCreatePRModal}
+        onRetry={onRetryCreatePR}
+        defaultContent={
+          loading ? (
+            <NxLoadingSpinner />
+          ) : (
+            <NxTextLink href={violationsHref} className="iq-pr-status__view-violations-link">
+              View Violations
+            </NxTextLink>
+          )
+        }
+      />
+    );
+  };
+
   return (
     <NxTableRow data-analytics-id="sonatype-developer-priorities-page-component-row">
       <NxTableCell className="nx-cell--num iq-priorities-table__priority">{priority}</NxTableCell>
@@ -218,23 +246,11 @@ export default function PrioritiesPageRow({ component, componentHref, violations
           isAllViolationsWaived={isAllViolationsWaived}
           waivedViolationsCount={waivedViolationsCount}
           hasAutoWaiver={hasAutoWaiver}
+          hasSameViolationsOnMain={hasSameViolationsOnMain}
         />
       </NxTableCell>
       <NxTableCell>
-        <PRStatus
-          automatedRemediationStatus={automatedRemediationStatus}
-          onCreatePR={openCreatePRModal}
-          onRetry={onRetryCreatePR}
-          defaultContent={
-            loading ? (
-              <NxLoadingSpinner />
-            ) : (
-              <NxTextLink href={violationsHref} className="iq-pr-status__view-violations-link">
-                View Violations
-              </NxTextLink>
-            )
-          }
-        />
+        {getNextStep()}
         <RowCreatePRModal visible={isModalOpenForComponent} onPRCreated={onPRCreated} />
       </NxTableCell>
     </NxTableRow>
@@ -280,6 +296,7 @@ function Recommendation({
   isAllViolationsWaived,
   waivedViolationsCount,
   hasAutoWaiver,
+  hasSameViolationsOnMain,
 }) {
   const nudgeAutoWaiverText = 'Ask an administrator to configure Automated Waivers';
   const waivedViolationsCountText =
@@ -303,6 +320,14 @@ function Recommendation({
             Auto
           </NxSmallTag>
         )}
+      </div>
+    );
+  }
+
+  if (hasSameViolationsOnMain) {
+    return (
+      <div className="iq-priorities-table__recommendation">
+        <span>Resolve on default branch</span>
       </div>
     );
   }
@@ -350,6 +375,7 @@ Recommendation.propTypes = {
     version: PropTypes.string,
     isGolden: PropTypes.bool,
   }),
+  hasSameViolationsOnMain: PropTypes.bool,
 };
 
 PrioritiesPageRow.propTypes = {
@@ -358,7 +384,9 @@ PrioritiesPageRow.propTypes = {
     dependencyType: PropTypes.string.isRequired,
     action: PropTypes.string.isRequired,
     priority: PropTypes.number.isRequired,
+    hasSameViolationsOnMain: PropTypes.bool,
   }).isRequired,
   componentHref: PropTypes.string.isRequired,
   violationsHref: PropTypes.string.isRequired,
+  latestBuildPrioritiesHref: PropTypes.string.isRequired,
 };

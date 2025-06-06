@@ -37,6 +37,7 @@ const loadTableDataFulfilled = (state, { payload }) => {
     priorities: { total, page, pageSize, pageCount, results },
     publicAppId,
     scanId,
+    scanIdFromLatestBuildStageEvaluation,
   } = payload;
   return {
     ...state,
@@ -49,6 +50,7 @@ const loadTableDataFulfilled = (state, { payload }) => {
     total,
     publicAppId,
     scanId,
+    scanIdFromLatestBuildStageEvaluation,
   };
 };
 

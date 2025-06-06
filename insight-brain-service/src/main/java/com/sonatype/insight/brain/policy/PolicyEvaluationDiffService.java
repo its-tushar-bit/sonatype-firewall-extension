@@ -68,6 +68,23 @@ public class PolicyEvaluationDiffService
   }
 
   /**
+   * Creates a PolicyViolationDiff by comparing the policy violations between the two specified policy evaluations.
+   * Only the policy violations with threat level >= minimumThreatLevel are included in the diff.
+   *
+   * @param fromEvaluation The policy evaluation to compare from.
+   * @param toEvaluation The policy evaluation to compare to.
+   * @param minimumThreatLevel The minimum threat level to filter policy violations.
+   * @return An Optional containing the PolicyViolationDiff, or an empty Optional if the diff could not be created.
+   */
+  public Optional<PolicyViolationDiff<PolicyViolation>> createPolicyViolationDiff(
+      final PolicyEvaluation fromEvaluation,
+      final PolicyEvaluation toEvaluation,
+      final int minimumThreatLevel)
+  {
+    return createPolicyViolationDiff(fromEvaluation, toEvaluation, minimumThreatLevel, false);
+  }
+
+  /**
    * Creates a PolicyViolationDiff by comparing the components between the two specified policy evaluations.
    * The policy violations that are the same are not populated in the diff (not needed at this time).
    * Only the policy violations with threat level >= minimumThreatLevel are included in the diff.

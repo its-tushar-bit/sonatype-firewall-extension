@@ -9,4 +9,5 @@ package com.sonatype.insight.brain.development.prioritization;
 import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 
-public record DevelopmentPrioritizationResults(ApiPageResult<PrioritizedComponent> priorities) {}
+public record DevelopmentPrioritizationResults(
+    String scanIdFromLatestBuildStageEvaluation, ApiPageResult<PrioritizedComponent> priorities) {}

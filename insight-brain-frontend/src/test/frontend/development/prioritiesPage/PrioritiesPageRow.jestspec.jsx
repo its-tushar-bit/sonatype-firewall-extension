@@ -50,6 +50,7 @@ describe('PrioritiesPageRow', () => {
     component: mockData,
     componentHref: '#testHref',
     violationsHref: '#testViolationsHref',
+    latestBuildPrioritiesHref: '#testPrioritiesHref',
   };
 
   beforeEach(() => {
@@ -170,6 +171,30 @@ describe('PrioritiesPageRow', () => {
       .container;
     const allViolationsWaivedCell = within(allViolationsWaivedContainer).getAllByRole('cell')[2];
     await waitFor(() => expect(allViolationsWaivedCell).toHaveTextContent('Waived'));
+  });
+
+  it('renders "Resolve on default branch" in suggested remediation column', async () => {
+    const renderComponent = (preloadedState, props = minimalProps) =>
+      render(<PrioritiesPageRow {...props} />, {
+        preloadedState: preloadedState || defaultPreloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+    const allViolationsWaivedComponentMockData = mergeDeepRight(minimalProps, {
+      component: {
+        hasSameViolationsOnMain: true,
+      },
+    });
+
+    renderComponent(defaultPreloadedState, allViolationsWaivedComponentMockData);
+
+    const row = screen.getByRole('row');
+    const cells = within(row).getAllByRole('cell');
+
+    expect(cells[4]).toHaveTextContent(/resolve on default branch/i);
+    expect(cells[5]).toHaveTextContent(/go to build stage/i);
+    expect(screen.getByRole('link', { name: /go to build stage/i })).toHaveAttribute('href', '#testPrioritiesHref');
   });
 
   describe('async recommendations', () => {

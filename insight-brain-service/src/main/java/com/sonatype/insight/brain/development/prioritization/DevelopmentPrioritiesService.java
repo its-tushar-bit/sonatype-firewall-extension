@@ -12,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -26,6 +27,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiDependencyDataDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -49,10 +51,11 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.PathForwardInspector;
+import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
+import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -76,6 +79,8 @@ public class DevelopmentPrioritiesService
 {
   private static final Logger log = LoggerFactory.getLogger(DevelopmentPrioritiesService.class);
 
+  private static final int MINIMUM_THREAT_LEVEL = 1;
+
   private final FeaturesService featuresService;
 
   private final DevelopmentPrioritiesReportService developmentPrioritiesReportService;
@@ -92,13 +97,13 @@ public class DevelopmentPrioritiesService
 
   private final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService;
 
+  private final PolicyEvaluationDiffService policyEvaluationDiffService;
+
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final ApplicationDAO applicationDAO;
 
   private final PolicyWaiverDAO policyWaiverDAO;
-
-  private final PathForwardInspector pathForwardInspector;
 
   @Inject
   public DevelopmentPrioritiesService(
@@ -109,10 +114,10 @@ public class DevelopmentPrioritiesService
       final ComponentReachabilityService componentReachabilityService,
       final ApiComponentRemediationService apiComponentRemediationService,
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
+      final PolicyEvaluationDiffService policyEvaluationDiffService,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationDAO applicationDAO,
-      final PolicyWaiverDAO policyWaiverDAO,
-      final PathForwardInspector pathForwardInspector)
+      final PolicyWaiverDAO policyWaiverDAO)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
@@ -121,10 +126,10 @@ public class DevelopmentPrioritiesService
     this.componentReachabilityService = componentReachabilityService;
     this.apiComponentRemediationService = apiComponentRemediationService;
     this.developmentPrioritiesUtilsService = developmentPrioritiesUtilsService;
+    this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
-    this.pathForwardInspector = pathForwardInspector;
   }
 
   @Authorize(permission = Permission.READ)
@@ -139,6 +144,13 @@ public class DevelopmentPrioritiesService
   )
   {
     final int skipCount = (page - 1) * pageSize;
+
+    PolicyEvaluation latestBuildStageEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndStageId(
+            applicationDAO.getByPublicId(applicationPublicId).getId(), "build");
+
+    String scanIdFromLatestBuildStageEvaluation = latestBuildStageEvaluation != null ?
+        latestBuildStageEvaluation.getScanId() : "";
 
     final List<PrioritizedComponent> allPrioritizedFindings =
         includeRemediation ?
@@ -161,8 +173,8 @@ public class DevelopmentPrioritiesService
         .limit(pageSize)
         .toList();
 
-    return new DevelopmentPrioritizationResults(new ApiPageResult<>(totalSize, page, pageSize,
-        prioritizedFindingsForPagination));
+    return new DevelopmentPrioritizationResults(scanIdFromLatestBuildStageEvaluation,
+        new ApiPageResult<>(totalSize, page, pageSize, prioritizedFindingsForPagination));
   }
 
   /**
@@ -185,12 +197,20 @@ public class DevelopmentPrioritiesService
         developmentPrioritiesReportService.getDependencyInformation(applicationPublicId, scanId);
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
 
+    String applicationId = applicationDAO.getByPublicId(applicationPublicId).getId();
+
     PolicyEvaluation policyEvaluation =
-        policyEvaluationDAO.getLastByApplicationIdAndScanId(
-            applicationDAO.getByPublicId(applicationPublicId).getId(),
-            scanId);
+        policyEvaluationDAO.getLastByApplicationIdAndScanId(applicationId, scanId);
 
     String policyEvaluationStage = policyEvaluation != null ? policyEvaluation.getStageTypeId() : null;
+
+    PolicyEvaluation mainPolicyEvaluation =
+        policyEvaluationDAO.getLastByApplicationIdAndStageId(applicationId, Stage.ID_BUILD);
+
+    Set<String> componentsHashesOnBothEvaluations = Stage.ID_DEVELOP.equals(policyEvaluationStage)
+        ? getSameComponentHashesInBothEvaluations(policyEvaluation, mainPolicyEvaluation)
+        : Collections.emptySet();
+
     isBulkRecommendationsEnabled = isBulkRecommendationsEnabled();
 
     final List<UnprioritizedComponent> sortedComponents = apiReportRawDataDTOV2.components
@@ -264,7 +284,7 @@ public class DevelopmentPrioritiesService
           long oldestHasExpiredDays = Integer.MIN_VALUE;
           int waivedViolationsCount = 0;
           boolean hasAutoWaiver = false;
-          String appId = applicationDAO.getByPublicId(applicationPublicId).getId();
+          boolean hasSameViolationsOnMain = componentsHashesOnBothEvaluations.contains(component.hash);
 
           Component policyThreatComponent = getPolicyThreatComponent(policyThreats.aaData, component);
           if (policyThreatComponent != null) {
@@ -279,7 +299,7 @@ public class DevelopmentPrioritiesService
             }
           }
 
-          List<PolicyWaiver> policyWaivers = fetchPolicyWaiversByAppAndHash(appId, component.hash);
+          List<PolicyWaiver> policyWaivers = fetchPolicyWaiversByAppAndHash(applicationId, component.hash);
           for (PolicyWaiver policyWaiver : policyWaivers) {
             if (Objects.nonNull(policyWaiver.getExpiryTime())) {
               ZonedDateTime waiverExpiryTime = policyWaiver.getExpiryTime().toInstant().atZone(ZoneId.systemDefault());
@@ -323,6 +343,7 @@ public class DevelopmentPrioritiesService
               remediationType,
               remediationVersion,
               highestReachableThreatLevel,
+              hasSameViolationsOnMain,
               hasExpiredWaiver,
               hasSoonToExpireWaiver,
               isAllViolationsWaived,
@@ -347,6 +368,37 @@ public class DevelopmentPrioritiesService
 
     // If skipCount and limit are not provided, return all sorted components without remediation
     return addPrioritiesToSortedList(sortedComponentsWithRemediation);
+  }
+
+  /**
+   * Retrieves a set of component hashes that are present in both policy evaluations.
+   * <p>
+   * This method compares two `PolicyEvaluation` objects and identifies components that have the same
+   * violations in both evaluations. It uses the `PolicyEvaluationDiffService` to compute the differences
+   * and extracts the hashes of components with matching violations.
+   *
+   * @param policyEvaluation The primary `PolicyEvaluation` object to compare.
+   * @param mainPolicyEvaluation The secondary `PolicyEvaluation` object to compare against.
+   * @return A `Set` of component hashes that are present in both evaluations. If the evaluations are
+   *         identical or the secondary evaluation is null, an empty set is returned.
+   */
+  private Set<String> getSameComponentHashesInBothEvaluations(
+      PolicyEvaluation policyEvaluation,
+      PolicyEvaluation mainPolicyEvaluation)
+  {
+    if (mainPolicyEvaluation != null && !Objects.equals(policyEvaluation.getId(), mainPolicyEvaluation.getId())) {
+      return policyEvaluationDiffService.createPolicyViolationDiff(
+          policyEvaluation, mainPolicyEvaluation, MINIMUM_THREAT_LEVEL)
+          .map(PolicyViolationDiff::getSame)
+          .map(same -> same.keySet()
+              .stream()
+              .map(com.sonatype.insight.brain.model.policy.PolicyViolation::getHash)
+              .collect(Collectors.toSet()))
+          .orElse(Collections.emptySet());
+    }
+    else {
+      return Collections.emptySet();
+    }
   }
 
   /**
@@ -669,6 +721,8 @@ public class DevelopmentPrioritiesService
 
     public final int highestReachableThreat;
 
+    public final boolean hasSameViolationsOnMain;
+
     public final boolean hasExpiredWaiver;
 
     public final boolean hasSoonToExpireWaiver;
@@ -693,6 +747,7 @@ public class DevelopmentPrioritiesService
         final ApiVersionChangeOptionType remediationType,
         final String remediationVersion,
         final int highestReachableThreat,
+        final boolean hasSameViolationsOnMain,
         final boolean hasExpiredWaiver,
         final boolean hasSoonToExpireWaiver,
         boolean isAllViolationsWaived,
@@ -712,6 +767,7 @@ public class DevelopmentPrioritiesService
       this.remediationVersion = remediationVersion;
       this.component = component;
       this.highestReachableThreat = highestReachableThreat;
+      this.hasSameViolationsOnMain = hasSameViolationsOnMain;
       this.hasExpiredWaiver = hasExpiredWaiver;
       this.hasSoonToExpireWaiver = hasSoonToExpireWaiver;
       this.isAllViolationsWaived = isAllViolationsWaived;
@@ -736,6 +792,7 @@ public class DevelopmentPrioritiesService
           remediationType,
           remediationVersion,
           highestReachableThreat,
+          hasSameViolationsOnMain,
           hasExpiredWaiver,
           hasSoonToExpireWaiver,
           isAllViolationsWaived,

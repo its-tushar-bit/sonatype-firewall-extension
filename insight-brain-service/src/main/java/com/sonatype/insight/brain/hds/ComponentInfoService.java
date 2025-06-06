@@ -309,7 +309,7 @@ public class ComponentInfoService
   {
     // Case 1: SBOM identification source with no supported formats
     if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-        !ComponentIdentifier.getFormatsSupportedByHds().contains(identifier.getFormat())) {
+        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
       return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
 

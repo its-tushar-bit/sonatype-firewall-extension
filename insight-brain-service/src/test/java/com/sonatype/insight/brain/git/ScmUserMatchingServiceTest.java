@@ -95,7 +95,7 @@ public class ScmUserMatchingServiceTest
     tempEntity.newSourceControl(org.getParentOrganizationId(), null, "token", SourceControlProvider.GITHUB);
   }
 
-  // === BEGIN - Test All 15 Possible From to Paring Combinations ===
+  // === BEGIN - Test all 15 possible From-To pairing combinations ===
   @Test
   public void testAutomaticRoleAssignmentByMapping_MapsToCorrectResourcesWhenFromScmUserNameToIqUserName()
       throws IOException

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.security.AbstractSsoUser;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.OAuth2Group;
@@ -624,7 +625,22 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByEmails_MatchesAgainstInternalUsersAndAllConfiguredLDAPServersCombiningResults()
+  public void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults_OAuth2()
+      throws Exception
+  {
+    enableSsoWithOAuth2();
+    OAuth2User ssoUser = tempEntity.newOAuth2User("oauth2user", null, null, "oauth2user@example.com", null);
+    testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(ssoUser);
+  }
+
+  @Test
+  public void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults_Saml() throws Exception {
+    enableSsoWithSaml();
+    SamlUser ssoUser = tempEntity.newSamlUser("samluser", null, null, "samluser@example.com", null);
+    testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(ssoUser);
+  }
+
+  private void testGetUsersByEmails_MatchesAgainstAllConfiguredRealms_CombiningResults(AbstractSsoUser ssoUser)
       throws Exception
   {
     configureAndStartNewLdapServer(testLdapServer1, "LDAP1");
@@ -642,14 +658,15 @@ public class UserDirectoryTest
         "internal-user1@example.com",
         "test.user@company.com", // ldap1 user
         "test.user2@company.com", // ldap2 user
+        ssoUser.getEmail(),
         "not-in-any-user-provider@example.com"
     ));
 
     // should return a list of any users that matched internally or in ldap and exclude any users that did not match
     assertThat(members).extracting(Member::getInternalName).containsExactly(
-        "internal-user-1", "internal-user-2", "testuser1", "testuser2");
+        "internal-user-1", "internal-user-2", "testuser1", "testuser2", ssoUser.getUsername());
     assertThat(members).extracting(Member::getRealm).containsExactly(
-        "IQ Server", "IQ Server", "LDAP1", "LDAP2"
+        "IQ Server", "IQ Server", "LDAP1", "LDAP2", ssoUser.getRealmId()
     );
   }
 
@@ -674,7 +691,7 @@ public class UserDirectoryTest
         "ldap2@gmail.com"
     ));
 
-    // these are the arguments that didn't already match to an internal user vis userDao
+    // these are the arguments that didn't already match to an internal user via userDao
     final String[] expectedLdapArguments = { "ldap1@gmail.com", "ldap2@gmail.com" };
 
     // should only have tried to find ldap users if they were not found as internal users
@@ -1059,32 +1076,27 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByNames_Saml_NotConfigured() {
-    UserDirectory userDirectory =
-        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
-    tempEntity.newSamlUser("username1", null, null, null, null);
-    tempEntity.newSamlUser("username2", null, null, null, null);
-    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
-
-    QueryResult result = userDirectory.getUsersByNames(usernames);
-
-    assertThat(result).isNotNull();
-    assertThat(result.get()).isEmpty();
-    assertThat(result.hasException()).isFalse();
-    assertThat(result.getException()).isNull();
-  }
-
-  @Test
   public void testGetUsersByNames_Saml() {
-    enableSsoWithSaml();
-
+    // SAML not configured
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
     SamlUser samlUser1 = tempEntity.newSamlUser("username1", null, null, null, null);
     SamlUser samlUser2 = tempEntity.newSamlUser("username2", null, null, null, null);
-    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+    tempEntity.newSamlUser("username3", null, null, null, null);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username4");
 
     QueryResult result = userDirectory.getUsersByNames(usernames);
+    assertThat(result).isNotNull();
+    assertThat(result.get()).isEmpty();
+    assertThat(result.hasException()).isFalse();
+    assertThat(result.getException()).isNull();
+
+    // Configure SAML
+    enableSsoWithSaml();
+
+    result = userDirectory.getUsersByNames(usernames);
+
+    result = userDirectory.getUsersByNames(usernames);
 
     assertThat(result).isNotNull();
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
@@ -1183,12 +1195,14 @@ public class UserDirectoryTest
   }
 
   @Test
-  public void testGetUsersByNames_OAuth2_NotConfigured() {
+  public void testGetUsersByNames_OAuth2() {
+    // OAuth2 not configured
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
-    tempEntity.newOAuth2User("username1", null, null, null, null);
-    tempEntity.newOAuth2User("username2", null, null, null, null);
-    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
+    OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", null, null, null, null);
+    OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", null, null, null, null);
+    tempEntity.newOAuth2User("username3", null, null, null, null);
+    Set<String> usernames = Sets.newHashSet("username1", "username2", "username4");
 
     QueryResult result = userDirectory.getUsersByNames(usernames);
 
@@ -1196,19 +1210,11 @@ public class UserDirectoryTest
     assertThat(result.get()).isEmpty();
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
-  }
 
-  @Test
-  public void testGetUsersByNames_OAuth2() {
+    // Configure OAuth2
     enableSsoWithOAuth2();
 
-    UserDirectory userDirectory =
-        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
-    OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", null, null, null, null);
-    OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", null, null, null, null);
-    Set<String> usernames = Sets.newHashSet("username1", "username2", "username3");
-
-    QueryResult result = userDirectory.getUsersByNames(usernames);
+    result = userDirectory.getUsersByNames(usernames);
 
     assertThat(result).isNotNull();
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
@@ -1498,6 +1504,106 @@ public class UserDirectoryTest
     assertGroupSearchDisabled(true, true);
     // Otherwise, it's not disabled
     assertGroupSearchDisabled(false, false);
+  }
+
+  @Test
+  public void testGetUsersByEmails_Saml() {
+    // SAML not configured
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    SamlUser samlUser1 = tempEntity.newSamlUser("username1", null, null, "username1@example.com", null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("username2", null, null, "username2@example.com", null);
+    tempEntity.newSamlUser("username3", null, null, "username3@example.com", null);
+    Set<String> userEmails = Sets.newHashSet("username1@example.com", "username2@example.com", "username4@example.com");
+
+    List<Member> result = userDirectory.getUsersByEmails(userEmails);
+    assertThat(result).isEmpty();
+
+    // Configure SAML
+    enableSsoWithSaml();
+
+    result = userDirectory.getUsersByEmails(userEmails);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
+            SamlRealm.ID),
+        new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
+            SamlRealm.ID));
+  }
+
+  @Test
+  public void testGetUsersByRealNames_OAuth2() {
+    // OAuth2 not configured
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("username1", "Mark", "Mywords", null, null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("username2", "Justin", "Time", null, null);
+    tempEntity.newOAuth2User("username3", "Al", "Dente", null, null);
+    Set<String> userRealNames = Sets.newHashSet("Mark Mywords", "Justin Time", "James Blond");
+
+    List<Member> result = userDirectory.getUsersByRealNames(userRealNames);
+    assertThat(result).isEmpty();
+
+    // Configure OAuth2
+    enableSsoWithOAuth2();
+
+    result = userDirectory.getUsersByRealNames(userRealNames);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
+            oAuth2User1.getEmail(), OAuth2Realm.ID),
+        new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
+            oAuth2User2.getEmail(), OAuth2Realm.ID));
+  }
+
+  @Test
+  public void testGetUsersByRealNames_Saml() {
+    // SAML not configured
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    SamlUser samlUser1 = tempEntity.newSamlUser("username1", "Mark", "Mywords", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("username2", "Justin", "Time", null, null);
+    tempEntity.newSamlUser("username3", "Al", "Dente", null, null);
+    Set<String> userRealNames = Sets.newHashSet("Mark Mywords", "Justin Time", "James Blond");
+
+    List<Member> result = userDirectory.getUsersByRealNames(userRealNames);
+    assertThat(result).isEmpty();
+
+    // Configure SAML
+    enableSsoWithSaml();
+
+    result = userDirectory.getUsersByRealNames(userRealNames);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
+            SamlRealm.ID),
+        new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
+            SamlRealm.ID));
+  }
+
+  @Test
+  public void testGetUsersByEmails_OAuth2() {
+    // OAuth2 not configured
+    UserDirectory userDirectory =
+        new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, crowdClientFactory);
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("username1", null, null, "username1@example.com", null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("username2", null, null, "username2@example.com", null);
+    tempEntity.newOAuth2User("username3", null, null, "username3@example.com", null);
+    Set<String> userEmails = Sets.newHashSet("username1@example.com", "username2@example.com", "username4@example.com");
+
+    List<Member> result = userDirectory.getUsersByEmails(userEmails);
+    assertThat(result).isEmpty();
+
+    // Configure OAuth2
+    enableSsoWithOAuth2();
+
+    result = userDirectory.getUsersByEmails(userEmails);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
+            oAuth2User1.getEmail(), OAuth2Realm.ID),
+        new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
+            oAuth2User2.getEmail(), OAuth2Realm.ID));
   }
 
   private void assertGroupSearchDisabled(boolean dynamicGroupSearchDisabled, boolean expectedDisabled) {

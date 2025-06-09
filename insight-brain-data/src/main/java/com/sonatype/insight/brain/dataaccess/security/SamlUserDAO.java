@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -89,6 +90,29 @@ public class SamlUserDAO
         " WHERE entity.username IN ?1" + //
         " ORDER BY entity.username";
     return getList(sQuery, usernames);
+  }
+
+  public List<SamlUser> getByEmails(Set<String> emails) {
+    if (CollectionUtils.isEmpty(emails)) {
+      return Collections.emptyList();
+    }
+    String sQuery = """
+        SELECT entity from SamlUser entity
+          WHERE entity.email IN ?1
+          ORDER BY entity.email""";
+    return getList(sQuery, emails);
+  }
+
+  // real name means full name (first name + " " + last name)
+  public List<SamlUser> getByRealNames(Set<String> names) {
+    if (CollectionUtils.isEmpty(names)) {
+      return Collections.emptyList();
+    }
+    String sQuery = """
+        SELECT entity from SamlUser entity
+          WHERE CONCAT(entity.firstName, ' ', entity.lastName) IN ?1
+          ORDER BY entity.lastName, entity.firstName""";
+    return getList(sQuery, names);
   }
 
   public List<SamlUser> findUsersByNameOrUsernameQuery(String nameQuery) {

@@ -252,6 +252,34 @@ public class OAuth2SsoUserProviderTest
   }
 
   @Test
+  public void testGetSsoUsersByEmails() {
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("userA", null, null, "usera@sonatype.com", null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("userB", null, null, "userb@sonatype.com", null);
+    tempEntity.newOAuth2User();
+
+    Set<String> emails = Set.of(oAuth2User1.getEmail(), oAuth2User2.getEmail());
+
+    List<SsoUser> result = oAuth2SsoUserProvider.getSsoUsersByEmails(emails);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(SsoUser.fromOAuth2User(oAuth2User1), SsoUser.fromOAuth2User(oAuth2User2));
+  }
+
+  @Test
+  public void testGetSsoUsersByRealNames() {
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("userA", "Mark", "Mywords", null, null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("userB", "Justin", "Time", null, null);
+    tempEntity.newOAuth2User();
+
+    Set<String> realNames = Set.of("Mark Mywords", "Justin Time");
+
+    List<SsoUser> result = oAuth2SsoUserProvider.getSsoUsersByRealNames(realNames);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(SsoUser.fromOAuth2User(oAuth2User1), SsoUser.fromOAuth2User(oAuth2User2));
+  }
+
+  @Test
   public void testFindOAuth2UsersByNameQuery() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User();
 

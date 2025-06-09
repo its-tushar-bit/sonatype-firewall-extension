@@ -304,6 +304,38 @@ public class OAuth2UserDAOTest
   }
 
   @Test
+  public void testGetByEmails_Empty() {
+    assertThat(oAuth2UserDAO.getByEmails(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByEmails() {
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("userA", null, null, "usera@sonatype.com", null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("userB", null, null, "userb@sonatype.com", null);
+    tempEntity.newOAuth2User();
+
+    Set<String> emails = Set.of(oAuth2User1.getEmail(), oAuth2User2.getEmail());
+    assertThat(oAuth2UserDAO.getByEmails(emails)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(oAuth2User1, oAuth2User2);
+  }
+
+  @Test
+  public void testGetByRealNames_Empty() {
+    assertThat(oAuth2UserDAO.getByRealNames(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByRealNames() {
+    OAuth2User oAuth2User1 = tempEntity.newOAuth2User("userA", "Mark", "Mywords", null, null);
+    OAuth2User oAuth2User2 = tempEntity.newOAuth2User("userB", "Justin", "Time", null, null);
+    tempEntity.newOAuth2User();
+
+    Set<String> realNames = Set.of("Mark Mywords", "Justin Time");
+    assertThat(oAuth2UserDAO.getByRealNames(realNames)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(oAuth2User1, oAuth2User2);
+  }
+
+  @Test
   public void testFindUsersByNameOrUsernameQuery_ExactName() {
     OAuth2User oAuth2User = tempEntity.newOAuth2User("userA", "bob", "smith", null, null);
     tempEntity.newOAuth2User("other", "john", "smith", null, null);

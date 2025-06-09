@@ -128,6 +128,15 @@ public class SsoUserService
     return getEnabledSsoUserProvider().getSsoUsersByUsernames(usernames);
   }
 
+  public List<SsoUser> getSsoUsersByEmails(Set<String> emails) {
+    return getEnabledSsoUserProvider().getSsoUsersByEmails(emails);
+  }
+
+  // A realName is firstName + " " + lastName.
+  public List<SsoUser> getSsoUsersByRealNames(Set<String> realNames) {
+    return getEnabledSsoUserProvider().getSsoUsersByRealNames(realNames);
+  }
+
   public List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery) {
     return getEnabledSsoUserProvider().findSsoUsersByNameOrUsernameQuery(nameQuery);
   }

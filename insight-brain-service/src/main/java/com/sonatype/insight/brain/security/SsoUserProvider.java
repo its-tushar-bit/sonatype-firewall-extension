@@ -28,6 +28,11 @@ public interface SsoUserProvider
 
   List<SsoUser> getSsoUsersByUsernames(Set<String> usernames);
 
+  List<SsoUser> getSsoUsersByEmails(Set<String> emails);
+
+  // A realName is firstName + " " + lastName.
+  List<SsoUser> getSsoUsersByRealNames(Set<String> realNames);
+
   List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery);
 
   List<SsoGroup> findSsoGroupsByNameQuery(String nameQuery);

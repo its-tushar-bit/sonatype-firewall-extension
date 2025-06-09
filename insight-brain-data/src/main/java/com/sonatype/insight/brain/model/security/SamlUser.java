@@ -7,25 +7,23 @@ package com.sonatype.insight.brain.model.security;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 
 import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import org.apache.commons.collections4.CollectionUtils;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.apache.commons.lang3.StringUtils;
 
 @Entity
 @Table(name = "saml_user")
 public class SamlUser
+    extends AbstractSsoUser
     implements HasStringId
 {
   public static final String SAML_REALM_ID = "SAML";
@@ -39,18 +37,6 @@ public class SamlUser
   @Column(name = "saml_user_id")
   private String id;
 
-  @Column(name = "username")
-  private String username;
-
-  @Column(name = "first_name")
-  private String firstName;
-
-  @Column(name = "last_name")
-  private String lastName;
-
-  @Column(name = "email")
-  private String email;
-
   @Column(name = "groups")
   private String groupsString;
 
@@ -58,11 +44,7 @@ public class SamlUser
   }
 
   public SamlUser(String username, String firstName, String lastName, String email, Set<String> groups) {
-    this.username = username;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.email = email;
-    setGroups(groups);
+    super(username, firstName, lastName, email, groups);
   }
 
   @Override
@@ -75,38 +57,6 @@ public class SamlUser
     this.id = id;
   }
 
-  public String getUsername() {
-    return username;
-  }
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getFirstName() {
-    return firstName;
-  }
-
-  public void setFirstName(String firstName) {
-    this.firstName = firstName;
-  }
-
-  public String getLastName() {
-    return lastName;
-  }
-
-  public void setLastName(String lastName) {
-    this.lastName = lastName;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
   public String getGroupsString() {
     return groupsString;
   }
@@ -117,6 +67,7 @@ public class SamlUser
     this.groupsString = groupsString;
   }
 
+  @Override
   public Set<String> getGroups() {
     if (StringUtils.isEmpty(groupsString)) {
       return Collections.emptySet();
@@ -131,19 +82,18 @@ public class SamlUser
     }
   }
 
-  public void setGroups(Set<String> groups) {
-    groupsString = null;
-    if (CollectionUtils.isNotEmpty(groups)) {
-      groupsString = gson.toJson(groups);
-    }
+  @Override
+  public String getGroupsJson() {
+    return getGroupsString();
   }
 
-  public String calculateDisplayName() {
-    String displayName = Optional.ofNullable(firstName).orElse("") + " " + Optional.ofNullable(lastName).orElse("");
-    displayName = displayName.trim();
-    if (displayName.isEmpty()) {
-      displayName = username;
-    }
-    return displayName;
+  @Override
+  protected void setGroupsJson(String groupsJson) {
+    setGroupsString(groupsJson);
+  }
+
+  @Override
+  public String getRealmId() {
+    return SAML_REALM_ID;
   }
 }

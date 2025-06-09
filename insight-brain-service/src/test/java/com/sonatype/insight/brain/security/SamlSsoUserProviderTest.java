@@ -257,6 +257,34 @@ public class SamlSsoUserProviderTest
   }
 
   @Test
+  public void testGetSsoUsersByEmails() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", null, null, "usera@sonatype.com", null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", null, null, "userb@sonatype.com", null);
+    tempEntity.newSamlUser();
+
+    Set<String> emails = Set.of(samlUser1.getEmail(), samlUser2.getEmail());
+
+    List<SsoUser> result = samlSsoUserProvider.getSsoUsersByEmails(emails);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(SsoUser.fromSamlUser(samlUser1), SsoUser.fromSamlUser(samlUser2));
+  }
+
+  @Test
+  public void testGetSsoUsersByRealNames() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "Mark", "Mywords", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "Justin", "Time", null, null);
+    tempEntity.newSamlUser();
+
+    Set<String> realNames = Set.of("Mark Mywords", "Justin Time");
+
+    List<SsoUser> result = samlSsoUserProvider.getSsoUsersByRealNames(realNames);
+
+    assertThat(result).usingRecursiveFieldByFieldElementComparator()
+        .containsExactlyInAnyOrder(SsoUser.fromSamlUser(samlUser1), SsoUser.fromSamlUser(samlUser2));
+  }
+
+  @Test
   public void testFindSamlUsersByNameQuery() {
     String nameQuery = "nameQuery";
 

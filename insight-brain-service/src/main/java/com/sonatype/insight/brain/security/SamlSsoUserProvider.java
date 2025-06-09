@@ -146,6 +146,19 @@ public class SamlSsoUserProvider
   }
 
   @Override
+  public List<SsoUser> getSsoUsersByEmails(Set<String> emails) {
+    List<SamlUser> users = samlUserDAO.getByEmails(emails);
+    return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
+  }
+
+  @Override
+  // A realName is firstName + " " + lastName.
+  public List<SsoUser> getSsoUsersByRealNames(Set<String> realNames) {
+    List<SamlUser> users = samlUserDAO.getByRealNames(realNames);
+    return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());
+  }
+
+  @Override
   public List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery) {
     List<SamlUser> users = samlUserDAO.findUsersByNameOrUsernameQuery(nameQuery);
     return users.stream().map(SsoUser::fromSamlUser).collect(Collectors.toList());

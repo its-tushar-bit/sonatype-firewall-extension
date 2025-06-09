@@ -300,6 +300,38 @@ public class SamlUserDAOTest
   }
 
   @Test
+  public void testGetByEmails_Empty() {
+    assertThat(samlUserDAO.getByEmails(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByEmails() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", null, null, "usera@sonatype.com", null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", null, null, "userb@sonatype.com", null);
+    tempEntity.newSamlUser();
+
+    Set<String> emails = Set.of(samlUser1.getEmail(), samlUser2.getEmail());
+    assertThat(samlUserDAO.getByEmails(emails)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
+  public void testGetByRealNames_Empty() {
+    assertThat(samlUserDAO.getByRealNames(Collections.emptySet())).isEmpty();
+  }
+
+  @Test
+  public void testGetByRealNames() {
+    SamlUser samlUser1 = tempEntity.newSamlUser("userA", "Mark", "Mywords", null, null);
+    SamlUser samlUser2 = tempEntity.newSamlUser("userB", "Justin", "Time", null, null);
+    tempEntity.newSamlUser();
+
+    Set<String> realNames = Set.of("Mark Mywords", "Justin Time");
+    assertThat(samlUserDAO.getByRealNames(realNames)).usingRecursiveFieldByFieldElementComparator()
+        .containsExactly(samlUser1, samlUser2);
+  }
+
+  @Test
   public void testFindUsersByNameOrUsernameQuery_ExactName() {
     SamlUser samlUser = tempEntity.newSamlUser("userA", "bob", "smith", null, null);
     tempEntity.newSamlUser("other", "john", "smith", null, null);

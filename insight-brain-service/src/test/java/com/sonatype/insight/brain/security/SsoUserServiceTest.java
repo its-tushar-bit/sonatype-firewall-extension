@@ -229,6 +229,8 @@ public class SsoUserServiceTest
           Collections.singleton(samlGroup.getName()));
       SamlUser samlUser2 = tempEntity.newSamlUser("username2", "firstName", "lastName", "email@domain",
           Collections.singleton(samlGroup.getName()));
+      tempEntity.newSamlUser("username3", "firstName", "lastName", "email@domain",
+          Collections.singleton(samlGroup.getName()));
       Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
       List<SsoUser> users = ssoUserService.getSsoUsersByUsernames(usernames);
@@ -245,9 +247,82 @@ public class SsoUserServiceTest
           Collections.singleton(oauth2Group.getName()));
       OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", "firstName", "lastName", "email@domain",
           Collections.singleton(oauth2Group.getName()));
+      tempEntity.newOAuth2User("username3", "firstName", "lastName", "email@domain",
+          Collections.singleton(oauth2Group.getName()));
       Set<String> usernames = new HashSet<>(Arrays.asList("username1", "username2"));
 
       List<SsoUser> users = ssoUserService.getSsoUsersByUsernames(usernames);
+
+      assertThat(users.stream().map(SsoUser::getId)).containsExactly(oauth2User1.getId(), oauth2User2.getId());
+    });
+  }
+
+  @Test
+  public void testGetSsoUsersByEmails_Saml() {
+    testWithSamlSso(() -> {
+      SamlGroup samlGroup = tempEntity.newSamlGroup();
+      SamlUser samlUser1 = tempEntity.newSamlUser("username1", "firstName", "lastName", "username1@sonatype.com",
+          Collections.singleton(samlGroup.getName()));
+      SamlUser samlUser2 = tempEntity.newSamlUser("username2", "firstName", "lastName", "username2@sonatype.com",
+          Collections.singleton(samlGroup.getName()));
+      tempEntity.newSamlUser("username3", "firstName", "lastName", "username3@sonatype.com",
+          Collections.singleton(samlGroup.getName()));
+      Set<String> emails = Set.of("username1@sonatype.com", "username2@sonatype.com");
+
+      List<SsoUser> users = ssoUserService.getSsoUsersByEmails(emails);
+
+      assertThat(users.stream().map(SsoUser::getId)).containsExactly(samlUser1.getId(), samlUser2.getId());
+    });
+  }
+
+  @Test
+  public void testGetSsoUsersByEmails_OAuth2() {
+    testWithOAuth2Sso(() -> {
+      OAuth2Group oauth2Group = tempEntity.newOAuth2Group();
+      OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", "firstName", "lastName", "username1@sonatype.com",
+          Collections.singleton(oauth2Group.getName()));
+      OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", "firstName", "lastName", "username2@sonatype.com",
+          Collections.singleton(oauth2Group.getName()));
+      tempEntity.newOAuth2User("username3", "firstName", "lastName", "username3@sonatype.com",
+          Collections.singleton(oauth2Group.getName()));
+      Set<String> emails = Set.of("username1@sonatype.com", "username2@sonatype.com");
+
+      List<SsoUser> users = ssoUserService.getSsoUsersByEmails(emails);
+
+      assertThat(users.stream().map(SsoUser::getId)).containsExactly(oauth2User1.getId(), oauth2User2.getId());
+    });
+  }
+
+  @Test
+  public void testGetSsoUsersByRealNames_Saml() {
+    testWithSamlSso(() -> {
+      SamlGroup samlGroup = tempEntity.newSamlGroup();
+      SamlUser samlUser1 = tempEntity.newSamlUser("username1", "firstName1", "lastName1", null,
+          Collections.singleton(samlGroup.getName()));
+      SamlUser samlUser2 = tempEntity.newSamlUser("username2", "firstName2", "lastName2", null,
+          Collections.singleton(samlGroup.getName()));
+      tempEntity.newSamlUser("username3", "firstName3", "lastName3", null, Collections.singleton(samlGroup.getName()));
+      Set<String> realNames = Set.of("firstName1 lastName1", "firstName2 lastName2");
+
+      List<SsoUser> users = ssoUserService.getSsoUsersByRealNames(realNames);
+
+      assertThat(users.stream().map(SsoUser::getId)).containsExactly(samlUser1.getId(), samlUser2.getId());
+    });
+  }
+
+  @Test
+  public void testGetSsoUsersByRealNames_OAuth2() {
+    testWithOAuth2Sso(() -> {
+      OAuth2Group oauth2Group = tempEntity.newOAuth2Group();
+      OAuth2User oauth2User1 = tempEntity.newOAuth2User("username1", "firstName1", "lastName1", null,
+          Collections.singleton(oauth2Group.getName()));
+      OAuth2User oauth2User2 = tempEntity.newOAuth2User("username2", "firstName2", "lastName2", null,
+          Collections.singleton(oauth2Group.getName()));
+      tempEntity.newOAuth2User("username3", "firstName3", "lastName3", null,
+          Collections.singleton(oauth2Group.getName()));
+      Set<String> realNames = Set.of("firstName1 lastName1", "firstName2 lastName2");
+
+      List<SsoUser> users = ssoUserService.getSsoUsersByRealNames(realNames);
 
       assertThat(users.stream().map(SsoUser::getId)).containsExactly(oauth2User1.getId(), oauth2User2.getId());
     });

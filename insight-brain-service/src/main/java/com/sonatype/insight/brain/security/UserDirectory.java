@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -233,7 +234,7 @@ public class UserDirectory
       return new QueryResult(members);
     }
 
-    Set<String> sortedUserNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    SortedSet<String> sortedUserNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     sortedUserNames.addAll(userNames);
     List<User> internalUsers = userDao.getByUsernames(sortedUserNames);
     for (User internalUser : internalUsers) {
@@ -294,7 +295,7 @@ public class UserDirectory
     return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
   }
 
-  // SSO and CrowClient are not implemented for this method. These were not in scope.
+  // Note: CrowdClient is not yet supported on this method.
   public List<Member> getUsersByRealNames(final Set<String> realNames) {
     if (realNames == null || realNames.isEmpty()) {
       return Collections.emptyList();
@@ -318,58 +319,70 @@ public class UserDirectory
       return new QueryResult(members);
     }
 
-    final Set<String> sortedRealNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    final SortedSet<String> sortedRealNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     sortedRealNames.addAll(realNames);
 
-    // === check against all internal e-mails
+    // === check against all internal users
     final List<User> internalUsers = userDao.getByRealNames(sortedRealNames);
     for (User internalUser : internalUsers) {
       Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
           internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
       members.add(member);
 
-      // if we've matched on an internal user don't try to match again against ldap
+      // if we've matched on an internal user don't try to match again against other user providers
       sortedRealNames.remove(internalUser.getFirstName() + " " + internalUser.getLastName());
     }
 
     // === check against all ldap servers registered with iq
     final List<NamingException> namingExceptions = new ArrayList<>();
     final List<Exception> otherExceptions = new ArrayList<>();
-    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
-      if (ldapService.isLdapEnabled(ldapServer) && !sortedRealNames.isEmpty()) {
-        try {
-          String ldapName = ldapServer.getName();
+    if (!sortedRealNames.isEmpty()) {
+      for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+        if (ldapService.isLdapEnabled(ldapServer) && !sortedRealNames.isEmpty()) {
+          try {
+            String ldapName = ldapServer.getName();
 
-          for (LdapUser user : ldapService
-              .getUsersByRealName(ldapServer, sortedRealNames.toArray(new String[sortedRealNames.size()]))) {
-            final Member member =
-                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-            member.setDn(user.getDn());
-            members.add(member);
+            for (LdapUser user : ldapService.getUsersByRealName(ldapServer,
+                sortedRealNames.toArray(new String[sortedRealNames.size()]))) {
+              final Member member =
+                  new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+              member.setDn(user.getDn());
+              members.add(member);
 
-            // once we've matched, don't try to match again
-            sortedRealNames.remove(user.getRealName());
+              // once we've matched, don't try to match again
+              sortedRealNames.remove(user.getRealName());
+            }
+          }
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
+          catch (Exception e) {
+            otherExceptions.add(e);
           }
         }
-        catch (NamingException e) {
-          namingExceptions.add(e);
-        }
-        catch (Exception e) {
-          otherExceptions.add(e);
-        }
+      }
+    }
+
+    // === Check against SSO users
+    if (!sortedRealNames.isEmpty() && ssoUserService.isSsoConfigured()) {
+      for (SsoUser ssoUser : ssoUserService.getSsoUsersByRealNames(sortedRealNames)) {
+        Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
+            ssoUser.getEmail(), ssoUser.getRealmId());
+        members.add(member);
+        sortedRealNames.remove(ssoUser.getFirstName() + " " + ssoUser.getLastName());
       }
     }
 
     return new QueryResult(members, mergeExceptions(namingExceptions, otherExceptions));
   }
 
-  // Note: SSO and CrowdClient are not yet supported on this method. These were not in scope.
+  // Note: CrowdClient is not yet supported on this method.
   public List<Member> getUsersByEmails(final Set<String> emails) {
     if (emails == null || emails.isEmpty()) {
       return Collections.emptyList();
     }
 
-    QueryResult result = queryUsersByEmail(emails);
+    QueryResult result = queryUsersByEmails(emails);
     if (result.hasException()) {
       log.error(
           "An exception occurred while trying to resolve user names.",
@@ -379,7 +392,7 @@ public class UserDirectory
     return result.get();
   }
 
-  private QueryResult queryUsersByEmail(Set<String> origEmails) {
+  private QueryResult queryUsersByEmails(Set<String> origEmails) {
     final List<Member> members = new LinkedList<>();
     final Set<String> emails = origEmails.stream().filter(Objects::nonNull).collect(Collectors.toSet());
 
@@ -387,7 +400,7 @@ public class UserDirectory
       return new QueryResult(members);
     }
 
-    final Set<String> sortedEmails = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+    final SortedSet<String> sortedEmails = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
     sortedEmails.addAll(emails);
 
     // === check against all internal e-mails
@@ -404,28 +417,40 @@ public class UserDirectory
     // === check against all ldap servers registered with iq
     final List<NamingException> namingExceptions = new ArrayList<>();
     final List<Exception> otherExceptions = new ArrayList<>();
-    for (LdapServer ldapServer : ldapServerDAO.getAll()) {
-      if (ldapService.isLdapEnabled(ldapServer) && !sortedEmails.isEmpty()) {
-        try {
-          String ldapName = ldapServer.getName();
+    if (!sortedEmails.isEmpty()) {
+      for (LdapServer ldapServer : ldapServerDAO.getAll()) {
+        if (ldapService.isLdapEnabled(ldapServer) && !sortedEmails.isEmpty()) {
+          try {
+            String ldapName = ldapServer.getName();
 
-          for (LdapUser user : ldapService
-              .getUsersByEmail(ldapServer, sortedEmails.toArray(new String[sortedEmails.size()]))) {
-            final Member member =
-                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
-            member.setDn(user.getDn());
-            members.add(member);
+            for (LdapUser user : ldapService.getUsersByEmail(ldapServer,
+                sortedEmails.toArray(new String[sortedEmails.size()]))) {
+              final Member member =
+                  new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+              member.setDn(user.getDn());
+              members.add(member);
 
-            // once we've matched, don't try to match again
-            sortedEmails.remove(user.getEmail());
+              // once we've matched, don't try to match again
+              sortedEmails.remove(user.getEmail());
+            }
+          }
+          catch (NamingException e) {
+            namingExceptions.add(e);
+          }
+          catch (Exception e) {
+            otherExceptions.add(e);
           }
         }
-        catch (NamingException e) {
-          namingExceptions.add(e);
-        }
-        catch (Exception e) {
-          otherExceptions.add(e);
-        }
+      }
+    }
+
+    // === Check against SSO users
+    if (!sortedEmails.isEmpty() && ssoUserService.isSsoConfigured()) {
+      for (SsoUser ssoUser : ssoUserService.getSsoUsersByEmails(sortedEmails)) {
+        Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
+            ssoUser.getEmail(), ssoUser.getRealmId());
+        members.add(member);
+        sortedEmails.remove(ssoUser.getEmail());
       }
     }
 

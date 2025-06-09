@@ -150,6 +150,19 @@ public class OAuth2SsoUserProvider
   }
 
   @Override
+  public List<SsoUser> getSsoUsersByEmails(Set<String> emails) {
+    List<OAuth2User> users = oAuth2UserDAO.getByEmails(emails);
+    return users.stream().map(SsoUser::fromOAuth2User).collect(Collectors.toList());
+  }
+
+  @Override
+  // A realName is firstName + " " + lastName.
+  public List<SsoUser> getSsoUsersByRealNames(Set<String> realNames) {
+    List<OAuth2User> users = oAuth2UserDAO.getByRealNames(realNames);
+    return users.stream().map(SsoUser::fromOAuth2User).collect(Collectors.toList());
+  }
+
+  @Override
   public List<SsoUser> findSsoUsersByNameOrUsernameQuery(String nameQuery) {
     List<OAuth2User> users = oAuth2UserDAO.findUsersByNameOrUsernameQuery(nameQuery);
     return users.stream().map(SsoUser::fromOAuth2User).collect(Collectors.toList());

@@ -109,6 +109,7 @@
     <class>com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess</class>
     <class>com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration</class>
     <class>com.sonatype.insight.brain.model.repository.RepositoryConnection</class>
+    <class>com.sonatype.insight.brain.model.security.AbstractSsoUser</class>
     <class>com.sonatype.insight.brain.model.security.SamlUser</class>
     <class>com.sonatype.insight.brain.model.security.SamlGroup</class>
     <class>com.sonatype.insight.brain.model.security.SamlUserGroup</class>

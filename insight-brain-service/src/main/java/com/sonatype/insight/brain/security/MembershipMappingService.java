@@ -28,9 +28,12 @@ import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -60,6 +63,8 @@ public class MembershipMappingService
 
   private final OrganizationDAO orgDAO;
 
+  private final RepositoryContainerDAO repositoryContainerDAO;
+
   private final RoleDAO roleDAO;
 
   private final RolePermissionDAO rolePermissionDAO;
@@ -78,6 +83,7 @@ public class MembershipMappingService
   public MembershipMappingService(
       final ApplicationDAO appDAO,
       final OrganizationDAO orgDAO,
+      final RepositoryContainerDAO repositoryContainerDAO,
       final RoleDAO roleDAO,
       final RolePermissionDAO rolePermissionDAO,
       final MembershipMappingDAO membershipMappingDAO,
@@ -88,6 +94,7 @@ public class MembershipMappingService
   {
     this.appDAO = appDAO;
     this.orgDAO = orgDAO;
+    this.repositoryContainerDAO = repositoryContainerDAO;
     this.roleDAO = roleDAO;
     this.rolePermissionDAO = rolePermissionDAO;
     this.membershipMappingDAO = membershipMappingDAO;
@@ -205,6 +212,24 @@ public class MembershipMappingService
     if (internalOwnerId == null) {
       internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
     }
+    validateOwner(ownerType, internalOwnerId);
+
+    grantRoleMembershipInternal(ownerType, internalOwnerId, roleId, memberType, memberName);
+
+    // Grant role membership for related organization if applicable
+    String relatedOrganizationId = getRelatedOrganizationId(ownerType, internalOwnerId);
+    if (relatedOrganizationId != null) {
+      grantRoleMembershipInternal(OwnerType.ORGANIZATION, relatedOrganizationId, roleId, memberType, memberName);
+    }
+  }
+
+  private void grantRoleMembershipInternal(
+      OwnerType ownerType,
+      String internalOwnerId,
+      String roleId,
+      MemberType memberType,
+      String memberName)
+  {
     MembershipMapping existing = membershipMappingDAO.getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId,
         roleId, memberName, memberType);
 
@@ -251,6 +276,24 @@ public class MembershipMappingService
     if (internalOwnerId == null) {
       internalOwnerId = getIdGlobalOrRepositoryContainer(ownerType);
     }
+    validateOwner(ownerType, internalOwnerId);
+
+    revokeRoleMembershipInternal(ownerType, internalOwnerId, roleId, memberType, memberName);
+
+    // Revoke role membership for related organization if applicable
+    String relatedOrganizationId = getRelatedOrganizationId(ownerType, internalOwnerId);
+    if (relatedOrganizationId != null) {
+      revokeRoleMembershipInternal(OwnerType.ORGANIZATION, relatedOrganizationId, roleId, memberType, memberName);
+    }
+  }
+
+  private void revokeRoleMembershipInternal(
+      OwnerType ownerType,
+      String internalOwnerId,
+      String roleId,
+      MemberType memberType,
+      String memberName)
+  {
     MembershipMapping membershipMapping = membershipMappingDAO
         .getByContextIdAndRoleIdAndMemberNameAndMemberType(internalOwnerId, roleId, memberName, memberType);
 
@@ -317,7 +360,12 @@ public class MembershipMappingService
       setMembershipMappingsForGlobalContext(roleToMembers);
     }
     else {
+      validateOwner(ownerType, internalOwnerId);
       setMembershipMappingsForNonGlobalContext(ownerType, internalOwnerId, roleToMembers);
+      String relatedOrgId = getRelatedOrganizationId(ownerType, internalOwnerId);
+      if (relatedOrgId != null) {
+        setMembershipMappingsForNonGlobalContext(OwnerType.ORGANIZATION, relatedOrgId, roleToMembers);
+      }
     }
   }
 
@@ -590,5 +638,65 @@ public class MembershipMappingService
     }
 
     membershipMappingDAO.insert(tx, membershipMapping);
+  }
+
+  private String getRelatedOrganizationId(OwnerType ownerType, String internalOwnerId) {
+    switch (ownerType) {
+      case REPOSITORY_CONTAINER:
+        return repositoryContainerDAO.getRelatedOrganizationId();
+      case REPOSITORY_MANAGER:
+        List<Organization> relatedOrgsByManager = orgDAO.getByRelatedRepositoryManagerId(internalOwnerId);
+        if (!relatedOrgsByManager.isEmpty()) {
+          return relatedOrgsByManager.get(0).getId();
+        }
+        break;
+      case REPOSITORY:
+        List<Organization> relatedOrgsByRepo = orgDAO.getByRelatedRepositoryId(internalOwnerId);
+        if (!relatedOrgsByRepo.isEmpty()) {
+          return relatedOrgsByRepo.get(0).getId();
+        }
+        break;
+      default:
+        return null;
+    }
+    return null;
+  }
+
+  private void validateOwner(OwnerType ownerType, String internalOwnerId) {
+    if (ownerType == OwnerType.ORGANIZATION) {
+      validateRelatedOrganization(orgDAO.getById(internalOwnerId), false);
+    }
+    else if (ownerType == OwnerType.APPLICATION) {
+      Application application = appDAO.getById(internalOwnerId);
+      if (
+          application != null &&
+          application.getOrganizationId() != null
+      ) {
+        validateRelatedOrganization(orgDAO.getById(application.getOrganizationId()), true);
+      }
+    }
+  }
+
+  private void validateRelatedOrganization(Organization organization, boolean fromApplication) {
+    if (organization == null) {
+      return;
+    }
+    if (organization.getId().equals(repositoryContainerDAO.getRelatedOrganizationId())) {
+      throw new BadRequestException(
+          "Access control is not permitted for an organization related to a repository container."
+      );
+    }
+    else if (organization.getRelatedRepositoryManagerId() != null) {
+      throw new BadRequestException(
+          "Access control is not permitted for an organization related to a repository manager."
+      );
+    }
+    else if (organization.getRelatedRepositoryId() != null) {
+      throw new BadRequestException(
+        fromApplication
+          ? "Access control is not permitted for an application whose parent organization is related to a repository."
+          : "Access control is not permitted for an organization related to a repository."
+      );
+    }
   }
 }

@@ -21,8 +21,12 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRoleMemberMappingListDTO;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
@@ -36,7 +40,9 @@ import com.sonatype.insight.brain.model.configuration.ldap.LdapGroupMappingType;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapProtocol;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
@@ -90,6 +96,18 @@ public class MembershipMappingServiceTest
 
   @Inject
   private LdapService ldapService;
+
+  @Inject
+  private RepositoryContainerDAO repositoryContainerDAO;
+
+  @Inject
+  private RepositoryManagerDAO repositoryManagerDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Rule
   public TestLdapServer testLdapServer = new TestLdapServer();
@@ -394,6 +412,211 @@ public class MembershipMappingServiceTest
   }
 
   @Test
+  public void testGrantRoleMembership_NonGlobal_RepoContainerWithRelatedOrg() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepoCon = tempEntity.newOrganization("org-with-related-repo-container");
+    repositoryContainerDAO.setRelatedOrganizationIdNotNull(orgWithRelatedRepoCon.getId());
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            Role.DEVELOPER_ROLE_ID, MemberType.USER, username);
+
+    MembershipMapping repoConMembershipMapping = membershipMappingDAO
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(RepositoryContainer.REPOSITORY_CONTAINER_ID,
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(repoConMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(repoConMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(repoConMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(repoConMembershipMapping.getContextId()).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+
+    MembershipMapping orgMembershipMapping = membershipMappingDAO
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(orgWithRelatedRepoCon.getId(),
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(orgMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(orgMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(orgMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(orgMembershipMapping.getContextId()).isEqualTo(orgWithRelatedRepoCon.getId());
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+
+    Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
+    assertThat(member.getInternalName()).isEqualTo(repoConMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(repoConMembershipMapping.getMemberType());
+
+    assertThat(member.getInternalName()).isEqualTo(orgMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(orgMembershipMapping.getMemberType());
+  }
+
+  @Test
+  public void testGrantRoleMembership_NonGlobal_RepoManagerWithRelatedOrg() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepoMan = tempEntity.newOrganization("org-with-related-repo-manager");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setRelatedOrganizationId(orgWithRelatedRepoMan.getId());
+    repositoryManagerDAO.update(repositoryManager);
+    orgWithRelatedRepoMan.setRelatedRepositoryManagerId(repositoryManager.getId());
+    organizationDAO.update(orgWithRelatedRepoMan);
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+            Role.DEVELOPER_ROLE_ID, MemberType.USER, username);
+
+    MembershipMapping repoManMembershipMapping = membershipMappingDAO
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(repositoryManager.getId(),
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(repoManMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(repoManMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(repoManMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(repoManMembershipMapping.getContextId()).isEqualTo(repositoryManager.getId());
+
+    MembershipMapping orgMembershipMapping = membershipMappingDAO
+        .getByContextIdAndRoleIdAndMemberNameAndMemberType(orgWithRelatedRepoMan.getId(),
+            Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(orgMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(orgMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(orgMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(orgMembershipMapping.getContextId()).isEqualTo(orgWithRelatedRepoMan.getId());
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+
+    Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
+    assertThat(member.getInternalName()).isEqualTo(repoManMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(repoManMembershipMapping.getMemberType());
+
+    assertThat(member.getInternalName()).isEqualTo(orgMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(orgMembershipMapping.getMemberType());
+  }
+
+  @Test
+  public void testGrantRoleMembership_NonGlobal_RepoWithRelatedOrg() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepo = tempEntity.newOrganization("org-with-related-repo");
+    Repository repository = tempEntity.newRepository();
+    repository.setRelatedOrganizationId(orgWithRelatedRepo.getId());
+    repositoryDAO.update(repository);
+    orgWithRelatedRepo.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(orgWithRelatedRepo);
+
+    membershipMappingService
+            .grantRoleMembership(OwnerType.REPOSITORY, repository.getId(),
+                    Role.DEVELOPER_ROLE_ID, MemberType.USER, username);
+
+    MembershipMapping repoMembershipMapping = membershipMappingDAO
+            .getByContextIdAndRoleIdAndMemberNameAndMemberType(repository.getId(),
+                    Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(repoMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(repoMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(repoMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(repoMembershipMapping.getContextId()).isEqualTo(repository.getId());
+
+    MembershipMapping orgMembershipMapping = membershipMappingDAO
+            .getByContextIdAndRoleIdAndMemberNameAndMemberType(orgWithRelatedRepo.getId(),
+                    Role.DEVELOPER_ROLE_ID, username, MemberType.USER);
+    assertThat(orgMembershipMapping.getMemberName()).isEqualTo(username);
+    assertThat(orgMembershipMapping.getMemberType()).isEqualTo(MemberType.USER);
+    assertThat(orgMembershipMapping.getRoleId()).isEqualTo(Role.DEVELOPER_ROLE_ID);
+    assertThat(orgMembershipMapping.getContextId()).isEqualTo(orgWithRelatedRepo.getId());
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(CREATED);
+
+    Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
+    assertThat(member.getInternalName()).isEqualTo(repoMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(repoMembershipMapping.getMemberType());
+
+    assertThat(member.getInternalName()).isEqualTo(orgMembershipMapping.getMemberName());
+    assertThat(member.getType()).isEqualTo(orgMembershipMapping.getMemberType());
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateOwner_RelatedRepositoryContainer() {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepoCon = tempEntity.newOrganization("org-with-related-repo-container");
+    repositoryContainerDAO.setRelatedOrganizationIdNotNull(orgWithRelatedRepoCon.getId());
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.ORGANIZATION, orgWithRelatedRepoCon.getId(), Role.DEVELOPER_ROLE_ID,
+                MemberType.USER, username))
+        .withMessageContaining(
+            "Access control is not permitted for an organization related to a repository container."
+        );
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateOwner_RelatedRepositoryManager() {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepoMan = tempEntity.newOrganization("org-with-related-repo-manager");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setRelatedOrganizationId(orgWithRelatedRepoMan.getId());
+    repositoryManagerDAO.update(repositoryManager);
+    orgWithRelatedRepoMan.setRelatedRepositoryManagerId(repositoryManager.getId());
+    organizationDAO.update(orgWithRelatedRepoMan);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.ORGANIZATION, orgWithRelatedRepoMan.getId(), Role.DEVELOPER_ROLE_ID,
+                MemberType.USER, username))
+        .withMessageContaining(
+            "Access control is not permitted for an organization related to a repository manager.");
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateOwner_RelatedRepository() {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepo = tempEntity.newOrganization("org-with-related-repo");
+    Repository repository = tempEntity.newRepository();
+    repository.setRelatedOrganizationId(orgWithRelatedRepo.getId());
+    repositoryDAO.update(repository);
+    orgWithRelatedRepo.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(orgWithRelatedRepo);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.ORGANIZATION, orgWithRelatedRepo.getId(), Role.DEVELOPER_ROLE_ID,
+                MemberType.USER, username))
+        .withMessageContaining("Access control is not permitted for an organization related to a repository.");
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateOwner_ApplicationWithRelatedRepository() {
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    Organization orgWithRelatedRepo = tempEntity.newOrganization("org-with-related-repo");
+    Application appWithRelatedRepoOrg = tempEntity.newApplication(orgWithRelatedRepo.getId());
+    Repository repository = tempEntity.newRepository();
+    repository.setRelatedOrganizationId(orgWithRelatedRepo.getId());
+    repositoryDAO.update(repository);
+    orgWithRelatedRepo.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(orgWithRelatedRepo);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.APPLICATION, appWithRelatedRepoOrg.getId(), Role.DEVELOPER_ROLE_ID,
+                MemberType.USER, username))
+        .withMessageContaining(
+            "Access control is not permitted for an application whose parent organization is related to a repository."
+        );
+  }
+
+  @Test
   public void testGrantRoleMembership_Global() {
     String username = tempEntity.newUser("a-user").getUsername();
 
@@ -506,6 +729,101 @@ public class MembershipMappingServiceTest
     Member member = handler.getEvent().roleIdToMemberMap.entrySet().iterator().next().getValue().get(0);
     assertThat(member.getInternalName()).isEqualTo(membershipMapping.getMemberName());
     assertThat(member.getType()).isEqualTo(membershipMapping.getMemberType());
+  }
+
+  @Test
+  public void testRevokeRoleMembership_WithRelatedRepositoryContainer() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    Organization orgWithRelatedRepoCon = tempEntity.newOrganization("org-with-related-repo-container");
+    repositoryContainerDAO.setRelatedOrganizationIdNotNull(orgWithRelatedRepoCon.getId());
+
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    MembershipMapping orgMembershipMapping =
+        tempEntity.newMembershipMapping(orgWithRelatedRepoCon.getId(),
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    MembershipMapping repoConMembershipMapping =
+        tempEntity.newMembershipMapping(RepositoryContainer.REPOSITORY_CONTAINER_ID,
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    membershipMappingService
+        .revokeRoleMembership(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID,
+                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+    assertThat(membershipMappingDAO.getById(repoConMembershipMapping.getId())).isNull();
+    assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+  }
+
+  @Test
+  public void testRevokeRoleMembership_WithRelatedRepositoryManager() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    Organization orgWithRelatedRepoMan = tempEntity.newOrganization("org-with-related-repo-manager");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    repositoryManager.setRelatedOrganizationId(orgWithRelatedRepoMan.getId());
+    repositoryManagerDAO.update(repositoryManager);
+    orgWithRelatedRepoMan.setRelatedRepositoryManagerId(repositoryManager.getId());
+    organizationDAO.update(orgWithRelatedRepoMan);
+
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    MembershipMapping orgMembershipMapping =
+        tempEntity.newMembershipMapping(orgWithRelatedRepoMan.getId(),
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    MembershipMapping repoManMembershipMapping =
+        tempEntity.newMembershipMapping(repositoryManager.getId(),
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    membershipMappingService
+        .revokeRoleMembership(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(),
+                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+    assertThat(membershipMappingDAO.getById(repoManMembershipMapping.getId())).isNull();
+    assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
+  }
+
+  @Test
+  public void testRevokeRoleMembership_WithRelatedRepository() throws InterruptedException {
+    handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
+    eventBus.register(handler);
+
+    Organization orgWithRelatedRepo = tempEntity.newOrganization("org-with-related-repo");
+    Repository repository = tempEntity.newRepository();
+    repository.setRelatedOrganizationId(orgWithRelatedRepo.getId());
+    repositoryDAO.update(repository);
+    orgWithRelatedRepo.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(orgWithRelatedRepo);
+
+    String memberName = tempEntity.newUser("a-user").getUsername();
+    MemberType memberType = MemberType.USER;
+
+    MembershipMapping orgMembershipMapping =
+        tempEntity.newMembershipMapping(orgWithRelatedRepo.getId(),
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    MembershipMapping repoMembershipMapping =
+        tempEntity.newMembershipMapping(repository.getId(),
+                Role.DEVELOPER_ROLE_ID, memberName, memberType);
+
+    membershipMappingService
+        .revokeRoleMembership(OwnerType.REPOSITORY, repository.getId(),
+                Role.DEVELOPER_ROLE_ID, memberType, memberName);
+    assertThat(membershipMappingDAO.getById(repoMembershipMapping.getId())).isNull();
+    assertThat(membershipMappingDAO.getById(orgMembershipMapping.getId())).isNull();
+
+    assertThat(handler.getLatch().await(5, SECONDS)).isTrue();
+    assertThat(handler.getEvent().action).isEqualTo(DELETED);
   }
 
   @Test

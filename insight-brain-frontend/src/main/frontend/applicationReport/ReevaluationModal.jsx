@@ -10,6 +10,7 @@ import {
   NxFontAwesomeIcon,
   NxModal,
   NxH2,
+  NxH4,
   NxP,
   NxLoadWrapper,
   NxTile,
@@ -87,14 +88,17 @@ const ReevaluationModal = () => {
         <NxModal id="iq-reevaluation-options-modal" variant="narrow" onCancel={handleClose}>
           <NxModal.Header>
             <NxTile.HeaderTitle>
-              <NxH2>Re-Evaluate Options</NxH2>
+              <NxH2>Re-Evaluate Report</NxH2>
             </NxTile.HeaderTitle>
           </NxModal.Header>
           <NxModal.Content className="iq-reevaluation-modal-content">
-            <NxP className="iq-reevaluation-modal-tile-p">
-              Click on Re-evaluate for a full re-evaluation or after enabling the Automatic Waivers feature. To skip
-              re-evaluation of violations with automatic waivers applied, click Quick Re-evaluate.
+            <NxH4>Re-Evaluate</NxH4>
+            <NxP>
+              Re-evaluate this scan against updated policies, apply new waivers, and/or auto-waive violations with no
+              upgrade path.
             </NxP>
+            <NxH4>Quick Re-Evaluate</NxH4>
+            <NxP>Re-evaluate without updating auto-waived violations for faster results.</NxP>
           </NxModal.Content>
           <footer className="nx-footer">
             <div className="nx-btn-bar">

@@ -89,7 +89,7 @@ describe('ReevaluationModal', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Re-Evaluate Report' }));
 
       const dialog = screen.getByRole('dialog');
-      expect(within(dialog).getByRole('heading', { name: 'Re-Evaluate Options' })).toBeInTheDocument();
+      expect(within(dialog).getByRole('heading', { name: 'Re-Evaluate Report' })).toBeInTheDocument();
     });
 
     it('handles quick re-evaluate', () => {

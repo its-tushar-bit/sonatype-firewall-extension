@@ -410,6 +410,12 @@ tbody .iq-cell--application-report-component-display {
   width: 225px;
 }
 
+#iq-reevaluation-options-modal {
+  h4 {
+    text-transform: none;
+  }
+}
+
 .iq-reevaluation-status-modal {
   &__reevaluation-status-text {
     @include nx-text-helpers.semi-bold;

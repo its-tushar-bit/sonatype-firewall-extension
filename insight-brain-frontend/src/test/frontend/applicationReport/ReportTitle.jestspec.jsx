@@ -222,12 +222,12 @@ describe('ReportTitle', () => {
     expect(reevaluateReport).not.toBeDisabled();
 
     fireEvent.click(reevaluateReport);
-    expect(screen.getByRole('heading', { name: 'Re-Evaluate Options' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Re-Evaluate Report' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Quick Re-Evaluate' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Re-Evaluate' })).toBeInTheDocument();
     const dialog = screen.getByRole('dialog');
-    expect(within(dialog).getByRole('heading', { name: 'Re-Evaluate Options' })).toBeInTheDocument();
+    expect(within(dialog).getByRole('heading', { name: 'Re-Evaluate Report' })).toBeInTheDocument();
   });
 
   it('should disable reevaluateReport button when there is a newer report for the same stage', () => {

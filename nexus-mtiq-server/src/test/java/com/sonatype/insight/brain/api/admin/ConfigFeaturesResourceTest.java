@@ -121,7 +121,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SKIP_SBOM_IMPORT_VALIDATION.getId(),
           SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS.getId(),
           SystemConfigurationPropertyFeature.INTERNAL_FIREWALL_ONBOARDING_ENABLED.getId(),
-          SystemConfigurationPropertyFeature.MALWARE_DEFENSE_API.getId(),
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),

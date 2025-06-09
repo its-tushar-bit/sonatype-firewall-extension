@@ -1367,7 +1367,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("internalSourceControlPolicyEvaluations", true);
     expectedFeatureConfigMap.put("LDAP_CONFIGURATION", true);
     expectedFeatureConfigMap.put("logoutAuth0OnLogout", false);
-    expectedFeatureConfigMap.put("malwareDefenseApi", false);
     expectedFeatureConfigMap.put("nonBreakingVersionSuggestionTelemetry", true);
     expectedFeatureConfigMap.put("OAUTH2_ENABLED", false);
     expectedFeatureConfigMap.put("prioritizedFindingsReport", true);

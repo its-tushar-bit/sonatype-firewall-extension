@@ -237,17 +237,6 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  MALWARE_DEFENSE_API(SystemConfigurationProperty.MALWARE_DEFENSE_API, false)
-  {
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      if (tenantUtil.isSingleTenant()) {
-        return false;
-      }
-      return super.isEnabled(tx);
-    }
-  },
-
   COMPONENT_CHANGE_DETECTION_API(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, false)
   {
     @Override

@@ -30,12 +30,11 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(26);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asBoolean()).isTrue();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.MALWARE_DEFENSE_API).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)
         .asBoolean()).isTrue();
@@ -76,12 +75,11 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(26);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_SEMICOLON_IN_PATH).asBoolean()).isTrue();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.MALWARE_DEFENSE_API).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT)
         .asBoolean()).isTrue();
@@ -115,7 +113,7 @@ public class FeaturePropertiesInfoTest
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(55);
+    assertThat(featureConfigNode.size()).isEqualTo(54);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -149,7 +147,6 @@ public class FeaturePropertiesInfoTest
               "internalSourceControlPolicyEvaluations": true,
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
-              "malwareDefenseApi": false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -188,7 +185,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(55);
+    assertThat(featureConfigNode.size()).isEqualTo(54);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -222,7 +219,6 @@ public class FeaturePropertiesInfoTest
               "internalSourceControlPolicyEvaluations": true,
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
-              "malwareDefenseApi": false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -267,7 +263,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(45)
+        .hasSize(44)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

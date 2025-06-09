@@ -254,8 +254,6 @@ public class SystemConfigurationProperty
 
   public static final String SBOM_POLICIES = "sbomPolicies";
 
-  public static final String MALWARE_DEFENSE_API = "malwareDefenseApi";
-
   public static final String MALWARE_DEFENSE_API_MAX_COMPONENTS = "malwareDefenseApiMaxComponents";
 
   public static final String AUTO_WAIVERS = "autoWaivers";

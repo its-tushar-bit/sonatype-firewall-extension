@@ -283,7 +283,6 @@ public class ConfigurationInfoTest
         "sbomBinaryScanning",
         "sbomContinuousMonitoringUi",
         "sbomPolicies",
-        "malwareDefenseApi",
         "autoWaivers",
         "idTokenCookieExpirationTime",
         "alpForSbomManager",

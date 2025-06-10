@@ -184,7 +184,7 @@ public class SbomRegressionTest
 
   @Before
   public void before() throws Exception {
-    setFeatures(LicensedFeature.SBOM_MANAGER);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION);
     app = tempEntity.newApplicationWithParent("SbomRegressionTestApp", "SbomRegressionTestApp");
   }
 

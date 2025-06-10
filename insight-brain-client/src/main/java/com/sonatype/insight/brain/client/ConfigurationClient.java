@@ -140,6 +140,7 @@ public class ConfigurationClient
         apiVerifyOrCreateApplicationForContainerImageFirewallDTO),
         ContentType.APPLICATION_JSON);
     Result result = builder.post(entity);
+    verifyStatusCode(result);
     return result.text();
   }
 

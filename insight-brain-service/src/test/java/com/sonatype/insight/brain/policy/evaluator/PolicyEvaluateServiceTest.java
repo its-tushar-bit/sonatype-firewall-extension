@@ -38,6 +38,8 @@ import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
@@ -53,7 +55,9 @@ import com.sonatype.insight.brain.jira.JiraIssueCreateRequest;
 import com.sonatype.insight.brain.jira.JiraIssueCreateRequest.JiraIssueCreateResponse;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -112,6 +116,7 @@ import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPON
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.POLICY_EVALUATION_COMPLETE;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_BUILD;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
+import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
@@ -153,6 +158,9 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private ApplicationDAO applicationDAO;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Inject
   private PolicyEvaluationHelper policyEvaluationHelper;
@@ -730,6 +738,109 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  public void testEvaluateWithPolling_PollEvaluationResult_ContainerImage_Success() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication("app", organization.getId());
+
+    tempEntity.newPolicyEvaluation(app.getId(), ID_PROXY, "scanid");
+
+    CountDownLatch countDownLatch = new CountDownLatch(1);
+    lenient().doAnswer(invocation -> {
+      countDownLatch.await(1, TimeUnit.MINUTES);
+      return null;
+    }).when(mockScanHandler).handle(any(), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        anyString(), anyString());
+
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+        ClientScanType.SONATYPE, null, new Stage(ID_PROXY));
+
+    PolicyEvaluationPollingResultDTO policyEvaluationPollingResult =
+        policyEvaluateService.pollEvaluationResult(app.getPublicId(), receipt.getStatusId());
+    countDownLatch.countDown();
+    assertThat(policyEvaluationPollingResult).isNotNull();
+    assertThat(policyEvaluationPollingResult.status).isEqualTo(PolicyEvaluationStatus.PENDING);
+    assertThat(policyEvaluationPollingResult.reason).isNull();
+    assertThat(policyEvaluationPollingResult.result).isNull();
+    assertThat(policyEvaluationPollingResult.subStatus).isNull();
+    assertThat(policyEvaluationPollingResult.scanReceipt).isNull();
+    assertThat(policyEvaluationPollingResult.nextPollingIntervalInSeconds).isEqualTo(5);
+  }
+
+  @Test
+  public void testEvaluateWithPolling_ContainerImage_FeatureFlagDisabled() {
+    productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION, LicensedFeature.CLI_INTEGRATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(ID_PROXY)))
+        .withMessage("Application evaluation using the proxy stage is not supported by your license.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_ContainerImage_MissingLicenseFeature() {
+    productLicenseManager.setFeatures(LicensedFeature.CLI_INTEGRATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(ID_PROXY)))
+        .withMessage("Application evaluation using the proxy stage is not supported by your license.");
+  }
+
+  @Test
+  public void testEvaluateWithPolling_ContainerImage_NotRepositoryRelated() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE, null, new Stage(ID_PROXY)))
+        .withMessage("Cannot evaluate a non-container image application with a proxy stage.");
+  }
+
+  @Test
+  public void testPollEvaluationResult_ContainerImage_MissingLicenseFeature() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication("app", organization.getId());
+    productLicenseManager.setFeatures();
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId, app.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId))
+        .withMessage("Your IQ Server license does not enable this feature.");
+  }
+
+  @Test
+  public void testPollEvaluationResult_ContainerImage_FeatureFlagDisabled() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication("app", organization.getId());
+
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId, app.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId))
+        .withMessage("Your IQ Server license does not enable this feature.");
+  }
+
+  private void insertPersistedPolicyEvaluationPollingResult(String statusId, String appId) {
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setReason("reason");
+    PersistedPolicyEvaluationPollingResult expected =
+        new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(expected);
+  }
+
+  @Test
   public void testCreatePolicyEvaluationPollingResultDTO_ShouldHandleResultSubStatus() {
     PolicyEvaluationPollingResult result = new PolicyEvaluationPollingResult();
     result.setSubStatus(COMPONENT_ANALYSIS_PENDING);
@@ -1122,6 +1233,48 @@ public class PolicyEvaluateServiceTest
         ClientScanType.SONATYPE,
         null,
         new Stage(Stage.ID_BUILD),
+        componentAnalyzePollingResult.getStatusId(),
+        null
+    );
+
+    PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    assertThat(pollingResult).isNotNull();
+    assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(pollingResult.getSubStatus()).isEqualTo(POLICY_EVALUATION_COMPLETE);
+    assertThat(pollingResult.getReason()).isNull();
+    assertThat(pollingResult.getScanReceipt()).usingRecursiveComparison()
+        .isEqualTo(policyEvaluationPollingResult.getScanReceipt());
+
+    PolicyEvaluationResult result = pollingResult.getResult();
+    assertThat(result).isNotNull();
+    assertThat(result.getAlerts()).isEmpty();
+  }
+
+  @Test
+  public void testEvaluateWithPolling_ProxyStage_ContainerImage() throws Exception {
+    PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
+    productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    PersistedPolicyEvaluationPollingResult componentAnalyzePollingResult = persistedPolicyEvaluationPollingResultDAO
+        .getByApplicationIdAndStatusId(
+            app.getId(),
+            componentAnalyzeEvaluationReceipt.getStatusId()
+        );
+
+    assertThat(componentAnalyzeEvaluationReceipt.getStatusId()).isEqualTo(componentAnalyzePollingResult.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult =
+        componentAnalyzePollingResult.getPolicyEvaluationPollingResult();
+    assertThat(policyEvaluationPollingResult.getSubStatus()).isEqualTo(COMPONENT_ANALYSIS_COMPLETE);
+
+    PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(
+        IntegrationType.CLI,
+        app.getPublicId(),
+        ClientScanType.SONATYPE,
+        null,
+        new Stage(Stage.ID_PROXY),
         componentAnalyzePollingResult.getStatusId(),
         null
     );

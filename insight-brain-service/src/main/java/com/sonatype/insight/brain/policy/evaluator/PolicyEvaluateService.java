@@ -25,6 +25,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -32,6 +33,8 @@ import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.metrics.PolicyEvaluateServiceMetrics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
@@ -40,6 +43,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
@@ -53,6 +57,7 @@ import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -106,6 +111,8 @@ public class PolicyEvaluateService
 
   public boolean disablePollingIntervalForTesting = false;
 
+  public OrganizationDAO organizationDAO;
+
   @Inject
   public PolicyEvaluateService(
       ScanPolicyEvaluator scanPolicyEvaluator,
@@ -122,7 +129,8 @@ public class PolicyEvaluateService
       PolicyEvaluationUtil policyEvaluationUtil,
       SbomMetadataUtils sbomMetadataUtils,
       ProductLicense productLicense,
-      FeaturesService featuresService)
+      FeaturesService featuresService,
+      OrganizationDAO organizationDAO)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -139,6 +147,7 @@ public class PolicyEvaluateService
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
     this.sbomMetadataUtils = sbomMetadataUtils;
+    this.organizationDAO = organizationDAO;
     shutdownHandler.add(executor, ShutdownPriority.POLICY_EVALUATIONS);
   }
 
@@ -257,7 +266,6 @@ public class PolicyEvaluateService
    *
    * @since 1.69
    */
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationReceipt evaluateWithPolling(
       IntegrationType integrationType,
       @AuthzContext(Key.APPLICATION_PUBLIC_ID) String applicationPublicId,
@@ -274,6 +282,8 @@ public class PolicyEvaluateService
         applicationPublicId, clientScanType, stage.getStageTypeId(), statusId);
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    checkEvaluationPermissions(app, stage);
+
     File tempScanFile = scanHandler.createTempScanFile(req, app);
 
     String thirdPartyScanType =
@@ -289,6 +299,19 @@ public class PolicyEvaluateService
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
+  }
+
+  private void checkEvaluationPermissions(Application app, Stage stage) {
+    if (stage != null && Stage.ID_PROXY.equals(stage.getStageTypeId())) {
+      boolean isContainerImageApp = organizationDAO.getById(app.getOrganizationId()).getRelatedRepositoryId() != null;
+      if (!isContainerImageApp) {
+        throw new BadRequestException("Cannot evaluate a non-container image application with a proxy stage.");
+      }
+      checkEvaluateComponentPermission(app);
+    }
+    else {
+      checkEvaluateApplicationPermission(app);
+    }
   }
 
   /**
@@ -417,11 +440,12 @@ public class PolicyEvaluateService
    *
    * @since 1.69
    */
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   public PolicyEvaluationPollingResultDTO pollEvaluationResult(
-      @AuthzContext(Key.APPLICATION_PUBLIC_ID) final String applicationPublicId,
-      String statusId)
+      final String applicationPublicId, String statusId)
   {
+    Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Organization organization = organizationDAO.getById(app.getOrganizationId());
+
     PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
         persistedPolicyEvaluationPollingResultDAO
             .getByApplicationIdAndStatusId(applicationDAO.getByPublicId(applicationPublicId).getId(), statusId);
@@ -431,6 +455,32 @@ public class PolicyEvaluateService
               applicationPublicId));
     }
 
+    if (organization.getRelatedRepositoryId() == null) {
+      return pollEvaluationResultCheckEvaluateApplication(app, persistedPolicyEvaluationPollingResult);
+    }
+    else {
+      return pollEvaluationResultCheckEvaluateComponent(app, persistedPolicyEvaluationPollingResult);
+    }
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  PolicyEvaluationPollingResultDTO pollEvaluationResultCheckEvaluateApplication(
+          @AuthzContext(Key.APPLICATION) Application application,
+          PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+  {
+    productLicense.validateFeature(LicensedFeature.APPLICATION_EVALUATION);
+    return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  PolicyEvaluationPollingResultDTO pollEvaluationResultCheckEvaluateComponent(
+          @AuthzContext(Key.APPLICATION) Application application,
+          PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+  {
+    if (!productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+            || !SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()) {
+      throw new InvalidLicenseException();
+    }
     return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
   }
 
@@ -814,5 +864,19 @@ public class PolicyEvaluateService
     dto.subStatus = res.getSubStatus();
 
     return dto;
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void checkEvaluateApplicationPermission(
+          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(
+          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
   }
 }

@@ -27,20 +27,22 @@ import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanUploader;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
-import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
-import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
-import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.policy.stages.*;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.PolicyEvaluationRequestDTO;
 import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
@@ -49,6 +51,7 @@ import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecificati
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -84,6 +87,10 @@ public class ApplicationEvaluationResourceTest
 
   private PolicyEvaluationHelper policyEvaluationHelper;
 
+  private OrganizationDAO organizationDAO;
+
+  private RepositoryDAO repositoryDAO;
+
   @Inject
   private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
@@ -100,6 +107,8 @@ public class ApplicationEvaluationResourceTest
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
     policyEvaluationHelper = lookup(PolicyEvaluationHelper.class);
     persistedPolicyEvaluationPollingResultDAO = lookup(PersistedPolicyEvaluationPollingResultDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    repositoryDAO = lookup(RepositoryDAO.class);
   }
 
   private HttpRequest makeRequest(
@@ -248,7 +257,123 @@ public class ApplicationEvaluationResourceTest
   }
 
   @Test
-  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult_Success() throws Exception {
+  public void testEvaluateWithPollingAndPollEvaluationResult_proxyStage() throws Exception {
+    licenseManager.setProducts(
+        ProductLicenseDetails.PRODUCT_FIREWALL);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    licenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION,LicensedFeature.COMPONENT_EVALUATION);
+    installLicense();
+    Repository repository = tempEntity.newRepository("publicId");
+    Organization organization = tempEntity.newOrganization("org");
+    organization.setRelatedRepositoryId(repository.getId());
+    repository.setRelatedOrganizationId(organization.getId());
+    repositoryDAO.update(repository);
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication(organization.getId());
+    String testClientUserAgent = "testClientUserAgent";
+
+    Policy policy = tempEntity.newPolicy(app);
+    policy.setAction(ComplianceStageType.ID, Action.ID_FAIL);
+    policyDAO.update(policy);
+
+    // Simulate that the report is available
+    String scanId = mockReport("/" + getClass().getSimpleName() + "/report");
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+
+    mockScanReceipt(scanReceipt);
+
+    // evaluate policy
+    HttpResponse response =
+            makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
+                    ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
+                    .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+                    .post();
+    assertResponseStatus(200, response);
+
+    PolicyEvaluationReceipt receipt = response.getBody(PolicyEvaluationReceipt.class);
+    assertThat(receipt).isNotNull();
+    assertThat(receipt.getStatusId()).isNotNull();
+
+    policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollEvaluationResultRequest(app.getPublicId(),
+            receipt.getStatusId()).get().getBody(PolicyEvaluationPollingResult.class);
+
+    assertThat(policyEvaluationPollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(policyEvaluationPollingResult.getReason()).isNull();
+    assertThat(policyEvaluationPollingResult.getResult()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt()).isNotNull();
+    assertThat(policyEvaluationPollingResult.getScanReceipt().getScanId()).isEqualTo(scanReceipt.getScanId());
+
+    PolicyEvaluationResult policyEvaluationResult = policyEvaluationPollingResult.getResult();
+    assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(0);
+    assertThat(policyEvaluationResult.getSevereComponentCount()).isEqualTo(7);
+    assertThat(policyEvaluationResult.getModerateComponentCount()).isEqualTo(0);
+    List<PolicyAlert> policyAlerts = policyEvaluationResult.getAlerts();
+    assertThat(policyAlerts).hasSize(36);
+
+    PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), scanId);
+    assertThat(policyEvaluation.isReevaluation()).isFalse();
+    assertThat(policyEvaluation.isForObsoleteScan()).isFalse();
+
+    assertThat(getHdsServer().getCapturedRequestHttpHeaders(ScanUploader.HDS_PATH)
+            .get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+  }
+
+  @Test
+  public void testEvaluateWithPollingAndPollEvaluationResult_ValidateFeature()
+      throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+    licenseManager.setFeatures();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), BuildStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testEvaluateWithPollingForContainerImageEvaluation_NotFeatureFlag()
+      throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+    licenseManager.setFeatures();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testEvaluateWithPollingForContainerImageEvaluation_NotContainerImageEvaluationFeature()
+      throws Exception
+  {
+    Application app = tempEntity.newApplicationWithParent();
+    String testClientUserAgent = "testClientUserAgent";
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    licenseManager.setFeatures();
+
+    HttpResponse response =
+        makeRequest(IntegrationType.CLI, app.getPublicId(), ProxyStageType.ID,
+            ClientScanType.SONATYPE_THIRD_PARTY, true, EVALUATE_PATH) //
+            .header(HdsClient.CLM_CLIENT_USER_AGENT_HEADER, testClientUserAgent) //
+            .post();
+    assertResponseStatus(402, response);
+    response.getBodyText();
+  }
+
+  @Test
+  public void testAnalyzeComponentsWithPollingAndPollEvaluationResult() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
 

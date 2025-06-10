@@ -101,7 +101,7 @@ public class ApiSbomResourceTest
     dao = lookup(ThirdPartySbomMetadataDAO.class);
     insightWork = lookup(InsightWork.class);
 
-    setFeatures(LicensedFeature.SBOM_MANAGER);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION);
   }
 
   @Override

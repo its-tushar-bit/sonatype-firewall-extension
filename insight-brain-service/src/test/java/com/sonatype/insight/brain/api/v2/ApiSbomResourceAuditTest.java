@@ -97,6 +97,7 @@ public class ApiSbomResourceAuditTest
 
   @Test
   public void testImportSbom_Authorized() throws Exception {
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.APPLICATION_EVALUATION);
     Application app = tempEntity.newApplicationWithParent();
 
     mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");

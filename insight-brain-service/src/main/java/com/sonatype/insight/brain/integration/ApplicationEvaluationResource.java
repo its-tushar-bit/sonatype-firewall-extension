@@ -23,8 +23,10 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.organization.PolicyEvaluationRequestDTO;
 import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
@@ -43,7 +45,6 @@ import com.codahale.metrics.annotation.Timed;
 @Path(ApplicationEvaluationResource.RESOURCE_PATH)
 @Named
 @Timed
-@ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
 public class ApplicationEvaluationResource
 {
   static final String RESOURCE_PATH = "rest/integration/applications/{applicationPublicId}/evaluations";
@@ -93,8 +94,37 @@ public class ApplicationEvaluationResource
       @QueryParam("scanType") ClientScanType clientScanType,
       @Context HttpServletRequest req) throws IOException
   {
-    return policyEvaluateService
-        .evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
+    if (stage.getStageTypeId().equals(Stage.ID_PROXY)) {
+      return evaluateWithPollingForContainerImageEvaluation(
+              applicationPublicId, integrationType, stage, clientScanType, req);
+    }
+    else {
+      return evaluateWithPollingForApplicationEvaluation(
+              applicationPublicId, integrationType, stage, clientScanType, req);
+    }
+  }
+
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  PolicyEvaluationReceipt evaluateWithPollingForContainerImageEvaluation(
+          String applicationPublicId,
+          IntegrationType integrationType,
+          Stage stage,
+          ClientScanType clientScanType,
+          HttpServletRequest req) throws IOException
+  {
+    return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
+  }
+
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
+  PolicyEvaluationReceipt evaluateWithPollingForApplicationEvaluation(
+          String applicationPublicId,
+          IntegrationType integrationType,
+          Stage stage,
+          ClientScanType clientScanType,
+          HttpServletRequest req) throws IOException
+  {
+    return policyEvaluateService.evaluateWithPolling(integrationType, applicationPublicId, clientScanType, req, stage);
   }
 
   /**
@@ -118,6 +148,7 @@ public class ApplicationEvaluationResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(POLICY_EVALUATION_PATH)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public PolicyEvaluationReceipt evaluateWithPollingByStatusId(
       @PathParam("integrationType") final IntegrationType integrationType,
       @PathParam("applicationPublicId") final String applicationPublicId,
@@ -150,6 +181,7 @@ public class ApplicationEvaluationResource
   @Produces(MediaType.APPLICATION_JSON)
   @Path(COMPONENT_ANALYSIS_PATH)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
+  @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public PolicyEvaluationReceipt analyzeComponentsWithPolling(
       @PathParam("applicationPublicId") final String applicationPublicId,
       @PathParam("integrationType") final IntegrationType integrationType,

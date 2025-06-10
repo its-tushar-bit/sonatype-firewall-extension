@@ -6,12 +6,22 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import javax.inject.Inject;
+import javax.ws.rs.BadRequestException;
 
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -42,9 +52,15 @@ public class PolicyEvaluateServiceAuthzTest
 
   private MockReportDownloader mockReportDownloader;
 
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
+  private OrganizationDAO organizationDAO;
+
   @Before
   public void setup() {
     mockReportDownloader.setInsightWork(insightWork);
+    persistedPolicyEvaluationPollingResultDAO = daoFactory.createPersistedPolicyEvaluationPollingResultDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
   }
 
   @Override
@@ -94,6 +110,34 @@ public class PolicyEvaluateServiceAuthzTest
         new Stage(BuildStageType.ID));
   }
 
+  @Test
+  public void testEvaluateWithPolling_ProxyStage_Authorized() throws Exception {
+    Organization organization = tempEntity.newOrganizationWithRepositoryManager("org");
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    grantPermission(application.getId(), Permission.EVALUATE_COMPONENT);
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
+            null, new Stage(ProxyStageType.ID));
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateWithPolling_ProxyStage_Unauthorized() throws Exception {
+    Organization organization = tempEntity.newOrganizationWithRepositoryManager("org");
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    grantPermission(application.getId(), Permission.EVALUATE_APPLICATION);
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
+            null, new Stage(ProxyStageType.ID));
+  }
+
+  @Test(expected = BadRequestException.class)
+  public void testEvaluateWithPolling_ProxyStage_BadRequest() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
+            new Stage(ProxyStageType.ID));
+  }
+
   @Test(expected = UnauthorizedException.class)
   public void testEvaluateWithPolling_Unauthorized() throws Exception {
     login();
@@ -114,11 +158,6 @@ public class PolicyEvaluateServiceAuthzTest
         new Stage(BuildStageType.ID), "statusId", null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
-  public void testPollEvaluationResult_Unauthenticated() {
-    policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
-  }
-
   @Test
   public void testPollEvaluationResult_Authorized() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
@@ -131,6 +170,100 @@ public class PolicyEvaluateServiceAuthzTest
   @Test(expected = UnauthorizedException.class)
   public void testPollEvaluationResult_Unauthorized() {
     login();
-    policyEvaluateService.pollEvaluationResult(app.getPublicId(), "statusId");
+    String statusId = TemporaryEntity.uuid();
+    grantEvaluateComponentPermission(app.getId());
+    insertPersistedPolicyEvaluationPollingResult(statusId, app.getId());
+    policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPollEvaluationResultContainerImage_Unauthenticated() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId,application.getId());
+    policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testPollEvaluationResult_Unauthenticated() {
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId,app.getId());
+    policyEvaluateService.pollEvaluationResult(app.getPublicId(), statusId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testPollEvaluationResultContainerImage_Unauthorized() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+    grantAddApplicationPermission(application.getId());
+    login();
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId, application.getId());
+    policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
+  }
+
+  @Test
+  public void testPollEvaluationResultContainerImage_Authorized() {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    grantEvaluateComponentPermission(application.getId());
+    login();
+    String statusId = TemporaryEntity.uuid();
+    insertPersistedPolicyEvaluationPollingResult(statusId, application.getId());
+    policyEvaluateService.pollEvaluationResult(application.getPublicId(), statusId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testEvaluateWithPollingContainerImage_Unauthorized() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    login();
+    grantAddApplicationPermission(application.getId());
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
+        null, new Stage(ProxyStageType.ID));
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testEvaluateWithPollingContainerImage_Unauthenticated() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
+        null, new Stage(ProxyStageType.ID));
+  }
+
+  @Test
+  public void testEvaluateWithPollingContainerImage_Authorized() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId("repositoryId");
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplication("app", organization.getId());
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    grantEvaluateComponentPermission(application.getId());
+    login();
+    policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, application.getPublicId(), ClientScanType.SONATYPE,
+        null, new Stage(ProxyStageType.ID));
+  }
+
+  private void insertPersistedPolicyEvaluationPollingResult(String statusId, String appId) {
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setReason("reason");
+    PersistedPolicyEvaluationPollingResult expected =
+            new PersistedPolicyEvaluationPollingResult(appId, statusId, policyEvaluationPollingResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(expected);
   }
 }

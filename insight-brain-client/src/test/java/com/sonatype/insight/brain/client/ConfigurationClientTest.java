@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.apache.http.client.HttpResponseException;
 import org.junit.Before;
@@ -406,6 +407,73 @@ public class ConfigurationClientTest
     Application app = applicationDAO.getByPublicIdNotNull(result);
     Organization org = organizationDAO.getById(app.getOrganizationId());
     assertThat(org.getRelatedRepositoryId()).isEqualTo(repository.getId());
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_Exception() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");
+
+    VerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new VerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId("DUMMY_INSTANCE_ID");
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl(repositoryManager.getBaseUrl());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).verifyOrCreateApplicationForContainerImageFirewall(dto))
+        .withMessage("Cannot find a repository with repositoryManagerInstanceId=DUMMY_INSTANCE_ID and " +
+            "publicId=repositoryPublicId.");
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_FeatureFlagDisabled() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");
+
+    VerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new VerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId("DUMMY_INSTANCE_ID");
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl(repositoryManager.getBaseUrl());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).verifyOrCreateApplicationForContainerImageFirewall(dto))
+        .withMessage("Feature not supported.");
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImageFirewall_MissingLicenseFeature() {
+    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");
+
+    VerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new VerifyOrCreateApplicationForContainerImageFirewallDTO();
+    dto.setRepositoryManagerInstanceId("DUMMY_INSTANCE_ID");
+    dto.setRepositoryPublicId(repository.getPublicId());
+    dto.setContainerImageName("image1");
+    dto.setContainerImageNamespace("namespace1");
+    dto.setContainerImageVersion("version1");
+    dto.setBaseUrl(repositoryManager.getBaseUrl());
+
+    Configuration config = getCLMServer().getClientConfiguration();
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> new ConfigurationClient(config).verifyOrCreateApplicationForContainerImageFirewall(dto))
+        .withMessage("Your IQ Server license does not enable this feature.");
   }
 
   @Test

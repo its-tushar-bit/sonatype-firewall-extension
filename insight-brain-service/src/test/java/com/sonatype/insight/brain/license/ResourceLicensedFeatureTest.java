@@ -65,7 +65,7 @@ import com.sonatype.insight.brain.git.ScmOnboardingResource;
 import com.sonatype.insight.brain.hds.ComponentInfoResource;
 import com.sonatype.insight.brain.hds.RepoManComponentInfoResource;
 import com.sonatype.insight.brain.ide.IDEComponentInfoResource;
-import com.sonatype.insight.brain.integration.ApplicationEvaluationResource;
+
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -102,7 +102,6 @@ public class ResourceLicensedFeatureTest
     map.put(ApiEndpointsResource.class, LicensedFeature.API_PAGE);
 
     map.put(ApiThirdPartyScanResource.class, LicensedFeature.APPLICATION_EVALUATION);
-    map.put(ApplicationEvaluationResource.class, LicensedFeature.APPLICATION_EVALUATION);
     map.put(PolicyEvaluateResource.class, LicensedFeature.APPLICATION_EVALUATION);
     map.put(ScanResource.class, LicensedFeature.APPLICATION_EVALUATION);
 

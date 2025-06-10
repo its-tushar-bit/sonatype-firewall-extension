@@ -38,6 +38,7 @@ const loadTableDataFulfilled = (state, { payload }) => {
     publicAppId,
     scanId,
     scanIdFromLatestBuildStageEvaluation,
+    hasAutoWaiversConfigured,
   } = payload;
   return {
     ...state,
@@ -51,6 +52,7 @@ const loadTableDataFulfilled = (state, { payload }) => {
     publicAppId,
     scanId,
     scanIdFromLatestBuildStageEvaluation,
+    hasAutoWaiversConfigured,
   };
 };
 

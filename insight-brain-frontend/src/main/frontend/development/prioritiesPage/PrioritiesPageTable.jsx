@@ -45,6 +45,7 @@ export default function PrioritiesPageTable() {
     hasDefaultFilters,
     integrationType: storedIntegrationType,
     scanIdFromLatestBuildStageEvaluation,
+    hasAutoWaiversConfigured,
   } = useSelector(selectPrioritiesPageSlice);
 
   const metadata = useSelector(selectApplicationReportMetaData);
@@ -219,6 +220,7 @@ export default function PrioritiesPageTable() {
               <DataRows
                 dataset={priorities}
                 scanIdFromLatestBuildStageEvaluation={scanIdFromLatestBuildStageEvaluation}
+                hasAutoWaiversConfigured={hasAutoWaiversConfigured}
               />
             </NxTable.Body>
           </NxTable>
@@ -236,7 +238,7 @@ export default function PrioritiesPageTable() {
   );
 }
 
-function DataRows({ dataset, scanIdFromLatestBuildStageEvaluation }) {
+function DataRows({ dataset, scanIdFromLatestBuildStageEvaluation, hasAutoWaiversConfigured }) {
   const routerState = useRouterState();
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
   const currentRouteName = useSelector(selectCurrentRouteName);
@@ -268,6 +270,7 @@ function DataRows({ dataset, scanIdFromLatestBuildStageEvaluation }) {
         componentHref={getComponentHref(componentHash)}
         violationsHref={getViolationHref(componentHash)}
         latestBuildPrioritiesHref={getPrioritiesHref(scanIdFromLatestBuildStageEvaluation)}
+        hasAutoWaiversConfigured={hasAutoWaiversConfigured}
       />
     );
   });

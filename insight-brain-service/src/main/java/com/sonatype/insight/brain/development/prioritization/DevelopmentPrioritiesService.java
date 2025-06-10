@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
 import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
@@ -105,6 +106,8 @@ public class DevelopmentPrioritiesService
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   @Inject
   public DevelopmentPrioritiesService(
       final FeaturesService featuresService,
@@ -117,7 +120,8 @@ public class DevelopmentPrioritiesService
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationDAO applicationDAO,
-      final PolicyWaiverDAO policyWaiverDAO)
+      final PolicyWaiverDAO policyWaiverDAO,
+      final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
   {
     this.featuresService = featuresService;
     this.developmentPrioritiesReportService = developmentPrioritiesReportService;
@@ -130,6 +134,7 @@ public class DevelopmentPrioritiesService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
   }
 
   @Authorize(permission = Permission.READ)
@@ -152,6 +157,8 @@ public class DevelopmentPrioritiesService
     String scanIdFromLatestBuildStageEvaluation = latestBuildStageEvaluation != null ?
         latestBuildStageEvaluation.getScanId() : "";
 
+    boolean hasAutoWaiversConfigured = autoPolicyWaiverDAO.getCount() > 0 ? true : false;
+
     final List<PrioritizedComponent> allPrioritizedFindings =
         includeRemediation ?
             getAllPrioritizedFindings(applicationPublicId, scanId, skipCount, pageSize) :
@@ -173,7 +180,7 @@ public class DevelopmentPrioritiesService
         .limit(pageSize)
         .toList();
 
-    return new DevelopmentPrioritizationResults(scanIdFromLatestBuildStageEvaluation,
+    return new DevelopmentPrioritizationResults(scanIdFromLatestBuildStageEvaluation, hasAutoWaiversConfigured,
         new ApiPageResult<>(totalSize, page, pageSize, prioritizedFindingsForPagination));
   }
 

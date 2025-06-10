@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.callflow.ComponentReachabilityService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
+import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -124,6 +125,9 @@ public class DevelopmentPrioritiesServiceTest
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
 
+  @Inject
+  private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
+
   private DevelopmentPrioritiesService developmentPrioritiesService;
 
   private String prioritizationId;
@@ -133,7 +137,7 @@ public class DevelopmentPrioritiesServiceTest
     developmentPrioritiesService = new DevelopmentPrioritiesService(
         featuresService, developmentPrioritiesReportService, prioritizationComponentInfoDAO, reportService,
         componentReachabilityService, componentRemediationService, developmentPrioritiesUtilsService,
-        policyEvaluationDiffService, policyEvaluationDAO, applicationDAO, policyWaiverDAO);
+        policyEvaluationDiffService, policyEvaluationDAO, applicationDAO, policyWaiverDAO, autoPolicyWaiverDAO);
     prioritizationId = tempEntity.newDevelopmentPrioritization(GIVEN_SOME_SCAN_ID).getId();
     tempEntity.newApplicationWithParent(GIVEN_SOME_PUBLIC_APP_ID);
   }
@@ -2486,6 +2490,39 @@ public class DevelopmentPrioritiesServiceTest
 
     final String scanId = results.scanIdFromLatestBuildStageEvaluation();
     assertThat(scanId).isEqualTo("scan-id-123");
+  }
+
+  @Test
+  public void testGetPrioritizedFindings_ShouldReturnHasAutoWaiversConfigured() {
+    tempEntity.newAutoPolicyWaiver();
+
+    // === Given ===
+    final ApiReportComponentDTOV2 component1 = createComponent("aaa", "component1");
+    final PolicyThreats.Component component1Threats = createPolicyThreatsComponents(
+        component1,
+        Collections.emptyList(),
+        List.of(createPolicyViolation(9, "b", "policy-b", NON_REACHABLE)));
+
+    final ApiReportComponentDTOV2 component2 = createComponent("bbb", "component2");
+    final PolicyThreats.Component component2Threats = createPolicyThreatsComponents(
+        component2,
+        List.of(createPolicyViolation(7, "c", "policy-c",
+            Collections.emptyList(), Collections.emptyList(), SECURITY.getName(), NON_REACHABLE, true)),
+        List.of(createPolicyViolation(9, "d", "policy-d", REACHABLE)));
+
+    // === WHEN ===
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString())).thenReturn(
+        createApiReportRawDataDTOV2(List.of(component1, component2)));
+    when(reportService.getPolicyThreats(anyString(), anyString())).thenReturn(
+        createPolicyThreats(List.of(component1Threats, component2Threats)));
+    when(featuresService.getFeatures()).thenReturn(Set.of(DEVELOPER_DASHBOARD));
+    // === Then ===
+    DevelopmentPrioritizationResults results = developmentPrioritiesService
+        .getPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID,
+            GIVEN_PAGE_1, GIVEN_PAGE_SIZE_10, null, false, false);
+
+    final boolean hasAutoWaiversConfigured = results.hasAutoWaiversConfigured();
+    assertThat(hasAutoWaiversConfigured).isTrue();
   }
 
   @Test

@@ -57,7 +57,13 @@ export const recommendationTypeMap = {
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
 };
 
-export default function PrioritiesPageRow({ component, componentHref, violationsHref, latestBuildPrioritiesHref }) {
+export default function PrioritiesPageRow({
+  component,
+  componentHref,
+  violationsHref,
+  latestBuildPrioritiesHref,
+  hasAutoWaiversConfigured,
+}) {
   const dispatch = useDispatch();
 
   const { publicAppId, scanId } = useSelector(selectRouterCurrentParams);
@@ -239,6 +245,7 @@ export default function PrioritiesPageRow({ component, componentHref, violations
         <Recommendation
           loading={loading}
           error={error}
+          hasAutoWaiversConfigured={hasAutoWaiversConfigured}
           isUnknown={isUnknown}
           actualVersion={actualVersion}
           recommendation={recommendation}
@@ -289,6 +296,7 @@ function BuildAction({
 function Recommendation({
   loading,
   error,
+  hasAutoWaiversConfigured,
   isUnknown,
   actualVersion,
   recommendation,
@@ -333,7 +341,11 @@ function Recommendation({
   }
 
   if (shouldWaiveViolations) {
-    return (
+    return hasAutoWaiversConfigured ? (
+      <div className="iq-priorities-table__recommendation">
+        <span>Waive violations</span>
+      </div>
+    ) : (
       <NxTooltip title={nudgeAutoWaiverText}>
         <div className="iq-priorities-table__recommendation">
           <span>Waive violations</span>
@@ -361,6 +373,7 @@ function Recommendation({
 Recommendation.propTypes = {
   loading: PropTypes.bool,
   error: PropTypes.string,
+  hasAutoWaiversConfigured: PropTypes.bool,
   isUnknown: PropTypes.bool,
   actualVersion: PropTypes.string,
   recommendation: PropTypes.shape({
@@ -375,6 +388,10 @@ Recommendation.propTypes = {
     version: PropTypes.string,
     isGolden: PropTypes.bool,
   }),
+  reachable: PropTypes.bool,
+  isAllViolationsWaived: PropTypes.bool,
+  waivedViolationsCount: PropTypes.number,
+  hasAutoWaiver: PropTypes.bool,
   hasSameViolationsOnMain: PropTypes.bool,
 };
 
@@ -389,4 +406,5 @@ PrioritiesPageRow.propTypes = {
   componentHref: PropTypes.string.isRequired,
   violationsHref: PropTypes.string.isRequired,
   latestBuildPrioritiesHref: PropTypes.string.isRequired,
+  hasAutoWaiversConfigured: PropTypes.bool.isRequired,
 };

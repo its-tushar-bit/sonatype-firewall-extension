@@ -10,4 +10,6 @@ import com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 
 public record DevelopmentPrioritizationResults(
-    String scanIdFromLatestBuildStageEvaluation, ApiPageResult<PrioritizedComponent> priorities) {}
+    String scanIdFromLatestBuildStageEvaluation,
+    boolean hasAutoWaiversConfigured,
+    ApiPageResult<PrioritizedComponent> priorities) {}

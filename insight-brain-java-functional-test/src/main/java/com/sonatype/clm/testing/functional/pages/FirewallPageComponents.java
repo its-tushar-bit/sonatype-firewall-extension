@@ -307,4 +307,20 @@ public class FirewallPageComponents
       return child(selector);
     }
   }
+
+  public static class FirewallPageTabs
+      extends BasicElement<FirewallPageTabs>
+  {
+    public FirewallPageTabs(String rootSelector) {
+      super(rootSelector, "#firewall-page-tabs");
+    }
+
+    public SelenideElement tab(String id) {
+      return child("#firewall-" + id + "-tab");
+    }
+
+    public SelenideElement tabPanel(String id) {
+      return child("#firewall-" + id + "-tab-panel");
+    }
+  }
 }

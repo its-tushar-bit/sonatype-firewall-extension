@@ -15,7 +15,7 @@ import {
   QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED,
   ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
 } from 'MainRoot/utility/services/routeStateUtilService';
-import { QUARANTINE, WAIVERS, ROI } from 'MainRoot/firewall/firewallConstants';
+import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS, ROI } from 'MainRoot/constants/states';
 
 import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
@@ -86,17 +86,31 @@ function routes($stateProvider) {
         title: 'Dashboard',
       },
     })
-    .state('firewall.firewallPage.quarantine', {
+    .state('firewall.firewallPage.components', {
+      url: '/components',
+      data: {
+        title: 'Dashboard - Components',
+        activeTab: COMPONENTS,
+      },
+    })
+    .state('firewall.firewallPage.containers', {
+      url: '/containers',
+      data: {
+        title: 'Dashboard - Containers',
+        activeTab: CONTAINERS,
+      },
+    })
+    .state('firewall.firewallPage.components.quarantine', {
       url: '/quarantine',
       data: {
-        title: 'Dashboard - Quarantine',
+        title: 'Components - Quarantine',
         activeTab: QUARANTINE,
       },
     })
-    .state('firewall.firewallPage.waivers', {
+    .state('firewall.firewallPage.components.waivers', {
       url: '/waivers',
       data: {
-        title: 'Dashboard - Waivers',
+        title: 'Components - Waivers',
         activeTab: WAIVERS,
       },
     })

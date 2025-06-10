@@ -24,14 +24,14 @@ import './_roiFirewallMetrics.scss';
 const RoiFirewallMetricsContent = ({ id, title, tooltipTitle, value }) => (
   <div className="roi-firewall-metrics-content" id={`roi-firewall-metrics-content__${id}`}>
     <header className="roi-firewall-metrics-content__header">
-      <h2 className="roi-firewall-metrics-content__title" data-testId={`roi-firewall-metrics-content__title__${id}`}>
+      <h2 className="roi-firewall-metrics-content__title" data-testid={`roi-firewall-metrics-content__title__${id}`}>
         <span>{title}</span>
-        <NxTooltip data-testId={`roi-firewall-metrics-content__tool-tip-title__${id}`} title={tooltipTitle}>
+        <NxTooltip data-testid={`roi-firewall-metrics-content__tool-tip-title__${id}`} title={tooltipTitle}>
           <NxFontAwesomeIcon className="roi-firewall-metrics-content__icon" icon={faInfoCircle} />
         </NxTooltip>
       </h2>
     </header>
-    <div className="roi-firewall-metrics-content__value" data-testId={`roi-firewall-metrics-content__value__${id}`}>
+    <div className="roi-firewall-metrics-content__value" data-testid={`roi-firewall-metrics-content__value__${id}`}>
       <span>${value.toLocaleString('en-US')}</span>
     </div>
   </div>
@@ -67,18 +67,18 @@ export default function RoiFirewallMetrics() {
   }, []);
 
   return (
-    <div id="roi-firewall-metrics" data-testId="roi-firewall-metrics">
+    <div id="roi-firewall-metrics" data-testid="roi-firewall-metrics">
       <NxLoadWrapper loading={loading} error={error} retryHandler={loadMetrics}>
         <header>
-          <NxH2 className="roi-firewall-metrics__title" data-testId="roi-firewall-metrics-title">
+          <NxH2 className="roi-firewall-metrics__title" data-testid="roi-firewall-metrics-title">
             Return on Investment (ROI)
           </NxH2>
-          <span className="roi-firewall-metrics__description" data-testId="roi-firewall-metrics-description">
+          <span className="roi-firewall-metrics__description" data-testid="roi-firewall-metrics-description">
             {roiDescriptionText}
             {hasConfigureSystemPermission && <NxTextLink href="#">Configure ROI values</NxTextLink>}
           </span>
         </header>
-        <div className="roi-firewall-metrics__total" data-testId="roi-firewall-metrics-total">
+        <div className="roi-firewall-metrics__total" data-testid="roi-firewall-metrics-total">
           Total USD Saved
           <span>${total.toLocaleString('en-US')}</span>
         </div>

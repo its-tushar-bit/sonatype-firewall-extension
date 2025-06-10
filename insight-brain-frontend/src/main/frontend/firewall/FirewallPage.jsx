@@ -5,18 +5,23 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useSelector } from 'react-redux';
 
 import { compose } from 'ramda';
 import * as PropTypes from 'prop-types';
-import { NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
+import { NxPageTitle, NxH1, NxTab, NxTabList, NxTabPanel, NxStatefulTabs } from '@sonatype/react-shared-components';
 
 import FirewallStatus from './FirewallStatus';
 import LoadWrapper from '../react/LoadWrapper';
 import FirewallMetrics from './FirewallMetrics';
 import FirewallWelcomeModal from './FirewallWelcomeModal';
 import FirewallTabs from 'MainRoot/firewall/FirewallTabs';
-import { QUARANTINE, WAIVERS } from 'MainRoot/firewall/firewallConstants';
+import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS } from 'MainRoot/constants/states';
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
+import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
+import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+
+const TABS = [COMPONENTS, CONTAINERS];
 
 export default function FirewallPage(props) {
   // Actions
@@ -53,7 +58,15 @@ export default function FirewallPage(props) {
 
   const { filterPolicies } = props;
 
+  const { router, stateGo } = props;
+
+  const activeTab = router?.currentState?.name?.includes(CONTAINERS) ? CONTAINERS : COMPONENTS;
+
+  const defaultActiveTab = TABS.indexOf(activeTab);
+
   const firewallTabsFuncRefs = useRef();
+
+  const isContainerImagesEvalEnabled = useSelector(selectIsContainerImagesEvaluationEnabled);
 
   useEffect(() => {
     loadFirewallData();
@@ -78,42 +91,62 @@ export default function FirewallPage(props) {
     setTimeout(() => firewallTabsFuncRefs?.current?.scrollToPanel(WAIVERS), 100);
   };
 
+  const handleTabClick = (index) => stateGo(`firewall.firewallPage.${TABS[index]}`);
+
+  const firewallComponentsTabContent = () => {
+    return (
+      <>
+        {showWelcomeModal && <FirewallWelcomeModal close={closeWelcomeModal} />}
+        {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
+        <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
+          <NxPageTitle className="iq-firewall-page__title">
+            <NxPageTitle.Headings>
+              <NxH1>Firewall</NxH1>
+            </NxPageTitle.Headings>
+          </NxPageTitle>
+          <FirewallStatus {...props} />
+          <header className="iq-firewall-metrics-header">
+            <h2 className="nx-h2 iq-firewall-metrics-label">Component Data Insights</h2>
+            <span>
+              These totals include quarantined, waived, and auto-released components that differ from those actively in
+              quarantine.
+            </span>
+          </header>
+          <FirewallMetrics
+            supplyChainAttacksBlocked={supplyChainAttacksBlocked}
+            namespaceAttacksBlocked={namespaceAttacksBlocked}
+            componentsQuarantined={componentsQuarantined}
+            componentsAutoReleased={componentsAutoReleased}
+            saferVersionsSelectedAutomatically={safeVersionsSelected}
+            waivedComponents={waivedComponents}
+            onNamespaceAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
+              setQuarantineGridPolicyFilterWithProprietaryNameConflict
+            )}
+            onSupplyChainAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
+              setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode
+            )}
+            onComponentsQuarantinedLinkClick={onViewQuarantinedComponentsClick(setQuarantineGridPolicyFilterEmpty)}
+            onViewWaivedComponentsClick={onViewWaivedComponentsClick}
+          />
+          <FirewallTabs ref={firewallTabsFuncRefs} {...props} />
+        </LoadWrapper>
+      </>
+    );
+  };
+
   return (
     <main id="firewall-page" className="nx-page-main">
-      {showWelcomeModal && <FirewallWelcomeModal close={closeWelcomeModal} />}
-      {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
-      <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
-        <NxPageTitle className="iq-firewall-page__title">
-          <NxPageTitle.Headings>
-            <NxH1>Firewall</NxH1>
-          </NxPageTitle.Headings>
-        </NxPageTitle>
-        <FirewallStatus {...props} />
-        <header className="iq-firewall-metrics-header">
-          <h2 className="nx-h2 iq-firewall-metrics-label">Component Data Insights</h2>
-          <span>
-            These totals include quarantined, waived, and auto-released components that differ from those actively in
-            quarantine.
-          </span>
-        </header>
-        <FirewallMetrics
-          supplyChainAttacksBlocked={supplyChainAttacksBlocked}
-          namespaceAttacksBlocked={namespaceAttacksBlocked}
-          componentsQuarantined={componentsQuarantined}
-          componentsAutoReleased={componentsAutoReleased}
-          saferVersionsSelectedAutomatically={safeVersionsSelected}
-          waivedComponents={waivedComponents}
-          onNamespaceAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
-            setQuarantineGridPolicyFilterWithProprietaryNameConflict
-          )}
-          onSupplyChainAttacksBlockedLinkClick={onViewQuarantinedComponentsClick(
-            setQuarantineGridPolicyFilterWithSecurityVulnerabilityCategoryMaliciousCode
-          )}
-          onComponentsQuarantinedLinkClick={onViewQuarantinedComponentsClick(setQuarantineGridPolicyFilterEmpty)}
-          onViewWaivedComponentsClick={onViewWaivedComponentsClick}
-        />
-        <FirewallTabs ref={firewallTabsFuncRefs} {...props} />
-      </LoadWrapper>
+      {!isContainerImagesEvalEnabled && firewallComponentsTabContent()}
+      {isContainerImagesEvalEnabled && (
+        <NxStatefulTabs id="firewall-page-tabs" defaultActiveTab={defaultActiveTab} onTabSelect={handleTabClick}>
+          <NxTabList>
+            <NxTab id={`firewall-${COMPONENTS}-tab`}>{capitalizeFirstLetter(COMPONENTS)}</NxTab>
+            <NxTab id={`firewall-${CONTAINERS}-tab`}>{capitalizeFirstLetter(CONTAINERS)}</NxTab>
+          </NxTabList>
+          <NxTabPanel id={`firewall-${COMPONENTS}-tab-panel`}>{firewallComponentsTabContent()}</NxTabPanel>
+          <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>Containers Placeholder</NxTabPanel>
+        </NxStatefulTabs>
+      )}
     </main>
   );
 }

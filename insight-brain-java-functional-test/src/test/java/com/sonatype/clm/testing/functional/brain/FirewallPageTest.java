@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -125,7 +126,10 @@ public class FirewallPageTest
         LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
         LicensedFeature.RELEASE_INTEGRITY,
         LicensedFeature.DASHBOARD,
-        LicensedFeature.WAIVERS_DASHBOARD);
+        LicensedFeature.WAIVERS_DASHBOARD,
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
   }
 
   private void setupData() {
@@ -170,6 +174,37 @@ public class FirewallPageTest
   private void waitUntilComponentDetailsPageSpinnersGone() {
     Wait<WebDriver> wait = getWebDriverAwait();
     wait.until(ExpectedConditions.invisibilityOf(firewallComponentDetailsPage.getAllLoadingSpinners().get(0)));
+  }
+
+  @Test
+  public void testFirewallPage_ShowComponentsTabPanelWhenContainerImagesEvalEnabled() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.firewallPageTabs().tab("components").shouldBe(visible);
+    page.firewallPageTabs().tab("containers").shouldBe(visible);
+    page.firewallPageTabs().tabPanel("components").shouldBe(visible);
+    page.firewallPageTabs().tabPanel("containers").shouldNotBe(visible);
+    page.firewallStatus().shouldBe(visible);
+    page.firewallMetrics().shouldBe(visible);
+    page.firewallQuarantineTable().shouldBe(visible);
+  }
+
+  @Test
+  public void testFirewallPage_NotShowComponentsTabPanelWhenContainerImagesEvalDisabled() {
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.firewallPageTabs().tab("components").shouldNotBe(visible);
+    page.firewallPageTabs().tab("containers").shouldNotBe(visible);
+    page.firewallPageTabs().tabPanel("components").shouldNotBe(visible);
+    page.firewallPageTabs().tabPanel("containers").shouldNotBe(visible);
+    page.firewallStatus().shouldBe(visible);
+    page.firewallMetrics().shouldBe(visible);
+    page.firewallQuarantineTable().shouldBe(visible);
   }
 
   @Test

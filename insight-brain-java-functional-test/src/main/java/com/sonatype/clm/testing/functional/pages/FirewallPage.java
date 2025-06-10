@@ -8,6 +8,7 @@ package com.sonatype.clm.testing.functional.pages;
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetrics;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallPageTabs;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallStatus;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallWaiversTable;
@@ -70,7 +71,7 @@ public class FirewallPage
   }
 
   public static String urlToFirewallWaivers() {
-    return BaseUrl.resolvePageUrl("malware-defense/dashboard/waivers");
+    return BaseUrl.resolvePageUrl("malware-defense/dashboard/components/waivers");
   }
 
   public FirewallWaiversTable firewallWaiversTable() {
@@ -83,5 +84,9 @@ public class FirewallPage
   
   public RoiFirewallMetrics roiFirewallMetrics() {
     return new RoiFirewallMetrics(ROOT);
+  }
+
+  public FirewallPageTabs firewallPageTabs() {
+    return new FirewallPageTabs(ROOT);
   }
 }

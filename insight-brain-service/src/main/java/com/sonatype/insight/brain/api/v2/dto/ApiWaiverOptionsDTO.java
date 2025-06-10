@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Date;
 
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
-import com.sonatype.insight.json.store.ApiDateFormat;
+import com.sonatype.insight.json.store.ISODateSerializer;
 
 public class ApiWaiverOptionsDTO
 {
@@ -28,7 +29,7 @@ public class ApiWaiverOptionsDTO
    */
   public ComponentMatcherStrategyForWaiver matcherStrategy;
 
-  @ApiDateFormat
+  @JsonSerialize(using = ISODateSerializer.class)
   public Date expiryTime;
 
   public String waiverReasonId;

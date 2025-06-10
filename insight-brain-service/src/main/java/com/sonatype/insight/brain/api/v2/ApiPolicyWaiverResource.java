@@ -25,13 +25,11 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
-import com.sonatype.insight.brain.api.v2.dto.containerwaivers.ApiContainerWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.brain.webhook.RequestPolicyWaiverEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -71,8 +69,6 @@ public class ApiPolicyWaiverResource
       "transitive/{ownerType: application|organization}/{ownerId}/stages/{stageId}";
 
   static final String REQUEST_WAIVER_BY_POLICY_VIOLATION_ID_PATH = "/waiverRequests/{policyViolationId}";
-
-  static final String CONTAINER_WAIVERS_BY_CONTAINER_IMAGE_ID = "containerWaivers/{containerImageId}";
 
   @Inject
   public ApiPolicyWaiverResource(
@@ -300,36 +296,6 @@ public class ApiPolicyWaiverResource
   {
     apiPolicyWaiverService.addWaiverToTransitivePolicyViolationsByAppScanComponent(ownerType, ownerId, scanId,
         componentIdentifier, packageUrl, hash, apiWaiverOptionsDTO);
-  }
-
-  @POST
-  @Path(CONTAINER_WAIVERS_BY_CONTAINER_IMAGE_ID)
-  @Audited(AuditEvent.CREATE_CONTAINER_IMAGE_POLICY_VIOLATIONS_WAIVER)
-  @Consumes(MediaType.APPLICATION_JSON)
-  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
-  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
-  @Operation(description = "Use this method to create a policy waiver on a container image. " +
-      "Permissions required: Waive Policy Violations",
-      responses = {
-          @ApiResponse
-              (responseCode = "204",
-                  description = "No content. Indicates that the waiver has been created successfully.")
-      })
-  public void addWaiversToContainerImage(
-      @Parameter(description = "Enter the corresponding id for the container image.", required = true)
-      @PathParam("containerImageId") final String containerImageId,
-      @RequestBody(description = "The request JSON can include the fields" +
-          "<ol>" +
-          "<li>policyViolationIds (required, list of strings): A list of policy violation IDs for which waivers are " +
-          "to be created.</li>" +
-          "<li>expiryTime (default null): Sets the datetime when the waiver expires.</li>" +
-          "<li>waiverReasonId (default null): Sets the specific reason chosen for the waiver.</li>" +
-          "<li>comment (default null): Further explanation about the waiver.</li>" +
-          "</ol>"
-      )
-      ApiContainerWaiversDTO apiContainerWaiversDTO)
-  {
-    apiPolicyWaiverService.addContainerWaivers(containerImageId, apiContainerWaiversDTO);
   }
 
   @POST

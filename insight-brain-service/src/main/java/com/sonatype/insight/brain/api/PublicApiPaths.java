@@ -154,6 +154,12 @@ public class PublicApiPaths
 
   public static final String MALWARE_DEFENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "malware-defense";
 
+  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH =
+      MALWARE_DEFENSE_RESOURCE_PATH + "/container-image";
+
+  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_POLICY_WAIVER_RESOURCE_PATH =
+      MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH + "/policyWaiver";
+
   public static final String EXTERNAL_TELEMETRY_PATH = API_VERSION_PATH_V2 + "telemetry";
 
   public static final String REPOSITORY_IDENTIFIED_COMPONENT_PATH_V2 =

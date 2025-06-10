@@ -26,15 +26,17 @@ import javax.inject.Named;
 import javax.validation.constraints.NotNull;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ComponentFact;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
-import com.sonatype.insight.brain.api.v2.dto.containerwaivers.ApiContainerWaiversDTO;
+import com.sonatype.insight.brain.api.v2.dto.containerimagewaiver.ApiContainerImageWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiComponentPolicyWaiversDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -48,6 +50,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
@@ -62,7 +65,7 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.owner.OwnerService;
 import com.sonatype.insight.brain.policy.ConstraintFactDTO;
@@ -82,7 +85,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
@@ -137,6 +139,8 @@ public class ApiPolicyWaiverService
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
   private final IdUtils idUtils;
 
   private final TelemetryUtils telemetryUtils;
@@ -157,6 +161,7 @@ public class ApiPolicyWaiverService
       PolicyViolationDAO policyViolationDAO,
       OrganizationDAO organizationDAO,
       PolicyWaiverReasonDAO policyWaiverReasonDAO,
+      RepositoryDAO repositoryDAO,
       IdUtils idUtils,
       TelemetryUtils telemetryUtils)
   {
@@ -174,6 +179,7 @@ public class ApiPolicyWaiverService
     this.policyViolationDAO = policyViolationDAO;
     this.organizationDAO = organizationDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
+    this.repositoryDAO = repositoryDAO;
     this.idUtils = idUtils;
     this.telemetryUtils = telemetryUtils;
   }
@@ -483,17 +489,15 @@ public class ApiPolicyWaiverService
     AuditData.get()
         .setData("policyWaiverId", policyWaiver.getId())
         .setPolicy(policyDAO.getById(tx, policyWaiver.getPolicyId()))
+        .setComponentHash(policyWaiver.getHash())
+        .setData("expiryTime", policyWaiver.getExpiryTime())
         .setComment(policyWaiver.getComment())
-        .setComponentHash(policyWaiver.getHash());
+        .setData("isForContainerImageComponent", policyWaiver.isForContainerImageComponent())
+        .setData("isForContainerImage", policyWaiver.isForContainerImage());
+
     if (policyWaiver.getConstraintFacts() != null) {
       AuditData.get().setData("policyConstraints",
           policyWaiver.getConstraintFacts().stream().map(ConstraintFactDTO::new).collect(toList()));
-    }
-    if (policyWaiver.isForContainerImage()) {
-      AuditData.get().setData("isForContainerImage", true);
-    }
-    if (policyWaiver.isForContainerImageComponent()) {
-      AuditData.get().setData("isForContainerImageComponent", true);
     }
   }
 
@@ -535,14 +539,14 @@ public class ApiPolicyWaiverService
     Map<Boolean, List<ApiPolicyWaiverDTO>> applicableWaivers =
         getByOwnerHierarchyAndPolicyIdWithReadPermission(owner, policyId).stream()
             .filter(policyWaiver -> filterWaiverByCriteria(constraintFactsJson, constraintFacts,
-            componentIdentifier, hash, policyWaiver))
-        .map(policyWaiver ->
-            ApiPolicyWaiverDTO.toDto(
-                policyWaiver,
-                policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
-                ownerDAO.getById(policyWaiver.getOwnerId()),
-                violationId))
-        .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
+                componentIdentifier, hash, policyWaiver))
+            .map(policyWaiver ->
+                ApiPolicyWaiverDTO.toDto(
+                    policyWaiver,
+                    policyWaiversReasons.get(policyWaiver.getWaiverReasonId()),
+                    ownerDAO.getById(policyWaiver.getOwnerId()),
+                    violationId))
+            .collect(partitioningBy(dto -> hasWaiverExpired(dto.expiryTime), toList()));
 
     ApiPolicyWaiversApplicableToViolationDTO apiPolicyWaivers = new ApiPolicyWaiversApplicableToViolationDTO();
     apiPolicyWaivers.activeWaivers = applicableWaivers.get(Boolean.FALSE);
@@ -661,42 +665,6 @@ public class ApiPolicyWaiverService
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
-  public void addContainerWaivers(
-      @AuthzContext(Key.APPLICATION_ID) String applicationId,
-      ApiContainerWaiversDTO apiContainerWaiversDTO)
-  {
-    if (apiContainerWaiversDTO == null || CollectionUtils.isEmpty(apiContainerWaiversDTO.policyViolationIds)) {
-      throw new BadRequestException("Policy violations must not be empty.");
-    }
-
-    Application application = applicationDAO.getById(applicationId);
-    Organization organization = organizationDAO.getById(application.getOrganizationId());
-    if (StringUtils.isAllBlank(organization.getRelatedRepositoryManagerId(), organization.getRelatedRepositoryId())) {
-      throw new NotFoundException("No container image was found with the given ID");
-    }
-
-    List<PolicyViolation> policyViolations =
-        policyViolationDAO.getByIds(apiContainerWaiversDTO.policyViolationIds).stream()
-            .filter(policyViolation -> ProxyStageType.ID.equals(policyViolation.getStageTypeId())
-                && application.getId().equals(policyViolation.getApplicationId()))
-            .toList();
-
-    if (CollectionUtils.isEmpty(policyViolations)) {
-      throw new NotFoundException(
-          "No policy violations were found with the given policyViolationIds for the container image " + applicationId);
-    }
-
-    policyViolationDAO.loadConstraintFacts(policyViolations);
-
-    AuditData.get()
-        .setComment(apiContainerWaiversDTO.comment)
-        .setData("expiryTime", apiContainerWaiversDTO.expiryTime)
-        .setData("policyViolationIds", apiContainerWaiversDTO.policyViolationIds);
-
-    createPolicyWaiversForContainerImage(application, apiContainerWaiversDTO, policyViolations);
-  }
-
-  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   public void addWaiverToTransitivePolicyViolationsByOwnerStageComponent(
       @AuthzContext(AuthzContext.Key.TYPE) final OwnerType ownerType,
       @AuthzContext(AuthzContext.Key.ID) final String ownerId,
@@ -737,45 +705,7 @@ public class ApiPolicyWaiverService
   {
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       tx.begin();
-      createPolicyWaiversInternal(owner, waiverDTO, policyViolations, false, tx);
-      tx.commit();
-    }
-  }
-
-  private void createPolicyWaiversForContainerImage(
-      Owner owner,
-      ApiContainerWaiversDTO apiContainerWaiversDTO,
-      List<PolicyViolation> policyViolations)
-  {
-    ApiWaiverOptionsDTO apiWaiverOptionsDTO = new ApiWaiverOptionsDTO();
-    apiWaiverOptionsDTO.expiryTime = apiContainerWaiversDTO.expiryTime;
-    apiWaiverOptionsDTO.waiverReasonId = apiContainerWaiversDTO.waiverReasonId;
-    apiWaiverOptionsDTO.comment = apiContainerWaiversDTO.comment;
-    apiWaiverOptionsDTO.matcherStrategy = EXACT_COMPONENT;
-
-    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
-      tx.begin();
-
-      // Create policy waivers for each component in the container image
-      createPolicyWaiversInternal(owner, apiWaiverOptionsDTO, policyViolations, true, tx);
-
-      // Create a policy waiver for the container image as a whole
-      PolicyWaiver policyWaiver =
-          new PolicyWaiver(policyViolations.get(0).getPolicyId(), owner.getId(), apiWaiverOptionsDTO.comment);
-      policyWaiver.setForContainerImage(true);
-      policyWaiver.setConstraintFactsJson(policyViolations.get(0).getConstraintFactsJson());
-      policyWaiver.setExpiryTime(apiWaiverOptionsDTO.expiryTime);
-      policyWaiver.setCreatorId(currentUser.getUserPrincipal().getUsername());
-      policyWaiver.setCreatorName(currentUser.getUserPrincipal().getDisplayName());
-      policyWaiver.setComponentMatchStrategy(ALL_COMPONENTS);
-      policyWaiver.setWaiverReasonId(apiWaiverOptionsDTO.waiverReasonId);
-
-      policyWaiverDAO.insert(tx, policyWaiver);
-
-      try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
-        auditAndSendTelemetry(owner.getType(), owner.getId(), policyWaiver, policyViolations.get(0));
-      }
-
+      createPolicyWaiversInternal(owner, waiverDTO, policyViolations, false, false, tx);
       tx.commit();
     }
   }
@@ -785,23 +715,26 @@ public class ApiPolicyWaiverService
       ApiWaiverOptionsDTO waiverDTO,
       List<PolicyViolation> policyViolations,
       boolean isForContainerImageComponent,
+      boolean isForContainerImage,
       TransactionContext tx
   )
   {
+    waiverDTO.matcherStrategy = waiverDTO.matcherStrategy != null ? waiverDTO.matcherStrategy : EXACT_COMPONENT;
     validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
 
     for (PolicyViolation policyViolation : policyViolations) {
       try {
-        PolicyWaiver policyWaiver = savePolicyWaiver(
+        PolicyWaiver policyWaiver = savePolicyWaiverInternal(
             tx,
             owner.getId(),
             policyViolation,
             waiverDTO.comment,
-            EXACT_COMPONENT,
+            waiverDTO.matcherStrategy,
             waiverDTO.expiryTime,
             waiverDTO.waiverReasonId,
             waiverDTO.expireWhenRemediationAvailable,
-            isForContainerImageComponent
+            isForContainerImageComponent,
+            isForContainerImage
         );
         policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(
             policyWaiver, owner.getType(), policyViolation
@@ -891,31 +824,8 @@ public class ApiPolicyWaiverService
         expiryTime,
         policyWaiverReasonId,
         expireWhenRemediationAvailable,
-        false // Default value for isForContainerImageComponent
-    );
-  }
-
-  private PolicyWaiver savePolicyWaiver(
-      TransactionContext tx,
-      String ownerId,
-      AbstractPolicyViolation abstractPolicyViolation,
-      String comment,
-      ComponentMatcherStrategyForWaiver matcherStrategy,
-      Date expiryTime,
-      String policyWaiverReasonId,
-      boolean expireWhenRemediationAvailable,
-      boolean isForContainerImageComponent)
-  {
-    return savePolicyWaiverInternal(
-        tx,
-        ownerId,
-        abstractPolicyViolation,
-        comment,
-        matcherStrategy,
-        expiryTime,
-        policyWaiverReasonId,
-        expireWhenRemediationAvailable,
-        isForContainerImageComponent
+        false, // Default value for isForContainerImageComponent
+        false // Default value for isForContainerImage
     );
   }
 
@@ -928,7 +838,8 @@ public class ApiPolicyWaiverService
       Date expiryTime,
       String policyWaiverReasonId,
       boolean expireWhenRemediationAvailable,
-      boolean isForContainerImageComponent)
+      boolean isForContainerImageComponent,
+      boolean isForContainerImage)
   {
     String hash = (matcherStrategy == ALL_COMPONENTS || matcherStrategy == ALL_VERSIONS)
         ? null
@@ -942,13 +853,11 @@ public class ApiPolicyWaiverService
     policyWaiver.setComponentMatchStrategy(matcherStrategy);
     policyWaiver.setExpireWhenRemediationAvailable(expireWhenRemediationAvailable);
     policyWaiver.setWaiverReasonId(policyWaiverReasonId);
+    policyWaiver.setForContainerImageComponent(isForContainerImageComponent);
+    policyWaiver.setForContainerImage(isForContainerImage);
 
     if (matcherStrategy != ALL_COMPONENTS && abstractPolicyViolation.getComponentIdentifier() != null) {
       policyWaiver.setAssociatedPackageUrl(toPackageUrl(abstractPolicyViolation.getComponentIdentifier()));
-    }
-
-    if (isForContainerImageComponent) {
-      policyWaiver.setForContainerImageComponent(true);
     }
 
     policyWaiverDAO.insert(tx, policyWaiver);
@@ -1016,5 +925,65 @@ public class ApiPolicyWaiverService
     validateExistingPolicyWaiverReason(policyWaiver.getWaiverReasonId());
     validateExpireWhenRemediationAvailable(policyWaiver.isExpireWhenRemediationAvailable(),
         policyWaiver.getComponentMatchStrategy());
+  }
+
+  public void addContainerImageWaiver(
+      String containerImageId,
+      ApiContainerImageWaiverDTO waiverDTO)
+  {
+    String applicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerImageId);
+    addContainerImageWaiverWithAuthzCheck(applicationId, waiverDTO);
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  void addContainerImageWaiverWithAuthzCheck(
+      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      ApiContainerImageWaiverDTO waiverDTO)
+  {
+    Application application = applicationDAO.getById(applicationId);
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+
+    if (StringUtils.isAllBlank(organization.getRelatedRepositoryManagerId(), organization.getRelatedRepositoryId())) {
+      throw new NotFoundException("No container image was found with the given ID");
+    }
+
+    Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
+    if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
+        || !"docker".equals(repository.getFormat())) {
+      throw new BadRequestException("The related repository must be of type proxy and format docker");
+    }
+
+    Date expiryTime = waiverDTO == null ? null : waiverDTO.expiryTime;
+    String waiverReasonId = waiverDTO == null ? null : waiverDTO.waiverReasonId;
+    String comment = waiverDTO == null ? null : waiverDTO.comment;
+
+    validateExpiryTime(expiryTime);
+    validateExistingPolicyWaiverReason(waiverReasonId);
+
+    List<PolicyViolation> policyViolations =
+        policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(application.getId(), Stage.ID_PROXY,
+            Action.ID_FAIL);
+
+    if (policyViolations.isEmpty()) {
+      throw new NotFoundException(
+          "No applicable policy violations found to waive for container image with the given ID");
+    }
+
+    ApiWaiverOptionsDTO apiWaiverOptionsDTO =
+        new ApiWaiverOptionsDTO(comment, EXACT_COMPONENT, expiryTime, waiverReasonId, false);
+
+    policyViolationDAO.loadConstraintFacts(policyViolations);
+
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      // Create waivers for all policy violations of all components in the container image
+      createPolicyWaiversInternal(application, apiWaiverOptionsDTO, policyViolations, true, false, tx);
+      // Create a policy waiver for the container image as a whole
+      apiWaiverOptionsDTO.matcherStrategy = ALL_COMPONENTS;
+      createPolicyWaiversInternal(application, apiWaiverOptionsDTO, Collections.singletonList(policyViolations.get(0)),
+          false, true, tx);
+
+      tx.commit();
+    }
   }
 }

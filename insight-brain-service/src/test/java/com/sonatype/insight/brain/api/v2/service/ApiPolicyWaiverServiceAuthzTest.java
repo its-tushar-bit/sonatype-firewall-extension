@@ -5,13 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.Set;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
-import com.sonatype.insight.brain.api.v2.dto.containerwaivers.ApiContainerWaiversDTO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -753,24 +750,20 @@ public class ApiPolicyWaiverServiceAuthzTest
     apiPolicyWaiverService.updatePolicyWaiver(REPOSITORY_CONTAINER, REPOSITORY_CONTAINER_ID, POLICY_WAIVER_ID, null);
   }
 
-  @Test(expected = UnauthorizedException.class)
-  public void testAddContainerImage_Unauthorized() {
-    login();
-    apiPolicyWaiverService.addContainerWaivers(app.getId(), null);
+  @Test(expected = UnauthenticatedException.class)
+  public void testAddContainerImageWaiver_Unauthenticated() {
+    apiPolicyWaiverService.addContainerImageWaiver(app.getId(), null);
   }
 
-  @Test(expected = UnauthenticatedException.class)
-  public void testAddContainerImage_Unauthenticated() {
-    apiPolicyWaiverService.addContainerWaivers(app.getId(), null);
+  @Test(expected = UnauthorizedException.class)
+  public void testAddContainerImageWaiver_Unauthorized() {
+    login();
+    apiPolicyWaiverService.addContainerImageWaiver(app.getId(), null);
   }
 
   @Test(expected = NotFoundException.class)
-  public void testAddContainerImage_Authorized() {
+  public void testAddContainerImageWaiver_Authorized() {
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
-
-    ApiContainerWaiversDTO dto = new ApiContainerWaiversDTO();
-    dto.policyViolationIds = Set.of("policyViolationId");
-
-    apiPolicyWaiverService.addContainerWaivers(app.getId(), dto);
+    apiPolicyWaiverService.addContainerImageWaiver(app.getId(), null);
   }
 }

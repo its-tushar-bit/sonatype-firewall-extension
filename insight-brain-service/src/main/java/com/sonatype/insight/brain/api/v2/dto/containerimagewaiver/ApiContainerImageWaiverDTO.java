@@ -3,18 +3,16 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2.dto.containerwaivers;
+package com.sonatype.insight.brain.api.v2.dto.containerimagewaiver;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import java.util.Date;
-import java.util.Set;
 
-import com.sonatype.insight.json.store.ApiDateFormat;
+import com.sonatype.insight.json.store.ISODateSerializer;
 
-public class ApiContainerWaiversDTO
+public class ApiContainerImageWaiverDTO
 {
-  public Set<String> policyViolationIds;
-
-  @ApiDateFormat
+  @JsonSerialize(using = ISODateSerializer.class)
   public Date expiryTime;
 
   public String waiverReasonId;

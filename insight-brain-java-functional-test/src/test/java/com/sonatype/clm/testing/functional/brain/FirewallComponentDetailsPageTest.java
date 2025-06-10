@@ -1318,21 +1318,19 @@ public class FirewallComponentDetailsPageTest
     ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
     ElementsCollection vulnerabilityRow2Cells = vulnerabilitiesTable.getCellsByNthRow(2);
 
-    vulnerabilityRow1Cells.shouldHave(size(6));
+    vulnerabilityRow1Cells.shouldHave(size(5));
     vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
     vulnerabilityRow1Cells.get(1).shouldHave(text("sonatype-2017-0507"));
     vulnerabilityRow1Cells.get(2).shouldBe(empty);
-    vulnerabilityRow1Cells.get(3).shouldBe(empty);
-    vulnerabilityRow1Cells.get(4).shouldHave(text("Open"));
-    vulnerabilityRow1Cells.get(5).shouldBe(empty);
+    vulnerabilityRow1Cells.get(3).shouldHave(text("Open"));
+    vulnerabilityRow1Cells.get(4).shouldBe(empty);
 
-    vulnerabilityRow2Cells.shouldHave(size(6));
+    vulnerabilityRow2Cells.shouldHave(size(5));
     vulnerabilityRow2Cells.get(0).shouldHave(text("4"));
     vulnerabilityRow2Cells.get(1).shouldHave(text("CVE-1234-56789"));
     vulnerabilityRow2Cells.get(2).shouldBe(empty);
-    vulnerabilityRow2Cells.get(3).shouldBe(empty);
-    vulnerabilityRow2Cells.get(4).shouldHave(text("Open"));
-    vulnerabilityRow2Cells.get(5).shouldBe(empty);
+    vulnerabilityRow2Cells.get(3).shouldHave(text("Open"));
+    vulnerabilityRow2Cells.get(4).shouldBe(empty);
   }
 
   private void mockHdsResponsesForVulnerabilityDetails() {
@@ -1357,16 +1355,16 @@ public class FirewallComponentDetailsPageTest
 
     VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
 
-    vulnerabilityRow1Cells.get(5).click();
+    vulnerabilityRow1Cells.get(4).click();
     waitUntilSpinnersGone();
-    vulnerabilityRow1Cells.get(4)
+    vulnerabilityRow1Cells.get(3)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
     vulnerabilityDetailsPopover.getCloseButton().click();
 
-    vulnerabilityRow2Cells.get(5).click();
+    vulnerabilityRow2Cells.get(4).click();
     waitUntilSpinnersGone();
-    vulnerabilityRow2Cells.get(4)
+    vulnerabilityRow2Cells.get(3)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityRow2Cells.get(1).shouldHave(text(vulnerabilityDetailsPopover.vulnerabilityTitle().getText()));
     vulnerabilityDetailsPopover.getCloseButton().click();
@@ -1385,9 +1383,9 @@ public class FirewallComponentDetailsPageTest
     String overriddenVulnerabilityComment = "Vulnerability comment";
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
 
-    vulnerabilityRowCells.get(5).click();
+    vulnerabilityRowCells.get(4).click();
     waitUntilSpinnersGone();
-    vulnerabilityRowCells.get(4)
+    vulnerabilityRowCells.get(3)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldNot(visible);
     vulnerabilityOverrideForm.status().click();
@@ -1397,9 +1395,9 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
     vulnerabilityDetailsPopover.getCloseButton().click();
 
-    vulnerabilityRowCells.get(5).click();
+    vulnerabilityRowCells.get(4).click();
     waitUntilSpinnersGone();
-    vulnerabilityRowCells.get(4)
+    vulnerabilityRowCells.get(3)
         .shouldHave(text(vulnerabilityDetailsPopover.getVulnerabilityOverrideForm().status().getElement().getText()));
     vulnerabilityOverrideForm.comment().shouldHave(text(overriddenVulnerabilityComment));
     vulnerabilityDetailsPopover.getCloseButton().click();
@@ -3257,13 +3255,12 @@ public class FirewallComponentDetailsPageTest
 
     vulnerabilitiesTable.getRow(1).click();
     ElementsCollection vulnerabilityRow1Cells = vulnerabilitiesTable.getCellsByNthRow(1);
-    vulnerabilityRow1Cells.shouldHave(size(6));
+    vulnerabilityRow1Cells.shouldHave(size(5));
     vulnerabilityRow1Cells.get(0).shouldHave(text("9"));
     vulnerabilityRow1Cells.get(1).shouldHave(text(vulnerabilityId));
     vulnerabilityRow1Cells.get(2).shouldBe(empty);
-    vulnerabilityRow1Cells.get(3).shouldBe(empty);
-    vulnerabilityRow1Cells.get(4).shouldHave(text("Open"));
-    vulnerabilityRow1Cells.get(5).shouldBe(empty);
+    vulnerabilityRow1Cells.get(3).shouldHave(text("Open"));
+    vulnerabilityRow1Cells.get(4).shouldBe(empty);
     VulnerabilityDetailsPopover vulnerabilityDetailsPopover = new VulnerabilityDetailsPopover();
     vulnerabilityDetailsPopover.shouldBe(visible);
 

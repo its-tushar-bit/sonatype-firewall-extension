@@ -7,16 +7,7 @@ import React from 'react';
 import { render, screen } from 'TestRoot/SpecUtil';
 import { within } from '@testing-library/react';
 import VulnerabilitiesTable from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
-import {
-  CPE_MATCH_DETECTION_TYPE,
-  FAST_TRACK_RESEARCH_TYPE,
-  HIGH_CONFIDENCE,
-  LOW_CONFIDENCE,
-  PUBLIC_RESEARCH_TYPE,
-  SBOM_ID_SOURCE,
-  SONATYPE_ID_SOURCE,
-  SONATYPE_ID_SOURCE_FOR_UI,
-} from 'MainRoot/util/vulnerabilityUtils';
+import { SONATYPE_ID_SOURCE, SONATYPE_ID_SOURCE_FOR_UI } from 'MainRoot/util/vulnerabilityUtils';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 describe('VulnerabilitiesTable', () => {
@@ -65,10 +56,7 @@ describe('VulnerabilitiesTable', () => {
     isNilOrEmpty(actualVulnerability.identificationSource)
       ? expect(actualCells[2].firstChild).toBeEmptyDOMElement()
       : expect(actualCells[2]).toHaveTextContent(actualVulnerability.identificationSource);
-    isNilOrEmpty(actualVulnerability.confidence)
-      ? expect(actualCells[3].firstChild).toBeEmptyDOMElement()
-      : expect(actualCells[3]).toHaveTextContent(actualVulnerability.confidence);
-    expect(actualCells[4]).toHaveTextContent(actualVulnerability.status);
+    expect(actualCells[3]).toHaveTextContent(actualVulnerability.status);
   };
 
   it('renders empty table', async () => {
@@ -78,21 +66,13 @@ describe('VulnerabilitiesTable', () => {
     expect(vulnerabilitiesTableCols[0]).toHaveTextContent('CVSS');
     expect(vulnerabilitiesTableCols[1]).toHaveTextContent('ISSUE');
     expect(vulnerabilitiesTableCols[2]).toHaveTextContent('IDENTIFICATION SOURCE');
-    expect(vulnerabilitiesTableCols[3]).toHaveTextContent('CONFIDENCE');
-    expect(vulnerabilitiesTableCols[4]).toHaveTextContent('STATUS');
+    expect(vulnerabilitiesTableCols[3]).toHaveTextContent('STATUS');
 
     const vulnerabilitiesTableRows = within(vulnerabilitiesTable).getAllByRole('row');
     expect(vulnerabilitiesTableRows[1]).toHaveTextContent('No vulnerabilities');
   });
 
-  it('renders table with vulnerability without confidence or without identificationSource', async () => {
-    const testVulnerabilities = [TEST_BASE_VULNERABILITY];
-
-    renderComponent(withNewState(testVulnerabilities));
-    assertVulnerabilityTableRowData(TEST_BASE_VULNERABILITY);
-  });
-
-  it('renders table with vulnerability without confidence and valid identification source', async () => {
+  it('renders table with vulnerability and valid identification source', async () => {
     const testVulnerability = {
       ...TEST_BASE_VULNERABILITY,
       identificationSource: SONATYPE_ID_SOURCE,
@@ -102,35 +82,6 @@ describe('VulnerabilitiesTable', () => {
     assertVulnerabilityTableRowData({
       ...testVulnerability,
       identificationSource: SONATYPE_ID_SOURCE_FOR_UI,
-    });
-  });
-
-  it('renders table with vulnerability without identification source and valid confidence', async () => {
-    const testVulnerability = {
-      ...TEST_BASE_VULNERABILITY,
-      detectionType: CPE_MATCH_DETECTION_TYPE,
-      researchType: PUBLIC_RESEARCH_TYPE,
-    };
-
-    renderComponent(withNewState([testVulnerability]));
-    assertVulnerabilityTableRowData({
-      ...testVulnerability,
-      confidence: LOW_CONFIDENCE,
-    });
-  });
-
-  it('renders table with vulnerability with valid identification source and confidence', async () => {
-    const testVulnerability = {
-      ...TEST_BASE_VULNERABILITY,
-      identificationSource: SBOM_ID_SOURCE,
-      detectionType: 'PRIMARY',
-      researchType: FAST_TRACK_RESEARCH_TYPE,
-    };
-
-    renderComponent(withNewState([testVulnerability]));
-    assertVulnerabilityTableRowData({
-      ...testVulnerability,
-      confidence: HIGH_CONFIDENCE,
     });
   });
 });

@@ -431,16 +431,16 @@ public class FirewallContainerComponentDetailsPageTest
     vulnerabilitiesTable.shouldBe(visible);
 
     vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
-        .shouldHave(exactTexts("CVSS", "ISSUES", "IDENTIFICATION SOURCE", "CONFIDENCE", "STATUS", ""));
+        .shouldHave(exactTexts("CVSS", "ISSUES", "IDENTIFICATION SOURCE", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHave(size(3));
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
-    rowCells.shouldHave(size(6));
-    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "High", "Open", ""));
+    rowCells.shouldHave(size(5));
+    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "Open", ""));
     rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
-    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Disclosed in SBOM", "Low", "Open", ""));
+    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Disclosed in SBOM", "Open", ""));
     rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
-    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "", "", "Open", ""));
+    rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "", "Open", ""));
   }
 
   @Test

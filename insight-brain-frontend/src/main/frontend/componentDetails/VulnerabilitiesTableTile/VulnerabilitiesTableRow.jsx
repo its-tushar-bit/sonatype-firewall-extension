@@ -7,7 +7,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
-import { getConfidenceScore, getFormattedIdentificationSourceForUI } from 'MainRoot/util/vulnerabilityUtils';
+import { getFormattedIdentificationSourceForUI } from 'MainRoot/util/vulnerabilityUtils';
 
 const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWithEffects }) => {
   const renderAliases = (aliases) => (!aliases ? '' : aliases.map((a) => <div key={a}>{a}</div>));
@@ -26,9 +26,6 @@ const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWith
       </NxTableCell>
       <NxTableCell>
         <div>{getFormattedIdentificationSourceForUI(vulnerability.identificationSource)}</div>
-      </NxTableCell>
-      <NxTableCell>
-        <div>{getConfidenceScore(vulnerability.researchType, vulnerability.detectionType)}</div>
       </NxTableCell>
       <NxTableCell>
         <span>{vulnerability.status}</span>

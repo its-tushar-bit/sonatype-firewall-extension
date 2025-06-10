@@ -21,7 +21,6 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVuln
           <NxTableCell>CVSS</NxTableCell>
           <NxTableCell>ISSUES</NxTableCell>
           <NxTableCell>IDENTIFICATION SOURCE</NxTableCell>
-          <NxTableCell>CONFIDENCE</NxTableCell>
           <NxTableCell>STATUS</NxTableCell>
           <NxTableCell />
         </NxTableRow>

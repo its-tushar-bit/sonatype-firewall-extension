@@ -59,6 +59,50 @@
           }
         ]
       }
+    },
+    {
+      "componentIdentifier" : null,
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "filenames" : [ ],
+      "pathnames" : [ ],
+      "aggregateFiles" : [ ],
+      "matchState" : "unknown",
+      "scanError" : false,
+      "proprietary" : false,
+      "hash" : "e7440196dc571484f39d",
+      "sha256" : "024db432951b4b6b396e4c5dc676839bdde2b83f60e77fb7bca5146f29f01d99",
+      "relativePopularity" : null,
+      "createTime" : null,
+      "lastModifiedTime" : null,
+      "lastModifiedEntryTime" : null,
+      "website" : null,
+      "identificationSource" : null,
+      "componentCategories" : [ ],
+      "hygieneRating" : null,
+      "analyzerFeatures" : {
+        "analysisSource" : "THIRD_PARTY",
+        "analysisType" : "COORDINATE",
+        "scanClient" : "brain",
+        "hasLicense" : false,
+        "hasIdentity" : false,
+        "hasSecurity" : false,
+        "manifestContentType" : "SBOM"
+      },
+      "integrityRating" : null,
+      "componentRef" : "3834c4d203ad4f0335aaa241f189ec48a37975bd",
+      "endOfLife" : null,
+      "componentRefs" : [ "3834c4d203ad4f0335aaa241f189ec48a37975bd" ],
+      "displayName" : {
+        "parts" : [ {
+          "value" : "(Anonymized Path) SHA1: "
+        }, {
+          "field" : "Hash",
+          "value" : "e7440196dc571484f39d"
+        } ],
+        "name" : "(Anonymized Path) SHA1: e7440196dc571484f39d"
+      }
     }
   ]
 }

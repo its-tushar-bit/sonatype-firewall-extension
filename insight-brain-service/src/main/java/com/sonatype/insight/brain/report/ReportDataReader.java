@@ -137,8 +137,11 @@ public class ReportDataReader
 
       scannedComponents = HashBasedTable.create();
       for (Entry<String, ReportComponentDTO> dataEntry : data.entrySet()) {
-        scannedComponents.put(dataEntry.getKey(), dataEntry.getValue().componentIdentifier,
-            dataEntry.getValue());
+        //only known components need to be cached
+        if (dataEntry.getValue().componentIdentifier != null) {
+          scannedComponents.put(dataEntry.getKey(), dataEntry.getValue().componentIdentifier,
+              dataEntry.getValue());
+        }
       }
       componentCache.get().put(scanId, scannedComponents);
     }

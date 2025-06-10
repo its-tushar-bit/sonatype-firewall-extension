@@ -14,7 +14,6 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.common.config.ConfigUtil;
-import com.sonatype.insight.brain.dataaccess.search.EmptySearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.db.datastore.DataStore;
@@ -71,12 +70,11 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
 
   /**
    * Constructor for DAOs that will <B>NOT</B> require the search index. The {@link #searchIndexManager} will be set to
-   * a {@link EmptySearchIndexManager} instance. If the <T> entity for this DAO needs to be searchable then use the
+   * null. If the <T> entity for this DAO needs to be searchable then use the
    * {@link #AbstractOperationalSqlDAO(OperationalDataStore, SearchIndexManager)} constructor.
    */
   protected AbstractSqlDAO() {
-    // Note: singleton pattern used to reduce churn in tests
-    this(EmptySearchIndexManager.getInstance());
+    this(null);
   }
 
   @Override
@@ -147,7 +145,9 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   public abstract TransactionContext createTransactionContext();
 
   private void insertSearchIndexChange(final TransactionContext tx, final SearchIndexChange searchIndexChange) {
-    searchIndexManager.insert(tx, searchIndexChange);
+    if (searchIndexManager != null) {
+      searchIndexManager.insert(tx, searchIndexChange);
+    }
   }
 
   protected SearchIndexChange newSearchIndexChangeForInsert(T entity) {
@@ -166,7 +166,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
       @SuppressWarnings("unused") TransactionContext tx,
       @SuppressWarnings("unused") T entity)
   {
-    return true;
+    return searchIndexManager != null;
   }
 
   protected SearchIndexChange newSearchIndexChange(@SuppressWarnings("unused") T entity) {

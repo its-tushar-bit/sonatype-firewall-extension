@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO.ContainerImageInQuarantineData;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -361,6 +362,11 @@ public class ApiPolicyViolationServiceV2
         .getLastByApplicationIdsAndStageIds(ownerDAO.getDescendantOrSelfApplicationIds(owner),
             Collections.singleton(stageIdLowercase));
     return getTransitivePolicyViolations(stageIdLowercase, componentIdentifier, packageUrl, hash, policyEvaluations);
+  }
+
+  @Authorize(permission = Permission.READ)
+  public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(final int page, final int pageSize) {
+    return policyViolationDAO.getContainerImagesInQuarantine(page, pageSize);
   }
 
   public Pair<Component, List<Pair<PolicyViolation, Component>>> getTransitivePolicyViolationsForLastEvaluation(

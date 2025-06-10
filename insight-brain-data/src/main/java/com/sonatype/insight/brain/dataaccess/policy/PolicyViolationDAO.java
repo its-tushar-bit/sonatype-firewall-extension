@@ -1290,6 +1290,58 @@ public class PolicyViolationDAO
     return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, baseQuery);
   }
 
+  public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(int page, int pageSize) {
+    String sQuery = String.format("""
+        SELECT MAX(pv.threat_level) as threat_level,
+               MAX(pv.open_time),
+               a.public_id AS application_public_id,
+               a.application_id,
+               a.name AS application_name,
+               r.public_id AS repository_public_id,
+               r.repository_id,
+               COUNT(pv.application_id) AS policy_violation_count
+        FROM %1$s.policy_violation pv
+                 JOIN %1$s.application a ON pv.application_id = a.application_id
+                 JOIN %1$s.organization o ON a.organization_id = o.organization_id
+                 JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+        WHERE r.format = 'docker'
+          AND pv.stage_type_id = 'proxy'
+          AND pv.action_type_id = 'fail'
+          AND pv.waive_time IS NULL
+          AND pv.legacy_violation_time IS NULL
+          AND pv.fix_time IS NULL
+        GROUP BY a.application_id,
+                 r.repository_id
+        ORDER BY a.application_id ASC, MAX(pv.open_time) DESC
+        """, getDatabaseSchema());
+
+    int offset = (page - 1) * pageSize;
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = createNativePaginationQuery(tx, sQuery, offset, pageSize);
+      return ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new ContainerImageInQuarantineData(
+              ((Number)array[0]).intValue(), // threatLevel
+              (Date) array[1], // openTime
+              (String) array[2], // applicationPublicId
+              (String) array[3], // applicationId
+              (String) array[4], // applicationName
+              (String) array[5], // repositoryPublicId
+              (String) array[6], // repositoryId
+              ((Number) array[7]).longValue() // policyViolationCount
+          )).toList();
+    }
+  }
+
+  public static record ContainerImageInQuarantineData(
+      int threatLevel,
+      Date openTime,
+      String applicationPublicId,
+      String applicationId,
+      String applicationName,
+      String repositoryPublicId,
+      String repositoryId,
+      Long policyViolationCount) { }
+
   private List<PolicyViolation> loadPolicyViolationsWithDateFilters(
       Collection<String> applicationIds,
       Collection<String> policyIds,

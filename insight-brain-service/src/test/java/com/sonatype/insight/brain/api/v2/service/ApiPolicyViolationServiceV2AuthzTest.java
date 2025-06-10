@@ -253,4 +253,15 @@ public class ApiPolicyViolationServiceV2AuthzTest
         .withMessageContaining(
             "scanId someScanId not found for application " + app.getPublicId() + ".");
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetContainerImagesInQuarantine_Unauthenticated() {
+    apiPolicyViolationService.getContainerImagesInQuarantine(1, 1);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetContainerImagesInQuarantine_Unauthorized() {
+    login();
+    apiPolicyViolationService.getContainerImagesInQuarantine(1, 1);
+  }
 }

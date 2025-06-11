@@ -332,7 +332,7 @@ private static String addBuildCacheOptions(String mavenOptions, boolean enabled)
   mavenOptions += " -Dmaven.build.cache.remote.save.enabled=${enabled}"
 
   if (enabled) {
-    mavenOptions += ' -Dmaven.build.cache.remote.url=https://repo.sonatype.com/repository/insight-brain-build-cache'
+    mavenOptions += ' -Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache'
     mavenOptions += ' -Dmaven.build.cache.remote.server.id=insight-brain-build-cache'
   }
 

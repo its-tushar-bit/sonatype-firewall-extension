@@ -180,6 +180,7 @@ import static com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator.RE
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.findPolicyViolationByVulnerabilityIdentifier;
+import static com.sonatype.insight.telemetry.model.TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -4353,7 +4354,7 @@ public class ScanPolicyEvaluatorTest
     List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
     assertThat(telemetryDataList).hasSize(5);
     TelemetryData timeToWaiveTelemetryData = telemetryDataList.stream()
-        .filter(telemetryData -> TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
+        .filter(telemetryData -> TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
         .findFirst().orElseThrow();
     assertThat(timeToWaiveTelemetryData.getAttributes().get(COUNT)).isEqualTo(1);
     clearInvocations(mockTelemetrySender);
@@ -4369,11 +4370,11 @@ public class ScanPolicyEvaluatorTest
     telemetryDataList = telemetryDataArgumentCaptor
         .getValue()
         .stream()
-        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION))
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TIME_TO_WAIVE_POLICY_VIOLATION))
         .toList();
 
     assertThat(telemetryDataList).hasSize(1);
-    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
+    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TIME_TO_WAIVE_POLICY_VIOLATION);
     assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(1);
     clearInvocations(mockTelemetrySender);
 
@@ -4386,11 +4387,11 @@ public class ScanPolicyEvaluatorTest
     telemetryDataList = telemetryDataArgumentCaptor
         .getValue()
         .stream()
-        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION))
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TIME_TO_WAIVE_POLICY_VIOLATION))
         .toList();
 
     assertThat(telemetryDataList).hasSize(1);
-    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION);
+    assertThat(telemetryDataList.get(0).getPurpose()).isEqualTo(TIME_TO_WAIVE_POLICY_VIOLATION);
     assertThat(telemetryDataList.get(0).getAttributes().get(COUNT)).isEqualTo(-1);
     clearInvocations(mockTelemetrySender);
   }
@@ -4450,6 +4451,126 @@ public class ScanPolicyEvaluatorTest
     // The second violation should be reported as waived
     assertThat(scanPolicyEvaluatorResults.waivedViolations).hasSize(1);
     assertThat(scanPolicyEvaluatorResults.waivedViolations.get(0).getPolicyId()).isEqualTo(licensePolicy.getId());
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEvaluate_replaceAutoWaiverWithManualWaiver() throws Exception {
+    // Given a security policy that will cause policy violations
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(6);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    // And an auto policy waiver
+    AutoPolicyWaiver autoPolicyWaiver = tempEntity.newAutoPolicyWaiver(application.getId(), 8, false, true);
+
+    // And a report with violations
+    String scanId = simulateReportIsAvailable("report");
+
+    // Mock component info service to return empty results
+    doReturn(Pair.of(Collections.emptyList(), null))
+        .when(mockComponentInfoService).getComponentDetailsForAllVersionsNoAuth(
+            any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+
+    // Capture telemetry data
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When evaluating policies for the first time
+    Stage stage = new Stage(Stage.ID_BUILD);
+    ScanPolicyEvaluatorResults results1 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+
+    // Then violations should be auto-waived
+    assertThat(results1.autoWaivedViolations).isNotEmpty();
+    assertThat(results1.activeViolations).isEmpty();
+    assertThat(results1.waivedViolations).isEmpty();
+
+    // And auto-waive telemetry should be sent
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor.getValue();
+    List<TelemetryData> autoWaiveTelemetry = telemetryDataList.stream()
+        .filter(telemetryData -> TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
+        .toList();
+    assertThat(autoWaiveTelemetry).isNotEmpty();
+
+    // Select a specific violation to manually waive
+    PolicyViolation autoWaivedViolation = results1.autoWaivedViolations.get(0);
+    assertThat(autoWaivedViolation.isAutoWaived()).isTrue();
+    assertThat(autoWaivedViolation.getAutoPolicyWaiverId()).isEqualTo(autoPolicyWaiver.getId());
+
+    // When adding a manual waiver for the same component/policy
+    clearInvocations(mockTelemetrySender);
+    PolicyWaiver manualWaiver = tempEntity.newWaiver(
+        autoWaivedViolation.getHash(),
+        autoWaivedViolation.getPolicyId(),
+        application.getId());
+
+    // And evaluating policies again
+    ScanPolicyEvaluatorResults results2 =
+        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+            ClientScanType.SONATYPE, false);
+
+    // Then the violation should now be manually waived instead of auto-waived
+    assertThat(results2.waivedViolations).isNotEmpty();
+
+    // Find the manually waived violation that replaced the auto-waived one
+    Optional<PolicyViolation> manuallyWaivedViolationOpt = results2.waivedViolations.stream()
+        .filter(v -> v.getHash().equals(autoWaivedViolation.getHash()) &&
+                     v.getPolicyId().equals(autoWaivedViolation.getPolicyId()))
+        .findFirst();
+
+    assertThat(manuallyWaivedViolationOpt).isPresent();
+    PolicyViolation manuallyWaivedViolation = manuallyWaivedViolationOpt.get();
+
+    // Verify the manually waived violation has the correct properties
+    assertThat(manuallyWaivedViolation.isWaived()).isTrue();
+    assertThat(manuallyWaivedViolation.isAutoWaived()).isFalse();
+    assertThat(manuallyWaivedViolation.getPolicyWaiverId()).isEqualTo(manualWaiver.getId());
+    assertThat(manuallyWaivedViolation.getAutoPolicyWaiverId()).isNull();
+
+    // Verify telemetry was sent for both unwaving the auto-waived violation and waiving the new violation
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    telemetryDataList = telemetryDataArgumentCaptor.getValue();
+
+    // Filter telemetry data for TIME_TO_WAIVE_POLICY_VIOLATION purpose
+    List<TelemetryData> waiveTelemetry = telemetryDataList.stream()
+        .filter(telemetryData -> TIME_TO_WAIVE_POLICY_VIOLATION.equals(telemetryData.getPurpose()))
+        .toList();
+
+    // Should have at least two telemetry entries: one for unwaving and one for waiving
+    assertThat(waiveTelemetry).hasSizeGreaterThanOrEqualTo(2);
+
+    // Find the unwaive telemetry (has COUNT = -1)
+    Optional<TelemetryData> unwaiveTelemetryOpt = waiveTelemetry.stream()
+        .filter(telemetryData -> telemetryData.getAttributes().containsKey(COUNT) &&
+                                 telemetryData.getAttributes().get(COUNT).equals(-1))
+        .findFirst();
+
+    assertThat(unwaiveTelemetryOpt).isPresent();
+    TelemetryData unwaiveTelemetry = unwaiveTelemetryOpt.get();
+
+    // Verify unwaive telemetry has the auto policy waiver ID
+    assertThat(unwaiveTelemetry.getAttributes()).containsKey("auto_policy_waiver_id");
+    assertThat(unwaiveTelemetry.getAttributes().get("auto_policy_waiver_id")).isEqualTo(autoPolicyWaiver.getId());
+
+    // Find the waive telemetry for the new manually waived violation
+    Optional<TelemetryData> waiveTelemetryOpt = waiveTelemetry.stream()
+        .filter(telemetryData -> telemetryData.getAttributes().containsKey("policy_waiver_id") &&
+                                 telemetryData.getAttributes().get("policy_waiver_id").equals(manualWaiver.getId()))
+        .findFirst();
+
+    assertThat(waiveTelemetryOpt).isPresent();
+    TelemetryData newWaiveTelemetry = waiveTelemetryOpt.get();
+
+    // Verify waive telemetry has the policy waiver ID and waive time
+    assertThat(newWaiveTelemetry.getAttributes()).containsKey("policy_waiver_id");
+    assertThat(newWaiveTelemetry.getAttributes()).containsKey("waive_time");
   }
 
   @Test

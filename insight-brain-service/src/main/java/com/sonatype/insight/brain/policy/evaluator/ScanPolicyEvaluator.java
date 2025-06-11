@@ -821,8 +821,8 @@ public class ScanPolicyEvaluator
                     newPolicyViolation,
                     component);
 
-                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, oldPolicyViolation);
-                telemetryCollector.addTelemetryForWaivedViolation(oldPolicyViolation, component);
+                policyViolationLogger.add(PolicyViolationLogEvent.WAIVE, newPolicyViolation);
+                telemetryCollector.addTelemetryForWaivedViolation(newPolicyViolation, component);
 
                 results.autoWaivedViolations.remove(oldPolicyViolation);
                 results.waivedViolations.add(newPolicyViolation);

@@ -66,7 +66,8 @@ public class SbomManagerApplicationSummaryPageImportSbomModalTest
     thirdPartySbomMetadataDAO = lookup(ThirdPartySbomMetadataDAO.class);
 
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS);
-    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SUCCESS_METRICS, LicensedFeature.POLICY_MONITORING);
+    setFeatures(LicensedFeature.SBOM_MANAGER, LicensedFeature.SUCCESS_METRICS, LicensedFeature.POLICY_MONITORING,
+        LicensedFeature.APPLICATION_EVALUATION);
 
     testCLMServer.getHdsServer().respondWith("{\"scanId\": \"SCAN-ID\", \"timeToReport\": 0}")
         .atUri("rest/application/analysis");

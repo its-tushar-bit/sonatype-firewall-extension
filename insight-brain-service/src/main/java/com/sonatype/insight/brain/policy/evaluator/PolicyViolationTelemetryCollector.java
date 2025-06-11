@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -103,6 +104,8 @@ public class PolicyViolationTelemetryCollector
 
   private final TelemetryUtils telemetryUtils;
 
+  private final LicenseNameProvider licenseNameProvider;
+
   private boolean isScmEnabled;
 
   private Date timeOfPolicyEvaluation;
@@ -110,10 +113,12 @@ public class PolicyViolationTelemetryCollector
   public PolicyViolationTelemetryCollector(
       final PolicyWaiverDAO policyWaiverDAO,
       TelemetryUtils telemetryUtils,
+      LicenseNameProvider licenseNameProvider,
       boolean isScmEnabled)
   {
     this.policyWaiverDAO = policyWaiverDAO;
     this.telemetryUtils = telemetryUtils;
+    this.licenseNameProvider = licenseNameProvider;
     this.isScmEnabled = isScmEnabled;
     timeOfPolicyEvaluation = new Date();
   }
@@ -303,10 +308,12 @@ public class PolicyViolationTelemetryCollector
       PolicyViolation policyViolation,
       Component component)
   {
-    TelemetryData telemetryData = new PolicyViolationTelemetryBuilder(policyViolation, telemetryPurpose, telemetryUtils)
-        .withScmEnabled(isScmEnabled)
-        .withTime(computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
-        .build();
+    TelemetryData telemetryData =
+        new PolicyViolationTelemetryBuilder(policyViolation, telemetryPurpose, telemetryUtils, licenseNameProvider)
+            .forComponent(component)
+            .withScmEnabled(isScmEnabled)
+            .withTime(computeTimeBetween(policyViolation.getOpenTime(), timeOfPolicyEvaluation))
+            .build();
 
     addComponentMetadata(telemetryData, policyViolation);
     addDependencyInfo(telemetryData, component);

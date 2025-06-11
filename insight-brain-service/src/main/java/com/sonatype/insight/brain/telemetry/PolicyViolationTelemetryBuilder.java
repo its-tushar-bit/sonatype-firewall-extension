@@ -7,13 +7,17 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
@@ -24,6 +28,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,11 +82,17 @@ public class PolicyViolationTelemetryBuilder
 
   public static final String CVSS_SCORE = "cvss_score";
 
-  public static final String LICENSE_THREAT_GROUP_CONDITION_TYPE = "License Threat Group";
-
   public static final String LICENSE_THREAT_GROUP_ATTRIBUTE = "license_threat_group";
 
-  static final Pattern LICENSE_THREAT_GROUP_PATTERN = Pattern.compile("License Threat Group is '([^']+)'");
+  public static final String LICENSES_DECLARED = "licenses_declared";
+
+  public static final String LICENSES_EFFECTIVE = "licenses_effective";
+
+  public static final String LICENSES_OBSERVED = "licenses_observed";
+
+  public static final String LICENSES_OVERRIDE_STATUS = "licenses_override_status";
+
+  static final Pattern EXTRACT_LICENSE_THREAT_GROUP_PATTERN = Pattern.compile("License Threat Group is '([^']+)'");
 
   private final PolicyViolation policyViolation;
 
@@ -89,14 +100,25 @@ public class PolicyViolationTelemetryBuilder
 
   private final TelemetryUtils telemetryUtils;
 
+  private final LicenseNameProvider licenseNameProvider;
+
+  private Component component;
+
   public PolicyViolationTelemetryBuilder(
       PolicyViolation policyViolation,
       TelemetryPurpose purpose,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      LicenseNameProvider licenseNameProvider)
   {
     this.policyViolation = policyViolation;
     this.telemetryData = new TelemetryData(purpose);
     this.telemetryUtils = telemetryUtils;
+    this.licenseNameProvider = licenseNameProvider;
+  }
+
+  public PolicyViolationTelemetryBuilder forComponent(Component component) {
+    this.component = component;
+    return this;
   }
 
   public PolicyViolationTelemetryBuilder withComponentIdentifier(ComponentIdentifier componentIdentifier) {
@@ -159,7 +181,7 @@ public class PolicyViolationTelemetryBuilder
     return telemetryData;
   }
 
-  private static void addVulnerabilityMetadataIfNeeded(
+  private void addVulnerabilityMetadataIfNeeded(
       TelemetryData telemetryData,
       PolicyViolation policyViolation)
   {
@@ -184,7 +206,7 @@ public class PolicyViolationTelemetryBuilder
         });
   }
 
-  private static void addLicenseVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
+  private void addLicenseVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
     if (!LicenseThreatGroupConditionType.ID.equals(conditionFact.getConditionTypeId())) {
       return;
     }
@@ -194,18 +216,25 @@ public class PolicyViolationTelemetryBuilder
       return;
     }
 
-    var matcher = LICENSE_THREAT_GROUP_PATTERN.matcher(summary);
+    var matcher = EXTRACT_LICENSE_THREAT_GROUP_PATTERN.matcher(summary);
     var licenseThreatGroup = matcher.find() ? matcher.group(1) : null;
 
     if (StringUtils.isNotBlank(licenseThreatGroup)) {
       telemetryData.put(LICENSE_THREAT_GROUP_ATTRIBUTE, licenseThreatGroup);
+
+      if (null != component) {
+        telemetryData.put(LICENSES_DECLARED, getDeclaredLicenses(component));
+        telemetryData.put(LICENSES_EFFECTIVE, getEffectiveLicenses(component));
+        telemetryData.put(LICENSES_OBSERVED, getObservedLicenses(component));
+        telemetryData.put(LICENSES_OVERRIDE_STATUS, getOverrideStatus());
+      }
     }
     else {
       log.warn("Unable to parse license threat group from condition fact summary: {}", conditionFact.getSummary());
     }
   }
 
-  private static void addSecurityVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
+  private void addSecurityVulnerabilityMetadata(TelemetryData telemetryData, ConditionFact conditionFact) {
     String triggerJson = conditionFact.getTriggerJson();
     if (triggerJson != null) {
       try {
@@ -222,5 +251,50 @@ public class PolicyViolationTelemetryBuilder
         log.error("An error occurred while trying to read the cvss score related to the policy violation", e);
       }
     }
+  }
+
+  private String getDeclaredLicenses(Component component) {
+    return joinNamedLicenses(component.getDeclaredMultiLicenseIds(), component.getDeclaredLicenseIds());
+  }
+
+  private String getEffectiveLicenses(Component component) {
+    var effectiveLicenses = new LinkedHashSet<String>();
+    if (CollectionUtils.isNotEmpty(component.getLicenseOverrideIds())) {
+      effectiveLicenses.addAll(component.getLicenseOverrideIds());
+    }
+    else {
+      effectiveLicenses.addAll(component.getDeclaredMultiLicenseIds());
+      effectiveLicenses.addAll(component.getDeclaredLicenseIds());
+      effectiveLicenses.addAll(component.getObservedMultiLicenseIds());
+      effectiveLicenses.addAll(component.getObservedLicenseIds());
+    }
+
+    return joinNamedLicenses(effectiveLicenses, null);
+  }
+
+  public String getObservedLicenses(Component component) {
+    return joinNamedLicenses(component.getObservedMultiLicenseIds(), component.getObservedLicenseIds());
+  }
+
+  public String getOverrideStatus() {
+    var overrideStatus = component.getLicenseOverrideStatus();
+    return null != overrideStatus ? overrideStatus.getName() : "";
+  }
+
+  private String joinNamedLicenses(Set<String> multiLicenseIds, Set<String> licenseIds) {
+    Set<String> allLicenseIds = new LinkedHashSet<>();
+
+    if (CollectionUtils.isNotEmpty(multiLicenseIds)) {
+      allLicenseIds.addAll(multiLicenseIds);
+    }
+
+    if (CollectionUtils.isNotEmpty(licenseIds)) {
+      allLicenseIds.addAll(licenseIds);
+    }
+
+    // Look up license names using LicenseNameProvider if available
+    return allLicenseIds.stream()
+        .map(id -> licenseNameProvider != null ? licenseNameProvider.getShortDisplayName(id) : id)
+        .collect(Collectors.joining(", "));
   }
 }

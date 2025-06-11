@@ -15,6 +15,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -41,17 +42,21 @@ public class HistoricalPolicyViolationTelemetryService
 
   private final TelemetryUtils telemetryUtils;
 
+  private final LicenseNameProvider licenseNameProvider;
+
   @Inject
   public HistoricalPolicyViolationTelemetryService(
       HistoricalTelemetryStateDAO historicalTelemetryStateDAO,
       PolicyViolationDAO policyViolationDAO,
       TelemetrySender telemetrySender,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      LicenseNameProvider licenseNameProvider)
   {
     super(historicalTelemetryStateDAO, TelemetryPurpose.HISTORICAL_POLICY_VIOLATION, telemetrySender, BATCH_SIZE,
         CUTOFF_DATE);
     this.policyViolationDAO = policyViolationDAO;
     this.telemetryUtils = telemetryUtils;
+    this.licenseNameProvider = licenseNameProvider;
   }
 
   /**
@@ -86,7 +91,8 @@ public class HistoricalPolicyViolationTelemetryService
     return new PolicyViolationTelemetryBuilder(
         policyViolation,
         TelemetryPurpose.HISTORICAL_POLICY_VIOLATION,
-        telemetryUtils
+        telemetryUtils,
+        licenseNameProvider
     )
         .withComponentIdentifier(policyViolation.getComponentIdentifier())
         .withFixTime(policyViolation.getFixTime())

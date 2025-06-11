@@ -6,8 +6,10 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,8 +23,10 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
@@ -45,37 +49,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.APPLICATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.AUTO_POLICY_WAIVER_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CALL_FLOW_EVALUATION_SUCCESSFUL;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_DOWNGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_IDENTIFIER;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_NAMESPACE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_UPGRADE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COMPONENT_VERSION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.CONDITION_TYPE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.DIRECT_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.ECOSYSTEM;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_BY_VERSION_CHANGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.FIX_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.INNERSOURCE_DEPENDENCY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.IS_SCM_ENABLED;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.LEGACY_VIOLATION_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.NEW_POLICY_VIOLATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.OPEN_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.POLICY_WAIVER_ID;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.REACHABILITY_STATUS;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.STAGE;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_CATEGORY;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.THREAT_LEVEL;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.UNWAIVE_TIME;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVER_EXPIRATION;
-import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.WAIVE_TIME;
+import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
 import static com.sonatype.insight.purl.PackageUrlIdentifier.fromComponentIdentifier;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.CALLFLOW_EVALUATION_COMPONENT_COUNTS;
@@ -119,6 +93,9 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Inject
   private TelemetryUtils telemetryUtils;
+
+  @Inject
+  private LicenseNameProvider licenseNameProvider;
 
   @Test
   public void testAddTelemetryForConditionTypeViolation() {
@@ -276,7 +253,13 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Test
   public void testAddTelemetryForFixedViolation_FixedWithoutVersionChange_licenseData() {
-    // given a policy violation on lodash v5
+    // given a policy violation for a license vulnerability
+    final var declaredLicenses = "D1, D2";
+    final var declaredMultiLicenses = "DML1, DML2";
+    final var observedLicenses = "O1, O2";
+    final var observedMultiLicenses = "OML1, OML2";
+    final var licenseOverrides = "OML2, D1";
+
     TestablePolicyViolation testablePolicyViolation =
         TestablePolicyViolation.createDefaultLicenseViolationForComponent(lodashv5)
             .openedHoursAgo(480)
@@ -285,7 +268,8 @@ public class PolicyViolationTelemetryCollectorTest
             .withConditionType(LicenseThreatGroupConditionType.ID)
             .asDirectDependency(false)
             .withPolicyViolationId("fixedWithoutVersionChange_license")
-            .markFixedByOtherMeans();
+            .withLicenses(declaredLicenses, declaredMultiLicenses, observedLicenses, observedMultiLicenses)
+            .markFixedByLicenseOverride(licenseOverrides, LicenseOverrideStatus.SELECTED);
 
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
@@ -493,7 +477,7 @@ public class PolicyViolationTelemetryCollectorTest
 
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
     PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, isScmEnabled);
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, licenseNameProvider, isScmEnabled);
     telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
     return telemetryCollector;
   }
@@ -542,6 +526,14 @@ public class PolicyViolationTelemetryCollectorTest
     private boolean isScmEnabled;
 
     private String licenseThreatGroup;
+
+    private String licensesDeclared;
+
+    private String licensesEffective;
+
+    private String licensesObserved;
+
+    private String licensesOverrideStatus;
 
     private String waiverId;
 
@@ -670,6 +662,18 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation markFixedByLicenseOverride(
+        String licenseOverrides,
+        LicenseOverrideStatus overrideStatus)
+    {
+      this.fixTime = policyEvaluation.getTime().getTime();
+      this.licensesEffective = licenseOverrides;
+      this.licensesOverrideStatus = overrideStatus.getName();
+      component.setLicenseOverrideIds(toLicenseSet(licenseOverrides));
+      component.setLicenseOverrideStatus(overrideStatus);
+      return this;
+    }
+
     TestablePolicyViolation markFixedByRemoval() {
       this.fixTime = policyEvaluation.getTime().getTime();
       component = null;
@@ -764,6 +768,21 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withLicenses(
+        String declared,
+        String declaredMulti,
+        String observed,
+        String observedMulti)
+    {
+      this.licensesDeclared = String.join(", ", declaredMulti, declared);
+      this.licensesObserved = String.join(", ", observedMulti, observed);
+      this.component.setDeclaredLicenseIds(toLicenseSet(declared));
+      this.component.setDeclaredMultiLicenseIds(toLicenseSet(declaredMulti));
+      this.component.setObservedLicenseIds(toLicenseSet(observed));
+      this.component.setObservedMultiLicenseIds(toLicenseSet(observedMulti));
+      return this;
+    }
+
     TestablePolicyViolation withPolicyViolationId(String policyViolationId) {
       policyViolation.setId(policyViolationId);
       return this;
@@ -820,6 +839,11 @@ public class PolicyViolationTelemetryCollectorTest
       validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.CVSS_SCORE, cvssScore);
       validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSE_THREAT_GROUP_ATTRIBUTE,
           licenseThreatGroup);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSES_DECLARED, licensesDeclared);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSES_EFFECTIVE, licensesEffective);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSES_OBSERVED, licensesObserved);
+      validateMatchesOrNotExists(attributes, PolicyViolationTelemetryBuilder.LICENSES_OVERRIDE_STATUS,
+          licensesOverrideStatus);
       assertThat(attributes).containsEntry(IS_SCM_ENABLED, isScmEnabled);
       assertThat(attributes).containsEntry(OPEN_TIME, getOpenTime());
       assertThat(attributes).containsEntry(POLICY_VIOLATION_ID, policyViolation.getId());
@@ -911,6 +935,10 @@ public class PolicyViolationTelemetryCollectorTest
     void validateTimeAttribute(Map<String, Object> attributes, long expectedTime) {
       assertThat(attributes).containsEntry(TIME, expectedTime);
     }
+
+    private Set<String> toLicenseSet(String licenses) {
+      return new LinkedHashSet<>(Arrays.asList(licenses.split(", ")));
+    }
   }
 
   /**
@@ -934,18 +962,16 @@ public class PolicyViolationTelemetryCollectorTest
     }
 
     /**
-     * A useful constraint fact must have at least 1 condition facts because that's where
-     * the test data is. Several are created because in real word scenarios there may be multiple constraint facts
-     * with one condition fact nested with needed data.
-     * The number of constraint and condition facts is fixed.
-     * Only one condition fact with the cv metadata is instantiated in the whole list of
-     * constraint facts, it is possible to choose where.
-     * Hardcoded values are not important for these tests.
+     * A useful constraint fact must have at least 1 condition facts because that's where the test data is. Several are
+     * created because in real word scenarios there may be multiple constraint facts with one condition fact nested with
+     * needed data. The number of constraint and condition facts is fixed. Only one condition fact with the cv metadata
+     * is instantiated in the whole list of constraint facts, it is possible to choose where. Hardcoded values are not
+     * important for these tests.
      *
-     * @param cveNumber   CVE id to inject in the condition fact
-     * @param cvssScore   Score to inject in the condition fact
+     * @param cveNumber          CVE id to inject in the condition fact
+     * @param cvssScore          Score to inject in the condition fact
      * @param licenseThreatGroup use for license thread conditions;  mutually exclusive with the cve params above
-     * @param cvIteration Iteration you want to insert the cv metadata
+     * @param cvIteration        Iteration you want to insert the cv metadata
      * @return A list of constraint fact with the same amount of condition fact that contain the cv metadata
      */
     private static List<ConstraintFact> createConstraintFactsWithInjectedCondition(
@@ -965,7 +991,7 @@ public class PolicyViolationTelemetryCollectorTest
           if (cveNumber != null && cvssScore != null && cvIteration == i && cvIteration == j) {
             conditionFact = createConditionFactWithCVMetadata(j, cveNumber, cvssScore);
           }
-          else if (StringUtils.isNotBlank(licenseThreatGroup)  && cvIteration == i && cvIteration == j) {
+          else if (StringUtils.isNotBlank(licenseThreatGroup) && cvIteration == i && cvIteration == j) {
             conditionFact = createConditionFactForLicenseThreat(j, licenseThreatGroup);
           }
           else {
@@ -1004,8 +1030,8 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   /**
-   * Helper class used to isolate the policy violation data to ensure that the telemetry collector can't
-   * inadvertently modify the reference data.
+   * Helper class used to isolate the policy violation data to ensure that the telemetry collector can't inadvertently
+   * modify the reference data.
    */
   private class PolicyViolationTestUtils
   {

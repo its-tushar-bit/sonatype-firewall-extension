@@ -21,6 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -102,6 +103,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -196,6 +198,8 @@ public class ScanPolicyEvaluator
 
   private final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService;
 
+  private final LicenseNameProvider licenseNameProvider;
+
   @Inject
   public ScanPolicyEvaluator(
       final InsightWork insightWork,
@@ -230,7 +234,8 @@ public class ScanPolicyEvaluator
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       final PathForwardInspector pathForwardInspector,
-      final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService)
+      final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService,
+      final LicenseNameProvider licenseNameProvider)
   {
     this.work = insightWork;
     this.reportService = reportService;
@@ -265,6 +270,7 @@ public class ScanPolicyEvaluator
     this.autoPolicyWaiverTelemetryCollector = autoPolicyWaiverTelemetryCollector;
     this.pathForwardInspector = pathForwardInspector;
     this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
+    this.licenseNameProvider = licenseNameProvider;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -842,7 +848,7 @@ public class ScanPolicyEvaluator
             }
 
             if (oldPolicyViolation.isLegacyViolation() && !oldPolicyViolation.isLegacyViolationApplied() &&
-                !oldPolicyViolation.getStageTypeId().equals(Stage.ID_COMPLIANCE) ) {
+                !oldPolicyViolation.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
               oldPolicyViolation.setLegacyViolationApplied(true);
               telemetryCollector.addTelemetryForLegacyViolation(oldPolicyViolation, component);
             }
@@ -1422,7 +1428,8 @@ public class ScanPolicyEvaluator
             forMonitoring);
 
     PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, sourceControlUtils.isScmEnabled(appId));
+        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, licenseNameProvider,
+            sourceControlUtils.isScmEnabled(appId));
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,

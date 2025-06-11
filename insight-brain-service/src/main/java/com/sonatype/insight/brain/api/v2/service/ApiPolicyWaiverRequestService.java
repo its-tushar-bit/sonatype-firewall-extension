@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.validation.constraints.NotNull;
@@ -52,6 +53,7 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -110,6 +112,8 @@ public class ApiPolicyWaiverRequestService
 
   private final RequestPolicyWaiverEventService requestPolicyWaiverEventService;
 
+  private final LicenseNameProvider licenseNameProvider;
+
   @Inject
   public ApiPolicyWaiverRequestService(
       ApiPolicyWaiverService apiPolicyWaiverService,
@@ -124,7 +128,8 @@ public class ApiPolicyWaiverRequestService
       PolicyWaiverReasonDAO policyWaiverReasonDAO,
       IdUtils idUtils,
       TelemetryUtils telemetryUtils,
-      RequestPolicyWaiverEventService requestPolicyWaiverEventService)
+      RequestPolicyWaiverEventService requestPolicyWaiverEventService,
+      LicenseNameProvider licenseNameProvider)
   {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
     this.telemetrySender = telemetrySender;
@@ -139,6 +144,7 @@ public class ApiPolicyWaiverRequestService
     this.idUtils = idUtils;
     this.telemetryUtils = telemetryUtils;
     this.requestPolicyWaiverEventService = requestPolicyWaiverEventService;
+    this.licenseNameProvider = licenseNameProvider;
   }
 
   /**
@@ -382,9 +388,10 @@ public class ApiPolicyWaiverRequestService
     }
 
     String reasonText = policyWaiverReason != null ? policyWaiverReason.getReasonText() : null;
-    TelemetryData telemetryData =
-        new PolicyViolationTelemetryBuilder((PolicyViolation) policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils)
-            .build().put(WAIVER_REASON, reasonText);
+    TelemetryData telemetryData = new PolicyViolationTelemetryBuilder(
+        (PolicyViolation) policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils, licenseNameProvider)
+        .build()
+        .put(WAIVER_REASON, reasonText);
 
     telemetrySender.send(telemetryData);
   }
@@ -581,7 +588,7 @@ public class ApiPolicyWaiverRequestService
 
     return policyWaiverRequestMatcherWrapper.matchesComponent(componentFact)
         && (policyWaiverRequestMatcherWrapper.matchesConstraintFactsJson(constraintFactsJson)
-            || policyWaiverRequestMatcherWrapper.matchesConstraintFacts(constraintFacts));
+        || policyWaiverRequestMatcherWrapper.matchesConstraintFacts(constraintFacts));
   }
 
   private static boolean isExpired(Date expiryTime) {

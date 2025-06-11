@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.webhook;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -54,6 +56,8 @@ public class RequestPolicyWaiverEventService
 
   private final BaseUrl baseUrl;
 
+  private final LicenseNameProvider licenseNameProvider;
+
   @VisibleForTesting
   private TelemetrySender telemetrySender;
 
@@ -65,7 +69,8 @@ public class RequestPolicyWaiverEventService
       final PolicyWaiverReasonDAO policyWaiverReasonDAO,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final BaseUrl baseUrl)
+      final BaseUrl baseUrl,
+      final LicenseNameProvider licenseNameProvider)
   {
     this.eventBus = eventBus;
     this.currentUser = currentUser;
@@ -74,6 +79,7 @@ public class RequestPolicyWaiverEventService
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.baseUrl = baseUrl;
+    this.licenseNameProvider = licenseNameProvider;
   }
 
   /**
@@ -188,9 +194,10 @@ public class RequestPolicyWaiverEventService
   private void sendTelemetryForWaiverRequest(WaiverRequestEvent waiverRequestEvent) {
     PolicyViolation policyViolation = policyViolationDAO.getById(waiverRequestEvent.policyViolationId);
     policyViolationDAO.loadConstraintFacts(List.of(policyViolation));
-    var telemetryData = new PolicyViolationTelemetryBuilder(policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils)
-        .build()
-        .put(WAIVER_REASON, waiverRequestEvent.reasonText);
+    var telemetryData =
+        new PolicyViolationTelemetryBuilder(policyViolation, POLICY_WAIVER_REQUEST, telemetryUtils, licenseNameProvider)
+            .build()
+            .put(WAIVER_REASON, waiverRequestEvent.reasonText);
 
     telemetrySender.send(telemetryData);
   }

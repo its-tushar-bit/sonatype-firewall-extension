@@ -67,6 +67,9 @@ public class LicenseDAO
       log.info("Cannot find a license with ID '{}'.  Refreshing license data.", id);
       LicenseDataUpdater.update(this, multiLicenseDAOProvider.get());
       license = licensesById.get(id);
+      if (null == license) {
+        log.warn("License with ID '{}' not found after refresh.", id);
+      }
     }
     return license;
   }

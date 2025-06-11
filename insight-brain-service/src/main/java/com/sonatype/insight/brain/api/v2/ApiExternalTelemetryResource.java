@@ -19,6 +19,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.service.ExternalTelemetryService;
 
+import io.swagger.v3.oas.annotations.Hidden;
+
 /**
  * Resource to capture data from external services that interact with the IQ server.
  *
@@ -26,6 +28,7 @@ import com.sonatype.insight.brain.service.ExternalTelemetryService;
  */
 @Named
 @Path(PublicApiPaths.EXTERNAL_TELEMETRY_PATH)
+@Hidden
 public class ApiExternalTelemetryResource
 {
   private final ExternalTelemetryService externalTelemetryService;

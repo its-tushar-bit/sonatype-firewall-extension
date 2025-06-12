@@ -3330,6 +3330,25 @@ public class ComponentInfoServiceTest
   }
 
   @Test
+  public void testGetComponentDetailsList_CpeComponent() {
+    Application app = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.SBOM.getId();
+
+    NamedComponentDetails componentDetails = newNamedComponentDetails(GENERIC_COORDINATES);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(GENERIC_COORDINATES, app.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(GENERIC_COORDINATES, app,
+        IdentificationSource.SBOM.getId(), scanId, DependencyType.DIRECT, true).getLeft();
+
+    assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(componentDetails);
+  }
+
+  @Test
   public void testGetComponentDetails_genericComponent_sbomSource() throws IOException {
     String scanId = "scanId";
     String identificationSource = IdentificationSource.SBOM.getId();

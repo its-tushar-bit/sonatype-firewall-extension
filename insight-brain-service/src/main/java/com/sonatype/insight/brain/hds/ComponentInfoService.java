@@ -919,46 +919,42 @@ public class ComponentInfoService
       throw new BadRequestException("componentIdentifier is required");
     }
 
-    ComponentDetailsList componentDetailsList;
+    ComponentDetailsList componentDetailsList = null;
     RepositorySourceResponseDTO sourceResponseDTO = null;
 
-    if (isKnownFormat(identifier)) {
-      if (identifier.isTerraform()) {
-        //Terraform information is not stored in HDS
-        componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
-      }
-      else {
-        //If it's an InnerSource dependency, we check HDS first since it could also be an OpenSource component
-        componentDetailsList = getInformationVersionsHds(identifier, identificationSource, owner, scanId,
-            stableVersionsOnly);
-
-        boolean queryRepo =
-            shouldGetFromRepositoryData(componentDetailsList, identifier, dependencyType, identificationSource);
-
-        //If HDS does not return DM matched components, and it's an InnerSource Repo component we query repo
-        if (queryRepo) {
-          Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> result =
-              repositoryQueryService.getAllVersions(identifier, owner);
-          sourceResponseDTO = result.getRight();
-          if (CollectionUtils.isEmpty(result.getLeft().getComponents())) {
-            if (sourceResponseDTO != null) {
-              sourceResponseDTO.source = null;
-            }
-          }
-          else {
-            componentDetailsList = transformToComponentDetailsList(result.getLeft(), identifier);
-          }
-        }
+    // Case 1: Terraform components (which are also 'knownFormat')
+    if (isKnownFormat(identifier) && identifier.isTerraform()) {
+      componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
+    }
+    // Case 2: SBOM identification source with formats not supported by HDS (CPE matches)
+    else if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
+        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
+      NamedComponentDetails details =
+          reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+      if (details != null) {
+        componentDetailsList = new ComponentDetailsList();
+        componentDetailsList.setList(Collections.singletonList(details));
       }
     }
+    // Case 3: Other 'knownFormat' components (i.e., not Terraform and not the specific SBOM case above)
+    // This handles HDS and potential repository lookups.
+    else if (isKnownFormat(identifier)) {
+      Pair<ComponentDetailsList, RepositorySourceResponseDTO> result =
+          getFromHdsOrRepository(identifier, identificationSource, owner, scanId, dependencyType, stableVersionsOnly);
+      componentDetailsList = result.getLeft();
+      sourceResponseDTO = result.getRight();
+    }
+    // Case 4: Third-party identification source
     else if (isThirdPartyIdentificationSource(identificationSource)) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
+    // Case 5: Generic components (if not a known format and not a third-party source)
     else if (identifier.isGeneric()) {
       // allow generic component identifier which are components that do not
       // currently have broad support in the lifecycle ecosystem
       componentDetailsList = createComponentDetailsListForGenericIdentifier(identifier);
     }
+    // Case 6: Invalid format if none of the above conditions were met
     else {
       throw new BadRequestException("Invalid format: " + identifier.getFormat());
     }
@@ -967,7 +963,35 @@ public class ComponentInfoService
       log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }
+
     return Pair.of(componentDetailsList, sourceResponseDTO);
+  }
+
+  private Pair<ComponentDetailsList, RepositorySourceResponseDTO> getFromHdsOrRepository(
+      ComponentIdentifier identifier,
+      String identificationSource,
+      Owner owner,
+      String scanId,
+      DependencyType dependencyType,
+      boolean stableVersionsOnly
+  )
+  {
+    ComponentDetailsList detailsList =
+        getInformationVersionsHds(identifier, identificationSource, owner, scanId, stableVersionsOnly);
+    RepositorySourceResponseDTO sourceResponseDTO = null;
+
+    if (shouldGetFromRepositoryData(detailsList, identifier, dependencyType, identificationSource)) {
+      Pair<RepositoryAllVersionsResponse, RepositorySourceResponseDTO> repoResult =
+          repositoryQueryService.getAllVersions(identifier, owner);
+      sourceResponseDTO = repoResult.getRight();
+      if (CollectionUtils.isNotEmpty(repoResult.getLeft().getComponents())) {
+        detailsList = transformToComponentDetailsList(repoResult.getLeft(), identifier);
+      }
+      else if (sourceResponseDTO != null) {
+        sourceResponseDTO.source = null;
+      }
+    }
+    return Pair.of(detailsList, sourceResponseDTO);
   }
 
   private boolean shouldGetFromRepositoryData(

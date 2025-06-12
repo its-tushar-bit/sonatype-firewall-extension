@@ -2091,3 +2091,6 @@ CREATE TABLE zscaler_format (
         REFERENCES zscaler_configuration(zscaler_configuration_id) ON DELETE CASCADE
 
 );
+
+-- Since 1.193
+INSERT INTO cpe_matching_configuration (cpe_matching_configuration_id, owner_id, cpe_enabled, allow_override) VALUES ('de05215c34f944b7b77ca85f6e096797', 'ROOT_ORGANIZATION_ID', true, true);

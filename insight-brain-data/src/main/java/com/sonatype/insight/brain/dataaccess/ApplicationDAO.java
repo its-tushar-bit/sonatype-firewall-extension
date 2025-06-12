@@ -1021,4 +1021,13 @@ public class ApplicationDAO
         "   AND organization.relatedRepositoryManagerId IS NULL";
     return getSingle(Long.class, sQuery);
   }
+
+  public long getApplicationsCountByOrganizationId(String organizationId) {
+    String sQuery = "" +
+        "SELECT COUNT(application)" +
+        " FROM Application application" +
+        " WHERE application.organizationId=?1";
+
+    return getSingle(Long.class, sQuery, organizationId);
+  }
 }

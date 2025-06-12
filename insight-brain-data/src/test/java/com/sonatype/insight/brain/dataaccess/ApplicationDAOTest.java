@@ -1913,6 +1913,18 @@ public class ApplicationDAOTest
 
     assertThat(applicationDAO.getCountWithoutRelatedRepositories()).isEqualTo(2);
   }
+  
+  @Test
+  public void testGetApplicationsCountByOrganizationIds() {
+    Organization org1 = tempEntity.newOrganization();
+    Organization org2 = tempEntity.newOrganization();
+    
+    tempEntity.newApplication(org1.getId());
+    tempEntity.newApplication(org1.getId());
+    tempEntity.newApplication(org2.getId());
+    
+    assertThat(applicationDAO.getApplicationsCountByOrganizationId(org1.getId())).isEqualTo(2);
+  }
 
   private void validateApplication(Application actualApp, Application expectedApp) {
     assertThat(actualApp.getName()).isEqualTo(expectedApp.getName());

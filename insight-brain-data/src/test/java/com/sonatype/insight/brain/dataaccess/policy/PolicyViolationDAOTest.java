@@ -7,15 +7,7 @@ package com.sonatype.insight.brain.dataaccess.policy;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -30,6 +22,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO.Container
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -102,7 +95,6 @@ public class PolicyViolationDAOTest
     super.setup();
     dao = daoFactory.createPolicyViolationDAO();
     constraintFactsDAO = daoFactory.createPolicyViolationConstraintFactsDAO();
-
     organizationDAO = daoFactory.createOrganizationDAO();
 
   }
@@ -1965,6 +1957,76 @@ public class PolicyViolationDAOTest
         .containsExactlyInAnyOrder(openViolation.getId(), waivedViolation.getId(), legacyViolation.getId());
   }
 
+  @Test
+  public void testGetContainerImagePolicyViolationSummaryForRepository() {
+    Organization organization = tempEntity.newOrganization("org");
+    organization.setRelatedRepositoryId(repository.getId());
+    repository.setRelatedOrganizationId(organization.getId());
+    organizationDAO.update(organization);
+    // Container Image applications
+    Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
+    Application application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
+
+    // policy evaluation
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
+
+    // policy for policy violation
+    Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
+    Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
+    Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
+    Policy policy4 = tempEntity.newPolicy(application1.getId(), "policy4");
+
+    Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5");
+    Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6");
+
+    // create policy violations app 1
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
+    PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
+    PolicyViolation policyViolation4 = tempEntity.newPolicyViolation(policyEvaluation1, policy4);
+    policyViolation1.setThreatLevel(10);
+    policyViolation2.setThreatLevel(8);
+    policyViolation3.setThreatLevel(10);
+    policyViolation4.setThreatLevel(5);
+    policyViolation1.setActionTypeId("fail");
+
+    // create policy violations app 1
+    PolicyViolation policyViolation5 = tempEntity.newPolicyViolation(policyEvaluation2, policy5);
+    PolicyViolation policyViolation6 = tempEntity.newPolicyViolation(policyEvaluation2, policy6);
+    policyViolation5.setThreatLevel(10);
+    policyViolation6.setThreatLevel(2);
+
+    dao.update(policyViolation1);
+    dao.update(policyViolation2);
+    dao.update(policyViolation3);
+    dao.update(policyViolation4);
+    dao.update(policyViolation5);
+    dao.update(policyViolation6);
+
+    ContainerImagePolicyViolationSummaryDTO result = dao
+        .getContainerImagePolicyViolationSummaryForRepository(repository.getId());
+    assertThat(result.getCriticalPolicyViolationsCount()).isEqualTo(4);
+    assertThat(result.getSeverePolicyViolationsCount()).isEqualTo(1);
+    assertThat(result.getModeratePolicyViolationsCount()).isEqualTo(1);
+    assertThat(result.getQuarantinedContainerImagesCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetContainerImagePolicyViolationSummaryForRepository_NoViolations() {
+    String repositoryId = "repo-empty";
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repositoryId);
+    organizationDAO.update(organization);
+    tempEntity.newApplication(organization.getId());
+    ContainerImagePolicyViolationSummaryDTO result = dao
+        .getContainerImagePolicyViolationSummaryForRepository(repositoryId);
+    assertThat(result.getCriticalPolicyViolationsCount()).isEqualTo(0);
+    assertThat(result.getModeratePolicyViolationsCount()).isEqualTo(0);
+    assertThat(result.getSeverePolicyViolationsCount()).isEqualTo(0);
+    assertThat(result.getQuarantinedContainerImagesCount()).isEqualTo(0);
+  }
+  
   @Test
   public void getContainerImagesInQuarantine() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();

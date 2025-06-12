@@ -40,10 +40,12 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImag
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainer;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.SbomPolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
 import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
@@ -1030,6 +1032,36 @@ public class PolicyViolationDAO
       }
 
       return applicationIdResultMap;
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public ContainerImagePolicyViolationSummaryDTO getContainerImagePolicyViolationSummaryForRepository(
+          String repositoryId)
+  {
+    String sQuery = "" + //
+        "SELECT " + " COUNT(CASE WHEN (threat_level >= 8) THEN 1 END) AS policyViolationCritical," + //
+        " COUNT(CASE WHEN (threat_level >= 4 and threat_level < 8) THEN 1 END) AS policyViolationSevere," + //
+        " COUNT(CASE WHEN (threat_level >= 2 and threat_level < 4) THEN 1 END) AS policyViolationModerate," + //
+        " COUNT(DISTINCT CASE WHEN pv.threat_level > 1 THEN pv.application_id END) AS affectedContainers," + //
+        " COUNT(DISTINCT CASE WHEN pv.action_type_id = ?1 THEN pv.application_id END) AS containersInQuarantine" + //
+        " FROM " + getDatabaseSchema() + ".organization org" + //
+        " JOIN " + getDatabaseSchema() + ".application app" + //
+        " ON org.related_repository_id = ?2" + //
+        " AND org.organization_id = app.organization_id" + //
+        " JOIN " + getDatabaseSchema() + ".policy_violation pv" + //
+        " ON pv.application_id = app.application_id" + //
+        " WHERE fix_time is null" + //
+        " AND waive_time is null" + //
+        " AND stage_type_id = ?3";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery,
+              Action.ID_FAIL, repositoryId, ProxyStageType.ID);
+      Object[] result = (Object[]) query.getSingleResult();
+      return new ContainerImagePolicyViolationSummaryDTO(result);
     }
     catch (Exception e) {
       throw new RuntimeException(e);

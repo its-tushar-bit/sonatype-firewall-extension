@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -40,7 +39,6 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.CPE_MATCHING_CONFIGU
 @Tag(name = "CPE Matching Configuration",
     description = "Use the CPE Matching Configuration REST API to add/set/remove cpe matching configuration to" +
         "organizations and applications")
-@Hidden
 @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
 public class CpeMatchingConfigurationResource
 {
@@ -57,7 +55,6 @@ public class CpeMatchingConfigurationResource
   @Audited(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
   @Operation(
-      hidden = true,
       description = "Use this method to apply a given cpe matching configuration to an organization or application." +
           "<p>" +
           "Permissions Required: Edit IQ Elements"
@@ -80,7 +77,6 @@ public class CpeMatchingConfigurationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(
-      hidden = true,
       description = "This method allows to retrieve the applicable cpe matching configuration of a given " +
           "organization or application." +
           "<p>" +

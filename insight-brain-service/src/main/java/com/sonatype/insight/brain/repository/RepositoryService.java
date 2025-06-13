@@ -16,7 +16,9 @@ import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -231,7 +233,7 @@ public class RepositoryService
    */
   @Authorize(permission = Permission.READ)
   public RepositoryDTO getRepositoryById(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
-    RepositoryDTO repositoryDTO = convertRepository(repositoryDAO.getByIdNotNull(repositoryId));
+    RepositoryDTO repositoryDTO = convertRepositories(List.of(repositoryDAO.getByIdNotNull(repositoryId))).get(0);
     Date evaluationTime = repositoryComponentDAO.getOldestComponentEvaluationTimeByRepositoryId(repositoryId);
     if (evaluationTime != null) {
       repositoryDTO.oldestEvalTimestamp = evaluationTime.getTime();
@@ -296,11 +298,7 @@ public class RepositoryService
     if (repositories.isEmpty()) {
       return new RepositoriesDTO();
     }
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
-    for (Repository repository : repositories) {
-      repositoryDTOs.add(convertRepository(repository));
-    }
-    return new RepositoriesDTO(repositoryDTOs);
+    return new RepositoriesDTO(convertRepositories(repositories));
   }
 
   public List<Repository> getRepositoriesWithReadPermissionByIds(final Set<String> repositoryIds) {
@@ -325,13 +323,29 @@ public class RepositoryService
     return repositories;
   }
 
-  private RepositoryDTO convertRepository(Repository repository) {
-    RepositoryDTO repositoryDTO = new RepositoryDTO();
-    repositoryDTO.repository = repository;
-    RepositoryManager repositoryManager = repositoryManagerDAO.getById(repository.getRepositoryManagerId());
-    repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
-    repositoryDTO.managerName = repositoryManager.getName();
-    return repositoryDTO;
+  private List<RepositoryDTO> convertRepositories(List<Repository> repositories) {
+    Set<String> repositoryManagerIds = repositories.stream()
+        .map(Repository::getRepositoryManagerId)
+        .collect(Collectors.toSet());
+
+    Map<String, RepositoryManager> repositoryManagerMap = repositoryManagerDAO.getByIds(repositoryManagerIds)
+        .stream()
+        .collect(Collectors.toMap(RepositoryManager::getId, Function.identity(), (existing, replacement) -> existing));
+
+    List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
+
+    for (Repository repository : repositories) {
+      RepositoryDTO repositoryDTO = new RepositoryDTO();
+      repositoryDTO.repository = repository;
+
+      RepositoryManager repositoryManager = repositoryManagerMap.get(repository.getRepositoryManagerId());
+      repositoryDTO.managerInstanceId = repositoryManager.getInstanceId();
+      repositoryDTO.managerName = repositoryManager.getName();
+
+      repositoryDTOs.add(repositoryDTO);
+    }
+
+    return repositoryDTOs;
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
@@ -520,11 +534,7 @@ public class RepositoryService
       return new RepositoriesDTO();
     }
 
-    List<RepositoryDTO> repositoryDTOs = new ArrayList<>(repositories.size());
-    for (Repository repository : repositories) {
-      repositoryDTOs.add(convertRepository(repository));
-    }
-    return new RepositoriesDTO(repositoryDTOs);
+    return new RepositoriesDTO(convertRepositories(repositories));
   }
 
   @Authorize(permission = Permission.READ)

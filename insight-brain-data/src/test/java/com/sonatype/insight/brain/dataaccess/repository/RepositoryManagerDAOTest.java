@@ -294,4 +294,17 @@ public class RepositoryManagerDAOTest extends NameableDAOTest<RepositoryManager>
     JPA.assertContainsEntitiesExactlyInAnyOrder(dao.getByRepositoryIds(Set.of(repo1.getId(), repo2.getId())), repoMan1,
         repoMan2);
   }
+
+  @Test
+  public void testGetByIds() {
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    // Additional RepositoryManager not queried
+    tempEntity.newRepositoryManager();
+
+    Set<String> repositoryManagerIds = Set.of(repositoryManager1.getId(), repositoryManager2.getId());
+
+    JPA.assertContainsEntitiesExactlyInAnyOrder(
+        dao.getByIds(repositoryManagerIds), repositoryManager1, repositoryManager2);
+  }
 }

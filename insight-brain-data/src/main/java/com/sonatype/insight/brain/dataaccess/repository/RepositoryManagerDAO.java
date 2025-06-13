@@ -212,6 +212,16 @@ public class RepositoryManagerDAO
         WHERE repositoryManager.id = repository.repositoryManagerId AND
         repository.id IN ?1
         """;
-    return getList(sQuery, repositoryIds);
+    return getListWithSqlInClause(repositoryIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
+  }
+
+  public List<RepositoryManager> getByIds(Set<String> repositoryManagerIds) {
+    String sQuery = """
+        SELECT entity
+          FROM RepositoryManager entity
+         WHERE entity.id IN ?1
+        """;
+    return getListWithSqlInClause(
+        repositoryManagerIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 }

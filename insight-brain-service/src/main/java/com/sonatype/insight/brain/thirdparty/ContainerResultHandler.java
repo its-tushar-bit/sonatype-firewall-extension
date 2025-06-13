@@ -41,6 +41,7 @@ import com.neuvector.model.ModuleCve;
 import com.neuvector.model.ScanModule;
 import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -136,7 +137,7 @@ public class ContainerResultHandler
     }
 
     Set<Component> componentsToAdd = new LinkedHashSet<>();
-    ScanModule[] modules = scanRepoReportData.getReport().getModules();
+    ScanModule[] modules = ArrayUtils.nullToEmpty(scanRepoReportData.getReport().getModules(), ScanModule[].class);
     Map<String, org.cyclonedx.model.vulnerability.Vulnerability> cveCycloneDxVulnMap = new HashMap<>();
     Map<String, Set<String>> vulnerabilityAffectsMap = new HashMap<>();
 

@@ -1,0 +1,41 @@
+{
+  "error_message": "",
+  "report": {
+    "image_id": "74cc54e27dc41bb10dc4b2226072d469509f2f22f1a3ce74f4a59661a1d44602",
+    "registry": "https://registry.hub.docker.com",
+    "repository": "library/hello-world",
+    "tag": "latest",
+    "digest": "sha256:03b62250a3cb1abd125271d393fc08bf0cc713391eda6b57c02d1ef85efcc25c",
+    "base_os": "",
+    "cvedb_version": "3.829",
+    "cvedb_create_time": "2025-06-08T20:31:10Z",
+    "layers": [],
+    "vulnerabilities": [],
+    "checks": [
+      {
+        "test_number": "I.4.1",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": true,
+        "description": "Ensure a user for the container has been created",
+        "remediation": "",
+        "level": "WARN",
+        "message": []
+      },
+      {
+        "test_number": "I.4.6",
+        "type": "image",
+        "profile": "Level 1",
+        "scored": false,
+        "description": "Ensure that HEALTHCHECK instructions have been added to container images",
+        "remediation": "",
+        "level": "WARN",
+        "message": []
+      }
+    ],
+    "cmds": [
+      "CMD [\"/hello\"]",
+      "COPY hello / # buildkit"
+    ]
+  }
+}

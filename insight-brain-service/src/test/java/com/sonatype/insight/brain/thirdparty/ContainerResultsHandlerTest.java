@@ -95,6 +95,23 @@ public class ContainerResultsHandlerTest
   }
 
   @Test
+  public void testHandleAndFilterContents_noModules() throws Exception {
+    String json = loadResource("container-image-no-modules.json");
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:hello-world:latest", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    assertThat(actualFilteredContent).isNotNull();
+
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+
+    assertThat(bom).isNotNull();
+    assertThat(bom.getComponents()).isNullOrEmpty();
+  }
+
+  @Test
   public void testHandleAndFilterContents_Filtered() throws Exception {
     String json = loadResource("alpine-3.6.json");
 

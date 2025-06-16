@@ -2154,6 +2154,45 @@ public class PolicyViolationDAOTest
     assertThat(containerImagesInQuarantine.get(0).threatLevel()).isEqualTo(9);
   }
 
+  @Test
+  public void getContainerImagesQuarantinedCount() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Application app2 = tempEntity.newApplication("app2", org1.getId());
+    Application app3 = tempEntity.newApplication("app3", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    //First container with violations
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID,
+        "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 8, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id1", "v1", "test-hash", FailActionType.ID);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id2", "v1", "test-hash", FailActionType.ID);
+    PolicyViolation policyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation1, policy, 10, PolicyThreatCategory.OTHER, "test-group-id",
+            "test-artifact-id2", "v1", "test-hash", FailActionType.ID);
+    policyViolation.setWaiveTime(DateUtils.addDays(new Date(), 1));
+    dao.update(policyViolation);
+
+    // Second container image with violations
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ProxyStageType.ID,
+        "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, 8, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id1", "v1", "test-hash", FailActionType.ID);
+
+    // Third container image with no violations
+    tempEntity.newPolicyEvaluation(app3.getId(), ProxyStageType.ID,
+        "scan-1");
+
+    assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(2);
+  }
+
   private void setupContainerImagesWithViolations(final Organization org) {
     Application app1 = tempEntity.newApplication("app1-" + org.getName(), org.getId());
     Application app2 = tempEntity.newApplication("app2-" + org.getName(), org.getId());

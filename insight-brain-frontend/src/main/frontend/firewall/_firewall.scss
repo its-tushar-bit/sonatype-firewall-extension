@@ -214,3 +214,43 @@ h2.iq-firewall-table-label {
   flex-direction: column;
   gap: var(--nx-spacing-8x);
 }
+
+//Firewall container
+// Firewall Quarantine Grid
+.iq-firewall-container-quarantine-table {
+  height: nx-table-helpers.pagination-table-height(12, 1);
+
+  .iq-cell--threat {
+    width: 90px;
+  }
+
+  .iq-cell--policy-type {
+    width: 320px;
+  }
+
+  .iq-cell--quarantine-date {
+    width: 190px;
+  }
+
+  .iq-cell--repository {
+    width: 160px;
+  }
+
+  button.nx-text-link {
+    line-height: var(--nx-line-height);
+    text-decoration: none;
+  }
+
+  .nx-text-input {
+    width: 100% !important;
+  }
+}
+
+// id is used to get a high specificity
+#pagination-firewall-container-quarantine-table .iq-firewall-container-quarantine-table__component-cell {
+  padding: 0;
+
+  .nx-truncate-ellipsis {
+    padding: calc(var(--nx-spacing-3x) - 1px) var(--nx-spacing-3x) var(--nx-spacing-3x) var(--nx-spacing-3x);
+  }
+}

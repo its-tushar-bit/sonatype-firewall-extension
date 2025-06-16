@@ -580,6 +580,17 @@ export function getFirewallQuarantineListUrl(
   return uriTemplate`/api/v2/malware-defense/components/quarantined` + params;
 }
 
+export function getFirewallContainerQuarantineListUrl(page, pageSize) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/malware-defense/container-image/in-quarantine` + params;
+}
+
 export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/malware-defense/quarantine/summary`;
 }

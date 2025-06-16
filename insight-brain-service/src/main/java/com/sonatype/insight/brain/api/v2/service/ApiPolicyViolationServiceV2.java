@@ -39,6 +39,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentTransitivePolicyViolationsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiEnhancedPolicyViolationDTOV2;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiStagePolicyViolationComponentDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.PolicyAuditDTO;
@@ -365,8 +366,15 @@ public class ApiPolicyViolationServiceV2
   }
 
   @Authorize(permission = Permission.READ)
-  public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(final int page, final int pageSize) {
-    return policyViolationDAO.getContainerImagesInQuarantine(page, pageSize);
+  public ApiPageResult<ContainerImageInQuarantineData> getContainerImagesInQuarantine(
+      final int page,
+      final int pageSize)
+  {
+
+    long total = policyViolationDAO.getContainerImagesQuarantinedCount();
+    List<ContainerImageInQuarantineData> containerImagesInQuarantine =
+        policyViolationDAO.getContainerImagesInQuarantine(page, pageSize);
+    return new ApiPageResult<>(total, page, pageSize, containerImagesInQuarantine);
   }
 
   public Pair<Component, List<Pair<PolicyViolation, Component>>> getTransitivePolicyViolationsForLastEvaluation(
@@ -553,7 +561,7 @@ public class ApiPolicyViolationServiceV2
             .contains(parentComponentIdentifier))
         .toList();
   }
-  
+
   private List<Component> getComponentsByParentComponentIdentifier(
       List<Component> components,
       ComponentIdentifier parentComponentIdentifier)

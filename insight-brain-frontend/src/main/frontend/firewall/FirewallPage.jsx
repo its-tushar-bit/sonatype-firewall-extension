@@ -20,6 +20,7 @@ import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS } from 'MainRoot/constants/
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import FirewallContainerTabs from 'MainRoot/firewall/FirewallContainerTabs';
 
 const TABS = [COMPONENTS, CONTAINERS];
 
@@ -66,6 +67,8 @@ export default function FirewallPage(props) {
 
   const firewallTabsFuncRefs = useRef();
 
+  const firewallContainerTabsFuncRefs = useRef();
+
   const isContainerImagesEvalEnabled = useSelector(selectIsContainerImagesEvaluationEnabled);
 
   useEffect(() => {
@@ -99,11 +102,6 @@ export default function FirewallPage(props) {
         {showWelcomeModal && <FirewallWelcomeModal close={closeWelcomeModal} />}
         {isShowConfigurationModal && <FirewallConfigurationModalContainer />}
         <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
-          <NxPageTitle className="iq-firewall-page__title">
-            <NxPageTitle.Headings>
-              <NxH1>Firewall</NxH1>
-            </NxPageTitle.Headings>
-          </NxPageTitle>
           <FirewallStatus {...props} />
           <header className="iq-firewall-metrics-header">
             <h2 className="nx-h2 iq-firewall-metrics-label">Component Data Insights</h2>
@@ -134,8 +132,23 @@ export default function FirewallPage(props) {
     );
   };
 
+  const firewallContainersTabContent = () => {
+    return (
+      <>
+        <LoadWrapper loading={!dataLoaded} error={loadError} retryHandler={loadFirewallData}>
+          <FirewallContainerTabs ref={firewallContainerTabsFuncRefs} {...props} />
+        </LoadWrapper>
+      </>
+    );
+  };
+
   return (
     <main id="firewall-page" className="nx-page-main">
+      <NxPageTitle className="iq-firewall-page__title">
+        <NxPageTitle.Headings>
+          <NxH1>Repository Firewall</NxH1>
+        </NxPageTitle.Headings>
+      </NxPageTitle>
       {!isContainerImagesEvalEnabled && firewallComponentsTabContent()}
       {isContainerImagesEvalEnabled && (
         <NxStatefulTabs id="firewall-page-tabs" defaultActiveTab={defaultActiveTab} onTabSelect={handleTabClick}>
@@ -144,7 +157,7 @@ export default function FirewallPage(props) {
             <NxTab id={`firewall-${CONTAINERS}-tab`}>{capitalizeFirstLetter(CONTAINERS)}</NxTab>
           </NxTabList>
           <NxTabPanel id={`firewall-${COMPONENTS}-tab-panel`}>{firewallComponentsTabContent()}</NxTabPanel>
-          <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>Containers Placeholder</NxTabPanel>
+          <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>{firewallContainersTabContent()}</NxTabPanel>
         </NxStatefulTabs>
       )}
     </main>

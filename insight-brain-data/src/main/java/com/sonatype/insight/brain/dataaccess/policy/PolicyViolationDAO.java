@@ -108,9 +108,10 @@ public class PolicyViolationDAO
     return getListWithSqlInClause(ids, c -> getList(tx, sQuery, c));
   }
 
-  public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(String applicationId,
-                                                                    String policyId,
-                                                                    String hash)
+  public List<PolicyViolation> getByApplicationIdAndPolicyIdAndHash(
+      String applicationId,
+      String policyId,
+      String hash)
   {
     StringBuilder sQueryBuilder = new StringBuilder();
     sQueryBuilder.append("SELECT entity FROM PolicyViolation entity");
@@ -132,9 +133,10 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(TransactionContext tx,
-                                                                   String applicationId,
-                                                                   String stageTypeId)
+  public List<PolicyViolation> getUnfixedByApplicationIdAndStageId(
+      TransactionContext tx,
+      String applicationId,
+      String stageTypeId)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
@@ -149,9 +151,10 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId, stageTypeId);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndActionId(String applicationId,
-                                                                             String stageTypeId,
-                                                                             String actionTypeId)
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndActionId(
+      String applicationId,
+      String stageTypeId,
+      String actionTypeId)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.actionTypeId=?3" + //
@@ -159,9 +162,10 @@ public class PolicyViolationDAO
     return getList(sQuery, applicationId, stageTypeId, actionTypeId);
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(String applicationId,
-                                                                         String stageTypeId,
-                                                                         String hash)
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(
+      String applicationId,
+      String stageTypeId,
+      String hash)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
@@ -227,8 +231,9 @@ public class PolicyViolationDAO
     return getUnfixedByApplicationIds(applicationIds, true);
   }
 
-  private List<PolicyViolation> getUnfixedByApplicationIds(Collection<String> applicationIds,
-                                                           boolean onlyActiveViolations)
+  private List<PolicyViolation> getUnfixedByApplicationIds(
+      Collection<String> applicationIds,
+      boolean onlyActiveViolations)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE " + applicationIdString() + //
@@ -379,7 +384,7 @@ public class PolicyViolationDAO
 
       List<PolicyEvaluation> policyEvalList =
           policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
-          Set.of(Stage.ID_PROXY));
+              Set.of(Stage.ID_PROXY));
 
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
@@ -407,7 +412,7 @@ public class PolicyViolationDAO
           addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
           validateAndAddSortFields(detailsFilter.sortFields) +
           " LIMIT " + pageSize +
-          " OFFSET " + offset ;
+          " OFFSET " + offset;
 
       jakarta.persistence.Query query = tx.createNativeQuery(baseQuery);
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
@@ -415,7 +420,7 @@ public class PolicyViolationDAO
         query.setParameter(threatLevelFiltersParamStartPosition, detailsFilter.threatLevelFilters.get(0));
         query.setParameter(threatLevelFiltersParamStartPosition + 1, detailsFilter.threatLevelFilters.get(1));
       }
-      query.setParameter(searchFiltersParamStartPosition,  detailsFilter.searchFilters
+      query.setParameter(searchFiltersParamStartPosition, detailsFilter.searchFilters
           .get("VIOLATION_COUNT"));
       query.setParameter(searchFiltersParamStartPosition + 1,
           '%' + detailsFilter.searchFilters.get("QUARANTINE_TIME") + '%');
@@ -431,7 +436,7 @@ public class PolicyViolationDAO
               array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
               applicationIdsToScanIdMap.get((String) array[4]),
               (String) array[5]
-              )).collect(Collectors.toList());
+          )).collect(Collectors.toList());
       return results;
     }
   }
@@ -724,9 +729,10 @@ public class PolicyViolationDAO
     return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, sQuery);
   }
 
-  private List<PolicyViolation> getUnfixed(String sQuery,
-                                           Collection<String> applicationIds,
-                                           Object... otherParameters)
+  private List<PolicyViolation> getUnfixed(
+      String sQuery,
+      Collection<String> applicationIds,
+      Object... otherParameters)
   {
     if (isDatabaseEmbedded()) {
       // H2 won't utilize the index for the application id when the query uses an IN operator with multiple values (and
@@ -760,10 +766,11 @@ public class PolicyViolationDAO
     }
   }
 
-  public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(String appId,
-                                                                               Collection<String> stageTypeIds,
-                                                                               Date from,
-                                                                               Date to)
+  public List<PolicyViolation> getActiveByApplicationIdAndStageIdsAndTimeRange(
+      String appId,
+      Collection<String> stageTypeIds,
+      Date from,
+      Date to)
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId = ?1 AND entity.stageTypeId IN (?2)" + //
@@ -863,13 +870,13 @@ public class PolicyViolationDAO
   }
 
   /**
-   * This method streams the policy violations that were either still open at the cutoff date or were
-   * created, waived, fixed or resolved as legacy since the cutoff date.  IOW, we ignore any policy violations
-   * that were resolved in some fashion before the cutoff date.
+   * This method streams the policy violations that were either still open at the cutoff date or were created, waived,
+   * fixed or resolved as legacy since the cutoff date.  IOW, we ignore any policy violations that were resolved in some
+   * fashion before the cutoff date.
    *
    * @param cutoffDate the cutoff date
-   * @param batchSize number of rows to process in a batch
-   * @param consumer the consumer to accept the policy violations
+   * @param batchSize  number of rows to process in a batch
+   * @param consumer   the consumer to accept the policy violations
    */
   public void consumePolicyViolationsSinceDate(Date cutoffDate, int batchSize, Consumer<PolicyViolation> consumer)
       throws SQLException
@@ -926,7 +933,7 @@ public class PolicyViolationDAO
       inProgress = false;
       List<PolicyViolation> policyViolations = new ArrayList<>();
       try (Connection connection = getDataStore().getDataSource().getConnection();
-          PreparedStatement statement = connection.prepareStatement(sQuery)) {
+           PreparedStatement statement = connection.prepareStatement(sQuery)) {
         statement.setString(1, lastProcessedViolationId);
         statement.setDate(2, new java.sql.Date(cutoffDate.getTime()));
         statement.setDate(3, new java.sql.Date(cutoffDate.getTime()));
@@ -1073,9 +1080,9 @@ public class PolicyViolationDAO
 
     if (isDatabasePostgresql()) {
       sQuery = "SELECT EXTRACT(EPOCH FROM AVG(LEAST(fix_time, waive_time) - open_time)) * 1000" +
-        "  FROM " + getDatabaseSchema() + ".policy_violation" +
-        "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
-        "  AND open_time > CURRENT_DATE - MAKE_INTERVAL(days => ?1)";
+          "  FROM " + getDatabaseSchema() + ".policy_violation" +
+          "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
+          "  AND open_time > CURRENT_DATE - MAKE_INTERVAL(days => ?1)";
     }
     else {
       // We support h2 1.4. This version does not support EXTRACT (epoch, it also does not correctly subtract two
@@ -1086,16 +1093,16 @@ public class PolicyViolationDAO
       // SELECT DATEADD(mm,-1, '2024-03-30 18:47:52.69') -> 2024-02-29 18:47:52.69
       // TO DO CONSIDER TAKING THIS NUMBER IN DAYS, WEEKS or MS, FOR OTHER ENDPOINTS WE TREAT 3 months as 12 weeks
       sQuery = "SELECT AVG(TIMESTAMPDIFF(MILLISECOND, open_time, LEAST(fix_time, waive_time)))" +
-        "  FROM " + getDatabaseSchema() + ".policy_violation" +
-        "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
-        "  AND policy_violation.open_time > DATEADD(dd, -?1, CURRENT_TIMESTAMP)";
+          "  FROM " + getDatabaseSchema() + ".policy_violation" +
+          "  WHERE (fix_time IS NOT null OR waive_time IS NOT null)" +
+          "  AND policy_violation.open_time > DATEADD(dd, -?1, CURRENT_TIMESTAMP)";
     }
 
     try (TransactionContext tx = createTransactionContext()) {
       jakarta.persistence.Query query = tx.createNativeQuery(sQuery, Double.class);
 
       query.setParameter(1, lookBackWindowDays);
-      Double result = (Double)query.getSingleResult();
+      Double result = (Double) query.getSingleResult();
 
       if (result == null) {
         return 0L;
@@ -1279,20 +1286,20 @@ public class PolicyViolationDAO
       List<InternalDashboardViolationRiskDTO> results =
           ((Stream<Object[]>) query.getResultStream())
               .map(array -> new InternalDashboardViolationRiskDTO( //
-              (String) array[0], // applicationId
-              (String) array[1], // applicationName
-              (String) array[2], // organizationName
-              (String) array[3], // policyViolationId
-              (String) array[4], // policyName
-              getInteger(array[5]), // threatLevel
-              (String) array[6], // hash
-              (String) array[7], // filename
-              (String) array[8], // componentIdFormat
-              (String) array[9], // componentIdCoordinatesJson
-              (String) array[10], // constraintFactsId
-              ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
-              (String) array[12] // autoPolicyWaiverId
-          )).toList();
+                  (String) array[0], // applicationId
+                  (String) array[1], // applicationName
+                  (String) array[2], // organizationName
+                  (String) array[3], // policyViolationId
+                  (String) array[4], // policyName
+                  getInteger(array[5]), // threatLevel
+                  (String) array[6], // hash
+                  (String) array[7], // filename
+                  (String) array[8], // componentIdFormat
+                  (String) array[9], // componentIdCoordinatesJson
+                  (String) array[10], // constraintFactsId
+                  ((Timestamp) array[11]).getTime(), // firstOccurrenceTime
+                  (String) array[12] // autoPolicyWaiverId
+              )).toList();
 
       return results;
     }
@@ -1322,6 +1329,28 @@ public class PolicyViolationDAO
     return loadPolicyViolationsWithDateFilters(applicationIds, policyIds, openTimeAfter, openTimeBefore, baseQuery);
   }
 
+  public long getContainerImagesQuarantinedCount() {
+    String sQuery = String.format("""
+        SELECT COUNT(DISTINCT CONCAT(pv.application_id, r.repository_id)) AS total_failed_proxy_violations
+        FROM %1$s.policy_violation pv
+                 JOIN %1$s.application a ON pv.application_id = a.application_id
+                 JOIN %1$s.organization o ON a.organization_id = o.organization_id
+                 JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+        WHERE r.format = 'docker'
+          AND pv.stage_type_id = 'proxy'
+          AND pv.action_type_id = 'fail'
+          AND pv.waive_time IS NULL
+          AND pv.legacy_violation_time IS NULL
+          AND pv.fix_time IS NULL
+        """, getDatabaseSchema());
+
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = createNativeQuery(tx, sQuery);
+      Object result = query.getSingleResult();
+      return (long)result;
+    }
+  }
+
   public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(int page, int pageSize) {
     String sQuery = String.format("""
         SELECT MAX(pv.threat_level) as threat_level,
@@ -1344,7 +1373,7 @@ public class PolicyViolationDAO
           AND pv.fix_time IS NULL
         GROUP BY a.application_id,
                  r.repository_id
-        ORDER BY a.application_id ASC, MAX(pv.open_time) DESC
+        ORDER BY  MAX(pv.open_time) DESC, a.application_id ASC
         """, getDatabaseSchema());
 
     int offset = (page - 1) * pageSize;
@@ -1352,7 +1381,7 @@ public class PolicyViolationDAO
       jakarta.persistence.Query query = createNativePaginationQuery(tx, sQuery, offset, pageSize);
       return ((Stream<Object[]>) query.getResultStream())
           .map(array -> new ContainerImageInQuarantineData(
-              ((Number)array[0]).intValue(), // threatLevel
+              ((Number) array[0]).intValue(), // threatLevel
               (Date) array[1], // openTime
               (String) array[2], // applicationPublicId
               (String) array[3], // applicationId

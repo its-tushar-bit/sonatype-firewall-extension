@@ -26,6 +26,7 @@ import {
   getReevaluateComponentUrl,
   getRepositoryPolicyViolationUrl,
   getVersionGraphUrl,
+  getFirewallContainerQuarantineListUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -100,6 +101,14 @@ const loadQuarantineListRequested = noPayloadActionCreator(FIREWALL_QUARANTINE_L
 const loadQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_QUARANTINE_LIST_FULFILLED);
 const loadQuarantineListFailed = payloadParamActionCreator(FIREWALL_QUARANTINE_LIST_FAILED);
 
+export const FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED = 'FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED';
+export const FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED = 'FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED';
+export const FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED = 'FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED';
+
+const loadContainerQuarantineListRequested = noPayloadActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
+const loadContainerQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED);
+const loadContainerQuarantineListFailed = payloadParamActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED);
+
 export const FIREWALL_POLICIES_REQUESTED = 'FIREWALL_POLICIES_REQUESTED';
 export const FIREWALL_POLICIES_FULFILLED = 'FIREWALL_POLICIES_FULFILLED';
 export const FIREWALL_POLICIES_FAILED = 'FIREWALL_POLICIES_FAILED';
@@ -118,6 +127,11 @@ export const loadPoliciesWithConditionsFailed = payloadParamActionCreator(FIREWA
 
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING = 'FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING';
+
+export const FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE';
+export const FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED =
+  'FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED';
+const containerQuarantineGridSetPage = payloadParamActionCreator(FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE);
 
 export const FIREWALL_QUARANTINE_GRID_SET_PAGE = 'FIREWALL_QUARANTINE_GRID_SET_PAGE';
 export const FIREWALL_QUARANTINE_GRID_SET_SORTING = 'FIREWALL_QUARANTINE_GRID_SET_SORTING';
@@ -257,6 +271,7 @@ export function loadFirewallData() {
     dispatch(loadReleaseQuarantineSummary());
     dispatch(loadQuarantineSummary());
     dispatch(loadQuarantineList());
+    dispatch(loadContainerQuarantineList());
     dispatch(loadPolicies());
   };
 }
@@ -505,6 +520,38 @@ export function loadQuarantineList() {
   };
 }
 
+export function loadContainerQuarantineList() {
+  return function (dispatch, getState) {
+    let gridState = getState().firewall.containerQuarantineGridState,
+      apiPage = gridState.containerCurrentPage ? gridState.containerCurrentPage + 1 : 1;
+
+    dispatch(loadContainerQuarantineListRequested());
+    return axios
+      .get(getFirewallContainerQuarantineListUrl(apiPage, gridState.containerPageSize))
+      .then(({ data }) => {
+        dispatch(loadContainerQuarantineListFulfilled(data));
+        dispatch(setContainerQuarantineGridLastUpdated(new Date()));
+      })
+      .catch((error) => {
+        dispatch(loadContainerQuarantineListFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function setContainerQuarantineGridPage(page) {
+  return (dispatch) => {
+    dispatch(containerQuarantineGridSetPage({ containerCurrentPage: page }));
+    dispatch(loadContainerQuarantineList());
+  };
+}
+
+export function setContainerQuarantineGridLastUpdated(lastUpdated) {
+  return {
+    type: FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
+    payload: { containerLastUpdated: lastUpdated },
+  };
+}
+
 export function reevaluateComponent() {
   return function (dispatch, getState) {
     const { repositoryId, componentHash, pathname } = selectFirewallComponentDetailsPageRouteParams(getState());
@@ -713,9 +760,11 @@ export function onGoToRepositoryComponentWaiversPage(violationId) {
     dispatch(isShowManageWaiverPage(true));
   };
 }
+
 function checkPermissionToAddWaivers(repositoryId) {
   return checkPermissions(['WAIVE_POLICY_VIOLATIONS'], 'repository', repositoryId);
 }
+
 export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, getState) => {
   dispatch(loadViolationDetailRequested());
   const repositoryId = selectRepositoryId(getState());
@@ -740,6 +789,7 @@ export const loadFirewallViolationDetails = (policyViolationId) => (dispatch, ge
       dispatch(loadViolationDetailFailed(Messages.getHttpErrorMessage(error)));
     });
 };
+
 export function loadComponentLicenses(repositoryId, componentIdentifier) {
   return (dispatch) => {
     dispatch(loadComponentLicensesRequested());

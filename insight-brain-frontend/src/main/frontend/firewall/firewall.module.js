@@ -114,6 +114,20 @@ function routes($stateProvider) {
         activeTab: WAIVERS,
       },
     })
+    .state('firewall.firewallPage.containers.quarantine', {
+      url: '/quarantine',
+      data: {
+        title: 'Containers - Quarantine',
+        activeTab: QUARANTINE,
+      },
+    })
+    .state('firewall.firewallPage.containers.waivers', {
+      url: '/waivers',
+      data: {
+        title: 'Containers - Waivers',
+        activeTab: WAIVERS,
+      },
+    })
     .state('firewall.firewallPage.roi', {
       url: '/roi',
       data: {

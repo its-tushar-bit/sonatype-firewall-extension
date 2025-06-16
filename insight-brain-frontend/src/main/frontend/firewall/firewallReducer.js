@@ -24,6 +24,9 @@ import {
   FIREWALL_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_QUARANTINE_GRID_SET_SORTING,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED,
   FIREWALL_QUARANTINE_LIST_FAILED,
   FIREWALL_QUARANTINE_LIST_FULFILLED,
   FIREWALL_QUARANTINE_LIST_REQUESTED,
@@ -65,6 +68,8 @@ import {
   FIREWALL_POLICIES_WITH_CONDITIONS_FULFILLED,
   FIREWALL_POLICIES_WITH_CONDITIONS_REQUESTED,
   FIREWALL_SET_SELECTED_POLICY_ID,
+  FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE,
+  FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet, propSet } from '../util/jsUtil';
@@ -173,6 +178,15 @@ export const initialState = Object.freeze({
     filterRepositoryPublicId: '',
     filterQuarantineTime: null,
     lastUpdated: null,
+  }),
+  containerQuarantineGridState: Object.freeze({
+    loadContainerQuarantineGridError: null,
+    loadedContainerQuarantineList: false,
+    containerQuarantineList: [],
+    containerQuarantinePageCount: 0,
+    containerPageSize: 12,
+    containerCurrentPage: null,
+    containerLastUpdated: null,
   }),
 });
 
@@ -805,8 +819,65 @@ const setFirewallLoadDataRequested = (_, state) => {
       ...initialState.quarantineGridState,
       ...sortAndFilterConfig,
     },
+    containerQuarantineGridState: {
+      ...initialState.containerQuarantineGridState,
+    },
   };
 };
+
+const loadContainerQuarantineListRequested = (_, state) =>
+  over(
+    lensPath(['containerQuarantineGridState']),
+    merge(__, {
+      loadedContainerQuarantineList: false,
+      loadContainerQuarantineGridError: null,
+      containerCurrentPage: null,
+      containerQuarantineList: [],
+      containerQuarantinePageCount: 0,
+    }),
+    state
+  );
+
+const loadContainerQuarantineListFulfilled = (payload, state) =>
+  over(
+    lensPath(['containerQuarantineGridState']),
+    merge(__, {
+      loadedContainerQuarantineList: true,
+      containerCurrentPage: payload.pageCount === 0 ? null : payload.page - 1,
+      containerQuarantineList: payload.results.map((result) =>
+        renameKey('displayName', 'componentDisplayText', result)
+      ),
+      containerQuarantinePageCount: payload.pageCount,
+    }),
+    state
+  );
+
+const loadContainerQuarantineListFailed = (payload, state) => ({
+  ...state,
+  containerQuarantineGridState: {
+    ...state.containerQuarantineGridState,
+    loadContainerQuarantineGridError: payload,
+    loadedContainerQuarantineList: true,
+  },
+});
+
+const setContainerQuarantineGridPage = (payload, state) =>
+  over(
+    lensPath(['containerQuarantineGridState']),
+    merge(__, {
+      containerCurrentPage: payload.containerCurrentPage,
+    }),
+    state
+  );
+
+const setContainerQuarantineGridLastUpdated = (payload, state) =>
+  over(
+    lensPath(['containerQuarantineGridState']),
+    merge(__, {
+      containerLastUpdated: payload.containerLastUpdated,
+    }),
+    state
+  );
 
 const reducerActionMap = {
   [FIREWALL_SET_SHOW_WELCOME_MODAL]: setShowWelcomeModal,
@@ -828,6 +899,11 @@ const reducerActionMap = {
   [FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED]: always(initialState),
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE]: setAutoUnquarantineGridPage,
   [FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING]: setAutoUnquarantineGridSorting,
+  [FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED]: loadContainerQuarantineListRequested,
+  [FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED]: loadContainerQuarantineListFailed,
+  [FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED]: loadContainerQuarantineListFulfilled,
+  [FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE]: setContainerQuarantineGridPage,
+  [FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED]: setContainerQuarantineGridLastUpdated,
   [FIREWALL_QUARANTINE_LIST_REQUESTED]: loadQuarantineListRequested,
   [FIREWALL_QUARANTINE_LIST_FAILED]: loadQuarantineListFailed,
   [FIREWALL_QUARANTINE_LIST_FULFILLED]: loadQuarantineListFulfilled,

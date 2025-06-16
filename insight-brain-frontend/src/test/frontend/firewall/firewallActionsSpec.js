@@ -106,6 +106,11 @@ import {
   FIREWALL_QUARANTINE_GRID_SET_QUARANTINE_TIME_FILTER,
   setQuarantineGridQuarantineTimeFilter,
   loadTileMetrics,
+  loadContainerQuarantineList,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED,
+  FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
+  FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -124,6 +129,7 @@ import {
   getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl,
   getSimilarWaiversUrl,
   getApplicableWaiversUrl,
+  getFirewallContainerQuarantineListUrl,
 } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -142,6 +148,7 @@ describe('firewallActions', function () {
     firewallQuarantineSummaryUrl = getFirewallQuarantineSummaryUrl(),
     firewallQuarantineListUrl = getFirewallQuarantineListUrl(),
     firewallQuarantineListWithConditionsUrl = getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl(),
+    firewallContainerQuarantineListUrl = getFirewallContainerQuarantineListUrl(),
     policiesUrl = getPoliciesUrl(),
     requestRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'RepolicyViolationId'),
     repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'policyViolationId'),
@@ -203,6 +210,15 @@ describe('firewallActions', function () {
           sortField: 'quarantineTime',
           filterPolicies: [],
           lastUpdated: null,
+        }),
+        containerQuarantineGridState: Object.freeze({
+          loadContainerQuarantineGridError: null,
+          loadedContainerQuarantineList: false,
+          containerQuarantineList: [],
+          containerQuarantinePageCount: 0,
+          containerPageSize: 12,
+          containerCurrentPage: null,
+          containerLastUpdated: null,
         }),
         policiesState: Object.freeze({
           loadedPolicies: false,
@@ -1347,7 +1363,7 @@ describe('firewallActions', function () {
       store.dispatch(loadFirewallData());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions[0].type).toBe(FIREWALL_LOAD_DATA_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
       expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
@@ -1360,8 +1376,10 @@ describe('firewallActions', function () {
       expect(actions[4].payload).toBeUndefined();
       expect(actions[5].type).toBe(FIREWALL_QUARANTINE_LIST_REQUESTED);
       expect(actions[5].payload).toBeUndefined();
-      expect(actions[6].type).toBe(FIREWALL_POLICIES_REQUESTED);
+      expect(actions[6].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
       expect(actions[6].payload).toBeUndefined();
+      expect(actions[7].type).toBe(FIREWALL_POLICIES_REQUESTED);
+      expect(actions[7].payload).toBeUndefined();
     });
   });
 
@@ -2038,6 +2056,122 @@ describe('firewallActions', function () {
 
       let actions = store.getActions();
       expect(actions.length).toBe(2);
+    });
+  });
+
+  describe('loadContainerQuarantineList', function () {
+    it('immediately dispatches a FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED action with the correct parameters', function () {
+      state = {
+        ...state,
+        firewall: {
+          ...state.firewall,
+          containerQuarantineGridState: {
+            containerPageSize: 1000,
+            containerCurrentPage: 100,
+          },
+        },
+      };
+      store = SpecUtil.mockReduxStore(state);
+      const expectedParams = '?page=101&pageSize=1000';
+      const payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] };
+      mockAxiosCalls({
+        get: {
+          [firewallContainerQuarantineListUrl + expectedParams]: Promise.resolve(payload),
+        },
+      });
+
+      store.dispatch(loadContainerQuarantineList());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+      expect(axios.get).toHaveBeenCalledWith(firewallContainerQuarantineListUrl + expectedParams);
+    });
+  });
+
+  describe('loadContainerQuarantineList', function () {
+    let payload = { pageCount: 2, results: [{ test: 'testVal' }, { test: 'testVal' }] },
+      defaultParams = '?page=1&pageSize=12';
+
+    afterEach(function () {
+      expect(axios.get).toHaveBeenCalledWith(firewallContainerQuarantineListUrl + defaultParams);
+    });
+
+    it('immediately dispatches a FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED action', function () {
+      mockAxiosCalls({
+        get: {
+          [firewallContainerQuarantineListUrl + defaultParams]: Promise.resolve(payload),
+        },
+      });
+
+      store.dispatch(loadContainerQuarantineList());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', function () {
+      let defaultParams = '?page=1&pageSize=12',
+        lastUpdated = new Date();
+
+      beforeEach(function () {
+        jasmine.clock().install();
+      });
+
+      afterEach(function () {
+        jasmine.clock().uninstall();
+      });
+
+      it('dispatches FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED action', function (done) {
+        mockAxiosCalls({
+          get: {
+            [firewallContainerQuarantineListUrl + defaultParams]: Promise.resolve({ data: payload }),
+          },
+        });
+
+        jasmine.clock().mockDate(lastUpdated);
+
+        store.dispatch(loadContainerQuarantineList()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[0].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
+          expect(actions[0].payload).toBeUndefined();
+          expect(actions[1].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED);
+          expect(actions[1].payload).toEqual(payload);
+          expect(actions[2].type).toBe(FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED);
+          expect(actions[2].payload).toEqual({ containerLastUpdated: lastUpdated });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+
+    describe('after a failed GET call', function () {
+      let defaultParams = '?page=1&pageSize=12';
+
+      it('dispatches an FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED action', function (done) {
+        mockAxiosCalls({
+          get: {
+            [firewallContainerQuarantineListUrl + defaultParams]: () => Promise.reject('error!'),
+          },
+        });
+
+        store.dispatch(loadContainerQuarantineList()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(2);
+          expect(actions[1].type).toBe(FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED);
+          expect(actions[1].payload).toBe('error!');
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
     });
   });
 });

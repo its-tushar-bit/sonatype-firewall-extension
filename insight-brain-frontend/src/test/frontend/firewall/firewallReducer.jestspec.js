@@ -111,6 +111,15 @@ describe('firewallReducer', function () {
       filterQuarantineTime: null,
       lastUpdated: null,
     }),
+    containerQuarantineGridState: Object.freeze({
+      loadContainerQuarantineGridError: null,
+      loadedContainerQuarantineList: false,
+      containerQuarantineList: [],
+      containerQuarantinePageCount: 0,
+      containerPageSize: 12,
+      containerCurrentPage: null,
+      containerLastUpdated: null,
+    }),
   });
 
   describe('initial state', function () {
@@ -1035,6 +1044,9 @@ describe('firewallReducer', function () {
         quarantineGridState: {
           ...defaultState.quarantineGridState,
           ...customMinimumState.quarantineGridState,
+        },
+        containerQuarantineGridState: {
+          ...defaultState.containerQuarantineGridState,
         },
       });
     });

@@ -766,4 +766,21 @@ public class ApiPolicyWaiverServiceAuthzTest
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.addContainerImageWaiver(app.getId(), null);
   }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testDeleteContainerImageWaivers_Unauthorized() {
+    login();
+    apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testDeleteContainerImageWaivers_Unauthenticated() {
+    apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testDeleteContainerImageWaivers_Authorized() {
+    grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
+    apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
+  }
 }

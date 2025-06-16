@@ -537,5 +537,38 @@ public class PolicyWaiverDAO
     }
   }
 
+  public List<PolicyWaiver> getAllForContainerImageByOwnerId(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getAllForContainerImageByOwnerId(tx, ownerId);
+    }
+  }
+
+  public List<PolicyWaiver> getAllForContainerImageByOwnerId(TransactionContext tx, String ownerId) {
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1
+        AND (entity.isForContainerImage = TRUE OR entity.isForContainerImageComponent = TRUE)
+        """;
+    return getList(tx, sQuery, ownerId);
+  }
+
+  public void deleteAllForContainerImage(String ownerId) {
+    try (TransactionContext tx = createTransactionContext()) {
+      tx.begin();
+      deleteAllForContainerImage(tx, ownerId);
+      tx.commit();
+    }
+  }
+
+  public void deleteAllForContainerImage(TransactionContext tx, String ownerId) {
+    String sQuery = """
+        DELETE FROM PolicyWaiver entity
+        WHERE entity.ownerId=?1
+        AND (entity.isForContainerImage = TRUE OR entity.isForContainerImageComponent = TRUE)
+        """;
+
+    createQuery(sQuery, ownerId).executeUpdate(tx);
+  }
+
   public static record WaiverReasonData(String policyWaiverId, String reasonText) {  }
 }

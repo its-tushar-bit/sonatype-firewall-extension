@@ -158,7 +158,7 @@ public class PublicApiPaths
       MALWARE_DEFENSE_RESOURCE_PATH + "/container-image";
 
   public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_POLICY_WAIVER_RESOURCE_PATH =
-      MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH + "/policyWaiver";
+      MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH + "/id/{containerImageId}/policyWaiver";
 
   public static final String EXTERNAL_TELEMETRY_PATH = API_VERSION_PATH_V2 + "telemetry";
 

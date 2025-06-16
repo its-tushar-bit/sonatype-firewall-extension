@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -2296,6 +2295,60 @@ public class ApiPolicyWaiverServiceTest
     assertThat(createdWaiver.isExpireWhenRemediationAvailable()).isFalse();
     assertThat(createdWaiver.isForContainerImageComponent()).isFalse();
     assertThat(createdWaiver.isForContainerImage()).isTrue();
+  }
+
+  @Test
+  public void testDeleteContainerImageWaiver_invalidRelatedRepositoryType() {
+    Repository repository =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.hosted, "docker");
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
+    org.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(org);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.deleteContainerImageWaiver(app.getId()))
+        .withMessageContaining("The related repository must be of type proxy and format docker");
+  }
+
+  @Test
+  public void testDeleteContainerImageWaiver_invalidRelatedRepositoryFormat() {
+    Repository repository =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy,
+            "invalidFormat");
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
+    org.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(org);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiPolicyWaiverService.deleteContainerImageWaiver(app.getId()))
+        .withMessageContaining("The related repository must be of type proxy and format docker");
+  }
+
+  @Test
+  public void testDeleteContainerImageWaiver() {
+    relateOrganizationWithRepository();
+
+    policy = tempEntity.newPolicy(app.getId());
+    policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scanId1App1");
+    policyViolation =
+        tempEntity.newPolicyViolation(policyEvaluation, policy, 5, PolicyThreatCategory.SECURITY,
+            "g1", "a1", "v1", "hash1", FailActionType.ID);
+
+    ApiContainerImageWaiverDTO containerWaiversDTO = new ApiContainerImageWaiverDTO();
+    containerWaiversDTO.comment = "Test comment";
+    containerWaiversDTO.expiryTime = DateUtils.addDays(new Date(), 1);
+    containerWaiversDTO.waiverReasonId = policyWaiverReasonDAO.getAll().get(0).getId();
+
+    apiPolicyWaiverService.addContainerImageWaiver(app.getId(), containerWaiversDTO);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).isNotEmpty();
+
+    apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
+    policyWaivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(policyWaivers).isEmpty();
   }
 
   private void relateOrganizationWithRepository() {

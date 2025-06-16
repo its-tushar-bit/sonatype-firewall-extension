@@ -930,27 +930,16 @@ public class ApiPolicyWaiverService
       String containerImageId,
       ApiContainerImageWaiverDTO waiverDTO)
   {
-    String applicationId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerImageId);
-    addContainerImageWaiverWithAuthzCheck(applicationId, waiverDTO);
+    String internalOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerImageId);
+    addContainerImageWaiverWithAuthzCheck(internalOwnerId, waiverDTO);
   }
 
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   void addContainerImageWaiverWithAuthzCheck(
-      @AuthzContext(Key.APPLICATION_ID) String applicationId,
+      @AuthzContext(Key.APPLICATION_ID) String internalOwnerId,
       ApiContainerImageWaiverDTO waiverDTO)
   {
-    Application application = applicationDAO.getById(applicationId);
-    Organization organization = organizationDAO.getById(application.getOrganizationId());
-
-    if (StringUtils.isAllBlank(organization.getRelatedRepositoryManagerId(), organization.getRelatedRepositoryId())) {
-      throw new NotFoundException("No container image was found with the given ID");
-    }
-
-    Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
-    if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
-        || !"docker".equals(repository.getFormat())) {
-      throw new BadRequestException("The related repository must be of type proxy and format docker");
-    }
+    validateContainerImageId(internalOwnerId);
 
     Date expiryTime = waiverDTO == null ? null : waiverDTO.expiryTime;
     String waiverReasonId = waiverDTO == null ? null : waiverDTO.waiverReasonId;
@@ -959,6 +948,7 @@ public class ApiPolicyWaiverService
     validateExpiryTime(expiryTime);
     validateExistingPolicyWaiverReason(waiverReasonId);
 
+    Application application = applicationDAO.getById(internalOwnerId);
     List<PolicyViolation> policyViolations =
         policyViolationDAO.getActiveByApplicationIdAndStageIdAndActionId(application.getId(), Stage.ID_PROXY,
             Action.ID_FAIL);
@@ -983,6 +973,48 @@ public class ApiPolicyWaiverService
           false, true, tx);
 
       tx.commit();
+    }
+  }
+
+  public void deleteContainerImageWaiver(String containerId) {
+    String internalOwnerId = idUtils.getInternalOwnerId(OwnerType.APPLICATION, containerId);
+    deletePolicyWaiverContainerImageWithAuthzCheck(internalOwnerId);
+  }
+
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  void deletePolicyWaiverContainerImageWithAuthzCheck(
+      @AuthzContext(Key.APPLICATION_ID) String internalOwnerId)
+  {
+    validateContainerImageId(internalOwnerId);
+
+    List<PolicyWaiver> policyWaivers = policyWaiverDAO.getAllForContainerImageByOwnerId(internalOwnerId);
+    log.debug("Found {} container image policy waivers for {}", policyWaivers.size(), internalOwnerId);
+
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      policyWaiverDAO.deleteAllForContainerImage(tx, internalOwnerId);
+      for (PolicyWaiver waiver : policyWaivers) {
+        try (AuditSession auditSession = AuditData.get()
+            .recordSubEvent(AuditEvent.DELETE_WAIVER, false)) {
+          auditPolicyWaiver(waiver, tx);
+        }
+      }
+      tx.commit();
+    }
+  }
+
+  private void validateContainerImageId(String applicationId) {
+    Application application = applicationDAO.getById(applicationId);
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+
+    if (StringUtils.isAllBlank(organization.getRelatedRepositoryManagerId(), organization.getRelatedRepositoryId())) {
+      throw new NotFoundException("No container image was found with the given ID");
+    }
+
+    Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
+    if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
+        || !"docker".equals(repository.getFormat())) {
+      throw new BadRequestException("The related repository must be of type proxy and format docker");
     }
   }
 }

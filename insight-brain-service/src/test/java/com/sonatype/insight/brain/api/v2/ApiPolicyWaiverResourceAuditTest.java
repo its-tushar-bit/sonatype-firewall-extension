@@ -9,7 +9,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;

@@ -406,6 +406,77 @@ public class PolicyWaiverDAOTest
   }
 
   @Test
+  public void testGetAllForContainerImage() {
+    Date now = new Date();
+    Policy policy = tempEntity.newPolicy(application);
+    String policyId = policy.getId();
+    String ownerId = application.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver("hash", policyId, ownerId, null, comment, now, null);
+    PolicyWaiver expiringWaiver =
+        tempEntity.newWaiver("expiring", policyId, ownerId, null, comment, now, DateUtils.addHours(now, 1));
+    PolicyWaiver expiredWaiver =
+        tempEntity.newWaiver("expired", policyId, ownerId, null, comment, now, DateUtils.addHours(now, -1));
+
+    PolicyWaiver policyWaiverForContainerImage =
+        tempEntity.newWaiver(null, policyId, application.getId(), null, comment, now, null);
+    policyWaiverForContainerImage.setForContainerImage(true);
+    dao.update(policyWaiverForContainerImage);
+
+    PolicyWaiver policyWaiverForContainerImageComponent =
+        tempEntity.newWaiver("component", policyId, application.getId(), null, comment, now, null);
+    policyWaiverForContainerImageComponent.setForContainerImageComponent(true);
+    dao.update(policyWaiverForContainerImageComponent);
+
+    assertThat(dao.getAll())
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrder(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId(),
+            policyWaiverForContainerImage.getId(), policyWaiverForContainerImageComponent.getId());
+
+    assertThat(dao.getAllForContainerImageByOwnerId(ownerId))
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrder(policyWaiverForContainerImage.getId(),
+            policyWaiverForContainerImageComponent.getId());
+  }
+
+  @Test
+  public void testDeleteAllForContainerImage() {
+    Date now = new Date();
+    Policy policy = tempEntity.newPolicy(application);
+    String policyId = policy.getId();
+    String ownerId = application.getId();
+    String comment = "Just testing";
+
+    PolicyWaiver noExpiryWaiver = tempEntity.newWaiver("hash", policyId, ownerId, null, comment, now, null);
+    PolicyWaiver expiringWaiver =
+        tempEntity.newWaiver("expiring", policyId, ownerId, null, comment, now, DateUtils.addHours(now, 1));
+    PolicyWaiver expiredWaiver =
+        tempEntity.newWaiver("expired", policyId, ownerId, null, comment, now, DateUtils.addHours(now, -1));
+
+    PolicyWaiver policyWaiverForContainerImage =
+        tempEntity.newWaiver(null, policyId, application.getId(), null, comment, now, null);
+    policyWaiverForContainerImage.setForContainerImage(true);
+    dao.update(policyWaiverForContainerImage);
+
+    PolicyWaiver policyWaiverForContainerImageComponent =
+        tempEntity.newWaiver("component", policyId, application.getId(), null, comment, now, null);
+    policyWaiverForContainerImageComponent.setForContainerImageComponent(true);
+    dao.update(policyWaiverForContainerImageComponent);
+
+    assertThat(dao.getAll())
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrder(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId(),
+            policyWaiverForContainerImage.getId(), policyWaiverForContainerImageComponent.getId());
+
+    dao.deleteAllForContainerImage(application.getId());
+
+    assertThat(dao.getAll())
+        .extracting(PolicyWaiver::getId)
+        .containsExactlyInAnyOrder(noExpiryWaiver.getId(), expiringWaiver.getId(), expiredWaiver.getId());
+  }
+
+  @Test
   public void testGetByOwnerIdAndHash() {
     DateTime now = DateTime.now();
     Policy policy1 = tempEntity.newPolicy(organization);

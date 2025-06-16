@@ -47,7 +47,7 @@
      keycloak 24.x has breaking changes.
      keycloak 25.x has major breaking changes. -->
     <keycloak.version>23.0.7</keycloak.version>
-    <bouncycastle.version>1.80</bouncycastle.version>
+    <bouncycastle.version>1.81</bouncycastle.version>
 
     <!--
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.

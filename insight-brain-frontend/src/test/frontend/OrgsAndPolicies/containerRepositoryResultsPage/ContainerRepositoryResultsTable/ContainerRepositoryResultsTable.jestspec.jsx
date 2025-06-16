@@ -52,6 +52,7 @@ describe('ContainerRepositoryResultsTable', () => {
     containerRepositoryResultsPage: {
       loading: false,
       errorMessage: null,
+
       results: mockResults,
       sortConfiguration: [
         {

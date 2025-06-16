@@ -36,13 +36,26 @@ const ContainerRepositoryResultsTable = () => {
   const setShowFilterDrawer = (value) => dispatch(actions.setShowFilterDrawer(value));
   const searchFilterColumn = (column, value) => dispatch(actions.searchFilterColumn({ column, value }));
   const sortColumn = (column) => {
+    dispatch(actions.setLoading(true));
     dispatch(actions.sortColumn(column));
     dispatch(actions.loadTable());
+    dispatch(actions.setLoading(false));
   };
-
-  const loadPreviousPage = () => dispatch(actions.loadPreviousPage());
-  const loadNextPage = () => dispatch(actions.loadNextPage());
-  const loadTable = () => dispatch(actions.loadTable());
+  const loadPreviousPage = () => {
+    dispatch(actions.setLoading(true));
+    dispatch(actions.loadPreviousPage());
+    dispatch(actions.setLoading(false));
+  };
+  const loadNextPage = () => {
+    dispatch(actions.setLoading(true));
+    dispatch(actions.loadNextPage());
+    dispatch(actions.setLoading(false));
+  };
+  const loadTable = async () => {
+    dispatch(actions.setLoading(true));
+    await dispatch(actions.loadTable());
+    dispatch(actions.setLoading(false));
+  };
 
   // formatters
   const quarantineTime = (date) => formatDate(date, FIREWALL_DATE_TIME_FORMAT);

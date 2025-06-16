@@ -9,6 +9,7 @@ import { debounce } from 'debounce';
 import * as R from 'ramda';
 
 import {
+  getContainerRepositoryReportSummaryUrl,
   getContainerRepositoryResultsUrl,
   getRepositoryEvaluateUrl,
   getRepositoryInfoUrl,
@@ -23,6 +24,16 @@ const LOAD_TABLE_DEBOUNCE_TIME = 250; // milliseconds
 const REDUCER_NAME = 'containerRepositoryResultsPage';
 
 export const ITEMS_PER_PAGE = 50;
+
+export const defaultEvaluationSummary = Object.freeze({
+  totalContainerImageCount: 0,
+  totalContainerImageViolationCount: 0,
+  criticalViolationCount: 0,
+  severeViolationCount: 0,
+  moderateViolationCount: 0,
+  affectedContainerImageCount: 0,
+  quarantinedContainerImageCount: 0,
+});
 
 export const defaultPagination = Object.freeze({
   page: 1,
@@ -61,6 +72,10 @@ export const initialState = Object.freeze({
   errorMessage: null,
 
   repositoryInformation: null,
+
+  // summary
+  evaluationSummary: { ...defaultEvaluationSummary },
+
   results: [],
 
   sortConfiguration: [...defaultSortConfiguration],
@@ -210,7 +225,7 @@ const searchFilterColumn = ({ column, value }) => (dispatch) => {
 };
 
 // load-table
-const loadTable = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
+const loadTable = createAsyncThunk(`${REDUCER_NAME}/loadTable`, (_, { getState, rejectWithValue }) => {
   const {
     columnFilters,
     pagination,
@@ -249,17 +264,19 @@ const loadTableFailed = (state, { payload }) => {
 };
 
 const loadTableFulfilled = (state, { payload }) => {
-  state.loading = false;
   state.errorMessage = null;
   state.results = payload.repositoryResultsDetails;
   state.pagination.hasNextPage = payload.hasNextPage;
 };
 
 // load-repository-information
-const loadRepositoryInformation = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { getState, rejectWithValue }) => {
-  const { repositoryId } = selectContainerRepositoryResultsPage(getState());
-  return axios.get(getRepositoryInfoUrl(repositoryId)).then(R.prop('data')).catch(rejectWithValue);
-});
+const loadRepositoryInformation = createAsyncThunk(
+  `${REDUCER_NAME}/loadRepositoryInformation`,
+  (_, { getState, rejectWithValue }) => {
+    const { repositoryId } = selectContainerRepositoryResultsPage(getState());
+    return axios.get(getRepositoryInfoUrl(repositoryId)).then(R.prop('data')).catch(rejectWithValue);
+  }
+);
 
 const loadRepositoryInformationPending = (state) => {
   state.errorMessage = null;
@@ -267,15 +284,37 @@ const loadRepositoryInformationPending = (state) => {
 };
 
 const loadRepositoryInformationFailed = (state, { payload }) => {
-  state.loading = false;
   state.errorMessage = Messages.getHttpErrorMessage(payload);
   state.repositoryInformation = null;
 };
 
 const loadRepositoryInformationFulfilled = (state, { payload }) => {
-  state.loading = false;
   state.errorMessage = null;
   state.repositoryInformation = payload.repositoryInformation;
+};
+
+// load-evaluation-summary
+const loadEvaluationSummary = createAsyncThunk(
+  `${REDUCER_NAME}/loadEvaluationSummary`,
+  (_, { getState, rejectWithValue }) => {
+    const { repositoryId } = selectContainerRepositoryResultsPage(getState());
+    return axios.get(getContainerRepositoryReportSummaryUrl(repositoryId)).then(R.prop('data')).catch(rejectWithValue);
+  }
+);
+
+const loadEvaluationSummaryPending = (state) => {
+  state.errorMessage = null;
+  state.evaluationSummary = { ...defaultEvaluationSummary };
+};
+
+const loadEvaluationSummaryFailed = (state, { payload }) => {
+  state.errorMessage = Messages.getHttpErrorMessage(payload);
+  state.evaluationSummary = { ...defaultEvaluationSummary };
+};
+
+const loadEvaluationSummaryFulfilled = (state, { payload }) => {
+  state.errorMessage = null;
+  state.evaluationSummary = payload;
 };
 
 const containerRepositoryResultsSlice = createSlice({
@@ -305,6 +344,10 @@ const containerRepositoryResultsSlice = createSlice({
     [loadRepositoryInformation.fulfilled]: loadRepositoryInformationFulfilled,
     [loadRepositoryInformation.rejected]: loadRepositoryInformationFailed,
 
+    [loadEvaluationSummary.pending]: loadEvaluationSummaryPending,
+    [loadEvaluationSummary.fulfilled]: loadEvaluationSummaryFulfilled,
+    [loadEvaluationSummary.rejected]: loadEvaluationSummaryFailed,
+
     [loadTable.pending]: loadTablePending,
     [loadTable.fulfilled]: loadTableFulfilled,
     [loadTable.rejected]: loadTableFailed,
@@ -318,6 +361,7 @@ const containerRepositoryResultsSlice = createSlice({
 export const actions = {
   ...containerRepositoryResultsSlice.actions,
   loadRepositoryInformation,
+  loadEvaluationSummary,
   loadTable,
   reevaluateRepository,
 

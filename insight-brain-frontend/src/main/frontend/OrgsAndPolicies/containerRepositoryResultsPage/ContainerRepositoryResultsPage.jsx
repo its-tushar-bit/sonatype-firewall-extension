@@ -15,7 +15,9 @@ import {
   NxModal,
   NxPageMain,
   NxPageTitle,
+  NxSmallThreatCounter,
   NxStatefulSubmitMask,
+  NxTile,
 } from '@sonatype/react-shared-components';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -42,9 +44,14 @@ const ContainerRepositoryResultsPage = () => {
 
   const { repositoryId } = useSelector(selectRouterCurrentParams);
 
-  const { loading, errorMessage, showReevaluationModal, repositoryInformation, submitMask } = useSelector(
-    selectContainerRepositoryResults
-  );
+  const {
+    errorMessage,
+    evaluationSummary,
+    loading,
+    repositoryInformation,
+    showReevaluationModal,
+    submitMask,
+  } = useSelector(selectContainerRepositoryResults);
 
   const setShowReevaluationModal = (value) => dispatch(actions.setShowReevaluationModal(value));
   const reevaluateRepository = () => dispatch(actions.reevaluateRepository());
@@ -56,7 +63,9 @@ const ContainerRepositoryResultsPage = () => {
     dispatch(actions.setLoading(true));
     dispatch(actions.setRepositoryId(repositoryId));
     await dispatch(actions.loadRepositoryInformation());
+    await dispatch(actions.loadEvaluationSummary());
     await dispatch(actions.loadTable());
+    dispatch(actions.setLoading(false));
   };
 
   useEffect(() => {
@@ -138,6 +147,37 @@ const ContainerRepositoryResultsPage = () => {
               </NxModal>
             )}
           </NxPageTitle>
+
+          <NxTile className="container-repository-results-page__summary-tile">
+            <div className="container-repository-results-page__summary">
+              <div className="container-repository-results-page__summary-item">
+                <NxSmallThreatCounter
+                  criticalCount={evaluationSummary.criticalViolationCount}
+                  severeCount={evaluationSummary.severeViolationCount}
+                  moderateCount={evaluationSummary.moderateViolationCount}
+                />
+                <div className="container-repository-results-page__summary-item__label">
+                  <span>{evaluationSummary.totalContainerImageViolationCount} VIOLATIONS</span>
+                  <span>Affecting {evaluationSummary.affectedContainerImageCount} containers</span>
+                </div>
+              </div>
+              <div className="container-repository-results-page__summary-item">
+                <span>{evaluationSummary.totalContainerImageCount} CONTAINERS</span>
+              </div>
+              <div className="container-repository-results-page__summary-item">
+                <div
+                  className="container-repository-results-page__summary-item__value"
+                  data-testid="evaluation-summary-quarantined-count"
+                >
+                  {evaluationSummary.quarantinedContainerImageCount}
+                </div>
+                <div className="container-repository-results-page__summary-item__label">
+                  <span>QUARANTINED</span>
+                  <span>Components</span>
+                </div>
+              </div>
+            </div>
+          </NxTile>
 
           <ContainerRepositoryResultsTable />
         </NxLoadWrapper>

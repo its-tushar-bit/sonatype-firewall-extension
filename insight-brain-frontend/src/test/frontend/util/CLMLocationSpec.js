@@ -1861,4 +1861,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getContainerRepositoryResultsUrl(repositoryId)).toEqual(expectedUrl);
     });
   });
+
+  describe('getContainerRepositoryReportSummaryUrl', () => {
+    it('should return the correct URL with the given repositoryId', () => {
+      const repositoryId = 'repo123';
+      const expectedUrl = `/rest/malware-defense/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
+      expect(clmLocation.getContainerRepositoryReportSummaryUrl(repositoryId)).toBe(expectedUrl);
+    });
+  });
 });

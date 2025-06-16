@@ -523,7 +523,7 @@ public class ApiLicenseLegalServiceTest
     assertThat(dto.lastScanTime).isEqualTo(policyEvaluation.getTime().getTime());
     assertThat(dto.stageTypeId).isEqualTo(policyEvaluation.getStageTypeId());
     assertThat(dto.stageTypeName).isEqualTo(StageTypes.getById(policyEvaluation.getStageTypeId()).getName());
-    assertThat(dto.componentsReviewedCount).isEqualTo(1);
+    assertThat(dto.componentsReviewedCount).isEqualTo(0);
     assertThat(dto.componentsTotalCount).isEqualTo(1);
   }
 
@@ -575,6 +575,26 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
+  public void testGetLicenseLegalApplicationsDashboard_NoObligationsForComponent() {
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
+    Triple<Application, Tag, PolicyEvaluation> appTagEval = setupApplicationWithLicenses(componentIdentifier, "MIT");
+    tempEntity.newLicenseOverride(appTagEval.getLeft().getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        Sets.newHashSet("Apache-1.0", "Apache-2.0"));
+
+    // No obligations will match the previous component licenses override
+    doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
+
+    ApiLicenseLegalApplicationDashboardResultDTO resultDto =
+        apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null, null, null, 1, 10);
+
+    assertThat(resultDto.results).hasSize(1);
+    assertThat(resultDto.totalResultsCount).isEqualTo(1);
+    assertLegalLicenseApplicationDashboardDTO(appTagEval.getLeft(), appTagEval.getMiddle(), appTagEval.getRight(),
+        resultDto.results.get(0), 0, 1);
+  }
+
+  @Test
   public void testGetLicenseLegalApplicationsDashboard_ByReviewProgress() {
     Triple<Application, Tag, PolicyEvaluation> triple = setupApplicationDashboardEntities("tag1", ReleaseStageType.ID);
     Application app = triple.getLeft();
@@ -583,6 +603,11 @@ public class ApiLicenseLegalServiceTest
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createGolangCoordinates("n", "v");
     tempEntity.newApplicationComponent(app.getId(), ReleaseStageType.ID, "hash1", componentIdentifier);
+    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN,
+        Sets.newHashSet("MIT"));
+
+    doReturn(createLicenseMetadataDTOs(Sets.newHashSet("MIT")))
+        .when(mockApiLicenseLegalHdsService).getLicenseMetadata(any());
 
     ApiLicenseLegalApplicationDashboardResultDTO resultDto =
         apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
@@ -590,7 +615,7 @@ public class ApiLicenseLegalServiceTest
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
-    assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0), 1, 1);
+    assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0), 0, 1);
 
     resultDto = apiLicenseLegalService.getLicenseLegalApplicationsDashboard(null, null, null, null,
         Sets.newHashSet(LicenseLegalReviewStatus.OPEN), null, 1, 10);
@@ -622,7 +647,7 @@ public class ApiLicenseLegalServiceTest
 
     assertThat(resultDto.results).hasSize(1);
     assertThat(resultDto.totalResultsCount).isEqualTo(1);
-    assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0), 2, 2);
+    assertLegalLicenseApplicationDashboardDTO(app, tag, policyEvaluation, resultDto.results.get(0), 1, 2);
   }
 
   @Test
@@ -641,7 +666,7 @@ public class ApiLicenseLegalServiceTest
   }
 
   @Test
-  public void testGetLicenseLegalComponentDashboard_ByReviewProgressFullfilled() {
+  public void testGetLicenseLegalComponentDashboard_ByReviewProgressFulfilled() {
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1");
     List<String> licenseIds = Collections.singletonList("MIT");
     Application app = setupApplicationWithLicenses(componentIdentifier1, licenseIds.get(0)).getLeft();
@@ -3152,7 +3177,7 @@ public class ApiLicenseLegalServiceTest
   }
 
   private List<LicenseMetadataDTO> createLicenseMetadataDTOs(Collection<String> licenseIds) {
-    return licenseIds.stream().map(this::createLicenseMetadataDTO).collect(Collectors.toList());
+    return licenseIds.stream().map(this::createLicenseMetadataDTO).toList();
   }
 
   private LicenseMetadataDTO createLicenseMetadataDTO(String licenseId) {

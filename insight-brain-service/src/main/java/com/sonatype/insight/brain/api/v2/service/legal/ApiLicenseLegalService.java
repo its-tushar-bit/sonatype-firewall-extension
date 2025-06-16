@@ -1491,6 +1491,11 @@ public class ApiLicenseLegalService
           .flatMap(licenseId -> licenseIdObligationNamesMap.get(licenseId).stream())
           .collect(Collectors.toSet());
 
+      // If the component has no matching obligations in the licenseIdObligationNamesMap, we skip it from the count
+      if (allObligationNames.isEmpty()) {
+        continue;
+      }
+
       long addressedObligationCount = componentObligationsAddressed
           .getOrDefault(componentLicensesDTO.getComponentIdentifier(), Collections.emptySet()).stream()
           .filter(allObligationNames::contains)

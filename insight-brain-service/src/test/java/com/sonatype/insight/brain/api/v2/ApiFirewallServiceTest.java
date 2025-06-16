@@ -78,6 +78,7 @@ import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionTyp
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityDetectionConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -461,12 +462,13 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(8)
+        .hasSize(9)
         .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
             SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
             MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID,
             SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID,
-            SecurityVulnerabilityCustomRemediationConditionType.ID);
+            SecurityVulnerabilityCustomRemediationConditionType.ID,
+            SecurityVulnerabilityDetectionConditionType.ID);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.AUTO_RELEASE_FROM_QUARANTINE_CONFIGURATION);
     assertThat(telemetryData.getTimestamp()).isLessThanOrEqualTo(System.currentTimeMillis());
   }

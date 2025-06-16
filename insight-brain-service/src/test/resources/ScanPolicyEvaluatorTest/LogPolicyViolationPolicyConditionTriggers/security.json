@@ -24,7 +24,8 @@
     "matchState" : "exact",
     "proprietary" : false,
     "vulnerabilityCategories" : ["malicious_code"],
-    "researchType": "DEEP_DIVE"
+    "researchType": "DEEP_DIVE",
+    "detectionType": "PRIMARY"
   }, {
     "componentIdentifier" : {
       "format" : "maven",

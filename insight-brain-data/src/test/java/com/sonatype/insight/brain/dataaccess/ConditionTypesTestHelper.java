@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityC
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomCVSSVectorStringConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCustomRemediationConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCweConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityDetectionConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityResearchConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySourceConditionType;
@@ -84,7 +85,8 @@ public class ConditionTypesTestHelper
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
         new ComponentEndOfLifeConditionType(), //
         new DerivativeAiModelConditionType(),
-        new AiModelContentConditionType()
+        new AiModelContentConditionType(),
+        new SecurityVulnerabilityDetectionConditionType()
     );
   }
 

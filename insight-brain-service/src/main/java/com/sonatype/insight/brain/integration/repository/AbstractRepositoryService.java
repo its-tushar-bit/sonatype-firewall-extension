@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -55,6 +58,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
@@ -119,6 +123,8 @@ public abstract class AbstractRepositoryService
 
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
+  private final ApplicationService applicationService;
+
   private final RepositoryService repositoryService;
 
   static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
@@ -143,6 +149,7 @@ public abstract class AbstractRepositoryService
           RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
           DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
           FirewallQuarantineHdsClient quarantineHdsClient,
+          ApplicationService applicationService,
           TelemetrySender telemetrySender,
           RepositoryManagerDAO repositoryManagerDAO,
           RepositoryDAO repositoryDAO,
@@ -161,6 +168,7 @@ public abstract class AbstractRepositoryService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
+    this.applicationService = applicationService;
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -738,6 +746,23 @@ public abstract class AbstractRepositoryService
     if (!repository.isAuditEnabled()) {
       repository.setAuditEnabled(true);
       repositoryDAO.update(repository);
+    }
+
+    if (repository.getFormat() != null && repository.getFormat().equals("docker") &&
+        repository.getRepositoryType().equals(RepositoryType.proxy)) {
+      Application application = applicationService.getApplicationByPublicIdNotNull(pathname);
+      String applicationOrganizationId = application.getOrganizationId();
+      //do nothing if the relationship between the organization and the repository is not found
+      if (!repository.getRelatedOrganizationId().equals(applicationOrganizationId)) {
+        return;
+      }
+      try {
+        applicationService.deleteApplicationByPublicId(pathname);
+        return;
+      }
+      catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
 
     RepositoryComponent repositoryComponent = repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(),

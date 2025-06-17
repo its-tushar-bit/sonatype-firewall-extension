@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
@@ -62,6 +63,7 @@ public class RepositoryService extends AbstractRepositoryService
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
+      ApplicationService applicationService,
       RepositoryComponentDeleteService repositoryComponentDeleteService,
       TelemetrySender telemetrySender,
       RepositoryManagerDAO repositoryManagerDAO,
@@ -74,9 +76,9 @@ public class RepositoryService extends AbstractRepositoryService
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
-        quarantineHdsClient, telemetrySender, repositoryManagerDAO, repositoryDAO, repositoryComponentDAO,
-        repositoryPolicyViolationDAO, firewallIgnorePatternService, requestSafeComponentsMetricEventService,
-            mainRepositoryService);
+        quarantineHdsClient, applicationService, telemetrySender, repositoryManagerDAO, repositoryDAO,
+        repositoryComponentDAO, repositoryPolicyViolationDAO, firewallIgnorePatternService,
+        requestSafeComponentsMetricEventService, mainRepositoryService);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 

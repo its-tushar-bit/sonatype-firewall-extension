@@ -42,6 +42,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -54,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallAuditHdsClient;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -160,6 +162,9 @@ public abstract class AbstractRepositoryServiceTest
 
   @Inject
   private RepositoryDAO repositoryDAO;
+
+  @Inject
+  private ApplicationDAO applicationDAO;
 
   @Inject
   private RepositoryComponentDAO repositoryComponentDAO;
@@ -1982,6 +1987,27 @@ public abstract class AbstractRepositoryServiceTest
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repositoryManager.getId()),
             eq(RepositoryComponentTelemetryEventType.DELETE));
+  }
+
+  @Test
+  public void testRemoveComponent_containerImageApplication() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager(REPO_MAN_INSTANCE_ID);
+    Repository repository = tempEntity.newRepository(repositoryManager, REPO_PUBLIC_ID);
+    repository.setRepositoryType(RepositoryType.proxy);
+    repository.setFormat("docker");
+
+    String pathname1 = "pathname1";
+    String pathname2 = "pathname2";
+    Application application1 = tempEntity.newApplicationWithParent(pathname1);
+    Application application2 = tempEntity.newApplicationWithParent(pathname2);
+
+    repository.setRelatedOrganizationId(application1.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    getRepositoryService().removeComponent(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, pathname1, null);
+
+    assertThat(applicationDAO.getById(application1.getId())).isNull();
+    assertThat(applicationDAO.getById(application2.getId())).isNotNull();
   }
 
   private Policy createQuarantiningPolicy(Repository repository) {

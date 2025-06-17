@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.hds.FirewallQuarantineHdsClient;
+import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
@@ -35,6 +36,7 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
       FirewallQuarantineHdsClient quarantineHdsClient,
+      ApplicationService applicationService,
       TelemetrySender telemetrySender,
       RepositoryManagerDAO repositoryManagerDAO,
       RepositoryDAO repositoryDAO,
@@ -46,8 +48,8 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
-        quarantinedComponentAccessManager, quarantineHdsClient, telemetrySender, repositoryManagerDAO, repositoryDAO,
-        repositoryComponentDAO, repositoryPolicyViolationDAO,
+        quarantinedComponentAccessManager, quarantineHdsClient, applicationService, telemetrySender,
+        repositoryManagerDAO, repositoryDAO, repositoryComponentDAO, repositoryPolicyViolationDAO,
         firewallIgnorePatternService, requestSafeComponentsMetricEventService, repositoryService);
   }
 }

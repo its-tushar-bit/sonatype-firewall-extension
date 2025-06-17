@@ -10,12 +10,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 
-import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -157,7 +156,7 @@ public final class JsonFileStore
       return secondary;
     }
     final ObjectNode[] result = { primary };
-    for (final Entry<String, JsonNode> field : each(secondary.fields())) {
+    for (final Entry<String, JsonNode> field : secondary.properties()) {
       final String name = field.getKey();
       final JsonNode primaryValue = primary.get(name);
       final JsonNode secondaryValue = field.getValue();
@@ -183,15 +182,5 @@ public final class JsonFileStore
       result[0] = (ObjectNode) original.objectNode().setAll(original);
     }
     return result[0];
-  }
-
-  private static <T> Iterable<T> each(final Iterator<T> itr) {
-    return new Iterable<>()
-    {
-      @Override
-      public Iterator<T> iterator() {
-        return itr;
-      }
-    };
   }
 }

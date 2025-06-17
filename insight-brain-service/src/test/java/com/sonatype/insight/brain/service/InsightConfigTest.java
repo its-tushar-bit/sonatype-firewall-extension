@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -256,8 +255,8 @@ public class InsightConfigTest
 
   private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {
     if (jsonNode.isObject()) {
-      Iterator<Entry<String, JsonNode>> fields = jsonNode.fields();
-      fields.forEachRemaining(field -> {
+      Set<Entry<String, JsonNode>> fields = jsonNode.properties();
+      fields.forEach(field -> {
         String childName = name + field.getKey();
         fieldNames.add(childName);
         getAllFieldNames(childName + ".", field.getValue(), fieldNames);

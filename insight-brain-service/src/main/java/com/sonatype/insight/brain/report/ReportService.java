@@ -746,8 +746,7 @@ public class ReportService
     }
     else if (gavDepths.isObject()) {
       // legacy structure: { "g:a:v" : [1, 2, 3], ... }
-      for (Iterator<Entry<String, JsonNode>> it = gavDepths.fields(); it.hasNext(); ) {
-        Entry<String, JsonNode> entry = it.next();
+      for (Entry<String, JsonNode> entry : gavDepths.properties()) {
         String[] gav = entry.getKey().split(":");
         if (gav.length != 3) {
           continue;

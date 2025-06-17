@@ -408,7 +408,7 @@ public class ThirdPartyComponentDAO
     tpObjectNode.replace("pathnames", bomNode.get("pathnames"));
     tpObjectNode.replace("analyzerFeatures", bomNode.get("analyzerFeatures"));
 
-    bomNode.fields().forEachRemaining(entry -> {
+    bomNode.properties().forEach(entry -> {
       if (!tpObjectNode.has(entry.getKey())) {
         tpObjectNode.set(entry.getKey(), entry.getValue());
       }

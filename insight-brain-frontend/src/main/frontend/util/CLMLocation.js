@@ -588,7 +588,7 @@ export function getFirewallContainerQuarantineListUrl(page, pageSize) {
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/malware-defense/container-image/in-quarantine` + params;
+  return uriTemplate`/api/v2/malware-defense/container-image/policyViolations/quarantined` + params;
 }
 
 export function getFirewallQuarantineSummaryUrl() {

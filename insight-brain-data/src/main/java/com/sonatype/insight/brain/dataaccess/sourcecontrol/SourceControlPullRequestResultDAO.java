@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -37,46 +38,28 @@ public class SourceControlPullRequestResultDAO
     }
   }
 
-  public void deleteByApplicationId(TransactionContext tx, String applicationId) {
-    if (detectTestEntityLeaks()) {
-      // This is never executed in production
-      List<SourceControlPullRequestResult> sourceControlPullRequestResults = getByApplicationId(tx, applicationId);
-      sourceControlPullRequestResults
-          .forEach(sourceControlPullRequestResult -> delete(tx, sourceControlPullRequestResult));
-    }
-    else {
-      String sQuery = "DELETE FROM SourceControlPullRequestResult entity" + //
-          " WHERE entity.applicationId=?1";
-      createQuery(sQuery, applicationId).executeUpdate(tx);
-    }
-  }
-
-  public void deleteByApplicationId(String applicationId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByApplicationId(tx, applicationId);
-      tx.commit();
-    }
-  }
-
   public void deleteAll() {
     try (TransactionContext tx = createTransactionContext()) {
       tx.begin();
-      deleteAll(tx);
+
+      String sQuery = "DELETE FROM SourceControlPullRequestResult entity";
+      createQuery(sQuery).executeUpdate(tx);
+
       tx.commit();
     }
   }
 
-  public void deleteAll(TransactionContext tx) {
-    if (detectTestEntityLeaks()) {
-      // This is never executed in production
-      List<SourceControlPullRequestResult> sourceControlPullRequestResults = getAll(tx);
-      sourceControlPullRequestResults
-          .forEach(sourceControlPullRequestResult -> delete(tx, sourceControlPullRequestResult));
-    }
-    else {
-      String sQuery = "DELETE FROM SourceControlPullRequestResult entity";
-      createQuery(sQuery).executeUpdate(tx);
-    }
+  @Override
+  public final void delete(TransactionContext tx, SourceControlPullRequestResult entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
+    super.delete(tx, entity);
+  }
+
+  @Override
+  public final void delete(SourceControlPullRequestResult entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
+    super.delete(entity);
   }
 }

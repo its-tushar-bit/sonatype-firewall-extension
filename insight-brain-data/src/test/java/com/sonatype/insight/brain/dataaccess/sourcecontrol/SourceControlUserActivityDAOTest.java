@@ -101,16 +101,6 @@ public class SourceControlUserActivityDAOTest
         .containsOnly(getActivitiesAsUserIdWithCommitMillis(sourceControlUserActivities).toArray(new String[0]));
   }
 
-  @Test
-  public void testDeleteBySourceControlUserId() {
-    createSourceControlUserActivities(2, mrJames.getId());
-
-    deleteSourceControlUserActivitiesById(mrJames.getId());
-
-    List<SourceControlUserActivity> sourceControlUserActivities = sourceControlUserActivityDAO.getAll();
-    assertThat(sourceControlUserActivities).hasSize(0);
-  }
-
   private List<SourceControlUserActivity> createSourceControlUserActivities(
       int numberOfActivities,
       String userId)
@@ -142,9 +132,6 @@ public class SourceControlUserActivityDAOTest
 
   @Test
   public void testGetActivitiesNotSentToTelemetry() {
-    deleteSourceControlUserActivitiesById(mrBond.getId());
-    deleteSourceControlUserActivitiesById(mrJames.getId());
-
     SourceControlUserActivity newActivity1 =
         new SourceControlUserActivity(mrJames.getId(), LocalDate.now().minusMonths(2));
     SourceControlUserActivity newActivity2 =
@@ -170,9 +157,6 @@ public class SourceControlUserActivityDAOTest
 
   @Test
   public void testUpdateActivitiesSentToTelemetry() {
-    deleteSourceControlUserActivitiesById(mrBond.getId());
-    deleteSourceControlUserActivitiesById(mrJames.getId());
-
     SourceControlUserActivity newActivity1 = new SourceControlUserActivity(mrJames.getId(), LocalDate.now());
     SourceControlUserActivity newActivity2 =
         new SourceControlUserActivity(mrJames.getId(), LocalDate.now().minusMonths(1));
@@ -189,13 +173,5 @@ public class SourceControlUserActivityDAOTest
     assertThat(result).isEqualTo(2);
     assertThat(sourceControlUserActivityDAO.getById(newActivity1.getId()).isSentToTelemetry()).isTrue();
     assertThat(sourceControlUserActivityDAO.getById(newActivity2.getId()).isSentToTelemetry()).isTrue();
-  }
-
-  private void deleteSourceControlUserActivitiesById(String id) {
-    try (TransactionContext tx = sourceControlUserActivityDAO.createTransactionContext()) {
-      tx.begin();
-      sourceControlUserActivityDAO.deleteBySourceControlUserId(tx, id);
-      tx.commit();
-    }
   }
 }

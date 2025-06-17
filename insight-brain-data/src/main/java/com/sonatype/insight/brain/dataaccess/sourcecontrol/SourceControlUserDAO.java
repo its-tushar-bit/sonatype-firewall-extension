@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -24,22 +25,23 @@ import org.apache.commons.lang3.StringUtils;
 public class SourceControlUserDAO
     extends AbstractOperationalSqlDAO<SourceControlUser>
 {
-  private final SourceControlUserActivityDAO sourceControlUserActivityDAO;
-
   @Inject
-  public SourceControlUserDAO(
-      final OperationalDataStore operationalDataStore,
-      final SourceControlUserActivityDAO sourceControlUserActivityDAO)
-  {
+  public SourceControlUserDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-    this.sourceControlUserActivityDAO = sourceControlUserActivityDAO;
   }
 
   @Override
-  public void delete(final TransactionContext tx, final SourceControlUser entity) {
-    // Cascade to source control user activity
-    sourceControlUserActivityDAO.deleteBySourceControlUserId(tx, entity.getId());
+  public final void delete(TransactionContext tx, SourceControlUser entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
     super.delete(tx, entity);
+  }
+
+  @Override
+  public final void delete(SourceControlUser entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
+    super.delete(entity);
   }
 
   public List<SourceControlUser> getByApplicationId(String applicationId) {

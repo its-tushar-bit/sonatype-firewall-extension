@@ -21,6 +21,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -38,9 +39,6 @@ import com.sonatype.insight.brain.dataaccess.sast.SastScanDAO;
 import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -85,10 +83,6 @@ public class ApplicationDAO
 
   private final Provider<SourceControlDAO> sourceControlDAOProvider;
 
-  private final SourceControlEventDAO sourceControlEventDAO;
-
-  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
-
   private final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider;
 
   private final Provider<LabelDAO> labelDAOProvider;
@@ -111,8 +105,6 @@ public class ApplicationDAO
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
-  private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
-
   private final SastScanDAO sastScanDAO;
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
@@ -132,8 +124,6 @@ public class ApplicationDAO
       final OperationalDataStore operationalDataStore,
       final SearchIndexManager searchIndexManager,
       final Provider<SourceControlDAO> sourceControlDAOProvider,
-      final SourceControlEventDAO sourceControlEventDAO,
-      final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
       final Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider,
       final Provider<LabelDAO> labelDAOProvider,
       final Provider<PolicyDAO> policyDAOProvider,
@@ -145,7 +135,6 @@ public class ApplicationDAO
       final MembershipMappingDAO membershipMappingDAO,
       final PolicyViolationAggregationDAO policyViolationAggregationDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
-      final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final SastScanDAO sastScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
@@ -156,8 +145,6 @@ public class ApplicationDAO
   {
     super(operationalDataStore, searchIndexManager);
     this.sourceControlDAOProvider = sourceControlDAOProvider;
-    this.sourceControlEventDAO = sourceControlEventDAO;
-    this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
     this.licenseThreatGroupDAOProvider = licenseThreatGroupDAOProvider;
     this.labelDAOProvider = labelDAOProvider;
     this.policyDAOProvider = policyDAOProvider;
@@ -169,7 +156,6 @@ public class ApplicationDAO
     this.membershipMappingDAO = membershipMappingDAO;
     this.policyViolationAggregationDAO = policyViolationAggregationDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
-    this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.sastScanDAO = sastScanDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -665,35 +651,16 @@ public class ApplicationDAO
   public void delete(TransactionContext tx, Application application) {
     long start = System.currentTimeMillis();
 
+    // The following entity deletions are cascaded via foreign key ON DELETE CASCADE:
+    // - PolicyEvaluation
+    // - PolicyViolation
+    // - SourceControlDefaultBranchCommitHistory
+    // - SourceControlEvent
+    // - SourceControlPullRequestResult
+    // - SourceControlUser
+
     // Cascade to source control config
     sourceControlDAOProvider.get().deleteByOwnerId(tx, application.getId());
-
-    // Cascade to source control default branch commit history
-    // We don't enroll this operation in the transaction because:
-    // Policy evaluation deletions will cascade to commit history and the policy evaluation deletions are not enrolled
-    // in transaction. This means the same commit history records we delete here may be already deleted (and the
-    // deletion committed) before the current transaction is committed or flushed and that results in
-    // OptimisticLockException.
-    sourceControlDefaultBranchCommitHistoryDAO.deleteByApplicationId(application.getId());
-
-    // Cascade to source control events
-    // SourceControl events reference policy evaluations, so policy evaluation deletions will cascade to source control
-    // events. Since we don't enroll policy evaluation deletions in the current transaction, the linked source control
-    // events will be deleted in a separate transaction.
-    // On H2, when multiple applications are deleted in the same transaction (for ex, the parent organization is
-    // deleted), if we enroll the deletion of source control events in the current transaction, this can deadlock with
-    // the deletions of source control events cascaded from policy evaluation deletions.
-    // In other words, if we enroll the deletion of source control events in the current transaction here,
-    // it's possible that multiple transactions will try to get a table lock on the "source_control_event" table and
-    // that will result in a JPA OptimisticLockException.
-    // See https://issues.sonatype.org/browse/INT-4896
-    sourceControlEventDAO.deleteByApplicationId(application.getId());
-
-    // Cascade to source control pull request results
-    sourceControlPullRequestResultDAO.deleteByApplicationId(tx, application.getId());
-
-    // PolicyViolation deletions are cascaded via foreign key ON DELETE CASCADE
-    // PolicyEvaluation deletions are cascaded via foreign key ON DELETE CASCADE
 
     // Cascade to license threat groups
     LicenseThreatGroupDAO licenseThreatGroupDAO = this.licenseThreatGroupDAOProvider.get();

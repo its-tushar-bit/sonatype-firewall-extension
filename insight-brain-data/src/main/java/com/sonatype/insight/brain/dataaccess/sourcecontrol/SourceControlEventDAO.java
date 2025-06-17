@@ -358,14 +358,14 @@ public class SourceControlEventDAO
   @Override
   public final void delete(TransactionContext tx, SourceControlEvent entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
+    // we bypass this method when deleting related entities.
     super.delete(tx, entity);
   }
 
   @Override
   public final void delete(SourceControlEvent entity) {
     // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all expired entities.
+    // we bypass this method when deleting related entities.
     super.delete(entity);
   }
 

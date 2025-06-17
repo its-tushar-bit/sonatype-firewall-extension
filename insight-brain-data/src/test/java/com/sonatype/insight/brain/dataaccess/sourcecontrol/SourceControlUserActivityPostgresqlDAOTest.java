@@ -8,45 +8,11 @@ package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
-import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 @Category(SlowTest.class)
+@PostgresTest
 public class SourceControlUserActivityPostgresqlDAOTest
     extends SourceControlUserActivityDAOTest
 {
-  @Override
-  @Test
-  @PostgresTest
-  public void testInsertAllIfNew_onlyNewActivities() {
-    super.testInsertAllIfNew_onlyNewActivities();
-  }
-
-  @Override
-  @Test
-  @PostgresTest
-  public void testInsertAllIfNew_someActivityExists_notFailAndIgnore() {
-    super.testInsertAllIfNew_someActivityExists_notFailAndIgnore();
-  }
-
-  @Override
-  @Test
-  @PostgresTest
-  public void testDeleteBySourceControlUserId() {
-    super.testDeleteBySourceControlUserId();
-  }
-
-  @Override
-  @Test
-  @PostgresTest
-  public void testUpdateActivitiesSentToTelemetry() {
-    super.testUpdateActivitiesSentToTelemetry();
-  }
-
-  @Override
-  @Test
-  @PostgresTest
-  public void testGetActivitiesNotSentToTelemetry() {
-    super.testGetActivitiesNotSentToTelemetry();
-  }
 }

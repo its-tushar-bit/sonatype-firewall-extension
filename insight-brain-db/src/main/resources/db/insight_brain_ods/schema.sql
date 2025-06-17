@@ -917,7 +917,8 @@ CREATE TABLE source_control_default_branch_commit_history (
   create_time timestamp NOT NULL,
   update_time timestamp,
   CONSTRAINT source_control_default_branch_commit_history_pk PRIMARY KEY (source_control_default_branch_commit_history_id),
-  CONSTRAINT source_control_default_branch_commit_history_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
+  CONSTRAINT source_control_default_branch_commit_history_application_fk FOREIGN KEY (application_id)
+    REFERENCES application (application_id) ON DELETE CASCADE,
   CONSTRAINT source_control_default_branch_commit_history_policy_eval_fk FOREIGN KEY (policy_evaluation_id)
     REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
   CONSTRAINT source_control_default_branch_commit_history_uk UNIQUE (application_id, commit_hash)
@@ -959,7 +960,8 @@ CREATE TABLE source_control_event (
   user_agent varchar(255),
   scan_trigger_type varchar(50),
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
-  CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id),
+  CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id)
+    REFERENCES application (application_id) ON DELETE CASCADE,
   CONSTRAINT source_control_event_policy_evaluation_fk FOREIGN KEY (policy_evaluation_id)
     REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE
 );
@@ -1349,7 +1351,8 @@ CREATE TABLE source_control_pull_request_result (
   application_id varchar(50) NOT NULL,
   pull_request_result_json text NOT NULL,
   CONSTRAINT source_control_pull_request_result_pk PRIMARY KEY (source_control_pull_request_result_id),
-  CONSTRAINT source_control_pull_request_result_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id)
+  CONSTRAINT source_control_pull_request_result_application_fk FOREIGN KEY (application_id)
+    REFERENCES application (application_id) ON DELETE CASCADE
 );
 CREATE INDEX source_control_pull_request_result_application_id_idx ON source_control_pull_request_result(application_id);
 
@@ -1617,7 +1620,9 @@ CREATE TABLE source_control_user (
   application_id varchar(50) NOT NULL,
   email varchar(255) NOT NULL,
   CONSTRAINT source_control_user_pk PRIMARY KEY (source_control_user_id),
-  CONSTRAINT email_application_id_uk UNIQUE (application_id, email)
+  CONSTRAINT email_application_id_uk UNIQUE (application_id, email),
+  CONSTRAINT source_control_user_application_fk FOREIGN KEY (application_id)
+    REFERENCES application(application_id) ON DELETE CASCADE
 );
 
 -- since 1.170
@@ -1627,7 +1632,8 @@ CREATE TABLE source_control_user_activity (
   commit_year_month timestamp NOT NULL,
   is_sent_to_telemetry boolean DEFAULT false NOT NULL,
   CONSTRAINT source_control_user_activity_pk PRIMARY KEY (source_control_user_activity_id),
-  CONSTRAINT source_control_user_activity_fk FOREIGN KEY (source_control_user_id) REFERENCES source_control_user(source_control_user_id),
+  CONSTRAINT source_control_user_activity_fk FOREIGN KEY (source_control_user_id)
+    REFERENCES source_control_user(source_control_user_id) ON DELETE CASCADE,
   CONSTRAINT userid_commit_id_uk UNIQUE (commit_year_month, source_control_user_id)
 );
 

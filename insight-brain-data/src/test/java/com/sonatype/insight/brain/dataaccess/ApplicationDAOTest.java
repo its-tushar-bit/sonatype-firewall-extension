@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
 import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -94,7 +95,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
-import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUser;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
 import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.tag.Tag;
@@ -111,6 +112,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -1003,6 +1005,17 @@ public class ApplicationDAOTest
 
     SourceControlDefaultBranchCommitHistoryDAO dao = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
     assertThat(dao.getById(defaultBranchCommitHistory.getId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlUser() {
+    SourceControlUserDAO sourceControlUserDAO = daoFactory.createSourceControlUserDAO();
+    SourceControlUser sourceControlUser = new SourceControlUser(application.getId(), "test@sonatype.com");
+    sourceControlUserDAO.insert(sourceControlUser);
+
+    applicationDAO.delete(application);
+
+    assertThat(sourceControlUserDAO.getById(sourceControlUser.getId())).isNull();
   }
 
   @Test

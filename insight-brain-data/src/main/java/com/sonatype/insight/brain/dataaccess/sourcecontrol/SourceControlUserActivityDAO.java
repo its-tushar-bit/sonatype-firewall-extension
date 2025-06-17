@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -52,11 +53,18 @@ public class SourceControlUserActivityDAO
     return getList(tx, sQuery, sourceControlUserId);
   }
 
-  public void deleteBySourceControlUserId(TransactionContext tx, String sourceControlUserId) {
-    List<SourceControlUserActivity> sourceControlUserActivityList = getBySourceControlUserId(tx, sourceControlUserId);
-    for (SourceControlUserActivity sourceControlUserActivity : sourceControlUserActivityList) {
-      this.delete(tx, sourceControlUserActivity);
-    }
+  @Override
+  public final void delete(TransactionContext tx, SourceControlUserActivity entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
+    super.delete(tx, entity);
+  }
+
+  @Override
+  public final void delete(SourceControlUserActivity entity) {
+    // WARNING: Don't add any business logic to this method because, for performance reasons,
+    // we bypass this method when deleting related entities.
+    super.delete(entity);
   }
 
   /**

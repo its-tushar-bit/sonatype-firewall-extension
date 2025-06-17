@@ -82,20 +82,6 @@ public class SourceControlPullRequestResultDAOTest
   }
 
   @Test
-  public void testDeleteByApplicationId() {
-    Application application = tempEntity.newApplicationWithParent();
-    tempEntity.newSourceControlPullRequestResult(application.getId(), "json1");
-    tempEntity.newSourceControlPullRequestResult(application.getId(), "json2");
-    SourceControlPullRequestResult entity =
-        tempEntity.newSourceControlPullRequestResult(tempEntity.newApplicationWithParent().getId(), "json3");
-
-    dao.deleteByApplicationId(application.getId());
-
-    assertThat(dao.getAll()).usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
-        .containsExactly(entity);
-  }
-
-  @Test
   public void testDeleteAll() {
     Application application1 = tempEntity.newApplicationWithParent();
     Application application2 = tempEntity.newApplicationWithParent();

@@ -207,16 +207,12 @@ public class TestDAOFactory
     Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider = this::createLicenseThreatGroupDAO;
     Provider<PolicyDAO> policyDAOProvider = this::createPolicyDAO;
     Provider<ApplicationComponentDAO> applicationComponentDAOProvider = this::createApplicationComponentDAO;
-    SourceControlEventDAO sourceControlEventDAO = createSourceControlEventDAO();
-    SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO = createSourceControlPullRequestResultDAO();
     ApplicationTagDAO applicationTagDAO = createApplicationTagDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     InnerSourceComponentDAO innerSourceComponentDAO = createInnerSourceComponentDAO();
     MembershipMappingDAO membershipMappingDAO = createMembershipMappingDAO();
     PolicyViolationAggregationDAO policyViolationAggregationDAO = createPolicyViolationAggregationDAO();
     RepositoryConnectionDAO repositoryConnectionDAO = createRepositoryConnectionDAO();
-    SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO =
-        createSourceControlDefaultBranchCommitHistoryDAO();
     SastScanDAO sastScanDAO = createSastScanDAO();
     ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO = createThirdPartySbomMetadataDAO();
     ThirdPartyFileDAO thirdPartyFileDAO = createThirdPartyFileDAO();
@@ -225,10 +221,9 @@ public class TestDAOFactory
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
-        sourceControlEventDAO, sourceControlPullRequestResultDAO,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
         applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
-        policyViolationAggregationDAO, repositoryConnectionDAO, sourceControlDefaultBranchCommitHistoryDAO,
+        policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
         organizationDAO, temporaryTableHelper);
   }
@@ -909,8 +904,7 @@ public class TestDAOFactory
 
   @Override
   public SourceControlUserDAO createSourceControlUserDAO() {
-    SourceControlUserActivityDAO sourceControlUserActivityDAO = crateSourceControlUserActivityDAO();
-    return new SourceControlUserDAO(dataStoreProvider.getOperationalDataStore(), sourceControlUserActivityDAO);
+    return new SourceControlUserDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

@@ -838,7 +838,7 @@ public class SbomResultHandler
           coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
           coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
               coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
-          coordinateSecurity.setDetectionType(OTHER.getDisplayName());
+          coordinateSecurity.setDetectionType(OTHER.getId());
           coordinateSecurity.setDescription(vulnerability.getDescription());
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
           return coordinateSecurity;

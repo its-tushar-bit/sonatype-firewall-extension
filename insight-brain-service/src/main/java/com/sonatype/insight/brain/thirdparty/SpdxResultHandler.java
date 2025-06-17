@@ -379,7 +379,7 @@ public class SpdxResultHandler
     coordinateSecurity.setVulnerabilitySource(source);
     coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
         coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
-    coordinateSecurity.setDetectionType(OTHER.getDisplayName());
+    coordinateSecurity.setDetectionType(OTHER.getId());
     coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     return coordinateSecurity;
   }

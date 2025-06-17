@@ -674,7 +674,7 @@ public class SbomResultsMerger
       thirdPartySecurity.setResearchType(sonatypeVulnerabilityData.getResearchType().name());
     }
     if (sonatypeVulnerabilityData.getDetectionType() != null) {
-      thirdPartySecurity.setDetectionType(sonatypeVulnerabilityData.getDetectionType().getDisplayName());
+      thirdPartySecurity.setDetectionType(sonatypeVulnerabilityData.getDetectionType().getId());
     }
     if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getVectorSource())) {
       thirdPartySecurity.setRatingMethod(

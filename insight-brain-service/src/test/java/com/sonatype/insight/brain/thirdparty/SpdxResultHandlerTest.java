@@ -543,7 +543,7 @@ public class SpdxResultHandlerTest
       // VENDOR_RESEARCH: sonatype-2021-4560, GHSA-5469-c5p2-xv5g
       assertThat(allSecurityRecords).allMatch(s -> Objects.equals(s.getResearchType(),
           s.getRefId().startsWith("CVE-") ? PUBLIC_RESEARCH.name() : VENDOR_RESEARCH.name()));
-      assertThat(allSecurityRecords).allMatch(s -> s.getDetectionType().equals(OTHER.getDisplayName()));
+      assertThat(allSecurityRecords).allMatch(s -> s.getDetectionType().equals(OTHER.getId()));
     }
     assertComponentRef(thirdPartyFile.getId());
   }

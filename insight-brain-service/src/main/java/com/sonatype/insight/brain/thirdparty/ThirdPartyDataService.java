@@ -262,7 +262,7 @@ public class ThirdPartyDataService
     dto.identificationSource = coordinateSecurity.getIdentificationSources();
     dto.researchType = getResearchTypeForThirdPartyVulnerability(coordinateSecurity.getVulnerabilitySource(),
         coordinateSecurity.getRefId());
-    dto.detectionType = SecurityVulnerabilityDetectionType.OTHER.getDisplayName();
+    dto.detectionType = SecurityVulnerabilityDetectionType.OTHER.getId();
 
     ThirdPartyVulnerabilityExploitabilityExchange vex = getVex(coordinateSecurity);
     if (vex != null) {

@@ -398,7 +398,7 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(expectedSeverity);
     assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo("CSV");
     assertThat(coordinateSecurity.getResearchType()).isEqualTo(VENDOR_RESEARCH.name());
-    assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getDisplayName());
+    assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getId());
     assertThat(coordinateSecurity.getSeverityDescription()).isEqualTo(vulnerability.getSeverity());
   }
 }

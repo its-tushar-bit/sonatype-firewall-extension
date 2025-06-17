@@ -748,7 +748,7 @@ public class SbomResultsMergerTest
             "deepdive1", "fixedby1");
     tpVuln2.setIdentificationSources("SBOM");
     tpVuln2.setResearchType(DEEP_DIVE.name());
-    tpVuln2.setDetectionType(SECONDARY.getDisplayName());
+    tpVuln2.setDetectionType(SECONDARY.getId());
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
     //Insert Scenario 1: new third party coordinate security record is inserted in db with the minimal sonatype data
@@ -786,7 +786,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("source");
     assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(VENDOR_RESEARCH.name());
-    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getDisplayName());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
     //Update Scenario 2
@@ -803,7 +803,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("CRITICAL");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("IAC");
     assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(DEEP_DIVE.name());
-    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(SECONDARY.getDisplayName());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(SECONDARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
     //Insert Scenario 1
@@ -820,7 +820,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("HIGH");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("IAC");
     assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(FAST_TRACK.name());
-    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getDisplayName());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isNull();
 
     //Insert Scenario 2
@@ -837,7 +837,7 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("HIGH");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("NVD");
     assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(PUBLIC_RESEARCH.name());
-    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(CPE_MATCH.getDisplayName());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(CPE_MATCH.getId());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("CVSSV3");
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());

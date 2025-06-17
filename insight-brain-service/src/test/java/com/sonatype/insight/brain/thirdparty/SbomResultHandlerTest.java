@@ -2885,7 +2885,7 @@ public class SbomResultHandlerTest
       Vulnerability.Source source = vulnerability.getSource();
       assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo(source.getName());
       assertThat(coordinateSecurity.getResearchType()).isEqualTo(researchType);
-      assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getDisplayName());
+      assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getId());
       assertThat(coordinateSecurity.getCwes()).isNotNull();
       assertThat(coordinateSecurity.getRecommendations()).isNotNull();
       assertThat(coordinateSecurity.getAdvisories()).isNotNull();

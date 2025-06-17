@@ -4881,7 +4881,7 @@ public class TemporaryEntity
     return newThirdPartyCoordinateSecurity(fileCoordinate, refId, metadataId, description,
         link, severity, fixedBy, "source", "v:1", severityDescription,
         "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>",
-        "SBOM", "VENDOR_RESEARCH", "Primary");
+        "SBOM", "VENDOR_RESEARCH", "PRIMARY");
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(

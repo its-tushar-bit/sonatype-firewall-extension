@@ -78,6 +78,8 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -668,6 +670,12 @@ public class SbomResultsMerger
         thirdPartySecurity.setVulnerabilitySource(sonatypeVulnerabilityData.getSource().toUpperCase(Locale.ROOT));
       }
     }
+    if (sonatypeVulnerabilityData.getResearchType() != null) {
+      thirdPartySecurity.setResearchType(sonatypeVulnerabilityData.getResearchType().name());
+    }
+    if (sonatypeVulnerabilityData.getDetectionType() != null) {
+      thirdPartySecurity.setDetectionType(sonatypeVulnerabilityData.getDetectionType().getDisplayName());
+    }
     if (StringUtils.isNotBlank(sonatypeVulnerabilityData.getVectorSource())) {
       thirdPartySecurity.setRatingMethod(
           resolveRatingMethodFromSeveritySource(sonatypeVulnerabilityData.getVectorSource()).name());
@@ -884,7 +892,7 @@ public class SbomResultsMerger
   {
     Set<SecurityVulnerability> sonatypeVulns = hdsSecurityResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
-      // Get all the coordinate securities from the DB for all the vulnerabilities. This list wil
+      // Get all the coordinate securities from the DB for all the vulnerabilities.
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId()).stream()
               .collect(Collectors.toMap(ThirdPartyCoordinateSecurity::getRefId, t -> t));
@@ -1028,6 +1036,12 @@ public class SbomResultsMerger
       securityVulnerability.setCwe(JsonUtils.getNullableString(securityJsonNode.get("cwe")));
       securityVulnerability.setVector(JsonUtils.getNullableString(securityJsonNode.get("cvssVectorString")));
       securityVulnerability.setVectorSource(JsonUtils.getNullableString(securityJsonNode.get("cvssVectorSource")));
+      SecurityVulnerabilityResearchType researchType = SecurityVulnerabilityResearchType.getResearchType(
+          JsonUtils.getNullableString(securityJsonNode.get("researchType")));
+      securityVulnerability.setResearchType(researchType);
+      SecurityVulnerabilityDetectionType detectionType = SecurityVulnerabilityDetectionType.getDetectionType(
+          JsonUtils.getNullableString(securityJsonNode.get("detectionType")));
+      securityVulnerability.setDetectionType(detectionType);
 
       final List<String> aliases = JsonUtils.getStringListFromArray(securityJsonNode.get("aliases"));
       if (aliases != null) {

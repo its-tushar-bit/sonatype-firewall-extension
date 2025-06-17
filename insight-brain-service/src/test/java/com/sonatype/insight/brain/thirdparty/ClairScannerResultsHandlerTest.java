@@ -39,6 +39,8 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.RE
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.SEVERITY_DESCRIPTION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getValidFormat;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClairScannerResultsHandlerTest
@@ -395,6 +397,8 @@ public class ClairScannerResultsHandlerTest
     assertThat(coordinateSecurity.getRefId()).isEqualTo(vulnerability.getVulnerability());
     assertThat(coordinateSecurity.getSeverity()).isEqualTo(expectedSeverity);
     assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo("CSV");
+    assertThat(coordinateSecurity.getResearchType()).isEqualTo(VENDOR_RESEARCH.name());
+    assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getDisplayName());
     assertThat(coordinateSecurity.getSeverityDescription()).isEqualTo(vulnerability.getSeverity());
   }
 }

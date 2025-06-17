@@ -80,6 +80,13 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.PRIMARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.SECONDARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.DEEP_DIVE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
@@ -740,6 +747,8 @@ public class SbomResultsMergerTest
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "FG-R00229", "description1", "link1", 1.0f,
             "deepdive1", "fixedby1");
     tpVuln2.setIdentificationSources("SBOM");
+    tpVuln2.setResearchType(DEEP_DIVE.name());
+    tpVuln2.setDetectionType(SECONDARY.getDisplayName());
     thirdPartyCoordinateSecurityDAO.update(tpVuln2);
 
     //Insert Scenario 1: new third party coordinate security record is inserted in db with the minimal sonatype data
@@ -776,6 +785,8 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isZero();
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isNull();
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("source");
+    assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(VENDOR_RESEARCH.name());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getDisplayName());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
     //Update Scenario 2
@@ -791,6 +802,8 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(9.0d);
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("CRITICAL");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(DEEP_DIVE.name());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(SECONDARY.getDisplayName());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("m1");
 
     //Insert Scenario 1
@@ -806,6 +819,8 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(7.0d);
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("HIGH");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("IAC");
+    assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(FAST_TRACK.name());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(PRIMARY.getDisplayName());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isNull();
 
     //Insert Scenario 2
@@ -821,6 +836,8 @@ public class SbomResultsMergerTest
     assertThat(thirdPartyCoordinateSecurity.getSeverity()).isEqualTo(7.0d);
     assertThat(thirdPartyCoordinateSecurity.getSeverityDescription()).isEqualTo("HIGH");
     assertThat(thirdPartyCoordinateSecurity.getVulnerabilitySource()).isEqualTo("NVD");
+    assertThat(thirdPartyCoordinateSecurity.getResearchType()).isEqualTo(PUBLIC_RESEARCH.name());
+    assertThat(thirdPartyCoordinateSecurity.getDetectionType()).isEqualTo(CPE_MATCH.getDisplayName());
     assertThat(thirdPartyCoordinateSecurity.getRatingMethod()).isEqualTo("CVSSV3");
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());

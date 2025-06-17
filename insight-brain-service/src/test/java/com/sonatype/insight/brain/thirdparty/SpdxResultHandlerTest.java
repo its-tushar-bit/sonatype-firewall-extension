@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -60,6 +61,9 @@ import org.spdx.library.model.SpdxDocument;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -534,6 +538,12 @@ public class SpdxResultHandlerTest
       );
       assertThat(allSecurityRecords).allMatch(
           s -> s.getSbomMetadataId().equals(thirdPartyScanContext.getSbomMetadataId()));
+
+      // PUBLIC_RESEARCH: CVE-2021-45046, CVE-2021-45105, CVE-2020-15250
+      // VENDOR_RESEARCH: sonatype-2021-4560, GHSA-5469-c5p2-xv5g
+      assertThat(allSecurityRecords).allMatch(s -> Objects.equals(s.getResearchType(),
+          s.getRefId().startsWith("CVE-") ? PUBLIC_RESEARCH.name() : VENDOR_RESEARCH.name()));
+      assertThat(allSecurityRecords).allMatch(s -> s.getDetectionType().equals(OTHER.getDisplayName()));
     }
     assertComponentRef(thirdPartyFile.getId());
   }

@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.thirdparty;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ThirdPartyScanResultUtilsTest
@@ -110,5 +113,41 @@ public class ThirdPartyScanResultUtilsTest
     assertThat(ThirdPartyScanResultUtils
         .getTruncatedPurl(StringUtils.repeat("*", ThirdPartyScanResultUtils.PURL_MAX_LENGTH + 10)))
             .hasSize(ThirdPartyScanResultUtils.PURL_MAX_LENGTH);
+  }
+
+  @Test
+  public void testGetResearchTypeForThirdPartyVulnerability() {
+    // Null inputs
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability(null, null)).isNull();
+
+    // Vulnerability source "NVD"
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability("NVD", null))
+        .isEqualTo(PUBLIC_RESEARCH.name());
+
+    // Vulnerability source "National Vulnerability Database"
+    assertThat(
+        ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability(NATIONAL_VULNERABILITY_DATABASE.getName(),
+            null)).isEqualTo(PUBLIC_RESEARCH.name());
+
+    // Vulnerability source not "NVD"
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability("SomeSource", null))
+        .isEqualTo(VENDOR_RESEARCH.name());
+
+    // RefId contains "cve"
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability(null,
+        NATIONAL_VULNERABILITY_DATABASE.getId())).isEqualTo(PUBLIC_RESEARCH.name());
+
+    // RefId does not contain "cve"
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability(null, "SomeRefId"))
+        .isEqualTo(VENDOR_RESEARCH.name());
+
+    // Vulnerability source not "NVD" and RefId does not contain "cve"
+    assertThat(
+        ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability("SomeSource", "SomeRefId"))
+        .isEqualTo(VENDOR_RESEARCH.name());
+
+    // Both vulnerability source and refId are provided
+    assertThat(ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability("NVD",
+        NATIONAL_VULNERABILITY_DATABASE.getId())).isEqualTo(PUBLIC_RESEARCH.name());
   }
 }

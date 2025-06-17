@@ -27,15 +27,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedFixedBy;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedName;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRefId;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVersion;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getValidFormat;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getVulnerabilitySourceFromReference;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.*;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
 
 public class ClairScannerResultHandler
     implements ThirdPartyScanResultHandler
@@ -153,6 +146,9 @@ public class ClairScannerResultHandler
         new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null,
             vulnerability.getDescription(), link, severity, fixedBy);
     coordinateSecurity.setVulnerabilitySource(vulnerabilitySource);
+    coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
+        coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
+    coordinateSecurity.setDetectionType(OTHER.getDisplayName());
     coordinateSecurity.setSeverityDescription(severityDescription);
     coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     thirdPartyCoordinateSecurityDAO.insertSafely(tx, coordinateSecurity);

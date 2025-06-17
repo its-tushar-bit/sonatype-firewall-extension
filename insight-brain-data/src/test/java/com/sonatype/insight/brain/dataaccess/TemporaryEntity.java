@@ -4881,7 +4881,7 @@ public class TemporaryEntity
     return newThirdPartyCoordinateSecurity(fileCoordinate, refId, metadataId, description,
         link, severity, fixedBy, "source", "v:1", severityDescription,
         "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>",
-        "SBOM");
+        "SBOM", "VENDOR_RESEARCH", "Primary");
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -4916,7 +4916,7 @@ public class TemporaryEntity
     return
         this.newThirdPartyCoordinateSecurity(fileCoordinate, refId, null, description, link, severity,
             fixedBy, vulnerabilitySource, cvssVectorString, severityDescription, cwes, ratingMethod, recommendations,
-            advisories, identificationSources);
+            advisories, identificationSources, null, null);
   }
 
   public ThirdPartyCoordinateSecurity newThirdPartyCoordinateSecurity(
@@ -4934,7 +4934,9 @@ public class TemporaryEntity
       String ratingMethod,
       String recommendations,
       String advisories,
-      String identificationSources)
+      String identificationSources,
+      String researchType,
+      String detectionType)
   {
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinate.getId(), refId, metadataId, description, link, severity,
@@ -4947,6 +4949,8 @@ public class TemporaryEntity
     coordinateSecurity.setRecommendations(recommendations);
     coordinateSecurity.setAdvisories(advisories);
     coordinateSecurity.setIdentificationSources(identificationSources);
+    coordinateSecurity.setResearchType(researchType);
+    coordinateSecurity.setDetectionType(detectionType);
     thirdPartyCoordinateSecurityDAO.insert(coordinateSecurity);
     return coordinateSecurity;
   }
@@ -4955,7 +4959,7 @@ public class TemporaryEntity
     return newThirdPartyCoordinateSecurity(newThirdPartyFileCoordinate(), "r1", null, "d1",
         "l1", 5.5d, "1.1", "source", "v:1", "Medium",
         "<dd>1234</dd>", "m1", "<dd>r1<dd/>", "<dd>a1<dd/>",
-        "SBOM");
+        "SBOM", null, null);
   }
 
   public ThirdPartyCoordinateLicense newThirdPartyCoordinateLicense() {
@@ -6112,7 +6116,7 @@ public class TemporaryEntity
           "someDescription", "someLink", 5.5d, "someFixedBy",
           "someVulSource", "someCvssVectorString", "someSevDesc",
           "someCwes", "aRMethod", "someRecommendations", "someAdvisories",
-          "SBOM");
+          "SBOM", null, null);
     }
 
     return sbomMetadata;

@@ -104,6 +104,7 @@ import org.spdx.library.model.license.LicenseInfoFactory;
 import us.springett.parsers.cpe.util.Validate;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.CYCLONEDX;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedAttackVector;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedLink;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedRatingMethod;
@@ -111,6 +112,7 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.ge
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedSeverityDescription;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedVulnerabilitySource;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
 
 public class SbomResultHandler
     implements ThirdPartyScanResultHandler
@@ -834,6 +836,9 @@ public class SbomResultHandler
             }
           }
           coordinateSecurity.setRefId(getTruncatedRefId(vulnerability.getId()));
+          coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
+              coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
+          coordinateSecurity.setDetectionType(OTHER.getDisplayName());
           coordinateSecurity.setDescription(vulnerability.getDescription());
           coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
           return coordinateSecurity;

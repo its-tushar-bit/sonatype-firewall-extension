@@ -91,6 +91,12 @@ public class ThirdPartyCoordinateSecurity
   @Column(name = "identification_sources")
   private String identificationSources;
 
+  @Column(name = "research_type")
+  private String researchType;
+
+  @Column(name = "detection_type")
+  private String detectionType;
+
   @Override
   public String getId() {
     return id;
@@ -228,5 +234,21 @@ public class ThirdPartyCoordinateSecurity
     else if (!this.identificationSources.contains(identificationSource)) {
       setIdentificationSources(getIdentificationSources() + "," + identificationSource);
     }
+  }
+
+  public String getResearchType() {
+    return researchType;
+  }
+
+  public void setResearchType(final String researchType) {
+    this.researchType = researchType;
+  }
+
+  public String getDetectionType() {
+    return detectionType;
+  }
+
+  public void setDetectionType(final String detectionType) {
+    this.detectionType = detectionType;
   }
 }

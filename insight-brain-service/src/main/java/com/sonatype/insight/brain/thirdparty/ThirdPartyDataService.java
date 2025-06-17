@@ -41,7 +41,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabi
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.MultiLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
@@ -67,7 +66,6 @@ import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRo
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
-import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.annotations.VisibleForTesting;
@@ -78,6 +76,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.model.Swid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability;
 
 @Named
 @Singleton
@@ -274,17 +274,6 @@ public class ThirdPartyDataService
     }
 
     return dto;
-  }
-
-  private String getResearchTypeForThirdPartyVulnerability(String vulnerabilitySource, String refId) {
-    if (vulnerabilitySource != null) {
-      if (StringUtils.containsIgnoreCase(refId, SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId()) ||
-          vulnerabilitySource.equalsIgnoreCase("NVD")) {
-        return SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.name();
-      }
-      return SecurityVulnerabilityResearchType.VENDOR_RESEARCH.name();
-    }
-    return null;
   }
 
   private ThirdPartyVulnerabilityExploitabilityExchange getVex(

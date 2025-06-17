@@ -96,6 +96,9 @@ import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.PU
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.THIRD_PARTY_IDENTIFICATION_SOURCE_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VERSION_MAX_LENGTH;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.VULNERABILITY_SOURCE_MAX_LENGTH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -456,7 +459,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId());
+        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId(), VENDOR_RESEARCH.name());
   }
 
   @Test
@@ -489,7 +492,7 @@ public class SbomResultHandlerTest
         thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(thirdPartyFileCoordinate.getId());
     assertThat(coordinatesSecurity).hasSize(1);
     assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId());
+        SbomFormat.XML, true, thirdPartyScanContext.getSbomMetadataId(), VENDOR_RESEARCH.name());
   }
 
   @Test
@@ -784,7 +787,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          SbomFormat.XML, false, thirdPartyScanContext.getSbomMetadataId());
+          SbomFormat.XML, false, thirdPartyScanContext.getSbomMetadataId(), VENDOR_RESEARCH.name());
     }
   }
 
@@ -821,26 +824,26 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_14() throws Exception {
     testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_4.xml"), "sbom-vulnerabilities-v1_4.xml",
-        SbomFormat.XML);
+        SbomFormat.XML, PUBLIC_RESEARCH.name());
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_15() throws Exception {
     testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_5.xml"), "sbom-vulnerabilities-v1_5.xml",
-        SbomFormat.XML);
+        SbomFormat.XML, VENDOR_RESEARCH.name());
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_15_withCVSSv4() throws Exception {
     testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_5_cvssv4.xml"),
-        "sbom-vulnerabilities-v1_5_cvssv4.xml", SbomFormat.XML);
+        "sbom-vulnerabilities-v1_5_cvssv4.xml", SbomFormat.XML, VENDOR_RESEARCH.name());
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_xml_14_withCVSSv4_shouldFail() throws Exception {
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> testHandleFilterContents(getSbomXmlFile("sbom-vulnerabilities-v1_4_cvssv4.xml"),
-            "sbom-vulnerabilities-v1_4_cvssv4.xml", SbomFormat.XML))
+            "sbom-vulnerabilities-v1_4_cvssv4.xml", SbomFormat.XML, PUBLIC_RESEARCH.name()))
         .withStackTraceContaining("cvc-enumeration-valid: Value 'CVSSv4' is not facet-valid with respect " +
             "to enumeration '[CVSSv2, CVSSv3, CVSSv31, OWASP, other]'. It must be a value from the enumeration");
   }
@@ -848,19 +851,19 @@ public class SbomResultHandlerTest
   @Test
   public void testHandleAndFilterContents_withVulnerabilitiesRatings_json_14() throws Exception {
     testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-ratings-v1-4.json"),
-        "sbom-vulnerabilities-ratings-v1-4.json", SbomFormat.JSON);
+        "sbom-vulnerabilities-ratings-v1-4.json", SbomFormat.JSON, PUBLIC_RESEARCH.name());
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_json_14() throws Exception {
     testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-v1-4.json"), "sbom-vulnerabilities-v1-4.json",
-        SbomFormat.JSON);
+        SbomFormat.JSON, PUBLIC_RESEARCH.name());
   }
 
   @Test
   public void testHandleAndFilterContents_withVulnerabilities_json_15() throws Exception {
     testHandleFilterContents(getSbomJsonFile("sbom-vulnerabilities-v1-5.json"), "sbom-vulnerabilities-v1-5.json",
-        SbomFormat.JSON);
+        SbomFormat.JSON, VENDOR_RESEARCH.name());
   }
 
   @Test
@@ -944,7 +947,9 @@ public class SbomResultHandlerTest
         "OWF-bundle-7.17.1.zip/apache-tomcat/webapps/owf.war/rest/js/vendor/jquery-1.9.1.min.js");
   }
 
-  private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat) throws Exception {
+  private void testHandleFilterContents(String sbomContent, String path, SbomFormat sbomFormat, String researchType)
+      throws Exception
+  {
     ThirdPartyScanContent content = new ThirdPartyScanContent(path, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     ThirdPartyScanContext thirdPartyScanContext = new ThirdPartyScanContext(null, null, null, null, null);
@@ -971,7 +976,7 @@ public class SbomResultHandlerTest
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(tx, thirdPartyFileCoordinate.getId());
       assertThat(coordinatesSecurity).hasSize(1);
       assertThirdPartyCoordinateSecurity(sbomContent, thirdPartyFileCoordinate.getId(), coordinatesSecurity.get(0),
-          sbomFormat, true, false, thirdPartyScanContext.getSbomMetadataId());
+          sbomFormat, true, false, thirdPartyScanContext.getSbomMetadataId(), researchType);
     }
   }
 
@@ -2857,7 +2862,8 @@ public class SbomResultHandlerTest
       Vulnerability vulnerability,
       String coordinateId,
       boolean optionalValuesPresent,
-      String sbomMetadataId)
+      String sbomMetadataId,
+      String researchType)
   {
     assertThat(coordinateSecurity).isNotNull();
     assertThat(coordinateSecurity.getFileCoordinateId()).isEqualTo(coordinateId);
@@ -2878,6 +2884,8 @@ public class SbomResultHandlerTest
 
       Vulnerability.Source source = vulnerability.getSource();
       assertThat(coordinateSecurity.getVulnerabilitySource()).isEqualTo(source.getName());
+      assertThat(coordinateSecurity.getResearchType()).isEqualTo(researchType);
+      assertThat(coordinateSecurity.getDetectionType()).isEqualTo(OTHER.getDisplayName());
       assertThat(coordinateSecurity.getCwes()).isNotNull();
       assertThat(coordinateSecurity.getRecommendations()).isNotNull();
       assertThat(coordinateSecurity.getAdvisories()).isNotNull();
@@ -2987,10 +2995,11 @@ public class SbomResultHandlerTest
       ThirdPartyCoordinateSecurity coordinateSecurity,
       SbomFormat format,
       boolean optionalValuesPresent,
-      String sbomMetadataId) throws Exception
+      String sbomMetadataId,
+      String researchType) throws Exception
   {
     assertThirdPartyCoordinateSecurity(content, coordinateId, coordinateSecurity, format, optionalValuesPresent, true,
-        sbomMetadataId);
+        sbomMetadataId, researchType);
   }
 
   private void assertThirdPartyCoordinateSecurity(
@@ -3000,7 +3009,8 @@ public class SbomResultHandlerTest
       SbomFormat format,
       boolean optionalValuesPresent,
       boolean extensionVulnerability,
-      String sbomMetadataId) throws Exception
+      String sbomMetadataId,
+      String researchType) throws Exception
   {
     Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, format);
 
@@ -3011,7 +3021,7 @@ public class SbomResultHandlerTest
     }
     else {
       assertVulnerability(coordinateSecurity, expectedBom.getVulnerabilities().get(0), coordinateId,
-          optionalValuesPresent, sbomMetadataId);
+          optionalValuesPresent, sbomMetadataId, researchType);
     }
   }
 

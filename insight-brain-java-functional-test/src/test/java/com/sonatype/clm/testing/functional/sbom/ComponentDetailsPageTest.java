@@ -797,12 +797,12 @@ public class ComponentDetailsPageTest
   {
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "ABC-123", null, "test vulnerability",
         "http://123.xyz", 5.6d, "testUser", "source", "v:1", "test severity", "123", "m1", "r1", "a1",
-        identificationSource);
+        identificationSource, null, null);
     ThirdPartyCoordinateSecurity vulnerabilityDEF456 = tempEntity.newThirdPartyCoordinateSecurity(
         thirdPartyFileCoordinate, "DEF-456", null,
         "test vulnerability2", "http://1234.xyz", 1.6d, "testUser", "source", "v:1", "testSeverity",
         "1234", "m1", "r1", "a1",
-        identificationSource);
+        identificationSource, null, null);
     if (withVexAnnotations) {
       tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityDEF456, "DEF-456", "exploitable",
           "code_not_present",
@@ -812,7 +812,7 @@ public class ComponentDetailsPageTest
     }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
         "http://12345.xyz", 1.5d, "testUser", "source", "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "testSeverity",
-        "12345", "m3", "r3", "a3", identificationSource);
+        "12345", "m3", "r3", "a3", identificationSource, null, null);
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "sonatype-123", "test sonatype vulnerability",
         "http://sonatype.com", 9.6d, "testUser", "SONATYPE",

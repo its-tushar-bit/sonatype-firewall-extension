@@ -8,7 +8,9 @@ package com.sonatype.insight.brain.thirdparty;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.scan.util.HashUtils;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -114,5 +116,22 @@ public class ThirdPartyScanResultUtils
 
   public static String getTruncatedPurl(String purl) {
     return StringUtils.truncate(purl, PURL_MAX_LENGTH);
+  }
+
+  public static String getResearchTypeForThirdPartyVulnerability(String vulnerabilitySource, String refId) {
+    if (vulnerabilitySource != null) {
+      if (vulnerabilitySource.equalsIgnoreCase("NVD") ||
+          vulnerabilitySource.equalsIgnoreCase(SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getName())) {
+        return SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.name();
+      }
+      return SecurityVulnerabilityResearchType.VENDOR_RESEARCH.name();
+    }
+    if (StringUtils.isNotBlank(refId)) {
+      if (StringUtils.containsIgnoreCase(refId, SecurityVulnerabilitySource.NATIONAL_VULNERABILITY_DATABASE.getId())) {
+        return SecurityVulnerabilityResearchType.PUBLIC_RESEARCH.name();
+      }
+      return SecurityVulnerabilityResearchType.VENDOR_RESEARCH.name();
+    }
+    return null;
   }
 }

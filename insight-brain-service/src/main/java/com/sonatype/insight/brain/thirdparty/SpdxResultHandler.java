@@ -88,7 +88,9 @@ import org.spdx.library.model.license.SpdxNoneLicense;
 
 import static com.sonatype.insight.brain.sbom.SbomSpecification.SPDX;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REF;
+import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getResearchTypeForThirdPartyVulnerability;
 import static com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultUtils.getTruncatedThirdPartyIdentificationSource;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.OTHER;
 
 public class SpdxResultHandler
     extends SbomResultHandler
@@ -375,6 +377,9 @@ public class SpdxResultHandler
     ThirdPartyCoordinateSecurity coordinateSecurity =
         new ThirdPartyCoordinateSecurity(fileCoordinateId, refId, null, null, link, 0.0f, null);
     coordinateSecurity.setVulnerabilitySource(source);
+    coordinateSecurity.setResearchType(getResearchTypeForThirdPartyVulnerability(
+        coordinateSecurity.getVulnerabilitySource(), coordinateSecurity.getRefId()));
+    coordinateSecurity.setDetectionType(OTHER.getDisplayName());
     coordinateSecurity.setIdentificationSources(IdentificationSource.SBOM.getId());
     return coordinateSecurity;
   }

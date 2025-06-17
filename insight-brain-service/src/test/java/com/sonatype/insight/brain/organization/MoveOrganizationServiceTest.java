@@ -81,6 +81,23 @@ public class MoveOrganizationServiceTest
   }
 
   @Test
+  public void testMoveOrganization_WithChildren() {
+    Organization sourceOrg = tempEntity.newOrganization();
+    Organization childOrg = tempEntity.newOrganization(sourceOrg);
+    Organization destOrg = tempEntity.newOrganization();
+    // Sanity checks
+    assertThat(organizationDAO.getById(sourceOrg.getId()).getParentOrganizationId())
+        .isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+    assertThat(organizationDAO.getById(childOrg.getId()).getParentOrganizationId()).isEqualTo(sourceOrg.getId());
+
+    MoveOrganizationResponseDTO moveOrganizationResponseDTO =
+        moveOrganizationService.moveOrganization(sourceOrg.getId(), destOrg.getId(), failEarlyOnError);
+    assertThat(moveOrganizationResponseDTO.errors).isEmpty();
+    assertThat(moveOrganizationResponseDTO.warnings).isEmpty();
+    assertThat(organizationDAO.getById(sourceOrg.getId()).getParentOrganizationId()).isEqualTo(destOrg.getId());
+  }
+
+  @Test
   public void testMoveOrganization_PostEvents() throws InterruptedException {
     TestEventHandler<OwnerEvent> handler = new TestEventHandler<>(new CountDownLatch(1), OwnerEvent.class);
     eventBus.register(handler);

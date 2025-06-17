@@ -29,6 +29,12 @@ public class JPA
     assertThat(actual).usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG).isEqualTo(expected);
   }
 
+  public static <T> void assertContainsEntitiesExactlyElementsOf(Iterable<T> actual, Iterable<T> expected) {
+    assertThat(actual).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyElementsOf(expected);
+  }
+
+  @SafeVarargs
   public static <T> void assertContainsEntitiesExactlyInAnyOrder(Iterable<T> actual, T... expected) {
     assertThat(actual).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(expected);

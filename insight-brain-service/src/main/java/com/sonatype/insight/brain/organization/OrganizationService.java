@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.PathParam;
@@ -136,9 +137,13 @@ public class OrganizationService
 
   @Authorize(permission = Permission.WRITE)
   public Organization updateOrganization(@AuthzContext(AuthzContext.Key.ORGANIZATION) Organization organization) {
-    organizationDAO.update(organization);
-
     AuditData.get().setOrganization(organization);
+
+    Organization existingOrganization = organizationDAO.getById(organization.getId());
+    if (!Objects.equals(existingOrganization.getParentOrganizationId(), organization.getParentOrganizationId())) {
+      throw new BadRequestException("Cannot change the parent organization. Use move organization instead.");
+    }
+    organizationDAO.update(organization);
 
     managementEventService.postEvent(UPDATED, organization);
     organizationApplicationManagementEventService.postEvent();

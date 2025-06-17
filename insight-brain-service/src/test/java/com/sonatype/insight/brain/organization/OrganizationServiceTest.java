@@ -306,6 +306,18 @@ public class OrganizationServiceTest
   }
 
   @Test
+  public void testUpdateOrganization_CannotChangeParentOrganization() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    Organization otherOrg = tempEntity.newOrganization();
+
+    org.setParentOrganizationId(otherOrg.getId());
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
+      organizationService.updateOrganization(org);
+    }).withMessage("Cannot change the parent organization. Use move organization instead.");
+  }
+
+  @Test
   public void testDeleteOrganization_NLevel_CascadeToChildOrganizations() throws Exception {
     List<Organization> testList = tempEntity.newRelatedOrganizationsAsList(1, 7, 0);
     List<Organization> deletedOrgs = testList.subList(0, 6);

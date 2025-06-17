@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -241,12 +242,13 @@ public class OrganizationDAO
       }
     }
 
-    Organization existingOrganization = getByName(tx, organization.getName());
-    String oldParentId = existingOrganization == null ? null : existingOrganization.getParentOwnerId();
-
-    if (existingOrganization != null && !existingOrganization.getId().equals(organization.getId())) {
+    Organization existingOrganizationByName = getByName(tx, organization.getName());
+    if (existingOrganizationByName != null && !existingOrganizationByName.getId().equals(organization.getId())) {
       throw new InvalidNameException(organization.getName() + " is already used as a name.");
     }
+
+    Organization existingOrganizationById = getById(tx, organization.getId());
+    String oldParentId = existingOrganizationById == null ? null : existingOrganizationById.getParentOwnerId();
 
     super.update(tx, organization);
 
@@ -458,7 +460,7 @@ public class OrganizationDAO
     for (Organization org : getAllChildOrganizations(tx, organization.getId())) {
       List<OrganizationAncestor> orgAncestors = organizationAncestorDAO.getByOrganizationId(tx, org.getId());
       for (OrganizationAncestor orgAncestor : orgAncestors) {
-        organizationAncestorDAO.delete(orgAncestor);
+        organizationAncestorDAO.delete(tx, orgAncestor);
       }
 
       insertOrganizationAncestors(tx, org);

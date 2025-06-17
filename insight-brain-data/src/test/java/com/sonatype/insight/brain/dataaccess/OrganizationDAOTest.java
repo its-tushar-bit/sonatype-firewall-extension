@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.OrganizationAncestor;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
@@ -551,6 +552,18 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     assertThat(orgAncestorDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID))
         .extracting("organizationId", "ancestorId", "ancestorDistance")
         .contains(tuple(Organization.ROOT_ORGANIZATION_ID, Organization.ROOT_ORGANIZATION_ID, 0));
+  }
+
+  @Test
+  public void testUpdate_OrganizationAncestorRecords_ParentOrgUnchanged() {
+    // If the parent organization is unchanged, the OrganizationAncestor records should not change (not even their IDs).
+    List<OrganizationAncestor> orgAncestorsBefore = orgAncestorDAO.getByOrganizationId(organization.getId());
+
+    organization.setName("New name");
+    dao.update(organization);
+
+    List<OrganizationAncestor> orgAncestorsAfter = orgAncestorDAO.getByOrganizationId(organization.getId());
+    JPA.assertContainsEntitiesExactlyElementsOf(orgAncestorsBefore, orgAncestorsAfter);
   }
 
   @Test

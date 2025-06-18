@@ -502,13 +502,6 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
-  public void testGetConfiguration_MatcherConfiguration_PublicDataSourceCPENotSet_ReturnsDefault() {
-    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, false);
-  }
-
-  @Test
   public void testGetConfiguration_BfsArtifactoryExpiredTokenRegexNotSet_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(
@@ -1507,29 +1500,6 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING))).containsEntry(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, true);
-  }
-
-  @Test
-  public void testSetConfiguration_MatcherConfiguration_PublicDataSourceCPE_Null() {
-    service.setConfigurationNoAuthz(
-        Maps.newHashMap(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, null));
-
-    assertThat(dao.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)).isNull();
-    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, false);
-  }
-
-  @Test
-  public void testSetConfiguration_MatcherConfiguration_PublicDataSourceCPE() {
-    service.setConfigurationNoAuthz(
-        Maps.newHashMap(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, true));
-
-    assertThat(dao.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)).isEqualTo(
-        "true");
-    assertThat(service.getConfigurationNoAuthz(SetUtils.hashSet(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING))).containsEntry(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, true);
   }
 
   @Test

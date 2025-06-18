@@ -78,8 +78,6 @@ public class ConfigurationInfoTest
         String.valueOf(false));
     tempEntity.newSystemConfigurationProperty(
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, String.valueOf(true));
-    tempEntity.newSystemConfigurationProperty(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, String.valueOf(true));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.BASE_URL, "http://127.0.0.1:8070");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FORCE_BASE_URL, String.valueOf(true));
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
@@ -130,7 +128,6 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_INSPECTION_HOUR,
         SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED,
@@ -174,8 +171,6 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
-        .asText()).isEqualTo("true");
-    assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)
         .asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("http://127.0.0.1:8070");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("true");
@@ -234,8 +229,6 @@ public class ConfigurationInfoTest
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
-        .asText()).isEqualTo("false");
-    assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)
         .asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.BASE_URL).asText()).isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.FORCE_BASE_URL).asText()).isEqualTo("false");

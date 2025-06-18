@@ -347,25 +347,6 @@ public class ConfigurationTest
     assertThat(matcherConfiguration).containsEntry("disableConanNamespaceMatching", "true");
   }
 
-  @Test
-  public void testGetMatcherConfiguration_PublicDataSourceCPE_False() {
-    Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
-
-    assertThat(matcherConfiguration).containsEntry("enableCpeDataMatching", "false");
-  }
-
-  @Test
-  public void testGetMatcherConfiguration_PublicDataSourceCPE_True() {
-    configurationService.setConfigurationInDatabaseNoAuthz(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, true);
-    configurationService.applyConfigurationToClients(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING);
-
-    Map<String, String> matcherConfiguration = configuration.getMatcherConfiguration();
-
-    assertThat(matcherConfiguration).containsEntry("enableCpeDataMatching", "true");
-  }
-
   private void givenCacheAndDatabaseAreNotInSync(
       final int maxPoolSize,
       final String givenSomeCustomBaseUrl

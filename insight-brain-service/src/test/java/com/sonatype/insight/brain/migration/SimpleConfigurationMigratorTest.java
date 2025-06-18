@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
@@ -601,24 +600,6 @@ public class SimpleConfigurationMigratorTest
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING + EXPECTED_OBSOLETE_SUFFIX);
     verify(mockConfigurationService).applyConfigurationToClients(
         Sets.newHashSet(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING));
-    verifyNoInteractions(mockConfigFeaturesService);
-    assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
-  }
-
-  @Test
-  public void testMigrate_MatcherConfiguration_PublicDataSourceCPE() {
-    Map<String, String> matcherConfiguration = new HashMap<>();
-    matcherConfiguration.put(ENABLE_CPE_DATA_MATCHING, "true");
-    insightConfig.setMatcherConfiguration(matcherConfiguration);
-
-    simpleConfigurationMigrator.migrate();
-
-    assertThat(configurationService.getConfigurationNoAuthz(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)).isEqualTo(true);
-    logOutput.assertThat().atWarnLevel().contains(
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING + EXPECTED_OBSOLETE_SUFFIX);
-    verify(mockConfigurationService).applyConfigurationToClients(
-        Sets.newHashSet(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING));
     verifyNoInteractions(mockConfigFeaturesService);
     assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
   }

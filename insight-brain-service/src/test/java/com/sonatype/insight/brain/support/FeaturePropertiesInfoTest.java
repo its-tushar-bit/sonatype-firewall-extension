@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(26);
+    assertThat(sysConfigNode.size()).isEqualTo(25);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -47,8 +47,6 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_POLICIES).asBoolean()).isTrue();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)
-        .asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)
         .asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED)
@@ -75,7 +73,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(26);
+    assertThat(sysConfigNode.size()).isEqualTo(25);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -92,8 +90,6 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ADVANCED_REPORTING_INSIGHTS_ENABLED).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_CONTINUOUS_MONITORING_UI).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_POLICIES).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING)
-        .asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.NEEDS_ACKNOWLEDGEMENT_OF_INITIAL_DASHBOARD_FILTER)
         .asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.WAIVED_COMPONENT_UPGRADE_MONITORING_ENABLED)

@@ -70,9 +70,6 @@ public class ConfigurationInfo
     entries.put(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         configuration.getMatcherConfiguration() != null ? configuration.getMatcherConfiguration().get(
             "disableConanNamespaceMatching") : null);
-    entries.put(SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING,
-        configuration.getMatcherConfiguration() != null ? configuration.getMatcherConfiguration().get(
-            "enableCpeDataMatching") : null);
     entries.put(SystemConfigurationProperty.BASE_URL,
         configuration.getBaseUrlConfiguration() != null ? configuration.getBaseUrlConfiguration().getBaseUrl() : null);
     entries.put(SystemConfigurationProperty.FORCE_BASE_URL,

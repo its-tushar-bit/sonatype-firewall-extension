@@ -165,9 +165,6 @@ public class SystemConfigurationProperty
   public static final String MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING =
       "matcherConfiguration.disableConanNamespaceMatching";
 
-  public static final String MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING =
-      "matcherConfiguration.enableCpeDataMatching";
-
   public static final String SCHEMA_MIGRATION_ENABLED = DatabaseMigrator.SCHEMA_MIGRATION_ENABLED;
 
   public static final String API_PAGE = "API_PAGE";

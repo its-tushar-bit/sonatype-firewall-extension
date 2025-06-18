@@ -183,7 +183,6 @@ public class Configuration
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
-        SystemConfigurationProperty.MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
         SystemConfigurationProperty.BFS_ARTIFACTORY_EXPIRED_TOKEN_REGEX,
         SystemConfigurationProperty.BFS_COMPONENT_QUERY_LIMIT,

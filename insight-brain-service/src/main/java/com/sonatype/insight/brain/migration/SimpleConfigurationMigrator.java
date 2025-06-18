@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -80,9 +79,6 @@ public class SimpleConfigurationMigrator
     nameToGetter.put(MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, config ->
         config.getMatcherConfiguration() == null ? null : ConfigurationUtils.parseBooleanWithDefault(
             config.getMatcherConfiguration().get("disableConanNamespaceMatching"), null));
-    nameToGetter.put(MATCHER_CONFIGURATION_ENABLE_CPE_DATA_MATCHING, config ->
-        config.getMatcherConfiguration() == null ? null : ConfigurationUtils.parseBooleanWithDefault(
-            config.getMatcherConfiguration().get("enableCpeDataMatching"), null));
     for (Feature feature : Feature.values()) {
       nameToGetter.put(feature.getFlag(), config -> getFeature(config, feature));
     }

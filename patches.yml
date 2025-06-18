@@ -5,7 +5,7 @@ github:
     url: "https://api.github.com"
     timeout: 30
 global:
-  maxConcurrentPrs: 3
+  maxConcurrentPrs: 6
   dryRun: false
   reviewers:
   - "team-lead"

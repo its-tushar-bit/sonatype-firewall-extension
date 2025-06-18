@@ -25,7 +25,6 @@ import 'angular-sanitize';
 import 'angular-ui-validate';
 import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
-import 'angular-vs-repeat';
 import 'angular-xeditable';
 import './lib/bootstrap-loader';
 import 'es6-collections';

@@ -48,7 +48,6 @@
     "angular-sanitize": "~1.6.10",
     "angular-ui-bootstrap": "^0.13.4",
     "angular-ui-validate": "^1.2.3",
-    "angular-vs-repeat": "^1.1.7",
     "angular-xeditable": "^0.2.0",
     "axios": "1.8.3",
     "bootstrap-datepicker": "^1.7.1",

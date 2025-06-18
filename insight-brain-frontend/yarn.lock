@@ -3512,11 +3512,6 @@ angular-ui-validate@^1.2.3:
   resolved "https://repo.sonatype.com/repository/npm-all/angular-ui-validate/-/angular-ui-validate-1.2.3.tgz"
   integrity sha1-vrFB9kQJv926ZcEvdYG4k931kyE=
 
-angular-vs-repeat@^1.1.7:
-  version "1.1.11"
-  resolved "https://repo.sonatype.com/repository/npm-all/angular-vs-repeat/-/angular-vs-repeat-1.1.11.tgz"
-  integrity sha512-sv3K5qA0K1X3WcRbDr3teZAOfyxwjTMqMEgv4IAjrXW47yII5y2bPjH23CmHYuUufvm4+jr3pQZOvcFBBFsRPg==
-
 angular-xeditable@^0.2.0:
   version "0.2.0"
   resolved "https://repo.sonatype.com/repository/npm-all/angular-xeditable/-/angular-xeditable-0.2.0.tgz"

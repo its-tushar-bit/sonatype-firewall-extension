@@ -59,7 +59,7 @@
     <jetty.version>10.0.25</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
-    <dropwizard.version>3.0.13</dropwizard.version>
+    <dropwizard.version>3.0.14</dropwizard.version>
     <dropwizard-web.version>2.0.1</dropwizard-web.version>
     <dropwizard-guicey.version>6.2.4</dropwizard-guicey.version>
     <guice.version>6.0.0</guice.version>
@@ -74,7 +74,7 @@
     <nexus-dependency-management.version>2.2.10-01</nexus-dependency-management.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
     <mockito-core.version>5.18.0</mockito-core.version>
-    <byte-buddy.version>1.15.11</byte-buddy.version>
+    <byte-buddy.version>1.17.5</byte-buddy.version>
     <testcontainers.version>1.20.1</testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
     <aws.java.sdk.version>2.29.52</aws.java.sdk.version>

@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -14,7 +14,7 @@ public class TenantReference<T>
 {
   private final Supplier<T> initializer;
 
-  private final Map<Tenant, T> tenantMap = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Tenant, T> tenantMap = new ConcurrentHashMap<>();
 
   public TenantReference() {
     this.initializer = null;

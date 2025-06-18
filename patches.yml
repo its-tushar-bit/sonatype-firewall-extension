@@ -30,7 +30,7 @@ global:
     maxAttempts: 3
     onFailure: "notify"
   projects:
-    ".":
+    "insight-brain":
       path: "."
       type: "maven"
       enabled: true

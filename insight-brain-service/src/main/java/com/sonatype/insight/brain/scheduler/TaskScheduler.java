@@ -18,7 +18,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -354,7 +353,13 @@ public class TaskScheduler
 
   protected void scheduleTask(JobDetail job, Scheduler scheduler, Trigger... triggers) {
     try {
-      scheduler.scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
+      if (scheduler != null) {
+        scheduler.scheduleJob(job, new HashSet<>(Arrays.asList(triggers)), true);
+      }
+      else {
+        log.warn("Cannot schedule task, jobKey '{}' for tenant {} because a scheduler is not available.", job.getKey(),
+            TenantThreadLocal.getTenant(), new Exception("Scheduler is not available."));
+      }
     }
     catch (SchedulerException e) {
       throw new RuntimeException(e);

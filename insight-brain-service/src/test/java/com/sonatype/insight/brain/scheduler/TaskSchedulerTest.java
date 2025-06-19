@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
@@ -34,6 +35,7 @@ import org.aopalliance.intercept.Joinpoint;
 import org.aopalliance.intercept.MethodInterceptor;
 import org.apache.commons.lang.time.DateUtils;
 import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -66,6 +68,9 @@ import static org.mockito.Mockito.when;
 public class TaskSchedulerTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(TaskScheduler.class);
+
   @Inject
   private TaskScheduler taskScheduler;
 
@@ -337,6 +342,18 @@ public class TaskSchedulerTest
 
     assertThat(scheduler.getJobDetail(jobKey)).isNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNull();
+  }
+
+  @Test
+  public void testScheduleTask_NullScheduler() {
+    JobKey jobKey = JobKey.jobKey(TestJob.NAME);
+    JobDetail job = JobBuilder.newJob(TestJob.class).withIdentity(jobKey).build();
+
+    assertThatNoException().isThrownBy(() -> taskScheduler.scheduleTask(job, (Scheduler) null));
+    logOutput.assertThat().atWarnLevel().contains(
+        "Cannot schedule task, jobKey 'DEFAULT.TestJob' " +
+            "for tenant Tenant[tenantSlug='notused', createdByThread='main', valid='true'] " +
+            "because a scheduler is not available.");
   }
 
   @Test

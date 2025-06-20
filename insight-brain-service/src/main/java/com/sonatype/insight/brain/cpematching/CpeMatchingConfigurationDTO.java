@@ -36,34 +36,8 @@ public class CpeMatchingConfigurationDTO
    */
   public Boolean inheritedFromOrganizationAllowOverride;
 
-  public static CpeMatchingConfigurationDTO forSelf(Boolean enabled, Boolean allowOverride) {
-    CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
-    dto.enabled = enabled;
-    dto.allowOverride = allowOverride;
-    return dto;
-  }
-
-  public static CpeMatchingConfigurationDTO fromParent(
-      Boolean enabledInParent,
-      String inheritedFromOrganizationName,
-      Boolean inheritedFromOrganizationAllowOverride,
-      boolean isApplication)
-  {
-    CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
-    dto.enabledInParent = enabledInParent;
-    dto.inheritedFromOrganizationName = inheritedFromOrganizationName;
-    dto.inheritedFromOrganizationAllowOverride = inheritedFromOrganizationAllowOverride;
-    dto.enabled = enabledInParent;
-    if (isApplication) {
-      dto.allowOverride = false;
-    }
-    else {
-      dto.allowOverride = inheritedFromOrganizationAllowOverride;
-    }
-    return dto;
-  }
-
   public CpeMatchingConfigurationDTO() {
     //for jackson
   }
 }
+

@@ -131,6 +131,7 @@ export const selectIsIntegratedEnterpriseReportingSupported = createSelector(
   selectProductFeatures,
   propOr(false, 'integrated-enterprise-reporting')
 );
+export const selectIsCpeMatchingSupported = createSelector(selectProductFeatures, propOr(false, 'cpe-matching'));
 export const selectEnterpriseReportingLicenseError = createSelector(
   selectIsIntegratedEnterpriseReportingSupported,
   selectLoadingFeatures,

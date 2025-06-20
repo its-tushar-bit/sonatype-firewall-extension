@@ -47,6 +47,7 @@ import { selectIsDisplayedOrganizationSynthetic } from 'MainRoot/OrgsAndPolicies
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import AutoWaiversTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutoWaiversTile';
+import PublicDataSourcesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PublicDataSourcesTile';
 
 function DefaultTiles() {
   return (
@@ -64,6 +65,7 @@ function DefaultTiles() {
       <AutoWaiversTile />
       <ArtifactoryRepositoryTile />
       <AccessTile />
+      <PublicDataSourcesTile />
     </>
   );
 }

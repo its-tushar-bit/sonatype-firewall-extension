@@ -22,6 +22,7 @@ import {
   selectIsSbomPoliciesSupported,
   selectIsAutoWaiversEnabled,
   selectIsDeveloperDashboardEnabled,
+  selectIsCpeMatchingSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
@@ -44,6 +45,7 @@ export default function OwnerSummaryPills() {
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const isCpeMathingEnabled = useSelector(selectIsCpeMatchingSupported);
 
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
@@ -120,6 +122,11 @@ export default function OwnerSummaryPills() {
         label: 'Access',
         target: 'access-tile-pill-access',
         isDisplayed: true,
+      },
+      {
+        label: 'Public Data Sources',
+        target: 'owner-pill-public-data-sources',
+        isDisplayed: isCpeMathingEnabled && !isSbomManager,
       },
     ];
   }, [

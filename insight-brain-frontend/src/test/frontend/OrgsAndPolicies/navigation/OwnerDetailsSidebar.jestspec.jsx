@@ -528,4 +528,22 @@ describe('OwnerDetailSidebar', () => {
     const href = link.getAttribute('href');
     expect(href).toContain('/autowaivers');
   });
+
+  it('should render public data sources when selectIsCpeMatchingSupported is true', () => {
+    jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(true);
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.getByText('Public Data Sources')).toBeInTheDocument();
+  });
+
+  it('should not render public data sources when isPublicDataSourcesEnabled is false', () => {
+    jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(false);
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
+  });
 });

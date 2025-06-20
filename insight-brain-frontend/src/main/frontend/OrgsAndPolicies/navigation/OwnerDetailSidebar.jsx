@@ -43,6 +43,7 @@ import {
   selectIsAccess,
   selectIsSbomManager,
   selectIsWaivers,
+  selectIsPublicDataSources,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsLegacyViolationSupported,
@@ -54,6 +55,7 @@ import {
   selectIsSbomContinuousMonitoringUiEnabled,
   selectIsDeveloperDashboardEnabled,
   selectIsAutoWaiversEnabled,
+  selectIsCpeMatchingSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/ownerDetailTreeSlice';
 import Hexagon from 'MainRoot/react/Hexagon';
@@ -111,6 +113,8 @@ export default function OwnerDetailSidebar() {
   const isWaivers = useSelector(selectIsWaivers);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
   const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
+  const isPublicDataSources = useSelector(selectIsPublicDataSources);
 
   const uiRouterState = useRouterState();
 
@@ -443,6 +447,16 @@ export default function OwnerDetailSidebar() {
             href={`${linkMainHref}/autowaivers`}
           >
             Auto-Waivers
+          </NxTextLink>
+        </NxCollapsibleItems.Child>
+      )}
+      {isCpeMatchingSupported && (
+        <NxCollapsibleItems.Child>
+          <NxTextLink
+            className={`iq-noncollapsible ${isPublicDataSources ? 'selected' : ''}`}
+            href={`${linkMainHref}/publicDataSourcesEditor`}
+          >
+            Public Data Sources
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}

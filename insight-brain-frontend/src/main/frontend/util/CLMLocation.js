@@ -1713,6 +1713,9 @@ export const getSessionLogoutUrl = () => {
   return uriTemplate`/rest/user/session/logout`;
 };
 
+export const getCpeConfigurationUrl = (ownerType, ownerId) =>
+  uriTemplate`/api/v2/${ownerType}/${ownerId}/configuration/publicSource/cpe`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

@@ -114,18 +114,6 @@ public class CpeMatchingConfigurationResourceTest
   }
 
   @Test
-  public void testUpdateCpeMatchingConfiguration_requestCpeMatchingObject_enabledIsNullError()
-      throws Exception
-  {
-    Application app1 = tempEntity.newApplicationWithParent();
-    HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(new CpeMatchingConfigurationRequest())
-        .put();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("CPE matching configuration enabled cannot be null");
-  }
-
-  @Test
   public void testUpdateCpeMatchingConfiguration_notFoundError() throws Exception {
     HttpResponse response = restRequest().parameter("application", "fakeApp")
         .body(new CpeMatchingConfigurationRequest()).put();
@@ -198,7 +186,7 @@ public class CpeMatchingConfigurationResourceTest
     CpeMatchingConfigurationDTO actualRestResponse = response.getBody(CpeMatchingConfigurationDTO.class);
     assertThat(actualRestResponse).isNotNull();
     assertThat(actualRestResponse.enabled).isTrue();
-    assertThat(actualRestResponse.allowOverride).isFalse();
+    assertThat(actualRestResponse.allowOverride).isTrue();
     assertThat(actualRestResponse.inheritedFromOrganizationName).isEqualTo(org1.getName());
     assertThat(actualRestResponse.enabledInParent).isTrue();
     assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isTrue();
@@ -210,7 +198,7 @@ public class CpeMatchingConfigurationResourceTest
     assertThat(actualRestResponse.enabled).isTrue();
     assertThat(actualRestResponse.allowOverride).isTrue();
     assertThat(actualRestResponse.inheritedFromOrganizationName).isNull();
-    assertThat(actualRestResponse.enabledInParent).isNull();
+    assertThat(actualRestResponse.enabledInParent).isTrue();
     assertThat(actualRestResponse.inheritedFromOrganizationAllowOverride).isNull();
 
     response = restRequest().parameter("organization", root.getId()).get();

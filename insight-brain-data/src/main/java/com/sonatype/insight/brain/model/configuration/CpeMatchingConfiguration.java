@@ -28,7 +28,7 @@ public class CpeMatchingConfiguration
   private String ownerId;
 
   @Column(name = "cpe_enabled")
-  private boolean cpeEnabled;
+  private Boolean cpeEnabled;
 
   @Column(name = "allow_override")
   private boolean allowOverride;
@@ -37,12 +37,12 @@ public class CpeMatchingConfiguration
     this.ownerId = ownerId;
   }
 
-  public CpeMatchingConfiguration(final String ownerId, final boolean cpeEnabled) {
+  public CpeMatchingConfiguration(final String ownerId, final Boolean cpeEnabled) {
     this.ownerId = ownerId;
     this.cpeEnabled = cpeEnabled;
   }
 
-  public CpeMatchingConfiguration(final String ownerId, final boolean cpeEnabled, final boolean allowOverride) {
+  public CpeMatchingConfiguration(final String ownerId, final Boolean cpeEnabled, final boolean allowOverride) {
     this.ownerId = ownerId;
     this.cpeEnabled = cpeEnabled;
     this.allowOverride = allowOverride;
@@ -66,15 +66,15 @@ public class CpeMatchingConfiguration
     this.ownerId = ownerId;
   }
 
-  public boolean isCpeEnabled() {
+  public Boolean isCpeEnabled() {
     return cpeEnabled;
   }
 
-  public void setCpeEnabled(final boolean cpeEnabled) {
+  public void setCpeEnabled(final Boolean cpeEnabled) {
     this.cpeEnabled = cpeEnabled;
   }
 
-  public boolean isAllowOverride() {
+  public Boolean isAllowOverride() {
     return allowOverride;
   }
 

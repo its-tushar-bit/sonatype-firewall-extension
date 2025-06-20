@@ -36,6 +36,7 @@ import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdo
 import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
+import PublicDataSourcesEditor from 'MainRoot/OrgsAndPolicies/publicDataSources/PublicDataSourcesEditor';
 
 export default angular
   .module('owner.manager.module', [
@@ -73,6 +74,7 @@ export default angular
   .component('repositoriesPills', iqReact2Angular(RepositoriesPills, [], []))
   .component('autoWaiversConfiguration', iqReact2Angular(AutoWaiversConfiguration, [], ['$ngRedux', '$state']))
   .component('autoWaiverDetails', iqReact2Angular(AutoWaiverDetails, [], ['$ngRedux', '$state']))
+  .component('publicDataSourcesEditor', iqReact2Angular(PublicDataSourcesEditor, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {
@@ -246,6 +248,14 @@ export default angular
               title: ownerType.name + ' Auto Waiver Details',
             },
             component: 'autoWaiverDetails',
+          })
+          .state('management.edit.' + ownerType.type + '.public-data-sources-editor', {
+            url: '/publicDataSourcesEditor',
+            data: {
+              title: ownerType.name + ' Public Data Sources',
+              isDirty: ['orgsAndPolicies', 'publicDataSources', 'isDirty'],
+            },
+            component: 'publicDataSourcesEditor',
           });
       });
 

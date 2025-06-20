@@ -49,6 +49,7 @@ const nameIncludesAccess = includesNamePart('access');
 const nameIncludesPrioritiesPageContainer = includesNamePart('WithinPrioritiesPageContainer');
 const nameIncludesPrioritiesPage = includesNamePart('prioritiesPage');
 const nameIncludesWaivers = includesNamePart('waivers');
+const nameIncludesPublicDataSources = includesNamePart('publicDataSourcesEditor');
 
 export const selectIsOrganization = createSelector(selectCurrentRouteName, nameIncludesOrganization);
 export const selectIsTransitiveViolations = createSelector(selectCurrentRouteName, nameIncludesTransitiveViolations);
@@ -78,6 +79,7 @@ export const selectIsWaivers = createSelector(selectRouterStateUrl, nameIncludes
 export const selectIsPrioritiesPageContainer = createSelector(selectCurrentRouteName, (routeName) => {
   return nameIncludesPrioritiesPageContainer(routeName) || nameIncludesPrioritiesPage(routeName);
 });
+export const selectIsPublicDataSources = createSelector(selectRouterStateUrl, nameIncludesPublicDataSources);
 export const selectPrioritiesPageContainerName = createSelector(
   selectIsPrioritiesPageContainer,
   selectCurrentRouteName,

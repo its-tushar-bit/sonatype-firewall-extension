@@ -17,6 +17,7 @@ import com.sonatype.clm.testing.functional.elements.NxAlert;
 import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerSummaryTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
+import com.sonatype.clm.testing.functional.elements.PublicDataSourcesTile;
 import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.elements.AutoWaiversTile;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
@@ -117,6 +118,10 @@ public class OwnerSummaryPage
 
   public static AutoWaiversTile autoWaiversTile() {
     return new AutoWaiversTile();
+  }
+
+  public static PublicDataSourcesTile publicDataSourcesTile() {
+    return new PublicDataSourcesTile();
   }
 
   public static NavPills navigationPills() {

@@ -172,6 +172,7 @@
 @use '../manualPullRequest/createPRModal';
 @use '../modalContainer/modalContainer';
 @use '../modals/externalLinkModal/externalLinkModal';
+@use '../OrgsAndPolicies/publicDataSources/publicDataSourcesEditor';
 
 // Overrides
 @use 'responsive';

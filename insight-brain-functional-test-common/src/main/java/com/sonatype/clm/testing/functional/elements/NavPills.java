@@ -71,4 +71,8 @@ public class NavPills
   public SelenideElement autoWaivers() {
     return $("#owner-pill-auto-waivers-configuration-button");
   }
+
+  public SelenideElement publicDataSources() {
+    return $("#owner-pill-public-data-sources-button");
+  }
 }

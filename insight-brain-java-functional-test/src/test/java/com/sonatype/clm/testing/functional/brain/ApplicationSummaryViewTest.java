@@ -39,6 +39,8 @@ import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationRequest;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -100,6 +102,8 @@ public class ApplicationSummaryViewTest
 
   private Organization organization;
 
+  private CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
   @Rule
   public LogOutput logOutput = new LogOutput(ScanService.log.getName());
 
@@ -109,6 +113,7 @@ public class ApplicationSummaryViewTest
     roleDAO = lookup(RoleDAO.class);
     sourceControlDAO = lookup(SourceControlDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
+    cpeMatchingConfigurationService = lookup(CpeMatchingConfigurationService.class);
 
     //note the ȧ being used to force a character to be encoded
     application = tempEntity.newApplicationWithParent(getClass().getSimpleName() + "ȧpp", YE_OLE_APPLICATION,
@@ -119,6 +124,11 @@ public class ApplicationSummaryViewTest
         "Very Very Very Very Very Very Long Name");
     String id = "bfc6c69a39b94e81a777edf9727e01ce";
     newApplication = tempEntity.newApplication("Test App " + id, id, organization.getId());
+    CpeMatchingConfigurationRequest appCpeConfig = new CpeMatchingConfigurationRequest();
+    appCpeConfig.enabled = false;
+    appCpeConfig.allowOverride = false;
+    cpeMatchingConfigurationService.updateCpeMatchingConfiguration(application.getType(), application.getId(),
+        appCpeConfig);
 
     super.init(application);
   }

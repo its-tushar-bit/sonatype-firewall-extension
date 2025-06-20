@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -79,20 +80,80 @@ public class CpeMatchingConfigurationService
   public CpeMatchingConfigurationDTO getCpeMatchingConfigurationNoAuthz(OwnerType ownerType, String ownerId) {
     Owner owner = ownerDAO.getByIdNotNull(ownerId);
     CpeMatchingConfiguration ownerConfig = cpeMatchingConfigurationDAO.getByOwnerId(ownerId);
-    if (ownerConfig != null) {
-      return CpeMatchingConfigurationDTO.forSelf(ownerConfig.isCpeEnabled(),
-          !OwnerType.APPLICATION.equals(ownerType) && ownerConfig.isAllowOverride());
-    }
 
+    // Find the first inherited configuration from an ancestor
+    CpeMatchingConfiguration inheritedConfig = null;
+    Owner inheritedFrom = null;
     for (Owner parent : ownerDAO.walkHierarchy(owner)) {
+      if (parent.getId().equals(ownerId)) {
+        // Skip to avoid checking the owner itself
+        continue;
+      }
+
       CpeMatchingConfiguration parentConfig = cpeMatchingConfigurationDAO.getByOwnerId(parent.getId());
       if (parentConfig != null) {
-        return CpeMatchingConfigurationDTO.fromParent(parentConfig.isCpeEnabled(), parent.getName(),
-            parentConfig.isAllowOverride(), OwnerType.APPLICATION.equals(ownerType));
+        if (inheritedConfig == null) {
+          inheritedConfig = parentConfig;
+        }
+        if (parentConfig.isCpeEnabled() == null) {
+          // If the inherited configuration's 'enabled' is null, we continue searching for the closest ancestor
+          // that has an explicit 'enabled' value.
+          continue;
+        }
+        else {
+          inheritedConfig.setCpeEnabled(parentConfig.isCpeEnabled());
+          inheritedFrom = parent;
+          break; // Found the closest ancestor's config, stop searching
+        }
+      }
+    }
+
+    boolean isApplication = OwnerType.APPLICATION.equals(ownerType);
+
+    if (ownerConfig != null) {
+      if (ownerConfig.isCpeEnabled() != null) {
+        // The owner has its own configuration, and 'enabled' is explicitly set.
+        // We use it, but also report the status of the parent if one was found.
+        CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
+        dto.enabled = ownerConfig.isCpeEnabled();
+        // allowOverride is false for applications, otherwise it's from ownerConfig.
+        dto.allowOverride = !isApplication && ownerConfig.isAllowOverride();
+
+        // Set 'enabledInParent' based on the found inherited configuration
+        if (inheritedConfig != null) {
+          dto.enabledInParent = inheritedConfig.isCpeEnabled();
+        }
+        return dto;
+      }
+      else {
+        // The owner has a configuration, but 'enabled' is null (it defers to parent for 'enabled' status).
+        // We return the inherited configuration's 'enabled' status if available,
+        // but keep the ownerConfig's 'allowOverride'.
+        CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
+        dto.enabledInParent = inheritedConfig != null ? inheritedConfig.isCpeEnabled() : null;
+        dto.enabled = dto.enabledInParent;
+        dto.inheritedFromOrganizationName = inheritedFrom != null ? inheritedFrom.getName() : null;
+        dto.inheritedFromOrganizationAllowOverride = inheritedConfig != null ? inheritedConfig.isAllowOverride() : null;
+        dto.allowOverride = !isApplication && (ownerConfig.isAllowOverride() !=
+            null ? ownerConfig.isAllowOverride() : dto.inheritedFromOrganizationAllowOverride);
+        return dto;
+      }
+    }
+    else {
+      // No ownerConfig for the current entity.
+      if (inheritedConfig != null) {
+        // No owner config, but an ancestor has one (inheritance case).
+        CpeMatchingConfigurationDTO dto = new CpeMatchingConfigurationDTO();
+        dto.enabled = inheritedConfig.isCpeEnabled();
+        dto.enabledInParent = inheritedConfig.isCpeEnabled();
+        dto.inheritedFromOrganizationName = inheritedFrom.getName();
+        dto.inheritedFromOrganizationAllowOverride = inheritedConfig.isAllowOverride();
+        dto.allowOverride = inheritedConfig.isAllowOverride();
+        return dto;
       }
     }
     // In the case no configuration was found for the owner or via any of its ancestors,
-    // we return an empty configuration
+    // we return an empty configuration.
     return new CpeMatchingConfigurationDTO();
   }
 
@@ -103,7 +164,7 @@ public class CpeMatchingConfigurationService
       CpeMatchingConfigurationRequest configRequest)
   {
     CpeMatchingConfiguration cpeConfigUpdated;
-    validateConfigurationDTO(configRequest);
+    validateConfigurationDTO(internalOwnerId, configRequest);
     CpeMatchingConfigurationDTO existingConfig = getCpeMatchingConfigurationNoAuthz(ownerType, internalOwnerId);
 
     if (existingConfig.inheritedFromOrganizationAllowOverride != null &&
@@ -114,35 +175,37 @@ public class CpeMatchingConfigurationService
 
     // Reaching this point means that no inherited cpe configuration coming down from ancestors was found. The
     // requested configRequest object can be written into the db for the requested internalOwnerId
-    switch (ownerType) {
-      case APPLICATION:
-        cpeConfigUpdated = updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId,
-            configRequest.enabled, false));
-        break;
-      case ORGANIZATION:
+    cpeConfigUpdated = switch (ownerType) {
+      case APPLICATION -> updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId,
+          configRequest.enabled, false));
+      case ORGANIZATION -> {
         if (!configRequest.allowOverride) {
           // Request object is asking to disable overriding at current level, therefore, any children
           // overriding-records need to be disabled/purged if found
           disableCpeMatchingConfiguration(ownerType, internalOwnerId, false);
         }
-        cpeConfigUpdated = updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId,
+        yield updateConfigurationForOwner(new CpeMatchingConfiguration(internalOwnerId,
             configRequest.enabled, configRequest.allowOverride));
-        break;
-      default:
-        throw new IllegalStateException("Unknown owner type: " + ownerType);
-    }
+      }
+      default -> throw new IllegalStateException("Unknown owner type: " + ownerType);
+    };
     CpeMatchingConfigurationDTO cpeConfigUpdatedDTO = new CpeMatchingConfigurationDTO();
     cpeConfigUpdatedDTO.enabled = cpeConfigUpdated.isCpeEnabled();
     cpeConfigUpdatedDTO.allowOverride = cpeConfigUpdated.isAllowOverride();
     return cpeConfigUpdatedDTO;
   }
 
-  private void validateConfigurationDTO(final CpeMatchingConfigurationRequest request) {
+  private void validateConfigurationDTO(
+      final String internalOwnerId,
+      final CpeMatchingConfigurationRequest request)
+  {
     if (request == null) {
       throw new BadRequestException("CPE matching configuration cannot be null");
     }
     if (request.enabled == null) {
-      throw new BadRequestException("CPE matching configuration enabled cannot be null");
+      if (Organization.ROOT_ORGANIZATION_ID.equals(internalOwnerId)) {
+        throw new BadRequestException("CPE matching configuration enabled cannot be null for Root Organization");
+      }
     }
   }
 
@@ -241,3 +304,7 @@ public class CpeMatchingConfigurationService
     }
   }
 }
+
+
+
+

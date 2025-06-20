@@ -216,7 +216,7 @@ public class CpeMatchingConfigurationServiceTest
             dummyOrg.getType(), dummyOrg.getId());
 
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest).isNotNull();
-    assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabledInParent).isNull();
+    assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabledInParent).isTrue();
     // Overridden values at this level
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.enabled).isFalse();
     assertThat(dummyOrgCpeMatchingConfigurationDtoAppTest.allowOverride).isTrue();
@@ -228,7 +228,7 @@ public class CpeMatchingConfigurationServiceTest
             app1.getType(), app1.getId());
 
     assertThat(app1CpeMatchingConfigurationDtoAppTest).isNotNull();
-    assertThat(app1CpeMatchingConfigurationDtoAppTest.enabledInParent).isNull();
+    assertThat(app1CpeMatchingConfigurationDtoAppTest.enabledInParent).isFalse();
     // Override is always false at app level (because it does not have children elements)
     assertThat(app1CpeMatchingConfigurationDtoAppTest.allowOverride).isFalse();
     // Overridden values
@@ -264,11 +264,23 @@ public class CpeMatchingConfigurationServiceTest
   }
 
   @Test
-  public void testUpdateCpeMatchingConfiguration_InvalidConfig() {
+  public void testUpdateCpeMatchingConfiguration_InvalidConfig_organization() {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
-            cpeMatchingConfigurationService.updateCpeMatchingConfiguration(OwnerType.APPLICATION, "appId",
+            cpeMatchingConfigurationService.updateCpeMatchingConfiguration(
+                OwnerType.ORGANIZATION, "ROOT_ORGANIZATION_ID",
                 new CpeMatchingConfigurationRequest()))
-        .withMessage("CPE matching configuration enabled cannot be null");
+        .withMessage("CPE matching configuration enabled cannot be null for Root Organization");
+  }
+
+  @Test
+  public void testUpdateCpeMatchingConfiguration_NullEnabledValue_Organization() {
+    Organization org = tempEntity.newOrganization();
+    CpeMatchingConfigurationRequest configRequest = new CpeMatchingConfigurationRequest();
+    configRequest.enabled = null; // This should be allowed
+    configRequest.allowOverride = true;
+    CpeMatchingConfigurationDTO cpeConfig = cpeMatchingConfigurationService
+        .updateCpeMatchingConfiguration(OwnerType.ORGANIZATION, org.getId(), configRequest);
+    assertThat(cpeConfig).isNotNull();
   }
 
   @Test
@@ -662,6 +674,46 @@ public class CpeMatchingConfigurationServiceTest
     boolean isCpeDataMatchingEnabled = cpeMatchingConfigurationService.isCpeDataMatchingEnabled(app.getId());
 
     assertThat(isCpeDataMatchingEnabled).isFalse();
+  }
+
+  @Test
+  public void testUpdateCpeMatchingConfiguration_ForApplication_RootOrgAllowOverride_SubOrgDoNotAllowOverride() {
+    Organization subOrg = tempEntity.newOrganization();
+    CpeMatchingConfiguration subOrgCpeConfig = new CpeMatchingConfiguration(
+        subOrg.getId(), true, false
+    );
+    cpeMatchingConfigurationDAO.insert(subOrgCpeConfig);
+
+    Application app = tempEntity.newApplicationWithParent(subOrg);
+
+    CpeMatchingConfigurationRequest request = new CpeMatchingConfigurationRequest();
+    request.enabled = false;
+    request.allowOverride = false;
+    assertThatExceptionOfType(UnauthorizedException.class)
+        .isThrownBy(() -> cpeMatchingConfigurationService.updateCpeMatchingConfiguration(
+            OwnerType.APPLICATION, app.getId(), request))
+        .withMessageContaining("Updating cpe matching configuration for ownerId " + app.getId()
+            + " is disabled by parent organization " + subOrg.getName());
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_ForApplication_ParentHasNullEnableValue_RootOrgHasExplicitEnableValue() {
+    // ROOT -> Dummy Org -> App1
+    cpeMatchingConfigurationDAO.insert(new CpeMatchingConfiguration(Organization.ROOT_ORGANIZATION_ID, true, true));
+    Organization subOrg = tempEntity.newOrganization();
+    Application app1 = tempEntity.newApplicationWithParent(subOrg);
+    CpeMatchingConfiguration subOrgCpeConfig = new CpeMatchingConfiguration(
+        subOrg.getId(), null, false
+    );
+    cpeMatchingConfigurationDAO.insert(subOrgCpeConfig);
+    CpeMatchingConfigurationDTO appCpeConfig = cpeMatchingConfigurationService
+        .getCpeMatchingConfiguration(app1.getType(), app1.getId());
+    assertThat(appCpeConfig).isNotNull();
+    assertThat(appCpeConfig.enabled).isTrue(); // Taken from Root Org
+    assertThat(appCpeConfig.enabledInParent).isTrue(); // Taken from Root Org
+    assertThat(appCpeConfig.allowOverride).isFalse(); // Taken from Parent Org
+    assertThat(appCpeConfig.inheritedFromOrganizationName).isEqualTo("Root Organization");
+    assertThat(appCpeConfig.inheritedFromOrganizationAllowOverride).isFalse(); // Taken from Parent Org
   }
 }
 

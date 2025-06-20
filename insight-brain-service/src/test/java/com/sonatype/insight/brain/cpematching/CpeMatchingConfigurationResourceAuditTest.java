@@ -64,18 +64,4 @@ public class CpeMatchingConfigurationResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION, "bad-request");
     assertCustomData(auditDTO, "enabled", null);
   }
-
-  @Test
-  public void testUpdateCpeMatchingConfiguration_requestCpeMatchingObject_enabledIsNullError()
-      throws Exception
-  {
-    Application app1 = tempEntity.newApplicationWithParent();
-    HttpResponse response = restRequest().parameter("application", app1.getId())
-        .body(new CpeMatchingConfigurationRequest())
-        .put();
-    assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("CPE matching configuration enabled cannot be null");
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_CPE_MATCHING_CONFIGURATION, "bad-request");
-    assertCustomData(auditDTO, "enabled", null);
-  }
 }

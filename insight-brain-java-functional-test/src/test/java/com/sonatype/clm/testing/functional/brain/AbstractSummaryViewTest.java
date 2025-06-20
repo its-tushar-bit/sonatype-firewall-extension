@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.CollectionCondition;
@@ -214,6 +215,8 @@ public abstract class AbstractSummaryViewTest
 
     navPills.autoWaivers().click();
     OwnerSummaryPage.autoWaiversTile().shouldBe(visible);
+
+    navPills.publicDataSources().shouldNotBe(visible);
   }
 
   @Test
@@ -1170,6 +1173,19 @@ public abstract class AbstractSummaryViewTest
     policyElement.column(3).shouldBe(visible).shouldHave(PolicyTile.noActionText());
     policyElement.column(4).shouldBe(visible).shouldHave(text(actualPolicy.getActions().get(Stage.ID_RELEASE)));
     policyElement.chevronColumn(5).shouldHave(PolicyTileListElement.CHEVRON);
+  }
+
+  @Test
+  public void testPublicDataSources_isVisible() {
+    productLicenseManager.setFeatures(LicensedFeature.CPE_MATCHING);
+    refresh();
+    //Pill is visible
+    OwnerSummaryPage.navigationPills().publicDataSources().shouldBe(visible);
+    OwnerSummaryPage.navigationPills().publicDataSources().click();
+
+    OwnerSummaryPage.publicDataSourcesTile().shouldBe(visible);
+    OwnerSummaryPage.publicDataSourcesTile().title().shouldHave(text("Public Data Sources"));
+    OwnerSummaryPage.publicDataSourcesTile().content().shouldHave(text("Public Data Sources are disabled"));
   }
 
   protected int getHierarchySize(Owner owner) {

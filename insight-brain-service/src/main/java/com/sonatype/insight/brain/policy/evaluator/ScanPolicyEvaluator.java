@@ -421,7 +421,11 @@ public class ScanPolicyEvaluator
       List<Component> components,
       List<PolicyViolation> violations)
   {
-    boolean enableActions = productLicense.hasFeature(LicensedFeature.ENFORCEMENT);
+    boolean isContainerImageEvaluation = Stage.ID_PROXY.equals(stageTypeId) &&
+        productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION) &&
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled();
+
+    boolean enableActions = productLicense.hasFeature(LicensedFeature.ENFORCEMENT) || isContainerImageEvaluation;
     if (!enableActions) {
       log.debug("Ignoring actions in policy alerts for application {} and scan {} in stage {}, "
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);

@@ -3775,6 +3775,53 @@ public class ScanPolicyEvaluatorTest
   }
 
   @Test
+  public void testEvaluate_ActionFailInFirewallForContainerImages() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Policy policy =
+        newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
+    policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policyDAO.update(policy);
+    String scanBuildId = simulateReportIsAvailable("report");
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanBuildId,
+        new Stage(Stage.ID_PROXY), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    PolicyEvaluationResult evaluationResult =
+        scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation, results.allViolations, true);
+
+    assertThat(evaluationResult.getAlerts()).hasSize(1);
+    PolicyAlert alert = evaluationResult.getAlerts().get(0);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
+  }
+
+  @Test
+  public void testCreatePolicyEvaluationResult_ActionFailDisabledInFirewallForContainerImages() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Policy policy =
+        newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
+    policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policyDAO.update(policy);
+    String scanBuildId = simulateReportIsAvailable("report");
+
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanBuildId,
+        new Stage(Stage.ID_PROXY), ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    PolicyEvaluationResult evaluationResult =
+        scanPolicyEvaluator.createPolicyEvaluationResult(results.evaluation, results.allViolations, true);
+
+    assertThat(evaluationResult.getAlerts()).hasSize(1);
+    assertThat(evaluationResult.getAlerts().get(0).getActions()).isEmpty();
+  }
+
+  @Test
   public void testEvaluate_MissingLicenseFeature() throws Exception {
     newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
 

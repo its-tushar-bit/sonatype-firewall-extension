@@ -428,6 +428,14 @@ export const goToDependencyTreePage = (hash) => {
   };
 };
 
+export const goToAddContainerImageWaiverPage = () => {
+  return (dispatch, getState) => {
+    const { publicId, scanId } = selectRouterCurrentParams(getState());
+
+    dispatch(stateGo('firewall.addContainerImageWaiver', { publicId, scanId }));
+  };
+};
+
 export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
@@ -488,5 +496,6 @@ export default function applicationReportActions() {
     collapseAllDependencyTreeNodes,
     goToComponentDetailsPage,
     goToDependencyTreePage,
+    goToAddContainerImageWaiverPage,
   };
 }

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { propOr } from 'ramda';
+import { propOr, pathOr } from 'ramda';
 import {
   NxTable,
   NxTableHead,
@@ -29,6 +29,7 @@ import {
   toggleAggregateReportEntries,
   toggleShowFilterPopover,
   goToDependencyTreePage,
+  goToAddContainerImageWaiverPage,
 } from 'MainRoot/applicationReport/applicationReportActions';
 import {
   selectIsAggregated,
@@ -38,9 +39,8 @@ import {
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectSelectedReport,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
-import { selectRouterCurrentParams, selectIsPrioritiesPageContainer } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { stateGo } from '../reduxUiRouter/routerActions';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -82,6 +82,8 @@ export default function ReportContent() {
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
   const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+  const selectedReport = useSelector(selectSelectedReport);
+  const nonLowViolationCount = pathOr(0, ['nonLowViolationCount'], selectedReport);
 
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
@@ -132,6 +134,10 @@ export default function ReportContent() {
     if (dependencyTreeIsAvailable) goToDependencyTree();
   };
 
+  const redirectToAddContainerImageWaiverPage = () => {
+    dispatch(goToAddContainerImageWaiverPage());
+  };
+
   return (
     <section className="nx-tile iq-app-report__results-table-tile">
       <div className="nx-tile-header">
@@ -146,6 +152,19 @@ export default function ReportContent() {
             </NxToggle>
           </NxTooltip>
         </div>
+
+        {isContainerImagesEvaluation && nonLowViolationCount ? (
+          <div className="nx-tile__actions">
+            <NxButton
+              type="button"
+              variant="tertiary"
+              id="add-container-image-waiver-button"
+              onClick={redirectToAddContainerImageWaiverPage}
+            >
+              Waive All Fail Policy Violations
+            </NxButton>
+          </div>
+        ) : null}
 
         {!isContainerImagesEvaluation ? (
           <div className="nx-tile__actions">

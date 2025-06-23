@@ -1695,6 +1695,14 @@ export const getSessionLogoutUrl = () => {
 export const getCpeConfigurationUrl = (ownerType, ownerId) =>
   uriTemplate`/api/v2/${ownerType}/${ownerId}/configuration/publicSource/cpe`;
 
+export function getActiveViolationsWithActionFailUrl(containerImageId, stageId) {
+  return uriTemplate`/rest/policy/violations/active/${containerImageId}/stages/${stageId}/action/fail`;
+}
+
+export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
+  return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

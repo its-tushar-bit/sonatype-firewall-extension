@@ -20,6 +20,7 @@ import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS, ROI } from 'MainRoot/const
 import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
 import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerRepositoryResultsPage/ContainerRepositoryResultsPage';
+import AddContainerImageWaiverPage from './containerImageWaiver/AddContainerImageWaiverPage';
 
 export default angular
   .module('firewallModule', ['ngRedux'])
@@ -33,6 +34,7 @@ export default angular
   .component('containerReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']))
   .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$ngRedux', '$state']))
+  .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -243,6 +245,14 @@ function routes($stateProvider) {
       component: 'addWaiverPage',
       data: {
         title: 'Add Waiver',
+      },
+    })
+    .state('firewall.addContainerImageWaiver', {
+      url: '/containerReport/{publicId}/{scanId}/policy/addContainerImageWaiver',
+      component: 'addContainerImageWaiverPage',
+      data: {
+        title: 'Add Container Image Waiver',
+        isDirty: ['addContainerImageWaiverPage', 'isDirty'],
       },
     })
     .state('firewall.vulnerabilityCustomize', {

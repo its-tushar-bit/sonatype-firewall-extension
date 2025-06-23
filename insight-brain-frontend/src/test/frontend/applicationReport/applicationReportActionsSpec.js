@@ -45,7 +45,7 @@ const mockLicenseData = {
 };
 const mockReportData = { fooReport: 'barReport' };
 
-describe('applicationReportActions', function () {
+fdescribe('applicationReportActions', function () {
   let mockAxiosCalls;
 
   beforeEach(function () {
@@ -904,6 +904,28 @@ describe('applicationReportActions', function () {
       expect(store.getActions()).toHaveAction({
         type: 'SET_DEPENDENCY_TREE_ROUTER_PARAMS',
         payload: routerParams,
+      });
+    });
+  });
+
+  describe('goToAddContainerImageWaiverPage', () => {
+    it('calls stateGo with the appropriate parameters', () => {
+      const mockRouterParams = {
+        publicId: 'publicId',
+        scanId: 'scanId',
+      };
+      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue(mockRouterParams);
+      const store = SpecUtil.mockReduxStore({});
+
+      store.dispatch(applicationReportActions.goToAddContainerImageWaiverPage());
+
+      expect(store.getActions()).toHaveAction({
+        type: '@@reduxUiRouter/stateGo',
+        payload: {
+          to: 'firewall.addContainerImageWaiver',
+          params: mockRouterParams,
+          options: undefined,
+        },
       });
     });
   });

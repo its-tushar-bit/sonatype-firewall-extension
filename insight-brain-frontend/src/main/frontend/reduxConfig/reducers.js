@@ -120,6 +120,7 @@ import containerRepositoryResultsPageSlice from '../OrgsAndPolicies/containerRep
 import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
+import addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -238,4 +239,5 @@ export default combineReducers({
   logoutWarningModal: logoutWarningModalSlice,
   externalLinkModal: externalLinkModalSlice,
   unsavedChangesModal: unsavedChangesModalSlice,
+  addContainerImageWaiverPage: addContainerImageWaiverPageSlice,
 });

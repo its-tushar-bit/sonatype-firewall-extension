@@ -72,6 +72,10 @@ public class ApplicationReportPage
     return child(".iq-application-risk-score--desc-title");
   }
 
+  public SelenideElement reportAddContainerImageWaiverButton() {
+    return child("#add-container-image-waiver-button");
+  }
+
   public SelenideElement reportDescription() {
     return child(".nx-page-title__description");
   }

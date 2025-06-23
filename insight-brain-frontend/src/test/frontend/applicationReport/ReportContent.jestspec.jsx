@@ -43,6 +43,19 @@ const routerCurrentParams = {
   scanId: 'scanId',
 };
 
+const selectedReport = {
+  displayedEntries: displayedEntries,
+  reportVersion: 3,
+  knownArtifactCount: 10,
+  totalArtifactCount: 10,
+  policyComponentCount: 1,
+  legacyViolationCount: 0,
+  criticalViolationCount: 1,
+  severeViolationCount: 1,
+  moderateViolationCount: 1,
+  nonLowViolationCount: 3,
+};
+
 describe('ReportContent component', function () {
   let renderComponent, stateGoSpy;
 
@@ -52,6 +65,7 @@ describe('ReportContent component', function () {
     jest.spyOn(applicationReportSelectors, 'selectDisplayedComponentList').mockReturnValue(displayedEntries);
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').mockReturnValue('');
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(true);
+    jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue(selectedReport);
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(routerCurrentParams);
 
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
@@ -239,6 +253,19 @@ describe('ReportContent component', function () {
 
         expect(stateGoSpy).toHaveBeenCalledWith('firewall.containerComponentDetails.overview', {
           hash: 'hash1',
+          publicId: 'publicId',
+          scanId: 'scanId',
+        });
+      });
+
+      it('renders Waive All Fail Policy Violations button and navigate to add waiver page when button is clicked', () => {
+        renderComponent();
+
+        const waiveAllViolationsButton = screen.getByRole('button', { name: 'Waive All Fail Policy Violations' });
+        expect(waiveAllViolationsButton).toBeInTheDocument();
+
+        fireEvent.click(waiveAllViolationsButton);
+        expect(stateGoSpy).toHaveBeenCalledWith('firewall.addContainerImageWaiver', {
           publicId: 'publicId',
           scanId: 'scanId',
         });

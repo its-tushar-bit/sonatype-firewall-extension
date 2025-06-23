@@ -5,8 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.elements;
 
-import com.sonatype.clm.testing.functional.BasicElement;
-
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.support.ui.Select;
@@ -20,11 +18,11 @@ import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
 public class VersionsCIP
 {
   private static SelenideElement root() {
-    return $("#version-graph");
+    return $("#ui-view");
   }
 
   public static SelenideElement error() {
-    return root().find(".alert-error");
+    return root().find(".nx-alert");
   }
 
   public static SelenideElement versionGraph() {
@@ -36,107 +34,90 @@ public class VersionsCIP
   }
 
   public static SelenideElement versionGraphLoading() {
-    return root().find("i.icon-time:last-child");
+    return root().find(".nx-loading-spinner");
   }
 
   public static SelenideElement artifactTable() {
-    return root().find("#infoPanelArtifactTable");
+    return root().find(".iq-version-graph-component-details__list");
   }
 
   public static SelenideElement componentType() {
-    return artifactTable().find("#artifactInfoComponentTypeRow td:last-child");
+    return artifactTable().find("#iq-version-graph-component-details-type dd");
   }
 
   public static SelenideElement groupId() {
-    return root().find("#artifactInfo-Group");
+    return root().find("#iq-version-graph-component-details-group dd");
   }
 
   public static SelenideElement artifactId() {
-    return root().find("#artifactInfo-Artifact");
+    return root().find("#iq-version-graph-component-details-artifact dd");
   }
 
   public static SelenideElement version() {
-    return root().find("#artifactInfo-Version");
+    return root().find("#iq-version-graph-component-details-version dd");
   }
 
   public static SelenideElement extension() {
-    return root().find("#artifactInfo-Extension");
+    return root().find("#iq-version-graph-component-details-extension dd");
   }
 
   public static SelenideElement classifier() {
-    return root().find("#artifactInfo-Classifier");
+    return root().find("#iq-version-graph-component-details-classifier dd");
   }
 
   public static ElementsCollection declaredLicenses() {
-    return artifactTable().findAll("#artifactInfoDeclaredLicenseRow .license");
+    return artifactTable()
+        .findAll("#iq-version-graph-component-details-declared-license .iq-version-graph-component-details__license");
   }
 
   public static ElementsCollection observedLicenses() {
-    return artifactTable().findAll("#artifactInfoObservedLicenseRow .license");
+    return artifactTable()
+        .findAll("#iq-version-graph-component-details-observed-license .iq-version-graph-component-details__license");
   }
 
   public static ElementsCollection effectiveLicenses() {
-    return artifactTable().findAll("#artifactInfoEffectiveLicenseRow .license");
+    return artifactTable()
+        .findAll("#iq-version-graph-component-details-effective-license .iq-version-graph-component-details__license");
   }
 
   public static SelenideElement highestPolicyThreat() {
-    return artifactTable().find("#artifactInfoHighestPolicyThreat .clm-chiclet");
+    return artifactTable().find("#iq-version-graph-component-details-highest-policy-threat dd");
+  }
+
+  public static SelenideElement highestPolicyThreatIndicator() {
+    return artifactTable().find("#iq-version-graph-component-details-highest-policy-threat .nx-threat-indicator");
   }
 
   public static SelenideElement policyCount() {
-    return artifactTable().find("#artifactInfoHighestPolicyThreat span");
+    return artifactTable().find("#iq-version-graph-component-details-policy-count");
   }
 
   public static SelenideElement highestSecurityThreat() {
-    return artifactTable().find("#artifactInfoSecurityThreatRow td:last-child");
+    return artifactTable().find("#iq-version-graph-component-details-highest-cvss dd");
   }
 
   public static SelenideElement securityCount() {
-    return artifactTable().find("#artifactInfoSecurityThreatRow span");
+    return artifactTable().find("#iq-version-graph-component-details-vuln-count");
   }
 
   public static SelenideElement hygieneRating() {
-    return artifactTable().find("#artifactHygieneRating td:last-child");
+    return artifactTable().find("#iq-version-graph-component-details-hygiene-rating dd");
   }
 
   public static SelenideElement integrityRating() {
-    return artifactTable().find("#artifactIntegrityRating span");
+    return artifactTable().find("#iq-version-graph-component-details-integrity-rating dd");
   }
 
   public static SelenideElement catalogDate() {
-    return artifactTable().find("#artifactInfoCatalogDateRow td:last-child");
-  }
-
-  public static SelenideElement matchState() {
-    return artifactTable().find("#artifactInfoSimilarityScoreRow td:last-child");
-  }
-
-  public static SelenideElement identificationSource() {
-    return artifactTable().find("#artifactInfoIdentificatonSource td:last-child");
+    return artifactTable().find("#iq-version-graph-component-details-catalog-date dd");
   }
 
   public static SelenideElement componentCategory() {
-    return artifactTable().find("#artifactInfoCategory td:last-child");
-  }
-
-  public static SelenideElement selectComponentMessage() {
-    return $("#select-component");
-  }
-
-  public static SelenideElement unknownComponentMessage() {
-    return $("div[ng-if='isUnknown']");
-  }
-
-  public static SelenideElement addProprietaryMatchersButton() {
-    return $("#add-proprietary-btn");
+    return artifactTable().find("#iq-version-graph-component-details-category dd");
   }
 
   public static SelenideElement showDetailsLink() {
     return $$("#aiVersionChartLabels text").find(text("Details"));
-  }
-
-  public static SelenideElement hideDetailsLink() {
-    return $$("#aiVersionChartLabels").find(text("Hide Details"));
   }
 
   public static SelenideElement versionBar(int i) {
@@ -147,83 +128,19 @@ public class VersionsCIP
     return versionBar(i).parent().parent().find("text");
   }
 
-  public static SelenideElement recommendedVersionsHeader() {
-    return root().find("#recommended-versions-header");
-  }
-
-  public static SelenideElement nextNoViolationVersionLink() {
-    return root().find("#next-no-violation-version-link");
-  }
-
-  public static SelenideElement nextNoViolationWithDependenciesLink() {
-    return root().find("#next-no-violation-dependencies-version-link");
-  }
-
-  public static SelenideElement nextNoFailVersionLink() {
-    return root().find("#next-no-fail-version-link");
-  }
-
-  public static SelenideElement selectNoViolation() {
-    return root().find("#select-no-violation");
-  }
-
-  public static SelenideElement selectNoViolationWithDependencies() {
-    return root().find("#select-no-violation-dependencies");
-  }
-
   public static SelenideElement viewDetailsButton() {
-    return root().find("#view-details-button");
-  }
-
-  public static SelenideElement migrateButton() {
-    return root().find("#migrate-button");
+    return root().find("#iq-version-graph-view-details-btn");
   }
 
   public static SelenideElement selectAnApplicationMessage() {
-    return root().find("#select-application");
+    return root().find(".iq-version-graph-app-selector");
   }
 
   public static Select selectApplications() {
-    return new Select(root().find("#selectApp"));
+    return new Select(applicationsElement());
   }
 
   public static SelenideElement applicationsElement() {
-    return root().find("#selectApp");
-  }
-
-  public static SelenideElement noVersionsAvailable() {
-    return root().find("#no-versions-available");
-  }
-
-  public static SelenideElement rootAncestorsHeader() {
-    return root().find("#cip-root-ancestors-header");
-  }
-
-  public static SelenideElement showMoreRootAncestorsToggle() {
-    return root().find("#cip-root-ancestors-toggle-show-more");
-  }
-
-  public static ElementsCollection rootAncestorLinks() {
-    return root().findAll("#cip-root-ancestors-links .cip-root-ancestors__link");
-  }
-
-  public static RootAncestor rootAncestorLink(int i) {
-    return new RootAncestor(createSelector("#cip-root-ancestors-links", ".cip-root-ancestors__link", nthChild(i)));
-  }
-
-  public static class RootAncestor
-      extends BasicElement<RootAncestor>
-  {
-    public RootAncestor(String... selectors) {
-      super(selectors);
-    }
-
-    public SelenideElement link() {
-      return child("a");
-    }
-
-    public SelenideElement dependencyIndicator() {
-      return child(".iq-dependency-indicator");
-    }
+    return root().find(".iq-version-graph-app-selector__form-select select");
   }
 }

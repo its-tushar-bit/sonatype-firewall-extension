@@ -45,16 +45,16 @@ module.exports = function (env) {
       cssOutputPath: 'style.css',
     },
     {
-      name: 'version.graph.app',
-      entryPath: './version-graph/version-graph-app-index.js',
-      outputPath: 'version.graph.app.js',
-      cssOutputPath: 'version.graph.app.css',
-    },
-    {
       name: 'viewdetails-react',
       entryPath: './version-graph/viewdetails-react/index.jsx',
       outputPath: 'viewdetails-react.js',
       cssOutputPath: 'viewdetails-react.css',
+    },
+    {
+      name: 'version-graph-react',
+      entryPath: './version-graph/version-graph-react/index.jsx',
+      outputPath: 'version-graph-react.js',
+      cssOutputPath: 'version-graph-react.css',
     },
   ];
 
@@ -91,9 +91,6 @@ module.exports = function (env) {
     copyPluginFromGlobs = [
       { from: '**/index.html', transform: true },
       { from: 'version-graph/**/viewdetails.html', transform: true },
-      { from: 'version-graph/version-graph.html', transform: true },
-      { from: 'version-graph/**/version-graph-*.*', transform: true },
-      { from: 'brain.client.js', transform: true },
       { from: 'reports.*', transform: true },
       { from: '**/*.{ttf,woff,png,svg,gif,jpg,ico}', transform: false },
     ],
@@ -157,15 +154,6 @@ module.exports = function (env) {
             loader: 'babel-loader',
             options: {
               presets: ['@babel/preset-react'],
-            },
-          },
-        },
-        {
-          test: require.resolve(path.join(__dirname, 'src/main/frontend/lib/protovis/protovis.min')),
-          use: {
-            loader: 'exports-loader',
-            options: {
-              exports: 'default pv',
             },
           },
         },

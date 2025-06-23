@@ -4,8 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-@use './content';
-@use './buttons';
-@use './icons';
-@use './modal';
-@use './tooltip';
+.iq-version-graph-app-selector__form-select.nx-form-select {
+  width: 100%;
+}

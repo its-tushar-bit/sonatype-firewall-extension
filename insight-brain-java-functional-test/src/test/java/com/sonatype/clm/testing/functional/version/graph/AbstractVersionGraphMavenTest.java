@@ -30,9 +30,7 @@ import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.texts;
 import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disappear;
 import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
@@ -76,7 +74,7 @@ public abstract class AbstractVersionGraphMavenTest
 
     refreshOrOpen(getStartPageUrl());
     if (isApplicationSelectionNeeded()) {
-      VersionsCIP.selectApplications().selectByIndex(0);
+      VersionsCIP.selectApplications().selectByIndex(1);
     }
   }
 
@@ -89,11 +87,11 @@ public abstract class AbstractVersionGraphMavenTest
       verifyMessageIsPresentWhenNoApplicationIsSelected();
       VersionsCIP.applicationsElement().shouldBe(visible);
       VersionsCIP.applicationsElement().shouldNotBe(selected);
-      VersionsCIP.applicationsElement().selectOption(0);
-      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(appFirst.getName()));
       VersionsCIP.applicationsElement().selectOption(1);
-      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(app.getName()));
+      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(appFirst.getName()));
       VersionsCIP.applicationsElement().selectOption(2);
+      VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(app.getName()));
+      VersionsCIP.applicationsElement().selectOption(3);
       VersionsCIP.applicationsElement().getSelectedOption().shouldHave(text(appLast.getName()));
     }
   }
@@ -119,7 +117,7 @@ public abstract class AbstractVersionGraphMavenTest
       ));
     }
   }
-  
+
   @Test
   public void testCIPWithRemediation() {
     setupHdsResponses();
@@ -140,37 +138,18 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text("10"), cssClass("critical"));
-    VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("10"));
+    VersionsCIP.highestPolicyThreatIndicator().shouldHave(cssClass("nx-threat-indicator--critical"));
+    VersionsCIP.policyCount().shouldHave(exactText("3"));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
-    VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
+    VersionsCIP.securityCount().shouldHave(exactText("3"));
     VersionsCIP.hygieneRating().shouldHave(text("Exemplar"));
     VersionsCIP.integrityRating().shouldHave(text("Normal"));
-    VersionsCIP.integrityRating().shouldNotHave(cssClass("cip-color-suspicious"));
-    VersionsCIP.matchState().shouldHave(text("exact"));
-    VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
+    VersionsCIP.integrityRating().shouldNotHave(cssClass("iq-version-graph-component-details__suspicious-integrity"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
-    if (isVersionRecommendationSupported()) {
-      VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-      VersionsCIP.nextNoViolationWithDependenciesLink().shouldBe(visible).shouldHave(text("Select 31.52"));
-      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
-    }
-    else {
-      VersionsCIP.recommendedVersionsHeader().shouldBe(hidden);
-      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
-      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
-    }
     VersionsCIP.viewDetailsButton().shouldBe(visible);
-    if (shouldShowMigrateButton()) {
-      VersionsCIP.migrateButton().shouldBe(visible);
-    }
-    else {
-      VersionsCIP.migrateButton().shouldNotBe(visible);
-    }
-    VersionsCIP.noVersionsAvailable().shouldNotBe(visible);
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
-    VersionsCIP.hideDetailsLink().shouldBe(visible);
 
     // test hovering over version bar shows version number
     VersionsCIP.versionBar(1).shouldBe(visible).hover();
@@ -199,33 +178,12 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Not Declared"));
     VersionsCIP.observedLicenses().shouldHave(texts("No Sources"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Not Declared", "No Sources"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text("1"), cssClass("none"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("1"));
+    VersionsCIP.highestPolicyThreatIndicator().shouldHave(cssClass("nx-threat-indicator--low"));
     VersionsCIP.policyCount().shouldNotBe(visible);
-    VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
+    VersionsCIP.highestSecurityThreat().shouldHave(text("N/A"));
     VersionsCIP.securityCount().shouldNotBe(visible);
     VersionsCIP.hygieneRating().shouldNotBe(visible);
-
-    if (isVersionRecommendationSupported()) {
-      // mock request for version 31.52
-      testCLMServer.getHdsServer()
-          .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
-          .atUri("rest/ide/componentDetails");
-      testCLMServer.getHdsServer()
-          .respondWith(getClass().getResource("/componentDetails/javancssComponentDetails-31.52.json"))
-          .atUri("rest/rm/componentDetails");
-
-      VersionsCIP.selectNoViolationWithDependencies().shouldBe(visible).click();
-
-      VersionsCIP.version().shouldHave(text("31.52"));
-      VersionsCIP.declaredLicenses().shouldHave(texts("BSD-3-Clause"));
-      VersionsCIP.observedLicenses().shouldHave(texts("BSD-3-Clause"));
-      VersionsCIP.effectiveLicenses().shouldHave(texts("BSD-3-Clause"));
-      VersionsCIP.highestPolicyThreat().shouldHave(text("NA"), cssClass("unspecified"));
-      VersionsCIP.policyCount().shouldNotBe(visible);
-      VersionsCIP.highestSecurityThreat().shouldHave(text("NA"));
-      VersionsCIP.securityCount().shouldNotBe(visible);
-      VersionsCIP.hygieneRating().shouldNotBe(visible);
-    }
   }
 
   @Test
@@ -247,99 +205,16 @@ public abstract class AbstractVersionGraphMavenTest
     VersionsCIP.declaredLicenses().shouldHave(texts("Apache-2.0"));
     VersionsCIP.observedLicenses().shouldHave(texts("GPL-2.0"));
     VersionsCIP.effectiveLicenses().shouldHave(texts("Apache-2.0", "GPL-2.0"));
-    VersionsCIP.highestPolicyThreat().shouldHave(text("10"), cssClass("critical"));
-    VersionsCIP.policyCount().shouldHave(exactText("within 3 policies"));
+    VersionsCIP.highestPolicyThreat().shouldHave(text("10"));
+    VersionsCIP.highestPolicyThreatIndicator().shouldHave(cssClass("nx-threat-indicator--critical"));
+    VersionsCIP.policyCount().shouldHave(exactText("3"));
     VersionsCIP.highestSecurityThreat().shouldHave(text("9.1"));
-    VersionsCIP.securityCount().shouldHave(exactText("within 3 security issues"));
+    VersionsCIP.securityCount().shouldHave(exactText("3"));
     VersionsCIP.hygieneRating().shouldHave(text("Exemplar"));
-    VersionsCIP.matchState().shouldHave(text("exact"));
-    VersionsCIP.identificationSource().shouldHave(text("Sonatype"));
     VersionsCIP.componentCategory().shouldHave(text("Programming Language Utilites"));
-    if (isVersionRecommendationSupported()) {
-      VersionsCIP.recommendedVersionsHeader().shouldBe(visible);
-      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
-      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
-      VersionsCIP.noVersionsAvailable().shouldBe(visible);
-    }
-    else {
-      VersionsCIP.recommendedVersionsHeader().shouldBe(hidden);
-      VersionsCIP.nextNoViolationVersionLink().shouldBe(hidden);
-      VersionsCIP.nextNoFailVersionLink().shouldBe(hidden);
-      VersionsCIP.noVersionsAvailable().shouldBe(hidden);
-    }
     VersionsCIP.viewDetailsButton().shouldBe(visible);
-    if (shouldShowMigrateButton()) {
-      VersionsCIP.migrateButton().shouldBe(visible);
-    }
-    else {
-      VersionsCIP.migrateButton().shouldNotBe(visible);
-    }
 
     VersionsCIP.showDetailsLink().shouldBe(visible).click();
-    VersionsCIP.hideDetailsLink().shouldBe(visible);
-  }
-
-  @Test
-  public void testCapabilitiesEnable() {
-    setupHdsResponses();
-    mockHdsResponseForRemediation();
-    mockHdsResponseForFirstComponent();
-
-    if (isApplicationSelectionNeeded()) {
-      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
-    }
-
-    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
-
-    VersionsCIP.groupId().shouldHave(text("javancss"));
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
-    if (shouldShowMigrateButton()) {
-      VersionsCIP.migrateButton().shouldBe(visible);
-    }
-    else {
-      VersionsCIP.migrateButton().shouldNotBe(visible);
-    }
-
-    executeJavaScript("Insight.setCapabilities({viewDetails: false, migrate: false})");
-    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
-    VersionsCIP.migrateButton().shouldNotBe(visible);
-
-    eyesWatcher.eyesCheck("Component Info Screen");
-
-    executeJavaScript("Insight.setCapabilities({\"viewDetails\": true, \"migrate\": true})");
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
-    VersionsCIP.migrateButton().shouldBe(visible);
-
-    executeJavaScript("Insight.setCapabilities({'viewDetails': true, 'migrate': false})");
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
-    VersionsCIP.migrateButton().shouldNotBe(visible);
-
-    executeJavaScript("Insight.setCapabilities({viewDetails: false})");
-    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
-    VersionsCIP.migrateButton().shouldNotBe(visible);
-
-    executeJavaScript("Insight.setCapabilities({viewDetails: null, migrate: true})");
-    VersionsCIP.viewDetailsButton().shouldNotBe(visible);
-    VersionsCIP.migrateButton().shouldBe(visible);
-
-  }
-
-  @Test
-  public void testBreakingChangesHeatmap() {
-    setupHdsResponsesForBreakingChanges();
-
-    if (isApplicationSelectionNeeded()) {
-      VersionsCIP.selectApplications().selectByVisibleText("ApplicationReportTest (ApplicationReportTest)");
-    }
-
-    executeJavaScript(JAVA_SCRIPT_TO_EXECUTE);
-
-    VersionsCIP.versionGraphLoading().should(disappear);
-
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
-
-    VersionsCIP.groupId().shouldHave(text("javancss"));
-    VersionsCIP.viewDetailsButton().shouldBe(visible);
   }
 
   private void verifyMessageIsPresentWhenNoApplicationIsSelected() {
@@ -422,12 +297,6 @@ public abstract class AbstractVersionGraphMavenTest
 
   protected void mockHdsResponseForRemediation() {
     testCLMServer.getHdsServer().respondWith("{\"known\":true}").atUri("rest/component/summary");
-  }
-
-  protected abstract boolean shouldShowMigrateButton();
-
-  protected boolean isVersionRecommendationSupported() {
-    return true;
   }
 
   protected boolean isApplicationSelectionNeeded() {

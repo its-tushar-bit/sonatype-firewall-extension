@@ -7,7 +7,7 @@ import * as urlUtil from 'MainRoot/util/urlUtil';
 import * as clmLocation from 'MainRoot/util/CLMLocation';
 
 describe('CLMLocation.js', function () {
-  let CLMLocation, CLMLocationsService, $window;
+  let CLMLocation, CLMLocationsService;
 
   beforeEach(function () {
     CLMLocation = require('inject-loader!../../../main/frontend/util/CLMLocation')({
@@ -20,15 +20,8 @@ describe('CLMLocation.js', function () {
     angular.mock.module(CLMLocation.default.name);
   });
 
-  beforeEach(
-    angular.mock.module(function ($provide) {
-      $provide.value('$window', {});
-    })
-  );
-
-  beforeEach(inject(function (CLMLocations, _$window_) {
+  beforeEach(inject(function (CLMLocations) {
     CLMLocationsService = CLMLocations;
-    $window = _$window_;
   }));
 
   describe('browseReportUrl', () => {
@@ -135,18 +128,20 @@ describe('CLMLocation.js', function () {
     var postfix = userTelemetryLocations[methodName];
 
     describe(methodName, function () {
-      beforeEach(inject(function (BaseUrl) {
-        spyOn(BaseUrl, 'get').and.returnValue('http://localhost');
-      }));
-
       it('returns the expected path', function () {
+        urlUtil._setBaseUrlForTesting('http://localhost');
         expect(CLMLocationsService[methodName]()).toBe('http://localhost/rest/user-telemetry/' + postfix);
+        urlUtil.setBaseUrl();
       });
 
-      it('returns the expected rm path when clmEndpoint.type is "rm"', function () {
-        $window.clmEndpoint = { type: 'rm' };
+      it('returns the expected rm path the base URL indicates that we are in RM', function () {
+        urlUtil._setBaseUrlForTesting('http://localhost/rest/healthcheck/clm');
 
-        expect(CLMLocationsService[methodName]()).toBe('http://localhost/rest/rm/user-telemetry/' + postfix);
+        expect(CLMLocationsService[methodName]()).toBe(
+          'http://localhost/rest/healthcheck/clm/rest/rm/user-telemetry/' + postfix
+        );
+
+        urlUtil.setBaseUrl();
       });
     });
   }

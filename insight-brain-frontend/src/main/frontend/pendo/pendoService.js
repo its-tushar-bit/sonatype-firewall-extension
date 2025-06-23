@@ -3,7 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-export default function pendoService($http, $q, $window, $document, CLMLocations, sanitizeUrlService) {
+import axios from 'axios';
+
+import {
+  getUserTelemetryConfig,
+  getUserTelemetryProxy,
+  getUserTelemetryJavascript,
+} from 'MainRoot/util/CLMLocationNoAngular';
+
+export default function PendoService(sanitizeUrlService) {
   /* eslint-disable */
   // Snippet from Pendo which creates a stub pendo object and adds pendo script, slightly changed to modify the URL and
   // to use Angular wrapper objects.
@@ -22,39 +30,38 @@ export default function pendoService($http, $q, $window, $document, CLMLocations
       })(v[w]);
     y = e.createElement(n);
     y.async = !0;
-    y.src = CLMLocations.getUserTelemetryJavascript();
+    y.src = getUserTelemetryJavascript();
     z = e.getElementsByTagName(n)[0];
     z.parentNode.insertBefore(y, z);
-  })($window, $document[0], 'script', 'pendo');
+  })(window, document, 'script', 'pendo');
   /* eslint-enable */
 
   /**
    * Fetch the user-telemetry configuration and start pendo. It is safe to call this multiple times, for instance
    * to re-initialize pendo after the user logs in
    */
-  function start() {
-    $http.get(CLMLocations.getUserTelemetryConfig()).then(function (response) {
-      const configuration = {
-        contentHost: CLMLocations.getUserTelemetryProxy(),
-        dataHost: CLMLocations.getUserTelemetryProxy(),
-        excludeAllText: true,
-        excludeTitle: true,
-        guides: {
-          disabled: true,
-        },
-        sanitizeUrl: sanitizeUrlService.sanitize,
-        ...response.data,
-      };
+  async function start() {
+    const response = await axios.get(getUserTelemetryConfig());
+    const configuration = {
+      contentHost: getUserTelemetryProxy(),
+      dataHost: getUserTelemetryProxy(),
+      excludeAllText: true,
+      excludeTitle: true,
+      guides: {
+        disabled: true,
+      },
+      sanitizeUrl: sanitizeUrlService.sanitize,
+      ...response.data,
+    };
 
-      $window.pendo.initialize(configuration);
-    });
+    window.pendo.initialize(configuration);
   }
 
-  function flush() {
-    if ($window.pendo.flushNow) {
-      return $window.pendo.flushNow();
+  async function flush() {
+    if (window.pendo.flushNow) {
+      return window.pendo.flushNow();
     } else {
-      return $q.resolve();
+      return;
     }
   }
 
@@ -64,4 +71,6 @@ export default function pendoService($http, $q, $window, $document, CLMLocations
   };
 }
 
-pendoService.$inject = ['$http', '$q', '$window', '$document', 'CLMLocations', 'sanitizeUrlService'];
+// Note: this allows pendoService to be used in angular still, but it can also be used outside of angular by
+// explicitly injecting the sanitizeUrlService dependency.
+PendoService.$inject = ['sanitizeUrlService'];

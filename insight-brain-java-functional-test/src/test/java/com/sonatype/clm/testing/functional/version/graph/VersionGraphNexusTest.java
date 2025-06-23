@@ -14,16 +14,6 @@ public class VersionGraphNexusTest
   }
 
   @Override
-  protected boolean shouldShowMigrateButton() {
-    return false;
-  }
-
-  @Override
-  protected boolean isVersionRecommendationSupported() {
-    return false;
-  }
-
-  @Override
   protected boolean isApplicationSelectionNeeded() {
     return true;
   }

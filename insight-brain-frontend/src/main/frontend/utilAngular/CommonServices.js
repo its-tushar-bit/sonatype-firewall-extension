@@ -62,23 +62,6 @@ export const Messages = {
 /**
  * English language phrases for elapsed time.
  */
-services.filter('ago', function () {
-  var rules = {
-    year: 'year',
-    month: 'month',
-    day: 'day',
-    hour: 'hour',
-    minute: 'minute',
-    seconds: 'seconds ago',
-    highlightMultiples: true,
-    separator: ' ',
-    suffix: ' ago',
-    diffFunction: function (date) {
-      return new Date().getTime() - date;
-    },
-  };
-  return new ElapsedTimeFilterFactory(rules);
-});
 
 /**
  * English language abbreviations for time span.
@@ -176,19 +159,6 @@ function ElapsedTimeFunctionFactory(rules) {
     };
   };
 }
-
-/**
- * Intended to reduce the granularity of results from the 'ago' filter for cases where precision is not needed for the
- * last 24 hours.
- */
-services.filter('agoLastDay', function () {
-  return function (agoString) {
-    if (agoString.indexOf('seconds ago') > -1 || agoString.indexOf('minute') > -1 || agoString.indexOf('hour') > -1) {
-      return 'Less than a day ago';
-    }
-    return agoString;
-  };
-});
 
 services.service('BaseUrl', [
   function () {

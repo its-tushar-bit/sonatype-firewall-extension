@@ -24,7 +24,16 @@ import commonServicesModule from '../utilAngular/CommonServices';
 import { toURIParams, uriTemplate } from './urlUtil';
 import { isNilOrEmpty } from './jsUtil';
 
-export { getComponentDetailsUrl, getApplicationNamesUrl } from './CLMLocationNoAngular';
+import { getUserTelemetryConfig, getUserTelemetryJavascript, getUserTelemetryProxy } from './CLMLocationNoAngular';
+
+export {
+  getComponentDetailsUrl,
+  getApplicationNamesUrl,
+  getVersionGraphUrl,
+  getUserTelemetryConfig,
+  getUserTelemetryJavascript,
+  getUserTelemetryProxy,
+} from './CLMLocationNoAngular';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -1197,36 +1206,6 @@ export function getSbomPolicyViolationReportUrl(
   return uriTemplate`/rest/report/${applicationPublicId}/sbom/${sbomVersion}/sbomPolicyViolationReport` + params;
 }
 
-export const getVersionGraphUrl = ({
-  clientType,
-  ownerType,
-  ownerId,
-  componentIdentifier,
-  hash,
-  matchState,
-  proprietary,
-  pathname,
-  identificationSource,
-  scanId,
-  stageId,
-  dependencyType,
-}) => {
-  const params = toURIParams({
-    componentIdentifier,
-    hash,
-    matchState,
-    proprietary,
-    pathname,
-    identificationSource,
-    scanId,
-    stageId,
-    dependencyType,
-  });
-  return (
-    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
-  );
-};
-
 export const getPolicyEvaluationTimestampUrl = (repositoryId, componentIdentifier) =>
   uriTemplate`/rest/repositories/${repositoryId}/policyEvaluationTimestamps?componentIdentifier=${componentIdentifier}`;
 
@@ -1720,13 +1699,6 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
   'BaseUrl',
   '$window',
   function (baseUrl, $window) {
-    function getUserTelemetryPrefix() {
-      const isRM = $window.clmEndpoint && $window.clmEndpoint.type === 'rm';
-
-      // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
-      return baseUrl.get() + (isRM ? '/rest/rm/user-telemetry' : '/rest/user-telemetry');
-    }
-
     return {
       getLicensesUrl: function () {
         return baseUrl.get() + '/rest/license';
@@ -1759,11 +1731,11 @@ export default angular.module('CLMLocation', [commonServicesModule.name]).factor
         return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
       },
 
-      getUserTelemetryConfig: () => `${getUserTelemetryPrefix()}/config`,
+      getUserTelemetryConfig,
 
-      getUserTelemetryJavascript: () => `${getUserTelemetryPrefix()}/javascript`,
+      getUserTelemetryJavascript,
 
-      getUserTelemetryProxy: () => `${getUserTelemetryPrefix()}/events`,
+      getUserTelemetryProxy,
 
       getProprietaryConfig: function () {
         return baseUrl.get() + '/rest/config/proprietary';

@@ -1,0 +1,35 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+
+import $ from 'jquery';
+import pv from 'MainRoot/lib/protovis/protovis.min';
+
+import App from './components/App';
+import store from './store';
+
+import PendoService from 'MainRoot/pendo/pendoService';
+import sanitizeUrlService from '../pendo/sanitizeUrlService';
+
+// sets up window.Insight API
+import './externalAPI';
+
+// NOTE: @sonatype/version-graph has undeclared peer dependencies on global jquery and protovis
+window.$ = $;
+window.pv = pv;
+
+// Initialize UI analytics
+new PendoService(sanitizeUrlService).start();
+
+// Render the app
+ReactDOM.render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('ui-view')
+);

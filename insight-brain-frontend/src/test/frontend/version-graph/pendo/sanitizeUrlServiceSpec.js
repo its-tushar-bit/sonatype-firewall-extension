@@ -3,29 +3,31 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import versionGraphPendoModule from '../../../../main/frontend/version-graph/pendo/module';
+import * as urlUtil from 'MainRoot/util/urlUtil';
+
+import SanitizeUrlService from 'MainRoot/version-graph/pendo/sanitizeUrlService';
 
 describe('version-graph sanitizeUrlService', function () {
-  var sanitizeUrlService, baseUrl;
+  let sanitizeUrlService;
 
-  beforeEach(
-    angular.mock.module(versionGraphPendoModule.name, function ($provide) {
-      $provide.service('BaseUrl', () => ({ get: () => baseUrl }));
-    })
-  );
+  beforeEach(function () {
+    urlUtil._setBaseUrlForTesting('http://localhost:8070');
+  });
 
-  beforeEach(inject(function (_sanitizeUrlService_) {
-    sanitizeUrlService = _sanitizeUrlService_;
+  beforeEach(function () {
+    sanitizeUrlService = new SanitizeUrlService();
+  });
 
-    baseUrl = 'http://localhost:8070';
-  }));
+  afterEach(function () {
+    urlUtil.setBaseUrl();
+  });
 
   it('removes the baseUrl', function () {
     expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/version-graph/index.html')).toBe(
       '/assets/version-graph/index.html'
     );
 
-    baseUrl = 'https://foobar.com/iq';
+    urlUtil._setBaseUrlForTesting('https://foobar.com/iq');
 
     expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/version-graph/index.html')).toBe(
       '/assets/version-graph/index.html'

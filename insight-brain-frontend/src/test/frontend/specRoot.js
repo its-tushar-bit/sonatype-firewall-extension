@@ -43,8 +43,6 @@ importAll(require.context('.', true, /(?<!(jest))[sS]pec.jsx?$/));
 // explicitly import all of our implementation code to ensure accurate code coverage numbers
 // (i.e., make sure that even modules with no tests at all get counted)
 import '../../main/frontend/index';
-import '../../main/frontend/version-graph/version-graph-app-index';
-import '../../main/frontend/brain.client.js';
 
 window.d3 = d3;
 window.Fuse = Fuse;

@@ -783,4 +783,15 @@ public class ApiPolicyWaiverServiceAuthzTest
     grantPermission(app.getId(), Permission.WAIVE_POLICY_VIOLATIONS);
     apiPolicyWaiverService.deleteContainerImageWaiver(app.getId());
   }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void getAllPolicyContainerWaivers_Unauthenticated() {
+    apiPolicyWaiverService.getAllPolicyContainerWaivers(1, 1);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void getAllPolicyContainerWaivers_Unauthorized() {
+    login();
+    apiPolicyWaiverService.getAllPolicyContainerWaivers(1, 1);
+  }
 }

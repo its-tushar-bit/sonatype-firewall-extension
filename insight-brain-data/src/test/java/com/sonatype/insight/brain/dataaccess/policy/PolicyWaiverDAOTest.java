@@ -20,7 +20,9 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.PolicyContainerWaiverData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.WaiverReasonData;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -1234,5 +1236,86 @@ public class PolicyWaiverDAOTest
 
     // then: we get an empty list
     assertThat(actualWaiverReasons).isNotNull().isEmpty();
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_emptyResult() {
+    List<PolicyContainerWaiverData> waivers = dao.getAllContainerPolicyWaivers(1, 10);
+
+    assertThat(waivers).isEmpty();
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_returnsOneWaiver() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+
+    PolicyWaiver waiverContainerImage = new PolicyWaiver(null, policy.getId(), application.getId(), "comment");
+    waiverContainerImage.setForContainerImage(true);
+    tempEntity.newWaiver(waiverContainerImage);
+
+    PolicyWaiver waiverContainerImageComponent =
+        new PolicyWaiver("hash1", policy.getId(), application.getId(), "comment");
+    waiverContainerImageComponent.setForContainerImageComponent(true);
+    tempEntity.newWaiver(waiverContainerImageComponent);
+
+    List<PolicyContainerWaiverData> waivers = dao.getAllContainerPolicyWaivers(1, 10);
+
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainerImage.getId());
+  }
+
+  @Test
+  public void testGetAllContainerPolicyWaivers_returnsMoreThanOneWaiver() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+
+    PolicyWaiver waiverContainer01 = createContainerWaiver(policy, application.getId());
+    createComponentWaiver(policy, application.getId(), "comp01-hash1");
+
+    Application anotherApplication = tempEntity.newApplication("anotherContainerImage", organization.getId());
+    PolicyWaiver waiverContainer02 = createContainerWaiver(policy, anotherApplication.getId());
+    createComponentWaiver(policy, anotherApplication.getId(), "comp02-hash1");
+    createComponentWaiver(policy, anotherApplication.getId(), "comp02-hash2");
+
+    List<PolicyContainerWaiverData> waivers = dao.getAllContainerPolicyWaivers(1, 10);
+    assertThat(waivers).hasSize(2);
+    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer01.getId());
+
+    // Test pagination
+    waivers = dao.getAllContainerPolicyWaivers(1, 1);
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer01.getId());
+
+    waivers = dao.getAllContainerPolicyWaivers(2, 1);
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainer02.getId());
+  }
+
+  @Test
+  public void testGetContainerPolicyWaiversCount() {
+    Policy policy = tempEntity.newPolicy(organization, 10);
+
+    createContainerWaiver(policy, application.getId());
+    createComponentWaiver(policy, application.getId(), "comp01-hash1");
+
+    Application anotherApplication = tempEntity.newApplication("anotherContainerImage", organization.getId());
+    createContainerWaiver(policy, anotherApplication.getId());
+    createComponentWaiver(policy, anotherApplication.getId(), "comp02-hash1");
+    createComponentWaiver(policy, anotherApplication.getId(), "comp02-hash2");
+
+    long waivers = dao.getContainerPolicyWaiversCount();
+    assertThat(waivers).isEqualTo(2);
+  }
+
+  private PolicyWaiver createContainerWaiver(Policy policy, String ownerId) {
+    PolicyWaiver waiver = new PolicyWaiver(null, policy.getId(), ownerId, "comment");
+    waiver.setForContainerImage(true);
+    tempEntity.newWaiver(waiver);
+    return waiver;
+  }
+
+  private void createComponentWaiver(Policy policy, String ownerId, String hash) {
+    PolicyWaiver waiver = new PolicyWaiver(hash, policy.getId(), ownerId, "comment");
+    waiver.setForContainerImageComponent(true);
+    tempEntity.newWaiver(waiver);
   }
 }

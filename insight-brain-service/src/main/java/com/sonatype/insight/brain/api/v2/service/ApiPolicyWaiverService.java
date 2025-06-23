@@ -32,6 +32,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -47,6 +48,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO.PolicyContainerWaiverData;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -1001,6 +1003,14 @@ public class ApiPolicyWaiverService
       }
       tx.commit();
     }
+  }
+
+  @Authorize(permission = Permission.READ)
+  public ApiPageResult<PolicyContainerWaiverData> getAllPolicyContainerWaivers(final int page, final int pageSize) {
+    List<PolicyContainerWaiverData> policyContainerWaivers =
+        policyWaiverDAO.getAllContainerPolicyWaivers(page, pageSize);
+    return new ApiPageResult<>(policyWaiverDAO.getContainerPolicyWaiversCount(), page, pageSize,
+        policyContainerWaivers);
   }
 
   private void validateContainerImageId(String applicationId) {

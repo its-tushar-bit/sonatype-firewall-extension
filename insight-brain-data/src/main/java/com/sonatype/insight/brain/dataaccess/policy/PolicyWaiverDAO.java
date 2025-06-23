@@ -570,5 +570,77 @@ public class PolicyWaiverDAO
     createQuery(sQuery, ownerId).executeUpdate(tx);
   }
 
+  public List<PolicyContainerWaiverData> getAllContainerPolicyWaivers(int page, int pageSize) {
+    String subquery = getContainerPolicyWaiversSubquery();
+    String sQuery = String.format("""
+        SELECT
+          pw.policy_waiver_id,
+          pw.create_time,
+          pw.expiry_time,
+          agg.max_threat_level,
+          agg.application_scope,
+          agg.unique_policy_count,
+          agg.unique_component_count
+        FROM %1$s.policy_waiver pw
+        LEFT JOIN (%2$s) agg ON agg.owner_id = pw.owner_id
+        WHERE pw.is_for_container_image = true;
+        """, getDatabaseSchema(), subquery);
+
+    int offset = (page - 1) * pageSize;
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = createNativePaginationQuery(tx, sQuery, offset, pageSize);
+      return ((Stream<Object[]>) query.getResultStream())
+          .map(array -> new PolicyContainerWaiverData(
+              (String) array[0],
+              (Date) array[1],
+              (Date) array[2],
+              ((Number) array[3]).intValue(),
+              (String) array[4],
+              ((Number) array[5]).longValue(),
+              ((Number) array[6]).longValue()))
+          .toList();
+    }
+  }
+
+  public long getContainerPolicyWaiversCount() {
+    String subquery = getContainerPolicyWaiversSubquery();
+    String sQuery = String.format("""
+        SELECT COUNT(*)
+        FROM %1$s.policy_waiver pw
+        LEFT JOIN (%2$s) agg ON agg.owner_id = pw.owner_id
+        WHERE pw.is_for_container_image = true;
+        """, getDatabaseSchema(), subquery);
+
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = tx.createNativeQuery(sQuery);
+      return ((Number) query.getSingleResult()).longValue();
+    }
+  }
+
+  private String getContainerPolicyWaiversSubquery() {
+    return String.format("""
+        SELECT
+          pw2.owner_id,
+          MAX(p2.threat_level) AS max_threat_level,
+          COUNT(DISTINCT pw2.policy_id) AS unique_policy_count,
+          COUNT(DISTINCT pw2.hash) AS unique_component_count,
+          a.name AS application_scope
+        FROM %1$s.policy_waiver pw2
+        JOIN %1$s.policy p2 ON pw2.policy_id = p2.policy_id
+        JOIN %1$s.application a ON pw2.owner_id = a.application_id
+        WHERE pw2.is_for_container_image_component = true
+        GROUP BY pw2.owner_id, a.name
+        """, getDatabaseSchema());
+  }
+
   public static record WaiverReasonData(String policyWaiverId, String reasonText) {  }
+
+  public static record PolicyContainerWaiverData(
+      String policyWaiverId,
+      Date createTime,
+      Date expiryTime,
+      int maxThreatLevel,
+      String applicationScope,
+      Long uniquePolicyCount,
+      Long uniqueComponentCount) {}
 }

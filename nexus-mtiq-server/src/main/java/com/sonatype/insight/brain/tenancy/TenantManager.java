@@ -128,13 +128,11 @@ public class TenantManager
   }
 
   @Override
-  @Trace
   public void start() {
     preregisterAllTenants();
   }
 
   @VisibleForTesting
-  @Trace
   void preregisterAllTenants() {
     log.info("Pre-registering all tenants");
 
@@ -158,7 +156,6 @@ public class TenantManager
     return tenantsPreRegistered;
   }
 
-  @Trace
   private void registerTenants(List<String> tenants) {
     TenantThreadLocal.runForAllTenantsOnBoot(tenants, "preRegisterAllTenants",
         tenant -> {
@@ -178,7 +175,6 @@ public class TenantManager
    * Validate and then register a tenant. This method is `synchronized` as it is possible for multiple Quartz jobs for a
    * single tenant to execute at the same time on a single node. But registration should only happen once.
    */
-  @Trace
   private synchronized void validateAndRegisterTenant(final Tenant tenant) {
     // Global tenant does not require tenant registration
     if (Tenant.GLOBAL_TENANT.equals(tenant)) {
@@ -206,7 +202,7 @@ public class TenantManager
   /**
    * Perform all registration for a tenant: database init (not migration), tenant jobs, and app lifecycle boot
    */
-  @Trace
+  @Trace // 2025-06-24 - trace on a per-tenant level to benchmark registration cost (CLM-34837)
   private void performRegistration() {
     databaseProvisioner.initializeDatabaseWithoutMigration();
     setupTenantJobs();
@@ -250,7 +246,6 @@ public class TenantManager
   /**
    * Validates a tenant exists and is not deleted before registration
    */
-  @Trace
   private void validateTenant(final Tenant tenant) {
     if (!tenantValidator.validateTenantExists(tenant)) {
       log.debug("Tenant doesn't exist: {}", tenant.tenantSlug);
@@ -263,7 +258,6 @@ public class TenantManager
     }
   }
 
-  @Trace
   private void setupTenantJobs() {
     tenantManagedBeans
         .stream()

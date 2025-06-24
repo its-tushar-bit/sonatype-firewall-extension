@@ -23,6 +23,7 @@ public class GitRepositoryInfo
                            final String baseBranch,
                            final Boolean remediationPullRequestsEnabled,
                            final Boolean manualPullRequestsEnabled,
+                           final Boolean innerSourceAutomatedUpdatesEnabled,
                            final Boolean statusChecksEnabled,
                            final Boolean pullRequestCommentingEnabled,
                            final Boolean sourceControlEvaluationsEnabled,
@@ -30,7 +31,8 @@ public class GitRepositoryInfo
                            final String sourceControlScanTarget)
   {
     this(repositoryUrl, SourceControl.normalizeRepositoryUrl(repositoryUrl), sshRepositoryUrl, username, token,
-        provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled, statusChecksEnabled,
+        provider, baseBranch, remediationPullRequestsEnabled, manualPullRequestsEnabled,
+        innerSourceAutomatedUpdatesEnabled, statusChecksEnabled,
         pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
   }
 
@@ -43,6 +45,7 @@ public class GitRepositoryInfo
                            final String baseBranch,
                            final Boolean remediationPullRequestsEnabled,
                            final Boolean manualPullRequestsEnabled,
+                           final Boolean innerSourceAutomatedUpdatesEnabled,
                            final Boolean statusChecksEnabled,
                            final Boolean pullRequestCommentingEnabled,
                            final Boolean sourceControlEvaluationsEnabled,
@@ -58,6 +61,7 @@ public class GitRepositoryInfo
     this.baseBranch = baseBranch;
     this.remediationPullRequestsEnabled = remediationPullRequestsEnabled;
     this.manualPullRequestsEnabled = manualPullRequestsEnabled;
+    this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
     this.statusChecksEnabled = statusChecksEnabled;
     this.pullRequestCommentingEnabled = pullRequestCommentingEnabled;
     this.sourceControlEvaluationsEnabled = sourceControlEvaluationsEnabled;
@@ -82,6 +86,8 @@ public class GitRepositoryInfo
   public Boolean remediationPullRequestsEnabled;
 
   public Boolean manualPullRequestsEnabled;
+
+  public Boolean innerSourceAutomatedUpdatesEnabled;
 
   public Boolean statusChecksEnabled;
 
@@ -125,6 +131,10 @@ public class GitRepositoryInfo
     return manualPullRequestsEnabled;
   }
 
+  public Boolean getInnerSourceAutomatedUpdatesEnabled() {
+    return innerSourceAutomatedUpdatesEnabled;
+  }
+
   public Boolean getStatusChecksEnabled() {
     return statusChecksEnabled;
   }
@@ -163,6 +173,7 @@ public class GitRepositoryInfo
         Objects.equals(baseBranch, that.baseBranch) &&
         Objects.equals(remediationPullRequestsEnabled, that.remediationPullRequestsEnabled) &&
         Objects.equals(manualPullRequestsEnabled, that.manualPullRequestsEnabled) &&
+        Objects.equals(innerSourceAutomatedUpdatesEnabled, that.innerSourceAutomatedUpdatesEnabled) &&
         Objects.equals(statusChecksEnabled, that.statusChecksEnabled) &&
         Objects.equals(pullRequestCommentingEnabled, that.pullRequestCommentingEnabled) &&
         Objects.equals(sourceControlEvaluationsEnabled, that.sourceControlEvaluationsEnabled) &&

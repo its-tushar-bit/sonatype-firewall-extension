@@ -25,7 +25,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -69,7 +69,7 @@ import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -1074,12 +1074,12 @@ public class ApplicationDAOTest
 
   @Test
   public void testDelete_CascadesToInnerSource() {
-    InnerSourceComponent innerSourceComponent = tempEntity.newInnerSourceComponent("pkg:test/name", application);
+    InnerSourceApplication innerSourceApplication = tempEntity.newInnerSourceApplication("pkg:test/name", application);
 
     applicationDAO.delete(application);
 
-    InnerSourceComponentDAO innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
-    assertThat(innerSourceComponentDAO.getById(innerSourceComponent.getId())).isNull();
+    InnerSourceApplicationDAO innerSourceApplicationDAO = daoFactory.createInnerSourceApplicationDAO();
+    assertThat(innerSourceApplicationDAO.getById(innerSourceApplication.getId())).isNull();
   }
 
   @Test

@@ -30,6 +30,8 @@
     <class>com.sonatype.insight.brain.model.label.ComponentLabel</class>
     <class>com.sonatype.insight.brain.model.HasComponentId</class>
     <class>com.sonatype.insight.brain.model.innersource.InnerSourceComponent</class>
+    <class>com.sonatype.insight.brain.model.innersource.InnerSourceApplication</class>
+    <class>com.sonatype.insight.brain.model.innersource.InnerSourceVersion</class>
     <class>com.sonatype.insight.brain.model.license.LicenseOverrideInternal</class>
     <class>com.sonatype.insight.brain.model.license.LicenseOverrideLicenseInternal</class>
     <class>com.sonatype.insight.brain.model.license.LicenseThreatGroup</class>

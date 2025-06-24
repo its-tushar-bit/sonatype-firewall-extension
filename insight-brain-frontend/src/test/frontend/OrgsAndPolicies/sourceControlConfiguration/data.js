@@ -42,6 +42,7 @@ export const defaultRootOrgConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
   manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const existingRootOrgConfigResponse = {
@@ -60,6 +61,7 @@ export const existingRootOrgConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
   manualPullRequestsEnabled: { value: false, parentValue: null, parentName: null },
+  innerSourceAutomatedUpdatesEnabled: { value: false, parentValue: null, parentName: null },
 };
 
 export const defaultOrgConfigResponse = {
@@ -78,6 +80,7 @@ export const defaultOrgConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
   manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const inheritedOrgConfigResponse = {
@@ -96,6 +99,7 @@ export const inheritedOrgConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const existingOrgConfigResponse = {
@@ -114,6 +118,7 @@ export const existingOrgConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   manualPullRequestsEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
+  innerSourceAutomatedUpdatesEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const assertionsForOrgDefaultState = [
@@ -172,6 +177,15 @@ export const assertionsForOrgDefaultState = [
   },
   {
     name: 'Pull Request Commenting',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled' },
+    type: 'radio',
+    inherit: false,
+    enabled: true,
+    disabled: false,
+  },
+  {
+    name: 'Automated InnerSource Updates',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled' },
     type: 'radio',
@@ -298,6 +312,15 @@ export const assertionsForOrgInheritedState = [
     enabled: false,
     disabled: false,
   },
+  {
+    name: 'Automated InnerSource Updates',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
 ];
 
 export const assertionsForOrgExistingState = [
@@ -389,6 +412,15 @@ export const assertionsForOrgExistingState = [
     enabled: false,
     disabled: true,
   },
+  {
+    name: 'Automated InnerSource Updates',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
 ];
 
 export const defaultAppConfigResponse = {
@@ -407,6 +439,7 @@ export const defaultAppConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
   sshEnabled: { value: null, parentValue: null, parentName: null },
   manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
 };
 
 export const inheritedAppConfigResponse = {
@@ -425,6 +458,7 @@ export const inheritedAppConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const inheritedAppNoTokenConfigResponse = {
@@ -443,6 +477,7 @@ export const inheritedAppNoTokenConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: null, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   manualPullRequestsEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
+  innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const existingAppConfigResponse = {
@@ -461,6 +496,7 @@ export const existingAppConfigResponse = {
   sourceControlScanTarget: { value: null, parentValue: null, parentName: ROOT_ORGANIZATION_NAME },
   sshEnabled: { value: false, parentValue: true, parentName: ROOT_ORGANIZATION_NAME },
   manualPullRequestsEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
+  innerSourceAutomatedUpdatesEnabled: { value: false, parentValue: false, parentName: ROOT_ORGANIZATION_NAME },
 };
 
 export const assertionsForAppDefaultState = [
@@ -519,6 +555,15 @@ export const assertionsForAppDefaultState = [
   },
   {
     name: 'Pull Request Commenting',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled' },
+    type: 'radio',
+    inherit: false,
+    enabled: true,
+    disabled: false,
+  },
+  {
+    name: 'Automated InnerSource Updates',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled' },
     type: 'radio',
@@ -645,6 +690,15 @@ export const assertionsForAppInheritedState = [
     enabled: false,
     disabled: false,
   },
+  {
+    name: 'Automated InnerSource Updates',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
 ];
 
 export const assertionsForAppNoTokenInheritedState = [
@@ -737,6 +791,15 @@ export const assertionsForAppNoTokenInheritedState = [
     enabled: false,
     disabled: false,
   },
+  {
+    name: 'Automated InnerSource Updates',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: true,
+    enabled: false,
+    disabled: false,
+  },
 ];
 
 export const assertionsForAppExistingState = [
@@ -821,6 +884,15 @@ export const assertionsForAppExistingState = [
   },
   {
     name: 'Manual Pull Requests',
+    visibility: { assertion: 'toBeVisible' },
+    isDisabled: { assertion: 'toBeDisabled', isNegative: true },
+    type: 'radio',
+    inherit: false,
+    enabled: false,
+    disabled: true,
+  },
+  {
+    name: 'Automated InnerSource Updates',
     visibility: { assertion: 'toBeVisible' },
     isDisabled: { assertion: 'toBeDisabled', isNegative: true },
     type: 'radio',

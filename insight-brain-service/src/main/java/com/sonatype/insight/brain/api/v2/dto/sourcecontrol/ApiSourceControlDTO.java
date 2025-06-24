@@ -50,4 +50,6 @@ public class ApiSourceControlDTO
   public Boolean commitStatusEnabled;
 
   public Boolean manualPullRequestsEnabled;
+
+  public Boolean innerSourceAutomatedUpdatesEnabled;
 }

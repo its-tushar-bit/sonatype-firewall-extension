@@ -40,10 +40,14 @@ import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
@@ -51,9 +55,11 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyAction;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyConstraint;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -64,6 +70,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import oshi.util.tuples.Pair;
 
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
@@ -128,16 +135,22 @@ public class DevelopmentPrioritiesServiceTest
   @Inject
   private AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
+  @Inject
+  private InnerSourceService innerSourceService;
+
+  @Inject
+  private PathForwardInspector pathForwardInspector;
+
   private DevelopmentPrioritiesService developmentPrioritiesService;
 
   private String prioritizationId;
 
   @Before
   public void setup() {
-    developmentPrioritiesService = new DevelopmentPrioritiesService(
-        featuresService, developmentPrioritiesReportService, prioritizationComponentInfoDAO, reportService,
-        componentReachabilityService, componentRemediationService, developmentPrioritiesUtilsService,
-        policyEvaluationDiffService, policyEvaluationDAO, applicationDAO, policyWaiverDAO, autoPolicyWaiverDAO);
+    developmentPrioritiesService = new DevelopmentPrioritiesService(featuresService, developmentPrioritiesReportService,
+        prioritizationComponentInfoDAO, reportService, componentReachabilityService, componentRemediationService,
+        developmentPrioritiesUtilsService, policyEvaluationDiffService, policyEvaluationDAO, applicationDAO,
+        policyWaiverDAO, innerSourceService, pathForwardInspector, autoPolicyWaiverDAO);
     prioritizationId = tempEntity.newDevelopmentPrioritization(GIVEN_SOME_SCAN_ID).getId();
     tempEntity.newApplicationWithParent(GIVEN_SOME_PUBLIC_APP_ID);
   }
@@ -293,12 +306,11 @@ public class DevelopmentPrioritiesServiceTest
             GIVEN_PAGE_SIZE_10, null, false, false);
 
     assertThat(results.priorities().getResults()).containsExactly(
-            toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
-            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3,
-            "Unknown", false, null, "none",
-            null, null, null, 0,false, false, false, false, "", 1, false),
-            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
+        toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
+        toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
+        toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0,
+            false, false, false, false, "", 1, false),
+        toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     assertPaginationResultCorrect(results.priorities(), 4, 4, 1, 1);
 
@@ -349,10 +361,8 @@ public class DevelopmentPrioritiesServiceTest
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
         toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", 2,
-            "Unknown", false, null, "none",
-            null, null, null, 0,
-            false, false, false, false, "", 1, false)
+        toPrioritizedComponent(component1, 5, "policy-c", 2, "Unknown", false, null, "none", null, null, null, 0, false,
+            false, false, false, "", 1, false)
     );
 
     assertPaginationResultCorrect(results.priorities(), 2, 2, 1, 1);
@@ -410,7 +420,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(priorities).hasSize(5);
     assertThat(priorities.get(0).getDependencyType()).isEqualTo("Unknown");
     assertThat(priorities.get(1).getDependencyType()).isEqualTo("Transitive");
-    assertThat(priorities.get(2).getDependencyType()).isEqualTo("Inner Source");
+    assertThat(priorities.get(2).getDependencyType()).isEqualTo("Inner Source Transitive");
     assertThat(priorities.get(3).getDependencyType()).isEqualTo("Direct");
     assertThat(priorities.get(4).getDependencyType()).isEqualTo("Transitive");
 
@@ -1319,12 +1329,11 @@ public class DevelopmentPrioritiesServiceTest
         GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, null, null);
 
     assertThat(results).containsExactly(
-            toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
-            toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
-            toPrioritizedComponent(component1, 10, "policy-e", 3,
-            "Unknown", false, null, "none",
-            null, null, null, 0, false, false, false, false, "", 1, false),
-            toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
+        toPrioritizedComponent(component2, 9, "policy-g", 1, "Unknown", false, null, "none", true, null, null, 9),
+        toPrioritizedComponent(component4, 8, "policy-h", 2, "Unknown", false, null, "none", true, null, null, 5),
+        toPrioritizedComponent(component1, 10, "policy-e", 3, "Unknown", false, null, "none", null, null, null, 0,
+            false, false, false, false, "", 1, false),
+        toPrioritizedComponent(component5, 7, "policy-l", 4, "Unknown", false, null, "none", null, null, null, 0));
 
     verifyServiceCallsInvokedWithExpectedArguments();
   }
@@ -2036,7 +2045,7 @@ public class DevelopmentPrioritiesServiceTest
     assertThat(results).hasSize(5);
     assertThat(results.get(0).getDependencyType()).isEqualTo("Unknown");
     assertThat(results.get(1).getDependencyType()).isEqualTo("Transitive");
-    assertThat(results.get(2).getDependencyType()).isEqualTo("Inner Source");
+    assertThat(results.get(2).getDependencyType()).isEqualTo("Inner Source Transitive");
     assertThat(results.get(3).getDependencyType()).isEqualTo("Direct");
     assertThat(results.get(4).getDependencyType()).isEqualTo("Transitive");
 
@@ -2087,10 +2096,8 @@ public class DevelopmentPrioritiesServiceTest
         // "policy-f" of threat level 10 is a legacy violation, so not in the priority list.
         toPrioritizedComponent(component2, 7, "policy-g", null, 1),
         // "policy-b,d,e" of threat level 6 are a legacy violations, so not in the priority list.
-        toPrioritizedComponent(component1, 5, "policy-c", 2,
-            "Unknown", false, null, "none",
-            null, null, null, 0,
-            false, false, false, false, "", 1, false)
+        toPrioritizedComponent(component1, 5, "policy-c", 2, "Unknown", false, null, "none", null, null, null, 0, false,
+            false, false, false, "", 1, false)
     );
 
   }
@@ -2591,6 +2598,107 @@ public class DevelopmentPrioritiesServiceTest
                 prioritizedComponent.getComponentHash().equals("ddd"))
         .allSatisfy(prioritizedComponent ->
             assertThat(prioritizedComponent.getHasSameViolationsOnMain()).isFalse());
+  }
+
+  @Test
+  public void testGetAllPrioritizedFindings_shouldHandleInnerSourceTransitiveDependencies() {
+    Application app = applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID);
+    ComponentIdentifier transitiveComponentId = ComponentIdentifier.createMavenCoordinates(
+        "com.example.innersource", "transitive-lib", "1.0.0", "", "jar");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(transitiveComponentId);
+    InnerSourceApplication innerSourceApp = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerSourceApp, "1.5.0", StageTypes.RELEASE.getId());
+
+    ApiReportComponentDTOV2 transitiveComponent = createComponent(
+        "transitiveHash",
+        "com.example.innersource : transitive-lib : 1.0.0",
+        getInnerSourceDependencyType(false),
+        transitiveComponentId
+    );
+
+    when(featuresService.getFeatures()).thenReturn(Set.of(DEVELOPER_DASHBOARD));
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString()))
+        .thenReturn(createApiReportRawDataDTOV2(Lists.newArrayList(transitiveComponent)));
+    when(reportService.getPolicyThreats(anyString(), anyString()))
+        .thenReturn(createPolicyThreats(List.of()));
+
+    List<PrioritizedComponent> results = developmentPrioritiesService
+        .getAllPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, null, null);
+
+    //we don't return transitive inner source dependencies
+    assertThat(results).hasSize(0);
+  }
+
+  @Test
+  public void testGetAllPrioritizedFindings_shouldHandleInnerSourceDirectDependenciesWithUpgradePath() {
+    Application app = applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID);
+    ComponentIdentifier directComponentId = ComponentIdentifier.createMavenCoordinates(
+        "com.example.innersource", "direct-lib", "1.0.0", "", "jar");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(directComponentId);
+    InnerSourceApplication innerSourceApp = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerSourceApp, "1.5.0", StageTypes.RELEASE.getId());
+
+    ApiReportComponentDTOV2 directComponent = createComponent(
+        "directHash",
+        "com.example.innersource : direct-lib : 1.0.0",
+        getInnerSourceDependencyType(true),
+        directComponentId
+    );
+
+    PolicyThreats.Component directComponentThreat = createPolicyThreatsComponents(directComponent, List.of());
+
+    when(featuresService.getFeatures()).thenReturn(Set.of(DEVELOPER_DASHBOARD));
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString()))
+        .thenReturn(createApiReportRawDataDTOV2(Lists.newArrayList(directComponent)));
+    when(reportService.getPolicyThreats(anyString(), anyString()))
+        .thenReturn(createPolicyThreats(Lists.newArrayList(directComponentThreat)));
+
+    List<PrioritizedComponent> results = developmentPrioritiesService
+        .getAllPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, null, null);
+
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).getDependencyType()).isEqualTo(DEPENDENCY_TYPE_INNER_SOURCE_DIRECT);
+    assertThat(results.get(0).getDisplayName()).isEqualTo("com.example.innersource : direct-lib : 1.0.0");
+  }
+
+  @Test
+  public void testGetAllPrioritizedFindings_shouldHandleInnerSourceDirectDependenciesWithNoUpgradePath() {
+    Application app = applicationDAO.getByPublicId(GIVEN_SOME_PUBLIC_APP_ID);
+    ComponentIdentifier directComponentId = ComponentIdentifier.createMavenCoordinates(
+        "com.example.innersource", "direct-lib", "1.0.0", "", "jar");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(directComponentId);
+    InnerSourceApplication innerSourceApp = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerSourceApp, "1.0.0", StageTypes.RELEASE.getId());
+
+    ApiReportComponentDTOV2 directComponent = createComponent(
+        "directHash",
+        "com.example.innersource : direct-lib : 1.0.0",
+        getInnerSourceDependencyType(true),
+        directComponentId
+    );
+
+    PolicyThreats.Component directComponentThreat = createPolicyThreatsComponents(directComponent, List.of());
+
+    when(featuresService.getFeatures()).thenReturn(Set.of(DEVELOPER_DASHBOARD));
+    when(developmentPrioritiesReportService.getDependencyInformation(anyString(), anyString()))
+        .thenReturn(createApiReportRawDataDTOV2(Lists.newArrayList(directComponent)));
+    when(reportService.getPolicyThreats(anyString(), anyString()))
+        .thenReturn(createPolicyThreats(Lists.newArrayList(directComponentThreat)));
+
+    List<PrioritizedComponent> results = developmentPrioritiesService
+        .getAllPrioritizedFindings(GIVEN_SOME_PUBLIC_APP_ID, GIVEN_SOME_SCAN_ID, null, null);
+
+    assertThat(results).hasSize(0);
+  }
+
+  private ApiDependencyDataDTO getInnerSourceDependencyType(boolean isDirect) {
+    ApiDependencyDataDTO dependencyDataDTO = new ApiDependencyDataDTO();
+    dependencyDataDTO.innerSource = true;
+    dependencyDataDTO.directDependency = isDirect;
+    return dependencyDataDTO;
   }
 
   private ApiReportRawDataDTOV2 createApiReportRawDataDTOV2(final List<ApiReportComponentDTOV2> components) {

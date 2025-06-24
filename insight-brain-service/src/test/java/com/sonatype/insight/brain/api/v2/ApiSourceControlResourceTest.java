@@ -124,6 +124,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isNull();
     assertThat(result.manualPullRequestsEnabled).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled).isNull();
   }
 
   @Test
@@ -142,6 +143,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isNull();
     assertThat(result.manualPullRequestsEnabled).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled).isNull();
   }
 
   @Test
@@ -149,6 +151,7 @@ public class ApiSourceControlResourceTest
     ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
+            .setInnerSourceAutomatedUpdatesEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -165,6 +168,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
     assertThat(result.manualPullRequestsEnabled).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled).isFalse();
   }
 
   @Test
@@ -174,6 +178,7 @@ public class ApiSourceControlResourceTest
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repoUrl).setToken("token")
             .setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
+            .setInnerSourceAutomatedUpdatesEnabled(false)
             .build());
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
@@ -189,6 +194,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
     assertThat(result.manualPullRequestsEnabled).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled).isFalse();
   }
 
   @Test
@@ -198,6 +204,7 @@ public class ApiSourceControlResourceTest
     sourceControl.setToken("NEW_TOKEN");
     sourceControl.setCommitStatusEnabled(false);
     sourceControl.setManualPullRequestsEnabled(false);
+    sourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
@@ -212,6 +219,7 @@ public class ApiSourceControlResourceTest
     assertThat(result.provider).isNull();
     assertThat(result.commitStatusEnabled).isFalse();
     assertThat(result.manualPullRequestsEnabled).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled).isFalse();
   }
 
   @Test

@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -34,7 +33,9 @@ import com.google.common.collect.Tables;
 import org.quartz.JobExecutionContext;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.AUTOMATIC;
+import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.AUTOMATIC_INNER_SOURCE;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.MANUAL;
+import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.MANUAL_INNER_SOURCE;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.CLOSED;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MERGED;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MISSING;
@@ -74,6 +75,30 @@ public class SourceControlMetricsTelemetryCollector
 
   public static final String TOTAL_SC_AUTOMATIC_PRS_MISSING =
       "total_daily_source_control_automatic_pull_requests_missing";
+
+  public static final String TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED =
+      "total_daily_source_control_innersource_manual_pull_requests_created";
+
+  public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED =
+      "total_daily_source_control_innersource_automatic_pull_requests_created";
+
+  public static final String TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED =
+      "total_daily_source_control_innersource_manual_pull_requests_closed";
+
+  public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED =
+      "total_daily_source_control_innersource_automatic_pull_requests_closed";
+
+  public static final String TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED =
+      "total_daily_source_control_innersource_manual_pull_requests_merged";
+
+  public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED =
+      "total_daily_source_control_innersource_automatic_pull_requests_merged";
+
+  public static final String TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING =
+      "total_daily_source_control_innersource_manual_pull_requests_missing";
+
+  public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING =
+      "total_daily_source_control_innersource_automatic_pull_requests_missing";
 
   public static final String TOTAL_SC_GOLDEN_PRS_CREATED = "total_daily_source_control_golden_pull_requests_created";
 
@@ -184,7 +209,7 @@ public class SourceControlMetricsTelemetryCollector
     // last time
     var nonOpenPRs = sourceControlPullRequestDAO.getByStatesAndSources(
         EnumSet.of(CLOSED, MERGED, MISSING),
-        EnumSet.of(AUTOMATIC, MANUAL)
+        EnumSet.of(AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, MANUAL_INNER_SOURCE)
     );
 
     var openPRsBySource = openPRsSinceLastCollection.stream()
@@ -211,14 +236,31 @@ public class SourceControlMetricsTelemetryCollector
       return list == null ? 0 : list.size();
     };
 
-    attributes.put(TOTAL_SC_AUTOMATIC_PRS_CREATED, getCount.apply(AUTOMATIC, OPEN));
-    attributes.put(TOTAL_SC_MANUAL_PRS_CREATED, getCount.apply(MANUAL, OPEN));
-    attributes.put(TOTAL_SC_AUTOMATIC_PRS_CLOSED, getCount.apply(AUTOMATIC, CLOSED));
-    attributes.put(TOTAL_SC_MANUAL_PRS_CLOSED, getCount.apply(MANUAL, CLOSED));
-    attributes.put(TOTAL_SC_AUTOMATIC_PRS_MERGED, getCount.apply(AUTOMATIC, MERGED));
-    attributes.put(TOTAL_SC_MANUAL_PRS_MERGED, getCount.apply(MANUAL, MERGED));
-    attributes.put(TOTAL_SC_AUTOMATIC_PRS_MISSING, getCount.apply(AUTOMATIC, MISSING));
-    attributes.put(TOTAL_SC_MANUAL_PRS_MISSING, getCount.apply(MANUAL, MISSING));
+    attributes.put(TOTAL_SC_AUTOMATIC_PRS_CREATED,
+        getCount.apply(AUTOMATIC, OPEN) + getCount.apply(AUTOMATIC_INNER_SOURCE, OPEN));
+    attributes.put(TOTAL_SC_MANUAL_PRS_CREATED,
+        getCount.apply(MANUAL, OPEN) + getCount.apply(MANUAL_INNER_SOURCE, OPEN));
+    attributes.put(TOTAL_SC_AUTOMATIC_PRS_CLOSED,
+        getCount.apply(AUTOMATIC, CLOSED) + getCount.apply(AUTOMATIC_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_MANUAL_PRS_CLOSED,
+        getCount.apply(MANUAL, CLOSED) + getCount.apply(MANUAL_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_AUTOMATIC_PRS_MERGED,
+        getCount.apply(AUTOMATIC, MERGED) + getCount.apply(AUTOMATIC_INNER_SOURCE, MERGED));
+    attributes.put(TOTAL_SC_MANUAL_PRS_MERGED,
+        getCount.apply(MANUAL, MERGED) + getCount.apply(MANUAL_INNER_SOURCE, MERGED));
+    attributes.put(TOTAL_SC_AUTOMATIC_PRS_MISSING,
+        getCount.apply(AUTOMATIC, MISSING) + getCount.apply(AUTOMATIC_INNER_SOURCE, MISSING));
+    attributes.put(TOTAL_SC_MANUAL_PRS_MISSING,
+        getCount.apply(MANUAL, MISSING) + getCount.apply(MANUAL_INNER_SOURCE, MISSING));
+
+    attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, getCount.apply(AUTOMATIC_INNER_SOURCE, OPEN));
+    attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, getCount.apply(MANUAL_INNER_SOURCE, OPEN));
+    attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, getCount.apply(AUTOMATIC_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, getCount.apply(MANUAL_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, getCount.apply(AUTOMATIC_INNER_SOURCE, MERGED));
+    attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, getCount.apply(MANUAL_INNER_SOURCE, MERGED));
+    attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, getCount.apply(AUTOMATIC_INNER_SOURCE, MISSING));
+    attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, getCount.apply(MANUAL_INNER_SOURCE, MISSING));
 
     // delete all non-open PRs that were recorded in telemetry
     nonOpenPRsBySourceAndState.values().stream()

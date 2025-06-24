@@ -12,7 +12,6 @@ import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -75,7 +74,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(23)
+        .hasSize(31)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
@@ -98,7 +97,16 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_MANUAL_PRS_MISSING, 0));
+            entry(TOTAL_SC_MANUAL_PRS_MISSING, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0)
+        );
   }
 
   @Test
@@ -128,7 +136,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(23)
+        .hasSize(31)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
@@ -151,7 +159,16 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_MANUAL_PRS_MERGED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_MISSING, 0),
-            entry(TOTAL_SC_MANUAL_PRS_MISSING, 0));
+            entry(TOTAL_SC_MANUAL_PRS_MISSING, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 0),
+            entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0)
+        );
   }
 
   @Test
@@ -184,15 +201,23 @@ public class SourceControlMetricsTelemetryCollectorTest
     assertThat(result.getAttributes())
 
         // Note: includes merged and closed PRs that have createTimes since the previous fire time
-        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 6)
-        .containsEntry(TOTAL_SC_MANUAL_PRS_CREATED, 4)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 12)
+        .containsEntry(TOTAL_SC_MANUAL_PRS_CREATED, 8)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CLOSED, 2)
+        .containsEntry(TOTAL_SC_MANUAL_PRS_CLOSED, 4)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 4)
+        .containsEntry(TOTAL_SC_MANUAL_PRS_MERGED, 2)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MISSING, 2)
+        .containsEntry(TOTAL_SC_MANUAL_PRS_MISSING, 0)
 
-        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CLOSED, 1)
-        .containsEntry(TOTAL_SC_MANUAL_PRS_CLOSED, 2)
-        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 2)
-        .containsEntry(TOTAL_SC_MANUAL_PRS_MERGED, 1)
-        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MISSING, 1)
-        .containsEntry(TOTAL_SC_MANUAL_PRS_MISSING, 0);
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 6)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 4)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 1)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 2)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 2)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 1)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MISSING, 1)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MISSING, 0);
   }
 
   @Test
@@ -214,7 +239,7 @@ public class SourceControlMetricsTelemetryCollectorTest
     setupAutoManualPRTestData(previousFireTime);
 
     // Get IDs of the non-OPEN PRs that should be deleted after collection
-    var nonOpenPrIds = List.of(4, 5, 6, 7, 8, 9, 10);
+    var nonOpenPrIds = List.of(7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20);
 
     // Verify that the PRs exist before collection
     for (var id : nonOpenPrIds) {
@@ -232,11 +257,11 @@ public class SourceControlMetricsTelemetryCollectorTest
     }
 
     // Verify that OPEN PRs still exist
-    for (int id = 1; id <= 3; id++) {
+    for (int id = 1; id <= 6; id++) {
       SourceControlPullRequest pr = sourceControlPullRequestDAO.getByRepositoryUrlAndPullRequestId("testRepoUrl", id);
       assertThat(pr).isNotNull();
     }
-    for (int id = 11; id <= 13; id++) {
+    for (int id = 21; id <= 26; id++) {
       SourceControlPullRequest pr = sourceControlPullRequestDAO.getByRepositoryUrlAndPullRequestId("testRepoUrl", id);
       assertThat(pr).isNotNull();
     }
@@ -250,45 +275,72 @@ public class SourceControlMetricsTelemetryCollectorTest
     createSourceControlPullRequest(1, PullRequestState.OPEN, PullRequestSource.AUTOMATIC, now);
     createSourceControlPullRequest(2, PullRequestState.OPEN, PullRequestSource.AUTOMATIC, now);
 
+    // 2 AUTOMATIC_INNER_SOURCE OPEN PRs
+    createSourceControlPullRequest(3, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
+    createSourceControlPullRequest(4, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
+
     // 1 MANUAL OPEN PR
-    createSourceControlPullRequest(3, PullRequestState.OPEN, PullRequestSource.MANUAL, now);
+    createSourceControlPullRequest(5, PullRequestState.OPEN, PullRequestSource.MANUAL, now);
+    
+    // 1 MANUAL_INNER_SOURCE OPEN PR
+    createSourceControlPullRequest(6, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE, now);
 
     // Create non-OPEN PRs
     // 1 AUTOMATIC CLOSED PR
-    createSourceControlPullRequest(4, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC, now);
+    createSourceControlPullRequest(7, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC, now);
+    
+    // 1 AUTOMATIC_INNER_SOURCE CLOSED PR
+    createSourceControlPullRequest(8, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
     // 2 MANUAL CLOSED PRs
-    createSourceControlPullRequest(5, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
-    createSourceControlPullRequest(6, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
+    createSourceControlPullRequest(9, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
+    createSourceControlPullRequest(10, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);
+    
+    // 2 MANUAL_INNER_SOURCE CLOSED PRs
+    createSourceControlPullRequest(11, PullRequestState.CLOSED, PullRequestSource.MANUAL_INNER_SOURCE, now);
+    createSourceControlPullRequest(12, PullRequestState.CLOSED, PullRequestSource.MANUAL_INNER_SOURCE, now);
 
     // 2 AUTOMATIC MERGED PRs
-    createSourceControlPullRequest(7, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
-    createSourceControlPullRequest(8, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
+    createSourceControlPullRequest(13, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
+    createSourceControlPullRequest(14, PullRequestState.MERGED, PullRequestSource.AUTOMATIC, now);
+    
+    // 2 AUTOMATIC_INNER_SOURCE MERGED PRs
+    createSourceControlPullRequest(15, PullRequestState.MERGED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
+    createSourceControlPullRequest(16, PullRequestState.MERGED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
     // 1 MANUAL MERGED PR
-    createSourceControlPullRequest(9, PullRequestState.MERGED, PullRequestSource.MANUAL, now);
+    createSourceControlPullRequest(17, PullRequestState.MERGED, PullRequestSource.MANUAL, now);
+    
+    // 1 MANUAL_INNER_SOURCE MERGED PR
+    createSourceControlPullRequest(18, PullRequestState.MERGED, PullRequestSource.MANUAL_INNER_SOURCE, now);
 
     // 1 AUTOMATIC MISSING PR
-    createSourceControlPullRequest(10, PullRequestState.MISSING, PullRequestSource.AUTOMATIC, now);
+    createSourceControlPullRequest(19, PullRequestState.MISSING, PullRequestSource.AUTOMATIC, now);
+    
+    // 1 AUTOMATIC_INNER_SOURCE MISSING PR
+    createSourceControlPullRequest(20, PullRequestState.MISSING, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
     // Create some PRs with dates before the cutoff to ensure they aren't counted
     Date oldDate = Date.from(previousTime.toInstant().minus(1, ChronoUnit.DAYS));
 
     // These should not be counted in the stats because they were created before the previous fire time
-    createSourceControlPullRequest(11, PullRequestState.OPEN, PullRequestSource.AUTOMATIC, oldDate);
-    createSourceControlPullRequest(12, PullRequestState.OPEN, PullRequestSource.MANUAL, oldDate);
+    createSourceControlPullRequest(21, PullRequestState.OPEN, PullRequestSource.AUTOMATIC, oldDate);
+    createSourceControlPullRequest(22, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE, oldDate);
+    createSourceControlPullRequest(23, PullRequestState.OPEN, PullRequestSource.MANUAL, oldDate);
+    createSourceControlPullRequest(24, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE, oldDate);
 
     // This should not be counted because it has an EXTERNAL source
-    createSourceControlPullRequest(13, PullRequestState.OPEN, PullRequestSource.EXTERNAL, now);
+    createSourceControlPullRequest(25, PullRequestState.OPEN, PullRequestSource.EXTERNAL, now);
+    createSourceControlPullRequest(26, PullRequestState.OPEN, null, now);
   }
 
-  private SourceControlPullRequest createSourceControlPullRequest(
+  private void createSourceControlPullRequest(
       int id,
       PullRequestState state,
       PullRequestSource source,
       Date createTime)
   {
-    return tempEntity.newSourceControlPullRequest(
+    tempEntity.newSourceControlPullRequest(
         "testRepoUrl",
         id,
         "sha",

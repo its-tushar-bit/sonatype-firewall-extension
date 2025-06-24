@@ -606,6 +606,8 @@ public class PullRequestCommentingEventHandlerTest
 
     private final boolean manualPullRequestsEnabled = true;
 
+    private final boolean innerSourceAutomatedUpdatesEnabled = true;
+
     private final boolean statusChecksEnabled = true;
 
     private boolean pullRequestCommentingEnabled = true;
@@ -637,7 +639,8 @@ public class PullRequestCommentingEventHandlerTest
           .when(mockSourceControlUtils).isBitbucketCloud(any(GitRepositoryInfo.class));
 
       gitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, sshRepositoryUrl, username, token, provider, baseBranch,
-          remediationPullRequestsEnabled, manualPullRequestsEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
+          remediationPullRequestsEnabled, manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled,
+          statusChecksEnabled, pullRequestCommentingEnabled,
           sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
       doReturn(gitRepositoryInfo).when(mockSourceControlUtils).getGitRepositoryInfoForApplication(any());
 

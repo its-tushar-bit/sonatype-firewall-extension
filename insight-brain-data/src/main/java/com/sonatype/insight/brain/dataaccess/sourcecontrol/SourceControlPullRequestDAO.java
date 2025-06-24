@@ -123,7 +123,12 @@ public class SourceControlPullRequestDAO
         WHERE entity.source IN ?1 AND (entity.createTime >= ?2 OR ?2 IS NULL)
         """;
 
-    return getList(sQuery, EnumSet.of(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL), startDate);
+    return getList(sQuery, EnumSet.of(
+        PullRequestSource.AUTOMATIC,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE,
+        PullRequestSource.MANUAL,
+        PullRequestSource.MANUAL_INNER_SOURCE
+    ), startDate);
   }
 
   @Override

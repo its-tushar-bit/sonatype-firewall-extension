@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentIdentifierDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -25,17 +26,22 @@ import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
@@ -81,6 +87,9 @@ public class ManualPullRequestCreationServiceTest
 
   @Inject
   private ManualPullRequestCreationService manualPrService;
+
+  @Inject
+  private InnerSourceService innerSourceService;
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
@@ -303,6 +312,89 @@ public class ManualPullRequestCreationServiceTest
     assertThat(events).isEmpty();
   }
 
+  @Test
+  public void testCreateManualRemediationPullRequest_innerSourceComponent_LATEST() throws IOException {
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", DEFAULT_VERSION);
+
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApp = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApp, DEFAULT_REMEDIATION_VERSION, StageTypes.RELEASE.getId());
+
+    String branchName =
+        branchNameGenerator.getBranchName(application, innerSourceComponent, DEFAULT_REMEDIATION_VERSION);
+
+    setupPolicyEvaluationAndViolation();
+
+    ComponentVersionInfoDTO versionInfoDTO = setupInnerSourceComponentVersionInfoDTO(DEFAULT_REMEDIATION_VERSION,
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST);
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        innerSourceComponent, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(versionInfoDTO);
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        innerSourceComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype"
+    );
+
+    assertThat(result.id()).isNotEmpty();
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(application.getId());
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
+
+    assertThat(logOutput).atDebugLevel().contains(
+        "InnerSource component detected, skipping policy violations for component"
+    );
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_innerSourceComponent_LATEST_NON_BREAKING() throws IOException {
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", "1.0.0");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApp = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), application);
+    String nonBreakingVersion = "1.1.0";
+    tempEntity.newInnerSourceVersion(innerSourceApp, nonBreakingVersion, StageTypes.RELEASE.getId());
+
+    String branchName = branchNameGenerator.getBranchName(application, innerSourceComponent, nonBreakingVersion);
+
+    setupPolicyEvaluationAndViolation();
+
+    ComponentVersionInfoDTO versionInfoDTO = setupInnerSourceComponentVersionInfoDTO(nonBreakingVersion,
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        innerSourceComponent, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(versionInfoDTO);
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        innerSourceComponent,
+        nonBreakingVersion,
+        "Sonatype"
+    );
+
+    assertThat(result.id()).isNotEmpty();
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(nonBreakingVersion);
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+
+    assertThat(logOutput).atDebugLevel().contains(
+        "InnerSource component detected, skipping policy violations for component"
+    );
+  }
+
   private void setupPolicyEvaluationAndViolation() {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
         application.getId(), stage.getStageTypeId(), DEFAULT_SCAN_ID);
@@ -339,6 +431,29 @@ public class ManualPullRequestCreationServiceTest
     versionChangeDTO.setData(actionDTO);
     versionInfoDTO.remediation.versionChanges.add(versionChangeDTO);
 
+    return versionInfoDTO;
+  }
+
+  protected static ComponentVersionInfoDTO setupInnerSourceComponentVersionInfoDTO(
+      String remediationVersion,
+      ApiVersionChangeOptionType remediationType)
+  {
+    ComponentVersionInfoDTO versionInfoDTO = new ComponentVersionInfoDTO();
+
+    versionInfoDTO.allVersions = List.of();
+    versionInfoDTO.remediation = new ApiComponentRemediationValueDTO();
+    versionInfoDTO.remediation.versionChanges = new ArrayList<>();
+
+    ApiComponentDTOV2 componentDto = new ApiComponentDTOV2();
+    componentDto.componentIdentifier = ApiComponentIdentifierDTOV2.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("com.example", "innersource", remediationVersion));
+    ApiComponentChangeActionDTO actionDTO = new ApiComponentChangeActionDTO(componentDto);
+    actionDTO.getComponent().breakingChangesCount = 0;
+
+    ApiSuggestedVersionChangeOptionDTO apiSuggestedVersionChangeOptionDTO = new ApiSuggestedVersionChangeOptionDTO();
+    apiSuggestedVersionChangeOptionDTO.setType(remediationType);
+    apiSuggestedVersionChangeOptionDTO.setData(actionDTO);
+    versionInfoDTO.remediation.suggestedVersionChange = apiSuggestedVersionChangeOptionDTO;
     return versionInfoDTO;
   }
 }

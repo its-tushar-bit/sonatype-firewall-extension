@@ -131,6 +131,10 @@ public class SourceControlEditorPage
     return new SourceControlFieldset("#source-control-default-branch");
   }
 
+  public static SourceControlFieldset innerSourceAutomatedUpdatesFieldset() {
+    return new SourceControlFieldset("#inner-source-automated-updates");
+  }
+
   public static SelenideElement baseBranchInput() {
     return $("#editor-source-control-branch");
   }

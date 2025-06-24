@@ -61,7 +61,8 @@ public class RemediationPullRequestEligibilityService
   public boolean isEligibleForAutoPullRequest(
       final Application app,
       final Stage stage,
-      final ComponentIdentifier componentIdentifier)
+      final ComponentIdentifier componentIdentifier,
+      final boolean isInnerSourceComponent)
   {
     try {
       if (!isEligibleForPullRequest(app, stage, componentIdentifier)) {
@@ -69,8 +70,12 @@ public class RemediationPullRequestEligibilityService
       }
 
       GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
-      return gitRepositoryInfo != null &&
-          remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo);
+      if (gitRepositoryInfo == null) {
+        return false;
+      }
+
+      return remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(app, gitRepositoryInfo,
+          isInnerSourceComponent);
     }
     catch (Exception e) {
       log.debug("Error checking eligibility for auto PR for application '{}' component '{}'",

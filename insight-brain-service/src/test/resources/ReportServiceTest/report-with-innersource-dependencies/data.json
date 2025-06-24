@@ -1,0 +1,22 @@
+{
+  "liberalLicenseCount" : 15,
+  "globals" : {
+    "earliestReleaseDate" : 1129053720000,
+    "dataVersion" : null,
+    "exceededRowLimit" : false,
+    "scanErrorCount" : 0,
+    "currentDate" : 1749520552150,
+    "hideFilename" : true
+  },
+  "branchName" : "main",
+  "copyleftLicenseCount" : 2,
+  "knownArtifactCount" : 40,
+  "weakcopyleftLicenseCount" : 0,
+  "commitHash" : "40f2c461a9b6f8920c2da75f0a8d383418899428",
+  "partiallyMatchedComponentCount" : 0,
+  "notProvidedLicenseCount" : 0,
+  "scanLabel" : null,
+  "exactlyMatchedComponentCount" : 40,
+  "nonStandardLicenseCount" : 23,
+  "totalArtifactCount" : 41
+}

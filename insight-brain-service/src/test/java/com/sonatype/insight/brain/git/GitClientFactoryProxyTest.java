@@ -48,7 +48,7 @@ public class GitClientFactoryProxyTest
       client.addApiUrlMapping(url + urlSuffix, url + "api/v4");
     }
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false, false,
+        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false, false, false,
             false, false, false, null);
     client.createApiClient(gitRepositoryInfo).isRepositoryPrivate();
   };
@@ -59,7 +59,7 @@ public class GitClientFactoryProxyTest
       client.addPullRequestInfoClientUrlMapping(url + urlSuffix, url + "api/v4");
     }
     GitRepositoryInfo gitRepositoryInfo =
-        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false, false,
+        new GitRepositoryInfo(url + urlSuffix, null, username, "token", provider, "master", false, false, false, false,
             false, false, false, null);
     client.createPullRequestInfoClient(gitRepositoryInfo).getPullRequestsSince("namespace", OffsetDateTime.now(), 0);
   };

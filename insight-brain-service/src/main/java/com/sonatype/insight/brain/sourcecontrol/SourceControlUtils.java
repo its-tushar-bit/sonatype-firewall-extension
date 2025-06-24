@@ -90,7 +90,7 @@ public class SourceControlUtils
         sourceControl.getRepositoryUrl(), sourceControl.getNormalizedRepositoryUrl(),
         sourceControl.getRepositorySshUrl(), sourceControl.getUsername(), sourceControl.getToken(),
         sourceControl.getProvider(), sourceControl.getBaseBranch(), sourceControl.getRemediationPullRequestsEnabled(),
-        sourceControl.getManualPullRequestsEnabled(),
+        sourceControl.getManualPullRequestsEnabled(), sourceControl.getInnerSourceAutomatedUpdatesEnabled(),
         sourceControl.getStatusChecksEnabled(),
         sourceControl.getPullRequestCommentingEnabled(), sourceControl.getSourceControlEvaluationsEnabled(),
         sourceControl.getSshEnabled(), sourceControl.getSourceControlScanTarget());
@@ -215,6 +215,8 @@ public class SourceControlUtils
     gitRepositoryInfo.sourceControlEvaluationsEnabled = sourceControl.getSourceControlEvaluationsEnabled();
     gitRepositoryInfo.sshEnabled = sourceControl.getSshEnabled();
     gitRepositoryInfo.sourceControlScanTarget = sourceControl.getSourceControlScanTarget();
+    gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
+    gitRepositoryInfo.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
 
     return gitRepositoryInfo;
   }

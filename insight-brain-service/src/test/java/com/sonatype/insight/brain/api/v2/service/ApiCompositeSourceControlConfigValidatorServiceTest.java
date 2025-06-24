@@ -446,6 +446,7 @@ public class ApiCompositeSourceControlConfigValidatorServiceTest
 
   private GitRepositoryInfo getGitRepositoryInfo(String scanTarget) {
     return new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, "main", true, true, true, true,
+        true,
         true, false, scanTarget);
   }
 }

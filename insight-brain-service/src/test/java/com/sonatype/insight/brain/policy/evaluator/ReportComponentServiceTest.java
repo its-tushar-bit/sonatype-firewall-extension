@@ -9,6 +9,7 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportService;
@@ -65,7 +66,8 @@ public class ReportComponentServiceTest
     Application application = tempEntity.newApplication("my-app", "my-app", organization.getId());
     String scanId = simulateReportIsAvailable("report");
 
-    ReportComponentData result = reportComponentService.fetchReportAndComponents(application, scanId);
+    ReportComponentData result =
+        reportComponentService.fetchReportAndComponents(application, scanId, StageTypes.STAGE_RELEASE.getId());
 
     assertNotNull(result);
     assertNotNull(result.applicationReport);
@@ -79,7 +81,7 @@ public class ReportComponentServiceTest
     Application application = tempEntity.newApplication("my-app", "my-app", organization.getId());
     String scanId = simulateReportIsAvailable("empty-report");
 
-    reportComponentService.fetchReportAndComponents(application, scanId);
+    reportComponentService.fetchReportAndComponents(application, scanId, StageTypes.STAGE_RELEASE.getId());
   }
 
   private String simulateReportIsAvailable(String reportResourceName) {

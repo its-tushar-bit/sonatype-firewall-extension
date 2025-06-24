@@ -152,10 +152,24 @@ public class PullRequestTask
         sourceControlPullRequest.setLastCheckTime(commandFinishedTime);
         sourceControlPullRequest.setLastDetectedUpdateTime(commandFinishedTime);
         sourceControlPullRequest.setState(PullRequestState.OPEN);
-        sourceControlPullRequest.setSource(pullRequestRemediationDetails.isManualPullRequest()
-            ? PullRequestSource.MANUAL
-            : PullRequestSource.AUTOMATIC
-        );
+        PullRequestSource pullRequestSource;
+        if (pullRequestRemediationDetails.isManualPullRequest()) {
+          if (pullRequestRemediationDetails.isInnerSource()) {
+            pullRequestSource = PullRequestSource.MANUAL_INNER_SOURCE;
+          }
+          else {
+            pullRequestSource = PullRequestSource.MANUAL;
+          }
+        }
+        else {
+          if (pullRequestRemediationDetails.isInnerSource()) {
+            pullRequestSource = PullRequestSource.AUTOMATIC_INNER_SOURCE;
+          }
+          else {
+            pullRequestSource = PullRequestSource.AUTOMATIC;
+          }
+        }
+        sourceControlPullRequest.setSource(pullRequestSource);
         sourceControlPullRequestDAO.insert(sourceControlPullRequest);
       }
       else {

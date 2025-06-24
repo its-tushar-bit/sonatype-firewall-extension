@@ -59,6 +59,7 @@ public class PullRequestRepositoryValidatorTest
 
     GitRepositoryInfo gitRepositoryInfo = newGitRepositoryInfo(repoUrl, GITHUB);
     gitRepositoryInfo.remediationPullRequestsEnabled = false;
+    gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled = false;
 
     assertThat(
         pullRequestRepositoryValidator.isRepoValidForPRs(gitRepositoryInfo))
@@ -146,6 +147,7 @@ public class PullRequestRepositoryValidatorTest
   private GitRepositoryInfo newGitRepositoryInfo(final String repoUrl, final SourceControlProvider provider) {
     boolean remediationPullRequestEnabled = true;
     boolean manualPullRequestEnabled = true;
+    boolean innerSourceUpdatesEnabled = true;
     boolean statusChecksEnabled = true;
     boolean pullRequestCommentingEnabled = true;
     boolean sourceControlEvaluationsEnabled = true;
@@ -154,7 +156,8 @@ public class PullRequestRepositoryValidatorTest
     String sourceControlScanTarget = null;
     String username = provider.requiresUsername() ? "username" : null;
     return new GitRepositoryInfo(repoUrl, null, username, "token", provider, "baseBranch",
-        remediationPullRequestEnabled, manualPullRequestEnabled, statusChecksEnabled, pullRequestCommentingEnabled,
+        remediationPullRequestEnabled, manualPullRequestEnabled, innerSourceUpdatesEnabled, statusChecksEnabled,
+        pullRequestCommentingEnabled,
         sourceControlEvaluationsEnabled, sshEnabled, sourceControlScanTarget);
   }
 }

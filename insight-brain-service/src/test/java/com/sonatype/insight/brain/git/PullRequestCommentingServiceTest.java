@@ -86,6 +86,7 @@ public class PullRequestCommentingServiceTest
 
     GitRepositoryInfo repositoryInfo =
         new GitRepositoryInfo(null, null, null, null, SourceControlProvider.GITHUB, null, null, null, null, null, null,
+            null,
             null, null);
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()
@@ -116,6 +117,7 @@ public class PullRequestCommentingServiceTest
 
     GitRepositoryInfo repositoryInfo =
         new GitRepositoryInfo(null, null, null, null, SourceControlProvider.BITBUCKET, null, null, null, null, null,
+            null,
             null, null, null);
 
     PullRequestPolicyEvaluationsDTO pullRequestPolicyEvaluationsDTO = new PullRequestPolicyEvaluationsDTO()

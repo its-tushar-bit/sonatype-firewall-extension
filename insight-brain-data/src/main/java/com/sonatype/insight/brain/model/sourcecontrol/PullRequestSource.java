@@ -7,7 +7,24 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 
 public enum PullRequestSource
 {
-  AUTOMATIC,
+  /**
+   * Indicates a PR created outside of IQ
+   */
   EXTERNAL,
-  MANUAL
+  /**
+   * Indicates a PR created automatically by IQ
+   */
+  AUTOMATIC,
+  /**
+   * Indicates a PR for an InnerSource component created automatically by IQ
+   */
+  AUTOMATIC_INNER_SOURCE,
+  /**
+   * Indicates a PR created manually by a user through IQ
+   */
+  MANUAL,
+  /**
+   * Indicates a PR for an InnerSource component created manually by a user through IQ
+   */
+  MANUAL_INNER_SOURCE
 }

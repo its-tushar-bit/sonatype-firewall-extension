@@ -1,0 +1,597 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-mime4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "0.8.7"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-mime4j-core",
+    "version" : "0.8.7",
+    "hash" : "0d34b9fe324100387cac",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2024-21742",
+    "reference" : "CVE-2024-21742",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "93",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-21742" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "31.0.1-jre"
+      }
+    },
+    "groupId" : "com.google.guava",
+    "artifactId" : "guava",
+    "version" : "31.0.1-jre",
+    "hash" : "119ea2b2bc205b138974",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2023-2976",
+    "reference" : "CVE-2023-2976",
+    "source" : "cve",
+    "score" : 7.1,
+    "cwe" : "378",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-2976" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "31.0.1-jre"
+      }
+    },
+    "groupId" : "com.google.guava",
+    "artifactId" : "guava",
+    "version" : "31.0.1-jre",
+    "hash" : "119ea2b2bc205b138974",
+    "url" : null,
+    "reference" : "sonatype-2020-0926",
+    "source" : "sonatype",
+    "score" : 3.3,
+    "cwe" : "379",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ "CVE-2020-8908" ],
+    "vulnIds" : [ "sonatype-2020-0926", "CVE-2020-8908" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-james-mailbox-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-james-mailbox-api",
+    "version" : "3.7.4",
+    "hash" : "3426e44a4cefeb4ae4e2",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2021-40110",
+    "reference" : "CVE-2021-40110",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "1333",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-40110" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "UNSHADER",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-cipher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.sonatype.plexus",
+        "version" : "1.4"
+      }
+    },
+    "groupId" : "org.sonatype.plexus",
+    "artifactId" : "plexus-cipher",
+    "version" : "1.4",
+    "hash" : "50ade46f23bb38cd984b",
+    "url" : null,
+    "reference" : "sonatype-2012-0126",
+    "source" : "sonatype",
+    "score" : 3.7,
+    "cwe" : "330",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2012-0126" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-configuration2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "2.8.0"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-configuration2",
+    "version" : "2.8.0",
+    "hash" : "6a76acbe14d2c01d4758",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2024-29131",
+    "reference" : "CVE-2024-29131",
+    "source" : "cve",
+    "score" : 6.5,
+    "cwe" : "787",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-29131" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-configuration2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "2.8.0"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-configuration2",
+    "version" : "2.8.0",
+    "hash" : "6a76acbe14d2c01d4758",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2024-29133",
+    "reference" : "CVE-2024-29133",
+    "source" : "cve",
+    "score" : 4.4,
+    "cwe" : "787",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:N/I:L/A:L",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-29133" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2021-27807",
+    "reference" : "CVE-2021-27807",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "834",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-27807" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2021-27906",
+    "reference" : "CVE-2021-27906",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "789",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-27906" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2021-31811",
+    "reference" : "CVE-2021-31811",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "770",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-31811" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2021-31812",
+    "reference" : "CVE-2021-31812",
+    "source" : "cve",
+    "score" : 5.5,
+    "cwe" : "835",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2021-31812" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.11.0"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.11.0",
+    "hash" : "a2503f302b11ebde7ebc",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2024-47554",
+    "reference" : "CVE-2024-47554",
+    "source" : "cve",
+    "score" : 5.3,
+    "cwe" : "1333",
+    "cvssVectorString" : "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:L/SC:N/SI:N/SA:N",
+    "cvssVectorSource" : "sonatype_cvss_4",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-47554" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-text",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.9"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-text",
+    "version" : "1.9",
+    "hash" : "ba6ac8c2807490944a0a",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2022-42889",
+    "reference" : "CVE-2022-42889",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "94",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "configuration", "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-42889" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "hash" : "eb32118269e8c2ef714d",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2017-1000487",
+    "reference" : "CVE-2017-1000487",
+    "source" : "cve",
+    "score" : 9.8,
+    "cwe" : "78",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2017-1000487" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "hash" : "eb32118269e8c2ef714d",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2022-4244",
+    "reference" : "CVE-2022-4244",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2022-4244" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "hash" : "eb32118269e8c2ef714d",
+    "url" : null,
+    "reference" : "sonatype-2015-0173",
+    "source" : "sonatype",
+    "score" : 8.6,
+    "cwe" : "91",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:L/I:L/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ "CVE-2022-4245" ],
+    "vulnIds" : [ "sonatype-2015-0173", "CVE-2022-4245" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "hash" : "eb32118269e8c2ef714d",
+    "url" : null,
+    "reference" : "sonatype-2016-0398",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "22",
+    "cvssVectorString" : "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2016-0398" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "identificationSource" : "Sonatype"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-cli",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-cli",
+    "version" : "3.7.4",
+    "hash" : "fb11d2cb204057a49d62",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2023-51518",
+    "reference" : "CVE-2023-51518",
+    "source" : "cve",
+    "score" : 8.4,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:L/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional", "operational" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2023-51518" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype"
+  } ]
+}

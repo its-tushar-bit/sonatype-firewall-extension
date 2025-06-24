@@ -34,6 +34,8 @@ import {
   NEXT_NON_FAILING_DEPENDENCIES,
   RECOMMENDED_NON_BREAKING,
   RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+  INNER_SOURCE_LATEST_NON_BREAKING,
+  INNER_SOURCE_LATEST,
 } from '../../componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import { selectReportStageId } from 'MainRoot/applicationReport/applicationReportSelectors';
 import PolicyActionTag from 'MainRoot/react/PolicyActionTag';
@@ -45,7 +47,18 @@ export const dependencyTypeMap = {
   Direct: 'direct',
   Transitive: 'transitive',
   'Inner Source': 'inner-source',
+  'Inner Source Direct': 'direct',
+  'Inner Source Transitive': 'transitive',
   Unknown: 'unknown',
+};
+
+export const isInnerSourceDependencyType = (dependencyType) => {
+  return (
+    dependencyType &&
+    (dependencyType === 'Inner Source' ||
+      dependencyType === 'Inner Source Direct' ||
+      dependencyType === 'Inner Source Transitive')
+  );
 };
 
 export const recommendationTypeMap = {
@@ -55,6 +68,8 @@ export const recommendationTypeMap = {
   'next-non-failing-with-dependencies': 'Next non-failing with dependencies version',
   'recommended-non-breaking': 'Recommended non-breaking version',
   'recommended-non-breaking-with-dependencies': 'Recommended non-breaking with dependencies version',
+  'inner-source-latest-non-breaking': 'Latest non-breaking inner source version',
+  'inner-source-latest': 'Latest inner source version',
 };
 
 export default function PrioritiesPageRow({
@@ -223,7 +238,10 @@ export default function PrioritiesPageRow({
         <NxOverflowTooltip>
           <div className="nx-truncate-ellipsis">
             {formattedDependencyType === dependencyTypeMap.Unknown ? null : (
-              <DependencyIndicator type={formattedDependencyType} />
+              <>
+                <DependencyIndicator type={formattedDependencyType} />
+                {isInnerSourceDependencyType(dependencyType) && <DependencyIndicator type="inner-source" />}
+              </>
             )}
             <NxTextLink href={componentHref}>{displayName}</NxTextLink>
           </div>
@@ -384,6 +402,8 @@ Recommendation.propTypes = {
       NEXT_NON_FAILING_DEPENDENCIES,
       RECOMMENDED_NON_BREAKING,
       RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+      INNER_SOURCE_LATEST_NON_BREAKING,
+      INNER_SOURCE_LATEST,
     ]),
     version: PropTypes.string,
     isGolden: PropTypes.bool,

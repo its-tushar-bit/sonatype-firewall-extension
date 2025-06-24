@@ -96,6 +96,9 @@ public class SourceControl
   @Column(name = "manual_pull_requests_enabled")
   private Boolean manualPullRequestsEnabled;
 
+  @Column(name = "inner_source_automated_updates_enabled")
+  private Boolean innerSourceAutomatedUpdatesEnabled;
+
   public SourceControl() {
   }
 
@@ -114,7 +117,8 @@ public class SourceControl
       final String sourceControlScanTarget,
       final Boolean sshEnabled,
       final Boolean commitStatusEnabled,
-      final Boolean manualPullRequestsEnabled)
+      final Boolean manualPullRequestsEnabled,
+      final Boolean innerSourceAutomatedUpdatesEnabled)
   {
     this.ownerId = ownerId;
     setRepositoryUrl(repositoryUrl);
@@ -131,6 +135,7 @@ public class SourceControl
     this.sshEnabled = sshEnabled;
     this.commitStatusEnabled = commitStatusEnabled;
     this.manualPullRequestsEnabled = manualPullRequestsEnabled;
+    this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
   }
 
   @Override
@@ -288,6 +293,14 @@ public class SourceControl
     this.manualPullRequestsEnabled = manualPullRequestEnabled;
   }
 
+  public Boolean getInnerSourceAutomatedUpdatesEnabled() {
+    return innerSourceAutomatedUpdatesEnabled;
+  }
+
+  public void setInnerSourceAutomatedUpdatesEnabled(final Boolean innerSourceAutomatedUpdatesEnabled) {
+    this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
+  }
+
   public static class Builder
   {
     private String ownerId;
@@ -321,6 +334,8 @@ public class SourceControl
     private Boolean commitStatusEnabled;
 
     private Boolean manualPullRequestsEnabled;
+
+    private Boolean innerSourceAutomatedUpdatesEnabled;
 
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
@@ -402,12 +417,17 @@ public class SourceControl
       return this;
     }
 
+    public Builder setInnerSourceAutomatedUpdatesEnabled(final Boolean innerSourceAutomatedUpdatesEnabled) {
+      this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
+      return this;
+    }
+
     public SourceControl build() {
       SourceControl sourceControl =
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
               remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
               sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled, commitStatusEnabled,
-              manualPullRequestsEnabled);
+              manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }
@@ -441,6 +461,8 @@ public class SourceControl
     accumulator.setRepositorySshUrl(coalesce(accumulator.getRepositorySshUrl(), other.getRepositorySshUrl()));
     accumulator.setManualPullRequestsEnabled(
             coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
+    accumulator.setInnerSourceAutomatedUpdatesEnabled(
+        coalesce(accumulator.getInnerSourceAutomatedUpdatesEnabled(), other.getInnerSourceAutomatedUpdatesEnabled()));
   }
 
   private static int coalesce(int value1, int value2) {
@@ -480,6 +502,7 @@ public class SourceControl
         ", sshEnabled=" + sshEnabled +
         ", commitStatusEnabled=" + commitStatusEnabled +
         ", manualPullRequestsEnabled=" + manualPullRequestsEnabled +
+        ", innerSourceAutomatedUpdatesEnabled=" + innerSourceAutomatedUpdatesEnabled +
         '}';
   }
 }

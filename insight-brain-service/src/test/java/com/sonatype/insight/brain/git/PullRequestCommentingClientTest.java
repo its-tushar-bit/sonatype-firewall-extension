@@ -288,6 +288,6 @@ public class PullRequestCommentingClientTest
 
   private GitRepositoryInfo getGitRepositoryInfo() {
     return new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token", SourceControlProvider.GITLAB,
-        "baseBranch", true, true, true, true, true, false, null);
+        "baseBranch", true, true, true,true, true, true, false, null);
   }
 }

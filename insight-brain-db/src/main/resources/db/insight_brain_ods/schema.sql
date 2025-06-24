@@ -778,6 +778,7 @@ CREATE TABLE source_control (
   pull_request_error_count INT NOT NULL DEFAULT 0,
   commit_status_enabled boolean,
   manual_pull_requests_enabled boolean,
+  inner_source_automated_updates_enabled boolean,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );
@@ -1030,7 +1031,6 @@ CREATE TABLE persisted_promote_scan_result (
 );
 CREATE INDEX persisted_promote_scan_result_create_time_idx ON persisted_promote_scan_result(create_time);
 
-
 CREATE TABLE inner_source_component (
   inner_source_component_id varchar(50) NOT NULL,
   application_id varchar(50) NOT NULL,
@@ -1039,6 +1039,29 @@ CREATE TABLE inner_source_component (
   CONSTRAINT inner_source_component_pk PRIMARY KEY (inner_source_component_id),
   CONSTRAINT inner_source_component_uk UNIQUE (package_url),
   CONSTRAINT inner_source_component_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id)
+);
+
+CREATE TABLE inner_source_application (
+  -- Represents the fact that an IQ application produces an InnerSource package 
+  -- with the specified versionless purl.  See `inner_source_version` for the package
+  -- version in each IQ stage.
+  inner_source_application_id varchar(50) NOT NULL,
+  application_id varchar(50) NOT NULL,
+  package_url varchar(1000) NOT NULL,
+  CONSTRAINT inner_source_application_pk PRIMARY KEY (inner_source_application_id),
+  CONSTRAINT inner_source_application_uk UNIQUE (package_url),
+  CONSTRAINT inner_source_application_application_fk FOREIGN KEY (application_id) REFERENCES application (application_id) ON DELETE CASCADE
+);
+
+CREATE TABLE inner_source_version (
+  -- Represents the latest version of an InnerSource application produced at the given stage.
+  inner_source_version_id varchar(50) NOT NULL,
+  inner_source_application_id varchar(50) NOT NULL,
+  latest_version varchar(200) NOT NULL,
+  stage_type_id varchar(50),
+  CONSTRAINT inner_source_version_pk PRIMARY KEY (inner_source_version_id),
+  CONSTRAINT inner_source_version_uk UNIQUE (inner_source_application_id, stage_type_id),
+  CONSTRAINT inner_source_version_inner_source_application_fk FOREIGN KEY (inner_source_application_id) REFERENCES inner_source_application (inner_source_application_id) ON DELETE CASCADE
 );
 
 -- Since 1.98

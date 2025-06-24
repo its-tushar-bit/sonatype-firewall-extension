@@ -11,9 +11,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -37,7 +35,7 @@ public class InnerSourceComponentDAOTest
           .thenComparing(InnerSourceComponent::getId);
 
   @Test
-  public void testCRUD() {
+  public void testDelete() {
     String purl = "pkg:maven/inner/source@1.0.0";
 
     // Create
@@ -49,12 +47,6 @@ public class InnerSourceComponentDAOTest
     innerSourceComponent = dao.getById(innerSourceComponent.getId());
     assertThat(innerSourceComponent).isNotNull();
     assertInnerSourceComponent(application.getId(), purl, innerSourceComponent);
-
-    // Update
-    Application newApplication = tempEntity.newApplication(application.getOrganizationId());
-    innerSourceComponent.setApplicationId(newApplication.getId());
-    dao.update(innerSourceComponent);
-    assertInnerSourceComponent(newApplication.getId(), purl, innerSourceComponent);
 
     // Delete
     dao.delete(innerSourceComponent);
@@ -75,60 +67,6 @@ public class InnerSourceComponentDAOTest
     tempEntity.newInnerSourceComponent("pkg:maven/inner/source@3.0.0", application2);
 
     List<InnerSourceComponent> innerSourceComponents = dao.getByApplicationId(application.getId());
-    assertThat(innerSourceComponents).hasSize(2);
-    assertInnerSourceComponent(innerSourceComponent1, innerSourceComponents.get(0));
-    assertInnerSourceComponent(innerSourceComponent2, innerSourceComponents.get(1));
-  }
-
-  @Test
-  public void testGetByPurl() {
-    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
-
-    InnerSourceComponent innerSourceComponent1 = tempEntity.newInnerSourceComponent(purl.getPackageUrl(), application);
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", application);
-
-    InnerSourceComponent innerSourceComponent = dao.getByPackageUrl(purl);
-    assertThat(innerSourceComponent).isNotNull();
-    assertInnerSourceComponent(innerSourceComponent1, innerSourceComponent);
-  }
-
-  @Test
-  public void testGetByPurl_appExcluded() {
-    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
-
-    tempEntity.newInnerSourceComponent(purl.getPackageUrl(), application);
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", application);
-
-    InnerSourceComponent innerSourceComponent = dao.getByPackageUrlExcludingApplication(purl, application.getId());
-    assertThat(innerSourceComponent).isNull();
-  }
-
-  @Test
-  public void testGetByPurl_appNotExcluded() {
-    PackageUrlIdentifier purl = new PackageUrlIdentifier("pkg:maven/inner/sourceTest@1.0.0");
-
-    Application newApp = tempEntity.newApplicationWithParent();
-
-    InnerSourceComponent expected = tempEntity.newInnerSourceComponent(purl.getPackageUrl(), application);
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/sourceTest@2.0.0", application);
-
-    InnerSourceComponent innerSourceComponent = dao.getByPackageUrlExcludingApplication(purl, newApp.getId());
-    assertThat(innerSourceComponent).isNotNull();
-    assertInnerSourceComponent(expected, innerSourceComponent);
-  }
-
-  @Test
-  public void testGetByPurls() {
-    PackageUrlIdentifier purl1 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.0");
-    PackageUrlIdentifier purl2 = new PackageUrlIdentifier("pkg:maven/inner/source@1.0.1");
-
-    InnerSourceComponent innerSourceComponent1 = tempEntity.newInnerSourceComponent(purl1.getPackageUrl(), application);
-    InnerSourceComponent innerSourceComponent2 = tempEntity.newInnerSourceComponent(purl2.getPackageUrl(), application);
-
-    tempEntity.newInnerSourceComponent("pkg:maven/inner/source@2.0.0", application);
-
-    List<InnerSourceComponent> innerSourceComponents = dao.getByPackageUrls(Sets.newHashSet(purl1, purl2));
-
     assertThat(innerSourceComponents).hasSize(2);
     assertInnerSourceComponent(innerSourceComponent1, innerSourceComponents.get(0));
     assertInnerSourceComponent(innerSourceComponent2, innerSourceComponents.get(1));

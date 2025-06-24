@@ -68,7 +68,7 @@ public class PullRequestTaskTest
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0.0", "", "jar");
 
   public static final GitRepositoryInfo INFO = new GitRepositoryInfo("localhost", null, null, "token",
-      SourceControlProvider.GITHUB, "master", true, true, true, true, true, false, null);
+      SourceControlProvider.GITHUB, "master", true,true, true, true, true, true, false, null);
 
   private static final String BRANCH = "testBranch";
 
@@ -154,7 +154,7 @@ public class PullRequestTaskTest
   @Before
   public void before() {
     gitRepositoryInfo = new GitRepositoryInfo("http://localhost", null, null, "token", SourceControlProvider.GITHUB,
-        "master", true, true, true, true, true, false, null);
+        "master", true, true, true, true,true, true, false, null);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -404,6 +404,71 @@ public class PullRequestTaskTest
         sourceControlPullRequest.getCreateTime());
     assertThat(sourceControlPullRequest.getState()).isEqualTo(PullRequestState.OPEN);
     assertThat(sourceControlPullRequest.getSource()).isEqualTo(PullRequestSource.MANUAL);
+  }
+
+  @Test
+  public void testRun_Success_PersistsAutomaticInnerSourcePR() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    PullRequestResult pullRequestResult = createPullRequestResult(true);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(pullRequestResult);
+    assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
+    Date now = new Date();
+    when(mockPullRequestRemediationDetails.isInnerSource()).thenReturn(true);
+
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
+
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("http://localhost");
+    assertThat(sourceControlPullRequest.getPullRequestId()).isEqualTo(1);
+    assertThat(sourceControlPullRequest.getHeadCommitHash()).isEqualTo("88cbe4cc92408f3d53e4ca120cf51b60c9757ddd");
+    assertThat(sourceControlPullRequest.getBranchName()).isEqualTo(BRANCH);
+    assertThat(sourceControlPullRequest.getCreateTime()).isAfterOrEqualTo(now);
+    assertThat(sourceControlPullRequest.getLastCheckTime()).isEqualTo(sourceControlPullRequest.getCreateTime());
+    assertThat(sourceControlPullRequest.getLastDetectedUpdateTime()).isEqualTo(
+        sourceControlPullRequest.getCreateTime());
+    assertThat(sourceControlPullRequest.getState()).isEqualTo(PullRequestState.OPEN);
+    assertThat(sourceControlPullRequest.getSource()).isEqualTo(PullRequestSource.AUTOMATIC_INNER_SOURCE);
+  }
+
+  @Test
+  public void testRun_Success_PersistsManualInnerSourcePR() throws Exception {
+    tempEntity.newSourceControlConfiguration();
+    File sonatypeWorkDir = tempDir.newFolder();
+    insightConfig.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
+    configuration.sourceControlConfigurationChanged();
+    File targetDirectory = insightWork.getSourceControlDir(APP_INTERNAL_ID);
+    configureExpectations();
+    when(mockSourceControlUtils.getCheckoutDirectory(mockApplication)).thenReturn(targetDirectory);
+    PullRequestResult pullRequestResult = createPullRequestResult(true);
+    when(mockPullRequestExecutor.execute(any(PullRequestCommand.class))).thenReturn(pullRequestResult);
+    assertThat(sourceControlPullRequestDAO.getAll()).isEmpty();
+    Date now = new Date();
+    when(mockPullRequestRemediationDetails.isManualPullRequest()).thenReturn(true);
+    when(mockPullRequestRemediationDetails.isInnerSource()).thenReturn(true);
+
+    pullRequestTask.run(mockPullRequestRemediationDetails, mockPullRequestExecutor);
+
+    List<SourceControlPullRequest> sourceControlPullRequests = sourceControlPullRequestDAO.getAll();
+    assertThat(sourceControlPullRequests).hasSize(1);
+    SourceControlPullRequest sourceControlPullRequest = sourceControlPullRequests.get(0);
+    assertThat(sourceControlPullRequest.getRepositoryUrl()).isEqualTo("http://localhost");
+    assertThat(sourceControlPullRequest.getPullRequestId()).isEqualTo(1);
+    assertThat(sourceControlPullRequest.getHeadCommitHash()).isEqualTo("88cbe4cc92408f3d53e4ca120cf51b60c9757ddd");
+    assertThat(sourceControlPullRequest.getBranchName()).isEqualTo(BRANCH);
+    assertThat(sourceControlPullRequest.getCreateTime()).isAfterOrEqualTo(now);
+    assertThat(sourceControlPullRequest.getLastCheckTime()).isEqualTo(sourceControlPullRequest.getCreateTime());
+    assertThat(sourceControlPullRequest.getLastDetectedUpdateTime()).isEqualTo(
+        sourceControlPullRequest.getCreateTime());
+    assertThat(sourceControlPullRequest.getState()).isEqualTo(PullRequestState.OPEN);
+    assertThat(sourceControlPullRequest.getSource()).isEqualTo(PullRequestSource.MANUAL_INNER_SOURCE);
   }
 
   @Test

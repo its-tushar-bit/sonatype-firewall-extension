@@ -138,10 +138,11 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(false);
     rootOrgSourcecontrol.setCommitStatusEnabled(true);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, null, false,
-            null, null, null, true, true, "/target/*", true, false, true);
+            null, null, null, true, true, "/target/*", true, false, true, true);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level1ChildOrg.getId());
@@ -177,6 +178,9 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.manualPullRequestsEnabled.value = true;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = true;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -231,6 +235,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -260,7 +265,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
-
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
@@ -338,6 +344,7 @@ public class ApiCompositeSourceControlServiceTest
     appSourceControl.setSshEnabled(true);
     appSourceControl.setCommitStatusEnabled(false);
     appSourceControl.setManualPullRequestsEnabled(false);
+    appSourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(appSourceControl);
 
     resultDTO = apiCompositeSourceControlService.getCompositeSourceControlByOwner(OwnerType.APPLICATION, app.getId());
@@ -366,6 +373,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.sshEnabled.value = true;
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -379,6 +387,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final SourceControl appSourceControl =
@@ -415,13 +424,15 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationNoRootOrgSourceControl() {
     tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(app.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
@@ -453,6 +464,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = level1ChildOrg.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -466,6 +479,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     tempEntity.newSourceControl(level1ChildOrg.getId(), null, TOKEN, null, false, null, null);
@@ -497,6 +511,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -546,7 +562,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_ApplicationOrgSourceControlOnly() {
     tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -572,6 +588,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = level1ChildOrg.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -584,15 +602,16 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(false);
     rootOrgSourcecontrol.setCommitStatusEnabled(true);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     tempEntity.newSourceControl(level1ChildOrg.getId(), null, null, null, TOKEN, null, false,
-        null, null, null, true, true, "/target/*", true, false, true);
+        null, null, null, true, true, "/target/*", true, false, true, true);
 
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, false,
-            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -632,6 +651,9 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.manualPullRequestsEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.parentName = level1ChildOrg.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = true;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = level1ChildOrg.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = true;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -652,7 +674,7 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, true,
-            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -676,6 +698,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.sshEnabled.value = true;
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -687,7 +710,7 @@ public class ApiCompositeSourceControlServiceTest
     final SourceControl orgSourceControl =
         tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN,
             SourceControlProvider.GITLAB, true,
-            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false);
+            null, "NewBranch", null, true, true, "/target/childOrg/*", true, false, false, false);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
         .getCompositeSourceControlByOwner(OwnerType.ORGANIZATION, level2ChildOrg.getId());
@@ -705,6 +728,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.sshEnabled.value = true;
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -719,6 +743,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     tempEntity.newSourceControl(
@@ -758,6 +783,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -848,6 +875,7 @@ public class ApiCompositeSourceControlServiceTest
     appSourceControl.setSshEnabled(true);
     appSourceControl.setCommitStatusEnabled(false);
     appSourceControl.setManualPullRequestsEnabled(false);
+    appSourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(appSourceControl);
 
     resultDTO =
@@ -877,6 +905,7 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.sshEnabled.value = true;
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.value = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -890,6 +919,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final SourceControl appSourceControl =
@@ -926,13 +956,15 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
   @Test
   public void testGetCompositeSourceControlByOwner_NLevelApplication_NoRootOrgSourceControl() {
     tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     final SourceControl appSourceControl =
         tempEntity.newSourceControl(childApp.getId(), VALID_URL, TOKEN, null, null, true, null);
     sourceControlDAO.delete(rootOrgSourcecontrol);
@@ -964,6 +996,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = level2ChildOrg.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -977,6 +1011,7 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     tempEntity.newSourceControl(level2ChildOrg.getId(), null, TOKEN, null, false, null, null);
@@ -1008,6 +1043,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = rootOrganization.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -1057,7 +1094,7 @@ public class ApiCompositeSourceControlServiceTest
   @Test
   public void testGetCompositeSourceControlByOwner_NLevelApplication_OrgSourceControlOnly() {
     tempEntity.newSourceControl(level2ChildOrg.getId(), null, null, null, TOKEN, SourceControlProvider.GITLAB, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     sourceControlDAO.delete(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -1083,6 +1120,8 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.commitStatusEnabled.parentValue = false;
     actualDTO.manualPullRequestsEnabled.parentName = level2ChildOrg.getName();
     actualDTO.manualPullRequestsEnabled.parentValue = false;
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = level2ChildOrg.getName();
+    actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
     validateCompositeSourceControlDTO(OwnerType.APPLICATION, resultDTO, actualDTO);
   }
 
@@ -1159,6 +1198,7 @@ public class ApiCompositeSourceControlServiceTest
     assertField(result.sshEnabled, expected.sshEnabled);
     assertField(result.commitStatusEnabled, expected.commitStatusEnabled);
     assertField(result.manualPullRequestsEnabled, expected.manualPullRequestsEnabled);
+    assertField(result.innerSourceAutomatedUpdatesEnabled, expected.innerSourceAutomatedUpdatesEnabled);
   }
 
   private <T> void assertField(ApiCompositeValueDTO<T> actualField, ApiCompositeValueDTO<T> expectedField) {

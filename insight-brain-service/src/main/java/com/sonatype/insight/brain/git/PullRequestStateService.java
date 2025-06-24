@@ -50,7 +50,9 @@ public class PullRequestStateService
   // We only want to update the states of IQ-generated PRs, so external ones are excluded
   public static final Set<PullRequestSource> RELEVANT_PR_SOURCES = EnumSet.of(
       PullRequestSource.AUTOMATIC,
-      PullRequestSource.MANUAL
+      PullRequestSource.AUTOMATIC_INNER_SOURCE,
+      PullRequestSource.MANUAL,
+      PullRequestSource.MANUAL_INNER_SOURCE
   );
 
   // only fetch updates for open PRs

@@ -36,7 +36,7 @@ public class GitClientFactoryTest
 {
   private static final GitRepositoryInfo GIT_REPO_INFO =
       new GitRepositoryInfo("https://github.com/org/repo", null, null, "token",
-          SourceControlProvider.GITHUB, "main", true, true, true, true, true, false, null);
+          SourceControlProvider.GITHUB, "main", true, true,true, true, true, true, false, null);
 
   @Inject
   private GitClientFactory gitClientFactory;

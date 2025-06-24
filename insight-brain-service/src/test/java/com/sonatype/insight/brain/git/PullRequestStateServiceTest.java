@@ -97,9 +97,15 @@ public class PullRequestStateServiceTest
   @Test
   public void testDispatchPullRequestStateUpdateEvents_BatchCountLimit() {
     // Create several pull requests for the application with batch support
+    PullRequestSource[] sources = {
+        PullRequestSource.AUTOMATIC,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE,
+        PullRequestSource.MANUAL,
+        PullRequestSource.MANUAL_INNER_SOURCE
+    };
     for (int i = 1; i <= 105; i++) {
-      // Alternate between AUTOMATIC and MANUAL sources (both should be processed)
-      PullRequestSource source = (i % 2 == 0) ? PullRequestSource.AUTOMATIC : PullRequestSource.MANUAL;
+      // Alternate between AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, and MANUAL_INNER_SOURCE (all should be processed)
+      PullRequestSource source = sources[i % 4];
       createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, i, PullRequestState.OPEN, source);
     }
 
@@ -167,30 +173,35 @@ public class PullRequestStateServiceTest
   @Test
   public void testDispatchPullRequestStateUpdateEvents_MixedProviderSupport() {
     // Create pull requests for both applications
-    // Explicit AUTOMATIC and MANUAL sources (these should be processed)
+    // Explicit AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, and MANUAL_INNER_SOURCE (these should be processed)
     createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 1, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
-    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 2, PullRequestState.OPEN, PullRequestSource.MANUAL);
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 3, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 4, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 2, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 3, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 4, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 5, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 6, PullRequestState.OPEN,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 7, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 8, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE);
 
     // Run the service method
     pullRequestStateService.dispatchPullRequestStateUpdateEvents();
 
     // Get all events
     List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
-    assertThat(allEvents).hasSize(3);
+    assertThat(allEvents).hasSize(5);
 
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.PR_STATE_UPDATE_EVENT))
-        .hasSize(2)
+        .hasSize(4)
         .extracting(SourceControlEvent::getPullRequestNumber)
-        .containsExactlyInAnyOrder(3, 4);
+        .containsExactlyInAnyOrder(5, 6, 7, 8);
 
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT))
         .hasSize(1)
         .first()
-        .extracting(event -> parseDetails(event))
+        .extracting(this::parseDetails)
         .asInstanceOf(InstanceOfAssertFactories.INT_ARRAY)
-        .containsExactlyInAnyOrder(1, 2);
+        .containsExactlyInAnyOrder(1, 2, 3, 4);
   }
 
   @Test
@@ -205,24 +216,39 @@ public class PullRequestStateServiceTest
     createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 7, PullRequestState.MERGED, PullRequestSource.MANUAL);
     createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 8, PullRequestState.LOCKED, PullRequestSource.MANUAL);
 
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 9, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 10, PullRequestState.CLOSED,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 11, PullRequestState.MERGED,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 12, PullRequestState.LOCKED,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 13, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 14, PullRequestState.CLOSED,
+        PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 15, PullRequestState.MERGED,
+        PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 16, PullRequestState.LOCKED,
+        PullRequestSource.MANUAL_INNER_SOURCE);
+
     // Run the service method
     pullRequestStateService.dispatchPullRequestStateUpdateEvents();
 
     // Get all events
     List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
-    assertThat(allEvents).hasSize(2);
+    assertThat(allEvents).hasSize(3);
 
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.PR_STATE_UPDATE_EVENT))
-        .hasSize(1)
+        .hasSize(2)
         .extracting(SourceControlEvent::getPullRequestNumber)
-        .containsExactly(5);
+        .containsExactly(5, 13);
 
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT))
         .hasSize(1)
         .first()
-        .extracting(event -> parseDetails(event))
+        .extracting(this::parseDetails)
         .asInstanceOf(InstanceOfAssertFactories.INT_ARRAY)
-        .containsExactly(1);
+        .containsExactly(1, 9);
   }
 
   @Test
@@ -298,14 +324,19 @@ public class PullRequestStateServiceTest
   public void testDispatchPullRequestStateUpdateEvents_IgnoresExternalPullRequests() {
     // Create pull requests with different sources
     createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 1, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
-    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 2, PullRequestState.OPEN, PullRequestSource.MANUAL);
-    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 3, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
-    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 4, PullRequestState.OPEN, null); // null == EXTERNAL
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 2, PullRequestState.OPEN, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 3, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 4, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 5, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
+    createPullRequest(REPO_URL_WITH_BATCH_SUPPORT, 6, PullRequestState.OPEN, null); // null == EXTERNAL
 
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 5, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 6, PullRequestState.OPEN, PullRequestSource.MANUAL);
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 7, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
-    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 8, PullRequestState.OPEN, null); // null == EXTERNAL
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 7, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 8, PullRequestState.OPEN,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 9, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 10, PullRequestState.OPEN, PullRequestSource.MANUAL_INNER_SOURCE);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 11, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
+    createPullRequest(REPO_URL_WITHOUT_BATCH_SUPPORT, 12, PullRequestState.OPEN, null); // null == EXTERNAL
 
     // Run the service method
     pullRequestStateService.dispatchPullRequestStateUpdateEvents();
@@ -313,21 +344,22 @@ public class PullRequestStateServiceTest
     // Get all events
     List<SourceControlEvent> allEvents = sourceControlEventDAO.getAll();
 
-    // Verify events were created only for AUTOMATIC and MANUAL pull requests
+    // Verify events were created only for 
+    // AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, and MANUAL_INNER_SOURCE pull requests
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.PR_STATE_UPDATE_EVENT))
-        .hasSize(2)
+        .hasSize(4)
         .extracting(SourceControlEvent::getPullRequestNumber)
-        .containsExactlyInAnyOrder(5, 6);
+        .containsExactlyInAnyOrder(7, 8, 9, 10);
 
     // Verify batch event contains only AUTOMATIC and MANUAL PRs (1 and 2), not EXTERNAL ones (3 and 4)
     assertThat(allEvents).filteredOn(e -> e.getEventType().equals(SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT))
         .hasSize(1)
         .satisfiesExactly(event -> {
-          assertThat(parseDetails(event)).containsExactly(1, 2);
+          assertThat(parseDetails(event)).containsExactly(1, 2, 3, 4);
         });
   }
 
-  private SourceControlPullRequest createPullRequest(
+  private void createPullRequest(
       String repositoryUrl,
       int pullRequestId,
       PullRequestState state,
@@ -343,7 +375,6 @@ public class PullRequestStateServiceTest
     pullRequest.setState(state);
     pullRequest.setSource(source);
     sourceControlPullRequestDAO.update(pullRequest);
-    return pullRequest;
   }
 
   private int[] parseDetails(SourceControlEvent event) {

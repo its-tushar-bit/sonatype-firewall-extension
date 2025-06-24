@@ -2,7 +2,26 @@
 <#assign recommendedNonBreaking = "recommended-non-breaking" >
 <#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
-<#if targetVersionType == recommendedNonBreakingWithDependencies>
+<#if isInnerSource>
+<#if !isManualPullRequest>
+## AutoPR: A new version of ${componentName} is available
+
+**Component: ${componentName}**
+
+**Suggested version: ${targetVersionDisplay}**
+
+Current version: ${initialVersionDisplay}
+<#else>
+## A new version of ${componentName} is available
+
+### Description
+
+* Component: **${componentName}**
+* Current version: **${initialVersionDisplay}**
+* New version: **${targetVersionDisplay}**
+</#if>
+
+<#elseif targetVersionType == recommendedNonBreakingWithDependencies>
 ## <img src="https://cdn.sonatype.com/iq-for-scm/1.0/golden-pr.png" width="34" height="22" alt="golden PR icon"> <#if !isManualPullRequest>Auto</#if><#if provider.name() == "GITLAB">M<#else>P</#if>R: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
@@ -35,6 +54,7 @@
 
 ### Policy
 </#if>
+<#if !isInnerSource>
 Threat (of 10) | Policy | Violation Details
 --- | --- | ---
 <#list threatList as threat>
@@ -48,6 +68,7 @@ Threat (of 10) | Policy | Violation Details
 </#list>
 
 </#list>
+</#if>
 
 ### Nexus IQ Scan Detail
 **Application**: ${applicationName}<#if provider.name() == "GITLAB">\</#if>

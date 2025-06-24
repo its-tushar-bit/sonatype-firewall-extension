@@ -668,6 +668,7 @@ public class IntegrationServiceTest
         "/target/*",
         true,
         false,
+        false,
         false
     );
     // Explicitly set SCM Integration Status to true for app 2
@@ -687,6 +688,7 @@ public class IntegrationServiceTest
         "/target/*",
         true,
         true,
+        true,
         true
     );
     // Explicitly set SCM Integration Status to true for app 4
@@ -704,6 +706,7 @@ public class IntegrationServiceTest
         true,
         true,
         "/target/*",
+        true,
         true,
         true,
         true
@@ -805,10 +808,10 @@ public class IntegrationServiceTest
         SourceControlProvider.GITHUB);
     // Explicitly set SCM Integration Status to false for app 1
     tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
-            null, null, null, true, true, "/target/*", true, false, false);
+            null, null, null, true, true, "/target/*", true, false, false, false);
     // Explicitly set SCM Integration Status to true for app 2
     tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, true, true);
+        null, null, null, true, true, "/target/*", true, true, true, true);
     // App 3 source control record does not exist == source control disabled == ASCF disabled
 
     final ApiPageResult<IntegrationStatusDTO> resultOne =
@@ -844,10 +847,10 @@ public class IntegrationServiceTest
         SourceControlProvider.GITHUB);
     // Set ASCF to false for app 1
     tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, false, true);
+        null, null, null, true, true, "/target/*", true, false, true, true);
     // Set ASCF to true for app 2
     tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, true, true);
+        null, null, null, true, true, "/target/*", true, true, true, true);
     // App 3 source control record does not exist == source control disabled == ASCF disabled
 
     final ApiPageResult<IntegrationStatusDTO> resultOne =
@@ -1005,10 +1008,10 @@ public class IntegrationServiceTest
         SourceControlProvider.GITHUB);
     // Set ASCF to false for app 1
     tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     // Set ASCF to true for app 2
     tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, true, true);
+        null, null, null, true, true, "/target/*", true, true, true, true);
     // App 3 source control record does not exist == source control disabled == ASCF disabled
 
     final ApiPageResult<IntegrationStatusDTO> result =
@@ -1060,10 +1063,10 @@ public class IntegrationServiceTest
         SourceControlProvider.GITHUB);
     // Set ASCF to false for app 1
     tempEntity.newSourceControl(app1.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, false, false);
+        null, null, null, true, true, "/target/*", true, false, false, false);
     // Set ASCF to true for app 2
     tempEntity.newSourceControl(app2.getId(), repoUrl, null, null, null, null, false,
-        null, null, null, true, true, "/target/*", true, true, true);
+        null, null, null, true, true, "/target/*", true, true, true, true);
     // App 3 source control record does not exist == source control disabled == ASCF disabled
 
     final ApiPageResult<IntegrationStatusDTO> result =

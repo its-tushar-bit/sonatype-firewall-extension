@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git.pullrequestcreationservice;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -29,6 +30,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -85,6 +87,7 @@ public class ManualPullRequestCreationService
       final ApplicationDAO applicationDAO,
       final ComponentInfoService componentInfoService,
       final ComponentRemediationService componentRemediationService,
+      final InnerSourceService innerSourceService,
       final CurrentUser currentUser,
       final ScmReducedSecurityService scmReducedSecurityService)
   {
@@ -92,7 +95,10 @@ public class ManualPullRequestCreationService
         sourceControlUtils,
         eventPublisher,
         organizationDAO,
-        pullRequestBranchNameGenerator, eligibilityService, scmReducedSecurityService);
+        pullRequestBranchNameGenerator,
+        eligibilityService,
+        scmReducedSecurityService,
+        innerSourceService);
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.componentInfoService = componentInfoService;
@@ -173,31 +179,39 @@ public class ManualPullRequestCreationService
               + ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
     }
 
-    // Get policy violations for remediated component
-    List<PolicyViolation> remediationPolicyViolations = getRemediationPolicyViolations(
-        componentVersionInfoDTO,
-        targetVersion,
-        componentIdentifier,
-        policyEvaluation
-    );
+    boolean isInnerSourceComponent = innerSourceService.isInnerSourceComponent(componentIdentifier);
+    List<PolicyNotification> notifications = Collections.emptyList();
 
-    // Get policy violations for current component
-    List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
-    List<PolicyViolation> componentPolicyViolations = policyViolations.stream()
-        .filter(v -> v.getComponentIdentifier() != null && v.getComponentIdentifier().equals(componentIdentifier))
-        .toList();
-    policyViolationDAO.loadConstraintFacts(componentPolicyViolations);
+    if (!isInnerSourceComponent) {
+      // Get policy violations for remediated component
+      List<PolicyViolation> remediationPolicyViolations = getRemediationPolicyViolations(
+          componentVersionInfoDTO,
+          targetVersion,
+          componentIdentifier,
+          policyEvaluation
+      );
 
-    //get the diff of policy violations
-    PolicyViolationDiff<PolicyViolation> policyViolationDiff =
-        PolicyViolationDigester.digestPolicyViolations(componentPolicyViolations, remediationPolicyViolations);
+      // Get policy violations for current component
+      List<PolicyViolation> policyViolations = policyViolationDAO.getByApplicationId(app.getId());
+      List<PolicyViolation> componentPolicyViolations = policyViolations.stream()
+          .filter(v -> v.getComponentIdentifier() != null && v.getComponentIdentifier().equals(componentIdentifier))
+          .toList();
+      policyViolationDAO.loadConstraintFacts(componentPolicyViolations);
 
-    List<PolicyNotification> notifications = policyNotificationUtil.createPolicyNotifications(
-        app,
-        policyViolationDiff.getCleared(),
-        stage.getStageTypeId(),
-        policyEvaluation.isForMonitoring()
-    );
+      //get the diff of policy violations
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff =
+          PolicyViolationDigester.digestPolicyViolations(componentPolicyViolations, remediationPolicyViolations);
+
+      notifications = policyNotificationUtil.createPolicyNotifications(
+          app,
+          policyViolationDiff.getCleared(),
+          stage.getStageTypeId(),
+          policyEvaluation.isForMonitoring()
+      );
+    }
+    else {
+      log.debug("InnerSource component detected, skipping policy violations for component '{}'", componentIdentifier);
+    }
 
     GitRepositoryInfo gitRepositoryInfo =
         sourceControlUtils.getGitRepositoryInfoForApplication(app.getId());
@@ -216,7 +230,8 @@ public class ManualPullRequestCreationService
         organizationDAO,
         true,
         currentUser.getDisplayNameOrUsername(),
-        reducedSecurityData);
+        reducedSecurityData,
+        isInnerSourceComponent);
 
     SourceControlEvent event = createPullRequestEvent(prDetails, true);
     eventPublisher.publishEvent(event);

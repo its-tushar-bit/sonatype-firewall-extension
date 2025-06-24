@@ -45,13 +45,15 @@ public class ReportComponentService
     this.clusterLockManager = clusterLockManager;
   }
 
-  public ReportComponentData fetchReportAndComponents(Application application, String scanId) throws IOException {
+  public ReportComponentData fetchReportAndComponents(Application application, String scanId, String stageTypeId)
+      throws IOException
+  {
     ApplicationReport applicationReport;
     List<Component> components;
 
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
-      applicationReport = reportService.fetchReport(application, scanId);
+      applicationReport = reportService.fetchReport(application, scanId, stageTypeId);
       final ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
       final ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
       final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);

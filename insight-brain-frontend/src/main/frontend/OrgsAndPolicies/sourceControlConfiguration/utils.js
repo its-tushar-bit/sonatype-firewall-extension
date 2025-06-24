@@ -56,6 +56,13 @@ export const SOURCE_CONTROL_OPTIONS = [
     optionName: 'remediationPullRequestsEnabled',
   },
   {
+    id: 'inner-source-automated-updates',
+    title: 'Automated InnerSource Updates',
+    description:
+      'Create pull requests for consuming applications when new versions of InnerSource components are released.',
+    optionName: 'innerSourceAutomatedUpdatesEnabled',
+  },
+  {
     id: 'source-control-pull-request-commenting',
     title: 'Pull Request Commenting',
     description:
@@ -99,6 +106,7 @@ export const compositeSourceControlToModel = (
     statusChecksEnabled,
     sshEnabled,
     manualPullRequestsEnabled,
+    innerSourceAutomatedUpdatesEnabled,
   },
   isRootOrg
 ) => {
@@ -157,6 +165,15 @@ export const compositeSourceControlToModel = (
       value: setDefaultIfNull(
         manualPullRequestsEnabled?.value ?? null,
         manualPullRequestsEnabled?.parentValue ?? null,
+        true
+      ),
+    },
+    innerSourceAutomatedUpdatesEnabled: {
+      ...innerSourceAutomatedUpdatesEnabled,
+      isInherited: innerSourceAutomatedUpdatesEnabled?.value == null && !isRootOrg,
+      value: setDefaultIfNull(
+        innerSourceAutomatedUpdatesEnabled?.value ?? null,
+        innerSourceAutomatedUpdatesEnabled?.parentValue ?? null,
         true
       ),
     },
@@ -242,6 +259,12 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
       isAutomationSupported
     ),
     manualPullRequestsEnabled: getManualPullRequestsEnabledFlagFromModel(
+      sourceControl,
+      serverSourceControl,
+      isRootOrg,
+      isAutomationSupported
+    ),
+    innerSourceAutomatedUpdatesEnabled: getInnerSourceAutomatedUpdatesEnabledFlagFromModel(
       sourceControl,
       serverSourceControl,
       isRootOrg,
@@ -400,6 +423,19 @@ export const getManualPullRequestsEnabledFlagFromModel = (
   return serverSourceControl.manualPullRequestsEnabled?.value ?? true;
 };
 
+export const getInnerSourceAutomatedUpdatesEnabledFlagFromModel = (
+  sourceControl,
+  serverSourceControl,
+  isRootOrg,
+  isAutomationSupported
+) => {
+  if (!isRootOrg || isAutomationSupported) {
+    return sourceControl.innerSourceAutomatedUpdatesEnabled?.value ?? null;
+  }
+
+  return serverSourceControl.innerSourceAutomatedUpdatesEnabled?.value ?? false;
+};
+
 export const getBaseBranchValueFromModel = (sourceControl, serverSourceControl, isRootOrg, isAutomationSupported) => {
   if (!isRootOrg || arePullRequestsSupported(sourceControl, serverSourceControl, isAutomationSupported)) {
     return sourceControl.baseBranch.rscValue.trimmedValue;
@@ -425,6 +461,7 @@ export const getDataFromSourceControl = (
     sshEnabled,
     manualPullRequestsEnabled,
     repositoryUrl,
+    innerSourceAutomatedUpdatesEnabled,
   }
 ) => {
   const data = {
@@ -439,6 +476,7 @@ export const getDataFromSourceControl = (
     sourceControlEvaluationsEnabled,
     sshEnabled,
     manualPullRequestsEnabled,
+    innerSourceAutomatedUpdatesEnabled,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = repositoryUrl;
@@ -470,6 +508,7 @@ export const setIsDirty = (state) => {
     'manualPullRequestsEnabled',
     'sshEnabled',
     'repositoryUrl',
+    'innerSourceAutomatedUpdatesEnabled',
   ];
   return formFields.some((property) => {
     if (property === 'provider')

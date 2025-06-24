@@ -20,6 +20,10 @@ public class PrioritizedComponent implements CsvWritable
 
   public static final String DEPENDENCY_TYPE_INNER_SOURCE = "Inner Source";
 
+  public static final String DEPENDENCY_TYPE_INNER_SOURCE_DIRECT = "Inner Source Direct";
+
+  public static final String DEPENDENCY_TYPE_INNER_SOURCE_TRANSITIVE = "Inner Source Transitive";
+
   public static final String DEPENDENCY_TYPE_UNKNOWN = "Unknown";
 
   private final String displayName;

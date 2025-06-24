@@ -36,6 +36,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setSshEnabled(true);
     sourceControl.setCommitStatusEnabled(false);
     sourceControl.setManualPullRequestsEnabled(false);
+    sourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
 
     ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
@@ -56,6 +57,7 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.sshEnabled).isTrue();
     assertThat(dto.commitStatusEnabled).isFalse();
     assertThat(dto.manualPullRequestsEnabled).isFalse();
+    assertThat(dto.innerSourceAutomatedUpdatesEnabled).isFalse();
   }
 
   @Test
@@ -76,6 +78,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.sshEnabled = true;
     apiSourceControlDTO.commitStatusEnabled = false;
     apiSourceControlDTO.manualPullRequestsEnabled = false;
+    apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = false;
 
     SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -94,6 +97,7 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getSshEnabled()).isTrue();
     assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
     assertThat(sourceControl.getManualPullRequestsEnabled()).isFalse();
+    assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isFalse();
   }
 
   @SuppressWarnings("deprecation")

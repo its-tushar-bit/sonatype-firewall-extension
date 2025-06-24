@@ -174,12 +174,14 @@ public class SourceControlPullRequestDAOTest
   @Test
   public void testGetExternalCountByUpdateTimeRange_IgnoresIQPRs() {
     createSourceControlPullRequest(1, PullRequestSource.AUTOMATIC);
-    createSourceControlPullRequest(2, PullRequestSource.MANUAL);
+    createSourceControlPullRequest(2, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    createSourceControlPullRequest(3, PullRequestSource.MANUAL);
+    createSourceControlPullRequest(4, PullRequestSource.MANUAL_INNER_SOURCE);
 
     assertThat(dao.getExternalCountByUpdateTimeRange(new Date(0), null)).isZero();
 
-    createSourceControlPullRequest(3, PullRequestSource.EXTERNAL);
-    createSourceControlPullRequest(4, null);
+    createSourceControlPullRequest(5, PullRequestSource.EXTERNAL);
+    createSourceControlPullRequest(6, null);
 
     assertThat(dao.getExternalCountByUpdateTimeRange(new Date(0), null)).isEqualTo(2);
   }
@@ -224,61 +226,106 @@ public class SourceControlPullRequestDAOTest
 
   @Test
   public void testGetBySources() {
+    // None
     assertThat(dao.getBySources()).isEmpty();
-    assertThat(
-        dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL)).isEmpty();
+    // All
+    assertThat(dao.getBySources(
+        PullRequestSource.EXTERNAL,
+        PullRequestSource.AUTOMATIC,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE,
+        PullRequestSource.MANUAL,
+        PullRequestSource.MANUAL_INNER_SOURCE)
+    ).isEmpty();
 
     SourceControlPullRequest s1 = createSourceControlPullRequest(1, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest s2 = createSourceControlPullRequest(2, PullRequestSource.AUTOMATIC);
-    SourceControlPullRequest s3 = createSourceControlPullRequest(3, PullRequestSource.EXTERNAL);
-    SourceControlPullRequest s4 = createSourceControlPullRequest(4, PullRequestSource.EXTERNAL);
-    SourceControlPullRequest s5 = createSourceControlPullRequest(5, PullRequestSource.MANUAL);
-    SourceControlPullRequest s6 = createSourceControlPullRequest(6, PullRequestSource.MANUAL);
+    SourceControlPullRequest s3 = createSourceControlPullRequest(3, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest s4 = createSourceControlPullRequest(4, PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest s5 = createSourceControlPullRequest(5, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest s6 = createSourceControlPullRequest(6, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest s7 = createSourceControlPullRequest(7, PullRequestSource.MANUAL);
+    SourceControlPullRequest s8 = createSourceControlPullRequest(8, PullRequestSource.MANUAL);
+    SourceControlPullRequest s9 = createSourceControlPullRequest(9, PullRequestSource.MANUAL_INNER_SOURCE);
+    SourceControlPullRequest s10 = createSourceControlPullRequest(10, PullRequestSource.MANUAL_INNER_SOURCE);
 
+    // None
     assertThat(dao.getBySources()).isEmpty();
 
     // Single
     assertThat(dao.getBySources(PullRequestSource.AUTOMATIC))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s1, s2);
-    assertThat(dao.getBySources(PullRequestSource.EXTERNAL))
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s3, s4);
-    assertThat(dao.getBySources(PullRequestSource.MANUAL))
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s5, s6);
-
-    // Multiple
+    assertThat(dao.getBySources(PullRequestSource.MANUAL))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s7, s8);
+    assertThat(dao.getBySources(PullRequestSource.MANUAL_INNER_SOURCE))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s9, s10);
+    
+    // Multiple and same
     assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.AUTOMATIC))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s1, s2);
-    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.EXTERNAL))
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.AUTOMATIC_INNER_SOURCE))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s3, s4);
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.EXTERNAL))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s5, s6);
+    assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.MANUAL))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s7, s8);
+    assertThat(dao.getBySources(PullRequestSource.MANUAL_INNER_SOURCE, PullRequestSource.MANUAL_INNER_SOURCE))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s9, s10);
+
+    // Multiple and different
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.AUTOMATIC))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s1, s2, s5, s6);
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.AUTOMATIC_INNER_SOURCE))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s3, s4, s5, s6);
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.MANUAL))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s5, s6, s7, s8);
+    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.MANUAL_INNER_SOURCE))
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s5, s6, s9, s10);
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.AUTOMATIC_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
         .containsExactlyInAnyOrder(s1, s2, s3, s4);
     assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s1, s2, s5, s6);
-    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.AUTOMATIC))
+        .containsExactlyInAnyOrder(s1, s2, s7, s8);
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s1, s2, s3, s4);
-    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.EXTERNAL))
+        .containsExactlyInAnyOrder(s1, s2, s9, s10);
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.MANUAL))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s3, s4);
-    assertThat(dao.getBySources(PullRequestSource.EXTERNAL, PullRequestSource.MANUAL))
+        .containsExactlyInAnyOrder(s3, s4, s7, s8);
+    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.MANUAL_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s3, s4, s5, s6);
-    assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.AUTOMATIC))
+        .containsExactlyInAnyOrder(s3, s4, s9, s10);
+    assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.MANUAL_INNER_SOURCE))
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s1, s2, s5, s6);
-    assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.EXTERNAL))
-        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s3, s4, s5, s6);
-    assertThat(dao.getBySources(PullRequestSource.MANUAL, PullRequestSource.MANUAL))
-        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s5, s6);
-    assertThat(dao.getBySources(PullRequestSource.AUTOMATIC, PullRequestSource.EXTERNAL, PullRequestSource.MANUAL))
-        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(s1, s2, s3, s4, s5, s6);
+        .containsExactlyInAnyOrder(s7, s8, s9, s10);
+    
+    // All
+    assertThat(dao.getBySources(
+        PullRequestSource.EXTERNAL,
+        PullRequestSource.AUTOMATIC,
+        PullRequestSource.AUTOMATIC_INNER_SOURCE,
+        PullRequestSource.MANUAL,
+        PullRequestSource.MANUAL_INNER_SOURCE)
+    ).usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10);
   }
 
   @Test
@@ -291,24 +338,30 @@ public class SourceControlPullRequestDAOTest
         createSourceControlPullRequestWithStateAndSource(2, PullRequestState.OPEN, PullRequestSource.MANUAL);
     SourceControlPullRequest openPr3 =
         createSourceControlPullRequestWithStateAndSource(3, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest openPr4 =
+        createSourceControlPullRequestWithStateAndSource(4, PullRequestState.OPEN,
+            PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest openPr5 =
+        createSourceControlPullRequestWithStateAndSource(5, PullRequestState.OPEN,
+            PullRequestSource.MANUAL_INNER_SOURCE);
 
-    // Other PRs with AUTOMATIC source
+    // Other PRs
     SourceControlPullRequest closedPr =
-        createSourceControlPullRequestWithStateAndSource(4, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC);
+        createSourceControlPullRequestWithStateAndSource(6, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest mergedPr =
-        createSourceControlPullRequestWithStateAndSource(5, PullRequestState.MERGED, PullRequestSource.AUTOMATIC);
+        createSourceControlPullRequestWithStateAndSource(7, PullRequestState.MERGED, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest lockedPr =
-        createSourceControlPullRequestWithStateAndSource(6, PullRequestState.LOCKED, PullRequestSource.MANUAL);
+        createSourceControlPullRequestWithStateAndSource(8, PullRequestState.LOCKED, PullRequestSource.MANUAL);
 
     // Test getByStatesAndSources with OPEN state and all sources
     Set<PullRequestSource> allSources = EnumSet.allOf(PullRequestSource.class);
     List<SourceControlPullRequest> openPullRequests =
         dao.getByStatesAndSources(Set.of(PullRequestState.OPEN), allSources);
 
-    assertThat(openPullRequests).hasSize(3);
+    assertThat(openPullRequests).hasSize(5);
     assertThat(openPullRequests)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(openPr1, openPr2, openPr3);
+        .containsExactlyInAnyOrder(openPr1, openPr2, openPr3, openPr4, openPr5);
 
     // Test getByStatesAndSources with OPEN state and only AUTOMATIC source
     List<SourceControlPullRequest> openAutomaticPullRequests = dao.getByStatesAndSources(
@@ -393,21 +446,42 @@ public class SourceControlPullRequestDAOTest
         createSourceControlPullRequestWithStateAndSource(1, PullRequestState.OPEN, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest openManualPr =
         createSourceControlPullRequestWithStateAndSource(2, PullRequestState.OPEN, PullRequestSource.MANUAL);
+    SourceControlPullRequest openExternalPr =
+        createSourceControlPullRequestWithStateAndSource(3, PullRequestState.OPEN, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest openAutoInnerPr =
+        createSourceControlPullRequestWithStateAndSource(4, PullRequestState.OPEN,
+            PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest openManualInnerPr =
+        createSourceControlPullRequestWithStateAndSource(5, PullRequestState.OPEN,
+            PullRequestSource.MANUAL_INNER_SOURCE);
     SourceControlPullRequest closedAutoPr =
-        createSourceControlPullRequestWithStateAndSource(3, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC);
+        createSourceControlPullRequestWithStateAndSource(6, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC);
     SourceControlPullRequest closedManualPr =
-        createSourceControlPullRequestWithStateAndSource(4, PullRequestState.CLOSED, PullRequestSource.MANUAL);
+        createSourceControlPullRequestWithStateAndSource(7, PullRequestState.CLOSED, PullRequestSource.MANUAL);
+    createSourceControlPullRequestWithStateAndSource(8, PullRequestState.CLOSED, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest closedAutoInnerPr =
+        createSourceControlPullRequestWithStateAndSource(9, PullRequestState.CLOSED,
+            PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest closedManualInnerPr =
+        createSourceControlPullRequestWithStateAndSource(10, PullRequestState.CLOSED,
+            PullRequestSource.MANUAL_INNER_SOURCE);
     SourceControlPullRequest mergedAutoPr =
-        createSourceControlPullRequestWithStateAndSource(5, PullRequestState.MERGED, PullRequestSource.AUTOMATIC);
+        createSourceControlPullRequestWithStateAndSource(11, PullRequestState.MERGED, PullRequestSource.AUTOMATIC);
+    createSourceControlPullRequestWithStateAndSource(12, PullRequestState.MERGED, PullRequestSource.MANUAL);
     SourceControlPullRequest mergedExternalPr =
-        createSourceControlPullRequestWithStateAndSource(6, PullRequestState.MERGED, PullRequestSource.EXTERNAL);
+        createSourceControlPullRequestWithStateAndSource(13, PullRequestState.MERGED, PullRequestSource.EXTERNAL);
+    SourceControlPullRequest mergedAutoInnerPr =
+        createSourceControlPullRequestWithStateAndSource(14, PullRequestState.MERGED,
+            PullRequestSource.AUTOMATIC_INNER_SOURCE);
+    SourceControlPullRequest mergedManualInnerPr =
+        createSourceControlPullRequestWithStateAndSource(15, PullRequestState.MERGED,
+            PullRequestSource.MANUAL_INNER_SOURCE);
 
     // Test multiple states and multiple sources
     List<SourceControlPullRequest> openAndClosedAutoAndManualPRs = dao.getByStatesAndSources(
         Set.of(PullRequestState.OPEN, PullRequestState.CLOSED),
         Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.MANUAL)
     );
-
     assertThat(openAndClosedAutoAndManualPRs).hasSize(4);
     assertThat(openAndClosedAutoAndManualPRs)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
@@ -418,11 +492,21 @@ public class SourceControlPullRequestDAOTest
         Set.of(PullRequestState.OPEN, PullRequestState.MERGED),
         Set.of(PullRequestSource.AUTOMATIC, PullRequestSource.EXTERNAL)
     );
-
-    assertThat(openAndMergedAutoAndExternalPRs).hasSize(3);
+    assertThat(openAndMergedAutoAndExternalPRs).hasSize(4);
     assertThat(openAndMergedAutoAndExternalPRs)
         .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
-        .containsExactlyInAnyOrder(openAutoPr, mergedAutoPr, mergedExternalPr);
+        .containsExactlyInAnyOrder(openAutoPr, mergedAutoPr, openExternalPr, mergedExternalPr);
+
+    // Test another combination, all InnerSource
+    List<SourceControlPullRequest> openAndClosedAndMergedInnerSourcePRs = dao.getByStatesAndSources(
+        Set.of(PullRequestState.OPEN, PullRequestState.CLOSED, PullRequestState.MERGED),
+        Set.of(PullRequestSource.AUTOMATIC_INNER_SOURCE, PullRequestSource.MANUAL_INNER_SOURCE)
+    );
+    assertThat(openAndClosedAndMergedInnerSourcePRs).hasSize(6);
+    assertThat(openAndClosedAndMergedInnerSourcePRs)
+        .usingRecursiveFieldByFieldElementComparator(JPA.RECURSIVE_COMPARISON_CONFIG)
+        .containsExactlyInAnyOrder(openAutoInnerPr, openManualInnerPr, closedAutoInnerPr, closedManualInnerPr,
+            mergedAutoInnerPr, mergedManualInnerPr);
   }
 
   @Test

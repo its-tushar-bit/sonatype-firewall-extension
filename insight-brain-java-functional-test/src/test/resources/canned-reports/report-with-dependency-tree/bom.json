@@ -1822,5 +1822,64 @@
       } ],
       "name" : "sample-application.zip"
     }
+  },  {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "insight-scanner-archive",
+        "extension" : "jar",
+        "groupId" : "com.sonatype.insight.scan",
+        "version" : "1.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "insight-scanner-archive-1.0.0.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-scanner-archive:jar:1.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : true,
+    "hash" : "00b17b6b83b0327febe7",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1747669482000,
+    "lastModifiedEntryTime" : 1747669482000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null,
+    "endOfLife" : null,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.sonatype.insight.scan"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "insight-scanner-archive"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.0.0"
+      } ],
+      "name" : "insight-scanner-archive"
+    },
+    "packageUrl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0?type=jar",
+    "directDependency" : false,
+    "innerSource" : true
   } ]
 }

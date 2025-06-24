@@ -14,9 +14,11 @@ import com.sonatype.insight.model.HasStringId;
 
 /**
  * @since 1.98
+ * @deprecated use {@link InnerSourceApplication} and {@link InnerSourceVersion} instead
  */
 @Entity
 @Table(name = "inner_source_component")
+@Deprecated
 public class InnerSourceComponent
     implements HasStringId
 {

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.util.Objects;
+
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -45,5 +47,39 @@ public class InnerSourceUtils
       }
     }
     return null;
+  }
+
+  public static boolean isValidAutomatedVersionUpdate(
+      final ComponentIdentifier innerSourceComponent,
+      final String remediationVersion)
+  {
+    if (innerSourceComponent == null) {
+      return false;
+    }
+
+    String currentVersion = innerSourceComponent.get(ComponentIdentifier.VERSION);
+
+    CompositeComparableVersion currentComparableVersion = createCompositeComparableVersion(
+        currentVersion,
+        innerSourceComponent.getFormat());
+    CompositeComparableVersion latestComparableVersion = createCompositeComparableVersion(
+        remediationVersion,
+        innerSourceComponent.getFormat());
+
+    boolean isPrerelease = Boolean.TRUE.equals(latestComparableVersion.isPreRelease());
+    boolean isMajorJump =
+        Objects.requireNonNullElse(currentComparableVersion.isMajorJump(latestComparableVersion), true);
+
+    return currentComparableVersion.compareTo(latestComparableVersion) < 0 && !isPrerelease && !isMajorJump;
+  }
+
+  public static CompositeComparableVersion createCompositeComparableVersion(
+      final String version,
+      final String format)
+  {
+    if (ComponentIdentifier.FORMAT_MAVEN.equals(format)) {
+      return CompositeComparableVersion.fromGenericVersion(version);
+    }
+    return CompositeComparableVersion.fromSemanticVersion(version);
   }
 }

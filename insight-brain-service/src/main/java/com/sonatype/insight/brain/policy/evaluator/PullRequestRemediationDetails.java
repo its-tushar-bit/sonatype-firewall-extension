@@ -68,6 +68,8 @@ public class PullRequestRemediationDetails
   private final Integer breakingChangesCount;
 
   private final boolean isManualPullRequest;
+  
+  private final boolean isInnerSource;
 
   static {
     try {
@@ -91,7 +93,8 @@ public class PullRequestRemediationDetails
       final String stage,
       final OrganizationDAO organizationDAO,
       final boolean isManualPullRequest,
-      final boolean reducedSecurityData) throws IOException
+      final boolean reducedSecurityData,
+      final boolean isInnerSource) throws IOException
   {
     super(organizationDAO, reducedSecurityData);
     if (policyThreatsMDEmbeddedHtmlTemplate == null) {
@@ -112,6 +115,7 @@ public class PullRequestRemediationDetails
     this.scanId = scanId;
     this.stage = stage;
     this.isManualPullRequest = isManualPullRequest;
+    this.isInnerSource = isInnerSource;
   }
 
   public PullRequestRemediationDetails(
@@ -130,10 +134,11 @@ public class PullRequestRemediationDetails
       final OrganizationDAO organizationDAO,
       final boolean isManualPullRequest,
       final String displayNameOrUsername,
-      final boolean reducedSecurityData) throws IOException
+      final boolean reducedSecurityData,
+      final boolean isInnerSource) throws IOException
   {
     this(toBeRemediated, remediatedVersion, breakingChangesCount, pullRequestBranchName, app, scanId, stage,
-        organizationDAO, isManualPullRequest, reducedSecurityData);
+        organizationDAO, isManualPullRequest, reducedSecurityData, isInnerSource);
     this.contents =
         constructContents(notifications, targetVersionType, iqBaseUrl, provider, scmBaseUrl, displayNameOrUsername);
   }
@@ -156,7 +161,25 @@ public class PullRequestRemediationDetails
   {
     this(toBeRemediated, remediatedVersion, targetVersionType, breakingChangesCount, pullRequestBranchName,
         notifications, app, scanId, stage, iqBaseUrl, provider, scmBaseUrl, organizationDAO, false, null,
-        reducedSecurityData);
+        reducedSecurityData, false);
+  }
+
+  public PullRequestRemediationDetails(
+      final ComponentIdentifier toBeRemediated,
+      final String remediatedVersion,
+      final String pullRequestBranchName,
+      final Application app,
+      final String scanId,
+      final String stage,
+      final String contents,
+      final OrganizationDAO organizationDAO,
+      final boolean isManualPullRequest,
+      final boolean reducedSecurityData,
+      final boolean isInnerSource) throws IOException
+  {
+    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO,
+        isManualPullRequest, reducedSecurityData, isInnerSource);
+    this.contents = contents;
   }
 
   public PullRequestRemediationDetails(
@@ -171,9 +194,8 @@ public class PullRequestRemediationDetails
       final boolean isManualPullRequest,
       final boolean reducedSecurityData) throws IOException
   {
-    this(toBeRemediated, remediatedVersion, null, pullRequestBranchName, app, scanId, stage, organizationDAO,
-        isManualPullRequest, reducedSecurityData);
-    this.contents = contents;
+    this(toBeRemediated, remediatedVersion, pullRequestBranchName, app, scanId, stage, contents, organizationDAO,
+        isManualPullRequest, reducedSecurityData, false);
   }
 
   public PullRequestRemediationDetails(
@@ -190,10 +212,12 @@ public class PullRequestRemediationDetails
       final OrganizationDAO organizationDAO,
       final boolean isManualPullRequest,
       final String displayNameOrUsername,
-      final boolean reducedSecurityData) throws IOException
+      final boolean reducedSecurityData,
+      final boolean isInnerSource) throws IOException
   {
     this(toBeRemediated, remediationVersionDTO.getVersion(), remediationVersionDTO.getBreakingChangesCount(),
-        pullRequestBranchName, app, scanId, stage, organizationDAO, isManualPullRequest, reducedSecurityData);
+        pullRequestBranchName, app, scanId, stage, organizationDAO, isManualPullRequest, reducedSecurityData,
+        isInnerSource);
     this.contents =
         constructContents(notifications, remediationVersionDTO.getRemediationType().getDisplayName(), iqBaseUrl,
             provider, scmBaseUrl, displayNameOrUsername);
@@ -211,10 +235,11 @@ public class PullRequestRemediationDetails
       final SourceControlProvider provider,
       final String scmBaseUrl,
       final OrganizationDAO organizationDAO,
-      final boolean reducedSecurityData) throws IOException
+      final boolean reducedSecurityData,
+      final boolean isInnerSource) throws IOException
   {
     this(toBeRemediated, remediationVersionDTO, pullRequestBranchName, notifications, app, scanId, stage, iqBaseUrl,
-        provider, scmBaseUrl, organizationDAO, false, null, reducedSecurityData);
+        provider, scmBaseUrl, organizationDAO, false, null, reducedSecurityData, isInnerSource);
   }
 
   public String getTitle() {
@@ -256,6 +281,10 @@ public class PullRequestRemediationDetails
     return isManualPullRequest;
   }
 
+  public boolean isInnerSource() {
+    return isInnerSource;
+  }
+
   private String constructTitle() {
     return MessageFormat.format("Bump {0} to {1}", getShortComponentName(toBeRemediated), remediatedVersion);
   }
@@ -293,7 +322,8 @@ public class PullRequestRemediationDetails
                 (isManualPullRequest ? "manual" : "auto") + "-pr")
         .put("baseIqUrl", iqBaseUrl)
         .put("provider", provider)
-        .put("isManualPullRequest", isManualPullRequest);
+        .put("isManualPullRequest", isManualPullRequest)
+        .put("isInnerSource", isInnerSource);
 
     if (displayNameOrUsername != null) {
       builder.put("displayNameOrUsername", displayNameOrUsername);
@@ -309,6 +339,9 @@ public class PullRequestRemediationDetails
   }
 
   private String constructVersionDisplay(final ComponentIdentifier componentIdentifier) {
+    if (isInnerSource) {
+      return componentIdentifier.get(VERSION);
+    }
     switch (componentIdentifier.getFormat()) {
       // maven includes a markdown formatted link
       case ComponentIdentifier.FORMAT_MAVEN:

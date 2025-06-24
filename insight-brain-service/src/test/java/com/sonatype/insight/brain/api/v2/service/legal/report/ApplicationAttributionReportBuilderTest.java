@@ -641,7 +641,7 @@ public class ApplicationAttributionReportBuilderTest
     ApiLicenseLegalDataDTO licenseLegalData = new ApiLicenseLegalDataDTO();
     licenseLegalData.effectiveLicenses = Collections.emptyList();
 
-    tempEntity.newInnerSourceComponent(component.packageUrl, application);
+    tempEntity.newInnerSourceApplication(component.packageUrl, application);
 
     ApiLicenseLegalApplicationReportDTO reportDTO = new ApiLicenseLegalApplicationReportDTO();
     reportDTO.components =

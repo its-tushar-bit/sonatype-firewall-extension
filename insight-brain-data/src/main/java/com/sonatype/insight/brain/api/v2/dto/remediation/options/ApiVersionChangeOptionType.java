@@ -22,7 +22,9 @@ public enum ApiVersionChangeOptionType
   NEXT_NON_FAILING("next-non-failing"),
   NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES("next-no-violations-with-dependencies"),
   NEXT_NON_FAILING_WITH_DEPENDENCIES("next-non-failing-with-dependencies"),
-
+  // InnerSource specific remediation types
+  INNER_SOURCE_LATEST_NON_BREAKING("inner-source-latest-non-breaking"),
+  INNER_SOURCE_LATEST("inner-source-latest"),
   // For backward compatibility,
   // Do not use the following types in ApiVersionChangeOptionDTO,
   // They should only be used in ApiSuggestedVersionChangeOptionDTO

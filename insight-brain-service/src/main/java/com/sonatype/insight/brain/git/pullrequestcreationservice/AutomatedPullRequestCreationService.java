@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.ScmReducedSecurityService;
 import com.sonatype.insight.brain.git.event.SourceControlEventPublisher;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
@@ -49,7 +50,8 @@ public class AutomatedPullRequestCreationService
       final SourceControlEventPublisher eventPublisher,
       final OrganizationDAO organizationDAO,
       final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      final ScmReducedSecurityService scmReducedSecurityService)
+      final ScmReducedSecurityService scmReducedSecurityService,
+      final InnerSourceService innerSourceService)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -57,7 +59,8 @@ public class AutomatedPullRequestCreationService
         organizationDAO,
         pullRequestBranchNameGenerator,
         eligibilityService,
-        scmReducedSecurityService);
+        scmReducedSecurityService,
+        innerSourceService);
   }
 
   public void createAutomatedRemediationPullRequest(
@@ -68,7 +71,9 @@ public class AutomatedPullRequestCreationService
       final Supplier<Optional<RemediationVersionDTO>> remediationVersionDTOSupplier,
       final List<PolicyNotification> notifications) throws IOException
   {
-    if (!eligibilityService.isEligibleForAutoPullRequest(app, stage, componentIdentifier)) {
+    boolean isInnerSourceComponent = innerSourceService.isInnerSourceComponent(componentIdentifier);
+
+    if (!eligibilityService.isEligibleForAutoPullRequest(app, stage, componentIdentifier, isInnerSourceComponent)) {
       log.debug("Application '{}' not eligible for automated PR", app.getPublicId());
       return;
     }
@@ -87,28 +92,35 @@ public class AutomatedPullRequestCreationService
       return;
     }
 
-    /*
-     * A 'non-breaking with dependencies versions PR' (aka 'Golden PR') is a PR made with remediation versions of type
-     * RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES only.
-     * A 'regular' PR is a PR made with remediation versions of all other types.
-     * A Golden PR is created for Maven components if the 'developerSuggestNonBreakingVersion' feature flag is enabled
-     * and if a non-breaking with dependencies version (aka 'Golden version') is available.
-     * If the component is a Maven component and the feature flag is enabled, but there is no Golden version
-     * available, no PR is created.
-     * A regular automated remediation PR is created for non-Maven components or when the feature flag is not enabled.
-     */
-    if (shouldCreateNonBreakingVersionsPR(componentIdentifier)) {
-      ApiVersionChangeOptionType remediationType = remediationVersionDTO.getRemediationType();
-      if (!ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES.equals(remediationType)) {
-        log.debug("Remediation type for component '{}' is not golden: {}",
-            componentIdentifier, remediationType);
-        return;
+    if (!isInnerSourceComponent) {
+      /*
+       * A 'non-breaking with dependencies versions PR' (aka 'Golden PR') is a PR made with remediation versions of type
+       * RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES only.
+       * A 'regular' PR is a PR made with remediation versions of all other types.
+       * A Golden PR is created for Maven components if the 'developerSuggestNonBreakingVersion' feature flag is enabled
+       * and if a non-breaking with dependencies version (aka 'Golden version') is available.
+       * If the component is a Maven component and the feature flag is enabled, but there is no Golden version
+       * available, no PR is created.
+       * A regular automated remediation PR is created for non-Maven components or when the feature flag is not enabled.
+       */
+      if (shouldCreateNonBreakingVersionsPR(componentIdentifier)) {
+        ApiVersionChangeOptionType remediationType = remediationVersionDTO.getRemediationType();
+        if (!ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES.equals(remediationType)) {
+          log.debug("Remediation type for component '{}' is not golden: {}",
+              componentIdentifier, remediationType);
+          return;
+        }
+        log.debug("Attempt to create golden PR for application '{}' component '{}'",
+            app.getPublicId(), componentIdentifier);
       }
-      log.debug("Attempt to create golden PR for application '{}' component '{}'",
-          app.getPublicId(), componentIdentifier);
+      else {
+        log.debug("Attempt to create automated PR for application '{}' component '{}'",
+            app.getPublicId(), componentIdentifier);
+      }
     }
     else {
-      log.debug("Attempt to create automated PR for application '{}' component '{}'",
+      log.debug(
+          "InnerSource component detected. Attempt to create automated PR for application '{}' and component '{}'",
           app.getPublicId(), componentIdentifier);
     }
 
@@ -126,7 +138,7 @@ public class AutomatedPullRequestCreationService
         baseUrl.get(),
         gitRepositoryInfo.provider,
         gitRepositoryInfo.normalizedRepositoryUrl,
-        organizationDAO, reducedSecurityData);
+        organizationDAO, reducedSecurityData, isInnerSourceComponent);
 
     eventPublisher.publishEvent(createPullRequestEvent(prDetails, false));
 

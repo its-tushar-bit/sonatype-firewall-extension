@@ -468,8 +468,9 @@ public class LegalApplicationDashboardServiceTest
     ComponentIdentifier appInnerSource = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2");
     ComponentIdentifier otherAppInnerSource = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3");
 
-    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(appInnerSource).getPackageUrl(), app);
-    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(otherAppInnerSource).getPackageUrl(),
+    tempEntity.newInnerSourceApplication(InnerSourceUtils.getVersionlessPackageUrl(appInnerSource).getPackageUrl(),
+        app);
+    tempEntity.newInnerSourceApplication(InnerSourceUtils.getVersionlessPackageUrl(otherAppInnerSource).getPackageUrl(),
         otherApp);
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash", notInnerSource);

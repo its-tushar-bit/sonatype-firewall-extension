@@ -37,14 +37,17 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.DependencyType;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.CompositeComparableVersion;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -62,6 +65,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.InnerSourceUtils.createCompositeComparableVersion;
+
 /**
  * @since 1.83
  * This code was formerly in ApiComponentRemediationService but was split out to avoid a circular dependency
@@ -75,6 +80,9 @@ public class ComponentRemediationService
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
       // The above two are here to be logically consistent.
+      // InnerSource specific remediation types
+      ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING,
+      ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING,
       // The below are the actual types to be in the `versionChanges` list.
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
@@ -111,6 +119,8 @@ public class ComponentRemediationService
   private final VersionScoringService versionScoringService;
 
   private final NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics;
+  
+  private final InnerSourceService innerSourceService;
 
   @Inject
   public ComponentRemediationService(
@@ -120,7 +130,8 @@ public class ComponentRemediationService
       ProductLicense productLicense,
       TelemetryUtils telemetryUtils,
       VersionScoringService versionScoringService,
-      NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics)
+      NonBreakingRecommendationTelemetryMetrics nonBreakingRecommendationTelemetryMetrics,
+      InnerSourceService innerSourceService)
   {
     this.telemetrySender = telemetrySender;
     this.hdsClient = hdsClient;
@@ -129,6 +140,7 @@ public class ComponentRemediationService
     this.telemetryUtils = telemetryUtils;
     this.versionScoringService = versionScoringService;
     this.nonBreakingRecommendationTelemetryMetrics = nonBreakingRecommendationTelemetryMetrics;
+    this.innerSourceService = innerSourceService;
   }
 
   private ComponentIdentifier ensureCompleteIfNeeded(ComponentIdentifier componentIdentifier) {
@@ -180,6 +192,29 @@ public class ComponentRemediationService
       final boolean advancedStrategies)
   {
     ApiComponentRemediationValueDTO componentRemediationDto = new ApiComponentRemediationValueDTO();
+    ensureCompleteIfNeeded(currentComponent);
+
+    if (innerSourceService.isInnerSourceComponent(currentComponent)) {
+      try {
+        String latestVersion =
+            innerSourceService.getComponentLatestVersionByStage(currentComponent, StageTypes.RELEASE.getId());
+
+        String currentVersion = currentComponent.get(ComponentIdentifier.VERSION);
+
+        if (isNewerVersion(currentVersion, latestVersion, currentComponent.getFormat())) {
+          ComponentIdentifier latestComponentIdentifier = currentComponent.createAlternativeVersion(latestVersion);
+          ApiVersionChangeOptionType remediationType =
+              determineInnerSourceRemediationType(currentVersion, latestVersion, currentComponent.getFormat());
+          componentRemediationDto.suggestedVersionChange =
+              createSuggestedVersionChangeOption(latestComponentIdentifier, remediationType, false);
+        }
+      }
+      catch (Exception e) {
+        log.warn("Failed to get remediation for InnerSource component: {}", currentComponent, e);
+        throw new BadRequestException(e.getMessage(), e);
+      }
+    }
+    
     int currentIndex = findCurrentIndex(allVersions, currentComponent);
 
     Map<String, Object> telemetryAttributes = new HashMap<>();
@@ -702,5 +737,43 @@ public class ComponentRemediationService
     return componentIdentifier.isMaven() &&
         productLicense.hasFeature(LicensedFeature.ADVANCED_RECOMMENDATION_STRATEGIES) &&
         SystemConfigurationPropertyFeature.TRANSITIVE_SOLVER.isEnabled();
+  }
+
+  /**
+   * Determines the appropriate remediation type for InnerSource components by comparing versions.
+   * If the major version has changed, returns INNER_SOURCE_LATEST.
+   * If only a minor or patch version has changed, returns INNER_SOURCE_LATEST_NON_BREAKING.
+   */
+  private ApiVersionChangeOptionType determineInnerSourceRemediationType(
+      String currentVersion,
+      String latestVersion,
+      String format)
+  {
+    try {
+      CompositeComparableVersion currentComparableVersion =
+          createCompositeComparableVersion(currentVersion, format);
+      CompositeComparableVersion latestComparableVersion = createCompositeComparableVersion(latestVersion, format);
+
+      Boolean isMajorJump = currentComparableVersion.isMajorJump(latestComparableVersion);
+
+      if (isMajorJump == null || isMajorJump) {
+        return ApiVersionChangeOptionType.INNER_SOURCE_LATEST;
+      }
+      else {
+        return ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING;
+      }
+    }
+    catch (Exception e) {
+      // In case of any parsing errors, default to considering it a major change
+      log.warn("Error comparing versions {} and {}: {}", currentVersion, latestVersion, e.getMessage());
+      return ApiVersionChangeOptionType.INNER_SOURCE_LATEST;
+    }
+  }
+
+  private boolean isNewerVersion(String oldVersion, String newVersion, final String format) {
+    CompositeComparableVersion oldComparableVersion = createCompositeComparableVersion(oldVersion, format);
+    CompositeComparableVersion newComparableVersion = createCompositeComparableVersion(newVersion, format);
+
+    return oldComparableVersion.compareTo(newComparableVersion) < 0;
   }
 }

@@ -27,17 +27,21 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -70,10 +74,13 @@ public class DependencyResolverTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  private InnerSourceComponentDAO innerSourceComponentDAOSpy;
+  private InnerSourceApplicationDAO innerSourceApplicationDAOSpy;
 
   @Inject
-  private InnerSourceComponentDAO innerSourceComponentDAO;
+  private InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  @Inject
+  private InnerSourceVersionDAO innerSourceVersionDAO;
 
   @Inject
   private ApplicationDAO applicationDAO;
@@ -87,7 +94,7 @@ public class DependencyResolverTest
 
   @Before
   public void init() {
-    innerSourceComponentDAOSpy = spy(innerSourceComponentDAO);
+    innerSourceApplicationDAOSpy = spy(innerSourceApplicationDAO);
     app = tempEntity.newApplicationWithParent();
   }
 
@@ -108,101 +115,288 @@ public class DependencyResolverTest
     PackageUrlIdentifier rootPurl =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootPurl);
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
 
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAOSpy.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(1);
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAOSpy.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).hasSize(1);
 
-    assertThat(innerSourceComponents.get(0).getApplicationId()).isEqualTo(app.getId());
+    assertThat(innerSourceApplications.get(0).getApplicationId()).isEqualTo(app.getId());
 
     assertThat(dependenciesJson).isNotNull();
     ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(dependencyTree);
     assertThat(componentIdentifier).isNotNull();
     PackageUrlIdentifier expectedPurl =
         PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier.createAlternativeVersion(null));
+    assertThat(innerSourceApplications.get(0).getPackageUrl()).isEqualTo(expectedPurl.getPackageUrl());
 
-    assertThat(innerSourceComponents.get(0).getPackageUrl()).isEqualTo(expectedPurl.getPackageUrl());
-    assertThat(innerSourceComponents.get(0).getLatestVersion()).isEqualTo("1.0.0");
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplications.get(0).getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplications.get(0).getId());
+    assertThat(innerSourceVersion.getLatestVersion()).isEqualTo("1.0.0");
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+  }
+
+  @Test
+  public void processInnerSource_createInnerSourceParentWithoutInnerSourceVersion() throws Exception {
+    JsonNode dependenciesJson =
+        new ObjectMapper()
+            .readTree(getClass().getResource("/DependencyResolverTest/report-innersource/dependencies.json"));
+    JsonNode dependencyTree = dependenciesJson.path("dependencyTree");
+
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar");
+
+    newDependencyResolver().saveInnerSourceComponent(rootPurl);
+
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAOSpy.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).hasSize(1);
+
+    assertThat(innerSourceApplications.get(0).getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(dependenciesJson).isNotNull();
+    ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(dependencyTree);
+    assertThat(componentIdentifier).isNotNull();
+    PackageUrlIdentifier expectedPurl =
+        PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier.createAlternativeVersion(null));
+    assertThat(innerSourceApplications.get(0).getPackageUrl()).isEqualTo(expectedPurl.getPackageUrl());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplications.get(0).getId()))
+        .hasSize(0);
   }
 
   @Test
   public void processInnerSource_checkInnerSourceParent() {
-    InnerSourceComponent innerSourceComponent =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main?type=jar", app);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.main/innersource-main?type=jar", app);
 
     PackageUrlIdentifier rootPurl =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.innersource.main/innersource-main@1.0.0?type=jar");
 
     newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
-    verify(innerSourceComponentDAOSpy, never()).insert(innerSourceComponent);
-    verify(innerSourceComponentDAOSpy, never()).update(innerSourceComponent);
+    verify(innerSourceApplicationDAOSpy, never()).insert(innerSourceApplication);
+    verify(innerSourceApplicationDAOSpy, never()).update(innerSourceApplication);
   }
 
   @Test
-  public void processInnerSource_updateInnerSourceParent() {
+  public void processInnerSource_updateInnerSourceParentWithNonNullInnerSourceVersion() {
     Application innerSourceApp = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp);
 
     PackageUrlIdentifier rootPurl =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
-    newDependencyResolver().saveInnerSourceComponent(rootPurl);
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
 
-    ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
-    verify(innerSourceComponentDAOSpy).update(argument.capture());
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
 
-    InnerSourceComponent innerSourceComponent = argument.getValue();
-    assertThat(innerSourceComponent.getApplicationId()).isEqualTo(app.getId());
+    InnerSourceApplication innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(1);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+
     // The original component has null as version, now it should have a value there
-    assertThat(innerSourceComponent.getLatestVersion()).isEqualTo("1.0.0");
+    assertThat(innerSourceVersion.getLatestVersion()).isEqualTo("1.0.0");
   }
 
   @Test
   public void processInnerSource_updateInnerSourceParentWithOlderVersion() {
     Application innerSourceApp = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", innerSourceApp,
-        "1.0.1");
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar",
+            innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.1", StageTypes.RELEASE.getId());
 
     PackageUrlIdentifier rootPurl =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
-    newDependencyResolver().saveInnerSourceComponent(rootPurl);
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
 
-    ArgumentCaptor<InnerSourceComponent> argument = ArgumentCaptor.forClass(InnerSourceComponent.class);
-    verify(innerSourceComponentDAOSpy).update(argument.capture());
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
 
-    InnerSourceComponent innerSourceComponent = argument.getValue();
-    assertThat(innerSourceComponent.getApplicationId()).isEqualTo(app.getId());
-    assertThat(innerSourceComponent.getLatestVersion()).isEqualTo("1.0.1");
+    innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(1);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion.getLatestVersion()).isEqualTo("1.0.1");
+  }
+
+  @Test
+  public void processInnerSource_updateInnerSourceParentWithNewerVersion() {
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar",
+            innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.0", StageTypes.RELEASE.getId());
+
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.1?type=jar");
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
+
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+
+    innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(1);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion.getLatestVersion()).isEqualTo("1.0.1");
+  }
+
+  @Test
+  public void processInnerSource_updateInnerSourceParentWithNullVersion() {
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar",
+            innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.1", StageTypes.RELEASE.getId());
+
+    // Simulate a purl without a version
+    PackageUrlIdentifier rootVersionlessPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar");
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootVersionlessPurl);
+
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+
+    innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(1);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+
+    // Since the new version is null, it kept the latest version
+    assertThat(innerSourceVersion.getLatestVersion()).isEqualTo("1.0.1");
+  }
+
+  @Test
+  public void processInnerSource_updateInnerSourceParentWithNonNullStage() {
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar",
+            innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.0", null);
+
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
+
+    newDependencyResolver(StageTypes.RELEASE.getId()).saveInnerSourceComponent(rootPurl);
+
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+
+    innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(1);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+  }
+
+  @Test
+  public void processInnerSource_updateInnerSourceParentWithMoreThanOneInnerSourceVersion() {
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar",
+            innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.0.0", StageTypes.RELEASE.getId());
+
+    PackageUrlIdentifier rootPurl =
+        new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
+
+    newDependencyResolver(StageTypes.DEVELOP.getId()).saveInnerSourceComponent(rootPurl);
+
+    ArgumentCaptor<TransactionContext> argument = ArgumentCaptor.forClass(TransactionContext.class);
+    ArgumentCaptor<InnerSourceApplication> argument2 = ArgumentCaptor.forClass(InnerSourceApplication.class);
+    verify(innerSourceApplicationDAOSpy).update(argument.capture(), argument2.capture());
+
+    innerSourceApplication = argument2.getValue();
+    assertThat(innerSourceApplication.getApplicationId()).isEqualTo(app.getId());
+
+    assertThat(innerSourceVersionDAO.getByInnerSourceApplicationId(innerSourceApplication.getId())).hasSize(2);
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.RELEASE.getId());
+    assertThat(innerSourceVersion).isNotNull();
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.RELEASE.getId());
+
+    innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(),
+            StageTypes.DEVELOP.getId());
+    assertThat(innerSourceVersion).isNotNull();
+    assertThat(innerSourceVersion.getInnerSourceApplicationId()).isEqualTo(innerSourceApplication.getId());
+    assertThat(innerSourceVersion.getStageTypeId()).isEqualTo(StageTypes.DEVELOP.getId());
   }
 
   @Test
   public void processInnerSource_updateInnerSourceParent_sameApp() {
-    InnerSourceComponent innerSourceComponent =
-        tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api", app);
 
     PackageUrlIdentifier rootPurl =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.nexus/nexus-platform-api@1.0.0?type=jar");
 
     newDependencyResolver().saveInnerSourceComponent(rootPurl);
 
-    verify(innerSourceComponentDAOSpy, never()).update(innerSourceComponent);
+    verify(innerSourceApplicationDAOSpy, never()).update(innerSourceApplication);
   }
 
   @Test
   public void processInnerSource_noInnerSourceParent() {
     assertThat(newDependencyResolver().saveInnerSourceComponent(null)).isFalse();
 
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).isEmpty();
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).isEmpty();
   }
 
   @Test
   public void processInnerSource_multiModule_component_not_in_bom() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar",
         appInnerSource);
 
     PackageUrlIdentifier knownModule1 =
@@ -221,13 +415,15 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module-component-not-in-bom/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(9);
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).hasSize(9);
 
-    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
+    assertThat(innerSourceApplications).extracting(InnerSourceApplication::getApplicationId).containsOnly(app.getId());
     assertDependencyInfo(bomJson, 8, 2, 1, 2, 3, 13, 0, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -252,17 +448,19 @@ public class DependencyResolverTest
         "pkg:pypi/protobuf@4.25.5?extension=whl&qualifier=cp37-abi3-manylinux2014_x86_64",
         "pkg:pypi/gitpython@3.0.5?extension=tar.gz");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
     assertDependencyInfo(bomJson, 2, 2, 0, 0, 0, 4, 0, summaryJson, dataJson, app, expectedKnownPurls);
   }
 
   @Test
   public void processInnerSource_multiModule() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing-asm60?type=jar", appInnerSource);
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         "pkg:maven/com.sonatype.insight.scan/insight-scanner-hashing?type=jar", appInnerSource);
 
     PackageUrlIdentifier knownModule1 = new PackageUrlIdentifier(
@@ -283,13 +481,15 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multi-module/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multi-module/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(9);
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).hasSize(9);
 
-    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
+    assertThat(innerSourceApplications).extracting(InnerSourceApplication::getApplicationId).containsOnly(app.getId());
     assertDependencyInfo(bomJson, 10, 2, 1, 2, 2, 14, 0, summaryJson, dataJson, appInnerSource, knownComponents);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -315,21 +515,23 @@ public class DependencyResolverTest
     List<String> knownComponents = Arrays.asList(innerSourceModel.getPackageUrl(), innerScannerArchive.getPackageUrl(),
         innerSourceClient.getPackageUrl());
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     List<JsonNode> bomInnerSourceDependencies = new ArrayList<>();
     assertDependencyInfo(bomJson, 4, 6, 3, 5, 4, 14, 0, summaryJson, dataJson, appInnerSource, knownComponents);
@@ -365,21 +567,23 @@ public class DependencyResolverTest
   public void processInnerSource_knownInnerSourceParent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-known/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-known/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-known/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-known/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 4, 7, 3, 5, 6, 17, 0, summaryJson, dataJson, appInnerSource);
 
@@ -396,21 +600,23 @@ public class DependencyResolverTest
   public void processInnerSource_nested_transitive_dep() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-client-utils?type=jar",
         appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-nested-transitive/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-nested-transitive/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-nested-transitive/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-nested-transitive/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
     assertDependencyInfo(bomJson, 4, 17, 3, 15, 5, 25, 1, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -427,23 +633,25 @@ public class DependencyResolverTest
   public void processInnerSource_unknown_components() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.insight.scan/insight-module-model?type=jar",
         appInnerSource);
     PackageUrlIdentifier modelId =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-module-model@1.0.0-SNAPSHOT?type=jar");
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         "pkg:maven/com.sonatype.insight.scan/insight-innersource-child?type=jar", appInnerSource);
     PackageUrlIdentifier childId =
         new PackageUrlIdentifier("pkg:maven/com.sonatype.insight.scan/insight-innersource-child@2.0.0?type=jar");
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.nexus/nexus-platform-api?type=jar", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-unknown-components/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-unknown-components/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-unknown-components/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-unknown-components/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 1, 2, 1, 2, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
@@ -466,16 +674,18 @@ public class DependencyResolverTest
 
     Application app = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.data/innersource-data", app);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.data/innersource-data", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-root/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-not-root/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-root/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-root/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, app);
 
@@ -488,16 +698,18 @@ public class DependencyResolverTest
 
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.data/innersource-data", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.data/innersource-data", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-children/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-not-children/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
     verify(telemetrySender, never()).send(Mockito.any(TelemetryData.class));
@@ -508,9 +720,9 @@ public class DependencyResolverTest
 
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-data?type=jar", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-business?type=jar", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-data?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-business?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-Producer?type=jar", appInnerSource);
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-direct-transitive-dependency/dependencies.json");
@@ -518,13 +730,15 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-direct-transitive-dependency/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
-    List<InnerSourceComponent> innerSourceComponents = innerSourceComponentDAO.getByApplicationId(app.getId());
-    assertThat(innerSourceComponents).hasSize(2);
+    List<InnerSourceApplication> innerSourceApplications = innerSourceApplicationDAO.getByApplicationId(app.getId());
+    assertThat(innerSourceApplications).hasSize(2);
 
-    assertThat(innerSourceComponents).extracting(InnerSourceComponent::getApplicationId).containsOnly(app.getId());
+    assertThat(innerSourceApplications).extracting(InnerSourceApplication::getApplicationId).containsOnly(app.getId());
     assertDependencyInfo(bomJson, 3, 2, 1, 2, 0, 5, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -539,15 +753,17 @@ public class DependencyResolverTest
   public void testProcessInnerSourceDependencies_producer_not_exists() throws Exception {
 
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.sonatype.innersource.main/innersource-main", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-not-children/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-not-children/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-not-children/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-not-children/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 0, 0, 0, 0, 4, 3, 1, summaryJson, dataJson, appInnerSource);
 
@@ -562,8 +778,10 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-not-maven-plugin/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier knownDirect =
         ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -591,7 +809,7 @@ public class DependencyResolverTest
   @Test
   public void testProcessDependencyTree_with_maven_plugin() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/InnerSource-Producer?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/InnerSource-Producer?type=jar", appInnerSource);
 
     JsonNode dependenciesJson =
         getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/dependencies.json");
@@ -599,8 +817,10 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-depTree-with-maven-plugin/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier knownDirect =
         ComponentIdentifier.createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -644,8 +864,10 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-transitive-and-direct/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-transitive-and-direct/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier knownDirect = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-direct", "2.8.1", "", "jar");
@@ -658,16 +880,18 @@ public class DependencyResolverTest
   @Test
   public void testResolve_MultipleParents() throws Exception {
     Application appInnerSource1 = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-1?type=jar", appInnerSource1);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/known-direct-1?type=jar", appInnerSource1);
     Application appInnerSource2 = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:maven/com.innersource/known-direct-2?type=jar", appInnerSource2);
+    tempEntity.newInnerSourceApplication("pkg:maven/com.innersource/known-direct-2?type=jar", appInnerSource2);
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-multiple-parents/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-multiple-parents/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-multiple-parents/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-multiple-parents/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier knownDirect1 = ComponentIdentifier
         .createMavenCoordinates("com.innersource", "known-direct-1", "2.8.1", "", "jar");
@@ -693,7 +917,7 @@ public class DependencyResolverTest
   @Test
   public void testResolve_AddInnerSource_WhenNotIdentifiedByMJA() throws Exception {
     Application appInnerSource1 = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:npm/producer", appInnerSource1);
+    tempEntity.newInnerSourceApplication("pkg:npm/producer", appInnerSource1);
 
     JsonNode dependenciesJson = getJsonNodeInformation(
         "report-innersource-npm-add-unrecognized/dependencies.json");
@@ -709,8 +933,10 @@ public class DependencyResolverTest
     Set<InnerSourceData> expectedInnerSourceData = Sets
         .newHashSet(new InnerSourceData(appInnerSource1.getName(), appInnerSource1.getId(), null));
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertBomNodeDependencyInfo(bomJson, innerSourceId, true, true, null, expectedInnerSourceData);
     assertSummaryCounters(summaryJson, dataJson, 3, 4);
@@ -742,14 +968,16 @@ public class DependencyResolverTest
   @Test
   public void testResolve_NewInnerSourceNode_NotProprietary() throws Exception {
     Application innerSourceApplication = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:npm/producer", innerSourceApplication);
+    tempEntity.newInnerSourceApplication("pkg:npm/producer", innerSourceApplication);
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/bom.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
@@ -761,15 +989,17 @@ public class DependencyResolverTest
   @Test
   public void testResolve_NewInnerSourceNode_Proprietary() throws Exception {
     Application innerSourceApplication = tempEntity.newApplicationWithParent();
-    tempEntity.newInnerSourceComponent("pkg:npm/producer", innerSourceApplication);
+    tempEntity.newInnerSourceApplication("pkg:npm/producer", innerSourceApplication);
     tempEntity.newProprietaryConfig(app.getId(), Collections.emptyList(), Collections.singletonList("producer"));
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/bom.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/data.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm-add-unrecognized/summary.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     ComponentIdentifier innerSourceId = ComponentIdentifier.createNpmCoordinates("producer", "file:../producer");
     JsonNode newIsNode = findNodeById(bomJson, innerSourceId);
@@ -782,17 +1012,19 @@ public class DependencyResolverTest
   public void testResolve_npm() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:npm/producer-one", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:npm/producer-two", appInnerSource);
-    tempEntity.newInnerSourceComponent("pkg:npm/consumer", app);
+    tempEntity.newInnerSourceApplication("pkg:npm/producer-one", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:npm/producer-two", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:npm/consumer", app);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-npm/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-npm/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-npm/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-npm/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
     assertDependencyInfo(bomJson, 3, 7, 2, 6, 0, 10, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -808,15 +1040,17 @@ public class DependencyResolverTest
   public void testResolve_otherFormat() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:pypi/pypi-app?extension=zip", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:pypi/pypi-app?extension=zip", appInnerSource);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-otherformat/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-otherformat/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-otherformat/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-otherformat/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 2, 1, 1, 1, 0, 3, 0, summaryJson, dataJson, appInnerSource);
 
@@ -834,15 +1068,17 @@ public class DependencyResolverTest
   public void testResolve_sbom() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:golang/acme-app", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:golang/acme-app", appInnerSource);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-sbom/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-sbom/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-sbom/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
     assertDependencyInfo(bomJson, 1, 1, 1, 1, 0, 2, 0, summaryJson, dataJson, appInnerSource);
 
     Set<InnerSourceProducerComponentTelemetry> producerTelemetries = new HashSet<>();
@@ -859,15 +1095,17 @@ public class DependencyResolverTest
   public void testResolve_sbom_thirdParty() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-sbom-third-party/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-sbom-third-party/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-sbom-third-party/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-sbom-third-party/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 3, 3, 0, 0, 0, 6, 0, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -877,7 +1115,7 @@ public class DependencyResolverTest
   public void testResolve_maven_unknownComponent() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
 
     String folderName = "report-maven-plugin-unknown-component";
     JsonNode dependenciesJson = getJsonNodeInformation(folderName + "/dependencies.json");
@@ -885,8 +1123,10 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
     JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 1, 0, 0, 0, 0, 0, 1, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -896,7 +1136,7 @@ public class DependencyResolverTest
   public void testResolve_maven_unknownComponent_modules() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/org.example/ACME-Producer@1.0-SNAPSHOT?type=pom", appInnerSource);
 
     String folderName = "report-maven-plugin-unknown-component-modules";
     JsonNode dependenciesJson = getJsonNodeInformation(folderName + "/dependencies.json");
@@ -904,8 +1144,10 @@ public class DependencyResolverTest
     JsonNode summaryJson = getJsonNodeInformation(folderName + "/summary.json");
     JsonNode dataJson = getJsonNodeInformation(folderName + "/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 2, 4, 0, 0, 0, 5, 1, summaryJson, dataJson, appInnerSource);
     assertThat(bomJson.get(DependencyResolver.FIELD_DEPENDENCY_INDICATOR).asBoolean()).isTrue();
@@ -915,15 +1157,17 @@ public class DependencyResolverTest
   public void testResolve_duplicatedElementTree() throws Exception {
     Application appInnerSource = tempEntity.newApplicationWithParent();
 
-    tempEntity.newInnerSourceComponent("pkg:maven/test/hashing?type=jar", appInnerSource);
+    tempEntity.newInnerSourceApplication("pkg:maven/test/hashing?type=jar", appInnerSource);
 
     JsonNode dependenciesJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/dependencies.json");
     JsonNode bomJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/bom.json");
     JsonNode summaryJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/summary.json");
     JsonNode dataJson = getJsonNodeInformation("report-innersource-dup-dependency-tree/data.json");
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertDependencyInfo(bomJson, 3, 2, 1, 2, 1, 6, 0, summaryJson, dataJson, appInnerSource);
 
@@ -964,8 +1208,10 @@ public class DependencyResolverTest
     assertThat(bomNodeBadPathnames.get("directDependency")).isNull();
     assertThat(bomNodeBadPathnames.get("innerSource")).isNull();
 
-    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, app, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService).resolve();
+    DependencyResolver.getInstance(dependenciesJson, bomJson, dataJson, summaryJson, StageTypes.RELEASE.getId(), app,
+            telemetrySender,
+            telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO, proprietaryConfigService)
+        .resolve();
 
     assertThat(bomNode.get("directDependency")).isNotNull();
     assertThat(bomNode.get("innerSource")).isNotNull();
@@ -985,7 +1231,7 @@ public class DependencyResolverTest
     tempEntity.newProprietaryConfig(application.getId(), null, Collections.singletonList("p1"));
     tempEntity.newProprietaryConfig(other.getId(), null, Collections.singletonList("p2"));
     DependencyResolver dependencyResolver =
-        DependencyResolver.getInstance(null, null, null, null, application, null, null, null, null,
+        DependencyResolver.getInstance(null, null, null, null, null, application, null, null, null, null, null,
             proprietaryConfigService);
     assertThat(dependencyResolver.isProprietary).isNull();
 
@@ -1391,8 +1637,12 @@ public class DependencyResolverTest
   }
 
   private DependencyResolver newDependencyResolver() {
-    return new DependencyResolver(null, null, null, null, app, telemetrySender, telemetryUtils,
-        innerSourceComponentDAOSpy, null, null);
+    return newDependencyResolver(null);
+  }
+
+  private DependencyResolver newDependencyResolver(String stageTypeId) {
+    return new DependencyResolver(null, null, null, null, stageTypeId, app, telemetrySender, telemetryUtils,
+        innerSourceApplicationDAOSpy, innerSourceVersionDAO, null, null);
   }
 
   private JsonNode getJsonNodeInformation(String path) throws IOException {

@@ -40,7 +40,11 @@ public class RemediationPullRequestEligibilityServiceTest
     extends AbstractComponentTest
 {
   @Rule
-  public LogOutput logOutput = new LogOutput(RemediationPullRequestEligibilityService.class);
+  public LogOutput remediationPullRequestEligibilityServiceLogOutput =
+      new LogOutput(RemediationPullRequestEligibilityService.class);
+
+  @Rule
+  public LogOutput pullRequestFeatureCheckLogOutput = new LogOutput(PullRequestFeatureCheck.class);
 
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
@@ -74,9 +78,9 @@ public class RemediationPullRequestEligibilityServiceTest
 
   @Test
   public void testIsEligibleForAutoPullRequest_success() throws PlexusCipherException {
-    setupSourceControl();
+    setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent);
+        application, stage, mavenComponent, false);
     assertThat(result).isTrue();
   }
 
@@ -84,9 +88,10 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_unsupportedStage() {
     Stage developStage = new Stage(Stage.ID_DEVELOP);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, developStage, mavenComponent);
+        application, developStage, mavenComponent, false);
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains("Pull Request not supported for the stage 'develop'");
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Pull Request not supported for the stage 'develop'");
   }
 
   @Test
@@ -94,15 +99,54 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, pypiComponent);
+        application, stage, pypiComponent, false);
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains("Format 'pypi' is not supported for remediation");
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Format 'pypi' is not supported for remediation");
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_innerSource_success() throws PlexusCipherException {
+    setupSourceControl(true);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, true);
+    assertThat(result).isTrue();
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_innerSource_unsupportedStage() {
+    Stage developStage = new Stage(Stage.ID_DEVELOP);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, developStage, mavenComponent, true);
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Pull Request not supported for the stage 'develop'");
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_innerSource_unsupportedFormat() {
+    ComponentIdentifier pypiComponent =
+        ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, pypiComponent, true);
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Format 'pypi' is not supported for remediation");
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_innerSource_innerSourceUpdatesDisabled() throws PlexusCipherException {
+    setupSourceControl(false);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(application, stage, mavenComponent, true);
+    assertThat(result).isFalse();
+    assertThat(pullRequestFeatureCheckLogOutput).atDebugLevel()
+        .contains("InnerSource Pull Requests have been explicitly disabled");
   }
 
   //manual pr section
   @Test
   public void testIsEligibleForManualPullRequest_success() throws PlexusCipherException {
-    setupSourceControl();
+    setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForManualPullRequest(
         application, stage, mavenComponent);
     assertThat(result).isTrue();
@@ -115,7 +159,8 @@ public class RemediationPullRequestEligibilityServiceTest
     boolean result = eligibilityService.isEligibleForManualPullRequest(
         application, stage, pypiComponent);
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains("Format 'pypi' is not supported for remediation");
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Format 'pypi' is not supported for remediation");
   }
 
   @Test
@@ -123,7 +168,8 @@ public class RemediationPullRequestEligibilityServiceTest
     boolean result = eligibilityService.isEligibleForManualPullRequest(
         application, new Stage(Stage.ID_DEVELOP), mavenComponent);
     assertThat(result).isFalse();
-    assertThat(logOutput).atDebugLevel().contains("Pull Request not supported for the stage 'develop'");
+    assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
+        .contains("Pull Request not supported for the stage 'develop'");
   }
 
   @Test
@@ -184,13 +230,14 @@ public class RemediationPullRequestEligibilityServiceTest
     assertThat(result).isFalse();
   }
 
-  private void setupSourceControl() throws PlexusCipherException {
+  private void setupSourceControl(boolean innerSourceAutomatedUpdatesEnabled) throws PlexusCipherException {
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
     final SourceControl sourceControl = new SourceControl();
     sourceControl.setOwnerId(application.getId());
     sourceControl.setRepositoryUrl(gitService.baseUrl() + "/org/proj");
     sourceControl.setManualPullRequestsEnabled(true);
     sourceControl.setToken(new DefaultPlexusCipher().encrypt("token", "CMMDwoV"));
+    sourceControl.setInnerSourceAutomatedUpdatesEnabled(innerSourceAutomatedUpdatesEnabled);
     tempEntity.newSourceControl(sourceControl);
   }
 }

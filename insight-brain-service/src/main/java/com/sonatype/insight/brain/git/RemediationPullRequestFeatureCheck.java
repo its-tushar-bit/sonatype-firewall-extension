@@ -42,14 +42,16 @@ public class RemediationPullRequestFeatureCheck
    * @return true/false if supported
    */
   public boolean isPullRequestFeatureSupported(
-      final Application app, final GitRepositoryInfo gitRepoInfo)
+      final Application app,
+      final GitRepositoryInfo gitRepoInfo,
+      final boolean isInnerSourceComponent)
   {
     if (!isLicenseSupported()) {
       log.debug("Remediation pull request feature is not supported for this license");
       return false;
     }
 
-    if (!isApplicationConfiguredForPR(gitRepoInfo)) {
+    if (!isApplicationConfiguredForPR(gitRepoInfo, isInnerSourceComponent)) {
       log.debug("Pull requests have not been configured for application '{}'", app.getId());
       return false;
     }
@@ -68,13 +70,24 @@ public class RemediationPullRequestFeatureCheck
     return true;
   }
 
-  public boolean isApplicationConfiguredForPR(final GitRepositoryInfo gitRepositoryInfo) {
+  public boolean isApplicationConfiguredForPR(
+      final GitRepositoryInfo gitRepositoryInfo,
+      final boolean isInnerSourceComponent)
+  {
     if (gitRepositoryInfo == null) {
       return false;
     }
-    if (!isTrue(gitRepositoryInfo.remediationPullRequestsEnabled)) {
-      log.debug("Pull Requests have been explicitly disabled");
-      return false;
+    if (isInnerSourceComponent) {
+      if (!isTrue(gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled)) {
+        log.debug("InnerSource Pull Requests have been explicitly disabled");
+        return false;
+      }
+    }
+    else {
+      if (!isTrue(gitRepositoryInfo.remediationPullRequestsEnabled)) {
+        log.debug("Pull Requests have been explicitly disabled");
+        return false;
+      }
     }
 
     return isSCMConfigured(gitRepositoryInfo);

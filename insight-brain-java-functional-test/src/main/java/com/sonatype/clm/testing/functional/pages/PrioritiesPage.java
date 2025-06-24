@@ -94,4 +94,12 @@ public class PrioritiesPage
   public SelenideElement currentPageButton() {
     return getElement().$(by("aria-current", "page"));
   }
+
+  public SelenideElement directDependencyIndicator(int rowNum) {
+    return prioritiesTableCell(rowNum, 1).$(".iq-dependency-indicator.direct");
+  }
+
+  public SelenideElement innerSourceDependencyIndicator(int rowNum) {
+    return prioritiesTableCell(rowNum, 1).$(".iq-dependency-indicator.inner-source");
+  }
 }

@@ -1,7 +1,26 @@
 <#include "iq-for-scm-common.ftl">
 <#assign recommendedNonBreaking = "recommended-non-breaking" >
 <#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
-<#if targetVersionType == recommendedNonBreakingWithDependencies>
+<#if isInnerSource>
+<#if !isManualPullRequest>
+## AutoPR: A new version of ${componentName} is available
+
+**Component: ${componentName}**
+
+**Suggested version: ${targetVersionDisplay}**
+
+Current version: ${initialVersionDisplay}
+<#else>
+## A new version of ${componentName} is available
+
+### Description
+
+* Component: **${componentName}**
+* Current version: **${initialVersionDisplay}**
+* New version: **${targetVersionDisplay}**
+</#if>
+
+<#elseif targetVersionType == recommendedNonBreakingWithDependencies>
 ## :star: <#if !isManualPullRequest>Auto</#if>PR: Bump ${componentName} to resolve ${threatList?size} policy violation<#if (threatList?size > 1)>s</#if>
 
 **Component: ${componentName}**
@@ -36,6 +55,7 @@
 
 ### Policy Violations
 </#if>
+<#if !isInnerSource>
 | Threat (of 10) | Policy | Violation Details
 | --- | --- | ---
 <#list threatList as threat>
@@ -44,6 +64,7 @@
 </#list>
 
 </#list>
+</#if>
 
 ### Nexus IQ Scan Detail
 **Application**: ${applicationName}  <#-- leave 2 trailing spaces as a line break -->

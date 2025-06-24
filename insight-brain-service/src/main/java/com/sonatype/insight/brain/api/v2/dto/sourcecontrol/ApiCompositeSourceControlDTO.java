@@ -36,4 +36,6 @@ public class ApiCompositeSourceControlDTO
   public ApiCompositeValueDTO<Boolean> commitStatusEnabled = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<Boolean> manualPullRequestsEnabled = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<Boolean> innerSourceAutomatedUpdatesEnabled = new ApiCompositeValueDTO<>();
 }

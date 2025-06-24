@@ -41,7 +41,7 @@ public class PullRequestRepositoryValidator
    * private/restricted, or if the repository is internal-only
    */
   public boolean isRepoValidForPRs(final GitRepositoryInfo gitRepositoryInfo) {
-    if (!gitRepositoryInfo.remediationPullRequestsEnabled) {
+    if (!gitRepositoryInfo.remediationPullRequestsEnabled && !gitRepositoryInfo.innerSourceAutomatedUpdatesEnabled) {
       log.debug("Pull requests have not been enabled for repository URL '{}'",
           gitRepositoryInfo.normalizedRepositoryUrl);
       return false;

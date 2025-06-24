@@ -28,18 +28,21 @@ import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.innersource.InnerSourceConsumerTelemetry;
 import com.sonatype.insight.brain.innersource.InnerSourceProducerComponentTelemetry;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.HashHelper;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
 import com.sonatype.insight.brain.model.component.MatchState;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.ComponentDependencyUtils;
+import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -52,7 +55,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +89,8 @@ public class DependencyResolver
 
   public static final String FIELD_DEPENDENCY_INDICATOR = "dependencyDataIncluded";
 
+  private final String stageTypeId;
+
   private final JsonNode dependenciesJson;
 
   private final JsonNode bomJson;
@@ -104,7 +108,9 @@ public class DependencyResolver
 
   private final TelemetryUtils telemetryUtils;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO;
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  private final InnerSourceVersionDAO innerSourceVersionDAO;
 
   private final ApplicationDAO applicationDAO;
 
@@ -125,15 +131,18 @@ public class DependencyResolver
       JsonNode bomJson,
       JsonNode dataJson,
       JsonNode summaryJson,
+      String stageTypeId,
       Application application,
       TelemetrySender telemetrySender,
       TelemetryUtils telemetryUtils,
-      InnerSourceComponentDAO innerSourceComponentDAO,
+      InnerSourceApplicationDAO innerSourceApplicationDAO,
+      InnerSourceVersionDAO innerSourceVersionDAO,
       ApplicationDAO applicationDAO,
       ProprietaryConfigService proprietaryConfigService)
   {
-    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, application, telemetrySender,
-        telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService);
+    return new DependencyResolver(dependenciesJson, bomJson, dataJson, summaryJson, stageTypeId, application,
+        telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+        proprietaryConfigService);
   }
 
   //visible for testing
@@ -142,14 +151,16 @@ public class DependencyResolver
       final JsonNode bomJson,
       final JsonNode dataJson,
       final JsonNode summaryJson,
+      final String stageTypeId,
       final Application application,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final InnerSourceComponentDAO innerSourceComponentDAO,
+      final InnerSourceApplicationDAO innerSourceApplicationDAO,
+      final InnerSourceVersionDAO innerSourceVersionDAO,
       final ApplicationDAO applicationDAO,
       final ProprietaryConfigService proprietaryConfigService)
   {
-
+    this.stageTypeId = stageTypeId;
     this.dependenciesJson = dependenciesJson;
     this.bomJson = bomJson;
     this.dataJson = dataJson;
@@ -157,7 +168,8 @@ public class DependencyResolver
     this.application = application;
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
-    this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
+    this.innerSourceVersionDAO = innerSourceVersionDAO;
     this.applicationDAO = applicationDAO;
     this.proprietaryConfigService = proprietaryConfigService;
     if (summaryJson != null) {
@@ -202,50 +214,95 @@ public class DependencyResolver
 
   //visible for testing
   boolean saveInnerSourceComponent(final PackageUrlIdentifier packageUrl) {
-    if (packageUrl != null) {
-      String appId = application.getId();
-      PackageUrlIdentifier versionlessPurl = packageUrl.createAlternativeVersion(null);
-      if (versionlessPurl != null) {
-        String version = packageUrl.getVersion();
-        InnerSourceComponent innerSourceComponent = innerSourceComponentDAO.getByPackageUrl(versionlessPurl);
-        if (innerSourceComponent != null) {
-          processExistingInnerSourceComponent(innerSourceComponent, version, appId);
-        }
-        else {
-          innerSourceComponent = new InnerSourceComponent();
-          innerSourceComponent.setApplicationId(appId);
-          innerSourceComponent.setPackageUrl(versionlessPurl.getPackageUrl());
-          innerSourceComponent.setLatestVersion(version);
-          innerSourceComponentDAO.insert(innerSourceComponent);
-          log.info("InnerSource component {} with version {} for app {} was created",
-              innerSourceComponent.getPackageUrl(), version, appId);
-        }
+    if (packageUrl == null) {
+      return false;
+    }
+
+    String appId = application.getId();
+    String version = packageUrl.getVersion();
+    PackageUrlIdentifier versionlessPurl = packageUrl.createAlternativeVersion(null);
+
+    if (versionlessPurl == null) {
+      return false;
+    }
+
+    InnerSourceApplication innerSourceApplication = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
+    try (TransactionContext tx = innerSourceApplicationDAO.createTransactionContext()) {
+      tx.begin();
+      if (innerSourceApplication != null) {
+        processExistingInnerSourceComponent(tx, innerSourceApplication, version, appId, packageUrl.getFormat());
+        tx.commit();
         return true;
       }
+      innerSourceApplication = new InnerSourceApplication();
+      innerSourceApplication.setApplicationId(appId);
+      innerSourceApplication.setPackageUrl(versionlessPurl.getPackageUrl());
+      innerSourceApplicationDAO.insert(tx, innerSourceApplication);
+
+      if (version != null) {
+        InnerSourceVersion newInnerSourceVersion = new InnerSourceVersion();
+        newInnerSourceVersion.setInnerSourceApplicationId(innerSourceApplication.getId());
+        newInnerSourceVersion.setLatestVersion(version);
+        newInnerSourceVersion.setStageTypeId(stageTypeId);
+        innerSourceVersionDAO.insert(tx, newInnerSourceVersion);
+      }
+      tx.commit();
     }
-    return false;
+
+    log.info("InnerSource application {} with latest version {} for app {} and stage {} was created",
+        innerSourceApplication.getPackageUrl(), version, appId, stageTypeId);
+    return true;
   }
 
   private void processExistingInnerSourceComponent(
-      final InnerSourceComponent innerSourceComponent,
+      final TransactionContext tx,
+      final InnerSourceApplication innerSourceApplication,
       final String version,
-      final String appId)
+      final String appId,
+      final String format)
   {
-    boolean isNewerVersion = isNewerVersion(innerSourceComponent.getLatestVersion(), version);
-    if (!appId.equals(innerSourceComponent.getApplicationId()) || isNewerVersion) {
-      innerSourceComponent.setApplicationId(appId);
-      if (isNewerVersion) {
-        innerSourceComponent.setLatestVersion(version);
-      }
-      innerSourceComponentDAO.update(innerSourceComponent);
-      log.info("InnerSource component {} with version {} for app {} was updated",
-          innerSourceComponent.getPackageUrl(), version, appId);
+    boolean isNewerVersion = true;
+
+    if (!appId.equals(innerSourceApplication.getApplicationId())) {
+      innerSourceApplication.setApplicationId(appId);
+      innerSourceApplicationDAO.update(tx, innerSourceApplication);
     }
+
+    InnerSourceVersion innerSourceVersion =
+        innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(), stageTypeId);
+
+    if (innerSourceVersion == null) {
+      innerSourceVersion =
+          innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(innerSourceApplication.getId(), null);
+    }
+
+    if (innerSourceVersion != null) {
+      isNewerVersion = isNewerVersion(innerSourceVersion.getLatestVersion(), version, format);
+      if (isNewerVersion) {
+        innerSourceVersion.setLatestVersion(version);
+      }
+      innerSourceVersion.setStageTypeId(stageTypeId);
+      innerSourceVersionDAO.update(tx, innerSourceVersion);
+    }
+    else if (version != null) {
+      InnerSourceVersion newInnerSourceVersion = new InnerSourceVersion();
+      newInnerSourceVersion.setInnerSourceApplicationId(innerSourceApplication.getId());
+      newInnerSourceVersion.setLatestVersion(version);
+      newInnerSourceVersion.setStageTypeId(stageTypeId);
+      innerSourceVersionDAO.insert(tx, newInnerSourceVersion);
+    }
+
+    String updatedVersion = isNewerVersion ? version : innerSourceVersion.getLatestVersion();
+    log.info("InnerSource application {} with latest version {} for app {} and stage {} was updated",
+        innerSourceApplication.getPackageUrl(), updatedVersion, appId, stageTypeId);
   }
 
-  private boolean isNewerVersion(String oldVersion, String newVersion) {
-    return new ComparableVersion(newVersion == null ? "" : newVersion)
-        .compareTo(new ComparableVersion(oldVersion == null ? "" : oldVersion)) > 0;
+  private boolean isNewerVersion(String oldVersion, String newVersion, String format) {
+    CompositeComparableVersion oldComparableVersion =
+        InnerSourceUtils.createCompositeComparableVersion(oldVersion, format);
+    CompositeComparableVersion newComparableVersion =
+        InnerSourceUtils.createCompositeComparableVersion(newVersion, format);
+    return newComparableVersion.compareTo(oldComparableVersion) > 0;
   }
 
   void processInnerSourceDependencies(final List<DependencyNode> children) {
@@ -299,11 +356,11 @@ public class DependencyResolver
       PackageUrlIdentifier simplifiedPurl = packageUrlIdentifier.createAlternativeVersion(null);
       //Only InnerSource components that are different from the current app,
       //if they are the same app it means they are likely modules
-      InnerSourceComponent innerSourceComponent = simplifiedPurl == null ? null :
-          innerSourceComponentDAO.getByPackageUrlExcludingApplication(simplifiedPurl, application.getId());
+      InnerSourceApplication innerSourceApplication = simplifiedPurl == null ? null :
+          innerSourceApplicationDAO.getByPackageUrlExcludingApplication(simplifiedPurl, application.getId());
 
-      if (innerSourceComponent != null) {
-        Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceComponent.getApplicationId());
+      if (innerSourceApplication != null) {
+        Application innerSourceApp = applicationDAO.getByIdNotNull(innerSourceApplication.getApplicationId());
 
         if (!processedDirectDependencies.contains(packageUrlIdentifier.getPackageUrl())) {
           updateDependencyBomAsInnerSource(packageUrlIdentifier, innerSourceApp);
@@ -669,7 +726,7 @@ public class DependencyResolver
       final ObjectNode bomObjectNode)
   {
     PackageUrlIdentifier versionlessPurl = bomPurl.createAlternativeVersion(null);
-    InnerSourceComponent is = innerSourceComponentDAO.getByPackageUrl(versionlessPurl);
+    InnerSourceApplication is = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
     if (is != null) {
       //If the component is transitive and exists as InnerSource, it needs to be updated, so it can be marked as
       //Transitive dependency but not as InnerSource

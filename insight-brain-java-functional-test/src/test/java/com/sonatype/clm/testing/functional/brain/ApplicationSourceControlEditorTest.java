@@ -1007,7 +1007,7 @@ public class ApplicationSourceControlEditorTest
     //root organization source control with manual pull requests enabled
     tempEntity.newSourceControl(
         rootOrganization.getId(), null, null, null, TOKEN, SourceControlProvider.GITHUB, false, true, "main", null,
-        true, true, null, null, true, true
+        true, true, null, null, true, true, null
     );
 
     refresh();
@@ -1046,6 +1046,68 @@ public class ApplicationSourceControlEditorTest
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(0).shouldBe(selected);
+    assertSourceControlManualPullRequest(application.getId(), null);
+  }
+
+  @Test
+  public void testSourceControlEditor_innerSourceAutomatedUpdates() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.APPLICATION.toString(), application.getPublicId()));
+
+    verifyStartNoSourceControl();
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldNotBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs()
+        .forEach(input -> input.shouldBe(disabled));
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels()
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+
+    assertSourceControlDoesNotExist(rootOrganization.getId());
+    assertSourceControlDoesNotExist(organization.getId());
+    assertSourceControlDoesNotExist(application.getId());
+
+    // root organization source control with InnerSource automated updates enabled
+    tempEntity.newSourceControl(
+        rootOrganization.getId(), null, null, null, TOKEN, SourceControlProvider.GITHUB, false, true, "main", null,
+        true, true, null, null, true, true, true
+    );
+
+    refresh();
+
+    // InnerSource automated updates is inherited from root
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(0).shouldBe(selected);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels()
+        .shouldHave(texts(String.format("Inherit from %s", rootOrganization.getName()),
+            "Enabled", "Disabled"));
+    assertSourceControlDoesNotExist(application.getId());
+
+    // application source control
+    tempEntity.newSourceControl(application.getId(), REPOSITORY_URL, TOKEN, null);
+    refresh();
+
+    // override InnerSource automated updates setting
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().get(1).click();
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(1).shouldBe(selected);
+    assertSourceControlInnerSourceAutomatedUpdates(application.getId(), true);
+
+    // disable it
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().get(2).click();
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(2).shouldBe(selected);
+    assertSourceControlInnerSourceAutomatedUpdates(application.getId(), false);
+
+    // back to inherit
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().get(0).click();
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(0).shouldBe(selected);
     assertSourceControlManualPullRequest(application.getId(), null);
   }
 
@@ -1130,6 +1192,24 @@ public class ApplicationSourceControlEditorTest
         .shouldHave(texts("Inherit (Not Configured)", "Override"));
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value(""));
+    //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+    
+    SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldNotBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs()
+        .forEach(input -> input.shouldBe(disabled));
+    SourceControlEditorPage.manualPullRequestsFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.manualPullRequestsFieldset().labels()
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
+    //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldNotBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs()
+        .forEach(input -> input.shouldBe(disabled));
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().radioInputs().get(1).shouldBe(selected);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels()
+        .shouldHave(texts("Inherit (Not Configured)", "Enabled", "Disabled"));
     //SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible); TODO CLM-26277
   }
 

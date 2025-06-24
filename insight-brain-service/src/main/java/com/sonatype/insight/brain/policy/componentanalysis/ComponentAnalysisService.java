@@ -316,7 +316,8 @@ public class ComponentAnalysisService
                 "operation is {}.", app.getPublicId(), scanId, stage.getStageTypeId(), statusId);
 
         // HDS will asynchronously write the report data to the report JSON files
-        ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(app, scanId);
+        ReportComponentData reportComponentData =
+            reportComponentService.fetchReportAndComponents(app, scanId, stage.getStageTypeId());
 
         log.debug(
             "Loaded report component data for app public id {}, scan id {}, stageTypeId {} in {} ms."

@@ -51,7 +51,7 @@ public class ApiCompositeSourceControlResourceTest
     org = tempEntity.newOrganization();
     rootOrgSourceControl =
         tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, "TOKEN", SourceControlProvider.GITHUB, null,
-            null, "BASE_BRANCH", null, true, true, "/target/*", null, null, false);
+            null, "BASE_BRANCH", null, true, true, "/target/*", null, null, false, false);
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
 
@@ -100,6 +100,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isFalse();
     assertThat(result.manualPullRequestsEnabled.parentName).isNull();
     assertThat(result.manualPullRequestsEnabled.parentValue).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.value).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentName).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentValue).isNull();
   }
 
   @Test
@@ -145,6 +148,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isNull();
     assertThat(result.manualPullRequestsEnabled.parentName).isNull();
     assertThat(result.manualPullRequestsEnabled.parentValue).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.value).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentName).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentValue).isNull();
   }
 
   @Test
@@ -190,6 +196,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isNull();
     assertThat(result.manualPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.manualPullRequestsEnabled.parentValue).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.value).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentValue).isFalse();
   }
 
   @Test
@@ -238,6 +247,9 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isNull();
     assertThat(result.manualPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.manualPullRequestsEnabled.parentValue).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.value).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentValue).isFalse();
   }
 
   @Test
@@ -280,5 +292,8 @@ public class ApiCompositeSourceControlResourceTest
     assertThat(result.manualPullRequestsEnabled.value).isNull();
     assertThat(result.manualPullRequestsEnabled.parentName).isEqualTo(rootOrganization.getName());
     assertThat(result.manualPullRequestsEnabled.parentValue).isFalse();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.value).isNull();
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentName).isEqualTo(rootOrganization.getName());
+    assertThat(result.innerSourceAutomatedUpdatesEnabled.parentValue).isFalse();
   }
 }

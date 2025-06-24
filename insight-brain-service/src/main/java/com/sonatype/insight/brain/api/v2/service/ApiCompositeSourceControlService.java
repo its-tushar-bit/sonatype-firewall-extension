@@ -266,6 +266,13 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getManualPullRequestsEnabled
     );
+
+    dto.innerSourceAutomatedUpdatesEnabled = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getInnerSourceAutomatedUpdatesEnabled
+    );
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

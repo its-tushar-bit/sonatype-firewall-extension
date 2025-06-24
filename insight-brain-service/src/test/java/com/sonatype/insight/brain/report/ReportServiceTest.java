@@ -14,8 +14,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
-
+import java.util.function.Supplier;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -24,26 +25,32 @@ import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -79,6 +86,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
@@ -96,6 +104,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 
@@ -214,13 +223,21 @@ public class ReportServiceTest
   private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
 
   @Inject
-  private InnerSourceComponentDAO innerSourceComponentDAO;
+  private InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  @Inject
+  private InnerSourceVersionDAO innerSourceVersionDAO;
 
   @Inject
   private ProprietaryConfigService proprietaryConfigService;
 
   @Inject
   private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Inject
+  private AutomatedPullRequestCreationService automatedPullRequestCreationService;
+
+  private AutomatedPullRequestCreationService automatedPullRequestCreationServiceSpy;
 
   @Mock
   private ScanUploadService mockScanUploadService;
@@ -229,6 +246,7 @@ public class ReportServiceTest
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
     reportDataStoreSpy = spy(reportDataStore);
+    automatedPullRequestCreationServiceSpy = spy(automatedPullRequestCreationService);
     app = tempEntity.newApplicationWithParent();
     mockReportDownloader.setInsightWork(insightWork);
   }
@@ -251,8 +269,8 @@ public class ReportServiceTest
         thirdPartyDataServiceSpy, telemetrySender, telemetryUtils, repositoryMatcher, applicationRiskService,
         productLicense, sbomMetadataUtils, licenseDao, componentLoaderFactory, thirdPartyComponentDAO,
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
-        multiLicenseDAO, innerSourceComponentDAO, proprietaryConfigService, reportDataStoreSpy,
-        mockScanUploadService, insightWork);
+        multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
+        mockScanUploadService, insightWork, automatedPullRequestCreationServiceSpy);
   }
 
   @Test
@@ -260,7 +278,7 @@ public class ReportServiceTest
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
 
     ReportService reportService = createReportService();
-    ApplicationReport report = reportService.fetchReport(app, scanId);
+    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
     verify(thirdPartyDataServiceSpy, never()).deleteByScanId(eq(scanId));
@@ -275,7 +293,7 @@ public class ReportServiceTest
     when(thirdPartyDataServiceSpy.getScanData(scanId))
         .thenReturn(new ThirdPartyApplicationReportDTO());
 
-    ApplicationReport report = reportService.fetchReport(app, scanId);
+    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
     verify(reportDownloader).downloadReport(any(ApplicationReport.class), eq(2100), eq(5));
@@ -286,7 +304,7 @@ public class ReportServiceTest
     mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-third-party-data");
     ReportService reportService = createReportService();
 
-    ApplicationReport reportZip = reportService.fetchReport(app, scanId);
+    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
@@ -685,7 +703,7 @@ public class ReportServiceTest
 
     ReportService reportService = createReportService();
 
-    ApplicationReport reportZip = reportService.fetchReport(app, scanId);
+    ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
     ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
@@ -804,7 +822,7 @@ public class ReportServiceTest
   public void testProcessThirdPartyData_MaxSbomLimitReached_reportDeleted() throws Exception {
     productLicense.setFeatures(LicensedFeature.SBOM_MANAGER);
 
-    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac", 
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-third-party-iac",
         app.getId(), scanId);
     final ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, app, scanId);
     ReportService reportService = createReportService();
@@ -1225,6 +1243,60 @@ public class ReportServiceTest
         .getReportEntity(app.getId(), scanId, INDEX_HTML_FILENAME);
     assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
     assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
+  }
+
+  @Test
+  public void testFetchReport_automatedRemediationIsTriggered() throws IOException {
+    // Create an InnerSource app
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    ComponentIdentifier component = ComponentIdentifier.createMavenCoordinates(
+        "dev.sonatype.test", "iq-sample-vulnerable-dependency", "1.0-SNAPSHOT", "", "jar");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(component);
+    InnerSourceApplication innerSourceAppEntity = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceAppEntity, component.get(ComponentIdentifier.VERSION),
+        StageTypes.SOURCE.getId());
+
+    // Register a new non-major version of the InnerSource app, the release version
+    ComponentIdentifier componentWithNewVersion = component.createAlternativeVersion("1.0");
+    tempEntity.newInnerSourceVersion(innerSourceAppEntity, componentWithNewVersion.get(ComponentIdentifier.VERSION),
+        StageTypes.RELEASE.getId());
+
+    // Fetch the report
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report-with-innersource-dependencies",
+        app.getId(), scanId);
+    ReportService reportService = createReportService();
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("1.0", ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    assertThat(report).isNotNull();
+    assertThat(report.exists()).isTrue();
+
+    // Verify the automated remediation pull request is created
+    Stage stage = new Stage(StageTypes.RELEASE.getId(), StageTypes.RELEASE.getName());
+    verify(automatedPullRequestCreationServiceSpy, times(1))
+        .createAutomatedRemediationPullRequest(
+            eq(app),
+            eq(report.getScanId()),
+            eq(stage),
+            eq(component),
+            argThat(remediationMatches(remediationVersionDTO)),
+            eq(Collections.emptyList())
+        );
+  }
+
+  private ArgumentMatcher<Supplier<Optional<RemediationVersionDTO>>> remediationMatches(
+      RemediationVersionDTO expected)
+  {
+    return supplier -> {
+      if (supplier == null) {
+        return false;
+      }
+      Optional<RemediationVersionDTO> result = supplier.get();
+      return result.isPresent()
+          && expected.getVersion().equals(result.get().getVersion())
+          && expected.getRemediationType().equals(result.get().getRemediationType());
+    };
   }
 
   private String getEntityContents(BaseReportEntity entity) throws IOException {

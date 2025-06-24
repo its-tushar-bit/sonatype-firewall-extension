@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.dataaccess.innersource;
 
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,13 +14,14 @@ import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
  * @since 1.98
+ * @deprecated use {@link InnerSourceApplicationDAO} instead
  */
 @Named
 @Singleton
+@Deprecated
 public class InnerSourceComponentDAO
     extends AbstractOperationalSqlDAO<InnerSourceComponent>
 {
@@ -43,34 +42,6 @@ public class InnerSourceComponentDAO
   public List<InnerSourceComponent> getByApplicationId(String appId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByApplicationId(tx, appId);
-    }
-  }
-
-  public InnerSourceComponent getByPackageUrl(PackageUrlIdentifier packageUrl) {
-    try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
-          " WHERE entity.packageUrl=?1";
-      return get(tx, sQuery, packageUrl.getPackageUrl());
-    }
-  }
-
-  public InnerSourceComponent getByPackageUrlExcludingApplication(
-      PackageUrlIdentifier packageUrl,
-      String excludedApplicationId)
-  {
-    try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
-          " WHERE entity.packageUrl=?1 and entity.applicationId<>?2";
-      return get(tx, sQuery, packageUrl.getPackageUrl(), excludedApplicationId);
-    }
-  }
-
-  public List<InnerSourceComponent> getByPackageUrls(Set<PackageUrlIdentifier> packageUrls) {
-    try (TransactionContext tx = createTransactionContext()) {
-      String sQuery = SELECT_ENTITY_FROM_INNER_SOURCE_COMPONENT + //
-          " WHERE entity.packageUrl IN (?1)";
-      return getList(tx, sQuery,
-          packageUrls.stream().map(PackageUrlIdentifier::getPackageUrl).collect(Collectors.toList()));
     }
   }
 }

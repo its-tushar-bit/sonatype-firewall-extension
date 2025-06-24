@@ -20,6 +20,8 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
@@ -76,7 +78,8 @@ public class ComponentDetailsInnerSourceTest
     String packageUrl = InnerSourceUtils
         .getVersionlessPackageUrl(ComponentIdentifier.createMavenCoordinates("java2html", "j2h", "1.3.1", "", "jar"))
         .getPackageUrl();
-    tempEntity.newInnerSourceComponent(packageUrl, app, "0.0.0");
+    InnerSourceApplication innerSourceApplication = tempEntity.newInnerSourceApplication(packageUrl, app);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "0.0.0", StageTypes.RELEASE.getId());
 
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     ComponentDetailsPage componentDetailsPage =

@@ -30,20 +30,24 @@ import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.ScmRepoVisibilityService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.report.ReportEntity;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -52,6 +56,7 @@ import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Selenide;
@@ -103,10 +108,12 @@ public class PrioritiesPageTest
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .withBody("{ \"private\": true }")));
   }
-  
+
   private Application application;
 
   private PolicyDAO policyDAO;
+
+  private InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private ApplicationReportPersistenceService applicationReportPersistenceService;
 
@@ -120,10 +127,19 @@ public class PrioritiesPageTest
   public void before() throws Exception {
     policyDAO = lookup(PolicyDAO.class);
     applicationReportPersistenceService = lookup(ApplicationReportPersistenceService.class);
+    innerSourceApplicationDAO = lookup(InnerSourceApplicationDAO.class);
 
     ImmutablePair<Application, String> appAndScanId = setUpAppsWithPriorities();
     application = appAndScanId.getLeft();
     mockRemediationData();
+    //add inner source data
+    ComponentIdentifier innersourceDirectComponent =
+        ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
+    PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication(versionlessPurl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.4.0", StageTypes.BUILD.getId());
+
     refreshOrOpen(PrioritiesPage.url(application.getPublicId(), appAndScanId.getRight()));
   }
 
@@ -208,7 +224,7 @@ public class PrioritiesPageTest
     page.prioritiesTableCell(0, 3).shouldHave(text("Reachable"));
     page.prioritiesTableCell(0, 4).shouldHave(text("Investigate"));
     page.prioritiesTableCell(0, 5).shouldHave(text("View Violations"));
-    
+
     // another row with a null automatedRemediationStatus where a manual PR should not be possible
     page.prioritiesTableCell(13, 0).shouldHave(text("14"));
     page.prioritiesTableCell(13, 1).shouldHave(text("sample-application.zip"));
@@ -253,7 +269,7 @@ public class PrioritiesPageTest
             .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
             .withBody("{ \"private\": false }")));
     assertManualPullRequest("Manual Pull Requests are disabled");
-    
+
     // a row where a manual pull request is possible and enabled
     mocks.clear();
     gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
@@ -1065,6 +1081,77 @@ public class PrioritiesPageTest
     detailsPage.violationsTab().shouldHave(cssClass("active"));
   }
 
+  @Test
+  public void testRowData_InnerSourceDirectComponentWithRemediation() {
+    ComponentIdentifier innersourceDirectComponent =
+        ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
+
+    PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
+    InnerSourceApplication innerSourceApplication = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.4.0", StageTypes.RELEASE.getId());
+
+    ComponentIdentifier innersourceTransitiveComponent =
+        ComponentIdentifier.createMavenCoordinates("com.sonatype.insight.scan", "insight-scanner-archive", "1.0.0", "",
+            "jar");
+
+    PackageUrlIdentifier transitiveVersionlessPurl =
+        InnerSourceUtils.getVersionlessPackageUrl(innersourceTransitiveComponent);
+    InnerSourceApplication transitiveInnerSourceApplication =
+        tempEntity.newInnerSourceApplication(transitiveVersionlessPurl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(transitiveInnerSourceApplication, "1.1.0", StageTypes.RELEASE.getId());
+
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+    page.lastPageLink().shouldBe(visible).click();
+    //the transitive component should not be shown in the priorities table, so it has only 2 rows
+    page.prioritiesTableRows().shouldHave(size(2));
+    page.prioritiesTableCell(1, 0).shouldHave(text("17"));
+    page.prioritiesTableCell(1, 1).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    page.directDependencyIndicator(1).shouldBe(visible);
+    page.innerSourceDependencyIndicator(1).shouldBe(visible);
+    page.prioritiesTableCell(1, 4).shouldHave(text("Upgrade to 1.4.0"));
+  }
+
+  @Test
+  public void testCreatePRModal_InnerSourceDirectComponentWithRemediation_CreatePR() throws Exception {
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(),
+        gitService.baseUrl() + "/someOrg/someRepo",
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    lookup(SourceControlDAO.class).update(sourceControl);
+    mockInnerSourceRemediationData();
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+    CreatePRModal createPRModal = new CreatePRModal();
+
+    page.lastPageLink().shouldBe(visible).click();
+
+    //verify the direct component is shown in the priorities table
+    page.prioritiesTableCell(1, 0).shouldHave(text("17"));
+    page.prioritiesTableCell(1, 1).shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    page.directDependencyIndicator(1).shouldBe(visible);
+    page.innerSourceDependencyIndicator(1).shouldBe(visible);
+    page.prioritiesTableCell(1, 4).shouldHave(text("Upgrade to 1.4.0"));
+    //click the create pull request button
+    SelenideElement createPullRequestButton =
+        page.createPullRequestButton(1).shouldBe(visible).shouldHave(text("Create PR"));
+    createPullRequestButton.click();
+
+    //check the modal content
+    createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
+    createPRModal.createPullRequestModalHeader().shouldBe(visible).shouldHave(text("Create Pull Request"));
+    createPRModal.createPrModalPrTitle().shouldBe(visible).shouldHave(text("Bump jclouds-enterprise to 1.4.0"));
+    createPRModal.createPrModalComponentName().shouldBe(visible)
+        .shouldHave(text("org.jclouds.driver : jclouds-enterprise : 1.3.1"));
+    createPRModal.createPrModalCurrentVersion().shouldBe(visible).shouldHave(text("1.3.1"));
+    createPRModal.createPrModalTargetVersion().shouldBe(visible).shouldHave(text("1.4.0"));
+    createPRModal.createPrModalBreakingChanges().shouldBe(visible).shouldHave(text("None"));
+    createPRModal.createPrModalDefaultBranch().shouldBe(visible).shouldHave(text("master"));
+  }
+
   private boolean isPullRequestStatusCalled(final SourceControlPullRequestService pullRequestServiceSpy, int times) {
     try {
       verify(pullRequestServiceSpy, times(times)).getPullRequestStatus(any());
@@ -1219,6 +1306,48 @@ public class PrioritiesPageTest
     versionScoringDTO.setToVersionsNonBreaking(Map.of("3.2", toVersionData));
     testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[] {versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
+  }
+
+  private void mockInnerSourceRemediationData() throws Exception {
+    ComponentIdentifier innersourceDirectComponent =
+        ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
+
+    PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
+    InnerSourceApplication innerSourceApplication = innerSourceApplicationDAO.getByPackageUrl(versionlessPurl);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.4.0", StageTypes.RELEASE.getId());
+
+    // Add remediation data for the inner source component
+    try {
+      ComponentIdentifier innerSourceCoordNonFailing =
+          ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.4.0", "", "jar");
+
+      ComponentDetails fromReport = createComponentDetailsForSecurityViolation(innersourceDirectComponent);
+      ComponentDetails nonFailing = createComponentDetailsForNoViolation(innerSourceCoordNonFailing);
+      ComponentDetailsList detailsList = new ComponentDetailsList();
+      detailsList.setList(List.of(fromReport, nonFailing));
+
+      testCLMServer.getHdsServer().respondWith(detailsList).atUri("rest/ci/componentDetails/list");
+
+      testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
+          UriBuilder.fromPath("rest/component/summary")
+              .queryParam("componentIdentifier",
+                  URLEncoder.encode(new ObjectMapper().writeValueAsString(innersourceDirectComponent), "UTF-8"))
+              .build()
+      );
+
+      VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
+      versionScoringDTO.setComponentIdentifier(innersourceDirectComponent);
+      versionScoringDTO.setVersionScore(0);
+      versionScoringDTO.setMaxSeverity(5.0d);
+      VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
+      toVersionData.setBreakingChangeCount(0);
+      versionScoringDTO.setToVersionsNonBreaking(Map.of("1.4.0", toVersionData));
+      testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
+          .atUri("rest/component/version-scoring/list");
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private ComponentDetails createComponentDetailsForNoViolation(final ComponentIdentifier componentIdentifier) {

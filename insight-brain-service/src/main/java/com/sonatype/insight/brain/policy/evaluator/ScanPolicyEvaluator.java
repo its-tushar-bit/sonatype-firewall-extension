@@ -389,7 +389,8 @@ public class ScanPolicyEvaluator
 
     AuditData.get().setStageId(stage.getStageTypeId());
 
-    ReportComponentData reportComponentData = reportComponentService.fetchReportAndComponents(application, scanId);
+    ReportComponentData reportComponentData =
+        reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
 
     return performPolicyEvaluation(application, scanId, stage, scanTriggerType, clientUserAgent, clientInstanceId,
         forMonitoring, clientScanType, reportComponentData, analysisDTO, skipAutoWaivers);

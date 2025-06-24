@@ -12,6 +12,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
@@ -68,6 +69,9 @@ public class PullRequestRemediationServiceTest
   private SourceControlEventDAO mockSourceControlEventDAO;
 
   @Mock
+  private InnerSourceApplicationDAO mockInnerSourceApplicationDAO;
+
+  @Mock
   private ScmReducedSecurityService mockScmReducedSecurityService;
 
   // subject
@@ -87,7 +91,8 @@ public class PullRequestRemediationServiceTest
     organizationDAO = daoFactory.createOrganizationDAO();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
         mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockPullRequestTaskProvider,
-        mockSourceControlSshService, mockSourceControlEventDAO, mockScmReducedSecurityService);
+        mockSourceControlSshService, mockSourceControlEventDAO, mockScmReducedSecurityService,
+        mockInnerSourceApplicationDAO);
   }
 
   private Application setupApplication(String appId) {
@@ -99,7 +104,7 @@ public class PullRequestRemediationServiceTest
 
   private void setupGitRepositoryInfoForApp(String appId) {
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
-        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, true, false, null);
 
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(appId)).thenReturn(gitRepositoryInfo);
   }
@@ -162,7 +167,7 @@ public class PullRequestRemediationServiceTest
     setupBranchExistence(branchName, true);
     SourceControlEvent event = new SourceControlEvent().setBranchName(branchName);
     GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("repoUrl", "sshRepoUrl", "username", "token",
-        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, false, null);
+        SourceControlProvider.GITLAB, "baseBranch", true, true, true, true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     // when: try to remediate a component for this same branch

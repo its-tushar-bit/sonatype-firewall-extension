@@ -94,6 +94,14 @@ public abstract class AbstractSourceControlEditorTest
     assertThat(sourceControl.getManualPullRequestsEnabled()).isEqualTo(manualPullRequestsEnabled);
   }
 
+  protected void assertSourceControlInnerSourceAutomatedUpdates(
+      final String ownerId,
+      final Boolean innerSourceAutomatedUpdatesEnabled)
+  {
+    final SourceControl sourceControl = sourceControlDAO.getByOwnerId(ownerId);
+    assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isEqualTo(innerSourceAutomatedUpdatesEnabled);
+  }
+
   protected abstract void verifyStartNoSourceControl();
 
   protected abstract void verifyStartWithSourceControl();

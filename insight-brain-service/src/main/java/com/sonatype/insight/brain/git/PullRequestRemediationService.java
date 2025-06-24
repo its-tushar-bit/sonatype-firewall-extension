@@ -13,12 +13,14 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
 
@@ -50,6 +52,8 @@ public class PullRequestRemediationService
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final ScmReducedSecurityService scmReducedSecurityService;
+  
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   @Inject
   public PullRequestRemediationService(
@@ -61,7 +65,8 @@ public class PullRequestRemediationService
       Provider<PullRequestTask> pullRequestTaskProvider,
       SourceControlSshService sourceControlSshService,
       SourceControlEventDAO sourceControlEventDAO,
-      ScmReducedSecurityService scmReducedSecurityService)
+      ScmReducedSecurityService scmReducedSecurityService,
+      InnerSourceApplicationDAO innerSourceApplicationDAO)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
@@ -72,6 +77,7 @@ public class PullRequestRemediationService
     this.sourceControlSshService = sourceControlSshService;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.scmReducedSecurityService = scmReducedSecurityService;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
   }
 
   /**
@@ -104,7 +110,9 @@ public class PullRequestRemediationService
           event.getPullRequestContents(),
           organizationDAO,
           SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT.equals(event.getEventType()),
-          reducedSecurityData
+          reducedSecurityData,
+          innerSourceApplicationDAO.getByPackageUrl(PackageUrlIdentifier.fromComponentIdentifier(
+              event.getComponentIdentifier().createAlternativeVersion(null))) != null
       );
 
       PullRequestTask pullRequestTask = pullRequestTaskProvider.get();

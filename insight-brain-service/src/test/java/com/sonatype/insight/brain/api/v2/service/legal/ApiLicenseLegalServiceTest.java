@@ -69,7 +69,7 @@ import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
@@ -159,6 +159,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.lenient;
@@ -261,7 +262,7 @@ public class ApiLicenseLegalServiceTest
 
   private ApplicationDAO applicationDAO;
 
-  private InnerSourceComponentDAO innerSourceComponentDAO;
+  private InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private OwnerDAO ownerDAO;
 
@@ -284,7 +285,7 @@ public class ApiLicenseLegalServiceTest
     // Init DAOs
     licenseDAO = daoFactory.createLicenseDAO();
     applicationDAO = daoFactory.createApplicationDAO();
-    innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
+    innerSourceApplicationDAO = daoFactory.createInnerSourceApplicationDAO();
     ownerDAO = daoFactory.createOwnerDAO();
     policyDAO = daoFactory.createPolicyDAO();
 
@@ -504,10 +505,10 @@ public class ApiLicenseLegalServiceTest
 
     tempEntity.newApplicationComponent(app.getId(), BuildStageType.ID, "hash2", componentIdentifier2);
 
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent1.getComponentIdentifier()).getPackageUrl(),
         app);
-    tempEntity.newInnerSourceComponent(
+    tempEntity.newInnerSourceApplication(
         InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent2.getComponentIdentifier()).getPackageUrl(),
         otherApp);
 
@@ -2221,7 +2222,7 @@ public class ApiLicenseLegalServiceTest
 
   @Test
   public void testInitialize_ComponentInfoServiceToolNameSet() {
-    verify(componentInfoServiceSpy).setToolName("ci");
+    verify(componentInfoServiceSpy, atLeastOnce()).setToolName("ci");
   }
 
   @Test
@@ -3369,8 +3370,8 @@ public class ApiLicenseLegalServiceTest
       throw new RuntimeException(e);
     }
 
-    if (innerSourceComponentDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
-      tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
+    if (innerSourceApplicationDAO.getByApplicationId(evaluation.getApplicationId()).isEmpty()) {
+      tempEntity.newInnerSourceApplication(InnerSourceUtils.getVersionlessPackageUrl(INNER_SOURCE_COMPONENT_IDENTIFIER)
           .getPackageUrl(), applicationDAO.getById(evaluation.getApplicationId()));
     }
   }

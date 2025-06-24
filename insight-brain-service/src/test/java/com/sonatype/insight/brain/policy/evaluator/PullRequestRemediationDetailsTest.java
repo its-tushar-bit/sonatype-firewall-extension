@@ -274,7 +274,7 @@ public class PullRequestRemediationDetailsTest
     PullRequestRemediationDetails details =
         new PullRequestRemediationDetails(componentIdentifier, "3.11.3", targetVersionType, breakingChangesCount,
             "pullRequest", policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL,
-            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null, FULL_DATA);
+            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null, FULL_DATA, false);
 
     assertThat(details.getTitle()).isEqualTo("Bump jooq to 3.11.3");
 
@@ -341,6 +341,50 @@ public class PullRequestRemediationDetailsTest
   public void testMinimalMarkdownSecurityVulnerabilityReport_golangComponent() throws Exception {
     testSecurityVulnerabilityReport_golangComponent(SourceControlProvider.BITBUCKET,
         "/PullRequestRemediationDetailsTest/VulnerabilityReport_golang_bitbucket.md");
+  }
+
+  @Test
+  public void testInnerSourcePR_Auto() throws Exception {
+    testInnerSourcePR(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/InnerSourceReport_Auto.md", false);
+  }
+
+  @Test
+  public void testInnerSourcePR_Manual() throws Exception {
+    testInnerSourcePR(SourceControlProvider.GITHUB,
+        "/PullRequestRemediationDetailsTest/InnerSourceReport_Manual.md", true);
+  }
+
+  @Test
+  public void testInnerSourcePR_Auto_Minimal() throws Exception {
+    testInnerSourcePR(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/InnerSourceReport_Auto_Minimal.md", false);
+  }
+
+  @Test
+  public void testInnerSourcePR_Manual_Minimal() throws Exception {
+    testInnerSourcePR(SourceControlProvider.BITBUCKET,
+        "/PullRequestRemediationDetailsTest/InnerSourceReport_Manual_Minimal.md", true);
+  }
+
+  private void testInnerSourcePR(
+      SourceControlProvider provider,
+      String expectedResource,
+      boolean isManualPullRequest) throws Exception
+  {
+    ComponentIdentifier componentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("com.example", "inner-source-produced", "1.58.7");
+    List<PolicyNotification> policyNotifications = createPolicyNotifications(componentIdentifier, componentIdentifier);
+
+    PullRequestRemediationDetails details =
+        new PullRequestRemediationDetails(componentIdentifier, "1.58.8", "next-no-violations", 0,
+            "pullRequest", policyNotifications, app, SCAN_ID, Stage.ID_BUILD, getBaseUrl(), provider, TEST_SCM_URL,
+            organizationDAO, isManualPullRequest, isManualPullRequest ? "Bob Smith" : null, FULL_DATA, true);
+
+    assertThat(details.getTitle()).isEqualTo("Bump inner-source-produced to 1.58.8");
+
+    String expectedContent = loadResource(expectedResource);
+    assertThat(details.getContents()).isEqualTo(expectedContent);
   }
 
   private void testSecurityVulnerabilityReport_golangComponent(

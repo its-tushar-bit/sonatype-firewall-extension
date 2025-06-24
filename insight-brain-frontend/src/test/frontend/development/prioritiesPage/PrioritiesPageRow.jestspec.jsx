@@ -444,6 +444,7 @@ describe('PrioritiesPageRow', () => {
             },
           },
           prioritiesPage: {
+            priorities: [mockData],
             recommendations: {
               [mockData.componentHash]: {
                 loading: false,
@@ -457,19 +458,58 @@ describe('PrioritiesPageRow', () => {
                 automatedRemediationStatus: {
                   status: 'MANUAL_PULL_REQUEST_POSSIBLE',
                 },
+                componentDisplayName: mockData.displayName,
               },
+            },
+            visibleCreatePRModalComponentHash: null,
+            branchName: 'main',
+          },
+          createPRModal: {
+            isModalOpen: false,
+            name: null,
+            fullName: null,
+            currentVersion: null,
+            targetVersion: null,
+            breakingChangesCount: null,
+            defaultBranch: null,
+            scanId: null,
+            identificationSource: null,
+            componentHash: null,
+            componentIdentifier: {},
+            submitMaskState: null,
+            error: null,
+          },
+          applicationReport: {
+            metadata: {
+              application: {
+                id: 'test-app-id',
+              },
+              stageId: 'build',
             },
           },
         });
-        renderComponent(preloadedState);
+
+        const { store } = renderComponent(preloadedState);
 
         const cell = screen.getAllByRole('cell')[5];
         const button = within(cell).getByRole('button');
-        expect(button).not.toHaveClass('disabled');
-        expect(button).toHaveTextContent('Create PR');
 
-        await user.hover(button);
-        await expect(screen.findByRole('tooltip')).rejects.toThrow();
+        await user.click(button);
+
+        await waitFor(() => {
+          const state = store.getState();
+          expect(state.prioritiesPage.visibleCreatePRModalComponentHash).toBe(mockData.componentHash);
+          expect(state.createPRModal.isModalOpen).toBe(true);
+        });
+
+        await waitFor(() => {
+          expect(screen.getByRole('dialog')).toBeInTheDocument();
+        });
+
+        expect(screen.getByText('Create Pull Request')).toBeInTheDocument();
+        expect(screen.getByText(`Bump ${mockData.displayName} to 4.5.6`)).toBeInTheDocument();
+        expect(screen.getByText('4.5.6')).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
       });
 
       it('renders a disabled "Create PR" button if a manual pull request is possible but disabled', async () => {
@@ -616,6 +656,126 @@ describe('PrioritiesPageRow', () => {
         const button = within(cell).queryByRole('button');
         expect(button).toBeNull();
       });
+    });
+  });
+
+  describe('inner source dependency types', () => {
+    it('renders Inner Source dependency type indicator correctly', () => {
+      const innerSourceMockData = {
+        ...mockData,
+        dependencyType: 'Inner Source',
+      };
+
+      const props = {
+        ...minimalProps,
+        component: innerSourceMockData,
+      };
+
+      render(<PrioritiesPageRow {...props} />, {
+        preloadedState: defaultPreloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const componentCell = screen.getAllByRole('cell')[1];
+      expect(componentCell).toHaveTextContent(/IS/);
+    });
+
+    it('renders Inner Source Direct dependency type indicator correctly', () => {
+      const innerSourceDirectMockData = {
+        ...mockData,
+        dependencyType: 'Inner Source Direct',
+      };
+
+      const props = {
+        ...minimalProps,
+        component: innerSourceDirectMockData,
+      };
+
+      render(<PrioritiesPageRow {...props} />, {
+        preloadedState: defaultPreloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const componentCell = screen.getAllByRole('cell')[1];
+      expect(componentCell).toHaveTextContent(/^DIS/);
+    });
+
+    it('correctly maps Inner Source dependency types', () => {
+      expect(dependencyTypeMap['Inner Source']).toBe('inner-source');
+      expect(dependencyTypeMap['Inner Source Direct']).toBe('direct');
+      expect(dependencyTypeMap['Inner Source Transitive']).toBe('transitive');
+    });
+  });
+
+  describe('inner source remediation types', () => {
+    const asyncRecPreloadedState = mergeDeepRight(defaultPreloadedState, {
+      productFeatures: {
+        productFeatures: {
+          'developer-bulk-recommendations': false,
+        },
+      },
+    });
+
+    it('renders "Upgrade to {version}" for innersource-latest-non-breaking recommendation', () => {
+      const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+        prioritiesPage: {
+          recommendations: {
+            [mockData.componentHash]: {
+              loading: false,
+              error: null,
+              remediation: {
+                type: 'innersource-latest-non-breaking',
+                version: '1.2.3',
+                isGolden: false,
+                breakingChangesCount: 0,
+              },
+            },
+          },
+        },
+      });
+
+      render(<PrioritiesPageRow {...minimalProps} />, {
+        preloadedState: preloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const cell = screen.getAllByRole('cell')[4];
+      expect(cell).toHaveTextContent('Upgrade to 1.2.3');
+    });
+
+    it('renders "Upgrade to {version}" for innersource-latest recommendation', () => {
+      const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+        prioritiesPage: {
+          recommendations: {
+            [mockData.componentHash]: {
+              loading: false,
+              error: null,
+              remediation: {
+                type: 'innersource-latest',
+                version: '2.0.0',
+                isGolden: false,
+                breakingChangesCount: 3,
+              },
+            },
+          },
+        },
+      });
+
+      render(<PrioritiesPageRow {...minimalProps} />, {
+        preloadedState: preloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const cell = screen.getAllByRole('cell')[4];
+      expect(cell).toHaveTextContent('Upgrade to 2.0.0');
     });
   });
 });

@@ -172,6 +172,7 @@ public class ManualPullRequestFeatureCheckTest
 
   private GitRepositoryInfo newRepositoryInfo(SourceControlProvider provider) {
     return new GitRepositoryInfo("repo-url", "ssh-repo-url", "username", "token", provider, "master", true, true, true,
+        true,
         true, true, false, null);
   }
 }

@@ -33,14 +33,18 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.git.event.orchestrate.SourceControlEventOrchestrator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.gitlab.GitLabServer;
 import com.sonatype.insight.test.gitlab.GitLabServerRule;
 import com.sonatype.nexus.scm.SourceControlProvider;
@@ -112,6 +116,13 @@ public class ManualPullRequestTest
   @Test
   public void testGitLabManualPullRequest() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
+    //add inner source data
+    ComponentIdentifier innersourceDirectComponent =
+        ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
+    PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication(versionlessPurl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.4.0", StageTypes.BUILD.getId());
     SourceControl sourceControl = tempEntity.newSourceControl(
         application.getId(),
         gitLabServer.getProject().getWebUrl(),

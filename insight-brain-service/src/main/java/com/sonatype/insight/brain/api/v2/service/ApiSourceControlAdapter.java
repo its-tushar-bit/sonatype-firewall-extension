@@ -49,6 +49,7 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.sshEnabled = sourceControl.getSshEnabled();
     apiSourceControlDTO.commitStatusEnabled = sourceControl.getCommitStatusEnabled();
     apiSourceControlDTO.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
+    apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = sourceControl.getInnerSourceAutomatedUpdatesEnabled();
 
     return apiSourceControlDTO;
   }
@@ -101,6 +102,13 @@ public class ApiSourceControlAdapter
     return manualPullRequestsEnabled;
   }
 
+  private static Boolean convertInnerSourceAutomatedUpdatesEnabled(Boolean innerSourceAutomatedUpdatesEnabled) {
+    if (new TenantUtil().isMultiTenant()) {
+      return false;
+    }
+    return innerSourceAutomatedUpdatesEnabled;
+  }
+
   @SuppressWarnings("deprecation")
   static SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
@@ -123,6 +131,8 @@ public class ApiSourceControlAdapter
         .setSshEnabled(dto.sshEnabled)
         .setCommitStatusEnabled(dto.commitStatusEnabled)
         .setManualPullRequestsEnabled(convertManualPullRequestsEnabled(dto.manualPullRequestsEnabled))
+        .setInnerSourceAutomatedUpdatesEnabled(
+            convertInnerSourceAutomatedUpdatesEnabled(dto.innerSourceAutomatedUpdatesEnabled))
         .build();
 
     return sourceControl;

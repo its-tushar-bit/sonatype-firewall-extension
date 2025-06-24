@@ -9,6 +9,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
@@ -29,8 +31,10 @@ public class InnerSourceResourceTest
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createNpmCoordinates("p", "v");
     Application app = tempEntity.newApplicationWithParent();
     String version = "1.0.0";
-    tempEntity.newInnerSourceComponent(InnerSourceUtils.getVersionlessPackageUrl(componentIdentifier).getPackageUrl(),
-        app, version);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication(
+            InnerSourceUtils.getVersionlessPackageUrl(componentIdentifier).getPackageUrl(), app);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, version, StageTypes.RELEASE.getId());
 
     HttpResponse response = restRequest().path(InnerSourceResource.COMPONENT_LATEST_VERSION_PATH)
         .query("componentIdentifier", componentIdentifier).get();

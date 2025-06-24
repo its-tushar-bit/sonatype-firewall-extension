@@ -176,7 +176,9 @@ const loadRecommendations = createAsyncThunk(
           [requestData.hash]: {
             remediation: remediation,
             automatedRemediationStatus: data.automatedRemediationStatus,
-            componentDisplayName: data.allVersions[0].displayName.name,
+            componentDisplayName:
+              (data.allVersions && data.allVersions.length > 0 && data.allVersions[0].displayName?.name) ||
+              (data.remediation.suggestedVersionChange?.data.component.displayName?.split(':')[1] || '').trim(),
           },
         };
       })

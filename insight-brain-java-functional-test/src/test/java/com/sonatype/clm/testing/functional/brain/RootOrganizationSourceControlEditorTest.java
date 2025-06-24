@@ -423,6 +423,42 @@ public class RootOrganizationSourceControlEditorTest
     assertSourceControlManualPullRequest(organization.getId(), true);
   }
 
+  @Test
+  public void testSourceControlEditor_innerSourceAutomatedUpdates() {
+    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
+
+    verifyStartNoSourceControl();
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(disabled)
+        .shouldBe(selected);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+
+    tempEntity
+        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master", PR_COMMENTING_ON, REMEDIATION_PR_ON,
+            SOURCE_EVALS_ON, STATUS_UPDATES_ON);
+    refresh();
+    verifyStartWithSourceControl();
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(enabled)
+        .shouldBe(selected);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggleControl().shouldBe(enabled).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+    assertSourceControlInnerSourceAutomatedUpdates(organization.getId(), false);
+
+    // enable InnerSource automated updates
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggleControl().shouldBe(enabled).click();
+
+    SourceControlEditorPage.saveButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(selected);
+    assertSourceControlInnerSourceAutomatedUpdates(organization.getId(), true);
+  }
+
   @Override
   protected void verifyStartNoSourceControl() {
     SourceControlEditorPage.root().shouldBe(visible);
@@ -474,6 +510,16 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.baseBranchInput().shouldBe(visible, disabled);
     SourceControlEditorPage.baseBranchInput().shouldHave(value("main"));
     SourceControlEditorPage.defaultBranchNotSupportedAlert().shouldNotBe(visible);
+
+    SourceControlEditorPage.manualPullRequestsFieldset().shouldBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().toggle().shouldBe(disabled, selected);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.manualPullRequestsFieldset().labels().forEach(label -> label.shouldNotBe(visible));
+
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().shouldBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().toggle().shouldBe(disabled, selected);
+    SourceControlEditorPage.sourceControlEvaluationsNotSupportedAlert().shouldNotBe(visible);
+    SourceControlEditorPage.innerSourceAutomatedUpdatesFieldset().labels().forEach(label -> label.shouldNotBe(visible));
   }
 
   @Override

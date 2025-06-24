@@ -65,7 +65,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentCopyrightDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentLegalFileDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationAttributionDAO;
@@ -87,7 +87,7 @@ import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.legal.ComponentLegalPartStatus;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.legal.LegalFileType;
@@ -212,7 +212,7 @@ public class ApiLicenseLegalService
 
   private final LicenseThreatGroupDAO licenseThreatGroupDAO;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO;
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private final LegalDashboardsService legalDashboardService;
 
@@ -266,7 +266,7 @@ public class ApiLicenseLegalService
       ComponentObligationAttributionDAO componentObligationAttributionDAO,
       AggregateFileDAO aggregateFileDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
-      InnerSourceComponentDAO innerSourceComponentDAO,
+      InnerSourceApplicationDAO innerSourceApplicationDAO,
       LegalDashboardsService legalDashboardService,
       ComponentLegalService componentLegalService,
       IdUtils idUtils,
@@ -299,7 +299,7 @@ public class ApiLicenseLegalService
     this.componentObligationAttributionDAO = componentObligationAttributionDAO;
     this.aggregateFileDAO = aggregateFileDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
-    this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
     this.legalDashboardService = legalDashboardService;
     this.componentLegalService = componentLegalService;
     this.stageTypeService = stageTypeService;
@@ -771,8 +771,8 @@ public class ApiLicenseLegalService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
-        .map(InnerSourceComponent::getPackageUrl)
+    Set<String> innerSourcePackageUrls = innerSourceApplicationDAO.getByPackageUrls(componentPurls).stream()
+        .map(InnerSourceApplication::getPackageUrl)
         .collect(Collectors.toSet());
 
     latestRawReport.components.removeIf(c ->
@@ -1470,8 +1470,8 @@ public class ApiLicenseLegalService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
-        .map(InnerSourceComponent::getPackageUrl)
+    Set<String> innerSourcePackageUrls = innerSourceApplicationDAO.getByPackageUrls(componentPurls).stream()
+        .map(InnerSourceApplication::getPackageUrl)
         .collect(Collectors.toSet());
 
     applicationComponentLicensesDTOS.removeIf(c -> LegalComponentIdentifierUtil

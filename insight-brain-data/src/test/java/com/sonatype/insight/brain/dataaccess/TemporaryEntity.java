@@ -85,7 +85,9 @@ import com.sonatype.insight.brain.dataaccess.development.prioritization.Developm
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
@@ -223,7 +225,9 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
 import com.sonatype.insight.brain.model.label.Label;
@@ -550,6 +554,10 @@ public class TemporaryEntity
   private ShiroSessionDAO shiroSessionDAO;
 
   private InnerSourceComponentDAO innerSourceComponentDAO;
+
+  private InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  private InnerSourceVersionDAO innerSourceVersionDAO;
 
   private PersistedScanTicketDAO persistedScanTicketDAO;
 
@@ -4372,7 +4380,7 @@ public class TemporaryEntity
   {
     return newSourceControl(applicationId, repositoryUrl, null, username, token, provider,
         remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestPollTime,
-        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null, null, null);
+        pullRequestCommentingEnabled, sourceControlEvaluationsEnabled, sourceControlScanTarget, null, null, null, null);
   }
 
   public SourceControl newSourceControl(
@@ -4391,7 +4399,8 @@ public class TemporaryEntity
       String sourceControlScanTarget,
       Boolean sshEnabled,
       Boolean commitStatusEnabled,
-      Boolean manualPullRequestsEnabled
+      Boolean manualPullRequestsEnabled,
+      Boolean innerSourceAutomatedUpdatesEnabled
   )
   {
     SourceControl sourceControl =
@@ -4412,6 +4421,7 @@ public class TemporaryEntity
             .setSshEnabled(sshEnabled)
             .setCommitStatusEnabled(commitStatusEnabled)
             .setManualPullRequestsEnabled(manualPullRequestsEnabled)
+            .setInnerSourceAutomatedUpdatesEnabled(innerSourceAutomatedUpdatesEnabled)
             .build();
     sourceControlDAO.insert(sourceControl);
     return sourceControl;
@@ -5226,15 +5236,33 @@ public class TemporaryEntity
     return Collections.singletonList(constraintFact);
   }
 
-  public InnerSourceComponent newInnerSourceComponent(String purl, Application application) {
-    return newInnerSourceComponent(purl, application, null);
-  }
-
-  public InnerSourceComponent newInnerSourceComponent(String purl, Application application, String latestVersion) {
+  public InnerSourceComponent newInnerSourceComponent(
+      String purl,
+      Application application)
+  {
     InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
-    innerSourceComponent.setLatestVersion(latestVersion);
     innerSourceComponentDAO.insert(innerSourceComponent);
     return innerSourceComponent;
+  }
+
+  public InnerSourceApplication newInnerSourceApplication(
+      String purl,
+      Application application)
+  {
+    InnerSourceApplication innerSourceApplication = new InnerSourceApplication(application.getId(), purl);
+    innerSourceApplicationDAO.insert(innerSourceApplication);
+    return innerSourceApplication;
+  }
+
+  public InnerSourceVersion newInnerSourceVersion(
+      InnerSourceApplication innerSourceApplication,
+      String latestVersion,
+      String stageTypeId)
+  {
+    InnerSourceVersion innerSourceVersion =
+        new InnerSourceVersion(innerSourceApplication.getId(), latestVersion, stageTypeId);
+    innerSourceVersionDAO.insert(innerSourceVersion);
+    return innerSourceVersion;
   }
 
   public RepositoryMigration newRepositoryMigration(Repository repository) {
@@ -6358,6 +6386,8 @@ public class TemporaryEntity
     persistedUserSessionDAO = daoFactory.createPersistedUserSessionDAO();
     shiroSessionDAO = daoFactory.createShiroSessionDAO();
     innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
+    innerSourceApplicationDAO = daoFactory.createInnerSourceApplicationDAO();
+    innerSourceVersionDAO = daoFactory.createInnerSourceVersionDAO();
     persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();
     repositoryMigrationDAO = daoFactory.createRepositoryMigrationDAO();
     aggregateFileDAO = daoFactory.createAggregateFileDAO();

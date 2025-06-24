@@ -302,7 +302,7 @@ describe('productFeaturesSelectors', () => {
   describe('selectSourceControlOptions', () => {
     it(
       'returns all with the exception of ' +
-        'auto remediated PR, manual PR, and ssh for git operations in multi-tenant mode',
+        'auto remediated PR, manual PR, InnerSource PR, and ssh for git operations in multi-tenant mode',
       () => {
         mockState.productFeatures.productFeatures['multi-tenant'] = true;
         const options = selectTenantScmOptionsTypes(mockState);
@@ -319,7 +319,7 @@ describe('productFeaturesSelectors', () => {
     it('returns all option in single-tenant mode', () => {
       mockState.productFeatures.productFeatures['single-tenant'] = true;
       const options = selectTenantScmOptionsTypes(mockState);
-      expect(options).toHaveSize(6);
+      expect(options).toHaveSize(7);
       const optionsIds = options.map((option) => option.id);
       expect(optionsIds).toContain('source-control-remediation-pull-requests');
       expect(optionsIds).toContain('source-control-ssh');
@@ -327,6 +327,7 @@ describe('productFeaturesSelectors', () => {
       expect(optionsIds).toContain('source-control-evaluations');
       expect(optionsIds).toContain('automated-commit-feedback');
       expect(optionsIds).toContain('manual-pull-requests');
+      expect(optionsIds).toContain('inner-source-automated-updates');
     });
   });
 });

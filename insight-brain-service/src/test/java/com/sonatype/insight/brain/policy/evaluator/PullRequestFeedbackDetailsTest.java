@@ -244,7 +244,7 @@ public class PullRequestFeedbackDetailsTest
     // override repository information to include webContext
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/webContext/scm/sonatype/enhanced-commit-information", null,
-            "user", "token", SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, false, null);
+            "user", "token", SourceControlProvider.BITBUCKET, "master", true, true,true, true, true, true, false, null);
 
     //when
     final PullRequestFeedbackDetails details =
@@ -1127,20 +1127,20 @@ public class PullRequestFeedbackDetailsTest
 
     gitlabGitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.com/sonatype/enhanced-commit-information", null, null, "token",
-            SourceControlProvider.GITLAB, "master", true, true, true, true, true, false, null);
+            SourceControlProvider.GITLAB, "master", true, true,true, true, true, true, false, null);
 
     bitbucketGitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.com/scm/sonatype/enhanced-commit-information", null, "user", "token",
-            SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, false, null);
+            SourceControlProvider.BITBUCKET, "master", true, true,true, true, true, true, false, null);
 
     azureGitRepositoryInfo =
         new GitRepositoryInfo("https://dev.azure.com/sonatype/int/_git/enhanced-commit-information", null,
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, true, false,
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true,true, true, true, true, true, false,
             null);
 
     azureOnPremGitRepositoryInfo =
         new GitRepositoryInfo("https://azure-on-prem.com/sonatype/int/_git/enhanced-commit-information", null,
-            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true, true, true, true, true, false,
+            "user@sonatype.com", "token", SourceControlProvider.AZURE, "main", true,true, true, true, true, true, false,
             null);
 
     //setup source control component details
@@ -1313,6 +1313,7 @@ public class PullRequestFeedbackDetailsTest
         "token",
         SourceControlProvider.GITHUB,
         "master",
+        true,
         true,
         true,
         true,

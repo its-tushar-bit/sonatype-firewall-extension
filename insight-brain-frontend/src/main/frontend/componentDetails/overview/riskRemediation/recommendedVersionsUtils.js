@@ -13,6 +13,8 @@ export const NEXT_NON_FAILING = 'next-non-failing';
 export const NEXT_NON_FAILING_DEPENDENCIES = 'next-non-failing-with-dependencies';
 export const RECOMMENDED_NON_BREAKING = 'recommended-non-breaking';
 export const RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES = 'recommended-non-breaking-with-dependencies';
+export const INNER_SOURCE_LATEST_NON_BREAKING = 'inner-source-latest-non-breaking';
+export const INNER_SOURCE_LATEST = 'inner-source-latest';
 
 const createSuggestedRemediationWithRecommendedVersion = (
   item,
@@ -86,6 +88,28 @@ const createSuggestedRemediationWithRecommendedVersion = (
         version: remediationVersion,
         isGolden: true,
         breakingChangesCount: 0, // Golden versions always have 0 breaking changes
+      };
+    case INNER_SOURCE_LATEST_NON_BREAKING:
+      return {
+        id: 'innersource-latest-non-breaking-version',
+        text: 'Latest non-breaking inner source version',
+        type: INNER_SOURCE_LATEST_NON_BREAKING,
+        linkId: 'select-innersource-latest-non-breaking',
+        linkText: remediationVersion,
+        version: remediationVersion,
+        isGolden: false,
+        breakingChangesCount: 0,
+      };
+    case INNER_SOURCE_LATEST:
+      return {
+        id: 'innersource-latest-version',
+        text: 'Latest inner source version',
+        type: INNER_SOURCE_LATEST,
+        linkId: 'select-innersource-latest',
+        linkText: remediationVersion,
+        version: remediationVersion,
+        isGolden: false,
+        breakingChangesCount: 1,
       };
   }
 };
@@ -228,6 +252,13 @@ export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion
   if (remediation && remediation.versionChanges) {
     const filteredVersions = remediation.versionChanges.filter((item) => getRemediationVersion(item) !== actualVersion);
 
+    const innersourceLatestNonBreakingSuggestion =
+      remediation.suggestedVersionChange?.type === INNER_SOURCE_LATEST_NON_BREAKING
+        ? remediation.suggestedVersionChange
+        : null;
+    const innersourceLatestSuggestion =
+      remediation.suggestedVersionChange?.type === INNER_SOURCE_LATEST ? remediation.suggestedVersionChange : null;
+
     const recommendedSuggestion =
       remediation.suggestedVersionChange?.type === RECOMMENDED_NON_BREAKING ? remediation.suggestedVersionChange : null;
     const recommendedWithDependenciesSuggestion =
@@ -238,6 +269,24 @@ export const getAsyncRecommendationsPrioritiesPage = (remediation, actualVersion
     const nonViolatingSuggestion = find(propEq('type', NEXT_NO_VIOLATIONS), filteredVersions);
     const nonFailingDependencySuggestion = find(propEq('type', NEXT_NON_FAILING_DEPENDENCIES), filteredVersions);
     const nonFailingSuggestion = find(propEq('type', NEXT_NON_FAILING), filteredVersions);
+
+    if (innersourceLatestNonBreakingSuggestion) {
+      return createSuggestedRemediationWithRecommendedVersion(
+        innersourceLatestNonBreakingSuggestion,
+        getRemediationVersion(innersourceLatestNonBreakingSuggestion),
+        stageId,
+        allVersions
+      );
+    }
+
+    if (innersourceLatestSuggestion) {
+      return createSuggestedRemediationWithRecommendedVersion(
+        innersourceLatestSuggestion,
+        getRemediationVersion(innersourceLatestSuggestion),
+        stageId,
+        allVersions
+      );
+    }
 
     if (recommendedWithDependenciesSuggestion) {
       return createSuggestedRemediation(recommendedWithDependenciesSuggestion, actualVersion, stageId, allVersions);

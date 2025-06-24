@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
@@ -42,7 +43,9 @@ import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionTy
 import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditionType;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.NonBreakingRecommendationTelemetryStats.SourceEndpoint;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -1657,5 +1660,90 @@ public class ComponentRemediationServiceTest
     assertThat(result).isPresent();
     assertThat(result.get().getType()).isEqualTo(ApiVersionChangeOptionType.NEXT_NON_FAILING);
     assertThat(result.get().getData().getComponent().packageUrl).isEqualTo(componentDtoA1V11.packageUrl);
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_INNER_SOURCE_LATEST_NON_BREAKING() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", "1.2.3", "", "jar");
+
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApp =
+        tempEntity.newInnerSourceApplication(packageUrl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApp, "1.3.0", StageTypes.RELEASE.getId());
+
+    ApiComponentRemediationValueDTO remediationDto = componentRemediationService
+        .getSuggestedRemediation(innerSourceComponent, Collections.emptyList(), app, StageTypes.RELEASE.getId(),
+            componentDetailsLoaderFactory.newInstance(app), SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(remediationDto.suggestedVersionChange).isNotNull();
+    assertThat(remediationDto.suggestedVersionChange.getType()).isEqualTo(
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+    assertThat(remediationDto.suggestedVersionChange.getData().getComponent().componentIdentifier.getCoordinates()
+        .get("version")).isEqualTo("1.3.0");
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_INNER_SOURCE_LATEST() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", "1.2.3", "", "jar");
+
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApp =
+        tempEntity.newInnerSourceApplication(packageUrl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApp, "2.0.0", StageTypes.RELEASE.getId());
+
+    ApiComponentRemediationValueDTO remediationDto = componentRemediationService
+        .getSuggestedRemediation(innerSourceComponent, Collections.emptyList(), app, StageTypes.RELEASE.getId(),
+            componentDetailsLoaderFactory.newInstance(app), SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(remediationDto.suggestedVersionChange).isNotNull();
+    assertThat(remediationDto.suggestedVersionChange.getType()).isEqualTo(
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST);
+    assertThat(remediationDto.suggestedVersionChange.getData().getComponent().componentIdentifier.getCoordinates()
+        .get("version")).isEqualTo("2.0.0");
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_INNER_SOURCE_LATEST_buildStage() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", "1.2.3", "", "jar");
+
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApp =
+        tempEntity.newInnerSourceApplication(packageUrl.getPackageUrl(), application);
+    //in the build stage
+    tempEntity.newInnerSourceVersion(innerSourceApp, "2.0.0", StageTypes.BUILD.getId());
+
+    ApiComponentRemediationValueDTO remediationDto = componentRemediationService
+        .getSuggestedRemediation(innerSourceComponent, Collections.emptyList(), app, StageTypes.RELEASE.getId(),
+            componentDetailsLoaderFactory.newInstance(app), SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(remediationDto.suggestedVersionChange).isNull();
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_InnerSource_SameVersion() {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ComponentIdentifier innerSourceComponent = ComponentIdentifier.createMavenCoordinates(
+        "com.example", "innerSource", "1.2.3", "", "jar");
+
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(innerSourceComponent);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication(packageUrl.getPackageUrl(), application);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.2.3", StageTypes.RELEASE.getId());
+
+    ApiComponentRemediationValueDTO remediationDto = componentRemediationService
+        .getSuggestedRemediation(innerSourceComponent, Collections.emptyList(), app, StageTypes.RELEASE.getId(),
+            componentDetailsLoaderFactory.newInstance(app), SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(remediationDto.suggestedVersionChange).isNull();
   }
 }

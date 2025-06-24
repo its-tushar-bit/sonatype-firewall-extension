@@ -33,13 +33,13 @@ import com.sonatype.insight.brain.api.v2.service.legal.LegalDashboardsService;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.legal.ComponentObligationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponentLicensesDTO;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.legal.ComponentObligation;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
@@ -90,7 +90,7 @@ public class LegalApplicationDashboardService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO;
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private final LegalDashboardsService legalDashboardService;
 
@@ -105,7 +105,7 @@ public class LegalApplicationDashboardService
       ComponentObligationDAO componentObligationDAO,
       LicenseThreatGroupDAO licenseThreatGroupDAO,
       MultiLicenseDAO multiLicenseDAO,
-      InnerSourceComponentDAO innerSourceComponentDAO,
+      InnerSourceApplicationDAO innerSourceApplicationDAO,
       LegalDashboardsService legalDashboardService,
       OwnerDAO ownerDAO)
   {
@@ -116,7 +116,7 @@ public class LegalApplicationDashboardService
     this.componentObligationDAO = componentObligationDAO;
     this.licenseThreatGroupDAO = licenseThreatGroupDAO;
     this.multiLicenseDAO = multiLicenseDAO;
-    this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
     this.legalDashboardService = legalDashboardService;
     this.ownerDAO = ownerDAO;
   }
@@ -149,8 +149,8 @@ public class LegalApplicationDashboardService
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
 
-    Set<String> innerSourcePackageUrls = innerSourceComponentDAO.getByPackageUrls(componentPurls).stream()
-        .map(InnerSourceComponent::getPackageUrl)
+    Set<String> innerSourcePackageUrls = innerSourceApplicationDAO.getByPackageUrls(componentPurls).stream()
+        .map(InnerSourceApplication::getPackageUrl)
         .collect(Collectors.toSet());
 
     applicationComponentLicensesDTOS.removeIf(c -> LegalComponentIdentifierUtil

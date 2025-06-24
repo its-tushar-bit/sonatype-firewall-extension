@@ -1,0 +1,1956 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-mime4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "0.8.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/apache-mime4j-core@0.8.7?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-mime4j-core",
+    "version" : "0.8.7",
+    "filenames" : [ "apache-mime4j-core-0.8.7.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:apache-mime4j-core:jar:0.8.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "0d34b9fe324100387cac",
+    "relativePopularity" : 0.05,
+    "createTime" : 1648787851000,
+    "lastModifiedTime" : 1648787850000,
+    "lastModifiedEntryTime" : 1648805848000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 152,
+      "path" : "Mail"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "31.0.1-jre"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/guava@31.0.1-jre?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "guava",
+    "version" : "31.0.1-jre",
+    "filenames" : [ "guava-31.0.1-jre.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.guava:guava:jar:31.0.1-jre" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "119ea2b2bc205b138974",
+    "relativePopularity" : 0.44,
+    "createTime" : 1632770381000,
+    "lastModifiedTime" : 1732027776000,
+    "lastModifiedEntryTime" : 1632773944000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-util",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-server-util@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-util",
+    "version" : "3.7.4",
+    "filenames" : [ "james-server-util-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-server-util:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "158032c3df80ceef0ec0",
+    "relativePopularity" : 0.0,
+    "createTime" : 1679568475000,
+    "lastModifiedTime" : 1679568474000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 154,
+      "path" : "Mail/Server"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "easytable",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.github.vandeseer",
+        "version" : "0.6.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.github.vandeseer/easytable@0.6.6?type=jar",
+    "groupId" : "com.github.vandeseer",
+    "artifactId" : "easytable",
+    "version" : "0.6.6",
+    "filenames" : [ "easytable-0.6.6.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.github.vandeseer:easytable:jar:0.6.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1dc564f1f4713b16f7dd",
+    "relativePopularity" : 0.02,
+    "createTime" : 1589056671000,
+    "lastModifiedTime" : 1589056670000,
+    "lastModifiedEntryTime" : 1589081568000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "failureaccess",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "1.0.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/failureaccess@1.0.1?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "failureaccess",
+    "version" : "1.0.1",
+    "filenames" : [ "failureaccess-1.0.1.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.guava:failureaccess:jar:1.0.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "1dcf1de382a0bf95a3d8",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174025000,
+    "lastModifiedTime" : 1542650246000,
+    "lastModifiedEntryTime" : 1542650232000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsr305",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.findbugs",
+        "version" : "3.0.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.code.findbugs/jsr305@3.0.2?type=jar",
+    "groupId" : "com.google.code.findbugs",
+    "artifactId" : "jsr305",
+    "version" : "3.0.2",
+    "filenames" : [ "jsr305-3.0.2.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.code.findbugs:jsr305:jar:3.0.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "25ea2e8b0c338a877313",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174024000,
+    "lastModifiedTime" : 1490936146000,
+    "lastModifiedEntryTime" : 1490975732000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/slf4j-api@1.7.7?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.7",
+    "filenames" : [ "slf4j-api-1.7.7.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.slf4j:slf4j-api:jar:1.7.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "2b8019b6249bb05d81d3",
+    "relativePopularity" : 0.03,
+    "createTime" : 1585174414000,
+    "lastModifiedTime" : 1396609966000,
+    "lastModifiedEntryTime" : 1396634962000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-james-mailbox-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/apache-james-mailbox-api@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-james-mailbox-api",
+    "version" : "3.7.4",
+    "filenames" : [ "apache-james-mailbox-api-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:apache-james-mailbox-api:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "3426e44a4cefeb4ae4e2",
+    "relativePopularity" : 0.0,
+    "createTime" : 1679568626000,
+    "lastModifiedTime" : 1679568626000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 154,
+      "path" : "Mail/Server"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "error_prone_annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.errorprone",
+        "version" : "2.7.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.errorprone/error_prone_annotations@2.7.1?type=jar",
+    "groupId" : "com.google.errorprone",
+    "artifactId" : "error_prone_annotations",
+    "version" : "2.7.1",
+    "filenames" : [ "error_prone_annotations-2.7.1.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.errorprone:error_prone_annotations:jar:2.7.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "458d9042f7aa6fa9a634",
+    "relativePopularity" : 0.32,
+    "createTime" : 1621033495000,
+    "lastModifiedTime" : 1621033494000,
+    "lastModifiedEntryTime" : 1621026290000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilities/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "scala-library",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.scala-lang",
+        "version" : "2.13.9"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.scala-lang/scala-library@2.13.9?type=jar",
+    "groupId" : "org.scala-lang",
+    "artifactId" : "scala-library",
+    "version" : "2.13.9",
+    "filenames" : [ "scala-library-2.13.9.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.scala-lang:scala-library:jar:2.13.9" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "48bad4bee84f503be847",
+    "relativePopularity" : 0.06,
+    "createTime" : 1663607833000,
+    "lastModifiedTime" : 1663607832000,
+    "lastModifiedEntryTime" : 318229200000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-logging",
+        "version" : "1.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-logging/commons-logging@1.2?type=jar",
+    "groupId" : "commons-logging",
+    "artifactId" : "commons-logging",
+    "version" : "1.2",
+    "filenames" : [ "commons-logging-1.2.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/commons-logging:commons-logging:jar:1.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4bfc12adfe4842bf07b6",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174364000,
+    "lastModifiedTime" : 1404583944000,
+    "lastModifiedEntryTime" : 1404609114000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "event-bus-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/event-bus-api@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "event-bus-api",
+    "version" : "3.7.4",
+    "filenames" : [ "event-bus-api-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:event-bus-api:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "4db3f5729813775172cf",
+    "relativePopularity" : 0.01,
+    "createTime" : 1679568614000,
+    "lastModifiedTime" : 1679568614000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-cipher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.sonatype.plexus",
+        "version" : "1.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.sonatype.plexus/plexus-cipher@1.4?type=jar",
+    "groupId" : "org.sonatype.plexus",
+    "artifactId" : "plexus-cipher",
+    "version" : "1.4",
+    "filenames" : [ "plexus-cipher-1.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.sonatype.plexus:plexus-cipher:jar:1.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "50ade46f23bb38cd984b",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174439000,
+    "lastModifiedTime" : 1241034002000,
+    "lastModifiedEntryTime" : 1241037594000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 101,
+      "path" : "Security/Cryptography"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_TRUE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jcl-over-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.slf4j/jcl-over-slf4j@1.7.7?type=jar",
+    "groupId" : "org.slf4j",
+    "artifactId" : "jcl-over-slf4j",
+    "version" : "1.7.7",
+    "filenames" : [ "jcl-over-slf4j-1.7.7.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.slf4j:jcl-over-slf4j:jar:1.7.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "56003dcd0a31deea6391",
+    "relativePopularity" : 0.15,
+    "createTime" : 1585174414000,
+    "lastModifiedTime" : 1396610050000,
+    "lastModifiedEntryTime" : 1396635262000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "throwing-lambdas",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.github.fge",
+        "version" : "0.5.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.github.fge/throwing-lambdas@0.5.0?type=jar",
+    "groupId" : "com.github.fge",
+    "artifactId" : "throwing-lambdas",
+    "version" : "0.5.0",
+    "filenames" : [ "throwing-lambdas-0.5.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.github.fge:throwing-lambdas:jar:0.5.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "650efe632c1ef5bc472a",
+    "relativePopularity" : 1.0,
+    "createTime" : 1428779464000,
+    "lastModifiedTime" : 1428779464000,
+    "lastModifiedEntryTime" : 1428804648000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilities"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "packageUrl" : "pkg:maven/javax.inject/javax.inject@1?type=jar",
+    "groupId" : "javax.inject",
+    "artifactId" : "javax.inject",
+    "version" : "1",
+    "filenames" : [ "javax.inject-1.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/javax.inject:javax.inject:jar:1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6975da39a7040257bd51",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174312000,
+    "lastModifiedTime" : 1255476900000,
+    "lastModifiedEntryTime" : 1255468024000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-configuration2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "2.8.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-configuration2@2.8.0?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-configuration2",
+    "version" : "2.8.0",
+    "filenames" : [ "commons-configuration2-2.8.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.commons:commons-configuration2:jar:2.8.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "6a76acbe14d2c01d4758",
+    "relativePopularity" : 0.22,
+    "createTime" : 1656561892000,
+    "lastModifiedTime" : 1656561892000,
+    "lastModifiedEntryTime" : 1648755684000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactor-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.projectreactor",
+        "version" : "3.4.13"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.projectreactor/reactor-core@3.4.13?type=jar",
+    "groupId" : "io.projectreactor",
+    "artifactId" : "reactor-core",
+    "version" : "3.4.13",
+    "filenames" : [ "reactor-core-3.4.13.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/io.projectreactor:reactor-core:jar:3.4.13" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7066cb27d2eee153b07b",
+    "relativePopularity" : 0.06,
+    "createTime" : 1639474376000,
+    "lastModifiedTime" : 1639474376000,
+    "lastModifiedEntryTime" : 1639492336000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilities"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.pdfbox/pdfbox@2.0.19?type=jar",
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "filenames" : [ "pdfbox-2.0.19.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.pdfbox:pdfbox:jar:2.0.19" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "relativePopularity" : 0.06,
+    "createTime" : 1582219628000,
+    "lastModifiedTime" : 1582219628000,
+    "lastModifiedEntryTime" : 1582237614000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 29,
+      "path" : "Data Processors/Format/PDF"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.mail",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.mail",
+        "version" : "1.6.2"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sun.mail/javax.mail@1.6.2?type=jar",
+    "groupId" : "com.sun.mail",
+    "artifactId" : "javax.mail",
+    "version" : "1.6.2",
+    "filenames" : [ "javax.mail-1.6.2.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.sun.mail:javax.mail:jar:1.6.2" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "935151eb71beff17a2ff",
+    "relativePopularity" : 1.0,
+    "createTime" : 1535581852000,
+    "lastModifiedTime" : 1535581852000,
+    "lastModifiedEntryTime" : 1535574640000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "re2j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.re2j",
+        "version" : "1.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.re2j/re2j@1.6?type=jar",
+    "groupId" : "com.google.re2j",
+    "artifactId" : "re2j",
+    "version" : "1.6",
+    "filenames" : [ "re2j-1.6.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.re2j:re2j:jar:1.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a13e879fd7971738d060",
+    "relativePopularity" : 0.63,
+    "createTime" : 1615236827000,
+    "lastModifiedTime" : 1615236826000,
+    "lastModifiedEntryTime" : 1615225834000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 147,
+      "path" : "Programming/Regular Expression"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.11.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-io/commons-io@2.11.0?type=jar",
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.11.0",
+    "filenames" : [ "commons-io-2.11.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/commons-io:commons-io:jar:2.11.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "a2503f302b11ebde7ebc",
+    "relativePopularity" : 1.0,
+    "createTime" : 1625881379000,
+    "lastModifiedTime" : 1625881378000,
+    "lastModifiedEntryTime" : 1579723816000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "listenablefuture",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "9999.0-empty-to-avoid-conflict-with-guava"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.guava/listenablefuture@9999.0-empty-to-avoid-conflict-with-guava?type=jar",
+    "groupId" : "com.google.guava",
+    "artifactId" : "listenablefuture",
+    "version" : "9999.0-empty-to-avoid-conflict-with-guava",
+    "filenames" : [ "listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b421526c5f297295adef",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174025000,
+    "lastModifiedTime" : 1536694842000,
+    "lastModifiedEntryTime" : 1536698436000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-mime4j-dom",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "0.8.7"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/apache-mime4j-dom@0.8.7?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-mime4j-dom",
+    "version" : "0.8.7",
+    "filenames" : [ "apache-mime4j-dom-0.8.7.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:apache-mime4j-dom:jar:0.8.7" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b62a21c1fa8be6d67bcc",
+    "relativePopularity" : 0.02,
+    "createTime" : 1648787871000,
+    "lastModifiedTime" : 1648787870000,
+    "lastModifiedEntryTime" : 1648805868000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 73,
+      "path" : "Documentation"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "fontbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.pdfbox/fontbox@2.0.19?type=jar",
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "fontbox",
+    "version" : "2.0.19",
+    "filenames" : [ "fontbox-2.0.19.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.pdfbox:fontbox:jar:2.0.19" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "b8b3873aacde51f1a3f4",
+    "relativePopularity" : 0.08,
+    "createTime" : 1582219295000,
+    "lastModifiedTime" : 1582219294000,
+    "lastModifiedEntryTime" : 1582237286000,
+    "website" : "http://pdfbox.apache.org/",
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 137,
+      "path" : "Data Processors/Format/Text"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j2objc-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.j2objc",
+        "version" : "1.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.google.j2objc/j2objc-annotations@1.3?type=jar",
+    "groupId" : "com.google.j2objc",
+    "artifactId" : "j2objc-annotations",
+    "version" : "1.3",
+    "filenames" : [ "j2objc-annotations-1.3.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.google.j2objc:j2objc-annotations:jar:1.3" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ba035118bc8bac37d7ef",
+    "relativePopularity" : 1.0,
+    "createTime" : 1585174024000,
+    "lastModifiedTime" : 1484780994000,
+    "lastModifiedEntryTime" : 1484770192000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilities/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-text",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.9"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-text@1.9?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-text",
+    "version" : "1.9",
+    "filenames" : [ "commons-text-1.9.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.commons:commons-text:jar:1.9" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "ba6ac8c2807490944a0a",
+    "relativePopularity" : 0.25,
+    "createTime" : 1595364047000,
+    "lastModifiedTime" : 1595364046000,
+    "lastModifiedEntryTime" : 1579723816000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.activation",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.activation",
+        "version" : "1.2.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.sun.activation/javax.activation@1.2.0?type=jar",
+    "groupId" : "com.sun.activation",
+    "artifactId" : "javax.activation",
+    "version" : "1.2.0",
+    "filenames" : [ "javax.activation-1.2.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.sun.activation:javax.activation:jar:1.2.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "bf744c1e2776ed1de3c5",
+    "relativePopularity" : 1.0,
+    "createTime" : 1529028355000,
+    "lastModifiedTime" : 1504739590000,
+    "lastModifiedEntryTime" : 1504732386000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 110,
+      "path" : "Web Frameworks"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-core@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-core",
+    "version" : "3.7.4",
+    "filenames" : [ "james-core-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-core:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c09e4a1cf70f3289e7ec",
+    "relativePopularity" : 0.0,
+    "createTime" : 1679568481000,
+    "lastModifiedTime" : 1679568480000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.12.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.commons/commons-lang3@3.12.0?type=jar",
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-lang3",
+    "version" : "3.12.0",
+    "filenames" : [ "commons-lang3-3.12.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.commons:commons-lang3:jar:3.12.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "c6842c86792ff03b9f1d",
+    "relativePopularity" : 1.0,
+    "createTime" : 1614372051000,
+    "lastModifiedTime" : 1614372050000,
+    "lastModifiedEntryTime" : 1579723816000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-mailbox-jmx",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-server-mailbox-jmx@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-mailbox-jmx",
+    "version" : "3.7.4",
+    "filenames" : [ "james-server-mailbox-jmx-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-server-mailbox-jmx:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "caa3beafeb87dcfcc9b9",
+    "relativePopularity" : 0.03,
+    "createTime" : 1679569157000,
+    "lastModifiedTime" : 1679569156000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-task-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-server-task-api@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-task-api",
+    "version" : "3.7.4",
+    "filenames" : [ "james-server-task-api-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-server-task-api:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "cb7461fff1015c274be3",
+    "relativePopularity" : 0.01,
+    "createTime" : 1679568494000,
+    "lastModifiedTime" : 1679568494000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-data-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-server-data-api@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-data-api",
+    "version" : "3.7.4",
+    "filenames" : [ "james-server-data-api-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-server-data-api:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d3eb18e6901908ccd2e9",
+    "relativePopularity" : 0.03,
+    "createTime" : 1679568842000,
+    "lastModifiedTime" : 1679568842000,
+    "lastModifiedEntryTime" : 1679612360000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 154,
+      "path" : "Mail/Server"
+    } ],
+    "hygieneRating" : {
+      "id" : 4,
+      "label" : "Laggard"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "checker-qual",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.checkerframework",
+        "version" : "3.12.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.checkerframework/checker-qual@3.12.0?type=jar",
+    "groupId" : "org.checkerframework",
+    "artifactId" : "checker-qual",
+    "version" : "3.12.0",
+    "filenames" : [ "checker-qual-3.12.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.checkerframework:checker-qual:jar:3.12.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d5692f0526415fcc6de9",
+    "relativePopularity" : 1.0,
+    "createTime" : 1617302884000,
+    "lastModifiedTime" : 1617302884000,
+    "lastModifiedEntryTime" : 1617289856000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 129,
+      "path" : "Programming Language Utilities/Annotations"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactive-streams",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.reactivestreams",
+        "version" : "1.0.3"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.reactivestreams/reactive-streams@1.0.3?type=jar",
+    "groupId" : "org.reactivestreams",
+    "artifactId" : "reactive-streams",
+    "version" : "1.0.3",
+    "filenames" : [ "reactive-streams-1.0.3.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.reactivestreams:reactive-streams:jar:1.0.3" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "d9fb7a7926ffa635b3dc",
+    "relativePopularity" : 0.53,
+    "createTime" : 1585174482000,
+    "lastModifiedTime" : 1566550188000,
+    "lastModifiedEntryTime" : 1566574872000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-cli",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-cli",
+        "version" : "1.5.0"
+      }
+    },
+    "packageUrl" : "pkg:maven/commons-cli/commons-cli@1.5.0?type=jar",
+    "groupId" : "commons-cli",
+    "artifactId" : "commons-cli",
+    "version" : "1.5.0",
+    "filenames" : [ "commons-cli-1.5.0.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/commons-cli:commons-cli:jar:1.5.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "dc98be5d5390230684a0",
+    "relativePopularity" : 0.42,
+    "createTime" : 1635025682000,
+    "lastModifiedTime" : 1635025682000,
+    "lastModifiedEntryTime" : 1579723816000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "icu4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.ibm.icu",
+        "version" : "70.1"
+      }
+    },
+    "packageUrl" : "pkg:maven/com.ibm.icu/icu4j@70.1?type=jar",
+    "groupId" : "com.ibm.icu",
+    "artifactId" : "icu4j",
+    "version" : "70.1",
+    "filenames" : [ "icu4j-70.1.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/com.ibm.icu:icu4j:jar:70.1" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "dfa3a1fbc55bf5db8c6e",
+    "relativePopularity" : 0.21,
+    "createTime" : 1635400982000,
+    "lastModifiedTime" : 1635400982000,
+    "lastModifiedEntryTime" : 1635404318000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 117,
+      "path" : "Internationalization"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.codehaus.plexus/plexus-utils@1.5.8?type=jar",
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "filenames" : [ "plexus-utils-1.5.8.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.codehaus.plexus:plexus-utils:jar:1.5.8" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "eb32118269e8c2ef714d",
+    "relativePopularity" : 0.23,
+    "createTime" : 1585174487000,
+    "lastModifiedTime" : 1234196648000,
+    "lastModifiedEntryTime" : 1234196638000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactor-extra",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.projectreactor.addons",
+        "version" : "3.4.6"
+      }
+    },
+    "packageUrl" : "pkg:maven/io.projectreactor.addons/reactor-extra@3.4.6?type=jar",
+    "groupId" : "io.projectreactor.addons",
+    "artifactId" : "reactor-extra",
+    "version" : "3.4.6",
+    "filenames" : [ "reactor-extra-3.4.6.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/io.projectreactor.addons:reactor-extra:jar:3.4.6" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "eba37d446b72863bd22f",
+    "relativePopularity" : 0.02,
+    "createTime" : 1639475566000,
+    "lastModifiedTime" : 1639475566000,
+    "lastModifiedEntryTime" : 1639493544000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 89,
+      "path" : "Programming Language Utilities"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-cli",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "packageUrl" : "pkg:maven/org.apache.james/james-server-cli@3.7.4?type=jar",
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-cli",
+    "version" : "3.7.4",
+    "filenames" : [ "james-server-cli-3.7.4.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/org.apache.james:james-server-cli:jar:3.7.4" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "fb11d2cb204057a49d62",
+    "relativePopularity" : 0.07,
+    "createTime" : 1679569163000,
+    "lastModifiedTime" : 1679569162000,
+    "lastModifiedEntryTime" : 1679612362000,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 20,
+      "path" : "Console"
+    } ],
+    "hygieneRating" : {
+      "id" : 0,
+      "label" : "Neutral"
+    },
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : {
+      "id" : 0,
+      "label" : "Normal"
+    },
+    "endOfLife" : "END_OF_LIFE_FALSE"
+  }, {
+    "componentIdentifier" : null,
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "iq-sample-vulnerable-dependency-1.0-SNAPSHOT.jar" ],
+    "pathnames" : [ "dependency:/dev.sonatype.test:iq-sample-vulnerable-project:jar:1.0-SNAPSHOT/dev.sonatype.test:iq-sample-vulnerable-dependency:jar:1.0-SNAPSHOT" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "unknown",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "7ba6ba610a94244e4231",
+    "relativePopularity" : null,
+    "createTime" : null,
+    "lastModifiedTime" : 1748382250000,
+    "lastModifiedEntryTime" : 1748382250000,
+    "website" : null,
+    "identificationSource" : null,
+    "componentCategories" : [ ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "HASH",
+      "scanClient" : "mvn",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : null
+    },
+    "integrityRating" : null,
+    "endOfLife" : null
+  } ]
+}

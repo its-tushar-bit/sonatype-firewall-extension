@@ -105,7 +105,7 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://gitlab.org/organization/project", null, "user", "token", GITLAB,
-            "base-branch", true, true, true, true, true, false, null);
+            "base-branch", true, true, true, true,true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event =
@@ -142,7 +142,7 @@ public class SourceControlEventOrchestratorTest
     when(mockSourceControlLoadBalancer.reserveEvent(any())).thenReturn(true);
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://bitbucket.org/organization/project", null, "user", "token", BITBUCKET,
-            "base-branch", true, true, true, true, true, false, null);
+            "base-branch", true, true, true, true,true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEvent user1Event1 =
@@ -197,7 +197,7 @@ public class SourceControlEventOrchestratorTest
 
     GitRepositoryInfo gitRepositoryInfo =
         new GitRepositoryInfo("https://azure.org/organization/project", null, "user", "token", AZURE,
-            "base-branch", true, true, true, true, true, false, null);
+            "base-branch", true, true, true,true, true, true, false, null);
     when(mockSourceControlUtils.getGitRepositoryInfoForApplication(any())).thenReturn(gitRepositoryInfo);
 
     SourceControlEventOrchestrator sourceControlEventOrchestrator = new SourceControlEventOrchestrator(

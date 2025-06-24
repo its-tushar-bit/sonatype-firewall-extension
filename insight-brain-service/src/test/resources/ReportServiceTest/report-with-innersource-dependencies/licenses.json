@@ -1,0 +1,1163 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-mime4j-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "0.8.7"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-mime4j-core",
+    "version" : "0.8.7",
+    "hash" : "0d34b9fe324100387cac",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 5.3,
+    "catalogDate" : 1648787851000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "guava",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "31.0.1-jre"
+      }
+    },
+    "groupId" : "com.google.guava",
+    "artifactId" : "guava",
+    "version" : "31.0.1-jre",
+    "hash" : "119ea2b2bc205b138974",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 1
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 7.1,
+    "catalogDate" : 1632770381000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-util",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-util",
+    "version" : "3.7.4",
+    "hash" : "158032c3df80ceef0ec0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679568475000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "easytable",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.github.vandeseer",
+        "version" : "0.6.6"
+      }
+    },
+    "groupId" : "com.github.vandeseer",
+    "artifactId" : "easytable",
+    "version" : "0.6.6",
+    "hash" : "1dc564f1f4713b16f7dd",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1589056671000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "failureaccess",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "1.0.1"
+      }
+    },
+    "groupId" : "com.google.guava",
+    "artifactId" : "failureaccess",
+    "version" : "1.0.1",
+    "hash" : "1dcf1de382a0bf95a3d8",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174025000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jsr305",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.code.findbugs",
+        "version" : "3.0.2"
+      }
+    },
+    "groupId" : "com.google.code.findbugs",
+    "artifactId" : "jsr305",
+    "version" : "3.0.2",
+    "hash" : "25ea2e8b0c338a877313",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "CC-BY-2.5" ],
+    "effectiveLicenses" : [ "Apache-2.0", "CC-BY-2.5" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174024000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "slf4j-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.7"
+      }
+    },
+    "groupId" : "org.slf4j",
+    "artifactId" : "slf4j-api",
+    "version" : "1.7.7",
+    "hash" : "2b8019b6249bb05d81d3",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174414000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-james-mailbox-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-james-mailbox-api",
+    "version" : "3.7.4",
+    "hash" : "3426e44a4cefeb4ae4e2",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1679568626000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "error_prone_annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.errorprone",
+        "version" : "2.7.1"
+      }
+    },
+    "groupId" : "com.google.errorprone",
+    "artifactId" : "error_prone_annotations",
+    "version" : "2.7.1",
+    "hash" : "458d9042f7aa6fa9a634",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1621033495000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "scala-library",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.scala-lang",
+        "version" : "2.13.9"
+      }
+    },
+    "groupId" : "org.scala-lang",
+    "artifactId" : "scala-library",
+    "version" : "2.13.9",
+    "hash" : "48bad4bee84f503be847",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1663607833000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-logging",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-logging",
+        "version" : "1.2"
+      }
+    },
+    "groupId" : "commons-logging",
+    "artifactId" : "commons-logging",
+    "version" : "1.2",
+    "hash" : "4bfc12adfe4842bf07b6",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174364000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "event-bus-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "event-bus-api",
+    "version" : "3.7.4",
+    "hash" : "4db3f5729813775172cf",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679568614000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-cipher",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.sonatype.plexus",
+        "version" : "1.4"
+      }
+    },
+    "groupId" : "org.sonatype.plexus",
+    "artifactId" : "plexus-cipher",
+    "version" : "1.4",
+    "hash" : "50ade46f23bb38cd984b",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 1
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 3.7,
+    "catalogDate" : 1585174439000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jcl-over-slf4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.slf4j",
+        "version" : "1.7.7"
+      }
+    },
+    "groupId" : "org.slf4j",
+    "artifactId" : "jcl-over-slf4j",
+    "version" : "1.7.7",
+    "hash" : "56003dcd0a31deea6391",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "MIT" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174414000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "throwing-lambdas",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.github.fge",
+        "version" : "0.5.0"
+      }
+    },
+    "groupId" : "com.github.fge",
+    "artifactId" : "throwing-lambdas",
+    "version" : "0.5.0",
+    "hash" : "650efe632c1ef5bc472a",
+    "declaredLicenses" : [ "Apache-2.0", "LGPL-3.0", "LGPL-3.0+" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1428779464000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.inject",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "javax.inject",
+        "version" : "1"
+      }
+    },
+    "groupId" : "javax.inject",
+    "artifactId" : "javax.inject",
+    "version" : "1",
+    "hash" : "6975da39a7040257bd51",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174312000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-configuration2",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "2.8.0"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-configuration2",
+    "version" : "2.8.0",
+    "hash" : "6a76acbe14d2c01d4758",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 2,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 6.5,
+    "catalogDate" : 1656561892000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactor-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.projectreactor",
+        "version" : "3.4.13"
+      }
+    },
+    "groupId" : "io.projectreactor",
+    "artifactId" : "reactor-core",
+    "version" : "3.4.13",
+    "hash" : "7066cb27d2eee153b07b",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1639474376000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "pdfbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "pdfbox",
+    "version" : "2.0.19",
+    "hash" : "8dfcfc278b4b66e1a8b0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 4,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 5.5,
+    "catalogDate" : 1582219628000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.mail",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.mail",
+        "version" : "1.6.2"
+      }
+    },
+    "groupId" : "com.sun.mail",
+    "artifactId" : "javax.mail",
+    "version" : "1.6.2",
+    "hash" : "935151eb71beff17a2ff",
+    "declaredLicenses" : [ "CDDL-1.1", "CDDL-1.1 or GPL-2.0-CPE", "GPL-2.0-with-classpath-exception" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "GPL-2.0-with-classpath-exception" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1535581852000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "re2j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.re2j",
+        "version" : "1.6"
+      }
+    },
+    "groupId" : "com.google.re2j",
+    "artifactId" : "re2j",
+    "version" : "1.6",
+    "hash" : "a13e879fd7971738d060",
+    "declaredLicenses" : [ "BSD-3-Clause" ],
+    "observedLicenses" : [ "BSD" ],
+    "effectiveLicenses" : [ "BSD" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1615236827000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-io",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-io",
+        "version" : "2.11.0"
+      }
+    },
+    "groupId" : "commons-io",
+    "artifactId" : "commons-io",
+    "version" : "2.11.0",
+    "hash" : "a2503f302b11ebde7ebc",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 1,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 5.3,
+    "catalogDate" : 1625881379000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "listenablefuture",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.guava",
+        "version" : "9999.0-empty-to-avoid-conflict-with-guava"
+      }
+    },
+    "groupId" : "com.google.guava",
+    "artifactId" : "listenablefuture",
+    "version" : "9999.0-empty-to-avoid-conflict-with-guava",
+    "hash" : "b421526c5f297295adef",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174025000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "apache-mime4j-dom",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "0.8.7"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "apache-mime4j-dom",
+    "version" : "0.8.7",
+    "hash" : "b62a21c1fa8be6d67bcc",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1648787871000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "fontbox",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.pdfbox",
+        "version" : "2.0.19"
+      }
+    },
+    "groupId" : "org.apache.pdfbox",
+    "artifactId" : "fontbox",
+    "version" : "2.0.19",
+    "hash" : "b8b3873aacde51f1a3f4",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1582219295000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "j2objc-annotations",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.google.j2objc",
+        "version" : "1.3"
+      }
+    },
+    "groupId" : "com.google.j2objc",
+    "artifactId" : "j2objc-annotations",
+    "version" : "1.3",
+    "hash" : "ba035118bc8bac37d7ef",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174024000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-text",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "1.9"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-text",
+    "version" : "1.9",
+    "hash" : "ba6ac8c2807490944a0a",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1595364047000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "javax.activation",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.sun.activation",
+        "version" : "1.2.0"
+      }
+    },
+    "groupId" : "com.sun.activation",
+    "artifactId" : "javax.activation",
+    "version" : "1.2.0",
+    "hash" : "bf744c1e2776ed1de3c5",
+    "declaredLicenses" : [ "CDDL-1.1", "CDDL-1.1 or GPL-2.0-CPE", "GPL-2.0-with-classpath-exception" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "GPL-2.0-with-classpath-exception" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1529028355000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-core",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-core",
+    "version" : "3.7.4",
+    "hash" : "c09e4a1cf70f3289e7ec",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679568481000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-lang3",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.commons",
+        "version" : "3.12.0"
+      }
+    },
+    "groupId" : "org.apache.commons",
+    "artifactId" : "commons-lang3",
+    "version" : "3.12.0",
+    "hash" : "c6842c86792ff03b9f1d",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1614372051000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-mailbox-jmx",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-mailbox-jmx",
+    "version" : "3.7.4",
+    "hash" : "caa3beafeb87dcfcc9b9",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679569157000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-task-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-task-api",
+    "version" : "3.7.4",
+    "hash" : "cb7461fff1015c274be3",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679568494000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-data-api",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-data-api",
+    "version" : "3.7.4",
+    "hash" : "d3eb18e6901908ccd2e9",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1679568842000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "checker-qual",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.checkerframework",
+        "version" : "3.12.0"
+      }
+    },
+    "groupId" : "org.checkerframework",
+    "artifactId" : "checker-qual",
+    "version" : "3.12.0",
+    "hash" : "d5692f0526415fcc6de9",
+    "declaredLicenses" : [ "MIT" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1617302884000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactive-streams",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.reactivestreams",
+        "version" : "1.0.3"
+      }
+    },
+    "groupId" : "org.reactivestreams",
+    "artifactId" : "reactive-streams",
+    "version" : "1.0.3",
+    "hash" : "d9fb7a7926ffa635b3dc",
+    "declaredLicenses" : [ "CC0-1.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "CC0-1.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1585174482000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "commons-cli",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "commons-cli",
+        "version" : "1.5.0"
+      }
+    },
+    "groupId" : "commons-cli",
+    "artifactId" : "commons-cli",
+    "version" : "1.5.0",
+    "hash" : "dc98be5d5390230684a0",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1635025682000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "icu4j",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.ibm.icu",
+        "version" : "70.1"
+      }
+    },
+    "groupId" : "com.ibm.icu",
+    "artifactId" : "icu4j",
+    "version" : "70.1",
+    "hash" : "dfa3a1fbc55bf5db8c6e",
+    "declaredLicenses" : [ "ICU or Unicode", "Non-Standard" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "Non-Standard", "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1635400982000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "plexus-utils",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.codehaus.plexus",
+        "version" : "1.5.8"
+      }
+    },
+    "groupId" : "org.codehaus.plexus",
+    "artifactId" : "plexus-utils",
+    "version" : "1.5.8",
+    "hash" : "eb32118269e8c2ef714d",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 4,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 9.8,
+    "catalogDate" : 1585174487000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "reactor-extra",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "io.projectreactor.addons",
+        "version" : "3.4.6"
+      }
+    },
+    "groupId" : "io.projectreactor.addons",
+    "artifactId" : "reactor-extra",
+    "version" : "3.4.6",
+    "hash" : "eba37d446b72863bd22f",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "No Source License" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 0,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : null,
+    "catalogDate" : 1639475566000
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "james-server-cli",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "org.apache.james",
+        "version" : "3.7.4"
+      }
+    },
+    "groupId" : "org.apache.james",
+    "artifactId" : "james-server-cli",
+    "version" : "3.7.4",
+    "hash" : "fb11d2cb204057a49d62",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "See-License-Clause" ],
+    "effectiveLicenses" : [ "See-License-Clause" ],
+    "securityCounters" : {
+      "Critical" : 1,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : null,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : false,
+    "securityThreatLevel" : 8.4,
+    "catalogDate" : 1679569163000
+  } ]
+}

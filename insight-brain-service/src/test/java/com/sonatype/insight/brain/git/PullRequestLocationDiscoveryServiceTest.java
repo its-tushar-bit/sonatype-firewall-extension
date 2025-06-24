@@ -72,7 +72,7 @@ public class PullRequestLocationDiscoveryServiceTest
   private SourceControlSshService sourceControlSshService;
 
   private final GitRepositoryInfo gitRepositoryInfo = new GitRepositoryInfo("https://github.com/org/proj", null, "user",
-      "token", SourceControlProvider.GITHUB, "master", true, true, true, true, true, false, null);
+      "token", SourceControlProvider.GITHUB, "master", true, true, true, true, true, true, false, null);
 
   private final String branch = "branch";
 

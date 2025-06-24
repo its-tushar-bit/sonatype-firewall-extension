@@ -138,6 +138,7 @@ describe('sourceControlConfiguration', () => {
         const [
           sshToggle,
           remediationPullRequests,
+          innerSourceAutomatedUpdates,
           pullRequestCommenting,
           sourceControlEvaluations,
           automaticCommitFeedback,
@@ -163,6 +164,9 @@ describe('sourceControlConfiguration', () => {
         expect(manualPullRequests).toBeVisible();
         expect(manualPullRequests).toBeDisabled();
         expect(manualPullRequests.checked).toBe(true);
+        expect(innerSourceAutomatedUpdates).toBeVisible();
+        expect(innerSourceAutomatedUpdates).toBeDisabled();
+        expect(innerSourceAutomatedUpdates.checked).toBe(true);
         expect(resetButton).toBeVisible();
         expect(submitButton).toBeVisible();
         fireEvent.click(submitButton);
@@ -297,6 +301,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: true,
           sshEnabled: null,
           manualPullRequestsEnabled: true,
+          innerSourceAutomatedUpdatesEnabled: true,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         renderComponent();
@@ -325,6 +330,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: true,
           sshEnabled: null,
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingRootOrgConfigResponse);
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
@@ -386,6 +392,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: true,
           sshEnabled: null,
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingRootOrgConfigResponse);
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
@@ -409,7 +416,7 @@ describe('sourceControlConfiguration', () => {
         renderComponent();
         await screen.findByRole('button', { name: 'Create' });
         const switchesWithFlag = screen.getAllByRole('switch');
-        expect(switchesWithFlag.length).toBe(6);
+        expect(switchesWithFlag.length).toBe(7);
         expect(screen.getByText('Manual Pull Requests')).toBeInTheDocument();
       });
     });
@@ -728,6 +735,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: null,
           sshEnabled: true,
           manualPullRequestsEnabled: null,
+          innerSourceAutomatedUpdatesEnabled: null,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedOrgConfigResponse);
@@ -756,6 +764,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: false,
           sshEnabled: true,
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingOrgConfigResponse);
@@ -812,6 +821,7 @@ describe('sourceControlConfiguration', () => {
           sourceControlEvaluationsEnabled: false,
           sshEnabled: true,
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingOrgConfigResponse);
@@ -1195,6 +1205,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: null,
+          innerSourceAutomatedUpdatesEnabled: null,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedAppConfigResponse);
@@ -1234,6 +1245,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingAppConfigResponse);
@@ -1305,6 +1317,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: false,
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: false,
+          innerSourceAutomatedUpdatesEnabled: false,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingAppConfigResponse);

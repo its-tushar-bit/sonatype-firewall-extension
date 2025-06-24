@@ -9,6 +9,7 @@ package com.sonatype.clm.testing.functional.developer;
 import java.io.IOException;
 import java.net.URL;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxDropdown;
 import com.sonatype.clm.testing.functional.elements.NxTree;
@@ -19,13 +20,18 @@ import com.sonatype.clm.testing.functional.pages.DeveloperReportListPage;
 import com.sonatype.clm.testing.functional.pages.PrioritiesPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.policy.PolicyExportResult;
 import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.report.InnerSourceUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
@@ -201,6 +207,7 @@ public class DeveloperReportListPageTest
     try {
       setUpMainApp(0, "/canned-reports/large-report");
       setUpMainApp(1, "/canned-reports/report-with-dependency-tree");
+      setUpInnerSourceVersion();
     }
     catch (IOException e) {
       throw new RuntimeException(e);
@@ -220,5 +227,17 @@ public class DeveloperReportListPageTest
     TestReportEvaluator evaluator =
         new TestReportEvaluator(app, "scan-" + id, zippedReport, baseUrlFromTest, work);
     evaluator.evaluatePolicy();
+  }
+
+  private void setUpInnerSourceVersion() {
+    ApplicationDAO applicationDAO = lookup(ApplicationDAO.class);
+    Application appId1 = applicationDAO.getByPublicId("appId1");
+    //add inner source data
+    ComponentIdentifier innersourceDirectComponent =
+        ComponentIdentifier.createMavenCoordinates("org.jclouds.driver", "jclouds-enterprise", "1.3.1", "", "jar");
+    PackageUrlIdentifier versionlessPurl = InnerSourceUtils.getVersionlessPackageUrl(innersourceDirectComponent);
+    InnerSourceApplication innerSourceApplication =
+        tempEntity.newInnerSourceApplication(versionlessPurl.getPackageUrl(), appId1);
+    tempEntity.newInnerSourceVersion(innerSourceApplication, "1.4.0", StageTypes.BUILD.getId());
   }
 }

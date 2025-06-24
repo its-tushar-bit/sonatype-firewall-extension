@@ -46,6 +46,8 @@ public class RemediationPullRequestFeatureCheckTest
 
   private static final boolean DEFAULT_MANUAL_PULL_REQUESTS_ENABLED = true;
 
+  private static final boolean DEFAULT_INNER_SOURCE_AUTOMATED_UPDATES_ENABLED = true;
+
   private static final boolean DEFAULT_STATUS_CHECKS_ENABLED = true;
 
   private static final boolean DEFAULT_PULL_REQUEST_COMMENTING_ENABLED = true;
@@ -82,7 +84,7 @@ public class RemediationPullRequestFeatureCheckTest
     when(licenseChecker.isPullRequestRemediationSupported()).thenReturn(false);
 
     boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
-        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo());
+        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), newGitHubRepositoryInfo(), false);
 
     assertThat(result).isFalse();
     assertThat(logOutput).atDebugLevel().contains(
@@ -137,7 +139,7 @@ public class RemediationPullRequestFeatureCheckTest
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = remediationPullRequestFeatureCheck
-        .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
+        .isPullRequestFeatureSupported(new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo, false);
 
     assertThat(result).isTrue();
   }
@@ -159,7 +161,7 @@ public class RemediationPullRequestFeatureCheckTest
 
     Application app = new Application(PUBLIC_ID, NAME, ORGANIZATION_ID);
     boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
-        app, gitRepositoryInfo);
+        app, gitRepositoryInfo, false);
 
     assertThat(result).isFalse();
     assertThat(logOutput)
@@ -186,7 +188,7 @@ public class RemediationPullRequestFeatureCheckTest
 
     boolean result =
         remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
-            app, gitRepositoryInfo);
+            app, gitRepositoryInfo, false);
 
     assertThat(result).isFalse();
     assertThat(logOutput).atDebugLevel().contains(String.format(
@@ -202,7 +204,7 @@ public class RemediationPullRequestFeatureCheckTest
     when(pullRequestRepositoryValidator.isRepoValidForPRs(eq(gitRepositoryInfo))).thenReturn(true);
 
     boolean result = remediationPullRequestFeatureCheck.isPullRequestFeatureSupported(
-        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo);
+        new Application(PUBLIC_ID, NAME, ORGANIZATION_ID), gitRepositoryInfo, false);
 
     assertThat(result).isTrue();
     assertThat(logOutput).atAnyLevel().isEmpty();
@@ -210,7 +212,8 @@ public class RemediationPullRequestFeatureCheckTest
 
   private GitRepositoryInfo newGitHubRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, REPO_SSH_URL, null, TOKEN, SourceControlProvider.GITHUB,
-        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_MANUAL_PULL_REQUESTS_ENABLED,
+        BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_INNER_SOURCE_AUTOMATED_UPDATES_ENABLED,
+        DEFAULT_MANUAL_PULL_REQUESTS_ENABLED,
         DEFAULT_STATUS_CHECKS_ENABLED,
         DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_EVALUATIONS_ENABLED,
         DEFAULT_SSH_ENABLED, DEFAULT_SOURCE_CONTROL_SCAN_TARGET);
@@ -219,6 +222,7 @@ public class RemediationPullRequestFeatureCheckTest
   private GitRepositoryInfo newBitBucketRepositoryInfo() {
     return new GitRepositoryInfo(REPO_URL, REPO_SSH_URL, USERNAME, TOKEN, SourceControlProvider.BITBUCKET,
         BASE_BRANCH, DEFAULT_REMEDIATION_PULL_REQUESTS_ENABLED, DEFAULT_MANUAL_PULL_REQUESTS_ENABLED,
+        DEFAULT_INNER_SOURCE_AUTOMATED_UPDATES_ENABLED,
         DEFAULT_STATUS_CHECKS_ENABLED,
         DEFAULT_PULL_REQUEST_COMMENTING_ENABLED, DEFAULT_SOURCE_CONTROL_EVALUATIONS_ENABLED,
         DEFAULT_SSH_ENABLED, DEFAULT_SOURCE_CONTROL_SCAN_TARGET);

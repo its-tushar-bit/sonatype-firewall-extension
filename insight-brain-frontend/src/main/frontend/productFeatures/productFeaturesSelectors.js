@@ -214,7 +214,8 @@ export const selectTenantScmOptionsTypes = createSelector(selectTenantMode, (mod
       (option) =>
         option.id !== 'source-control-remediation-pull-requests' &&
         option.id !== 'source-control-ssh' &&
-        option.id !== 'manual-pull-requests'
+        option.id !== 'manual-pull-requests' &&
+        option.id !== 'inner-source-automated-updates'
     );
   } else {
     return SOURCE_CONTROL_OPTIONS;
@@ -233,6 +234,10 @@ export const selectIsShowEmailStoppedEnabled = createSelector(selectTenantMode, 
 });
 
 export const selectIsBaseUrlConfigurationEnabled = createSelector(selectTenantMode, (mode) => {
+  return mode === SINGLE_TENANT;
+});
+
+export const selectIsInnerSourceAutomatedUpdatesEnabled = createSelector(selectTenantMode, (mode) => {
   return mode === SINGLE_TENANT;
 });
 

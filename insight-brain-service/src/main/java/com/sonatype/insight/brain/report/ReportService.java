@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -19,8 +20,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
-
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -28,6 +31,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
@@ -38,19 +42,24 @@ import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapte
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoader;
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
+import com.sonatype.insight.brain.git.RemediationVersionDTO;
+import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
+import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.license.License;
 import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.MultiLicense;
@@ -77,10 +86,12 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataService;
 import com.sonatype.insight.brain.utils.JacksonNodeUtils;
+import com.sonatype.insight.dependency.DependencyNode;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -157,7 +168,9 @@ public class ReportService
 
   private final MultiLicenseDAO multiLicenseDAO;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO;
+  private final InnerSourceApplicationDAO innerSourceApplicationDAO;
+
+  private final InnerSourceVersionDAO innerSourceVersionDAO;
 
   private final ProprietaryConfigService proprietaryConfigService;
 
@@ -166,6 +179,8 @@ public class ReportService
   private final ScanUploadService scanUploadService;
 
   private final InsightWork insightWork;
+
+  private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
   @Inject
   public ReportService(
@@ -188,11 +203,13 @@ public class ReportService
       final LicenseOverrideDAO licenseOverrideDAO,
       final SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO,
       final MultiLicenseDAO multiLicenseDAO,
-      final InnerSourceComponentDAO innerSourceComponentDAO,
+      final InnerSourceApplicationDAO innerSourceApplicationDAO,
+      final InnerSourceVersionDAO innerSourceVersionDAO,
       final ProprietaryConfigService proprietaryConfigService,
       final ReportDataStore reportDataStore,
       final ScanUploadService scanUploadService,
-      final InsightWork insightWork)
+      final InsightWork insightWork,
+      final AutomatedPullRequestCreationService automatedPullRequestCreationService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -213,18 +230,23 @@ public class ReportService
     this.licenseOverrideDAO = licenseOverrideDAO;
     this.securityVulnerabilityOverrideDAO = securityVulnerabilityOverrideDAO;
     this.multiLicenseDAO = multiLicenseDAO;
-    this.innerSourceComponentDAO = innerSourceComponentDAO;
+    this.innerSourceApplicationDAO = innerSourceApplicationDAO;
+    this.innerSourceVersionDAO = innerSourceVersionDAO;
     this.proprietaryConfigService = proprietaryConfigService;
     this.reportDataStore = reportDataStore;
     this.scanUploadService = scanUploadService;
     this.insightWork = insightWork;
+    this.automatedPullRequestCreationService = automatedPullRequestCreationService;
   }
 
   @Trace
-  public ApplicationReport fetchReport(final Application app, final String scanId) throws IOException {
+  public ApplicationReport fetchReport(final Application app, final String scanId, final String stageTypeId)
+      throws IOException
+  {
     ApplicationReport applicationReport =
         reportDataStore.downloadReport(app, scanId, this::processThirdPartyData);
-    applyChanges(app, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils, configuration);
+    applyChanges(app, scanId, applicationReport, stageTypeId, repositoryMatcher, telemetrySender, telemetryUtils,
+        configuration);
     thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport);
     return applicationReport;
   }
@@ -473,7 +495,9 @@ public class ReportService
 
   private void applyChanges(
       final Application application,
+      final String scanId,
       final ApplicationReport applicationReport,
+      final String stageTypeId,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
@@ -490,7 +514,9 @@ public class ReportService
 
     applicationReport.embedApplicationPublicId();
 
-    applyComponentRelatedChanges(application, applicationReport, repositoryMatcher, telemetrySender, telemetryUtils);
+    applyComponentRelatedChanges(application, scanId, applicationReport, stageTypeId, repositoryMatcher,
+        telemetrySender,
+        telemetryUtils);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON_FILENAME).buf);
@@ -603,7 +629,9 @@ public class ReportService
    */
   private void applyComponentRelatedChanges(
       final Application application,
+      final String scanId,
       final ApplicationReport applicationReport,
+      final String stageTypeId,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils) throws IOException
@@ -631,9 +659,12 @@ public class ReportService
     applicationReport.saveReportEntry(DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
 
     DependencyResolver
-        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, application, telemetrySender,
-            telemetryUtils, innerSourceComponentDAO, applicationDAO, proprietaryConfigService)
+        .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, application,
+            telemetrySender, telemetryUtils, innerSourceApplicationDAO, innerSourceVersionDAO, applicationDAO,
+            proprietaryConfigService)
         .resolve();
+
+    triggerInnerSourceAutomatedRemediation(application, scanId, stageTypeId, dependenciesJsonData);
 
     componentIdentifiers.addAll(
         repositoryMatcher.match(application, bomJsonData, dataJson, summaryJsonData, licensesJsonData,
@@ -663,6 +694,120 @@ public class ReportService
     applicationReport.saveReportEntry(PARTIAL_MATCHED_FILENAME, partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
+  }
+
+  private void triggerInnerSourceAutomatedRemediation(
+      final Application application,
+      final String scanId,
+      final String stageTypeId,
+      final JsonNode dependenciesJsonData
+  ) throws IOException
+  {
+    if (dependenciesJsonData == null) {
+      return;
+    }
+
+    JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
+    if (dependencyTreeNode.isMissingNode()) {
+      return;
+    }
+
+    DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
+    if (tree == null) {
+      return;
+    }
+
+    Set<ComponentIdentifier> directDeps = extractDirectDependencies(tree);
+    Map<String, ComponentIdentifier> directInnerSourceDeps = getInnerSourceComponents(directDeps);
+    if (directInnerSourceDeps.isEmpty()) {
+      return;
+    }
+
+    for (Entry<String, ComponentIdentifier> entry : directInnerSourceDeps.entrySet()) {
+      String innerSourceApplicationId = entry.getKey();
+      ComponentIdentifier innerSourceComponent = entry.getValue();
+
+      InnerSourceVersion latestVersion =
+          innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(
+              innerSourceApplicationId, StageTypes.RELEASE.getId());
+
+      if (latestVersion == null || !InnerSourceUtils.isValidAutomatedVersionUpdate(innerSourceComponent,
+          latestVersion.getLatestVersion())) {
+        continue;
+      }
+
+      createAutomatedRemediationPullRequest(application, scanId, stageTypeId, latestVersion, innerSourceComponent);
+    }
+  }
+
+  private void createAutomatedRemediationPullRequest(
+      final Application application,
+      final String scanId,
+      final String stageTypeId,
+      final InnerSourceVersion latestReleaseVersion,
+      final ComponentIdentifier innerSourceComponent)
+  {
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO(latestReleaseVersion.getLatestVersion(),
+            ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+    try {
+      automatedPullRequestCreationService.createAutomatedRemediationPullRequest(application, scanId,
+          new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName()),
+          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList());
+    }
+    catch (Exception e) {
+      log.error("Failed to create automated remediation pull request for InnerSource component {} for application {}.",
+          innerSourceComponent, application.getPublicId(), e);
+    }
+  }
+
+  private Map<String, ComponentIdentifier> getInnerSourceComponents(final Set<ComponentIdentifier> directDeps) {
+    Map<String, ComponentIdentifier> result = new HashMap<>();
+
+    if (directDeps.isEmpty()) {
+      return result;
+    }
+
+    Set<PackageUrlIdentifier> directDepsWithoutVersion = directDeps.stream()
+        .map(componentIdentifier -> componentIdentifier.createAlternativeVersion(null))
+        .map(PackageUrlIdentifier::fromComponentIdentifier)
+        .collect(Collectors.toSet());
+
+    Map<String, ComponentIdentifier> purlToComponent = directDeps.stream()
+        .collect(Collectors
+            .toMap(componentIdentifier -> PackageUrlIdentifier
+                    .fromComponentIdentifier(componentIdentifier)
+                    .createAlternativeVersion(null)
+                    .getPackageUrl(),
+                Function.identity()
+            ));
+
+    List<InnerSourceApplication> innerSourceApps = innerSourceApplicationDAO.getByPackageUrls(directDepsWithoutVersion);
+
+    for (InnerSourceApplication app : innerSourceApps) {
+      String packageUrl = app.getPackageUrl();
+      if (purlToComponent.containsKey(packageUrl)) {
+        result.put(app.getId(), purlToComponent.get(packageUrl));
+      }
+    }
+
+    return result;
+  }
+
+  private Set<ComponentIdentifier> extractDirectDependencies(final DependencyNode tree) {
+    Set<ComponentIdentifier> directDependencies = new HashSet<>();
+    for (DependencyNode child : tree.getChildren()) {
+      if (!child.isModule() && child.isDirect()) {
+        directDependencies.add(child.getComponentIdentifier());
+      }
+      for (DependencyNode firstLevel : child.getChildren()) {
+        if (firstLevel.isDirect()) {
+          directDependencies.add(firstLevel.getComponentIdentifier());
+        }
+      }
+    }
+    directDependencies.remove(null);
+    return directDependencies;
   }
 
   private Map<String, HashComponentIdentifier> applyClaimedComponents(
@@ -1135,7 +1280,7 @@ public class ReportService
     }
 
     String tempScanId = scanReceipt.getScanId();
-    fetchReport(application, tempScanId);
+    fetchReport(application, tempScanId, stageTypeId);
     reportDataStore.moveApplicationReport(appId, tempScanId, scanId);
     return policyEvaluation;
   }

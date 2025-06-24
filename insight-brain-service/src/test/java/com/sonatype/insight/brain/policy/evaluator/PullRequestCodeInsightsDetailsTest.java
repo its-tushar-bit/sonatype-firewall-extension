@@ -493,7 +493,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //setup gitRepositoryInfo
     bitbucketGitRepositoryInfo = new GitRepositoryInfo(repositoryUrl, null, "user", "token",
-        SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, false, null);
+        SourceControlProvider.BITBUCKET, "master", true, true,true, true, true, true, false, null);
 
     //setup source control component details
     componentDetails = sourceControlComponentLoader.getSourceControlComponentDetails(

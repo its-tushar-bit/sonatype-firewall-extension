@@ -45,18 +45,22 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.development.prioritization.dto.PrioritizationRemediationVersionDTO;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
+import com.sonatype.insight.brain.report.CompositeComparableVersion;
 import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -65,15 +69,18 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_DIRECT;
-import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
+import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_INNER_SOURCE_TRANSITIVE;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_TRANSITIVE;
 import static com.sonatype.insight.brain.api.v2.dto.PrioritizedComponent.DEPENDENCY_TYPE_UNKNOWN;
 import static com.sonatype.insight.brain.model.policy.PolicyThreatCategory.SECURITY;
+import static com.sonatype.insight.brain.report.InnerSourceUtils.createCompositeComparableVersion;
 
 @Named
 public class DevelopmentPrioritiesService
@@ -106,6 +113,10 @@ public class DevelopmentPrioritiesService
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final InnerSourceService innerSourceService;
+
+  private final PathForwardInspector pathForwardInspector;
+
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
   @Inject
@@ -121,6 +132,8 @@ public class DevelopmentPrioritiesService
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ApplicationDAO applicationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
+      final InnerSourceService innerSourceService,
+      final PathForwardInspector pathForwardInspector,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
   {
     this.featuresService = featuresService;
@@ -134,6 +147,8 @@ public class DevelopmentPrioritiesService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.innerSourceService = innerSourceService;
+    this.pathForwardInspector = pathForwardInspector;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
   }
 
@@ -360,7 +375,7 @@ public class DevelopmentPrioritiesService
           );
         })
         .filter(unprioritizedComponent -> unprioritizedComponent.isAllViolationsWaived
-            || unprioritizedComponent.highestThreat > 0)
+            || unprioritizedComponent.highestThreat > 0 || hasUpgradePathOfInnerSource(unprioritizedComponent))
         .sorted(Comparator.comparingInt(this::getScore).thenComparingInt(this::getHighestThreat).reversed())
         .toList();
 
@@ -485,7 +500,12 @@ public class DevelopmentPrioritiesService
     }
 
     if (dependencyData.innerSource != null && dependencyData.innerSource) {
-      return DEPENDENCY_TYPE_INNER_SOURCE;
+      if (dependencyData.directDependency != null && dependencyData.directDependency) {
+        return DEPENDENCY_TYPE_INNER_SOURCE_DIRECT;
+      }
+      else {
+        return DEPENDENCY_TYPE_INNER_SOURCE_TRANSITIVE;
+      }
     }
     else if (dependencyData.directDependency != null && dependencyData.directDependency) {
       return DEPENDENCY_TYPE_DIRECT;
@@ -702,6 +722,40 @@ public class DevelopmentPrioritiesService
     try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
       return policyWaiverDAO.getByOwnerIdAndHash(tx, appId, hash);
     }
+  }
+
+  /**
+   * Checks if the component has an upgrade path of direct Inner Source.
+   */
+  private boolean hasUpgradePathOfInnerSource(UnprioritizedComponent unprioritizedComponent) {
+    if (!DEPENDENCY_TYPE_INNER_SOURCE_DIRECT.equals(unprioritizedComponent.dependencyType)) {
+      return false;
+    }
+
+    String currentVersion = unprioritizedComponent.getComponentVersion();
+    if (currentVersion == null) {
+      return false;
+    }
+
+    ComponentIdentifier componentId = unprioritizedComponent.component.componentIdentifier.toComponentIdentifier();
+    if (componentId == null) {
+      return false;
+    }
+
+    String latestVersionByStage = innerSourceService.getComponentLatestVersionByStage(
+        componentId, StageTypes.RELEASE.getId());
+    if (latestVersionByStage == null) {
+      return false;
+    }
+
+    CompositeComparableVersion currentComparableVersion = createCompositeComparableVersion(
+        currentVersion,
+        componentId.getFormat());
+    CompositeComparableVersion latestComparableVersion = createCompositeComparableVersion(
+        latestVersionByStage,
+        componentId.getFormat());
+
+    return currentComparableVersion.compareTo(latestComparableVersion) < 0;
   }
 
   private static class UnprioritizedComponent

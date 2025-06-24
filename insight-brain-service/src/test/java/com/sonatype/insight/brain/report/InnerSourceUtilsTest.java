@@ -51,4 +51,96 @@ public class InnerSourceUtilsTest
     PackageUrlIdentifier versionlessPackageUrl = InnerSourceUtils.getVersionlessPackageUrl(id);
     assertThat(versionlessPackageUrl.getPackageUrl()).isEqualTo(s);
   }
+
+  @Test
+  public void testIsRemediationVersionApplicable_npmScenarios() {
+    // Lower next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.2.2")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.1.3")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "0.2.3")).isFalse();
+
+    // Equal next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.2.3")).isFalse();
+
+    // Larger next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.2.4")).isTrue();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.3.0")).isTrue();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "10.0.0")).isFalse();
+
+    // Pre-release next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", "1.2.3"), "1.2.4-beta")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationVersionApplicable_mavenScenarios() {
+    // Lower next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.2.3"), "1.2.2")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.2.3"), "1.1.3")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "0.9.93")).isFalse();
+
+    // Equal next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.2.3"), "1.2.3")).isFalse();
+
+    // Larger next version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.1")).isTrue();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.1.0")).isTrue();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "10.0.0")).isFalse();
+
+    // Snapshot
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.1.0-SNAPSHOT")).isFalse();
+  }
+
+  @Test
+  public void testIsRemediationVersionApplicable_mavenVersions_EdgeCases() {
+    // Same version with release qualifier
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.0.RELEASE")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.0.Final")).isFalse();
+
+    // Larger version with release qualifier
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.1.RELEASE")).isTrue();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.1.Final")).isTrue();
+
+    // Larger version from snapshot
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0-SNAPSHOT"), "1.0.0")).isTrue();
+
+    // Pre-release versions with Semver instead of SNAPSHOT
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.0.0-rc1")).isFalse();
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createMavenCoordinates("com.acme", "lib", "1.0.0"), "1.1.0-alpha")).isTrue();
+  }
+
+  @Test
+  public void testIsRemediationVersionApplicable_invalidAndUnsupportedInputs() {
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(null, "1.0.0")).isFalse();
+
+    // Component with null version
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", null), "1.0.1")).isFalse();
+
+    // Next version is null
+    assertThat(InnerSourceUtils.isValidAutomatedVersionUpdate(
+        createNpmCoordinates("pkg", null), null)).isFalse();
+  }
 }

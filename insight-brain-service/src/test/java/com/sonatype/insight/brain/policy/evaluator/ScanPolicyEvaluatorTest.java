@@ -4704,7 +4704,7 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
 
     ReportComponentData reportComponentData =
-        reportComponentService.fetchReportAndComponents(application, scanId);
+        reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
@@ -4727,7 +4727,7 @@ public class ScanPolicyEvaluatorTest
     Stage stage = new Stage(Stage.ID_BUILD);
 
     ReportComponentData reportComponentData =
-        reportComponentService.fetchReportAndComponents(application, scanId);
+        reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",
@@ -4795,7 +4795,7 @@ public class ScanPolicyEvaluatorTest
     );
 
     ReportComponentData reportComponentData =
-        reportComponentService.fetchReportAndComponents(application, scanId);
+        reportComponentService.fetchReportAndComponents(application, scanId, stage.getStageTypeId());
 
     ScanPolicyEvaluatorResults results = scanPolicyEvaluator.performPolicyEvaluation(
         application, scanId, stage, ScanTriggerType.CLI, "testUserAgent", "testClientId",

@@ -257,6 +257,7 @@ public class IntegrationsPageTest
         "/target/*",
         true,
         true,
+        false,
         false
     );
 

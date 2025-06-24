@@ -191,6 +191,7 @@ public class SourceControlPullRequestServiceTest
     SourceControlEvent event = createRemediationEvent(application);
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     event.setEventStatusDetails("some pr link");
+    event.setPullRequestNumber(1);
     sourceControlEventDAO.update(event);
 
     AutomatedRemediationStatusDTO dto = service.getPullRequestStatus(event.getId());
@@ -199,6 +200,7 @@ public class SourceControlPullRequestServiceTest
     assertThat(dto).isInstanceOf(PullRequestDTO.class);
     PullRequestDTO pullRequestDTO = (PullRequestDTO) dto;
     assertThat(pullRequestDTO.url).isEqualTo("some pr link");
+    assertThat(pullRequestDTO.pullRequestId).isEqualTo(1);
   }
 
   @Test

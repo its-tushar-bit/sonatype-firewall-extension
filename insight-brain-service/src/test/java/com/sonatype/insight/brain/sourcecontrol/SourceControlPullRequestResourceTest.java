@@ -87,6 +87,7 @@ public class SourceControlPullRequestResourceTest
     SourceControlEvent event = createRemediationEvent(application);
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     event.setEventStatusDetails("https://github.com/sonatype/insight-brain/pull/13397");
+    event.setPullRequestNumber(13397);
     lookup(SourceControlEventDAO.class).update(event);
 
     HttpResponse response = restRequest()

@@ -10,7 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
@@ -952,5 +951,67 @@ public class PullRequestStateEventHandlerTest
 
     // Verify event is deleted
     assertThat(sourceControlEventDAO.getById(batchEvent.getId())).isNull();
+  }
+
+  @Test
+  public void testHandleSinglePrEvent_ZeroPullRequestNumber() {
+    SourceControlEvent event = createSinglePrEvent(0, applicationWithoutBatchSupport);
+
+    sourceControlEventDAO.insert(event);
+
+    handler.handle(event);
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testHandleSinglePrEvent_NegativePullRequestNumber() {
+    SourceControlEvent event = createSinglePrEvent(-1, applicationWithoutBatchSupport);
+
+    sourceControlEventDAO.insert(event);
+
+    handler.handle(event);
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testHandleSinglePrEvent_IntegerPullRequestNumber() throws Exception {
+    Integer prNumber = Integer.valueOf(42);
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        bitbucketRepoUrl,
+        prNumber,
+        "deadbeef",
+        "deadbeef2",
+        "foo-branch",
+        "integer-test-branch",
+        PullRequestState.OPEN
+    );
+
+    // Create a PR state update event using explicit Integer
+    SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
+
+    // Setup mock Bitbucket API response showing PR is OPEN
+    setupBitbucketPullRequestEndpoint(prNumber, "bitbucket-open.json");
+
+    // Capture timestamps for checking
+    Date before = new Date();
+
+    // Execute
+    handler.handle(event);
+
+    Date after = new Date();
+    SourceControlPullRequest updatedPr = sourceControlPullRequestDAO.getById(pullRequest.getId());
+    assertThat(updatedPr).isNotNull();
+    assertThat(updatedPr.getState()).isEqualTo(PullRequestState.OPEN);
+
+    // Verify timestamps
+    assertThat(updatedPr.getLastCheckTime()).isBetween(before, after, true, true);
+    assertThat(updatedPr.getLastDetectedUpdateTime()).isBetween(before, after, true, true);
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
   }
 }

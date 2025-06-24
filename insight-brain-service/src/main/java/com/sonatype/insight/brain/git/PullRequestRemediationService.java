@@ -120,6 +120,10 @@ public class PullRequestRemediationService
           pullRequestTask.run(pullRequestRemediationDetails, pullRequestExecutor);
       if (pullRequestResult.isSuccessful()) {
         event.setEventStatusDetails(pullRequestResult.getPullRequestUrl());
+        Integer pullRequestNumber = extractPullRequestNumber(pullRequestResult.getPullRequestUrl());
+        if (pullRequestNumber != null) {
+          event.setPullRequestNumber(pullRequestNumber);
+        }
         sourceControlEventDAO.update(event);
       }
     }
@@ -149,5 +153,16 @@ public class PullRequestRemediationService
       throws IOException
   {
     return gitClientFactory.createApiClient(gitRepositoryInfo).isBranchOnServer(branchName);
+  }
+
+  private Integer extractPullRequestNumber(String url) {
+    try {
+      String prNumberStr = url.substring(url.lastIndexOf("/") + 1);
+      return Integer.parseInt(prNumberStr);
+    }
+    catch (Exception e) {
+      log.warn("Failed to extract pull request number from URL: {}", url, e);
+      return null;
+    }
   }
 }

@@ -98,6 +98,11 @@ public class PullRequestStateEventHandler
       SourceControlEvent event)
   {
     int prNumber = event.getPullRequestNumber();
+    if (prNumber <= 0) {
+      log.warn("Pull request number is null for event {}, skipping processing", event.getId());
+      sourceControlEventDAO.delete(event);
+      return;
+    }
 
     PullRequestLifecycleInfo prLifecycleInfo = null;
     boolean ioException = false;

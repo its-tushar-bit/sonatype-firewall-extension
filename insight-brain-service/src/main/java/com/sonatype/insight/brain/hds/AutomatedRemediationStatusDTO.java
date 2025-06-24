@@ -15,6 +15,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @JsonTypeInfo(
     use = JsonTypeInfo.Id.NAME,
@@ -34,6 +36,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 })
 public abstract sealed class AutomatedRemediationStatusDTO
 {
+  private static final Logger log = LoggerFactory.getLogger(AutomatedRemediationStatusDTO.class);
+
   public final AutomatedRemediationStatus status;
 
   protected AutomatedRemediationStatusDTO(AutomatedRemediationStatus status) {
@@ -89,10 +93,16 @@ public abstract sealed class AutomatedRemediationStatusDTO
   {
     public final String url;
 
+    public final Integer pullRequestId;
+
     @JsonCreator
-    public PullRequestDTO(@JsonProperty("url") final String url) {
+    public PullRequestDTO(
+        @JsonProperty("url") final String url,
+        @JsonProperty("pullRequestId") final Integer pullRequestId)
+    {
       super(AutomatedRemediationStatus.PULL_REQUEST);
       this.url = Objects.requireNonNull(url);
+      this.pullRequestId = pullRequestId;
     }
   }
 
@@ -127,7 +137,16 @@ public abstract sealed class AutomatedRemediationStatusDTO
               String.format("URL missing from pull request for id '%s'.",
                   sourceControlEvent.getId()));
         }
-        return new PullRequestDTO(prLink);
+
+        Integer prPullRequestId = null;
+        if (sourceControlEvent.getPullRequestNumber() <= 0) {
+          log.debug(("Pull request ID missing or invalid for event ID '{}'."), sourceControlEvent.getId());
+        }
+        else {
+          prPullRequestId = sourceControlEvent.getPullRequestNumber();
+        }
+
+        return new PullRequestDTO(prLink, prPullRequestId);
       }
       default -> throw new IllegalStateException(String.format(
           "Unsupported event status '%s'.", sourceControlEvent.getEventStatus()));

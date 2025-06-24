@@ -397,6 +397,7 @@ describe('RecommendedVersionsList', () => {
     const automatedRemediationStatus = {
       status: 'PULL_REQUEST',
       url: 'https://github.com/repository/pull/123',
+      pullRequestId: 123,
     };
 
     renderComponent(
@@ -406,7 +407,7 @@ describe('RecommendedVersionsList', () => {
       }
     );
 
-    const viewPRLink = screen.getByRole('link', { name: 'View PR' });
+    const viewPRLink = screen.getByRole('link', { name: 'PR #123' });
     expect(viewPRLink).toBeVisible();
     const href = viewPRLink.getAttribute('href');
     expect(href).toContain(automatedRemediationStatus.url);

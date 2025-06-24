@@ -3124,6 +3124,7 @@ public class ComponentInfoServiceTest
     sourceControlEvent.setEventStatus(eventStatus);
     if (SourceControlEvent.EVENT_STATUS_COMPLETE.equals(eventStatus)) {
       sourceControlEvent.setEventStatusDetails("https://git.com/pull/1");
+      sourceControlEvent.setPullRequestNumber(1);
     }
     else if (SourceControlEvent.EVENT_STATUS_ERROR.equals(eventStatus)) {
       sourceControlEvent.setEventStatusDetails("error reason");

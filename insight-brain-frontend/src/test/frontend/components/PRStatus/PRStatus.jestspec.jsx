@@ -231,10 +231,26 @@ describe('PRStatus', () => {
         status: PR_STATUS.PULL_REQUEST,
         url: prUrl,
       },
-      prLinkText: customPRLinkText,
+      defaultPrLinkText: customPRLinkText,
     });
 
     const link = screen.getByRole('link', { name: customPRLinkText });
+    expect(link).toBeVisible();
+    expect(link).toHaveAttribute('href', prUrl);
+  });
+
+  it('renders a link with PR number when pullRequestNumber is provided', () => {
+    const prUrl = 'https://github.com/example/repo/pull/123';
+
+    renderButton({
+      automatedRemediationStatus: {
+        status: PR_STATUS.PULL_REQUEST,
+        url: prUrl,
+        pullRequestId: 123,
+      },
+    });
+
+    const link = screen.getByRole('link', { name: 'PR #123' });
     expect(link).toBeVisible();
     expect(link).toHaveAttribute('href', prUrl);
   });

@@ -659,6 +659,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     //verify that the spinner is not shown when the event is complete
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     event.setEventStatusDetails("http://test.github.com/org/repo/pull/123");
+    event.setPullRequestNumber(123);
     sourceControlEventDAO.update(event);
     componentDetailsPage = new ComponentDetailsPage();
     riskRemediation = componentDetailsPage.overviewTabContent().riskRemediationTile();
@@ -666,7 +667,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.loadingSpinner().shouldNotBe(visible);
     recommendation.prLink().shouldBe(visible, Duration.ofSeconds(5));
-    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(text("PR #123"));
     recommendation.prLink().shouldHave(attribute("href", "http://test.github.com/org/repo/pull/123"));
   }
 
@@ -721,6 +722,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     sourceControlEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     sourceControlEvent.setEventStatusDetails(prUrl);
+    sourceControlEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(sourceControlEvent);
 
     refreshOrOpen(ComponentDetailsPage.urlToOverview(app, SCAN_ID, FIRST_COMPONENT_HASH));
@@ -730,7 +732,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
     recommendation = recommendedVersionsSection.getRecommendation(0);
 
     recommendation.prLink().shouldBe(visible, Duration.ofSeconds(5));
-    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(text("PR #123"));
     recommendation.prLink().shouldHave(attribute("href", prUrl));
   }
 
@@ -763,6 +765,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
         SourceControlEvent.EVENT_STATUS_COMPLETE
     );
     sourceControlEvent.setEventStatusDetails(prUrl);
+    sourceControlEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(sourceControlEvent);
 
     mockHdsResponseForFirstComponent();
@@ -774,7 +777,7 @@ public class ComponentDetailsOverviewTabRiskRemediationTest
 
     RecommendationElement recommendation = recommendedVersionsSection.getRecommendation(0);
     recommendation.prLink().shouldBe(visible);
-    recommendation.prLink().shouldHave(text("View PR"));
+    recommendation.prLink().shouldHave(text("PR #123"));
     recommendation.prLink().shouldHave(attribute("href", prUrl));
   }
 

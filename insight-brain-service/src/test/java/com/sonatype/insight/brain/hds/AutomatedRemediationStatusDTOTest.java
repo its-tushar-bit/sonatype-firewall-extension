@@ -24,11 +24,13 @@ public class AutomatedRemediationStatusDTOTest
     event.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     event.setEventStatusDetails("https://example.com/pull-request/1");
+    event.setPullRequestNumber(123);
 
     AutomatedRemediationStatusDTO dto = AutomatedRemediationStatusDTO.fromSourceControlEvent(event);
     assertThat(dto).isInstanceOf(PullRequestDTO.class);
     PullRequestDTO pullRequestDTO = (PullRequestDTO) dto;
     assertThat(pullRequestDTO.url).isEqualTo("https://example.com/pull-request/1");
+    assertThat(pullRequestDTO.pullRequestId).isEqualTo(123);
   }
 
   @Test
@@ -37,10 +39,26 @@ public class AutomatedRemediationStatusDTOTest
     event.setId("eventId");
     event.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
     event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-
     assertThatThrownBy(() -> AutomatedRemediationStatusDTO.fromSourceControlEvent(event))
         .isInstanceOf(IllegalStateException.class)
         .hasMessageContaining("URL missing from pull request for id 'eventId'.");
+  }
+
+  @Test
+  public void testFromSourceControlEvent_CompleteStatus_WithDetailsNoPRNumber() {
+    SourceControlEvent event = new SourceControlEvent();
+    event.setId("eventId");
+    event.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    event.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    event.setEventStatusDetails("https://example.com/pull-request/1");
+
+    AutomatedRemediationStatusDTO dto = AutomatedRemediationStatusDTO.fromSourceControlEvent(event);
+
+    assertThat(dto).isInstanceOf(PullRequestDTO.class);
+    PullRequestDTO pendingDTO = (PullRequestDTO) dto;
+    assertThat(pendingDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST);
+    assertThat(pendingDTO.pullRequestId).isNull();
+    assertThat(pendingDTO.url).isEqualTo("https://example.com/pull-request/1");
   }
 
   @Test

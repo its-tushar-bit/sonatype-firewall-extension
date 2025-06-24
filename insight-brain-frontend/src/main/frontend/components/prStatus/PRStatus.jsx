@@ -32,7 +32,7 @@ export const PR_STATUS_HIDDEN_REASONS = [
 // A reusable component that displays different presentations based on PR status ( see above status)
 export default function PRStatus({
   automatedRemediationStatus,
-  prLinkText = 'View PR',
+  defaultPrLinkText = 'View PR',
   onCreatePR,
   defaultContent,
   onRetry,
@@ -41,6 +41,13 @@ export default function PRStatus({
     return automatedRemediationStatus.reason === 'SCM_NOT_CONFIGURED'
       ? 'Source Control is not configured'
       : 'Manual Pull Requests are disabled';
+  }
+
+  function getPRLinkText() {
+    if (automatedRemediationStatus?.pullRequestId) {
+      return `PR #${automatedRemediationStatus.pullRequestId}`;
+    }
+    return defaultPrLinkText;
   }
 
   switch (automatedRemediationStatus?.status) {
@@ -64,7 +71,7 @@ export default function PRStatus({
     case AUTOMATED_REMEDIATION_STATUS.PULL_REQUEST:
       return (
         <NxTextLink href={automatedRemediationStatus.url} external className="iq-pr-status__view-pr-link">
-          {prLinkText}
+          {getPRLinkText()}
         </NxTextLink>
       );
     case AUTOMATED_REMEDIATION_STATUS.MANUAL_PULL_REQUEST_NOT_POSSIBLE:
@@ -86,8 +93,9 @@ PRStatus.propTypes = {
     status: PropTypes.oneOf(Object.values(AUTOMATED_REMEDIATION_STATUS)),
     reason: PropTypes.string,
     url: PropTypes.string,
+    pullRequestId: PropTypes.number,
   }),
-  prLinkText: PropTypes.string,
+  defaultPrLinkText: PropTypes.string,
   onCreatePR: PropTypes.func.isRequired,
   defaultContent: PropTypes.node,
   onRetry: PropTypes.func.isRequired,

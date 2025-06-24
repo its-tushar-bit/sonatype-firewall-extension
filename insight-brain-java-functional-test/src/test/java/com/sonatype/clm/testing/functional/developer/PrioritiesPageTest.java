@@ -300,7 +300,8 @@ public class PrioritiesPageTest
     pullRequestEvent.setApplicationId(application.getId());
     pullRequestEvent.setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    pullRequestEvent.setEventStatusDetails("https://example.com/pull/1");
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
     pullRequestEvent.setBranchName(branchName);
     sourceControlEventDAO.insert(pullRequestEvent);
 
@@ -308,9 +309,9 @@ public class PrioritiesPageTest
     refresh();
     PrioritiesPage page = new PrioritiesPage();
 
-    SelenideElement prLink = page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("View PR"));
+    SelenideElement prLink = page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
-    prLink.shouldHave(href("https://example.com/pull/1"));
+    prLink.shouldHave(href("https://example.com/pull/123"));
   }
 
   @Test
@@ -394,15 +395,16 @@ public class PrioritiesPageTest
 
     // change the status of the pull request event from in progress to complete
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    pullRequestEvent.setEventStatusDetails("https://example.com/pull/1");
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(pullRequestEvent);
 
     // polling should end
     SelenideElement prLink =
         page.viewPullRequestLink(8)
-            .shouldBe(visible, Duration.ofSeconds(1)).shouldHave(text("View PR"));
+            .shouldBe(visible, Duration.ofSeconds(1)).shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
-    prLink.shouldHave(href("https://example.com/pull/1"));
+    prLink.shouldHave(href("https://example.com/pull/123"));
   }
 
   @Test
@@ -556,14 +558,15 @@ public class PrioritiesPageTest
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
     pullRequestEvent = sourceControlEventDAO.getAll().get(1);
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    pullRequestEvent.setEventStatusDetails("https://example.com/pull/1");
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(pullRequestEvent);
 
     // polling should end
     SelenideElement prLink =
-        page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("View PR"));
+        page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
-    prLink.shouldHave(href("https://example.com/pull/1"));
+    prLink.shouldHave(href("https://example.com/pull/123"));
   }
 
   @Test
@@ -927,14 +930,80 @@ public class PrioritiesPageTest
 
     // change the status of the pull request event from in progress to complete
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    pullRequestEvent.setEventStatusDetails("https://example.com/pull/1");
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(pullRequestEvent);
 
     // polling should end
     SelenideElement prLink =
+        page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("PR #123"));
+    prLink.shouldBe(enabled);
+    prLink.shouldHave(href("https://example.com/pull/123"));
+  }
+
+  @Test
+  public void testCreatePRModal_PollOnCreation_Success_PRNumberNotSet() {
+    SourceControlDAO sourceControlDAO = lookup(SourceControlDAO.class);
+    SourceControlEventDAO sourceControlEventDAO = lookup(SourceControlEventDAO.class);
+    SourceControlPullRequestService pullRequestServiceSpy = spy(lookup(SourceControlPullRequestService.class));
+    mocks.put(SourceControlPullRequestService.class, pullRequestServiceSpy);
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(),
+        gitService.baseUrl() + "/someOrg/someRepo",
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+    CreatePRModal createPRModal = new CreatePRModal();
+
+    // click the create pull request button
+    SelenideElement createPullRequestButton =
+        page.createPullRequestButton(8).shouldBe(visible).shouldHave(text("Create PR"));
+    createPullRequestButton.click();
+
+    // check the modal
+    createPRModal.shouldBe(visible).shouldHave(text("Create Pull Request"));
+
+    // click create pr button inside the modal
+    SelenideElement createPullRequestModalButton = createPRModal.createPullRequestModalCreateButton();
+    createPullRequestModalButton.shouldBe(visible).shouldHave(text("Create"));
+    createPullRequestModalButton.click();
+
+    // polling should start
+    createPRModal.shouldNotBe(visible);
+    page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
+
+    // change the status of the pull request event from new to in progress
+    SourceControlEvent pullRequestEvent = sourceControlEventDAO.getAll().get(0);
+    pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
+    sourceControlEventDAO.update(pullRequestEvent);
+
+    // wait for a new polling call
+    Wait()
+        .withTimeout(Duration.ofSeconds(3))
+        .pollingEvery(Duration.ofMillis(200))
+        .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
+
+    // polling should continue
+    page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
+
+    // change the status of the pull request event from in progress to complete
+    pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    // the PR number is not set
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    sourceControlEventDAO.update(pullRequestEvent);
+
+    // polling should end
+    // the link should still be present, but with text "View PR" instead of "PR #123"
+    SelenideElement prLink =
         page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("View PR"));
     prLink.shouldBe(enabled);
-    prLink.shouldHave(href("https://example.com/pull/1"));
+    prLink.shouldHave(href("https://example.com/pull/123"));
   }
 
   @Test
@@ -993,14 +1062,15 @@ public class PrioritiesPageTest
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
     pullRequestEvent = sourceControlEventDAO.getAll().get(1);
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
-    pullRequestEvent.setEventStatusDetails("https://example.com/pull/1");
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(pullRequestEvent);
 
     // polling should end
     SelenideElement prLink =
-        page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("View PR"));
+        page.viewPullRequestLink(8).shouldBe(visible).shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
-    prLink.shouldHave(href("https://example.com/pull/1"));
+    prLink.shouldHave(href("https://example.com/pull/123"));
   }
 
   @Test

@@ -490,6 +490,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0','CC-BY-SA-3.0','Creative Commons Attribution Share Alike 3.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-IGO','CC-BY-SA-3.0-IGO','Creative Commons Attribution-ShareAlike 3.0 IGO');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-US','CC-BY-SA-3.0-US','Creative Commons Attribution Share Alike 3.0 United States');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-with-GNOME-examples-exception','CC-BY-SA-3.0-with-GNOME-examples-exception','Creative Commons Attribution Share Alike 3.0 w/GNOME examples exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0','Creative Commons Attribution Share Alike 4.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-4.0-with-KiCad-libraries-exception','CC-BY-SA-4.0-with-KiCad-libraries-exception','CC-BY-SA-4.0 with KiCad Libraries Exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-UNSPECIFIED','CC-BY-SA','CC-BY-SA-Style License Not Identifiable by Sonatype');
@@ -1107,6 +1108,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Asterisk-exception','GPL-2.0-with-Asterisk-exception','GNU General Public License v2.0 w/Asterisk exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-autoconf-exception','GPL-2.0-with-autoconf-exception','GNU General Public License v2.0 w/Autoconf exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-bison-exception','GPL-2.0-with-bison-exception','GNU General Public License v2.0 w/Bison exception');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-CGAL-linking-exception','GPL-2.0-with-CGAL-linking-exception','GNU General Public License v2.0 w/CGAL linking exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Clarifying-Addendum','GPL-2.0-with-Clarifying-Addendum','GPL-2.0 with Clarifying Addendum');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-classpath-exception','GPL-2.0-with-classpath-exception','GNU General Public License v2.0 w/Classpath exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-cryptsetup-OpenSSL-exception','GPL-2.0-with-cryptsetup-OpenSSL-exception','GNU General Public License v2.0 w/cryptsetup OpenSSL exception');
@@ -1117,6 +1119,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception','GNU General Public License v2.0 w/libpri OpenH323 exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note','GPL-2.0 with Linux Syscall Note');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception','GNU General Public License v2.0 w/OpenSSL exception');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-UBDL-exception','GPL-2.0-with-UBDL-exception','GNU General Public License v2.0 w/Unmodified Binary Distribution exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0 with Universal FOSS Exception, Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-x11vnc-OpenSSL-exception','GPL-2.0-with-x11vnc-OpenSSL-exception','GNU General Public License v2.0 w/x11vnc OpenSSL exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0','GPL-3.0','GNU General Public License v3.0 only');
@@ -1714,8 +1717,11 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-t
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-variant-without-AS-IS','MIT-variant-without-AS-IS','MIT variant without AS-IS');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-1.0','MIT-with-Anti-996-License-1.0','MIT with Anti 996 License Version 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License','MIT-with-Anti-996-License-Style Not Identifiable by Sonatype');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Bright-Rookie-Medical-Disclaimer','MIT-with-Bright-Rookie-Medical-Disclaimer','MIT with Bright-Rookie Medical Disclaimer');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-CJ-Fravel-SaaS-Provision','MIT-with-CJ-Fravel-SaaS-Provision','MIT License with CJ Fravel SaaS Provision');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0','MIT with Commons-Clause-1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause','MIT with Commons-Clause-Style License Not Identifiable by Sonatype');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Django-Cythonizer-UD','MIT-with-Django-Cythonizer-UD','MIT License with Django-Cythonizer Usage Disclosure');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-fmt-exception','MIT-with-fmt-exception','MIT with fmt exception');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause','MIT License with No Resale Clause');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('MIT-Wu','MIT-Wu','MIT Tom Wu Variant');

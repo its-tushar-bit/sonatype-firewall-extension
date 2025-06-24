@@ -783,6 +783,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-GPL-3.0','BSD-3-Clause or GPL-3.0','Dual License Consisting of BSD 3-clause "New" or "Revised" License and GPL 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-GPL-3.0+','BSD-3-Clause or GPL-3.0+','Dual License Consisting of BSD 3-clause "New" or "Revised" License and GPL 3.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-GPL-3.0-MIT','BSD-3-Clause or GPL-3.0 or MIT','Triple License Consisting of BSD 3-clause "New" or "Revised" License, GPL 3.0 and MIT License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-GPL-UNSPECIFIED','BSD-3-Clause OR GPL','Dual License Consisting of The BSD 3-clause "New" or "Revised" License and GPL-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-HDF5','BSD-3-Clause-HDF5','Hierarchical Data Format 5 BSD Variant License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-HP','BSD-3-Clause-HP','Hewlett-Packard BSD variant license');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('BSD-3-Clause-LBNL','BSD-3-Clause-LBNL','Lawrence Berkeley National Labs BSD variant license');
@@ -989,6 +990,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-LGPL-3.0','CC-BY-SA-3.0 or LGPL-3.0','Dual License Consisting of Creative Commons Attribution Share Alike 3.0 and LGPL 3.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-LGPL-3.0+','CC-BY-SA-3.0 or LGPL-3.0+','Dual License Consisting of Creative Commons Attribution Share Alike 3.0 and LGPL 3.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-US','CC-BY-SA-3.0-US','Creative Commons Attribution Share Alike 3.0 United States');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-3.0-with-GNOME-examples-exception','CC-BY-SA-3.0-with-GNOME-examples-exception','Creative Commons Attribution Share Alike 3.0 w/GNOME examples exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0','Creative Commons Attribution Share Alike 4.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-4.0+','CC-BY-SA-4.0+','Creative Commons Attribution Share Alike 4.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CC-BY-SA-4.0-MIT','CC-BY-SA-4.0 or MIT','Dual License Consisting of Creative Commons Attribution Share Alike 4.0 and MIT License');
@@ -1863,6 +1865,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Asterisk-exception','GPL-2.0-with-Asterisk-exception','GNU General Public License v2.0 w/Asterisk exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-autoconf-exception','GPL-2.0-with-autoconf-exception','GNU General Public License v2.0 w/Autoconf exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-bison-exception','GPL-2.0-with-bison-exception','GNU General Public License v2.0 w/Bison exception');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-CGAL-linking-exception','GPL-2.0-with-CGAL-linking-exception','GNU General Public License v2.0 w/CGAL linking exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Clarifying-Addendum','GPL-2.0-with-Clarifying-Addendum','GPL-2.0 with Clarifying Addendum');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-classpath-exception','GPL-2.0-with-classpath-exception','GNU General Public License v2.0 w/Classpath exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-cryptsetup-OpenSSL-exception','GPL-2.0-with-cryptsetup-OpenSSL-exception','GNU General Public License v2.0 w/cryptsetup OpenSSL exception');
@@ -1873,6 +1876,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception','GNU General Public License v2.0 w/libpri OpenH323 exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note','GPL-2.0 with Linux Syscall Note');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception','GNU General Public License v2.0 w/OpenSSL exception');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-UBDL-exception','GPL-2.0-with-UBDL-exception','GNU General Public License v2.0 w/Unmodified Binary Distribution exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0 with Universal FOSS Exception, Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-with-x11vnc-OpenSSL-exception','GPL-2.0-with-x11vnc-OpenSSL-exception','GNU General Public License v2.0 w/x11vnc OpenSSL exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0','GPL-3.0','GNU General Public License v3.0 only');
@@ -1913,6 +1917,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-MPL-2.0','GPL-3.0 or MPL-2.0','Dual License Consisting of GPL 3.0 and Mozilla Public License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-NYSL','GPL-3.0 or NYSL','Dual License Consisting of GPL 3.0 and Niru nari Yaku nari Suki ni shiro License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-OFL-UNSPECIFIED','GPL-3.0 or OFL','Dual License Consisting of GPL 3.0 and OFL-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-Proprietary-Clause','GPL-3.0 or Proprietary-Clause','Dual License Consisting of GPL 3.0 and Proprietary Clause');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-Python-UNSPECIFIED','GPL-3.0 or Python','Dual License Consisting of GPL 3.0 and Python-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-Ruby','GPL-3.0 or Ruby','Dual License Consisting of GPL 3.0 and Ruby License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-3.0-Slint-Royalty-free-2.0-Slint-Software-3.0','GPL-3.0 or Slint-Royalty-free-2.0 or Slint-Software-3.0','Triple License Consisting of GPL 3.0, Slint Royalty-free Desktop, Mobile, and Web Applications License 2.0 and Slint Software License 3.0');
@@ -2638,8 +2643,11 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-variant-without-AS-IS','MIT-variant-without-AS-IS','MIT variant without AS-IS');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-1.0','MIT-with-Anti-996-License-1.0','MIT with Anti 996 License Version 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License','MIT-with-Anti-996-License-Style Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Bright-Rookie-Medical-Disclaimer','MIT-with-Bright-Rookie-Medical-Disclaimer','MIT with Bright-Rookie Medical Disclaimer');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-CJ-Fravel-SaaS-Provision','MIT-with-CJ-Fravel-SaaS-Provision','MIT License with CJ Fravel SaaS Provision');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0','MIT with Commons-Clause-1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause','MIT with Commons-Clause-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-Django-Cythonizer-UD','MIT-with-Django-Cythonizer-UD','MIT License with Django-Cythonizer Usage Disclosure');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-fmt-exception','MIT-with-fmt-exception','MIT with fmt exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause','MIT License with No Resale Clause');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('MIT-WTFPL','MIT or WTFPL','Dual License Consisting of MIT License and Do What The F*ck You Want To Public License');

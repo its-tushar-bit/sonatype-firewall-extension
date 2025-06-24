@@ -1747,6 +1747,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-C
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-GPL-3.0-MIT','BSD-3-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-GPL-3.0-MIT','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-GPL-3.0-MIT','MIT');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-GPL-UNSPECIFIED','BSD-3-Clause');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-GPL-UNSPECIFIED','GPL-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-HDF5','BSD-3-Clause-HDF5');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-HP','BSD-3-Clause-HP');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('BSD-3-Clause-LBNL','BSD-3-Clause-LBNL');
@@ -2082,6 +2084,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-S
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-3.0-LGPL-3.0+','CC-BY-SA-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-3.0-LGPL-3.0+','LGPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-3.0-US','CC-BY-SA-3.0-US');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-3.0-with-GNOME-examples-exception','CC-BY-SA-3.0-with-GNOME-examples-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-4.0','CC-BY-SA-4.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-4.0+','CC-BY-SA-4.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('CC-BY-SA-4.0-MIT','CC-BY-SA-4.0');
@@ -3409,6 +3412,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Asterisk-exception','GPL-2.0-with-Asterisk-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-autoconf-exception','GPL-2.0-with-autoconf-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-bison-exception','GPL-2.0-with-bison-exception');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-CGAL-linking-exception','GPL-2.0-with-CGAL-linking-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Clarifying-Addendum','GPL-2.0-with-Clarifying-Addendum');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-classpath-exception','GPL-2.0-with-classpath-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-cryptsetup-OpenSSL-exception','GPL-2.0-with-cryptsetup-OpenSSL-exception');
@@ -3419,6 +3423,7 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-libpri-OpenH323-exception','GPL-2.0-with-libpri-OpenH323-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Linux-syscall-note','GPL-2.0-with-Linux-syscall-note');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-OpenSSL-exception','GPL-2.0-with-OpenSSL-exception');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-UBDL-exception','GPL-2.0-with-UBDL-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-Universal-FOSS-exception-1.0','GPL-2.0-with-Universal-FOSS-exception-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-2.0-with-x11vnc-OpenSSL-exception','GPL-2.0-with-x11vnc-OpenSSL-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0','GPL-3.0');
@@ -3501,6 +3506,8 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-NYSL','NYSL');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-OFL-UNSPECIFIED','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-OFL-UNSPECIFIED','OFL-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-Proprietary-Clause','GPL-3.0');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-Proprietary-Clause','Proprietary-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-Python-UNSPECIFIED','GPL-3.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-Python-UNSPECIFIED','Python-UNSPECIFIED');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('GPL-3.0-Ruby','GPL-3.0');
@@ -4407,8 +4414,11 @@ INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-UPL
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-variant-without-AS-IS','MIT-variant-without-AS-IS');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Anti-996-License-1.0','MIT-with-Anti-996-License-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Anti-996-License-UNSPECIFIED','MIT-with-Anti-996-License-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Bright-Rookie-Medical-Disclaimer','MIT-with-Bright-Rookie-Medical-Disclaimer');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-CJ-Fravel-SaaS-Provision','MIT-with-CJ-Fravel-SaaS-Provision');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Commons-Clause-1.0','MIT-with-Commons-Clause-1.0');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Commons-Clause-UNSPECIFIED','MIT-with-Commons-Clause-UNSPECIFIED');
+INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-Django-Cythonizer-UD','MIT-with-Django-Cythonizer-UD');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-fmt-exception','MIT-with-fmt-exception');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-with-No-Resale-Clause','MIT-with-No-Resale-Clause');
 INSERT INTO multi_license_license (multi_license_id,license_id) VALUES ('MIT-WTFPL','MIT');

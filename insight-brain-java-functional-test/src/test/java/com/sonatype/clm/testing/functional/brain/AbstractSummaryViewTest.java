@@ -39,6 +39,7 @@ import com.sonatype.clm.testing.functional.elements.PolicyTileList;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList.PolicyTileListElement;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
+import com.sonatype.clm.testing.functional.pages.PublicDataSourcesEditorPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -496,7 +497,6 @@ public abstract class AbstractSummaryViewTest
       if (i == 0) {
         list.ownerName().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
         list.emptyDescriptor().should(exist);
-
       }
       else {
         list.ownerName().shouldBe(hidden);
@@ -909,7 +909,7 @@ public abstract class AbstractSummaryViewTest
           section.getTitle().shouldBe(visible).shouldHave(text("Local to " + currentOwner.getName()));
           section.getCollapsibleIcon().shouldNot(exist);
           SelenideElement emptyDescriptor = section.getEmptyDescriptor();
-          if (section.getEmptyDescriptor() != null ) {
+          if (section.getEmptyDescriptor() != null) {
             emptyDescriptor.should(exist).shouldBe(visible);
             section.getEmptyRows().shouldHave(size(1));
           }
@@ -1186,6 +1186,32 @@ public abstract class AbstractSummaryViewTest
     OwnerSummaryPage.publicDataSourcesTile().shouldBe(visible);
     OwnerSummaryPage.publicDataSourcesTile().title().shouldHave(text("Public Data Sources"));
     OwnerSummaryPage.publicDataSourcesTile().content().shouldHave(text("Public Data Sources are disabled"));
+  }
+
+  @Test
+  public void testPublicDataSources_isNotVisible() {
+    refresh();
+    //Pill is not visible due lack of CPE_MATCHING feature
+    OwnerSummaryPage.navigationPills().publicDataSources().shouldNotBe(visible);
+    OwnerSummaryPage.publicDataSourcesTile().shouldNotBe(visible);
+  }
+
+  @Test
+  public void testPublicDataSources_navigateToEditForm() {
+    productLicenseManager.setFeatures(LicensedFeature.CPE_MATCHING);
+    refresh();
+
+    OwnerSummaryPage.navigationPills().publicDataSources().shouldBe(visible);
+    OwnerSummaryPage.navigationPills().publicDataSources().click();
+
+    OwnerSummaryPage.publicDataSourcesTile().shouldBe(visible);
+    OwnerSummaryPage.publicDataSourcesTile().content().click();
+
+    PublicDataSourcesEditorPage.title().shouldBe(visible);
+    PublicDataSourcesEditorPage.radioInputs().forEach(radio -> {
+      radio.shouldBe(visible);
+      radio.shouldHave(cssClass("nx-radio"));
+    });
   }
 
   protected int getHierarchySize(Owner owner) {

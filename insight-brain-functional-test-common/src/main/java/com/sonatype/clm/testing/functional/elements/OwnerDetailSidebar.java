@@ -58,6 +58,10 @@ public class OwnerDetailSidebar
     return $("#continous-monitoring-link");
   }
 
+  public static SelenideElement publicDatasources() {
+    return $("#public-data-sources-link");
+  }
+
   public static SelenideElement proprietaryComponents() {
     return $("#proprietary-components-link");
   }

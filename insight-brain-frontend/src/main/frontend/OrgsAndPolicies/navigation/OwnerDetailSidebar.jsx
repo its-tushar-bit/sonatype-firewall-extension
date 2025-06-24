@@ -453,6 +453,7 @@ export default function OwnerDetailSidebar() {
       {isCpeMatchingSupported && (
         <NxCollapsibleItems.Child>
           <NxTextLink
+            id="public-data-sources-link"
             className={`iq-noncollapsible ${isPublicDataSources ? 'selected' : ''}`}
             href={`${linkMainHref}/publicDataSourcesEditor`}
           >

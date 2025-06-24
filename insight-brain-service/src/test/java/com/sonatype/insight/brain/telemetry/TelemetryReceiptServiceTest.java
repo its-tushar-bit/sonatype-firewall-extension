@@ -44,6 +44,21 @@ public class TelemetryReceiptServiceTest
   }
 
   @Test
+  public void testMissingConfiguration() {
+    // given: no configuration mock
+    final var testSubject = new TelemetryReceiptService(null);
+
+    // when:
+    var receipts = testSubject.getReceipts(List.of(""));
+
+    // then:
+    assertThat(receipts).isNotNull();
+    assertThat(receipts.isLocalEnv()).isFalse();
+    assertThat(receipts.isUsingProdHds()).isFalse();
+    assertThat(receipts.captureExpirationTime()).isNull();
+  }
+
+  @Test
   public void testEnable_notLocalhost() {
     // given:
     asLocalhost(false);

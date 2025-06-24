@@ -39,7 +39,7 @@ public class TelemetryReceiptService
 
   private static final String PROD_HDS_URL = "https://clm.sonatype.com";
 
-  private final TenantReference<Configuration> configuration = new TenantReference<>();
+  private final Configuration configuration;
 
   private final TenantReference<LocalDateTime> telemetryCaptureExpirationTime = new TenantReference<>();
 
@@ -49,7 +49,7 @@ public class TelemetryReceiptService
 
   @Inject
   public TelemetryReceiptService(Configuration configuration) {
-    this.configuration.set(configuration);
+    this.configuration = configuration;
   }
 
   public void disable() {
@@ -122,12 +122,18 @@ public class TelemetryReceiptService
   }
 
   private boolean isForLocalhost() {
-    var baseUrl = configuration.get().getBaseUrl();
+    if (null == configuration) {
+      return false; // configuration not set, cannot be localhost
+    }
+    var baseUrl = configuration.getBaseUrl();
     return null != baseUrl && baseUrl.trim().toLowerCase().startsWith(LOCALHOST_URL);
   }
 
   private boolean isUsingProdHds() {
-    var hdsUrl = configuration.get().getHdsUrl();
+    if (null == configuration) {
+      return false;
+    }
+    var hdsUrl = configuration.getHdsUrl();
     return null != hdsUrl && hdsUrl.trim().toLowerCase().startsWith(PROD_HDS_URL.toLowerCase());
   }
 

@@ -16,5 +16,5 @@ public interface LicenseNameProvider
    * @param licenseId the license ID
    * @return the short display name of the license, or the license ID if the license is not found
    */
-  String getShortDisplayName(String licenseId);
+  String getShortDisplayName(String licenseId, boolean isMultiLicense);
 }

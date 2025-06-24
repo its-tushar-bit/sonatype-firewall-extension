@@ -6,12 +6,15 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -282,19 +285,15 @@ public class PolicyViolationTelemetryBuilder
   }
 
   private String joinNamedLicenses(Set<String> multiLicenseIds, Set<String> licenseIds) {
-    Set<String> allLicenseIds = new LinkedHashSet<>();
+    multiLicenseIds = Objects.requireNonNullElse(multiLicenseIds, Collections.emptySet());
+    licenseIds = Objects.requireNonNullElse(licenseIds, Collections.emptySet());
 
-    if (CollectionUtils.isNotEmpty(multiLicenseIds)) {
-      allLicenseIds.addAll(multiLicenseIds);
-    }
+    Stream<String> multiLicenseStream = multiLicenseIds.stream()
+        .map(id -> licenseNameProvider != null ? licenseNameProvider.getShortDisplayName(id, true) : id);
 
-    if (CollectionUtils.isNotEmpty(licenseIds)) {
-      allLicenseIds.addAll(licenseIds);
-    }
+    Stream<String> licenseStream = licenseIds.stream()
+        .map(id -> licenseNameProvider != null ? licenseNameProvider.getShortDisplayName(id, false) : id);
 
-    // Look up license names using LicenseNameProvider if available
-    return allLicenseIds.stream()
-        .map(id -> licenseNameProvider != null ? licenseNameProvider.getShortDisplayName(id) : id)
-        .collect(Collectors.joining(", "));
+    return Stream.concat(multiLicenseStream, licenseStream).collect(Collectors.joining(", "));
   }
 }

@@ -30,20 +30,20 @@ public class DefaultLicenseNameProvider
   private MultiLicenseDAO multiLicenseDAO;
 
   @Override
-  public String getShortDisplayName(String licenseId) {
-    // First try to get the license from LicenseDAO
-    License license = licenseDAO.getById(licenseId);
-    if (license != null) {
-      return license.getShortDisplayName();
+  public String getShortDisplayName(String licenseId, boolean isMultiLicense) {
+    String result = licenseId;
+    if (isMultiLicense) {
+      MultiLicense multiLicense = multiLicenseDAO.getById(licenseId);
+      if (multiLicense != null) {
+        result = multiLicense.getShortDisplayName();
+      }
     }
-
-    // If not found, try to get it from MultiLicenseDAO
-    MultiLicense multiLicense = multiLicenseDAO.getById(licenseId);
-    if (multiLicense != null) {
-      return multiLicense.getShortDisplayName();
+    else {
+      License license = licenseDAO.getById(licenseId);
+      if (license != null) {
+        result = license.getShortDisplayName();
+      }
     }
-
-    // If still not found, return the license ID
-    return licenseId;
+    return result;
   }
 }

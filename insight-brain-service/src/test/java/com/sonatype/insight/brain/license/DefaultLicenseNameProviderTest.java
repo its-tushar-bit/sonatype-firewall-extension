@@ -59,7 +59,6 @@ public class DefaultLicenseNameProviderTest
 
     // Configure the mocks
     when(licenseDAO.getById(REGULAR_LICENSE_ID)).thenReturn(license);
-    when(licenseDAO.getById(MULTI_LICENSE_ID)).thenReturn(null);
     when(multiLicenseDAO.getById(MULTI_LICENSE_ID)).thenReturn(multiLicense);
     when(licenseDAO.getById(UNKNOWN_LICENSE_ID)).thenReturn(null);
   }
@@ -67,7 +66,7 @@ public class DefaultLicenseNameProviderTest
   @Test
   public void testGetShortDisplayName_RegularLicense() {
     // When getting a regular license name
-    String displayName = licenseNameProvider.getShortDisplayName(REGULAR_LICENSE_ID);
+    String displayName = licenseNameProvider.getShortDisplayName(REGULAR_LICENSE_ID, false);
 
     // Then it should return the correct name
     assertEquals("Regular license should return its short display name", REGULAR_LICENSE_NAME, displayName);
@@ -77,7 +76,7 @@ public class DefaultLicenseNameProviderTest
   @Test
   public void testGetShortDisplayName_MultiLicense() {
     // When getting a multi-license name
-    String displayName = licenseNameProvider.getShortDisplayName(MULTI_LICENSE_ID);
+    String displayName = licenseNameProvider.getShortDisplayName(MULTI_LICENSE_ID, true);
 
     // Then it should return the correct name
     assertEquals("Multi-license should return its short display name", MULTI_LICENSE_NAME, displayName);
@@ -85,9 +84,19 @@ public class DefaultLicenseNameProviderTest
   }
 
   @Test
-  public void testGetShortDisplayName_UnknownLicense() {
+  public void testGetShortDisplayName_UnknownRegularLicense() {
     // When getting an unknown license name
-    String displayName = licenseNameProvider.getShortDisplayName(UNKNOWN_LICENSE_ID);
+    String displayName = licenseNameProvider.getShortDisplayName(UNKNOWN_LICENSE_ID, false);
+
+    // Then it should return the license ID
+    assertEquals("Unknown license should return its ID", UNKNOWN_LICENSE_ID, displayName);
+    System.out.println("[DEBUG_LOG] Unknown license test passed: " + displayName);
+  }
+
+  @Test
+  public void testGetShortDisplayName_UnknownMultiLicense() {
+    // When getting an unknown license name
+    String displayName = licenseNameProvider.getShortDisplayName(UNKNOWN_LICENSE_ID, true);
 
     // Then it should return the license ID
     assertEquals("Unknown license should return its ID", UNKNOWN_LICENSE_ID, displayName);

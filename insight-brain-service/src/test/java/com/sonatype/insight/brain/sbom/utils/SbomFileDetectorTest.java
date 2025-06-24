@@ -14,37 +14,23 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Objects;
 
-import com.sonatype.insight.brain.dataaccess.DAOFactory;
-import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
-import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.policy.evaluator.AbstractPolicyEvaluationTest;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 
+import jakarta.inject.Inject;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomFileDetectorTest
+    extends AbstractComponentTest
 {
+  @Inject
   private SbomFileDetector detector;
-
-  @Rule(order = 1)
-  public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractPolicyEvaluationTest.class);
-
-  @Rule
-  public TemporaryFolder tempDir = new TemporaryFolder();
-
-  protected DAOFactory daoFactory;
 
   @Before
   public void before() {
-    detector = new SbomFileDetector();
-    daoFactory = new TestDAOFactory(databaseRule);
-
-    SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
     SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.setEnabled(false);
   }
 
@@ -228,7 +214,7 @@ public class SbomFileDetectorTest
             "Line: 1, Column: 2, Path: $, Error: required property 'name' not found");
     SbomDetectionResult expected =
         createExpectedResult(true, false, true, "application/json", "Not a valid SPDX SBOM file.",
-            expectedErrors, "2.3", "SPDX","json", 6, 13,
+            expectedErrors, "2.3", "SPDX", "json", 6, 13,
             "sonatype:iq_application_SCM Test 1", "76b10b862e7b42009f2415097620928c");
     checkSbomMetadata("spdx-invalid-json.tmp", expected);
   }
@@ -300,7 +286,7 @@ public class SbomFileDetectorTest
         "Line: 11, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 6, column: 2])");
     SbomDetectionResult expected1 =
         createExpectedResult(true, false, false, "application/json", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, "CycloneDx","json", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx", "json", 0, 0, null, null);
     checkSbomMetadataUsingFile("cdx-bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
         createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
@@ -313,7 +299,7 @@ public class SbomFileDetectorTest
         "Line: 9, Column: 1, Error: The end-tag for element type \"components\" must end with a '>' delimiter.");
     SbomDetectionResult expected =
         createExpectedResult(true, false, false, "application/xml", "Not a valid CycloneDX SBOM file.",
-            expectedErrors, null, "CycloneDx","xml", 0, 0, null, null);
+            expectedErrors, null, "CycloneDx", "xml", 0, 0, null, null);
     checkSbomMetadata("cdx-bad-structure.xml", expected);
   }
 
@@ -324,7 +310,7 @@ public class SbomFileDetectorTest
         "Line: 20, Column: 3, Error: Unexpected close marker ']': expected '}' (for Object starting at [Source: REDACTED (`StreamReadFeature.INCLUDE_SOURCE_IN_LOCATION` disabled); line: 15, column: 2])");
     SbomDetectionResult expected1 =
         createExpectedResult(true, false, false, "application/json", "Not a valid SPDX SBOM file.",
-            expectedErrors, null, "SPDX","json", 0, 0, null, null);
+            expectedErrors, null, "SPDX", "json", 0, 0, null, null);
     checkSbomMetadataUsingFile("spdx-bad-structure.json", expected1, false);
     SbomDetectionResult expected2 =
         createBinaryExpectedResult("text/plain", "Provided file type is not a supported SBOM file type.");
@@ -336,7 +322,7 @@ public class SbomFileDetectorTest
     List<String> expectedErrors = List.of("Error: Misplaced '<' at 606 [character 1 line 20]");
     SbomDetectionResult expected =
         createExpectedResult(true, false, false, "application/xml", "Not a valid SPDX SBOM file.",
-            expectedErrors, null, "SPDX","xml", 0, 0, null, null);
+            expectedErrors, null, "SPDX", "xml", 0, 0, null, null);
     checkSbomMetadata("spdx-bad-structure.xml", expected);
   }
 

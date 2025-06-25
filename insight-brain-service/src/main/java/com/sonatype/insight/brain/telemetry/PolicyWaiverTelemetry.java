@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -33,8 +34,10 @@ public class PolicyWaiverTelemetry
 
   private String waiverReason;
 
+  @JsonProperty("isForContainerImage")
   private final boolean isForContainerImage;
 
+  @JsonProperty("isForContainerImageComponent")
   private final boolean isForContainerImageComponent;
 
   public PolicyWaiverTelemetry(

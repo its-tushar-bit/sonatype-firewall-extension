@@ -571,6 +571,9 @@ public class ViolationDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getClassLoader().getResource("vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
+    testCLMServer.getHdsServer()
+        .respondWith(Collections.emptyMap())
+        .atUri("rest/vulnerability/details/json");
   }
 
   @Test

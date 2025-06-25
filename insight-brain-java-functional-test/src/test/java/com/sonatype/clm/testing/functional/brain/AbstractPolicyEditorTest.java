@@ -85,6 +85,7 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -243,7 +244,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(constraint.getName()).isEqualTo("New Constraint");
     assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.OR);
 
-    assertThat(constraint.getConditions()).hasSize(29);
+    assertThat(constraint.getConditions()).hasSize(30);
     assertCondition(constraint.getConditions().get(0), AgeInDaysConditionType.ID, "older than",
         Integer.toString(3 * 365));
     assertCondition(constraint.getConditions().get(1), CoordinatesConditionType.ID, "match",
@@ -1520,6 +1521,14 @@ public abstract class AbstractPolicyEditorTest
     endOfLife.type().chooseOptionWithHidden(conditionTypesOptionMap.get(ComponentEndOfLifeConditionType.class));
     endOfLife.operator().shouldHave(text("is true")).click();
     endOfLife.operator().listItem(1).shouldHave(text("is false")).click();
+
+    newConstraint.addConditionButton().click();
+    DropdownConditionEditSection kevStatus = newConstraint.dropdownCondition(29);
+    kevStatus.type().chooseOptionWithHidden(conditionTypesOptionMap.get(KevStatusConditionType.class));
+    kevStatus.operator().shouldHave(text("is")).click();
+    kevStatus.value().shouldHave(text("Known to be exploited")).click();
+    kevStatus.value().listItem(1).shouldHave(text("Not listed")).click();
+    PolicyEditorPage.saveButton().shouldNotHave(DISABLED);
 
     newConstraint.conditionUnsupportedMessages().shouldHave(size(0));
   }

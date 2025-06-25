@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +23,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
+import com.google.common.collect.Iterables;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -38,7 +40,9 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
@@ -51,6 +55,8 @@ import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.util.MetadataRecorderUtils;
+import com.sonatype.insight.vulnerability.model.BulkSecurityVulnerabilityDataDTO;
+import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -72,6 +78,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
+import static java.lang.System.currentTimeMillis;
 
 /**
  * @since 1.76
@@ -98,9 +105,14 @@ public class ThirdPartyComponentDAO
 
   private Provider<ReportService> reportServiceProvider;
 
+  private final HdsClient client;
+
+  private static final String HDS_BULK_VULN_DATA_PATH = "/rest/vulnerability/details/json";
+
   @Inject
-  public ThirdPartyComponentDAO(final Provider<ReportService> reportServiceProvider) {
+  public ThirdPartyComponentDAO(final Provider<ReportService> reportServiceProvider, final HdsClient client) {
     this.reportServiceProvider = reportServiceProvider;
+    this.client = client;
     componentCache = new TenantReference<>(() -> CacheBuilder.newBuilder()
         .expireAfterAccess(1, TimeUnit.DAYS)
         .maximumWeight(100000)
@@ -303,11 +315,17 @@ public class ThirdPartyComponentDAO
       ContainerNode<?> summaryJsonData,
       ApplicationReport applicationReport)
   {
+    long startTimeReport = currentTimeMillis();
+    log.debug("Begin updating report for third party");
     int knownArtifactCount = summaryJsonData.path("knownArtifactCount").asInt();
     int exactlyMatchedComponentCount = dataJson.path("exactlyMatchedComponentCount").asInt();
+    boolean isThirdPartyKevLookupEnabled = SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled();
 
     Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash = null;
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
+    Set<String> hashesToUpdate = new HashSet<>();
+    Map<String, List<JsonNode>> unmatchedRefToNodeMap = new HashMap<>();
+
     for (int i = 0; i < bomArray.size(); i++) {
       JsonNode bomNode = bomArray.get(i);
       String matchStateString = bomNode.get(MATCH_STATE).asText();
@@ -328,10 +346,16 @@ public class ThirdPartyComponentDAO
           if (!thirdPartyReportComponentDTO.securityRows.isEmpty()) {
             ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
             for (ThirdPartyHealthCheckReportSecurityRowDTO securityRowDTO : thirdPartyReportComponentDTO.securityRows) {
-              securityJsonArray.add(JsonUtils.asTree(convert(securityRowDTO)));
+              JsonNode nodeToAdd = JsonUtils.asTree(convert(securityRowDTO));
+              securityJsonArray.add(nodeToAdd);
+              String ref = securityRowDTO.reference;
+              if (isThirdPartyKevLookupEnabled) {
+                hashesToUpdate.add(securityRowDTO.hash);
+                unmatchedRefToNodeMap.computeIfAbsent(ref, k -> new ArrayList<>()).add(nodeToAdd);
+              }
             }
           }
-          
+
           // Licenses
           if (!thirdPartyReportComponentDTO.licensesRow.declaredLicenses.isEmpty()) {
             ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
@@ -349,11 +373,45 @@ public class ThirdPartyComponentDAO
         getThirdPartyReportComponentDataByHash(applicationReport, thirdPartyReportComponentDataByHash);
     addVexToSecurityData(securityJsonData, thirdPartyReportComponentDataByHash);
 
+    long startTimeAddKev = currentTimeMillis();
+    log.debug("Begin updating security.json for KEV.");
+    if (isThirdPartyKevLookupEnabled) {
+      addKevToSecurityData(hashesToUpdate, unmatchedRefToNodeMap);
+    }
+    log.debug("Finished updating security.json for KEV in: {} ms", (currentTimeMillis() - startTimeAddKev));
+
     ObjectNode dataObjectNode = (ObjectNode) dataJson;
     dataObjectNode.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
     dataObjectNode.put("knownArtifactCount", knownArtifactCount);
 
     ((ObjectNode) summaryJsonData).put("knownArtifactCount", knownArtifactCount);
+    log.debug("Finished updating report for third party in: {} ms", (currentTimeMillis() - startTimeReport));
+  }
+
+  private void addKevToSecurityData(Set<String> hashesToUpdate,
+                                    Map<String, List<JsonNode>> unmatchedRefToNodeMap)
+  {
+    if (unmatchedRefToNodeMap.isEmpty()) {
+      return;
+    }
+
+    Set<String> refIdsForKevDataLookup = new HashSet<>(unmatchedRefToNodeMap.keySet());
+
+    Map<String, KevData> kevDataMap = processRefIdsInBatches(refIdsForKevDataLookup);
+
+    for (Entry<String, KevData> entry : kevDataMap.entrySet()) {
+      String ref = entry.getKey();
+      KevData kevData = entry.getValue();
+
+      List<JsonNode> nodesToUpdate = unmatchedRefToNodeMap.get(ref);
+      if (nodesToUpdate != null) {
+        for (JsonNode nodeToUpdate : nodesToUpdate) {
+          if (hashesToUpdate.contains(nodeToUpdate.get("hash").textValue())) {
+            ((ObjectNode) nodeToUpdate).set("kevData", JsonUtils.asTree(kevData));
+          }
+        }
+      }
+    }
   }
 
   private Map<String, ThirdPartyReportComponentDTO> getThirdPartyReportComponentDataByHash(
@@ -529,5 +587,49 @@ public class ThirdPartyComponentDAO
       }
     }
     return componentRemediationDto;
+  }
+
+  private Map<String, KevData> getKevDataFromHDS(Set<String> refIds) {
+    try {
+      long startTime = currentTimeMillis();
+      log.debug("Begin HDS call for: {} refIds", refIds.size());
+
+      BulkSecurityVulnerabilityDataDTO dto =
+          client.post(BulkSecurityVulnerabilityDataDTO.class, HDS_BULK_VULN_DATA_PATH, refIds);
+
+      log.debug("HDS call finished for {} refIds. Elapsed: {} ms",
+          refIds.size(), (currentTimeMillis() - startTime));
+
+      if (dto == null || dto.getVulnerabilities() == null) {
+        return Collections.emptyMap();
+      }
+
+      return dto.getVulnerabilities().entrySet().stream()
+          .filter(entry -> entry.getValue() != null && entry.getValue().kevData != null)
+          .collect(Collectors.toMap(
+              Map.Entry::getKey,
+              entry -> entry.getValue().kevData
+          ));
+    }
+    catch (Exception e) {
+      log.error("Failed to retrieve KEV data from HDS: {}", e.getMessage(), e);
+
+      return Collections.emptyMap();
+    }
+  }
+
+  private Map<String, KevData> processRefIdsInBatches(Set<String> allRefIds) {
+    final int BATCH_SIZE = 1000;
+    Map<String, KevData> combinedResults = new HashMap<>();
+
+    long startTime = currentTimeMillis();
+    log.debug("Begin HDS batch call.");
+
+    Iterables.partition(allRefIds, BATCH_SIZE)
+        .forEach(refIdBatch -> combinedResults.putAll(getKevDataFromHDS(new HashSet<>(refIdBatch))));
+
+    log.debug("Finished all HDS batch calls in {} ms.", (currentTimeMillis() - startTime));
+
+    return combinedResults;
   }
 }

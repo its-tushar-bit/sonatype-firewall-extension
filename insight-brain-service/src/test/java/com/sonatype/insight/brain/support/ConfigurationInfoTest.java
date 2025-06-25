@@ -282,7 +282,8 @@ public class ConfigurationInfoTest
         "componentChangeDetectionApi",
         "containerImagesEvalEnabled",
         "darkMode",
-        "zScaler"
+        "zScaler",
+        "thirdPartyKevLookup"
     );
 
     // Properties included in the config.json in support zip

@@ -1,0 +1,74 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "zypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "pumpy",
+        "qualifier" : "",
+        "version" : "2.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "1b1792c8a828d6a9fb14",
+    "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-123-4567",
+    "reference" : "CVE-1234-5678",
+    "source" : "NVD",
+    "score" : 1.0,
+    "cwe" : "123",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : null,
+    "matchState" : "unknown",
+    "proprietary" : null,
+    "vulnerabilityCategories" : null,
+    "aliases" : null,
+    "vulnIds" : null,
+    "researchType" : null,
+    "fixedVersion" : null,
+    "description" : null,
+    "severity" : "low",
+    "ratingMethod" : "CVSSv3",
+    "recommendations" : null,
+    "advisories" : null,
+    "provider" : null,
+    "inputType" : null
+  },
+    {
+      "componentIdentifier" : {
+        "format" : "zypi",
+        "coordinates" : {
+          "extension" : "zip",
+          "name" : "pumpy",
+          "qualifier" : "",
+          "version" : "2.19.0"
+        }
+      },
+      "groupId" : null,
+      "artifactId" : null,
+      "version" : null,
+      "hash" : "1b1792c8a828d6a9fb14",
+      "url" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-345-6789",
+      "reference" : "CVE-2345-6789",
+      "source" : "NVD",
+      "score" : 1.0,
+      "cwe" : "123",
+      "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:N/I:N/A:H",
+      "cvssVectorSource" : null,
+      "matchState" : "exact",
+      "proprietary" : null,
+      "vulnerabilityCategories" : null,
+      "aliases" : null,
+      "vulnIds" : null,
+      "researchType" : null,
+      "fixedVersion" : null,
+      "description" : null,
+      "severity" : "low",
+      "ratingMethod" : "CVSSv3",
+      "recommendations" : null,
+      "advisories" : null,
+      "provider" : null,
+      "inputType" : null
+    }]
+}

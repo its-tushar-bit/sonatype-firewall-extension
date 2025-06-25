@@ -91,6 +91,7 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer;
+import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;
@@ -1162,11 +1163,14 @@ public class ComponentDetailsTest
     severityContent.shouldHave(text("Severity8.0 (Custom)"));
     severityContent.shouldHave(text("Sonatype CVSS 39.1 CVE CVSS 2.00.0"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
+    SelenideElement kevContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
+    kevContent.shouldHave(text("Not listed"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
     weaknessContent.shouldHave(text("CWE123 (Custom)"));
     weaknessContent.shouldHave(text("Sonatype CWE400"));
 
-    SelenideElement detectionTypeContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    SelenideElement detectionTypeContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
     detectionTypeContent.shouldHave(text("Primary"));
     assertVulnerabilityDetailsTooltip(detectionTypeContent);
 
@@ -1176,14 +1180,14 @@ public class ComponentDetailsTest
         "Research has validated the association between the component and the vulnerability";
     primarySpan.shouldHave(attribute("title", expectedTooltipTextOnPrimary));
 
-    SelenideElement identificationSourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
+    SelenideElement identificationSourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
     identificationSourceContent.shouldHave(text("Sonatype Identified"));
     assertVulnerabilityDetailsTooltip(identificationSourceContent);
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
-    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
+    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(8);
     categoriesContent.shouldHave(text("Data"));
 
     SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByLabel("CVSS Details");
@@ -1696,6 +1700,9 @@ public class ComponentDetailsTest
     testCLMServer.getHdsServer()
         .respondWith(new ComponentDependenciesDTO(Collections.emptyMap(), Collections.emptyMap()))
         .atUri("rest/component/dependencies");
+    testCLMServer.getHdsServer()
+        .respondWith(Collections.emptyMap())
+        .atUri("rest/vulnerability/details/json");
   }
 
   private void mockHdsResponsesForVulnerabilityDetails() {
@@ -1716,6 +1723,7 @@ public class ComponentDetailsTest
     securityVulnerabilityData.weakness = new SecurityVulnerabilityWeakness();
     securityVulnerabilityData.weakness.cweIds = new ArrayList<>();
     securityVulnerabilityData.weakness.cweIds.add(new CweId("123", URI.create("http://localhost")));
+    securityVulnerabilityData.kevData = new KevData(false);
 
     testCLMServer.getHdsServer().respondWith(securityVulnerabilityData).atUri(uri);
   }

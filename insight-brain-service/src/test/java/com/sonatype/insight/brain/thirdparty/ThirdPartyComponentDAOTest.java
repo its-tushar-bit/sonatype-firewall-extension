@@ -27,8 +27,10 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationValueDTO;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ReportService;
@@ -36,10 +38,13 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.vulnerability.model.BulkSecurityVulnerabilityDataDTO;
+import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ContainerNode;
@@ -47,6 +52,7 @@ import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
 import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
@@ -57,8 +63,11 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenan
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.anyCollection;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -75,6 +84,9 @@ public class ThirdPartyComponentDAOTest
 
   @Inject
   private FileApplicationReportPersistenceService applicationReportPersistenceService;
+
+  @Mock
+  protected HdsClient hdsClientMock;
 
   private ThirdPartyComponentDAO dao;
 
@@ -93,7 +105,7 @@ public class ThirdPartyComponentDAOTest
   @Before
   public void before() {
     reportService = spy(lookup(ReportService.class));
-    dao = new ThirdPartyComponentDAO(() -> reportService);
+    dao = new ThirdPartyComponentDAO(() -> reportService, hdsClientMock);
     application = tempEntity.newApplicationWithParent();
   }
 
@@ -615,9 +627,192 @@ public class ThirdPartyComponentDAOTest
     assertThat(analysis.get("detail").textValue()).isEqualTo("Analysis for CVE-2021-41496");
   }
 
+  @Test
+  public void testGetVulnerabilityData_ThirdParty_WithKev() throws Exception {
+    mockHdsGetKevDataBulk();
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON_FILENAME);
+
+    JsonNode securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(3);
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
+        dataJson, summaryJsonData, appReport);
+
+    securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(5);
+
+    // The 2 additional nodes generated from third party data should contain kev data
+    assertThirdPartyDataWithKevStatus(securityJsonRootNode);
+  }
+
+  @Test
+  public void testGetVulnerabilityData_ThirdParty_WithKev_DisabledFeatureFlag() throws Exception {
+    SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.setEnabled(false);
+    mockHdsGetKevDataBulk();
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON_FILENAME);
+
+    JsonNode securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(3);
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
+        dataJson, summaryJsonData, appReport);
+
+    securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(5);
+
+    // There should still be 5 nodes but the 2 additional ones generated
+    // from third party data should not contain any kev data
+    assertThirdPartyDataWithoutKevStatus(securityJsonRootNode);
+  }
+
+  @Test
+  public void testGetVulnerabilityData_ThirdParty_When_ErrorRetrievingKev_ShouldContinueGracefully() throws Exception {
+    mockHdsGetKevDataBulk_Error();
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
+        application.getId(), SCAN_ID);
+    ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
+    ContainerNode<?> bomJsonData = getContainerNode(appReport, BOM_JSON_FILENAME);
+    ContainerNode<?> dataJson = getContainerNode(appReport, DATA_JSON_FILENAME);
+    ContainerNode<?> summaryJsonData = getContainerNode(appReport, SUMMARY_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = getContainerNode(appReport, LICENSES_JSON_FILENAME);
+    ContainerNode<?> securityJsonData = getContainerNode(appReport, SECURITY_JSON_FILENAME);
+
+    JsonNode securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(3);
+
+    dao.updateReport(bomJsonData, licensesJsonData, securityJsonData,
+        dataJson, summaryJsonData, appReport);
+
+    securityJsonRootNode = securityJsonData.get("aaData");
+    assertThat(securityJsonRootNode).hasSize(5);
+
+    assertThirdPartyDataWithoutKevStatus(securityJsonRootNode);
+  }
+
+  private void assertThirdPartyDataWithKevStatus(JsonNode securityJsonRootNode) {
+    assertThirdPartyKevData(securityJsonRootNode, true);
+  }
+
+  private void assertThirdPartyDataWithoutKevStatus(JsonNode securityJsonRootNode) {
+    assertThirdPartyKevData(securityJsonRootNode, false);
+  }
+
+  private void assertThirdPartyKevData(JsonNode securityJsonRootNode, boolean hasKevData) {
+    JsonNode node = securityJsonRootNode.get(0);
+    JsonNode reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-34141");
+    JsonNode name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("pumpy");
+    JsonNode version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("2.19.0");
+    JsonNode analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+    JsonNode kevData = node.get("kevData");
+    assertThat(kevData.textValue()).isNull();
+
+    node = securityJsonRootNode.get(1);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41495");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("pumpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("2.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+    kevData = node.get("kevData");
+    assertThat(kevData.textValue()).isNull();
+
+    node = securityJsonRootNode.get(2);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2021-41496");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("pumpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("2.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+    kevData = node.get("kevData");
+    assertThat(kevData.textValue()).isNull();
+
+    node = securityJsonRootNode.get(3);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-1234-5678");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("pumpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("2.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+    kevData = node.get("kevData");
+    if (hasKevData) {
+      assertThat(kevData).isNotNull();
+      assertThat(kevData.get("isKev").booleanValue()).isTrue();
+    }
+    else {
+      assertThat(kevData.textValue()).isNull();
+    }
+
+    node = securityJsonRootNode.get(4);
+    reference = node.get("reference");
+    assertThat(reference.textValue()).isEqualTo("CVE-2345-6789");
+    name = node.get("componentIdentifier").get("coordinates").get("name");
+    assertThat(name.textValue()).isEqualTo("pumpy");
+    version = node.get("componentIdentifier").get("coordinates").get("version");
+    assertThat(version.textValue()).isEqualTo("2.19.0");
+    analysis = node.get("analysis");
+    assertThat(analysis).isNull();
+    kevData = node.get("kevData");
+    if (hasKevData) {
+      assertThat(kevData).isNotNull();
+      assertThat(kevData.get("isKev").booleanValue()).isFalse();
+    }
+    else {
+      assertThat(kevData.textValue()).isNull();
+    }
+  }
+
   private ContainerNode<?> getContainerNode(final ApplicationReport reportFile, final String name)
       throws IOException
   {
     return JsonUtils.parse(reportFile.getEntry(name).buf);
+  }
+
+  private void mockHdsGetKevDataBulk() {
+    Map<String, SecurityVulnerabilityData> vulnerabilities = new HashMap<>();
+    SecurityVulnerabilityData data = new SecurityVulnerabilityData();
+    data.kevData = new KevData(true);
+
+    SecurityVulnerabilityData data1 = new SecurityVulnerabilityData();
+    data1.kevData = new KevData(false);
+
+    vulnerabilities.put("CVE-1234-5678", data);
+    vulnerabilities.put("CVE-2345-6789", data1);
+
+    lenient().when(hdsClientMock.post(
+        eq(BulkSecurityVulnerabilityDataDTO.class), eq("/rest/vulnerability/details/json"), anyCollection()))
+        .thenReturn(new BulkSecurityVulnerabilityDataDTO(vulnerabilities));
+  }
+
+  private void mockHdsGetKevDataBulk_Error() {
+    lenient().when(hdsClientMock.post(
+            eq(BulkSecurityVulnerabilityDataDTO.class), eq("/rest/vulnerability/details/json"), anyCollection()))
+        .thenThrow(new BadRequestException("Bad request"));
   }
 }

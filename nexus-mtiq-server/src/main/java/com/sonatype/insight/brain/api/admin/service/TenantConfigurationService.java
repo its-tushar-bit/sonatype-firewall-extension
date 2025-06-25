@@ -60,7 +60,8 @@ public class TenantConfigurationService
       CONTAINER_IMAGES_EVAL_ENABLED,
       DARK_MODE,
       ZSCALER_UPDATE_TASK_PERIOD,
-      ZSCALER
+      ZSCALER,
+      THIRD_PARTY_KEV_LOOKUP
   );
 
   // Visible for testing

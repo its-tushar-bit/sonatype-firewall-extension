@@ -273,6 +273,19 @@ public enum SystemConfigurationPropertyFeature
           ? super.isEnabled(tx)
           : Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
+  },
+
+  THIRD_PARTY_KEV_LOOKUP(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP, true)
+  {
+    // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
+    // treated as enabled.
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null ? super.isEnabled(tx) :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
   };
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";

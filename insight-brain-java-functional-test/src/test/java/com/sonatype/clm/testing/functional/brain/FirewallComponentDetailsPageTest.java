@@ -1339,6 +1339,8 @@ public class FirewallComponentDetailsPageTest
         .atUri("rest/vulnerability/details/json/CVE-1234-56789");
     testCLMServer.getHdsServer().respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails2.json"))
         .atUri("rest/vulnerability/details/json/sonatype-2017-0507");
+    testCLMServer.getHdsServer().respondWith(Collections.emptyMap())
+        .atUri("rest/vulnerability/details/json");
   }
 
   public void testSecurityTabVulnerabilitiesTableRowClick(String url) {

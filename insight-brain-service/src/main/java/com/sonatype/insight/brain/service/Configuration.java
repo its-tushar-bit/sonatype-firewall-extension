@@ -212,7 +212,8 @@ public class Configuration
         SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED,
         SystemConfigurationProperty.DARK_MODE,
         SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
-        SystemConfigurationProperty.ZSCALER
+        SystemConfigurationProperty.ZSCALER,
+        SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

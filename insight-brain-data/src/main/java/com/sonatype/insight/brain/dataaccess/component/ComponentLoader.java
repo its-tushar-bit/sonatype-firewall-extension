@@ -69,6 +69,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
+import com.sonatype.insight.vulnerability.model.KevData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -626,6 +627,7 @@ public class ComponentLoader
               JsonUtils.getNullableString(securityVulnerabilityJson.get("cvssVectorSource"));
           final String identificationSource =
               JsonUtils.getNullableString(securityVulnerabilityJson.get("identificationSource"));
+          final JsonNode kevDataNode = securityVulnerabilityJson.path("kevData");
 
           Component component = componentsByHash.get(hash);
 
@@ -643,6 +645,7 @@ public class ComponentLoader
             //and it might be updated later. This is for consistency with what was done for SBOM manager,
             //and a new Enum for vulnerability will be created in the future.
             securityVulnerability.setIdentificationSource(IdentificationSource.getById(identificationSource));
+            securityVulnerability.setKevData(toKevData(kevDataNode));
             if (vulnerabilityCategories != null) {
               for (String categoryStr : vulnerabilityCategories) {
                 SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);
@@ -915,5 +918,21 @@ public class ComponentLoader
     Boolean dependenciesResolved;
 
     List<Component> components = new ArrayList<>();
+  }
+
+  /**
+   * Convert JSON representation of KevData to the concrete class.
+   */
+  private KevData toKevData(final JsonNode kevDataNode) {
+    if (kevDataNode == null) {
+      return null;
+    }
+
+    try {
+      return JsonUtils.asPojo(kevDataNode, KevData.class);
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Error deserializing KevData", e);
+    }
   }
 }

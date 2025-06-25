@@ -1,0 +1,22 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "zypi",
+      "coordinates" : {
+        "extension" : "zip",
+        "name" : "pumpy",
+        "qualifier" : "",
+        "version" : "2.19.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "737a0d93cb953911d68a",
+    "declaredLicenses" : [ {
+      "id" : "UNSPECIFIED",
+      "name" : "Not Provided",
+      "url" : null
+    } ]
+  } ]
+}

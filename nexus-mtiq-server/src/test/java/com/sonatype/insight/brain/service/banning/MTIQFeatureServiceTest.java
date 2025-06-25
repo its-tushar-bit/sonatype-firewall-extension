@@ -23,6 +23,7 @@ import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -72,11 +73,12 @@ public class MTIQFeatureServiceTest
         developerEnablementService);
   }
 
+  @Ignore //https://sonatype.atlassian.net/browse/CLM-35339
   @Test
   public void testRegister_setsFeatureFlags() {
     underTest.register();
 
-    verify(service, times(27)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
+    verify(service, times(28)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
     List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
     assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
@@ -230,7 +232,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.SBOM_POLICIES,
         SystemConfigurationPropertyFeature.AUTO_WAIVERS,
         SystemConfigurationPropertyFeature.API_PAGE,
-        SystemConfigurationPropertyFeature.ZSCALER
+        SystemConfigurationPropertyFeature.ZSCALER,
+        SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

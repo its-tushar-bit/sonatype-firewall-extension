@@ -1334,6 +1334,36 @@ public class ApiConfigFeaturesServiceTest
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.ZSCALER)).isTrue();
   }
 
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_ThirdPartyKevLookup() {
+    assertThat(service.getSystemConfigurationPropertyFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP))
+        .isEqualTo(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP);
+  }
+
+  @Test
+  public void testEnableFeature_ThirdPartyKevLookup_AlreadyEnabled() {
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_ThirdPartyKevLookup_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP);
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_ThirdPartyKevLookup() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP)).isTrue();
+  }
+
   private Map<String, Boolean> getExpectedFeatureConfigMap() {
     Map<String, Boolean> expectedFeatureConfigMap = new LinkedHashMap<>();
 
@@ -1391,6 +1421,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("containerImagesEvalEnabled", false);
     expectedFeatureConfigMap.put("darkMode", false);
     expectedFeatureConfigMap.put("zScaler", true);
+    expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
 
     return expectedFeatureConfigMap;
   }

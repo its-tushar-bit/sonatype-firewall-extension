@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
+import java.util.Collections;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.sbom.componentdetails.ComponentDetailsSummaryTile;
@@ -913,13 +914,16 @@ public class ComponentDetailsPageTest
     SelenideElement severityContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(2);
     severityContent.shouldHave(text("CVE CVSS 31.5 CVE CVSS 2.00.0"));
 
-    SelenideElement weaknessContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    SelenideElement kevContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    kevContent.shouldHave(text("Not listed"));
+
+    SelenideElement weaknessContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(4);
     weaknessContent.shouldHave(text("CVE CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement sourceContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     sourceContent.shouldHave(text("National Vulnerability Database"));
 
-    SelenideElement categoryContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    SelenideElement categoryContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(6);
     categoryContent.shouldHave(text("Data"));
 
     SelenideElement descriptionFromCveContent =
@@ -973,10 +977,13 @@ public class ComponentDetailsPageTest
     SelenideElement severityContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(2);
     severityContent.shouldHave(text("Unknown1.5"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    SelenideElement kevContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    kevContent.shouldHave(text("Not listed"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
     weaknessContent.shouldHave(text("CWE12345"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     sourceContent.shouldHave(text("source"));
 
     SelenideElement explanationContent =
@@ -1007,13 +1014,16 @@ public class ComponentDetailsPageTest
     SelenideElement severityContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(2);
     severityContent.shouldHave(text("CVE CVSS 31.5 CVE CVSS 2.00.0"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    SelenideElement kevContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
+    kevContent.shouldHave(text("Not listed"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
     weaknessContent.shouldHave(text("CVE CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     sourceContent.shouldHave(text("National Vulnerability Database"));
 
-    SelenideElement categoryContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    SelenideElement categoryContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(6);
     categoryContent.shouldHave(text("Data"));
 
     SelenideElement descriptionFromCveContent =
@@ -1059,5 +1069,8 @@ public class ComponentDetailsPageTest
     testCLMServer.getHdsServer()
         .respondWith(getClass().getResource("/vulnerabilityDetails/vulnerabilityDetails_CVE-4812.json"))
         .atUri("rest/vulnerability/details/json/CVE-4812");
+    testCLMServer.getHdsServer()
+        .respondWith(Collections.emptyMap())
+        .atUri("rest/vulnerability/details/json");
   }
 }

@@ -275,6 +275,8 @@ public class SystemConfigurationProperty
 
   public static final String ZSCALER = "zScaler";
 
+  public static final String THIRD_PARTY_KEV_LOOKUP = "thirdPartyKevLookup";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

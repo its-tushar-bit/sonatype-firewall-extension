@@ -26,13 +26,18 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
@@ -66,6 +71,8 @@ public class ContainerResultHandler
 
   private final SbomComponentInfoTelemetry componentInfoTelemetry;
 
+  private ProductLicense productLicense;
+
   public ContainerResultHandler(
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final DuplicateAwareThirdPartyFileCoordinatePersister fileCoordinatePersister,
@@ -76,12 +83,14 @@ public class ContainerResultHandler
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
       final TelemetrySender telemetrySender,
-      final ThirdPartyScanContext thirdPartyScanContext)
+      final ThirdPartyScanContext thirdPartyScanContext,
+      final ProductLicense productLicense)
   {
     super(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,  telemetryUtils,
         telemetrySender, thirdPartyScanContext);
     this.componentInfoTelemetry = new SbomComponentInfoTelemetry();
+    this.productLicense = productLicense;
   }
 
   @Override
@@ -144,9 +153,24 @@ public class ContainerResultHandler
     for (ScanModule module : modules) {
       String resourceId = module.getName();
 
-      ComponentIdentifier componentIdentifier =
-          ComponentIdentifier.createContainerCoordinates(module.getSource(), resourceId, module.getVersion());
-      PackageUrlIdentifier packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+      ComponentIdentifier componentIdentifier;
+      PackageUrlIdentifier packageUrlIdentifier;
+
+      if (thirdPartyScanContext != null
+          && ProxyStageType.ID.equals(thirdPartyScanContext.getStageType())
+          && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
+          && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
+          && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+      )
+      {
+        componentIdentifier = getCorrespondingComponentIdentifier(module, resourceId);
+        packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+      }
+      else {
+        componentIdentifier = ComponentIdentifier.createContainerCoordinates(
+                module.getSource(), resourceId, module.getVersion());
+        packageUrlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+      }
 
       String bomRef = UUID.randomUUID().toString();
       Component component = new Component();
@@ -215,6 +239,58 @@ public class ContainerResultHandler
       log.debug(e.getMessage(), e);
     }
     return null;
+  }
+
+  private ComponentIdentifier getCorrespondingComponentIdentifier(
+      final ScanModule module,
+      final String resourceId)
+  {
+    switch (module.getSource()) {
+      case "jar": {
+        // https://sonatype.atlassian.net/browse/NEXUS-47708
+        String[] parts = resourceId.split(":");
+        String groupId = parts[0];
+        String artifactId = parts[1];
+        return groupId.equals("jar")
+          ? ComponentIdentifier.createContainerCoordinates(module.getSource(), resourceId, module.getVersion())
+          : ComponentIdentifier.createMavenCoordinates(groupId, artifactId, module.getVersion());
+      }
+      case ".NET": {
+        String name = resourceId.split(":")[1];
+        return ComponentIdentifier.createNugetCoordinates(name, module.getVersion());
+      }
+      case "golang": {
+        String name = resourceId.split(":")[1];
+        return ComponentIdentifier.createGolangCoordinates(name, module.getVersion());
+      }
+      case "npm":
+        return ComponentIdentifier.createNpmCoordinates(resourceId, module.getVersion());
+      case "python": {
+        String name = resourceId.split(":")[1];
+        return ComponentIdentifier.createPypiCoordinates(name, module.getVersion(), null, null);
+      }
+      case "ruby": {
+        String name = resourceId.split(":")[1];
+        return ComponentIdentifier.createRubyGemsCoordinates(name, module.getVersion(), null);
+      }
+      // TODO: To be implemented after scanner includes namespace/vendor
+      // https://sonatype.atlassian.net/browse/NEXUS-47708
+      // case "php": {
+      //   String[] parts = resourceId.split(":");
+      //   String namespace = parts[0];
+      //   String name = parts[1];
+      //   return ComponentIdentifier.createComposerCoordinates(
+      //           namespace, name, module.getVersion());
+      // }
+      // case "Wordpress": {
+      //   return ComponentIdentifier.createComposerCoordinates(
+      //           resourceId, resourceId, module.getVersion());
+      // }
+      default:
+        return ComponentIdentifier.createContainerCoordinates(
+                module.getSource(), resourceId, module.getVersion()
+        );
+    }
   }
 
   @Override

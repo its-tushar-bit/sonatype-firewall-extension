@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.scan.model.ItemContentType;
@@ -39,6 +40,8 @@ public class ThirdPartyResultHandlerFactory
 
   protected final TelemetrySender telemetrySender;
 
+  protected final ProductLicense productLicense;
+
   @Inject
   public ThirdPartyResultHandlerFactory(
       final ThirdPartyFileDAO thirdPartyFileDAO,
@@ -49,7 +52,8 @@ public class ThirdPartyResultHandlerFactory
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVexDAO,
       final TelemetryUtils telemetryUtils,
-      final TelemetrySender telemetrySender)
+      final TelemetrySender telemetrySender,
+      final ProductLicense productLicense)
   {
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.fileCoordinatePersister = fileCoordinatePersister;
@@ -60,6 +64,7 @@ public class ThirdPartyResultHandlerFactory
     this.thirdPartyVexDAO = thirdPartyVexDAO;
     this.telemetryUtils = telemetryUtils;
     this.telemetrySender = telemetrySender;
+    this.productLicense = productLicense;
   }
 
   public ThirdPartyScanResultHandler newHandler(
@@ -87,7 +92,7 @@ public class ThirdPartyResultHandlerFactory
 
       return new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
           thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO, telemetryUtils,
-          telemetrySender, thirdPartyScanContext);
+          telemetrySender, thirdPartyScanContext, productLicense);
     }
     throw new IllegalArgumentException("unsupported third party content type " + itemContentType);
   }

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoord
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
@@ -32,6 +33,8 @@ import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -79,7 +82,12 @@ public class ContainerResultsHandlerTest
   @Inject
   private MultiLicenseDAO multiLicenseDAO;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
   private ContainerResultHandler containerResultHandler;
+
+  private ContainerResultHandler proxyContainerResultHandler;
 
   private String loadResource(String name) throws Exception {
     URL resource = getClass().getResource("/ContainerResultsHandlerTest/" + name);
@@ -91,7 +99,97 @@ public class ContainerResultsHandlerTest
     containerResultHandler =
         new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
             thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
-            telemetryUtils, telemetrySender, null);
+            telemetryUtils, telemetrySender, null, null);
+
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
+            "app-id", null, null, "proxy");
+    scanContext.setContainerItemContentType(ItemContentType.CONTAINER_URI_SONATYPE);
+    proxyContainerResultHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, scanContext, testProductLicense);
+  }
+
+  @Test
+  public void testHandleAndFilterContents_FilteredProxy() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String json = loadResource("alpine-3.6-proxy.json");
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(
+                "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
+            content, thirdPartyFile).getContent();
+    String expectedFiltered = loadResource("alpine-3.6-expected-bom-proxy.json");
+
+    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
+            "components[*].bom-ref")
+        .isEqualTo(expectedFiltered);
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
+        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
+        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
+        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_FilteredProxy_EvalNotEnabled() throws Exception {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    String json = loadResource("alpine-3.6-proxy.json");
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent(
+                "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
+            content, thirdPartyFile).getContent();
+    String expectedFiltered = loadResource("alpine-3.6-expected-bom-generic.json");
+
+    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
+            "components[*].bom-ref")
+        .isEqualTo(expectedFiltered);
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
+        .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
+        .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
+        .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_FilteredProxy_WithoutContainerEvalLicense() throws Exception {
+    testProductLicense.setMissingFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    String json = loadResource("alpine-3.6-proxy.json");
+
+    ThirdPartyScanContent content =
+            new ThirdPartyScanContent(
+                    "container:alpine:3.6", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String actualFilteredContent = proxyContainerResultHandler.handleAndFilterContents(
+            content, thirdPartyFile).getContent();
+    String expectedFiltered = loadResource("alpine-3.6-expected-bom-generic.json");
+
+    assertThatJson(actualFilteredContent).whenIgnoringPaths("components[*].properties[*].value",
+                    "components[*].bom-ref")
+            .isEqualTo(expectedFiltered);
+
+    assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
+            .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
+    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
+            .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
+            .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
   }
 
   @Test

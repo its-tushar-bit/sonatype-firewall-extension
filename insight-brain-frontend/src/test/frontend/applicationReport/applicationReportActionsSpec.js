@@ -45,7 +45,7 @@ const mockLicenseData = {
 };
 const mockReportData = { fooReport: 'barReport' };
 
-fdescribe('applicationReportActions', function () {
+describe('applicationReportActions', function () {
   let mockAxiosCalls;
 
   beforeEach(function () {

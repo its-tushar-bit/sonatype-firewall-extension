@@ -23,9 +23,10 @@ public class CallFlowAnalysisConfigClient extends AbstractRequestClient
   public ApiCallFlowAnalysisConfigDTO getAnalysisCallFlowConfig(String ownerType, String ownerId)
       throws IOException
   {
-    Result result =
-        path(RESOURCE_PATH,ownerType,ownerId,"publicId")
-            .get();
+    if ("application".equalsIgnoreCase(ownerType)) {
+      ownerId = ApplicationIdUtils.normalizeApplicationPublicId(ownerId);
+    }
+    Result result = path(RESOURCE_PATH, ownerType, ownerId, "publicId").get();
     // 402 status is received when we get the "Your IQ Server license does not enable this feature" error from server.
     if (result != null && result.status() == 402) {
       throw new LicenseNotEnabledException();

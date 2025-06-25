@@ -18,31 +18,32 @@ public final class ReportClient
 {
   private final String serverUrl;
 
-  private final String appId;
+  private final String applicationPublicId;
 
   private final String scanId;
 
-  public ReportClient(final Configuration config, final String appId, final String scanId) {
+  public ReportClient(final Configuration config, final String applicationPublicId, final String scanId) {
     super(config);
 
     if (scanId == null || scanId.trim().isEmpty()) {
       throw new IllegalArgumentException("Cannot create a ReportClient without a scanId");
     }
     this.serverUrl = config.getServerUrl();
-    this.appId = UrlUtils.encodeUrlComponent(appId);
+    this.applicationPublicId =
+        UrlUtils.encodeUrlComponent(ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId));
     this.scanId = UrlUtils.encodeUrlComponent(scanId);
   }
 
   public String linkToReport() {
-    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", appId, "report", scanId);
+    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", applicationPublicId, "report", scanId);
   }
 
   public String linkToPrioritiesReport() {
-    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/developer/priorities", appId, scanId);
+    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/developer/priorities", applicationPublicId, scanId);
   }
 
   public String linkToIntegrationPrioritiesReport(String client) {
-    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/developer/integrations", appId, scanId, client);
+    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/developer/integrations", applicationPublicId, scanId, client);
   }
 
   /**
@@ -51,7 +52,7 @@ public final class ReportClient
    * @since 1.10
    */
   public void downloadBundle(File bundleFile) throws IOException {
-    final Result result = path("rest/report", appId, scanId, "downloadBundle").get();
+    final Result result = path("rest/report", applicationPublicId, scanId, "downloadBundle").get();
     verifyStatusCode(result);
 
     byte[] data = result.data();

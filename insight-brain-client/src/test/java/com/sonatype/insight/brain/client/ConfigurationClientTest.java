@@ -157,8 +157,8 @@ public class ConfigurationClientTest
   @Test
   public void testValidateApplicationId_UnknownId() {
     assertThatExceptionOfType(IOException.class)
-        .isThrownBy(
-            () -> new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId("unknown-id"))
+        .isThrownBy(() -> new ConfigurationClient(getCLMServer().getClientConfiguration()).validateApplicationId(
+            "unknown-id"))
         .withMessage("Invalid application ID unknown-id.");
   }
 

@@ -94,7 +94,7 @@ public class PolicyClientTest
 
   @Test
   public void testLinkToManagement() {
-    String appId = "app id";
+    String appId = "app-id";
     PolicyClient policyClient = new PolicyClient(getCLMServer().getClientConfiguration(), appId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksHelper.RESOURCE_PATH).path(UserInterfaceLinksHelper.MANAGEMENT_PATH);

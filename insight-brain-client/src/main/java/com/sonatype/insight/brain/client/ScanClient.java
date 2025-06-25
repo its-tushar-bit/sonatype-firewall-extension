@@ -27,13 +27,14 @@ public class ScanClient
 
   private final String serverUrl;
 
-  private final String appId;
+  private final String applicationPublicId;
 
-  public ScanClient(final Configuration config, final String appId) {
+  public ScanClient(final Configuration config, final String applicationPublicId) {
     super(config);
 
     this.serverUrl = config.getServerUrl();
-    this.appId = UrlUtils.encodeUrlComponent(appId);
+    this.applicationPublicId =
+        UrlUtils.encodeUrlComponent(ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId));
   }
 
   public ScanReceipt uploadCLIScan(final File scanFile, ClientScanType clientScanType) throws IOException {
@@ -41,7 +42,7 @@ public class ScanClient
   }
 
   private ScanReceipt handleUpload(String url, File scanFile, ClientScanType clientScanType) throws IOException {
-    final Result result = path(url, appId).query("scanType", clientScanType.name())
+    final Result result = path(url, applicationPublicId).query("scanType", clientScanType.name())
         .put(new FileEntity(scanFile, GZIP_CONTENT_TYPE));
     return parseResult(result, ScanReceipt.class);
   }
@@ -57,7 +58,7 @@ public class ScanClient
                              String outcome) throws IOException
   {
     ResultData resultData = new ResultData();
-    resultData.applicationId = appId;
+    resultData.applicationId = applicationPublicId;
     resultData.scanId = receipt.getScanId();
     resultData.reportHtmlUrl = receipt.resolveReportUrl(serverUrl);
     resultData.reportPdfUrl = receipt.resolvePdfUrl(serverUrl);
@@ -101,7 +102,7 @@ public class ScanClient
    */
   public ComponentWithSignaturesList getVulnerableComponentsWithSignatures(String scanId) throws IOException {
     Result result =
-        path("api/experimental/signatures/vulnerability/application/publicId/", appId, "/report", scanId)
+        path("api/experimental/signatures/vulnerability/application/publicId/", applicationPublicId, "/report", scanId)
             .post(null);
     return parseResult(result, ComponentWithSignaturesList.class);
   }

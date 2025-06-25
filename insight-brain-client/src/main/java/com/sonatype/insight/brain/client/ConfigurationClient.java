@@ -111,8 +111,8 @@ public class ConfigurationClient
    * @since 1.143.0
    */
   public boolean verifyOrCreateApplication(String applicationPublicId, String organizationId) throws IOException {
-    RequestBuilder builder =
-        path("rest/integration/applications/verifyOrCreate", UrlUtils.encodeUrlComponent(applicationPublicId));
+    RequestBuilder builder = path("rest/integration/applications/verifyOrCreate",
+        UrlUtils.encodeUrlComponent(ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId)));
     if (StringUtils.isNotBlank(organizationId)) {
       builder.query("goal", EVALUATE_APPLICATION, "organizationId", organizationId);
     }
@@ -169,8 +169,9 @@ public class ConfigurationClient
     }
   }
 
-  public void validateApplicationId(final String appId) throws IOException {
-    final Result result = path("rest/application/validate", UrlUtils.encodeUrlComponent(appId)).get();
+  public void validateApplicationId(String applicationPublicId) throws IOException {
+    final Result result = path("rest/application/validate",
+        UrlUtils.encodeUrlComponent(ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId))).get();
     verifyStatusCode(result);
     final String text = result.text();
     if (!"OK".equals(text)) {
@@ -187,7 +188,7 @@ public class ConfigurationClient
       throws IOException
   {
     Result result = path("rest/config/proprietary").query("goal", EVALUATE_APPLICATION,
-        "applicationPublicId", applicationPublicId).get();
+        "applicationPublicId", ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId)).get();
     return parseResult(result, ProprietaryConfig.class);
   }
 
@@ -200,7 +201,7 @@ public class ConfigurationClient
       throws IOException
   {
     Result result = path("rest/config/proprietary").query("goal", "EVALUATE_COMPONENT",
-        "applicationPublicId", applicationPublicId).get();
+        "applicationPublicId", ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId)).get();
     return parseResult(result, ProprietaryConfig.class);
   }
 

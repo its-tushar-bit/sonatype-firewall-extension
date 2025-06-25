@@ -53,8 +53,8 @@ public class ReportClientTest
 
   @Test
   public void testLinkToReport() {
-    String appId = "app id";
-    String scanId = "scan id";
+    String appId = "app-id";
+    String scanId = "scan-id";
     ReportClient reportClient = new ReportClient(getCLMServer().getClientConfiguration(), appId, scanId);
     UriBuilder uriBuilder = UriBuilder.fromPath(getCLMServer().getClientConfiguration().getServerUrl());
     uriBuilder.path(UserInterfaceLinksHelper.RESOURCE_PATH).path(UserInterfaceLinksHelper.REPORT_PATH);

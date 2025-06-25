@@ -70,19 +70,20 @@ public class PolicyClient
 
   private final String serverUrl;
 
-  protected final String appId;
+  protected final String applicationPublicId;
 
   private final SourceControlClient sourceControlClient;
 
-  public PolicyClient(final Configuration config, final String appId) {
-    this(config, appId, null);
+  public PolicyClient(final Configuration config, final String applicationPublicId) {
+    this(config, applicationPublicId, null);
   }
 
-  public PolicyClient(final Configuration config, final String appId, final Logger log) {
+  public PolicyClient(final Configuration config, final String applicationPublicId, final Logger log) {
     super(config);
     this.log = log != null ? log : LoggerFactory.getLogger(PolicyClient.class);
     this.serverUrl = config.getServerUrl();
-    this.appId = UrlUtils.encodeUrlComponent(appId);
+    this.applicationPublicId =
+        UrlUtils.encodeUrlComponent(ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId));
     this.sourceControlClient = new SourceControlClient(config);
   }
 
@@ -307,7 +308,7 @@ public class PolicyClient
                                                            final ClientScanType clientScanType,
                                                            final Stage stage)
   {
-    return path(BASE_PATH, appId, EVALUATION_SUB_PATH,
+    return path(BASE_PATH, applicationPublicId, EVALUATION_SUB_PATH,
         integrationPath, STAGES_SUB_PATH, stage.getStageTypeId())
         .query(SCAN_TYPE, clientScanType.name());
   }
@@ -329,7 +330,7 @@ public class PolicyClient
       final String statusId)
   {
     return path(
-        BASE_PATH, appId, EVALUATION_SUB_PATH, integrationPath,
+        BASE_PATH, applicationPublicId, EVALUATION_SUB_PATH, integrationPath,
         STAGES_SUB_PATH, stage.getStageTypeId(), POLICY_EVALUATION_SUB_PATH
     ).query(SCAN_TYPE, clientScanType.name(), STATUS_ID, statusId);
   }
@@ -348,7 +349,7 @@ public class PolicyClient
       final ClientScanType clientScanType,
       final Stage stage)
   {
-    return path(BASE_PATH, appId, EVALUATION_SUB_PATH,
+    return path(BASE_PATH, applicationPublicId, EVALUATION_SUB_PATH,
         integrationPath, STAGES_SUB_PATH, stage.getStageTypeId(), COMPONENT_ANALYSIS_SUB_PATH)
         .query(SCAN_TYPE, clientScanType.name());
   }
@@ -403,11 +404,12 @@ public class PolicyClient
       if (optional.isPresent()) {
         String repositoryUrl = optional.get();
         log.debug(
-            "Amending source control record for application with id: {} with discovered repository URL", appId);
-        sourceControlClient.addOrUpdateSourceControlRecord(appId, repositoryUrl);
+            "Amending source control record for application with id: {} with discovered repository URL",
+            applicationPublicId);
+        sourceControlClient.addOrUpdateSourceControlRecord(applicationPublicId, repositoryUrl);
       }
       else {
-        log.debug("Repository URL for application with id: {} could not be found.", appId);
+        log.debug("Repository URL for application with id: {} could not be found.", applicationPublicId);
       }
     }
     catch (Exception e) {
@@ -444,7 +446,7 @@ public class PolicyClient
   }
 
   public String linkToManagement() {
-    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", appId, "management");
+    return UrlUtils.appendUrlPaths(serverUrl, "ui/links/application", applicationPublicId, "management");
   }
 
   /**
@@ -456,7 +458,7 @@ public class PolicyClient
    * @since 1.11.0
    */
   public PolicyEvaluationSummary getPolicyEvaluationSummary(final Stage stage) throws IOException {
-    Result result = path("rest/quality/evaluations/", appId, "/", stage.getStageTypeId()).get();
+    Result result = path("rest/quality/evaluations/", applicationPublicId, "/", stage.getStageTypeId()).get();
     return parseResult(result, PolicyEvaluationSummary.class);
   }
 
@@ -476,8 +478,8 @@ public class PolicyClient
     ByteArrayEntity entity = new ByteArrayEntity(JsonUtils.generate(analysisDTO), ContentType.APPLICATION_JSON);
 
     Result result =
-        path("api/experimental/signatures/vulnerability/application/publicId/", appId, "/report", scanId, "/reachable")
-            .post(entity);
+        path("api/experimental/signatures/vulnerability/application/publicId/", applicationPublicId, "/report", scanId,
+            "/reachable").post(entity);
     return parseResult(result, PolicyEvaluationResult.class);
   }
 
@@ -510,7 +512,7 @@ public class PolicyClient
   }
 
   private PolicyEvaluationPollingResult getPollingStatus(final String statusId) throws IOException {
-    final Result pollingResult = path(BASE_PATH, appId, POLLING_PATH, statusId).get();
+    final Result pollingResult = path(BASE_PATH, applicationPublicId, POLLING_PATH, statusId).get();
 
     PolicyEvaluationPollingResult result = parseResult(pollingResult, PolicyEvaluationPollingResult.class);
     result.setStatusId(statusId);

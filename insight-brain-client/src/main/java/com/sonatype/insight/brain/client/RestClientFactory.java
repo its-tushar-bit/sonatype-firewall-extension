@@ -55,40 +55,44 @@ public class RestClientFactory
     }
 
     @Override
-    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
-                                                        String stageId,
-                                                        final ClientScanResult clientScanResult,
-                                                        final ClientScanType clientScanType) throws IOException
+    public PolicyEvaluationPollingResult evaluatePolicy(
+        String applicationPublicId,
+        String stageId,
+        final ClientScanResult clientScanResult,
+        final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId).evaluateCLI(clientScanResult, clientScanType, new Stage(stageId));
+      return new PolicyClient(config, applicationPublicId).evaluateCLI(clientScanResult, clientScanType,
+          new Stage(stageId));
     }
 
     @Override
-    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) throws IOException {
-      return new ScanClient(config, appId).uploadCLIScan(scanFile, clientScanType);
+    public ScanReceipt uploadScan(String applicationPublicId, File scanFile, ClientScanType clientScanType)
+        throws IOException
+    {
+      return new ScanClient(config, applicationPublicId).uploadCLIScan(scanFile, clientScanType);
     }
 
     @Override
     public PolicyEvaluationPollingResult runPolicyEvaluation(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType,
         final String statusId,
         final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
     {
-      return new PolicyClient(config, appId)
+      return new PolicyClient(config, applicationPublicId)
           .runPolicyEvaluationForCLI(clientScanResult, clientScanType, new Stage(stageId), statusId, analysisDTO);
     }
 
     @Override
     public PolicyEvaluationPollingResult runComponentAnalysis(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId).runComponentAnalysisForCLI(clientScanResult, clientScanType,
+      return new PolicyClient(config, applicationPublicId).runComponentAnalysisForCLI(clientScanResult, clientScanType,
           new Stage(stageId));
     }
   }
@@ -107,40 +111,41 @@ public class RestClientFactory
     }
 
     @Override
-    public PolicyEvaluationPollingResult evaluatePolicy(String appId,
+    public PolicyEvaluationPollingResult evaluatePolicy(String applicationPublicId,
                                                         String stageId,
                                                         final ClientScanResult clientScanResult,
                                                         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId, logger).evaluateCI(clientScanResult, new Stage(stageId));
+      return new PolicyClient(config, applicationPublicId, logger).evaluateCI(clientScanResult, new Stage(stageId));
     }
 
     @Override
-    public ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType) {
+    public ScanReceipt uploadScan(String applicationPublicId, File scanFile, ClientScanType clientScanType) {
       throw new UnsupportedOperationException("Uploading a scan file is not supported.");
     }
 
     @Override
     public PolicyEvaluationPollingResult runPolicyEvaluation(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType,
         final String statusId,
         final VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
     {
-      return new PolicyClient(config, appId)
+      return new PolicyClient(config, applicationPublicId)
           .runPolicyEvaluationForCI(clientScanResult, new Stage(stageId), statusId, analysisDTO);
     }
 
     @Override
     public PolicyEvaluationPollingResult runComponentAnalysis(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType) throws IOException
     {
-      return new PolicyClient(config, appId).runComponentAnalysisForCI(clientScanResult, new Stage(stageId));
+      return new PolicyClient(config, applicationPublicId).runComponentAnalysisForCI(clientScanResult,
+          new Stage(stageId));
     }
   }
 
@@ -152,7 +157,7 @@ public class RestClientFactory
       this.config = config;
     }
 
-    public abstract ScanReceipt uploadScan(String appId, File scanFile, ClientScanType clientScanType)
+    public abstract ScanReceipt uploadScan(String applicationPublicId, File scanFile, ClientScanType clientScanType)
         throws IOException;
 
     /**
@@ -199,43 +204,44 @@ public class RestClientFactory
       return new ConfigurationClient(config).getProprietaryConfigForComponentEvaluation(applicationPublicId);
     }
 
-    public abstract PolicyEvaluationPollingResult evaluatePolicy(String appId,
+    public abstract PolicyEvaluationPollingResult evaluatePolicy(String applicationPublicId,
                                                                  String stageId,
                                                                  final ClientScanResult clientScanResult,
                                                                  final ClientScanType clientScanType)
         throws IOException;
 
-    public void saveReportBundle(String appId, String scanId, File bundleFile) throws IOException {
-      new ReportClient(config, appId, scanId).downloadBundle(bundleFile);
+    public void saveReportBundle(String applicationPublicId, String scanId, File bundleFile) throws IOException {
+      new ReportClient(config, applicationPublicId, scanId).downloadBundle(bundleFile);
     }
 
-    public void saveResults(String appId,
+    public void saveResults(String applicationPublicId,
                             File resultFile,
                             ScanReceipt receipt,
                             PolicyEvaluationResult eval,
                             String outcome) throws IOException
     {
-      new ScanClient(config, appId).saveResultData(resultFile, receipt, eval, outcome);
+      new ScanClient(config, applicationPublicId).saveResultData(resultFile, receipt, eval, outcome);
     }
 
-    public void saveErrorData(String appId, File resultFile, String errorMessage, boolean isSystemError)
+    public void saveErrorData(String applicationPublicId, File resultFile, String errorMessage, boolean isSystemError)
         throws IOException
     {
-      new ScanClient(config, appId).saveErrorData(resultFile, errorMessage, isSystemError);
+      new ScanClient(config, applicationPublicId).saveErrorData(resultFile, errorMessage, isSystemError);
     }
 
     /**
      * @since 1.163.0
      */
     public void saveErrorData(
-        String appId,
+        String applicationPublicId,
         File resultFile,
         String errorMessage,
         boolean isSystemError,
         boolean isScanningError)
         throws IOException
     {
-      new ScanClient(config, appId).saveErrorData(resultFile, errorMessage, isSystemError, isScanningError);
+      new ScanClient(config, applicationPublicId).saveErrorData(resultFile, errorMessage, isSystemError,
+          isScanningError);
     }
 
     /**
@@ -270,18 +276,20 @@ public class RestClientFactory
     }
 
     public ComponentWithSignaturesList getVulnerableComponentsWithSignatures(
-        String applicationId,
+        String applicationPublicId,
         String scanId) throws IOException
     {
-      return new ScanClient(config, applicationId).getVulnerableComponentsWithSignatures(scanId);
+      applicationPublicId = ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId);
+      return new ScanClient(config, applicationPublicId).getVulnerableComponentsWithSignatures(scanId);
     }
 
     public PolicyEvaluationResult importReachabilityAnalysis(
-        String applicationId,
+        String applicationPublicId,
         String scanId,
         VulnerabilitySignatureAnalysisDTO analysisDTO) throws IOException
     {
-      return new PolicyClient(config, applicationId).importReachabilityAnalysis(scanId, analysisDTO);
+      applicationPublicId = ApplicationIdUtils.normalizeApplicationPublicId(applicationPublicId);
+      return new PolicyClient(config, applicationPublicId).importReachabilityAnalysis(scanId, analysisDTO);
     }
 
     /**
@@ -301,7 +309,7 @@ public class RestClientFactory
      * @since 1.188
      */
     public abstract PolicyEvaluationPollingResult runPolicyEvaluation(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType,
@@ -314,7 +322,7 @@ public class RestClientFactory
      * @since 1.188
      */
     public abstract PolicyEvaluationPollingResult runComponentAnalysis(
-        final String appId,
+        final String applicationPublicId,
         final String stageId,
         final ClientScanResult clientScanResult,
         final ClientScanType clientScanType) throws IOException;

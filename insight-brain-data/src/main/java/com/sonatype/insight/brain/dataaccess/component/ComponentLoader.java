@@ -924,7 +924,7 @@ public class ComponentLoader
    * Convert JSON representation of KevData to the concrete class.
    */
   private KevData toKevData(final JsonNode kevDataNode) {
-    if (kevDataNode == null) {
+    if (kevDataNode == null || kevDataNode.isMissingNode() || kevDataNode.isNull() || kevDataNode.isEmpty()) {
       return null;
     }
 

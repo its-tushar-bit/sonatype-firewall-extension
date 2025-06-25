@@ -1285,6 +1285,46 @@ public class ReportServiceTest
         );
   }
 
+  @Test
+  public void testFetchReport_automatedRemediationIsTriggered_directInnerSourceDepMultipleVersions() throws Exception {
+    // Create an InnerSource app
+    Application innerSourceApp = tempEntity.newApplicationWithParent();
+    ComponentIdentifier component = ComponentIdentifier.createMavenCoordinates(
+        "commons-io", "commons-io", "2.17.0", "", "jar");
+    PackageUrlIdentifier packageUrl = InnerSourceUtils.getVersionlessPackageUrl(component);
+    InnerSourceApplication innerSourceAppEntity = tempEntity.newInnerSourceApplication(
+        packageUrl.getPackageUrl(), innerSourceApp);
+    tempEntity.newInnerSourceVersion(innerSourceAppEntity, component.get(ComponentIdentifier.VERSION),
+        StageTypes.SOURCE.getId());
+
+    ComponentIdentifier componentWithNewVersion = component.createAlternativeVersion("2.18.0");
+    tempEntity.newInnerSourceVersion(innerSourceAppEntity, componentWithNewVersion.get(ComponentIdentifier.VERSION),
+        StageTypes.RELEASE.getId());
+
+    // Fetch the report
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ReportServiceTest/report-with-innersource-dependencies-direct-multiple-versions",
+        app.getId(), scanId);
+    ReportService reportService = createReportService();
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("2.18.0", ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING);
+    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
+    assertThat(report).isNotNull();
+    assertThat(report.exists()).isTrue();
+
+    // Verify the automated remediation pull request is created
+    Stage stage = new Stage(StageTypes.RELEASE.getId(), StageTypes.RELEASE.getName());
+    verify(automatedPullRequestCreationServiceSpy, times(1))
+        .createAutomatedRemediationPullRequest(
+            eq(app),
+            eq(report.getScanId()),
+            eq(stage),
+            eq(component),
+            argThat(remediationMatches(remediationVersionDTO)),
+            eq(Collections.emptyList())
+        );
+  }
+
   private ArgumentMatcher<Supplier<Optional<RemediationVersionDTO>>> remediationMatches(
       RemediationVersionDTO expected)
   {

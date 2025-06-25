@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,7 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -701,42 +701,71 @@ public class ReportService
       final String scanId,
       final String stageTypeId,
       final JsonNode dependenciesJsonData
-  ) throws IOException
+  )
   {
-    if (dependenciesJsonData == null) {
-      return;
-    }
-
-    JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
-    if (dependencyTreeNode.isMissingNode()) {
-      return;
-    }
-
-    DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
-    if (tree == null) {
-      return;
-    }
-
-    Set<ComponentIdentifier> directDeps = extractDirectDependencies(tree);
-    Map<String, ComponentIdentifier> directInnerSourceDeps = getInnerSourceComponents(directDeps);
-    if (directInnerSourceDeps.isEmpty()) {
-      return;
-    }
-
-    for (Entry<String, ComponentIdentifier> entry : directInnerSourceDeps.entrySet()) {
-      String innerSourceApplicationId = entry.getKey();
-      ComponentIdentifier innerSourceComponent = entry.getValue();
-
-      InnerSourceVersion latestVersion =
-          innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(
-              innerSourceApplicationId, StageTypes.RELEASE.getId());
-
-      if (latestVersion == null || !InnerSourceUtils.isValidAutomatedVersionUpdate(innerSourceComponent,
-          latestVersion.getLatestVersion())) {
-        continue;
+    try {
+      if (dependenciesJsonData == null) {
+        return;
       }
 
-      createAutomatedRemediationPullRequest(application, scanId, stageTypeId, latestVersion, innerSourceComponent);
+      JsonNode dependencyTreeNode = dependenciesJsonData.path("dependencyTree");
+      if (dependencyTreeNode.isMissingNode()) {
+        return;
+      }
+
+      DependencyNode tree = JsonUtils.asPojo(dependencyTreeNode, DependencyNode.class);
+      if (tree == null) {
+        return;
+      }
+
+      Set<ComponentIdentifier> directDeps = extractDirectDependencies(tree);
+      Map<String, Set<ComponentIdentifier>> directInnerSourceDeps = getInnerSourceComponents(directDeps);
+      if (directInnerSourceDeps.isEmpty()) {
+        return;
+      }
+
+      for (Entry<String, Set<ComponentIdentifier>> entry : directInnerSourceDeps.entrySet()) {
+        String innerSourceApplicationId = entry.getKey();
+        Set<ComponentIdentifier> innerSourceComponents = entry.getValue();
+
+        if (CollectionUtils.isEmpty(innerSourceComponents)) {
+          continue;
+        }
+
+        ComponentIdentifier innerSourceComponentWithHighestVersion;
+        if (innerSourceComponents.size() > 1) {
+          innerSourceComponentWithHighestVersion = innerSourceComponents.stream()
+              .max(Comparator.comparing(componentIdentifier -> InnerSourceUtils.createCompositeComparableVersion(
+                  componentIdentifier.get(ComponentIdentifier.VERSION), componentIdentifier.getFormat())))
+              .orElse(null);
+          log.debug("Found {} versions of the same InnerSource component {}.", innerSourceComponents.size(),
+              innerSourceComponentWithHighestVersion.createAlternativeVersion(null));
+        }
+        else {
+          innerSourceComponentWithHighestVersion = innerSourceComponents.iterator().next();
+        }
+
+        if (innerSourceComponentWithHighestVersion == null) {
+          continue;
+        }
+
+        InnerSourceVersion latestVersion = innerSourceVersionDAO.getByInnerSourceApplicationIdAndStage(
+            innerSourceApplicationId,
+            StageTypes.RELEASE.getId()
+        );
+
+        if (latestVersion == null ||
+            !InnerSourceUtils.isValidAutomatedVersionUpdate(innerSourceComponentWithHighestVersion,
+                latestVersion.getLatestVersion())) {
+          continue;
+        }
+
+        createAutomatedRemediationPullRequest(application, scanId, stageTypeId, latestVersion,
+            innerSourceComponentWithHighestVersion);
+      }
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
     }
   }
 
@@ -761,8 +790,8 @@ public class ReportService
     }
   }
 
-  private Map<String, ComponentIdentifier> getInnerSourceComponents(final Set<ComponentIdentifier> directDeps) {
-    Map<String, ComponentIdentifier> result = new HashMap<>();
+  private Map<String, Set<ComponentIdentifier>> getInnerSourceComponents(final Set<ComponentIdentifier> directDeps) {
+    Map<String, Set<ComponentIdentifier>> result = new HashMap<>();
 
     if (directDeps.isEmpty()) {
       return result;
@@ -773,21 +802,21 @@ public class ReportService
         .map(PackageUrlIdentifier::fromComponentIdentifier)
         .collect(Collectors.toSet());
 
-    Map<String, ComponentIdentifier> purlToComponent = directDeps.stream()
-        .collect(Collectors
-            .toMap(componentIdentifier -> PackageUrlIdentifier
-                    .fromComponentIdentifier(componentIdentifier)
-                    .createAlternativeVersion(null)
-                    .getPackageUrl(),
-                Function.identity()
-            ));
+    Map<String, Set<ComponentIdentifier>> purlToComponents = directDeps.stream()
+        .collect(Collectors.groupingBy(
+            componentIdentifier -> PackageUrlIdentifier
+                .fromComponentIdentifier(componentIdentifier)
+                .createAlternativeVersion(null)
+                .getPackageUrl(),
+            Collectors.toSet()
+        ));
 
     List<InnerSourceApplication> innerSourceApps = innerSourceApplicationDAO.getByPackageUrls(directDepsWithoutVersion);
 
     for (InnerSourceApplication app : innerSourceApps) {
       String packageUrl = app.getPackageUrl();
-      if (purlToComponent.containsKey(packageUrl)) {
-        result.put(app.getId(), purlToComponent.get(packageUrl));
+      if (purlToComponents.containsKey(packageUrl)) {
+        result.put(app.getId(), purlToComponents.get(packageUrl));
       }
     }
 

@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.scheduler;
 import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -15,6 +17,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -27,6 +30,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.quartz.JobBuilder;
 import org.quartz.JobDetail;
 import org.quartz.SimpleScheduleBuilder;
@@ -44,12 +48,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class QuartzJobStoreTXTest
     extends AbstractComponentTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(QuartzJobStoreTX.class);
 
+  // This is actually an instance of TestQuartzJobStoreTx (bound for injection in the super class).
   @Inject
   private QuartzJobStoreTX quartzJobStoreTX;
 
@@ -67,6 +73,8 @@ public class QuartzJobStoreTXTest
 
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
+  private List<SchedulerStateUpdaterThread> schedulerStateUpdaterThreads = new ArrayList<>();
+
   @Override
   public void configure(Properties properties) {
     properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
@@ -81,6 +89,16 @@ public class QuartzJobStoreTXTest
   @After
   public void after() throws Exception {
     deleteAllSchedulerStateRecords();
+    schedulerStateUpdaterThreads.forEach(SchedulerStateUpdaterThread::terminate);
+    schedulerStateUpdaterThreads.forEach(thread -> {
+      try {
+        thread.join();
+      }
+      catch (InterruptedException e) {
+        thread.interrupt();
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   @Test
@@ -117,7 +135,7 @@ public class QuartzJobStoreTXTest
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
+    createRunningSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
     quartzJobStoreTXSpy.doCheckin();
@@ -135,7 +153,7 @@ public class QuartzJobStoreTXTest
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
+    createRunningSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
     quartzJobStoreTXSpy.doCheckin();
@@ -154,7 +172,7 @@ public class QuartzJobStoreTXTest
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
+    createRunningSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
     quartzJobStoreTXSpy.doCheckin();
@@ -172,7 +190,7 @@ public class QuartzJobStoreTXTest
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
     lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other", System.currentTimeMillis());
+    createRunningSchedulerStateRecord("other", System.currentTimeMillis());
 
     quartzJobStoreTXSpy.doCheckin();
 
@@ -190,7 +208,7 @@ public class QuartzJobStoreTXTest
     lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
+    createRunningSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() + 1);
 
     quartzJobStoreTXSpy.doCheckin();
@@ -208,7 +226,7 @@ public class QuartzJobStoreTXTest
     lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other",
+    createStoppedSchedulerStateRecord("other",
         quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp() - 1);
 
     quartzJobStoreTXSpy.doCheckin();
@@ -227,7 +245,8 @@ public class QuartzJobStoreTXTest
     doReturn("me").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other", quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
+    createRunningSchedulerStateRecord("other",
+        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
 
     quartzJobStoreTXSpy.doCheckin();
 
@@ -245,7 +264,8 @@ public class QuartzJobStoreTXTest
     doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
-    createSchedulerStateRecord("other", quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
+    createRunningSchedulerStateRecord("other",
+        quartzJobStoreTXSpy.getSchedulerStateRecords().get(0).getCheckinTimestamp());
 
     quartzJobStoreTXSpy.doCheckin();
 
@@ -259,9 +279,11 @@ public class QuartzJobStoreTXTest
 
   @Test
   public void testDoCheckin_NewNodeStartsIfAnotherNodeIsNotRunning() throws Exception {
-    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
+    createStoppedSchedulerStateRecord("other",
+        System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
-    lenient().doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    lenient().doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
+    quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
@@ -273,8 +295,8 @@ public class QuartzJobStoreTXTest
 
   @Test
   public void testDoCheckin_NewNodeStartsEvenIfAnotherNodeIsRunning() throws Exception {
-    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
-    lenient().doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
+    createRunningSchedulerStateRecord("other",
+        System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
     quartzJobStoreTXSpy.doCheckin();
 
     assertThat(logOutput).atErrorLevel()
@@ -286,10 +308,10 @@ public class QuartzJobStoreTXTest
 
   @Test
   public void testDoCheckin_NewNodeDoesNotStartIfAnotherNodeIsRunning() throws Exception {
-    createSchedulerStateRecord("other", System.currentTimeMillis() - 10000);
+    createRunningSchedulerStateRecord("other",
+        System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS + 1);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
 
@@ -303,11 +325,11 @@ public class QuartzJobStoreTXTest
 
   @Test
   public void testDoCheckin_NewNodeDoesNotStartIfAnotherNodeIsRunningAndAnotherNodeStopped() throws Exception {
-    createSchedulerStateRecord("other", System.currentTimeMillis() - 500);
-    createSchedulerStateRecord("one-more-other", System.currentTimeMillis() - 30000);
+    createRunningSchedulerStateRecord("other", System.currentTimeMillis() - 500);
+    createStoppedSchedulerStateRecord("one-more-other",
+        System.currentTimeMillis() - QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS * 2);
     testProductLicense.setMissingFeatures(LicensedFeature.NODE_CLUSTERING);
     doNothing().when(quartzJobStoreTXSpy).exitInNewThread(anyInt(), anyString());
-    doReturn("stillme").when(quartzJobStoreTXSpy).getInstanceId();
     quartzJobStoreTXSpy.productLicenseChanged();
     quartzJobStoreTXSpy.doCheckin();
 
@@ -356,14 +378,23 @@ public class QuartzJobStoreTXTest
     assertThat(actualStaleTriggerForOther.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isTrue();
   }
 
-  private void createSchedulerStateRecord(String instanceId, long checkinTimestamp) throws Exception {
+  private void createRunningSchedulerStateRecord(String schedulerInstanceId, long checkinTimestamp) throws Exception {
+    createSchedulerStateRecord(schedulerInstanceId, checkinTimestamp);
+    new SchedulerStateUpdaterThread(schedulerInstanceId, checkinTimestamp).start();
+  }
+
+  private void createStoppedSchedulerStateRecord(String schedulerInstanceId, long checkinTimestamp) throws Exception {
+    createSchedulerStateRecord(schedulerInstanceId, checkinTimestamp);
+  }
+
+  private void createSchedulerStateRecord(String schedulerInstanceId, long checkinTimestamp) throws Exception {
     String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE" + //
         " (SCHED_NAME, INSTANCE_NAME, LAST_CHECKIN_TIME, CHECKIN_INTERVAL) " + //
         " VALUES (?1, ?2, ?3, ?4)";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
-      statement.setString(2, instanceId);
+      statement.setString(2, schedulerInstanceId);
       statement.setLong(3, checkinTimestamp);
       statement.setLong(4, quartzJobStoreTXSpy.getClusterCheckinInterval());
       statement.execute();
@@ -375,6 +406,62 @@ public class QuartzJobStoreTXTest
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();
+    }
+  }
+
+  private class SchedulerStateUpdaterThread
+      extends Thread
+  {
+    private String schedulerInstanceId;
+
+    private long lastCheckinTime;
+
+    private boolean terminate;
+
+    SchedulerStateUpdaterThread(String schedulerInstanceId, long lastCheckinTime) {
+      this.schedulerInstanceId = schedulerInstanceId;
+      this.lastCheckinTime = lastCheckinTime;
+      schedulerStateUpdaterThreads.add(this);
+    }
+
+    @Override
+    public void run() {
+      // Simulate that the scheduler is running by updating its last checkin time every
+      // QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS
+      long start = System.currentTimeMillis();
+      while (!terminate
+          && System.currentTimeMillis() < start + QuartzJobStoreTX.FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS * 2) {
+        if (System.currentTimeMillis() >= lastCheckinTime + QuartzJobStoreTX.CLUSTER_CHECKIN_INTERVAL_MILLIS) {
+          lastCheckinTime = System.currentTimeMillis();
+          String sQuery = "UPDATE " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE "
+              + "SET LAST_CHECKIN_TIME = ?1 WHERE INSTANCE_NAME = ?2";
+          try (Connection connection = operationalDataStore.getDataSource().getConnection();
+              PreparedStatement statement = connection.prepareStatement(sQuery)) {
+            statement.setLong(1, lastCheckinTime);
+            statement.setString(2, schedulerInstanceId);
+            // If no records are updated, it means the scheduler state records were deleted in the after() method,
+            // so the test has finished.
+            if (statement.executeUpdate() == 0) {
+              return;
+            }
+          }
+          catch (SQLException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      }
+
+      try {
+        sleep(50);
+      }
+      catch (InterruptedException e) {
+        interrupt();
+        throw new RuntimeException(e);
+      }
+    }
+
+    void terminate() {
+      this.terminate = true;
     }
   }
 }

@@ -10,6 +10,7 @@ import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -34,6 +35,8 @@ import org.quartz.utils.ConnectionProvider;
 import org.quartz.utils.DBConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.lang.Thread.currentThread;
 
 @Named
 @Singleton
@@ -70,6 +73,8 @@ public class QuartzJobStoreTX
       "Database schema migration is unfinished. Shutting down this node.";
 
   public static final long CLUSTER_CHECKIN_INTERVAL_MILLIS = 7500;
+
+  public static final long FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS = CLUSTER_CHECKIN_INTERVAL_MILLIS * 2;
 
   private static final String DATA_SOURCE_NAME = "ods";
 
@@ -146,35 +151,56 @@ public class QuartzJobStoreTX
       return false;
     }
 
-    List<SchedulerStateRecord> records = getSchedulerStateRecords();
-    SchedulerStateRecord myRecord;
-    List<SchedulerStateRecord> otherRecords = getOtherSchedulerStateRecords(records);
-    if (otherRecords.isEmpty()) {
-      return false;
-    }
-    SchedulerStateRecord otherMostRecentRecord = getMostRecentRecord(otherRecords);
-    if (firstCheckIn) {
-      myRecord = null;
-      if (isFailed(otherMostRecentRecord)) {
+    // If we are here, then IQ is not licensed and/or not configured for multi-node.
+    // So there should be only one IQ node running at any moment in time.
+    // To enforce that, we check the SchedulerStateRecord records in the qrtz_scheduler_state table,
+    // and look for recent records from a different IQ instance.
+
+    long retryUntilTimestamp = System.currentTimeMillis() + FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS;
+
+    SchedulerStateRecord myRecord = null;
+    SchedulerStateRecord otherMostRecentRecord = null;
+    while (System.currentTimeMillis() <= retryUntilTimestamp) {
+      List<SchedulerStateRecord> records = getSchedulerStateRecords();
+      List<SchedulerStateRecord> otherRecords = getOtherSchedulerStateRecords(records);
+      if (otherRecords.isEmpty()) {
         return false;
       }
-    }
-    else {
-      myRecord = getMySchedulerStateRecord(records);
-      if (myRecord == null) {
-        return false;
+      otherMostRecentRecord = getMostRecentRecord(otherRecords);
+      if (firstCheckIn) {
+        myRecord = null;
+        if (isFailed(otherMostRecentRecord)) {
+          return false;
+        }
       }
-      if (isFirstRecordMoreRecent(myRecord, otherMostRecentRecord)) {
-        return false;
+      else {
+        myRecord = getMySchedulerStateRecord(records);
+        if (myRecord == null) {
+          return false;
+        }
+        if (isFirstRecordMoreRecent(myRecord, otherMostRecentRecord)) {
+          return false;
+        }
       }
+      
+      sleep(50);
     }
-    log.debug("Node clustering is not enabled, but" +
-            " with our own scheduler state record {}" +
+    log.error("Node clustering is not enabled, but with this scheduler state record {}" +
             " found another scheduler state record to cause us to exit {}.",
         schedulerStateRecordToString(myRecord),
         schedulerStateRecordToString(otherMostRecentRecord));
     log.error(potentialErrorMessage);
     return true;
+  }
+  
+  private void sleep(long millis) {
+    try {
+      Thread.sleep(millis);
+    }
+    catch (InterruptedException e) {
+      currentThread().interrupt();
+      throw new RuntimeException(e);
+    }
   }
 
   private SchedulerStateRecord getMySchedulerStateRecord(List<SchedulerStateRecord> schedulerStateRecords) {
@@ -197,7 +223,7 @@ public class QuartzJobStoreTX
 
   private boolean isFailed(SchedulerStateRecord schedulerStateRecord) {
     return (System.currentTimeMillis() - schedulerStateRecord.getCheckinTimestamp()) >=
-        CLUSTER_CHECKIN_INTERVAL_MILLIS * 2;
+        FAILED_CLUSTER_CHECKIN_INTERVAL_MILLIS;
   }
 
   private boolean isFirstRecordMoreRecent(

@@ -1,0 +1,53 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.search.index;
+
+public enum FieldIdentifier
+{
+  ITEM_TYPE("itemType"),
+  ORGANIZATION_ID("organizationId"),
+  ORGANIZATION_NAME("organizationName"),
+  APPLICATION_ID("applicationId"),
+  APPLICATION_NAME("applicationName"),
+  APPLICATION_PUBLIC_ID("applicationPublicId"),
+  POLICY_EVALUATION_STAGE("policyEvaluationStage"),
+  APPLICATION_VERSION("applicationVersion"),
+  REPORT_ID("reportId"),
+  COMPONENT_HASH("componentHash"),
+  COMPONENT_FORMAT("componentFormat"),
+  COMPONENT_NAME("componentName"),
+  COMPONENT_COORDINATE("componentCoordinate"),
+  VULNERABILITY_ID("vulnerabilityId"),
+  VULNERABILITY_SEVERITY("vulnerabilitySeverity"),
+  VULNERABILITY_STATUS("vulnerabilityStatus"),
+  VULNERABILITY_DESCRIPTION("vulnerabilityDescription"),
+  APPLICATION_CATEGORY_ID("applicationCategoryId"),
+  APPLICATION_CATEGORY_NAME("applicationCategoryName"),
+  APPLICATION_CATEGORY_COLOR("applicationCategoryColor"),
+  APPLICATION_CATEGORY_DESCRIPTION("applicationCategoryDescription"),
+  COMPONENT_LABEL_ID("componentLabelId"),
+  COMPONENT_LABEL_NAME("componentLabelName"),
+  COMPONENT_LABEL_COLOR("componentLabelColor"),
+  COMPONENT_LABEL_DESCRIPTION("componentLabelDescription"),
+  POLICY_ID("policyId"),
+  POLICY_NAME("policyName"),
+  POLICY_THREAT_CATEGORY("policyThreatCategory"),
+  POLICY_THREAT_LEVEL("policyThreatLevel"),
+  PARENT_ORGANIZATION_NAME("parentOrganizationName"),
+  PARENT_ORGANIZATION_ID("parentOrganizationId"),
+  SBOM_SPECIFICATION("sbomSpecification");
+
+  public final String label;
+
+  FieldIdentifier(String label) {
+    this.label = label;
+  }
+
+  @Override
+  public String toString() {
+    return label;
+  }
+}

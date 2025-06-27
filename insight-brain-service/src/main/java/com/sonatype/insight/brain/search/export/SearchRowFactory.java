@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
+import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
 import org.slf4j.Logger;

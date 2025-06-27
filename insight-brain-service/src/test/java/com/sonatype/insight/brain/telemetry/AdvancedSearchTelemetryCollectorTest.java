@@ -12,6 +12,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.SearchCount;
@@ -86,8 +87,8 @@ public class AdvancedSearchTelemetryCollectorTest
     TelemetryData telemetryData = allTelemetryData.get(0);
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
     assertThat(telemetryData.getAttributes())
-        .containsEntry(IndexService.SEARCH_INDEX_SIZE_BYTES, indexService.getIndexSize())
-        .containsEntry(IndexService.SEARCH_INDEX_REINDEX, false);
+        .containsEntry(SearchIndexClient.SEARCH_INDEX_SIZE_BYTES, indexService.getIndexSize())
+        .containsEntry(SearchIndexClient.SEARCH_INDEX_REINDEX, false);
   }
 
   @Test

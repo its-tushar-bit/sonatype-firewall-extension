@@ -13,6 +13,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.AggregatedSearchStats;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -52,8 +53,8 @@ public class AdvancedSearchTelemetryCollector
     long indexSize = indexService.getIndexSize();
     if (indexSize > 0) {
       TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.ADVANCED_SEARCH_INDEXING);
-      telemetryData.put(IndexService.SEARCH_INDEX_SIZE_BYTES, indexSize);
-      telemetryData.put(IndexService.SEARCH_INDEX_REINDEX, false);
+      telemetryData.put(SearchIndexClient.SEARCH_INDEX_SIZE_BYTES, indexSize);
+      telemetryData.put(SearchIndexClient.SEARCH_INDEX_REINDEX, false);
       allTelemetryData.add(telemetryData);
     }
     return allTelemetryData;

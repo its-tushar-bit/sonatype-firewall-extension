@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
@@ -17,9 +16,9 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
-import com.sonatype.insight.brain.search.export.SearchRowFactory;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.export.SearchRowFactory;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -30,8 +29,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.store.FSDirectory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,13 +41,15 @@ import static org.awaitility.Awaitility.await;
 public class ApiAdvancedSearchResourceV2Test
     extends AbstractResourceTest
 {
+  private IndexService indexService;
+
   @Before
   public void before() throws Exception {
     cleanSearchIndexDir();
     TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
     taskScheduler.disableForTesting = false;
     taskScheduler.start();
-    IndexService indexService = getCLMServer().getInstance(IndexService.class);
+    indexService = getCLMServer().getInstance(IndexService.class);
     indexService.disableForTesting = false;
     indexService.register();
   }
@@ -71,8 +70,9 @@ public class ApiAdvancedSearchResourceV2Test
     awaitIndexCompletion();
 
     assertResponseStatus(204, response);
-    InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
-    assertIndexExists(insightWork.getSearchIndexDir());
+    // verify the index exists
+    long size = indexService.getIndexSize();
+    assertThat(size).isGreaterThan(0);
   }
 
   @Test
@@ -279,14 +279,8 @@ public class ApiAdvancedSearchResourceV2Test
     return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2);
   }
 
-  private void assertIndexExists(File indexFile) throws Exception {
-    try (FSDirectory fsDirectory = FSDirectory.open(indexFile.toPath())) {
-      assertThat(DirectoryReader.indexExists(fsDirectory)).isTrue();
-    }
-  }
-
   private void awaitIndexCompletion() {
     await().atMost(10, TimeUnit.SECONDS)
-        .until(() -> !getCLMServer().getInstance(IndexService.class).isFullIndexTriggered());
+        .until(() -> !indexService.isFullIndexTriggered());
   }
 }

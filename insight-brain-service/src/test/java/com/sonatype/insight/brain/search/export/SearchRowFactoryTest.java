@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.search.export;
 
 import java.util.List;
 
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
+import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 
 import org.junit.Before;

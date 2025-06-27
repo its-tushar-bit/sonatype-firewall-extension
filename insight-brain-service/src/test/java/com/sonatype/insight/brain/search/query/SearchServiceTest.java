@@ -39,9 +39,9 @@ import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
+import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
@@ -117,7 +117,7 @@ public class SearchServiceTest
   @Test
   public void testSearchIndex_NoSearchIndexDirectory() {
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-        () -> searchService.searchIndex("query", 1, 1, false, null))
+            () -> searchService.searchIndex("query", 1, 1, false, null))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 
@@ -125,7 +125,7 @@ public class SearchServiceTest
   public void testSearchIndex_EmptySearchIndexDirectory() throws Exception {
     Files.createDirectories(insightWork.getSearchIndexDir().toPath());
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
-        () -> searchService.searchIndex("query", 1, 1, false, null))
+            () -> searchService.searchIndex("query", 1, 1, false, null))
         .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
   }
 

@@ -33,18 +33,18 @@ public class IndexServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testCreateSearchIndex__Unauthenticated() {
-    indexService.createSearchIndexAsync();
+    indexService.createIndexAsync();
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testCreateSearchIndex_Unauthorized() {
     login();
-    indexService.createSearchIndexAsync();
+    indexService.createIndexAsync();
   }
 
   @Test
   public void testCreateSearchIndex_Authorized() {
     grantConfigureSystemPermission();
-    indexService.createSearchIndexAsync();
+    indexService.createIndexAsync();
   }
 }

@@ -55,9 +55,10 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.report.ReportTestUtils;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier;
-import com.sonatype.insight.brain.search.docs.DocumentBuilder.ItemType;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -96,6 +97,9 @@ public class IndexSearchingTest
 
   @Inject
   private SearchService searchService;
+
+  @Inject
+  private SearchIndexClient searchIndexClient;
 
   @Inject
   private ApiConfigurationService configurationService;
@@ -160,7 +164,7 @@ public class IndexSearchingTest
   }
 
   private void indexChanges() throws Exception {
-    indexService.updateIndex();
+    searchIndexClient.updateIndex();
   }
 
   private void setHdsUrl() {

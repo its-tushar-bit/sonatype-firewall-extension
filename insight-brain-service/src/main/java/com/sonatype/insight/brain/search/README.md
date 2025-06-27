@@ -16,7 +16,7 @@ Before the data can be searched an index must be created. This can be achieved b
 curl -u admin:admin123 -X POST 'http://localhost:8070/api/v2/search/index'
 ```
 
-`com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier` lists the indexed fields.
+`com.sonatype.insight.brain.search.index.FieldIdentifier` lists the indexed fields.
 These are also the fields you can prefix the search with as follows:
 
 ```

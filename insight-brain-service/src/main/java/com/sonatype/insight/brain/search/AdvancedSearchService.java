@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.search;
 
-import java.io.File;
-import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -15,10 +13,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.security.Authorize;
-import com.sonatype.insight.brain.service.InsightWork;
 
-import org.apache.lucene.index.SegmentInfos;
-import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,20 +22,10 @@ public class AdvancedSearchService
 {
   private static final Logger log = LoggerFactory.getLogger(AdvancedSearchService.class);
 
-  private final InsightWork insightWork;
-
-  private final LuceneComponents luceneComponents;
-
   private final IndexService indexService;
 
   @Inject
-  public AdvancedSearchService(
-      InsightWork insightWork,
-      LuceneComponents luceneComponents,
-      IndexService indexService)
-  {
-    this.insightWork = insightWork;
-    this.luceneComponents = luceneComponents;
+  public AdvancedSearchService(final IndexService indexService) {
     this.indexService = indexService;
   }
 
@@ -57,25 +42,8 @@ public class AdvancedSearchService
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     AdvancedSearchStatusDTO dto = new AdvancedSearchStatusDTO();
     dto.isEnabled = SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.isEnabled();
-    dto.lastIndexTime = getLastIndexTime();
+    dto.lastIndexTime = indexService.getLastIndexTime();
     dto.isFullIndexTriggered = indexService.isFullIndexTriggered();
     return dto;
-  }
-
-  private Long getLastIndexTime() {
-    try (Directory directory = luceneComponents.openSearchIndex(true)) {
-      if (directory == null) {
-        return null;
-      }
-      String lastCommitSegmentsFileName = SegmentInfos.getLastCommitSegmentsFileName(directory);
-      if (lastCommitSegmentsFileName == null) {
-        return null;
-      }
-      return new File(insightWork.getSearchIndexDir(), lastCommitSegmentsFileName).lastModified();
-    }
-    catch (IOException e) {
-      log.error(e.getMessage(), e);
-      return null;
-    }
   }
 }

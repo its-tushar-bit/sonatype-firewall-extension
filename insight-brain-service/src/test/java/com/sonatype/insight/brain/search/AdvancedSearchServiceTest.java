@@ -145,7 +145,7 @@ public class AdvancedSearchServiceTest
 
     assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isFalse();
 
-    indexService.createSearchIndexAsync();
+    indexService.createIndexAsync();
 
     assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isTrue();
   }

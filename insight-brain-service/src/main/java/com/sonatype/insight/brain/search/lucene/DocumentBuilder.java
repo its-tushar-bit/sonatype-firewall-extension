@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.search.docs;
+package com.sonatype.insight.brain.search.lucene;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.StageType;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.ItemType;
 
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
@@ -27,106 +29,40 @@ import org.apache.lucene.document.IntPoint;
 import org.apache.lucene.document.StoredField;
 import org.apache.lucene.document.TextField;
 
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_COLOR;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_CATEGORY_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_PUBLIC_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.APPLICATION_VERSION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_FORMAT;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_HASH;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_COLOR;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_DESCRIPTION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_LABEL_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.COMPONENT_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ITEM_TYPE;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.ORGANIZATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.PARENT_ORGANIZATION_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.PARENT_ORGANIZATION_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_EVALUATION_STAGE;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_NAME;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_THREAT_CATEGORY;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.POLICY_THREAT_LEVEL;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.REPORT_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.SBOM_SPECIFICATION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_DESCRIPTION;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_ID;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_SEVERITY;
-import static com.sonatype.insight.brain.search.docs.DocumentBuilder.FieldIdentifier.VULNERABILITY_STATUS;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_COLOR;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_CATEGORY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_PUBLIC_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.APPLICATION_VERSION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_FORMAT;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_HASH;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_COLOR;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_DESCRIPTION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_LABEL_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.COMPONENT_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ITEM_TYPE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.ORGANIZATION_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.PARENT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.PARENT_ORGANIZATION_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_EVALUATION_STAGE;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_NAME;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_THREAT_CATEGORY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.POLICY_THREAT_LEVEL;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.REPORT_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.SBOM_SPECIFICATION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_DESCRIPTION;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_ID;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_SEVERITY;
+import static com.sonatype.insight.brain.search.index.FieldIdentifier.VULNERABILITY_STATUS;
 
 public class DocumentBuilder
 {
-  public enum ItemType
-  {
-    ORGANIZATION,
-    APPLICATION,
-    NON_VULNERABLE_COMPONENT,
-    SECURITY_VULNERABILITY,
-    APPLICATION_CATEGORY,
-    COMPONENT_LABEL,
-    POLICY,
-    SBOM_METADATA;
-
-    /**
-     * The name to use when constructing a search Term for this item type. For whatever reason it must be lowercase
-     */
-    public String searchFieldName() {
-      return name().toLowerCase();
-    }
-  }
-
-  public enum FieldIdentifier
-  {
-    ITEM_TYPE("itemType"),
-    ORGANIZATION_ID("organizationId"),
-    ORGANIZATION_NAME("organizationName"),
-    APPLICATION_ID("applicationId"),
-    APPLICATION_NAME("applicationName"),
-    APPLICATION_PUBLIC_ID("applicationPublicId"),
-    POLICY_EVALUATION_STAGE("policyEvaluationStage"),
-    APPLICATION_VERSION("applicationVersion"),
-    REPORT_ID("reportId"),
-    COMPONENT_HASH("componentHash"),
-    COMPONENT_FORMAT("componentFormat"),
-    COMPONENT_NAME("componentName"),
-    COMPONENT_COORDINATE("componentCoordinate"),
-    VULNERABILITY_ID("vulnerabilityId"),
-    VULNERABILITY_SEVERITY("vulnerabilitySeverity"),
-    VULNERABILITY_STATUS("vulnerabilityStatus"),
-    VULNERABILITY_DESCRIPTION("vulnerabilityDescription"),
-    APPLICATION_CATEGORY_ID("applicationCategoryId"),
-    APPLICATION_CATEGORY_NAME("applicationCategoryName"),
-    APPLICATION_CATEGORY_COLOR("applicationCategoryColor"),
-    APPLICATION_CATEGORY_DESCRIPTION("applicationCategoryDescription"),
-    COMPONENT_LABEL_ID("componentLabelId"),
-    COMPONENT_LABEL_NAME("componentLabelName"),
-    COMPONENT_LABEL_COLOR("componentLabelColor"),
-    COMPONENT_LABEL_DESCRIPTION("componentLabelDescription"),
-    POLICY_ID("policyId"),
-    POLICY_NAME("policyName"),
-    POLICY_THREAT_CATEGORY("policyThreatCategory"),
-    POLICY_THREAT_LEVEL("policyThreatLevel"),
-    PARENT_ORGANIZATION_NAME("parentOrganizationName"),
-    PARENT_ORGANIZATION_ID("parentOrganizationId"),
-    SBOM_SPECIFICATION("sbomSpecification");
-
-    public final String label;
-
-    FieldIdentifier(String label) {
-      this.label = label;
-    }
-
-    @Override
-    public String toString() {
-      return label;
-    }
-  }
-
   private Document document;
 
   private Optional<Field> organizationId = Optional.empty();

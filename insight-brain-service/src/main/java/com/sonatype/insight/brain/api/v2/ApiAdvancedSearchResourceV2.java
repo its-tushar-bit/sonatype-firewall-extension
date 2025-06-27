@@ -113,7 +113,7 @@ public class ApiAdvancedSearchResourceV2
           "Permissions required: System Administrator")
   @ApiResponse(responseCode = "200", description = "Index created successfully.")
   public void createSearchIndexAsync() {
-    indexService.createSearchIndexAsync();
+    indexService.createIndexAsync();
   }
 
   @GET

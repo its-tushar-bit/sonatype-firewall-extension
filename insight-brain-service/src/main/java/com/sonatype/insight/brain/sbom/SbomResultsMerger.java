@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.DuplicateAwareThirdPartyFileCoordinatePersister;
@@ -180,6 +181,8 @@ public class SbomResultsMerger
 
   private SbomPostImportMetricsTelemetry sbomPostImportMetricsTelemetry;
 
+  private CpeResultsTelemetry cpeResultsTelemetry;
+
   private final ApplicationReportPersistenceService applicationReportPersistenceService;
 
   private final List<SbomResultsMatcherTelemetry> bestMatchResultsTelemetries = new ArrayList<>();
@@ -234,10 +237,11 @@ public class SbomResultsMerger
   public void mergeResults(
       final ThirdPartySbomMetadata sbomMetadata,
       final String scanId,
-      final ApplicationReport applicationReport)
+      final ApplicationReport applicationReport,
+      final CpeResultsTelemetry cpeResultsTelemetry)
       throws IOException
   {
-    initializeMergeProcessDependencies(sbomMetadata, applicationReport);
+    initializeMergeProcessDependencies(sbomMetadata, applicationReport, cpeResultsTelemetry);
     mergeSonatypeDataWithSbomData(sbomMetadata, scanId);
     updateReportJsons(sbomMetadata, applicationReport);
     addDependencyDataForOriginalSbom();
@@ -282,8 +286,10 @@ public class SbomResultsMerger
     }
   }
 
-  private void initializeMergeProcessDependencies(final ThirdPartySbomMetadata sbomMetadata,
-                                                  final ApplicationReport applicationReport)
+  private void initializeMergeProcessDependencies(
+      final ThirdPartySbomMetadata sbomMetadata,
+      final ApplicationReport applicationReport,
+      final CpeResultsTelemetry cpeResultsTelemetry)
       throws IOException
   {
     bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON_FILENAME)).buf);
@@ -293,6 +299,8 @@ public class SbomResultsMerger
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
+    // initialize non null cpe telemetry to avoid null checks later
+    this.cpeResultsTelemetry = cpeResultsTelemetry != null ? cpeResultsTelemetry : new CpeResultsTelemetry();
     dependencyTreeParser.parse(dependenciesJsonData);
 
     // create an original SBOM and filtered scan file for continuous monitoring in the case of binary scans
@@ -892,6 +900,7 @@ public class SbomResultsMerger
   {
     Set<SecurityVulnerability> sonatypeVulns = hdsSecurityResults.get(bomComponentIdentifier);
     if (CollectionUtils.isNotEmpty(sonatypeVulns)) {
+      boolean isCpeMatchedComponent = false;
       // Get all the coordinate securities from the DB for all the vulnerabilities.
       Map<String, ThirdPartyCoordinateSecurity> coordinateSecuritiesFromDBForComponentMap =
           thirdPartyCoordinateSecurityDAO.getByFileCoordinateId(sbomComponent.getId()).stream()
@@ -925,6 +934,10 @@ public class SbomResultsMerger
         catch (NotFoundException exception) {
           log.warn("Vulnerability {} not found", sonatypeVuln);
         }
+        if (!isCpeMatchedComponent &&
+            SecurityVulnerabilityDetectionType.CPE_MATCH.equals(sonatypeVuln.getDetectionType())) {
+          isCpeMatchedComponent = true;
+        }
       }
 
       // Walk through the remaining coordinate securities in this list. These are the orphan ones.
@@ -941,6 +954,11 @@ public class SbomResultsMerger
         else if (coordinateSecurity.getIdentificationSources().equals(IdentificationSource.SONATYPE.getId())) {
           // else if it only has SONATYPE, delete it from the DB along with any VEX annotation associated with it.
           thirdPartyCoordinateSecurityDAO.delete(tx, coordinateSecurity);
+          // we skip the loop to avoid incrementing the telemetry count for unmatched vulnerabilities for this case
+          continue;
+        }
+        if (isCpeMatchedComponent) {
+          this.cpeResultsTelemetry.incrementCpeUnMatchedVulnerabilityCount();
         }
       }
     }

@@ -55,6 +55,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.SbomResultsMerger;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -419,7 +420,10 @@ public class ThirdPartyDataService
     searchIndexManager.insert(searchIndexChange);
   }
 
-  public void mergeSonatypeDataWithSbomDataWithIndexing(final String scanId, final ApplicationReport applicationReport)
+  public void mergeSonatypeDataWithSbomDataWithIndexing(
+      final String scanId,
+      final ApplicationReport applicationReport,
+      final CpeResultsTelemetry cpeResultsTelemetry)
       throws IOException
   {
     if (!productLicense.hasFeature(LicensedFeature.SBOM_MANAGER)) {
@@ -430,7 +434,7 @@ public class ThirdPartyDataService
       return;
     }
 
-    sbomResultsMergerProvider.get().mergeResults(sbomMetadata, scanId, applicationReport);
+    sbomResultsMergerProvider.get().mergeResults(sbomMetadata, scanId, applicationReport, cpeResultsTelemetry);
     indexSbomForSearch(sbomMetadata);
   }
 

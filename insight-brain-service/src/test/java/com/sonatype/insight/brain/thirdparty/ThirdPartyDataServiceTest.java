@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -44,6 +43,7 @@ import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -99,9 +99,12 @@ public class ThirdPartyDataServiceTest
 
   private Application application;
 
+  private CpeResultsTelemetry mockCpeResultsTelemetry;
+
   @Override
   public void configure(Binder binder) {
     mockTelemetrySender = mock(TelemetrySender.class);
+    mockCpeResultsTelemetry = new CpeResultsTelemetry();
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     super.configure(binder);
   }
@@ -469,7 +472,7 @@ public class ThirdPartyDataServiceTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -488,7 +491,7 @@ public class ThirdPartyDataServiceTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata updated = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updated).isNotNull();
@@ -505,7 +508,7 @@ public class ThirdPartyDataServiceTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport);
+    handler.mergeSonatypeDataWithSbomDataWithIndexing(SCAN_ID, appReport, mockCpeResultsTelemetry);
 
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(sbomMetadata).isNotNull();

@@ -1,0 +1,209 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "lintian",
+        "namespace" : "debian",
+        "sbom_type" : "library",
+        "version" : "1.23.14"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "19442645c98283636b4a",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2009-4014",
+    "reference" : "CVE-2009-4014",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "134",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2009-4014" ],
+    "researchType" : "PUBLIC_RESEARCH",
+    "detectionType" : "CPE_MATCH",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "lintian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.23.14"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "debian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "sbom_type",
+        "value" : "library"
+      } ],
+      "name" : "lintian"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "lintian",
+        "namespace" : "debian",
+        "sbom_type" : "library",
+        "version" : "1.23.14"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "19442645c98283636b4a",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2009-4015",
+    "reference" : "CVE-2009-4015",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "89",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:P/I:P/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2009-4015" ],
+    "researchType" : "PUBLIC_RESEARCH",
+    "detectionType" : "CPE_MATCH",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "lintian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.23.14"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "debian"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "sbom_type",
+        "value" : "library"
+      } ],
+      "name" : "lintian"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "generic",
+      "coordinates" : {
+        "name" : "freebsd",
+        "namespace" : "freebsd",
+        "version" : "1.1.5.1"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "c9458323857f66e9a9ce",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-1999-0001",
+    "reference" : "CVE-1999-0001",
+    "source" : "cve",
+    "score" : 5.0,
+    "cwe" : "20",
+    "cvssVectorString" : "AV:N/AC:L/Au:N/C:N/I:N/A:P",
+    "cvssVectorSource" : "cve_cvss_2",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-1999-0001" ],
+    "researchType" : "PUBLIC_RESEARCH",
+    "detectionType" : "CPE_MATCH",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Name",
+        "value" : "freebsd"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "1.1.5.1"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "namespace",
+        "value" : "freebsd"
+      } ],
+      "name" : "freebsd"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "maven",
+      "coordinates" : {
+        "artifactId" : "jackson-databind",
+        "classifier" : "",
+        "extension" : "jar",
+        "groupId" : "com.fasterxml.jackson.core",
+        "version" : "2.9.9"
+      }
+    },
+    "groupId" : "com.fasterxml.jackson.core",
+    "artifactId" : "jackson-databind",
+    "version" : "2.9.9",
+    "hash" : "d6eb9817d9c7289a91f0",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2019-12384",
+    "reference" : "CVE-2019-12384",
+    "source" : "cve",
+    "score" : 5.9,
+    "cwe" : "502",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:N",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2019-12384" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "PRIMARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "Group",
+        "value" : "com.fasterxml.jackson.core"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Artifact",
+        "value" : "jackson-databind"
+      }, {
+        "value" : " : "
+      }, {
+        "field" : "Version",
+        "value" : "2.9.9"
+      } ],
+      "name" : "jackson-databind"
+    }
+  } ]
+}

@@ -28,12 +28,15 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.component.AnalysisType;
+import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskScoreDTO;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -52,6 +55,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -80,6 +84,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -93,6 +98,9 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
+import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -182,6 +190,8 @@ public class ReportService
 
   private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
+  private final CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
   @Inject
   public ReportService(
       final PolicyEvaluationDAO policyEvaluationDAO,
@@ -209,7 +219,8 @@ public class ReportService
       final ReportDataStore reportDataStore,
       final ScanUploadService scanUploadService,
       final InsightWork insightWork,
-      final AutomatedPullRequestCreationService automatedPullRequestCreationService)
+      final AutomatedPullRequestCreationService automatedPullRequestCreationService,
+      final CpeMatchingConfigurationService cpeMatchingConfigurationService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -237,6 +248,7 @@ public class ReportService
     this.scanUploadService = scanUploadService;
     this.insightWork = insightWork;
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
+    this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
   }
 
   @Trace
@@ -245,9 +257,11 @@ public class ReportService
   {
     ApplicationReport applicationReport =
         reportDataStore.downloadReport(app, scanId, this::processThirdPartyData);
-    applyChanges(app, scanId, applicationReport, stageTypeId, repositoryMatcher, telemetrySender, telemetryUtils,
-        configuration);
-    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport);
+    CpeResultsTelemetry cpeResultsTelemetry = new CpeResultsTelemetry();
+    applyChanges(app, scanId, applicationReport, stageTypeId, cpeResultsTelemetry, repositoryMatcher, telemetrySender,
+        telemetryUtils, configuration);
+    thirdPartyDataService.mergeSonatypeDataWithSbomDataWithIndexing(scanId, applicationReport, cpeResultsTelemetry);
+    sendCpeResultMetricsTelemetry(app.getId(), cpeResultsTelemetry);
     return applicationReport;
   }
 
@@ -498,6 +512,7 @@ public class ReportService
       final String scanId,
       final ApplicationReport applicationReport,
       final String stageTypeId,
+      final CpeResultsTelemetry cpeResultsTelemetry,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
@@ -514,9 +529,8 @@ public class ReportService
 
     applicationReport.embedApplicationPublicId();
 
-    applyComponentRelatedChanges(application, scanId, applicationReport, stageTypeId, repositoryMatcher,
-        telemetrySender,
-        telemetryUtils);
+    applyComponentRelatedChanges(application, scanId, applicationReport, stageTypeId, cpeResultsTelemetry,
+        repositoryMatcher, telemetrySender, telemetryUtils);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
     final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON_FILENAME).buf);
@@ -632,6 +646,7 @@ public class ReportService
       final String scanId,
       final ApplicationReport applicationReport,
       final String stageTypeId,
+      final CpeResultsTelemetry cpeResultsTelemetry,
       final RepositoryMatcher repositoryMatcher,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils) throws IOException
@@ -643,7 +658,7 @@ public class ReportService
     ContainerNode<?> summaryJsonData = applicationReport.loadReportEntry(SUMMARY_JSON_FILENAME);
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
-        applyClaimedComponents(bomJsonData, dataJson, summaryJsonData);
+        applyClaimedComponents(bomJsonData, dataJson, summaryJsonData, cpeResultsTelemetry);
 
     // must start from un-edited data
     ContainerNode<?> licensesJsonData = applicationReport.loadReportEntry(LICENSES_JSON_FILENAME);
@@ -685,7 +700,7 @@ public class ReportService
     applicationReport.saveReportEntry(BOM_JSON_FILENAME, bomJsonData);
 
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
-    applySecurityVulnerabilityOverrides(securityJsonData, application);
+    applySecurityVulnerabilityOverrides(securityJsonData, application, cpeResultsTelemetry);
     applicationReport.saveReportEntry(SECURITY_JSON_FILENAME, securityJsonData);
 
     // must start from un-edited data
@@ -842,7 +857,8 @@ public class ReportService
   private Map<String, HashComponentIdentifier> applyClaimedComponents(
       ContainerNode<?> bomJsonData,
       ContainerNode<?> dataJson,
-      ContainerNode<?> summaryJsonData)
+      ContainerNode<?> summaryJsonData,
+      CpeResultsTelemetry cpeResultsTelemetry)
   {
     int exactlyMatchedComponentCount = 0;
     int partiallyMatchedComponentCount = 0;
@@ -851,6 +867,7 @@ public class ReportService
     Map<String, HashComponentIdentifier> claimedComponentsByHash = new LinkedHashMap<>();
     JsonNode aaData = bomJsonData.get("aaData");
     for (JsonNode bomJsonNode : aaData) {
+      processCpeComponentTelemetry(bomJsonNode, cpeResultsTelemetry);
       String hash = bomJsonNode.get("hash").asText();
       HashComponentIdentifier hashComponentIdentifier = hashComponentIdentifierDAO.getByHash(hash);
       ObjectNode bomObjectNode = (ObjectNode) bomJsonNode;
@@ -898,6 +915,47 @@ public class ReportService
     log.debug("applyClaimedComponents: {} components, {} claimed.", aaData.size(), claimedComponentsByHash.size());
 
     return claimedComponentsByHash;
+  }
+
+  private void processCpeComponentTelemetry(final JsonNode bomJsonNode, final CpeResultsTelemetry cpeResultsTelemetry) {
+    if (bomJsonNode.hasNonNull("componentIdentifier")) {
+      ComponentIdentifier componentIdentifier =
+          ComponentIdentifierAdapter.getComponentIdentifier(bomJsonNode);
+      if (componentIdentifier != null) {
+        //for total, count only the components with any valid component identifier. unknown components are not counted
+        cpeResultsTelemetry.incrementReportComponentTotal();
+        if (ComponentIdentifier.isFormatValidForCpeMatching(componentIdentifier.getFormat())) {
+          cpeResultsTelemetry.incrementCandidateFormatsCount();
+        }
+      }
+    }
+
+    if (bomJsonNode.hasNonNull("identificationSource") && bomJsonNode.hasNonNull("analyzerFeatures")) {
+      try {
+        AnalyzerFeatures analyzerFeatures =
+            JsonUtils.asPojo(bomJsonNode.get("analyzerFeatures"), AnalyzerFeatures.class);
+        String identificationSource = bomJsonNode.get("identificationSource").asText();
+        if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
+            AnalysisType.CPE.equals(analyzerFeatures.getAnalysisType())) {
+          cpeResultsTelemetry.incrementCpeMatchedComponentCount();
+        }
+      }
+      catch (IOException e) {
+        log.debug("error parsing analyzerFeatures object", e);
+      }
+    }
+  }
+
+  private void processCpeSecurityTelemetry(
+      final JsonNode securityJsonNode,
+      final CpeResultsTelemetry cpeResultsTelemetry)
+  {
+    if (securityJsonNode != null && securityJsonNode.hasNonNull("detectionType")) {
+      String detectionType = securityJsonNode.get("detectionType").asText();
+      if (SecurityVulnerabilityDetectionType.CPE_MATCH.getId().equals(detectionType)) {
+        cpeResultsTelemetry.incrementCpeMatchedVulnerabilityCount();
+      }
+    }
   }
 
   @VisibleForTesting
@@ -1059,12 +1117,17 @@ public class ReportService
     return componentIdentifiersWithLicenseOverrides;
   }
 
-  private void applySecurityVulnerabilityOverrides(ContainerNode<?> securityJsonData, Application application) {
+  private void applySecurityVulnerabilityOverrides(
+      ContainerNode<?> securityJsonData,
+      Application application,
+      CpeResultsTelemetry cpeResultsTelemetry)
+  {
     ArrayNode securityAaData = (ArrayNode) securityJsonData.get("aaData");
     Iterator<JsonNode> iterSecurityData = securityAaData.iterator();
     int overrideCount = 0;
     while (iterSecurityData.hasNext()) {
       ObjectNode securityJsonNode = (ObjectNode) iterSecurityData.next();
+      processCpeSecurityTelemetry(securityJsonNode, cpeResultsTelemetry);
       String hash = securityJsonNode.get("hash").asText();
       String source = securityJsonNode.get("source").asText();
       String referenceId = securityJsonNode.get("reference").asText();
@@ -1155,6 +1218,19 @@ public class ReportService
 
     log.debug("removeClaimedComponentsFromPartialMatched: {} partial matches, {} removed.", aaData.size(),
         removedCount);
+  }
+
+  private void sendCpeResultMetricsTelemetry(
+      final String applicationId,
+      final CpeResultsTelemetry cpeResultsTelemetry)
+  {
+    if (cpeMatchingConfigurationService.isCpeDataMatchingEnabled(applicationId) &&
+        cpeResultsTelemetry.getCpeMatchedComponentCount() > 0) {
+      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.CPE_RESULTS_METRICS);
+      telemetryData.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+      telemetryData.put(CpeResultsTelemetry.ATTRIBUTE_NAME, cpeResultsTelemetry);
+      telemetrySender.send(telemetryData);
+    }
   }
 
   @VisibleForTesting

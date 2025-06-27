@@ -1,0 +1,1822 @@
+{
+  "aaData" : [ {
+    "trigger" : {
+      "policyId" : "4e745e5e94cd4319bc9615aa487e092d",
+      "policyName" : "Security-Low",
+      "threatLevel" : 3,
+      "policyViolationId" : "6ff1a95a370b47ed857c33e900ced136",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "9d40cf1ddfd940a694aff94415751635",
+          "constraintName" : "Low risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 0",
+            "reason" : "Found security vulnerability CVE-2000-0461 with severity >= 0 (severity = 2.1)",
+            "reference" : {
+              "value" : "CVE-2000-0461",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 4",
+            "reason" : "Found security vulnerability CVE-2000-0461 with severity < 4 (severity = 2.1)",
+            "reference" : {
+              "value" : "CVE-2000-0461",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "4e745e5e94cd4319bc9615aa487e092d",
+      "policyName" : "Security-Low",
+      "threatLevel" : 3,
+      "policyViolationId" : "04c2eb05a5af455e82f7055532199d44",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "9d40cf1ddfd940a694aff94415751635",
+          "constraintName" : "Low risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 0",
+            "reason" : "Found security vulnerability CVE-2003-1234 with severity >= 0 (severity = 3.6)",
+            "reference" : {
+              "value" : "CVE-2003-1234",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 4",
+            "reason" : "Found security vulnerability CVE-2003-1234 with severity < 4 (severity = 3.6)",
+            "reference" : {
+              "value" : "CVE-2003-1234",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "4e9fa5c03bcd41db9fc235491077f530",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-1999-0001 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0001",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-1999-0001 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0001",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "69e90a38038a49de9d329f6e715e4126",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-1999-0052 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0052",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-1999-0052 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0052",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "304bc6d57a984e04abd504ac427cc7fa",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-1999-0345 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0345",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-1999-0345 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0345",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "81ade1fd5ff149c8be0708405057ac83",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-1999-0513 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0513",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-1999-0513 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-0513",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "5aedc12fc4b24780954262b252afeb60",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-1999-1518 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-1518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-1999-1518 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-1999-1518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "227f2039edea4d0fad6546ba23305edc",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2005-0109 with severity >= 4 (severity = 5.6)",
+            "reference" : {
+              "value" : "CVE-2005-0109",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2005-0109 with severity < 7 (severity = 5.6)",
+            "reference" : {
+              "value" : "CVE-2005-0109",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "1d5c2773f73b42c1aaf583571fee6e9e",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2005-0356 with severity >= 4 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-2005-0356",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2005-0356 with severity < 7 (severity = 5.0)",
+            "reference" : {
+              "value" : "CVE-2005-0356",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "cfa122ba17ba404598b8ebbf18efb76c",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2012-2143 with severity >= 4 (severity = 4.3)",
+            "reference" : {
+              "value" : "CVE-2012-2143",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2012-2143 with severity < 7 (severity = 4.3)",
+            "reference" : {
+              "value" : "CVE-2012-2143",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "d34adce0733545f1877c7c6b59310b46",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2013-6832 with severity >= 4 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6832",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2013-6832 with severity < 7 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6832",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "017eba579f4349dd865d5f33796d5ff2",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2013-6833 with severity >= 4 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6833",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2013-6833 with severity < 7 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6833",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "1a5df55f7a3246b2894de17605dd0727",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2013-6834 with severity >= 4 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6834",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2013-6834 with severity < 7 (severity = 4.9)",
+            "reference" : {
+              "value" : "CVE-2013-6834",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "e9b1be881edf4d4e8407330429f12232",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-12384 with severity >= 4 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12384",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-12384 with severity < 7 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12384",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a1a43903214043a293df9ec8f8d288bf",
+      "policyName" : "Security-Medium",
+      "threatLevel" : 7,
+      "policyViolationId" : "04c85113b7bd4a74b6291beb81acacfd",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "fadcc8f563da4abbbba7f70b7a712655",
+          "constraintName" : "Medium risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 4",
+            "reason" : "Found security vulnerability CVE-2019-12814 with severity >= 4 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12814",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 7",
+            "reason" : "Found security vulnerability CVE-2019-12814 with severity < 7 (severity = 5.9)",
+            "reference" : {
+              "value" : "CVE-2019-12814",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "a6981c35ca4c4089a73730357b641704",
+      "policyName" : "Security-Critical",
+      "threatLevel" : 10,
+      "policyViolationId" : "84f71e003343458299bc5e2635dc7967",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "2b4ffca6891f4f9aaf8873ab33ceaab8",
+          "constraintName" : "Critical risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 9",
+            "reason" : "Found security vulnerability CVE-1999-0046 with severity >= 9 (severity = 10.0)",
+            "reference" : {
+              "value" : "CVE-1999-0046",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "423730905a6345e282a31d5159557b28",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "lintian",
+            "namespace" : "debian",
+            "sbom_type" : "library",
+            "version" : "1.23.14"
+          }
+        },
+        "hash" : "19442645c98283636b4a",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2009-4014 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2009-4014",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2009-4014 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2009-4014",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\debian\\lintian@1.23.14?sbom_type=library" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "lintian"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.23.14"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "debian"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "sbom_type",
+            "value" : "library"
+          } ],
+          "name" : "lintian"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "bedc198b15604b9eb2354e36ec85b351",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "lintian",
+            "namespace" : "debian",
+            "sbom_type" : "library",
+            "version" : "1.23.14"
+          }
+        },
+        "hash" : "19442645c98283636b4a",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2009-4015 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2009-4015",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2009-4015 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2009-4015",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\debian\\lintian@1.23.14?sbom_type=library" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "lintian"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.23.14"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "debian"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "sbom_type",
+            "value" : "library"
+          } ],
+          "name" : "lintian"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e111bc6c38d043e8bb1a3c49ef6c956d",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-1999-0040 with severity >= 7 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-1999-0040",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-1999-0040 with severity < 9 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-1999-0040",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "79192075b6934e53bb7b05ea44b8032f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-1999-0761 with severity >= 7 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-1999-0761",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-1999-0761 with severity < 9 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-1999-0761",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "fe8fe134241948a0a506bf1cf7c59890",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2004-1471 with severity >= 7 (severity = 7.1)",
+            "reference" : {
+              "value" : "CVE-2004-1471",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2004-1471 with severity < 9 (severity = 7.1)",
+            "reference" : {
+              "value" : "CVE-2004-1471",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e410b2144eca4562a037e928d3d39e38",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2006-1283 with severity >= 7 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-2006-1283",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2006-1283 with severity < 9 (severity = 7.2)",
+            "reference" : {
+              "value" : "CVE-2006-1283",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "e36579e4cf8d4e4d8e132d5bbbb14e55",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "generic",
+          "coordinates" : {
+            "name" : "freebsd",
+            "namespace" : "freebsd",
+            "version" : "1.1.5.1"
+          }
+        },
+        "hash" : "c9458323857f66e9a9ce",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2008-4609 with severity >= 7 (severity = 7.1)",
+            "reference" : {
+              "value" : "CVE-2008-4609",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2008-4609 with severity < 9 (severity = 7.1)",
+            "reference" : {
+              "value" : "CVE-2008-4609",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Name",
+            "value" : "freebsd"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "1.1.5.1"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "namespace",
+            "value" : "freebsd"
+          } ],
+          "name" : "freebsd"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "f6813266d53d46f3acece84896256013",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-25649 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-25649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-25649 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-25649",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "64627d1ce0474b83ae3e644759a17e4b",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2020-36518 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-36518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2020-36518 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2020-36518",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "bb6c9fc4de624afdb2563ebf27ab41a3",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2022-42003 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42003",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2022-42003 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42003",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "b7b2afde39ee48ebb4b8fbd7934064b6",
+      "policyName" : "Security-High",
+      "threatLevel" : 9,
+      "policyViolationId" : "11ea6a548d91498585b9e1a52062027f",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "42c68f808a2a4aa59fe41cd782617052",
+          "constraintName" : "High risk CVSS score",
+          "operatorName" : "AND",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity >= 7",
+            "reason" : "Found security vulnerability CVE-2022-42004 with severity >= 7 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42004",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          }, {
+            "conditionTypeId" : "SecurityVulnerabilitySeverity",
+            "conditionIndex" : 0,
+            "summary" : "Security Vulnerability Severity < 9",
+            "reason" : "Found security vulnerability CVE-2022-42004 with severity < 9 (severity = 7.5)",
+            "reference" : {
+              "value" : "CVE-2022-42004",
+              "type" : "SECURITY_VULNERABILITY_REFID"
+            },
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "fb0a41f7110e421aab4e9b1dfe84d2cd",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "c5bd61cd2f1946e38dc956d0e62bd831",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "7ad0cc7e07634d10b8757d7e82a06090",
+          "constraintName" : "Version is unpopular",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "RelativePopularity",
+            "conditionIndex" : 0,
+            "summary" : "Relative Popularity (Percentage) <= 10",
+            "reason" : "Relative popularity was <= 10% (relative popularity = 2%)",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  }, {
+    "trigger" : {
+      "policyId" : "fb0a41f7110e421aab4e9b1dfe84d2cd",
+      "policyName" : "Architecture-Quality",
+      "threatLevel" : 1,
+      "policyViolationId" : "bdaa1c6ff09747daa5d7d8e36b314557",
+      "componentFacts" : [ {
+        "componentIdentifier" : {
+          "format" : "maven",
+          "coordinates" : {
+            "artifactId" : "jackson-databind",
+            "classifier" : "",
+            "extension" : "jar",
+            "groupId" : "com.fasterxml.jackson.core",
+            "version" : "2.9.9"
+          }
+        },
+        "hash" : "d6eb9817d9c7289a91f0",
+        "constraintFacts" : [ {
+          "constraintId" : "fbe59477d7784ead811c27dd2d85d562",
+          "constraintName" : "Version is old",
+          "operatorName" : "OR",
+          "conditionFacts" : [ {
+            "conditionTypeId" : "AgeInDays",
+            "conditionIndex" : 0,
+            "summary" : "Age older than 1825 days",
+            "reason" : "Found component older than 5 years",
+            "reference" : null,
+            "triggerJson" : null
+          } ]
+        } ],
+        "pathnames" : [ "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar" ],
+        "displayName" : {
+          "parts" : [ {
+            "field" : "Group",
+            "value" : "com.fasterxml.jackson.core"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Artifact",
+            "value" : "jackson-databind"
+          }, {
+            "value" : " : "
+          }, {
+            "field" : "Version",
+            "value" : "2.9.9"
+          } ],
+          "name" : "jackson-databind"
+        }
+      } ]
+    },
+    "actions" : [ ]
+  } ]
+}

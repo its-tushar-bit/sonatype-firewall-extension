@@ -1,0 +1,305 @@
+{
+  "aaData": [
+    {
+      "componentIdentifier": {
+        "format": "generic",
+        "coordinates": {
+          "name": "lintian",
+          "namespace": "debian",
+          "sbom_type": "library",
+          "version": "1.23.14"
+        }
+      },
+      "packageUrl": "pkg:generic/debian/lintian@1.23.14?sbom_type=library",
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:generic/debian/lintian@1.23.14?sbom_type=library"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:generic\\debian\\lintian@1.23.14?sbom_type=library"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "19442645c98283636b4a",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "SBOM",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "PUBLIC",
+        "analysisType": "CPE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "sonatypeIdentifier": "8d5fd38ff1894a4e98b4dd9c649e9775",
+      "componentRef": "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021",
+      "endOfLife": "END_OF_LIFE_UNKNOWN",
+      "componentRefs": [
+        "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "lintian"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.23.14"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "namespace",
+            "value": "debian"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "sbom_type",
+            "value": "library"
+          }
+        ],
+        "name": "lintian"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "generic",
+        "coordinates": {
+          "name": "freebsd",
+          "namespace": "freebsd",
+          "version": "1.1.5.1"
+        }
+      },
+      "packageUrl": "pkg:generic/freebsd/freebsd@1.1.5.1",
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "pkg:generic/freebsd/freebsd@1.1.5.1"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:generic\\freebsd\\freebsd@1.1.5.1"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "c9458323857f66e9a9ce",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "SBOM",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "PUBLIC",
+        "analysisType": "CPE",
+        "scanClient": "sbomApi",
+        "hasLicense": false,
+        "hasIdentity": false,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "sonatypeIdentifier": "5714f38d30ca4c3f9d5f0d0d438faee2",
+      "componentRef": "0ea231cd9543b106cd1f6ba5fed7c904706c6916",
+      "endOfLife": "END_OF_LIFE_UNKNOWN",
+      "componentRefs": [
+        "0ea231cd9543b106cd1f6ba5fed7c904706c6916"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "field": "Name",
+            "value": "freebsd"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "1.1.5.1"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "namespace",
+            "value": "freebsd"
+          }
+        ],
+        "name": "freebsd"
+      }
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "jackson-databind",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.fasterxml.jackson.core",
+          "version": "2.9.9"
+        }
+      },
+      "packageUrl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar",
+      "groupId": "com.fasterxml.jackson.core",
+      "artifactId": "jackson-databind",
+      "version": "2.9.9",
+      "filenames": [
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"
+      ],
+      "pathnames": [
+        "dependency:/SBOM-bom.xml/pkg:maven\\com.fasterxml.jackson.core\\jackson-databind@2.9.9?type=jar"
+      ],
+      "aggregateFiles": [],
+      "matchState": "exact",
+      "scanError": false,
+      "proprietary": false,
+      "hash": "d6eb9817d9c7289a91f0",
+      "relativePopularity": 0.02,
+      "createTime": 1557976205000,
+      "lastModifiedTime": null,
+      "lastModifiedEntryTime": null,
+      "website": null,
+      "identificationSource": "Sonatype",
+      "componentCategories": [
+        {
+          "componentCategoryId": 113,
+          "path": "Other"
+        }
+      ],
+      "hygieneRating": {
+        "id": 0,
+        "label": "Neutral"
+      },
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "COORDINATE",
+        "scanClient": "sbomApi",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true,
+        "manifestContentType": "SBOM"
+      },
+      "integrityRating": {
+        "id": 3,
+        "label": "Not Applicable"
+      },
+      "sonatypeIdentifier": "e4a9cd3b8be8439faf17ea1b732df3ef",
+      "componentRef": "6a72abf342266d0f2c625d907074da6321865af2",
+      "endOfLife": "END_OF_LIFE_FALSE",
+      "componentRefs": [
+        "6a72abf342266d0f2c625d907074da6321865af2"
+      ],
+      "displayName": {
+        "parts": [
+          {
+            "field": "Group",
+            "value": "com.fasterxml.jackson.core"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Artifact",
+            "value": "jackson-databind"
+          },
+          {
+            "value": " : "
+          },
+          {
+            "field": "Version",
+            "value": "2.9.9"
+          }
+        ],
+        "name": "jackson-databind"
+      },
+      "directDependency": true,
+      "innerSource": false
+    },
+    {
+      "componentIdentifier": null,
+      "groupId": null,
+      "artifactId": null,
+      "version": null,
+      "filenames": [
+        "insight-client-utils-1.0.0-SNAPSHOT.jar"
+      ],
+      "pathnames": [
+        "dependency:/com.sonatype.nexus:nexus-platform-api:jar:1.0.0/com.sonatype.insight.scan:insight-client-utils:jar:1.0.0-SNAPSHOT"
+      ],
+      "aggregateFiles": [],
+      "matchState": "unknown",
+      "scanError": false,
+      "proprietary": true,
+      "hash": "2c1eb14a25c7caee0352",
+      "relativePopularity": null,
+      "createTime": null,
+      "lastModifiedTime": 1616447562000,
+      "lastModifiedEntryTime": 1616447562000,
+      "website": null,
+      "identificationSource": null,
+      "componentCategories": [],
+      "hygieneRating": null,
+      "analyzerFeatures": {
+        "analysisSource": "SDS",
+        "analysisType": "HASH",
+        "scanClient": "mvn",
+        "hasLicense": true,
+        "hasIdentity": true,
+        "hasSecurity": true
+      },
+      "integrityRating": null,
+      "displayName": {
+        "parts": [
+          {
+            "field": "Filename",
+            "value": "insight-client-utils-1.0.0-SNAPSHOT.jar"
+          }
+        ],
+        "name": "insight-client-utils-1.0.0-SNAPSHOT.jar"
+      },
+      "directDependency": true,
+      "innerSource": false
+    }
+  ],
+  "dependencyDataIncluded": true
+}

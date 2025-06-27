@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -62,6 +63,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -72,6 +74,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
@@ -89,6 +92,8 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.model.ItemContentType;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 
@@ -99,11 +104,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -242,6 +249,9 @@ public class ReportServiceTest
   @Mock
   private ScanUploadService mockScanUploadService;
 
+  @Mock
+  private CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
   @Before
   public void before() {
     thirdPartyDataServiceSpy = spy(thirdPartyDataService);
@@ -270,7 +280,7 @@ public class ReportServiceTest
         productLicense, sbomMetadataUtils, licenseDao, componentLoaderFactory, thirdPartyComponentDAO,
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
-        mockScanUploadService, insightWork, automatedPullRequestCreationServiceSpy);
+        mockScanUploadService, insightWork, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService);
   }
 
   @Test
@@ -297,6 +307,48 @@ public class ReportServiceTest
     assertThat(report).isNotNull();
     assertThat(report.exists()).isTrue();
     verify(reportDownloader).downloadReport(any(ApplicationReport.class), eq(2100), eq(5));
+  }
+
+  @Test
+  public void testFetchReport_CpeResultsMetrics() throws Exception {
+    mockReportDownloader.mockDownloadReport(scanId, "/ReportServiceTest/report-with-cpe-results");
+    when(cpeMatchingConfigurationService.isCpeDataMatchingEnabled(eq(app.getId()))).thenReturn(true);
+    when(sbomMetadataUtils.hasSbomMetadata(scanId)).thenReturn(true);
+    ThirdPartyFile tpFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(RandomStringUtils.insecure().nextAlphanumeric(10), scanId, tpFile);
+    tempEntity.newThirdPartySbomMetadata(tpFile.getId(), app.getId(), PENDING, tpFile.getFilename());
+    ThirdPartyFileCoordinate tpFileCoord =
+        tempEntity.newThirdPartyFileCoordinate(tpFile, "SBOM", "generic", "lintian", "1.23.14", "19442645c98283636b4a",
+            "pkg:generic/debian/lintian@1.23.14?sbom_type=library", "c68bdc4f6f12b754bf3e6ccdb8ab284c6a13c021");
+    tempEntity.newThirdPartyCoordinateSecurity(tpFileCoord, "CVE-22024-123456", "some description",
+        "https://example.com", 5.5d, "high", "2.0");
+
+    //when
+    ReportService reportService = createReportService();
+    ApplicationReport report = reportService.fetchReport(app, scanId, StageTypes.COMPLIANCE.getId());
+
+    //Then
+    assertThat(report).isNotNull();
+    assertThat(report.exists()).isTrue();
+
+    ArgumentCaptor<TelemetryData> telemetryDataCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender).send(telemetryDataCaptor.capture());
+    TelemetryData capturedTelemetryData = telemetryDataCaptor.getValue();
+    // Verify TelemetryData purpose
+    assertThat(capturedTelemetryData.getPurpose()).isEqualTo(TelemetryPurpose.CPE_RESULTS_METRICS);
+
+    // Verify application_id is present
+    Map<String, Object> attributes = capturedTelemetryData.getAttributes();
+    assertThat(attributes.containsKey("application_id")).isTrue();
+
+    // Verify CpeResultsTelemetry is present and has expected values
+    CpeResultsTelemetry cpeResultsTelemetry = (CpeResultsTelemetry) attributes.get(CpeResultsTelemetry.ATTRIBUTE_NAME);
+    assertThat(cpeResultsTelemetry).isNotNull();
+    assertThat(cpeResultsTelemetry.getReportComponentTotal()).isEqualTo(3);
+    assertThat(cpeResultsTelemetry.getCandidateFormatsCount()).isEqualTo(2);
+    assertThat(cpeResultsTelemetry.getCpeMatchedComponentCount()).isEqualTo(2);
+    assertThat(cpeResultsTelemetry.getCpeMatchedVulnerabilityCount()).isEqualTo(3);
+    assertThat(cpeResultsTelemetry.getCpeUnMatchedVulnerabilityCount()).isEqualTo(1);
   }
 
   @Test

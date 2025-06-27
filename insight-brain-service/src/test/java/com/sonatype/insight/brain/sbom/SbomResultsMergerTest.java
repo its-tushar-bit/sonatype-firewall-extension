@@ -47,6 +47,7 @@ import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.service.Zipper;
+import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyDataServiceTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -138,6 +139,8 @@ public class SbomResultsMergerTest
 
   private Application application;
 
+  private CpeResultsTelemetry cpeResultsTelemetry;
+
   @Override
   public void configure(Binder binder) {
     mockTelemetrySender = mock(TelemetrySender.class);
@@ -149,6 +152,7 @@ public class SbomResultsMergerTest
   public void before() {
     merger = mergerProvider.get();
     application = tempEntity.newApplicationWithParent();
+    cpeResultsTelemetry = new CpeResultsTelemetry();
   }
 
   @Test
@@ -184,7 +188,7 @@ public class SbomResultsMergerTest
     ReportHelper.saveMockReport(insightWork, tempDir, updatedReport.toPath(), application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(updatedMetadata.getThirdPartyFileId());
@@ -332,7 +336,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     //original sbom is generated and saved as expected
@@ -517,7 +521,7 @@ public class SbomResultsMergerTest
         "/SbomResultsMergerTest/report-for-binary-scan-duplicated-vulnerabilities", application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     List<ThirdPartyFileCoordinate> fileCoordinates =
@@ -614,7 +618,7 @@ public class SbomResultsMergerTest
           application.getId(), SCAN_ID);
       ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-      merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+      merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
       ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
 
       sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
@@ -696,7 +700,7 @@ public class SbomResultsMergerTest
           application.getId(), SCAN_ID);
       ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-      merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+      merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
       sbomComponent = thirdPartyFileCoordinateDAO.getById(sbomComponent.getId());
       assertThat(sbomComponent.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
@@ -763,7 +767,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM");
@@ -857,6 +861,9 @@ public class SbomResultsMergerTest
     assertThat(telemetry.getUnverifiedVulnerabilityCount()).isEqualTo(1);
     assertThat(telemetry.getAdditionalVulnerabilitiesCount()).isEqualTo(5);
     assertThat(telemetry.getTotalVulnerabilitiesCount()).isEqualTo(2);
+
+    //verify cpe results telemetry
+    assertThat(cpeResultsTelemetry.getCpeUnMatchedVulnerabilityCount()).isEqualTo(1);
   }
 
   @SuppressWarnings("unchecked")
@@ -926,7 +933,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM");
@@ -1036,7 +1043,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
     assertThat(updatedMetadata).isNotNull();
@@ -1067,7 +1074,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
     assertThat(thirdPartyFileCoordinate.getIdentificationSources()).isEqualTo("SBOM,Sonatype");
@@ -1128,7 +1135,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateId(thirdPartyFileCoordinate.getId());
@@ -1208,7 +1215,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     List<ThirdPartyCoordinateLicense> thirdPartyCoordinateLicenseList = thirdPartyCoordinateLicenseDAO
         .getByFileCoordinateId(thirdPartyFileCoordinate1.getId());
@@ -1289,7 +1296,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     thirdPartyFileCoordinate1 = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate1.getId());
     assertThat(thirdPartyFileCoordinate1.getDependencyType()).isEqualTo("T");
@@ -1358,7 +1365,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     thirdPartyFileCoordinate = thirdPartyFileCoordinateDAO.getById(thirdPartyFileCoordinate.getId());
     List<ThirdPartyCoordinateSecurity> thirdPartyCoordinateSecurityList =
@@ -1389,7 +1396,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    merger.mergeResults(sbomMetadata, SCAN_ID, appReport);
+    merger.mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
 
     ThirdPartySbomMetadata updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
 
@@ -1405,7 +1412,7 @@ public class SbomResultsMergerTest
         application.getId(), "scan2");
     appReport = new ApplicationReport(applicationReportPersistenceService, application, "scan2");
 
-    merger.mergeResults(sbomMetadata, "scan2", appReport);
+    merger.mergeResults(sbomMetadata, "scan2", appReport, cpeResultsTelemetry);
 
     updatedMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(file.getId());
 
@@ -1447,7 +1454,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
     List<ThirdPartyFileCoordinate> components = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(file.getId());
     assertThat(components).hasSize(1);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = components.get(0);
@@ -1489,7 +1496,7 @@ public class SbomResultsMergerTest
         application.getId(), SCAN_ID);
     ApplicationReport appReport = new ApplicationReport(applicationReportPersistenceService, application, SCAN_ID);
 
-    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport);
+    mergerProvider.get().mergeResults(sbomMetadata, SCAN_ID, appReport, cpeResultsTelemetry);
     List<ThirdPartyFileCoordinate> components = thirdPartyFileCoordinateDAO.getByThirdPartyFileId(file.getId());
     assertThat(components).hasSize(1);
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = components.get(0);

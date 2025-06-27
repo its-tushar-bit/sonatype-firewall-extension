@@ -123,7 +123,7 @@ module.exports = function (env) {
           return cssMap[chunk.name] || '[name].css';
         },
       }),
-    ].concat(production ? [] : productionPlugins);
+    ].concat(production ? productionPlugins : []);
 
   // Create the final configuration
   const config = {

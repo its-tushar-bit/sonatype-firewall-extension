@@ -120,6 +120,8 @@ public interface RestClient
      * @since 1.142
      */
     void removeExtraComponents(RepositoryComponentPathnames repositoryComponentPathnames) throws IOException;
+
+    boolean isContainerImageQuarantined(String containerImagePublicId) throws IOException;
   }
 
   interface FirewallMigration

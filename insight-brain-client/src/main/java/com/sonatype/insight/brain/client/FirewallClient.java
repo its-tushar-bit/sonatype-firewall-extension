@@ -198,4 +198,16 @@ public class FirewallClient
         QUARANTINED_COMPONENT_REPORT_URL_PATH).get();
     return parseResult(result, QuarantinedComponentReport.class);
   }
+
+  public boolean isContainerImageQuarantined(String containerImagePublicId) throws IOException {
+    Result result = path(
+        resourcePath,
+        repositoryManagerInstanceId,
+        repositoryPublicId,
+        "containerImage",
+        containerImagePublicId,
+        "isQuarantined")
+            .get();
+    return parseResult(result, Boolean.class);
+  }
 }

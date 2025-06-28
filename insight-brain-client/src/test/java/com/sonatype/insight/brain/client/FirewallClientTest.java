@@ -25,10 +25,13 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
@@ -480,6 +483,45 @@ public class FirewallClientTest
     FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, REPOSITORY_PUBLIC_ID, resourcePath);
     assertThatExceptionOfType(HttpResponseException.class).isThrownBy(client::getRepositoryResultsUrl)
         .withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, REPOSITORY_PUBLIC_ID))
+        .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  @Test
+  public void testIsContainerImageQuarantined() throws Exception {
+    assumeThat(resourcePath)
+        .as("isContainerImageQuarantined is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    Application application = tempEntity.newApplicationWithParent();
+    repository.setRelatedOrganizationId(application.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    FirewallClient client =
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
+
+    boolean result = client.isContainerImageQuarantined(application.getPublicId());
+
+    assertThat(result).isFalse();
+  }
+
+  @Test
+  public void testIsContainerImageQuarantined_repositoryNotExists() throws Exception {
+    assumeThat(resourcePath)
+        .as("isContainerImageQuarantined is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    FirewallClient client = new FirewallClient(getConfiguration(), rmInstanceId, "fake-repo-public-id", resourcePath);
+
+    assertThatExceptionOfType(HttpResponseException.class)
+        .isThrownBy(() -> client.isContainerImageQuarantined("fake-container-public-id"))
+        .withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, "fake-repo-public-id"))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
   }
 }

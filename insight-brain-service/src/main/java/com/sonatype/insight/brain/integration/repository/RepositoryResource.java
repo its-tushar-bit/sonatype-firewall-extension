@@ -31,12 +31,15 @@ import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.hds.HdsClient;
-
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.codahale.metrics.annotation.Timed;
 
 /**
@@ -56,17 +59,24 @@ public class RepositoryResource
 
   static final String REMOVE_EXTRA_COMPONENTS_PATH = REPOSITORY_PATH + "removeExtraComponents";
 
+  static final String IS_QUARANTINED_CONTAINER_IMAGE_PATH =
+      REPOSITORY_PATH + "containerImage/{containerImagePublicId}/isQuarantined";
+
   private final RepositoryService repositoryService;
 
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
+  private final RepositoryContainerImageService repositoryContainerImageService;
+
   @Inject
   public RepositoryResource(
       RepositoryService repositoryService,
-      FirewallIgnorePatternService firewallIgnorePatternService)
+      FirewallIgnorePatternService firewallIgnorePatternService,
+      RepositoryContainerImageService repositoryContainerImageService)
   {
     this.repositoryService = repositoryService;
     this.firewallIgnorePatternService = firewallIgnorePatternService;
+    this.repositoryContainerImageService = repositoryContainerImageService;
   }
 
   /**
@@ -372,5 +382,20 @@ public class RepositoryResource
   {
     return repositoryService.getConfiguredRepositories(repositoryManagerInstanceId, sinceUtcTimestamp,
         HdsClient.getClientUserAgent(request));
+  }
+
+  @GET
+  @Path(IS_QUARANTINED_CONTAINER_IMAGE_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Timed
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  public boolean isContainerImageQuarantined(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("containerImagePublicId") String containerImagePublicId)
+  {
+    return repositoryContainerImageService.isContainerImageQuarantined(repositoryManagerInstanceId, repositoryPublicId,
+        containerImagePublicId);
   }
 }

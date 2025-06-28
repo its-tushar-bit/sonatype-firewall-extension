@@ -321,6 +321,12 @@ public class RestClientFactory
       newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
           .removeExtraComponents(repositoryComponentPathnames);
     }
+
+    @Override
+    public boolean isContainerImageQuarantined(String containerImagePublicId) throws IOException {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
+          .isContainerImageQuarantined(containerImagePublicId);
+    }
   }
 
   private class ScanSpecificClient

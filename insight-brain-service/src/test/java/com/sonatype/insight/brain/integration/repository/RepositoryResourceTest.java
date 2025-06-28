@@ -26,12 +26,15 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
+import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -164,6 +167,49 @@ public class RepositoryResourceTest
     assertThat(repositoryComponentDAO.getById(componentRepo1ToDelete.getId())).isNull();
     assertThat(repositoryComponentDAO.getById(componentRepo1ToKeepBecauseItIsNewer.getId())).isNotNull();
     assertThat(repositoryComponentDAO.getById(componentRepo2.getId())).isNotNull();
+  }
+
+  @Test
+  public void testIsContainerImageQuarantined_noFeatureFlag() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    HttpResponse response = restRequest().path(RepositoryResource.IS_QUARANTINED_CONTAINER_IMAGE_PATH)
+        .parameter("test-repo-manager", "test-repo", "test-image")
+        .get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testIsContainerImageQuarantined_noLicensedFeature() throws Exception {
+    setMissingFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    HttpResponse response = restRequest().path(RepositoryResource.IS_QUARANTINED_CONTAINER_IMAGE_PATH)
+        .parameter("test-repo-manager", "test-repo", "test-image")
+        .get();
+
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testIsContainerImageQuarantined() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    Application application = tempEntity.newApplicationWithParent();
+    repository.setRelatedOrganizationId(application.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    HttpResponse response = restRequest().path(RepositoryResource.IS_QUARANTINED_CONTAINER_IMAGE_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), application.getPublicId())
+        .get();
+
+    assertResponseStatus(200, response);
+    assertThat(response.getBody(Boolean.class)).isFalse();
   }
 
   @Override

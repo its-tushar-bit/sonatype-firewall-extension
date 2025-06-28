@@ -385,6 +385,26 @@ public class RestClientFactoryTest
   }
 
   @Test
+  public void testRestClientRepository_isContainerImageQuarantined() throws Exception {
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+    final String containerImagePublicId = "containerImagePublicId";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.isContainerImageQuarantined(containerImagePublicId)).thenReturn(true);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+
+    assertThat(repository.isContainerImageQuarantined(containerImagePublicId)).isTrue();
+  }
+
+  @Test
   public void testRestClientFirewallMigration_verifyMigrationSupport() throws Exception {
     final FirewallMigrationClient firewallClient = mock(FirewallMigrationClient.class);
 

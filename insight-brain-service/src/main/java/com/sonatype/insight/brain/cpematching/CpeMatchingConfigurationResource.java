@@ -37,7 +37,7 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.CPE_MATCHING_CONFIGU
 @Timed
 @Path(CPE_MATCHING_CONFIGURATION_RESOURCE_PATH)
 @Tag(name = "CPE Matching Configuration",
-    description = "Use the CPE Matching Configuration REST API to add/set/remove cpe matching configuration to" +
+    description = "Use the CPE Matching Configuration REST API to add/set/remove cpe matching configuration to " +
         "organizations and applications")
 @ProductLicenseEnforcementPoint(LicensedFeature.CPE_MATCHING)
 public class CpeMatchingConfigurationResource

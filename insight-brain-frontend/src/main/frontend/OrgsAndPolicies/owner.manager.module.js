@@ -40,7 +40,6 @@ import PublicDataSourcesEditor from 'MainRoot/OrgsAndPolicies/publicDataSources/
 
 export default angular
   .module('owner.manager.module', [
-    'ui.bootstrap',
     'ui.router',
     utilityModule.name,
     permissionServiceModule.name,

@@ -8,7 +8,7 @@ import commonServicesModule from '../utilAngular/CommonServices';
 import FormDataHttpInterceptor from './services/form.data.http.interceptor.factory';
 
 export default angular
-  .module('utility', ['ui.router.state', 'ngAria', commonServicesModule.name, utilityServicesModule.name])
+  .module('utility', ['ui.router.state', commonServicesModule.name, utilityServicesModule.name])
   .config([
     '$httpProvider',
     function ($httpProvider) {

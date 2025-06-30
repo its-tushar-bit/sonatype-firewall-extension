@@ -79,7 +79,7 @@ httpInterceptors.config([
 export var unauthenticatedResponseHttpInterceptor = angular
   .module('UnauthenticatedResponseHttpInterceptor', [
     httpInterceptors.name,
-    'ui.bootstrap',
+    //'ui.bootstrap',
     CLMLocationModule.name,
     utilityServicesModule.name,
     loginModalModule.name,

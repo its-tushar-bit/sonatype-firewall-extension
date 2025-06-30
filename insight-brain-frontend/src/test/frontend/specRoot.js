@@ -9,16 +9,9 @@ const importAll = (requireContext) => {
 
 import '../../main/frontend/lib/jquery-loader';
 import 'angular';
-import 'angular-aria';
-import 'angular-cookies';
-import 'angular-route';
-import 'angular-sanitize';
-import 'angular-ui-validate';
 import '@uirouter/angularjs';
 import '@uirouter/angularjs/release/stateEvents';
-import 'angular-xeditable';
 import 'es6-collections';
-import '../../main/frontend/lib/bootstrap-loader';
 import '../../main/frontend/utility/Polyfills';
 import * as d3 from 'd3/index.js';
 import Fuse from 'fuse.js';

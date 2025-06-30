@@ -11,7 +11,6 @@ import reactComponentsModule from '../react/module.js';
 export default angular
   .module('navigationContainer', [
     'ui.router',
-    'ui.validate',
     utilityServicesModule.name,
     telemetryServiceModule.name,
     reactComponentsModule.name,

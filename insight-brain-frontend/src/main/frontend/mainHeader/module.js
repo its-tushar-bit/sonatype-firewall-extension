@@ -18,10 +18,8 @@ import mainHeader from './mainHeader';
 export default angular
   .module('mainHeader', [
     'ui.router',
-    'ui.validate',
     CLMLocationModule.name,
     permissionServiceModule.name,
-    'ngSanitize',
     utilityServicesModule.name,
     telemetryServiceModule.name,
     reactComponentsModule.name,

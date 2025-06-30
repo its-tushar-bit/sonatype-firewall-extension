@@ -56,34 +56,18 @@ import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedCh
 import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationManager';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
 
-// this is a fix to bootstrap to stop the 'too much recursion' error when multiple modals are fighting for focus
-$.fn.modal.Constructor.prototype.enforceFocus = function () {
-  var that = this;
-  var done = false;
-  $(document).on('focusin.modal', function (e) {
-    if (!done && that.$element[0] !== e.target && !that.$element.has(e.target).length) {
-      done = true;
-      that.$element.focus();
-    }
-  });
-};
-
 export const InitModule = angular
   .module(
     'InitModule',
     [
       'ui.router',
-      'ui.bootstrap',
       CLMLocationModule.name,
       commonServicesModule.name,
-      'ngAria',
       ReportModule.name,
       Report.name,
       mainHeaderModule.name,
       navigationContainer.name,
-      'ngRoute',
       unauthenticatedResponseHttpInterceptor.name,
-      'xeditable',
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,

@@ -32,7 +32,6 @@ import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import jakarta.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
@@ -52,6 +51,7 @@ import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import io.dropwizard.servlets.tasks.Task;
+import jakarta.persistence.OptimisticLockException;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
@@ -240,8 +240,12 @@ public class ReportPurger
     if (dataRetentionPolicy == null || !dataRetentionPolicy.isPurgingEnabled()) {
       return 0;
     }
+    log.debug("Using data retention policy for {} reports for owner {} with maxCount {} and maxAgeInDays {}.",
+        dataRetentionPolicy.getContextId(), dataRetentionPolicy.getOwnerId(), dataRetentionPolicy.getMaxCount(),
+        dataRetentionPolicy.getMaxAgeInDays());
     List<PolicyEvaluation> evaluations;
-    if (DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING.equals(contextId)) {
+    boolean isForMonitoring = DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING.equals(contextId);
+    if (isForMonitoring) {
       evaluations = policyEvaluationDAO.getPrimaryForMonitoringByApplicationId(application.getId());
     }
     else {
@@ -253,13 +257,22 @@ public class ReportPurger
     }
     evaluations = new ArrayList<>(evaluations);
     evaluations.sort(POLICY_EVALUATION_TIME_COMPARATOR);
+    log.debug("Found {} primary {} reports.", evaluations.size(), isForMonitoring ? "monitoring" : "non-monitoring");
+    if (!evaluations.isEmpty()) {
+      PolicyEvaluation oldestPolicyEvaluation = evaluations.get(evaluations.size() - 1);
+      PolicyEvaluation newestPolicyEvaluation = evaluations.get(0);
+      log.debug("Oldest report {} with time {}. Newest report {} with time {}.", oldestPolicyEvaluation.getScanId(),
+          oldestPolicyEvaluation.getTime(), newestPolicyEvaluation.getScanId(), newestPolicyEvaluation.getTime());
+    }
     int deleteFrom = evaluations.size();
     if (dataRetentionPolicy.getMaxCount() != null) {
       deleteFrom = Math.min(deleteFrom, dataRetentionPolicy.getMaxCount());
     }
     if (dataRetentionPolicy.getMaxAgeInDays() != null) {
       PolicyEvaluation oldestRetainedEvaluation = new PolicyEvaluation();
-      oldestRetainedEvaluation.setTime(getCutoffDate(dataRetentionPolicy.getMaxAgeInDays()));
+      Date cutoffDate = getCutoffDate(dataRetentionPolicy.getMaxAgeInDays());
+      log.debug("Determined cutoff date to be {}.", cutoffDate);
+      oldestRetainedEvaluation.setTime(cutoffDate);
       int oldestRetainedIndex =
           Collections.binarySearch(evaluations, oldestRetainedEvaluation, POLICY_EVALUATION_TIME_COMPARATOR);
       if (oldestRetainedIndex < 0) {
@@ -271,6 +284,12 @@ public class ReportPurger
     }
     Set<String> purgeableReportIds =
         evaluations.subList(deleteFrom, evaluations.size()).stream().map(PolicyEvaluation::getScanId).collect(toSet());
+    if (!evaluations.isEmpty() && !purgeableReportIds.isEmpty()) {
+      PolicyEvaluation fromEvaluation = evaluations.get(evaluations.size() - 1);
+      PolicyEvaluation toEvaluation = evaluations.get(deleteFrom);
+      log.debug("Purging {} reports from report {} with time {} to report {} with time {}.", purgeableReportIds.size(),
+          fromEvaluation.getScanId(), fromEvaluation.getTime(), toEvaluation.getScanId(), toEvaluation.getTime());
+    }
     policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(application.getId())).stream()
         .map(PolicyEvaluation::getScanId).forEach(purgeableReportIds::remove);
     return purgeReports(application, purgeableReportIds, trashBucket);

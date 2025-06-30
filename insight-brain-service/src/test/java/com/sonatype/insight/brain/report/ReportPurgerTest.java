@@ -23,8 +23,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
-import jakarta.persistence.LockModeType;
-import jakarta.persistence.OptimisticLockException;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
@@ -40,10 +38,14 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.OptimisticLockException;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
@@ -63,6 +65,9 @@ import static org.mockito.Mockito.when;
 public class ReportPurgerTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(ReportPurger.class);
+
   @Inject
   private ReportPurger reportPurger;
 
@@ -182,22 +187,39 @@ public class ReportPurgerTest
 
     reportPurger.purgeReports();
 
+    logOutput.assertThat().atDebugLevel().contains(
+        "Using data retention policy for build reports for owner " + org.getId() +
+            " with maxCount 3 and maxAgeInDays null.");
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-6", "report-5", "report-4");
   }
 
   @Test
   public void testPurgeReports_MaxAge() {
     dataRetentionPolicyDAO.insert(new DataRetentionPolicy(org.getId(), Stage.ID_BUILD, true, null, 2));
-    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(6)));
+    PolicyEvaluation oldest = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-0", daysAgo(6));
+    mockReport(oldest);
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-1", daysAgo(5)));
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-2", daysAgo(4)));
-    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-3", daysAgo(3)));
+    PolicyEvaluation toEvaluation = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-3", daysAgo(3));
+    mockReport(toEvaluation);
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-4", daysAgo(2)));
     mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-5", daysAgo(1)));
-    mockReport(tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-6", daysAgo(0)));
+    PolicyEvaluation newest = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "report-6", daysAgo(0));
+    mockReport(newest);
 
     reportPurger.purgeReports();
 
+    logOutput.assertThat().atDebugLevel().contains(
+        "Using data retention policy for build reports for owner " + org.getId() +
+            " with maxCount null and maxAgeInDays 2.");
+    logOutput.assertThat().atDebugLevel().contains("Found 7 primary non-monitoring reports.");
+    logOutput.assertThat().atDebugLevel().contains(
+        "Oldest report report-0 with time " + oldest.getTime() + ". Newest report report-6 with time " +
+            newest.getTime() + ".");
+    logOutput.assertThat().atDebugLevel().contains("Determined cutoff date to be");
+    logOutput.assertThat().atDebugLevel().contains(
+        "Purging 4 reports from report report-0 with time " + oldest.getTime() + " to report report-3 with time " +
+            toEvaluation.getTime() + ".");
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder("report-6", "report-5", "report-4");
   }
 
@@ -247,6 +269,12 @@ public class ReportPurgerTest
 
     reportPurger.purgeReports();
 
+    for (String stageId : appEvalStageIds) {
+      logOutput.assertThat().atDebugLevel().contains(
+          "Using data retention policy for " + stageId + " reports for owner " + org.getId() +
+              " with maxCount 1 and maxAgeInDays null.");
+    }
+
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder( //
         Stage.ID_DEVELOP + "-latest", Stage.ID_DEVELOP + "-monitored", //
         Stage.ID_SOURCE + "-latest", Stage.ID_SOURCE + "-monitored", //
@@ -269,6 +297,9 @@ public class ReportPurgerTest
 
     reportPurger.purgeReports();
 
+    logOutput.assertThat().atDebugLevel().contains(
+          "Using data retention policy for continuous-monitoring reports for owner " + org.getId() +
+              " with maxCount 1 and maxAgeInDays null.");
     assertThat(work.getReportDir(app.getId()).list()).containsExactlyInAnyOrder(Stage.ID_RELEASE + "-latest",
         Stage.ID_OPERATE + "-latest");
   }

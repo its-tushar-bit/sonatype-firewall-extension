@@ -592,7 +592,7 @@
     <dependency>
       <groupId>com.github.oshi</groupId>
       <artifactId>oshi-core</artifactId>
-      <version>6.5.0</version>
+      <version>6.6.4</version>
       <exclusions>
         <!-- Avoid Component-Unknown policy violation on jnidispatch.dll -->
         <exclusion>

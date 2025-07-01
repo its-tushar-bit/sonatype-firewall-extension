@@ -186,6 +186,9 @@ export default function PrioritiesPageRow({
       actions.openCreatePRModal({
         componentHash: componentHash,
         targetVersion: recommendation.version,
+        isDirectDependency:
+          formattedDependencyType === dependencyTypeMap.Direct ||
+          formattedDependencyType === dependencyTypeMap['Inner Source Direct'],
       })
     );
   };
@@ -199,6 +202,9 @@ export default function PrioritiesPageRow({
       actions.createPR({
         componentHash: componentHash,
         targetVersion: recommendation.version,
+        isDirectDependency:
+          formattedDependencyType === dependencyTypeMap.Direct ||
+          formattedDependencyType === dependencyTypeMap['Inner Source Direct'],
       })
     );
     startPRStatusPollingAndSaveReference(payload?.data?.id, componentHash);

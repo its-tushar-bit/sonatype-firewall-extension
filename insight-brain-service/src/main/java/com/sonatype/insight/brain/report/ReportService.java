@@ -797,7 +797,7 @@ public class ReportService
     try {
       automatedPullRequestCreationService.createAutomatedRemediationPullRequest(application, scanId,
           new Stage(stageTypeId, StageTypes.getById(stageTypeId).getName()),
-          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList());
+          innerSourceComponent, () -> Optional.of(remediationVersionDTO), Collections.emptyList(), true);
     }
     catch (Exception e) {
       log.error("Failed to create automated remediation pull request for InnerSource component {} for application {}.",

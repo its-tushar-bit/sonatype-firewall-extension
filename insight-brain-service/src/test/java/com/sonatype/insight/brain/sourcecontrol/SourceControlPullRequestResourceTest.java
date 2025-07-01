@@ -133,7 +133,8 @@ public class SourceControlPullRequestResourceTest
     ComponentIdentifier mavenComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype",
+            true);
 
     HttpResponse response = restRequest()
         .path(SourceControlPullRequestResource.RESOURCE_PATH)
@@ -163,7 +164,8 @@ public class SourceControlPullRequestResourceTest
 
     setupSourceControl(application);
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype",
+            true);
 
     HttpResponse response = restRequest()
         .path(SourceControlPullRequestResource.RESOURCE_PATH)
@@ -189,7 +191,8 @@ public class SourceControlPullRequestResourceTest
 
     //request a targetVersion not in the applicable version change list
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.15", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.15", "Sonatype",
+            true);
 
     HttpResponse response = restRequest()
         .path(SourceControlPullRequestResource.RESOURCE_PATH)
@@ -211,7 +214,7 @@ public class SourceControlPullRequestResourceTest
         ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
     PullRequestSubmissionDTO submission =
         new PullRequestSubmissionDTO(application.getId(), "nonExistentScanId", mavenComponentIdentifier, "1.3.16",
-            "Sonatype");
+            "Sonatype", true);
 
     HttpResponse response = restRequest()
         .path(SourceControlPullRequestResource.RESOURCE_PATH)
@@ -231,7 +234,32 @@ public class SourceControlPullRequestResourceTest
     ComponentIdentifier mavenComponentIdentifier =
         ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype",
+            true);
+
+    HttpResponse response = restRequest()
+        .path(SourceControlPullRequestResource.RESOURCE_PATH)
+        .body(submission)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains(
+        "Manual pull request creation is not eligible for application " + application.getPublicId());
+  }
+
+  @Test
+  public void testCreatePullRequest_Failure_NonDirectDependency() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    tempEntity.newPolicy(application.getId(), "Policy Name", 10);
+    tempEntity.newPolicyEvaluation(application.getId(), "build", "scanId");
+
+    mockComponentDetails(createComponentDetailsList());
+    setupSourceControl(application);
+    ComponentIdentifier mavenComponentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("ch.qos.logback", "logback-classic", "1.3.14", "", "jar");
+    PullRequestSubmissionDTO submission =
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.3.16", "Sonatype",
+            false);
 
     HttpResponse response = restRequest()
         .path(SourceControlPullRequestResource.RESOURCE_PATH)

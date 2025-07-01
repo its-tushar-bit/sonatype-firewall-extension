@@ -315,6 +315,41 @@ public class PrioritiesPageTest
   }
 
   @Test
+  public void testRowData_PollPRStatusOnInitialLoad_ExistingEventAndNonDirectDependency_Success() throws Exception {
+    SourceControlDAO sourceControlDAO = lookup(SourceControlDAO.class);
+    SourceControlEventDAO sourceControlEventDAO = lookup(SourceControlEventDAO.class);
+    SourceControlPullRequestService pullRequestServiceSpy = spy(lookup(SourceControlPullRequestService.class));
+    mocks.put(SourceControlPullRequestService.class, pullRequestServiceSpy);
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        application.getId(),
+        gitService.baseUrl() + "/someOrg/someRepo",
+        lookup(PasswordHandler.class).encryptPassword("someToken"),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setManualPullRequestsEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    String branchName = application.getId().substring(0, 6) + "/tomcat/tomcat-util/5.5.23-to-5.6.0";
+    SourceControlEvent pullRequestEvent = new SourceControlEvent();
+    pullRequestEvent.setApplicationId(application.getId());
+    pullRequestEvent.setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
+    pullRequestEvent.setPullRequestNumber(123);
+    pullRequestEvent.setBranchName(branchName);
+    sourceControlEventDAO.insert(pullRequestEvent);
+
+    // loading the page
+    mockTransitiveRemediationData();
+    refresh();
+    PrioritiesPage page = new PrioritiesPage();
+
+    page.prioritiesTableCell(1, 1).shouldHave(text("Ttomcat : tomcat-util : 5.5.23"));
+    page.viewViolationsLink(1).shouldBe(visible).shouldHave(text("View Violations"));
+  }
+
+  @Test
   public void testRowData_PollPRStatusOnInitialLoad_Failure() {
     SourceControlDAO sourceControlDAO = lookup(SourceControlDAO.class);
     SourceControlEventDAO sourceControlEventDAO = lookup(SourceControlEventDAO.class);
@@ -1340,6 +1375,42 @@ public class PrioritiesPageTest
     try (var stream = policyThreatsReportEntity.getOutputStream()) {
       JsonUtils.write(stream, policyThreats);
     }
+  }
+
+  private void mockTransitiveRemediationData() throws Exception {
+    ComponentIdentifier tomcatUtilCoordFromReport =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.5.23", "", "jar");
+    ComponentIdentifier tomcatUtilCoordNonFailing =
+        ComponentIdentifier.createMavenCoordinates("tomcat", "tomcat-util", "5.6.0", "", "jar");
+
+    ComponentDetails fromReport = createComponentDetailsForSecurityViolation(tomcatUtilCoordFromReport);
+    ComponentDetails nonFailing = createComponentDetailsForNoViolation(tomcatUtilCoordNonFailing);
+    ComponentDetailsList detailsList = new ComponentDetailsList();
+    detailsList.setList(List.of(fromReport, nonFailing));
+
+    testCLMServer.getHdsServer().respondWith(detailsList).atUri("rest/ci/componentDetails/list");
+
+    testCLMServer.getHdsServer().respondWith(List.of()).atUri(HDS_BULK_SCORE_VERSIONING_PATH);
+
+    testCLMServer.getHdsServer().respondWith(ComponentSummary.create(true)).atUri(
+        UriBuilder.fromPath("rest/component/summary")
+            .queryParam("componentIdentifier",
+                URLEncoder.encode(new ObjectMapper().writeValueAsString(tomcatUtilCoordFromReport), "UTF-8"))
+            .build()
+    );
+
+    testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
+        .atUri("rest/component/dependencies");
+
+    VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
+    versionScoringDTO.setComponentIdentifier(tomcatUtilCoordFromReport);
+    versionScoringDTO.setVersionScore(0);
+    versionScoringDTO.setMaxSeverity(5.0d);
+    VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
+    toVersionData.setBreakingChangeCount(0);
+    versionScoringDTO.setToVersionsNonBreaking(Map.of("5.6.0", toVersionData));
+    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[] {versionScoringDTO})
+        .atUri("rest/component/version-scoring/list");
   }
 
   private void mockRemediationData() throws Exception {

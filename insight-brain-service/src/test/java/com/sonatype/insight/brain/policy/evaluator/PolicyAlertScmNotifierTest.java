@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +21,7 @@ import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
@@ -71,6 +73,9 @@ public class PolicyAlertScmNotifierTest
   private PullRequestCommentingRemediationService mockPullRequestCommentingRemediationService;
 
   @Mock
+  private ReportComponentService mockReportComponentService;
+
+  @Mock
   private ShutdownHandler mockShutdownHandler;
 
   @Rule
@@ -88,6 +93,7 @@ public class PolicyAlertScmNotifierTest
   public void configure(Binder binder) {
     binder.bind(PullRequestCommentingRemediationService.class).toInstance(mockPullRequestCommentingRemediationService);
     binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
+    binder.bind(ReportComponentService.class).toInstance(mockReportComponentService);
     super.configure(binder);
   }
 
@@ -189,6 +195,133 @@ public class PolicyAlertScmNotifierTest
     assertThat(event2.getComponentIdentifier()).isEqualByComparingTo(component2);
     assertThat(event2.getStageTypeId()).isEqualTo("build");
     assertThat(event2.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  @Test
+  public void testSendNotification_withDirectDependency() throws InterruptedException, IOException {
+    ComponentIdentifier directDependency = ComponentIdentifier.createMavenCoordinates("group1", "package1", "1.0.0");
+    List<PolicyNotification> notifications = List.of(buildPolicyNotification(directDependency));
+
+    // Direct Dependency
+    mockDependencyType(directDependency, true);
+
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("1.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(directDependency),
+        eq(application.getId())))
+        .thenReturn(Optional.of(remediationVersionDTO));
+
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+
+    assertShutDownEventAndJoin(1000);
+
+    // Verify remediation is created for the direct dependency
+    List<SourceControlEvent> all = sourceControlEventDAO.getAll();
+    assertThat(all).hasSize(1);
+    SourceControlEvent event = all.get(0);
+    assertThat(event.getRemediationVersion()).isEqualTo("1.1.0");
+    assertThat(event.getApplicationId()).isEqualTo(application.getId());
+    assertThat(event.getComponentIdentifier()).isEqualByComparingTo(directDependency);
+    assertThat(event.getStageTypeId()).isEqualTo("build");
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  @Test
+  public void testSendNotification_withTransitiveDependency() throws InterruptedException, IOException {
+    ComponentIdentifier transitiveDependency =
+        ComponentIdentifier.createMavenCoordinates("group2", "package2", "2.0.0");
+    List<PolicyNotification> notifications = List.of(buildPolicyNotification(transitiveDependency));
+
+    // Transitive Dependency
+    mockDependencyType(transitiveDependency, false);
+
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+
+    assertShutDownEventAndJoin(1000);
+
+    // Verify no remediation is created for the transitive dependency
+    List<SourceControlEvent> all = sourceControlEventDAO.getAll();
+    assertThat(all).isEmpty();
+  }
+
+  @Test
+  public void testSendNotification_withMissingDependencyType() throws InterruptedException, IOException {
+    ComponentIdentifier missingDependencyType =
+        ComponentIdentifier.createMavenCoordinates("group3", "package3", "3.0.0");
+    List<PolicyNotification> notifications = List.of(buildPolicyNotification(missingDependencyType));
+
+    // Missing dependency type
+    mockDependencyType(missingDependencyType, null);
+
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("3.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(missingDependencyType),
+        eq(application.getId())))
+        .thenReturn(Optional.of(remediationVersionDTO));
+
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+
+    assertShutDownEventAndJoin(1000);
+
+    // Verify remediation is created when dependency type is missing
+    List<SourceControlEvent> all = sourceControlEventDAO.getAll();
+    assertThat(all).hasSize(1);
+    SourceControlEvent event = all.get(0);
+    assertThat(event.getRemediationVersion()).isEqualTo("3.1.0");
+    assertThat(event.getApplicationId()).isEqualTo(application.getId());
+    assertThat(event.getComponentIdentifier()).isEqualByComparingTo(missingDependencyType);
+    assertThat(event.getStageTypeId()).isEqualTo("build");
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  @Test
+  public void testSendNotification_withFetchDependencyTypesException() throws InterruptedException, IOException {
+    ComponentIdentifier component = ComponentIdentifier.createMavenCoordinates("group4", "package4", "4.0.0");
+    List<PolicyNotification> notifications = List.of(buildPolicyNotification(component));
+
+    // Exception when fetching the dependency types
+    mockDependencyTypeThrowsException();
+
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO("4.1.0", ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    when(mockPullRequestCommentingRemediationService.getRemediationVersion(eq(component), eq(application.getId())))
+        .thenReturn(Optional.of(remediationVersionDTO));
+
+    scmNotifier.sendNotifications(application, "scanId", new Stage("build"), notifications);
+
+    assertShutDownEventAndJoin(1000);
+
+    // Verify remediation is created when report fetch fails
+    List<SourceControlEvent> all = sourceControlEventDAO.getAll();
+    assertThat(all).hasSize(1);
+    SourceControlEvent event = all.get(0);
+    assertThat(event.getRemediationVersion()).isEqualTo("4.1.0");
+    assertThat(event.getApplicationId()).isEqualTo(application.getId());
+    assertThat(event.getComponentIdentifier()).isEqualByComparingTo(component);
+    assertThat(event.getStageTypeId()).isEqualTo("build");
+    assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  private void mockDependencyType(ComponentIdentifier componentIdentifier, Boolean isDirectDependency)
+      throws IOException
+  {
+    if (isDirectDependency == null) {
+      when(mockReportComponentService.fetchReportAndComponents(eq(application), any(), any()))
+          .thenReturn(null);
+      return;
+    }
+
+    Component component = new Component(componentIdentifier);
+    component.setDirectDependency(isDirectDependency);
+    ReportComponentData reportComponentData = new ReportComponentData(null, List.of(component));
+
+    when(mockReportComponentService.fetchReportAndComponents(eq(application), any(), any()))
+        .thenReturn(reportComponentData);
+  }
+
+  private void mockDependencyTypeThrowsException() throws IOException {
+    when(mockReportComponentService.fetchReportAndComponents(eq(application), any(), any()))
+        .thenThrow(new IOException("Simulated fetch error"));
   }
 
   private void assertShutDownEventAndJoin(final int millis) throws InterruptedException {

@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
+import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -53,6 +54,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class SourceControlPullRequestServiceTest
@@ -248,7 +250,8 @@ public class SourceControlPullRequestServiceTest
 
     setupSourceControl(application);
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
+            true);
 
     //mock private repository and componentInfo
     when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
@@ -272,7 +275,8 @@ public class SourceControlPullRequestServiceTest
 
     setupSourceControl(application);
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
+            true);
 
     //mock private repository, no applicable version return
     ComponentVersionInfoDTO componentVersionInfoDTO = new ComponentVersionInfoDTO();
@@ -300,7 +304,8 @@ public class SourceControlPullRequestServiceTest
 
     setupSourceControl(application);
     PullRequestSubmissionDTO submission =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
+            true);
 
     //mock public repository, no applicable version return
     when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(any(GitRepositoryInfo.class))).thenReturn(
@@ -308,6 +313,35 @@ public class SourceControlPullRequestServiceTest
 
     assertThatThrownBy((() -> service.createPullRequest(submission)))
         .isInstanceOf(BadRequestException.class).hasMessageContaining("Manual pull request creation is not eligible");
+  }
+
+  @Test
+  public void testCreatePullRequest_Failure_NonDirectDependency() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    ComponentIdentifier mavenComponentIdentifier =
+        ComponentIdentifier.createMavenCoordinates("group", "artifact", "1.1.0");
+    tempEntity.newPolicyEvaluation(application.getId(), "build", "scanId");
+
+    setupSourceControl(application);
+    PullRequestSubmissionDTO submission =
+        new PullRequestSubmissionDTO(application.getId(), "scanId", mavenComponentIdentifier, "1.2.0", "Sonatype",
+            false);
+
+    //mock private repository and componentInfo
+    lenient().when(
+        mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+            mavenComponentIdentifier, "build", "Sonatype", "scanId", DependencyType.TRANSITIVE,
+            SourceEndpoint.MANUAL_PULL_REQUEST,
+            true)).thenReturn(setupComponentVersionInfoDTO());
+    lenient().when(mockScmRepoVisibilityService.isRepositoryValidForPullRequestFeatures(any(GitRepositoryInfo.class)))
+        .thenReturn(true);
+
+    assertThatThrownBy(() -> service.createPullRequest(submission))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining(
+            "Manual pull request creation is not eligible for application " + application.getPublicId() +
+                " component " + ComponentDisplayNameUtil.fromIdentifier(mavenComponentIdentifier) +
+                " in stage " + StageTypes.BUILD.getId());
   }
 
   @Test
@@ -320,34 +354,34 @@ public class SourceControlPullRequestServiceTest
     ).withMessage("Pull request submission cannot be null");
 
     PullRequestSubmissionDTO submissionWithWrongAppId =
-        new PullRequestSubmissionDTO("wrongAppId", "scanId", componentIdentifier, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO("wrongAppId", "scanId", componentIdentifier, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.createPullRequest(submissionWithWrongAppId)
     ).withMessage("Application not found for id 'wrongAppId'.");
 
     PullRequestSubmissionDTO submissionWithNullScanId =
-        new PullRequestSubmissionDTO(application.getId(), null, componentIdentifier, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), null, componentIdentifier, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.createPullRequest(submissionWithNullScanId)
     ).withMessage("Scan ID cannot be null");
 
     PullRequestSubmissionDTO submissionWithNullComponentId =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", null, "1.2.0", "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", null, "1.2.0", "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.createPullRequest(submissionWithNullComponentId)
     ).withMessage("Component identifier cannot be null");
 
     PullRequestSubmissionDTO submissionWithNullTargetVersion =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, null, "Sonatype");
+        new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, null, "Sonatype", true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.createPullRequest(submissionWithNullTargetVersion)).withMessage("Target version cannot be null");
 
     PullRequestSubmissionDTO submissionWithNullIdentificationSource =
-        new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, "1.2.0", null);
+        new PullRequestSubmissionDTO(application.getId(), "scanId", componentIdentifier, "1.2.0", null, true);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
             () -> service.createPullRequest(submissionWithNullIdentificationSource))

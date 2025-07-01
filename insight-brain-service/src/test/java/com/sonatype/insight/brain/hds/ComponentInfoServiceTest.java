@@ -2182,6 +2182,15 @@ public class ComponentInfoServiceTest
       final String ownerId,
       final String stageId)
   {
+    return testGetComponentVersionInfo(owner, ownerId, stageId, DependencyType.DIRECT);
+  }
+
+  private ComponentVersionInfoDTO testGetComponentVersionInfo(
+      final Owner owner,
+      final String ownerId,
+      final String stageId,
+      final DependencyType dependencyType)
+  {
     ComponentDetails hdsComponentDetails1 = newNamedComponentDetails(MAVEN_A1_COORDINATES);
     long timestamp = DateTime.now().getMillis();
     hdsComponentDetails1.setCatalogDate(timestamp);
@@ -2197,7 +2206,7 @@ public class ComponentInfoServiceTest
     mockHdsGetComponentDetailsList(hdsComponentDetailsList, MAVEN_A1_COORDINATES);
 
     ComponentVersionInfoDTO dto = componentInfoService.getComponentVersionInfo(owner.getType(), ownerId,
-        MAVEN_A1_COORDINATES, stageId, null, null, null);
+        MAVEN_A1_COORDINATES, stageId, null, null, dependencyType);
 
     List<ComponentDetailsDTO> componentDetailsList = dto.allVersions;
 
@@ -3095,7 +3104,7 @@ public class ComponentInfoServiceTest
     assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
     assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
 
-    // case: branch name cannot be generated -> proceeds to check if manual pull request is possibles
+    // case: branch name cannot be generated -> proceeds to check if manual pull request is possible
     insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_COMPLETE);
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1",
         null, "", "jar");
@@ -3114,6 +3123,56 @@ public class ComponentInfoServiceTest
     prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
     assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
     assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
+  }
+
+  @Test
+  public void testGetComponentVersionInfo_WithAdvancedRecommendationAndPullRequestStatus_DependencyType() {
+    Constraint constraint1 = new Constraint("C1", "Constraint 1", LogicalOperator.AND);
+    constraint1.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
+    Policy policy1 = new Policy("security-low", "Security-Low");
+    policy1.setThreatLevel(5);
+    policy1.addConstraint(constraint1);
+    policy1.setAction(ReleaseStageType.ID, WarnActionType.ID);
+    policy1.setOwnerId(application.getId());
+    tempEntity.newPolicy(policy1);
+
+    // mock dependencies for advanced recommendation strategies
+    PackageUrlIdentifier mvnPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A1_COORDINATES);
+    PackageUrlIdentifier depPurlId = PackageUrlIdentifier.fromComponentIdentifier(MAVEN_A2_COORDINATES);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+    dependenciesMap.put(mvnPurlId, Collections.singletonList(depPurlId));
+    detailsMap.put(depPurlId, new ComponentDetails());
+    ComponentDependenciesDTO dependenciesDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    mockHdsGetComponentDependencies(dependenciesDto);
+    mockLicenseFeature(true);
+
+    // case: remediation event exists but dependency is null
+    //       -> proceeds to check if manual pull request is possible
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
+    ComponentVersionInfoDTO dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID, null);
+    ManualPullRequestNotPossibleDTO prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
+    assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
+    assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
+
+    // case: remediation event exists but dependency is transitive
+    //       -> proceeds to check if manual pull request is possible
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
+    dto = testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID,
+        DependencyType.TRANSITIVE);
+    prNotPossible = (ManualPullRequestNotPossibleDTO) dto.automatedRemediationStatus;
+    assertThat(prNotPossible.status).isEqualTo(AutomatedRemediationStatus.MANUAL_PULL_REQUEST_NOT_POSSIBLE);
+    assertThat(prNotPossible.reason).isEqualTo(ManualPullRequestImpossibilityReason.INSUFFICIENT_PERMISSIONS);
+
+    // case: remediation event exists and dependency is direct
+    //       -> returns the remediation event status
+    insertSourceControlEvent(SourceControlEvent.EVENT_STATUS_ERROR);
+    dto =
+        testGetComponentVersionInfo(application, application.getPublicId(), SourceStageType.ID, DependencyType.DIRECT);
+    PullRequestCreationFailedDTO invalidDTO = (PullRequestCreationFailedDTO) dto.automatedRemediationStatus;
+    assertThat(invalidDTO).isNotNull();
+    assertThat(invalidDTO.status).isEqualTo(AutomatedRemediationStatus.PULL_REQUEST_CREATION_FAILED);
   }
 
   private SourceControlEvent insertSourceControlEvent(final String eventStatus) {

@@ -587,7 +587,7 @@ public class ComponentInfoService
     if (suggestedVersion.isPresent() && OwnerType.APPLICATION == owner.getType()) {
       Optional<AutomatedRemediationStatusDTO>
           prStatus = getPullRequestStatus(componentIdentifier, (Application) owner, suggestedVersion.get());
-      if (prStatus.isPresent()) {
+      if (prStatus.isPresent() && DependencyType.DIRECT.equals(dependencyType)) {
         return prStatus.get();
       }
     }

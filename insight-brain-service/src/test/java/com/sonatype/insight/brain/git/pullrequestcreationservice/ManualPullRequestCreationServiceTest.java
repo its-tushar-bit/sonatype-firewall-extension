@@ -153,7 +153,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         mavenComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
     assertThat(result.id()).isNotEmpty();
     //verify that the event is created
@@ -186,7 +187,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         mavenComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     )).isInstanceOf(BadRequestException.class)
         .hasMessageContaining(
             "A remediation event for branch name '" +
@@ -218,7 +220,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         mavenComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
     assertThat(result.id()).isNotEmpty();
     //verify that the event is created
@@ -254,7 +257,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         mavenComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     )).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("No applicable version change found for component " +
             ComponentDisplayNameUtil.fromIdentifier(mavenComponent));
@@ -282,7 +286,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         mavenComponent,
         requestedVersion,
-        "Sonatype"
+        "Sonatype",
+        true
     )).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("Target version " + requestedVersion + " does not match the applicable version change " +
             DEFAULT_REMEDIATION_VERSION + " for component " +
@@ -304,9 +309,32 @@ public class ManualPullRequestCreationServiceTest
         "old-scan-id",
         mavenComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     )).isInstanceOf(BadRequestException.class)
         .hasMessageContaining("The provided scan ID does not match the latest evaluation for the stage");
+
+    List<SourceControlEvent> events = sourceControlEventDAO.getAll();
+    assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_nonDirectDependency() {
+    //setup policy evaluation and mock component info data
+    setupPolicyEvaluationAndViolation();
+
+    assertThatThrownBy(() -> manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype",
+        false)) // non-direct dependency
+        .isInstanceOf(BadRequestException.class)
+        .hasMessageContaining(
+            String.format("Manual pull request creation is not eligible for application %s component %s in stage %s",
+                application.getPublicId(), ComponentDisplayNameUtil.fromIdentifier(mavenComponent),
+                stage.getStageTypeId()));
 
     List<SourceControlEvent> events = sourceControlEventDAO.getAll();
     assertThat(events).isEmpty();
@@ -339,7 +367,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         innerSourceComponent,
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
 
     assertThat(result.id()).isNotEmpty();
@@ -381,7 +410,8 @@ public class ManualPullRequestCreationServiceTest
         DEFAULT_SCAN_ID,
         innerSourceComponent,
         nonBreakingVersion,
-        "Sonatype"
+        "Sonatype",
+        true
     );
 
     assertThat(result.id()).isNotEmpty();

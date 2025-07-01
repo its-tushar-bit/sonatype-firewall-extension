@@ -98,7 +98,8 @@ public class SourceControlPullRequestService
         pullRequestSubmission.scanId(),
         pullRequestSubmission.componentIdentifier(),
         pullRequestSubmission.targetVersion(),
-        pullRequestSubmission.identificationSource());
+        pullRequestSubmission.identificationSource(),
+        Boolean.TRUE.equals(pullRequestSubmission.isDirectDependency()));
   }
 
   private void validatePullRequestSubmission(final PullRequestSubmissionDTO pullRequestSubmission) {

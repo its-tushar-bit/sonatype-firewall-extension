@@ -659,6 +659,125 @@ describe('PrioritiesPageRow', () => {
     });
   });
 
+  describe('dependency type is set correctly to send PR creation request', () => {
+    const asyncRecPreloadedState = mergeDeepRight(defaultPreloadedState, {
+      productFeatures: {
+        productFeatures: {
+          'developer-bulk-recommendations': false,
+        },
+      },
+    });
+
+    const preloadedState = mergeDeepRight(asyncRecPreloadedState, {
+      productFeatures: {
+        productFeatures: {
+          'manual-pull-requests': true,
+        },
+      },
+      prioritiesPage: {
+        priorities: [mockData],
+        recommendations: {
+          [mockData.componentHash]: {
+            loading: false,
+            error: null,
+            remediation: {
+              version: '4.5.6',
+              type: 'next-no-violations',
+              isGolden: false,
+              breakingChangesCount: 0,
+            },
+            automatedRemediationStatus: {
+              status: 'MANUAL_PULL_REQUEST_POSSIBLE',
+            },
+            componentDisplayName: mockData.displayName,
+          },
+        },
+        visibleCreatePRModalComponentHash: null,
+        branchName: 'main',
+      },
+      applicationReport: {
+        metadata: {
+          application: {
+            id: 'test-app-id',
+          },
+          stageId: 'build',
+        },
+      },
+    });
+
+    it('sets direct dependency type correctly', async () => {
+      const user = userEvent.setup();
+      const directDependencyMockData = {
+        ...mockData,
+        dependencyType: 'Direct',
+      };
+
+      const props = {
+        ...minimalProps,
+        component: directDependencyMockData,
+      };
+
+      const { store } = render(<PrioritiesPageRow {...props} />, {
+        preloadedState: preloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const cell = screen.getAllByRole('cell')[5];
+      const button = within(cell).getByRole('button');
+
+      await user.click(button);
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.prioritiesPage.visibleCreatePRModalComponentHash).toBe(mockData.componentHash);
+        expect(state.createPRModal.isModalOpen).toBe(true);
+        expect(state.createPRModal.isDirectDependency).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+    });
+
+    it('sets inner source direct dependency type correctly', async () => {
+      const user = userEvent.setup();
+      const directDependencyMockData = {
+        ...mockData,
+        dependencyType: 'Inner Source Direct',
+      };
+
+      const props = {
+        ...minimalProps,
+        component: directDependencyMockData,
+      };
+
+      const { store } = render(<PrioritiesPageRow {...props} />, {
+        preloadedState: preloadedState,
+        container: document.body.appendChild(
+          document.createElement('table').appendChild(document.createElement('tbody'))
+        ),
+      });
+
+      const cell = screen.getAllByRole('cell')[5];
+      const button = within(cell).getByRole('button');
+
+      await user.click(button);
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.prioritiesPage.visibleCreatePRModalComponentHash).toBe(mockData.componentHash);
+        expect(state.createPRModal.isModalOpen).toBe(true);
+        expect(state.createPRModal.isDirectDependency).toBe(true);
+      });
+
+      await waitFor(() => {
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+      });
+    });
+  });
+
   describe('inner source dependency types', () => {
     it('renders Inner Source dependency type indicator correctly', () => {
       const innerSourceMockData = {

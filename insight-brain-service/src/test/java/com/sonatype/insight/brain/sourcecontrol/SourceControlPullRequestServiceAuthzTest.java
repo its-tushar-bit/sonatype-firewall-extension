@@ -122,7 +122,8 @@ public class SourceControlPullRequestServiceAuthzTest
             DEFAULT_VERSION
         ),
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
     service.createPullRequest(submissionDTO);
   }
@@ -139,7 +140,8 @@ public class SourceControlPullRequestServiceAuthzTest
             DEFAULT_VERSION
         ),
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
     service.createPullRequest(submissionDTO);
   }
@@ -155,7 +157,8 @@ public class SourceControlPullRequestServiceAuthzTest
             DEFAULT_VERSION
         ),
         DEFAULT_REMEDIATION_VERSION,
-        "Sonatype"
+        "Sonatype",
+        true
     );
     service.createPullRequest(submissionDTO);
   }

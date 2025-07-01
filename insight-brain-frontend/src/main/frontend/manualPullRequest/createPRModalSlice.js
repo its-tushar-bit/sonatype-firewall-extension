@@ -27,6 +27,7 @@ export const initialState = Object.freeze({
   identificationSource: null,
   componentHash: null,
   componentIdentifier: {},
+  isDirectDependency: false,
   submitMaskState: null,
   error: null,
 });
@@ -43,19 +44,28 @@ const openModal = (state, { payload }) => {
   state.identificationSource = payload.identificationSource;
   state.componentHash = payload.componentHash;
   state.componentIdentifier = payload.componentIdentifier;
+  state.isDirectDependency = payload.isDirectDependency;
 };
 
 const openSubmitMask = (state) => {
   state.submitMaskState = true;
 };
 
-function callCreatePREndpoint(appId, scanId, targetVersion, identificationSource, componentIdentifier) {
+function callCreatePREndpoint(
+  appId,
+  scanId,
+  targetVersion,
+  identificationSource,
+  componentIdentifier,
+  isDirectDependency
+) {
   return axios.post(getCreatePullRequestUrl(), {
     applicationId: appId,
     scanId: scanId,
     targetVersion: targetVersion,
     identificationSource: identificationSource,
     componentIdentifier: componentIdentifier,
+    isDirectDependency: isDirectDependency,
   });
 }
 
@@ -66,6 +76,7 @@ const createPR = createAsyncThunk(
     const { application } = selectApplicationReportMetaData(state);
     const createPRModalState = selectCreatePRModal(state);
     const { scanId, targetVersion, identificationSource, componentIdentifier } = createPRModalState;
+    const isDirectDependency = createPRModalState.isDirectDependency;
 
     try {
       const { data } = await callCreatePREndpoint(
@@ -73,7 +84,8 @@ const createPR = createAsyncThunk(
         scanId,
         targetVersion,
         identificationSource,
-        componentIdentifier
+        componentIdentifier,
+        isDirectDependency
       );
       startSaveMaskSuccessTimer(dispatch, actions.reset);
       return { id: data.id, componentHash: createPRModalState.componentHash };

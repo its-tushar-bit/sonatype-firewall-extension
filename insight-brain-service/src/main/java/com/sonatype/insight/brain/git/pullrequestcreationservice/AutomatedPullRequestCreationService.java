@@ -69,12 +69,15 @@ public class AutomatedPullRequestCreationService
       final Stage stage,
       final ComponentIdentifier componentIdentifier,
       final Supplier<Optional<RemediationVersionDTO>> remediationVersionDTOSupplier,
-      final List<PolicyNotification> notifications) throws IOException
+      final List<PolicyNotification> notifications,
+      final boolean isDirectDependency) throws IOException
   {
     boolean isInnerSourceComponent = innerSourceService.isInnerSourceComponent(componentIdentifier);
 
-    if (!eligibilityService.isEligibleForAutoPullRequest(app, stage, componentIdentifier, isInnerSourceComponent)) {
-      log.debug("Application '{}' not eligible for automated PR", app.getPublicId());
+    if (!eligibilityService.isEligibleForAutoPullRequest(app, stage, componentIdentifier, isInnerSourceComponent,
+        isDirectDependency)) {
+      log.debug("Component '{}' in application '{}' is not eligible for automated PR", componentIdentifier,
+          app.getPublicId());
       return;
     }
 

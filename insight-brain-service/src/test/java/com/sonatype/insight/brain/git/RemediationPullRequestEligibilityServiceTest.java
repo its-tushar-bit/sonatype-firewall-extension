@@ -80,7 +80,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_success() throws PlexusCipherException {
     setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent, false);
+        application, stage, mavenComponent, false, true);
     assertThat(result).isTrue();
   }
 
@@ -88,7 +88,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_unsupportedStage() {
     Stage developStage = new Stage(Stage.ID_DEVELOP);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, developStage, mavenComponent, false);
+        application, developStage, mavenComponent, false, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
@@ -99,7 +99,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, pypiComponent, false);
+        application, stage, pypiComponent, false, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -109,7 +109,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_innerSource_success() throws PlexusCipherException {
     setupSourceControl(true);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, mavenComponent, true);
+        application, stage, mavenComponent, true, true);
     assertThat(result).isTrue();
   }
 
@@ -117,7 +117,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForAutoPullRequest_innerSource_unsupportedStage() {
     Stage developStage = new Stage(Stage.ID_DEVELOP);
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, developStage, mavenComponent, true);
+        application, developStage, mavenComponent, true, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
@@ -128,7 +128,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForAutoPullRequest(
-        application, stage, pypiComponent, true);
+        application, stage, pypiComponent, true, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -137,10 +137,20 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForAutoPullRequest_innerSource_innerSourceUpdatesDisabled() throws PlexusCipherException {
     setupSourceControl(false);
-    boolean result = eligibilityService.isEligibleForAutoPullRequest(application, stage, mavenComponent, true);
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(application, stage, mavenComponent, true, true);
     assertThat(result).isFalse();
     assertThat(pullRequestFeatureCheckLogOutput).atDebugLevel()
         .contains("InnerSource Pull Requests have been explicitly disabled");
+  }
+
+  @Test
+  public void testIsEligibleForAutoPullRequest_nonDirectDependency() {
+    boolean result = eligibilityService.isEligibleForAutoPullRequest(
+        application, stage, mavenComponent, false, false);
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput)
+        .atDebugLevel()
+        .contains("Component '" + mavenComponent + "' is not a direct dependency.");
   }
 
   //manual pr section
@@ -148,7 +158,7 @@ public class RemediationPullRequestEligibilityServiceTest
   public void testIsEligibleForManualPullRequest_success() throws PlexusCipherException {
     setupSourceControl(false);
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, stage, mavenComponent);
+        application, stage, mavenComponent, true);
     assertThat(result).isTrue();
   }
 
@@ -157,7 +167,7 @@ public class RemediationPullRequestEligibilityServiceTest
     ComponentIdentifier pypiComponent =
         ComponentIdentifier.createPypiCoordinates("PyYAML", "3.11", "win-amd64-py2.7", "exe");
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, stage, pypiComponent);
+        application, stage, pypiComponent, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Format 'pypi' is not supported for remediation");
@@ -166,10 +176,20 @@ public class RemediationPullRequestEligibilityServiceTest
   @Test
   public void testIsEligibleForManualPullRequest_unsupportedStage() {
     boolean result = eligibilityService.isEligibleForManualPullRequest(
-        application, new Stage(Stage.ID_DEVELOP), mavenComponent);
+        application, new Stage(Stage.ID_DEVELOP), mavenComponent, true);
     assertThat(result).isFalse();
     assertThat(remediationPullRequestEligibilityServiceLogOutput).atDebugLevel()
         .contains("Pull Request not supported for the stage 'develop'");
+  }
+
+  @Test
+  public void testIsEligibleForManualPullRequest_nonDirectDependency() {
+    boolean result = eligibilityService.isEligibleForManualPullRequest(
+        application, stage, mavenComponent, false);
+    assertThat(result).isFalse();
+    assertThat(remediationPullRequestEligibilityServiceLogOutput)
+        .atDebugLevel()
+        .contains("Component '" + mavenComponent + "' is not a direct dependency.");
   }
 
   @Test

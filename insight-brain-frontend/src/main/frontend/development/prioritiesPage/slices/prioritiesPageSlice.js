@@ -86,7 +86,7 @@ const loadTableData = createAsyncThunk(
 
 const openCreatePRModal = createAsyncThunk(
   `${PRIORITIES_PAGE_REDUCER_NAME}/openCreatePRModal`,
-  ({ componentHash, targetVersion }, { dispatch, getState }) => {
+  ({ componentHash, targetVersion, isDirectDependency }, { dispatch, getState }) => {
     const state = getState();
     const { scanId } = selectRouterCurrentParams(state);
     const prioritiesPage = selectPrioritiesPageSlice(state);
@@ -111,6 +111,7 @@ const openCreatePRModal = createAsyncThunk(
         identificationSource: 'Sonatype',
         componentHash: componentHash,
         componentIdentifier: componentIdentifier,
+        isDirectDependency,
       })
     );
   }
@@ -123,7 +124,7 @@ const openCreatePRModalFulfilled = (state, action) => {
 
 const createPR = createAsyncThunk(
   `${PRIORITIES_PAGE_REDUCER_NAME}/createPR`,
-  ({ componentHash, targetVersion }, { getState, rejectWithValue }) => {
+  ({ componentHash, targetVersion, isDirectDependency }, { getState, rejectWithValue }) => {
     const state = getState();
     const { application } = selectApplicationReportMetaData(state);
     const { scanId } = selectRouterCurrentParams(state);
@@ -138,6 +139,7 @@ const createPR = createAsyncThunk(
         targetVersion: targetVersion,
         identificationSource: 'Sonatype',
         componentIdentifier: componentIdentifier,
+        isDirectDependency: isDirectDependency,
       })
       .catch((error) => rejectWithValue(error));
   }

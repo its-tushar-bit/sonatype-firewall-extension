@@ -120,7 +120,8 @@ public class AutomatedPullRequestCreationServiceTest
         stage,
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
-        notifications
+        notifications,
+        true
     );
 
     List<SourceControlEvent> eventList = sourceControlEventDAO.getAllByApplicationId(application.getId());
@@ -133,6 +134,31 @@ public class AutomatedPullRequestCreationServiceTest
     assertThat(event.getBranchName()).isEqualTo(branchName);
     assertThat(event.getInitiator()).isEqualTo("policy alert");
     assertThat(event.getEventType()).isEqualTo(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+  }
+
+  @Test
+  public void testCreateAutomatedRemediationPullRequest_withNonDirectDependency_shouldNotCreatePR() throws IOException {
+    String version = "1.5.0";
+    RemediationVersionDTO remediationVersionDTO =
+        new RemediationVersionDTO(version, ApiVersionChangeOptionType.NEXT_NON_FAILING, 0);
+    List<PolicyNotification> notifications = createPolicyNotifications();
+
+    // component but not golden remediation type
+    automatedPrService.createAutomatedRemediationPullRequest(
+        application,
+        DEFAULT_SCAN_ID,
+        stage,
+        mavenComponent,
+        () -> Optional.of(remediationVersionDTO),
+        notifications,
+        false);
+
+    List<SourceControlEvent> eventList = sourceControlEventDAO.getAll();
+    assertThat(eventList).isEmpty();
+    assertThat(logOutput)
+        .atDebugLevel()
+        .contains(String.format("Component '%s' in application '%s' is not eligible for automated PR", mavenComponent,
+            application.getPublicId()));
   }
 
   @Test
@@ -149,7 +175,8 @@ public class AutomatedPullRequestCreationServiceTest
         stage,
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
-        notifications
+        notifications,
+        true
     );
 
     //no event
@@ -174,7 +201,8 @@ public class AutomatedPullRequestCreationServiceTest
         stage,
         mavenComponent,
         () -> Optional.of(remediationVersionDTO),
-        notifications
+        notifications,
+        true
     );
 
     //should create PR since golden PR feature flag is disabled

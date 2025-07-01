@@ -6,18 +6,20 @@
 
 import React from 'react';
 import { mergeDeepRight } from 'ramda';
-import { render } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render } from 'TestRoot/SpecUtil';
 import { screen, fireEvent, within } from '@testing-library/react';
 import { RecommendedVersionsList } from 'MainRoot/componentDetails/overview/riskRemediation/RecommendedVersionsList';
 import userEvent from '@testing-library/user-event';
 import { actions } from 'MainRoot/componentDetails/overview/overviewSlice';
+import { getCreatePullRequestUrl } from 'MainRoot/util/CLMLocation';
 
 describe('RecommendedVersionsList', () => {
-  let minimalProps, renderComponent, handleCompareMock;
+  let minimalProps, renderComponent, handleCompareMock, axiosMock;
   let defaultPreloadedState;
 
   beforeEach(function () {
     handleCompareMock = jest.fn();
+    axiosMock = axiosMockAdapter();
 
     defaultPreloadedState = {
       componentDetailsOverview: {
@@ -34,6 +36,11 @@ describe('RecommendedVersionsList', () => {
         },
       },
       applicationReport: {
+        metadata: {
+          application: {
+            id: 'appId',
+          },
+        },
         selectedReport: {
           allEntries: [
             {
@@ -372,7 +379,16 @@ describe('RecommendedVersionsList', () => {
           automatedRemediationStatus: automatedRemediationStatus,
         },
       },
+      applicationReport: {
+        selectedReport: {
+          allEntries: defaultPreloadedState.applicationReport.selectedReport.allEntries.map((entry) => ({
+            ...entry,
+            directDependency: true,
+          })),
+        },
+      },
     });
+
     let { store } = renderComponent({ versionChanges, automatedRemediationStatus }, preloadedState);
     expect(store.getState().createPRModal.isModalOpen).toEqual(false);
 
@@ -382,6 +398,7 @@ describe('RecommendedVersionsList', () => {
     expect(store.getState().createPRModal.isModalOpen).toEqual(true);
     expect(store.getState().createPRModal.currentVersion).toEqual('2.4.9');
     expect(store.getState().createPRModal.targetVersion).toEqual('2.4.10');
+    expect(store.getState().createPRModal.isDirectDependency).toEqual(true);
   });
 
   it('renders an existing PR link when automatedRemediationStatus is PULL_REQUEST', async () => {
@@ -566,12 +583,7 @@ describe('RecommendedVersionsList', () => {
       };
     });
 
-    const createPRSpy = jest.spyOn(actions, 'createPR').mockImplementation(() => {
-      return () => ({
-        type: 'componentDetailsOverview/createPR',
-        payload: { data: { id: 'id' } },
-      });
-    });
+    axiosMock.onPost(getCreatePullRequestUrl()).reply(200, { id: 'id' });
 
     const versionChanges = [
       {
@@ -587,18 +599,30 @@ describe('RecommendedVersionsList', () => {
       reason: 'Network error',
     };
 
+    const preloadedState = mergeDeepRight(defaultPreloadedState, {
+      applicationReport: {
+        selectedReport: {
+          allEntries: defaultPreloadedState.applicationReport.selectedReport.allEntries.map((entry) => ({
+            ...entry,
+            directDependency: true,
+          })),
+        },
+      },
+    });
+
     renderComponent(
       { versionChanges, automatedRemediationStatus },
       {
-        ...defaultPreloadedState,
+        ...preloadedState,
       }
     );
 
     const retryButton = screen.getByRole('button', { name: 'Retry' });
     await userEvent.setup().click(retryButton);
 
-    expect(createPRSpy).toHaveBeenCalledWith({ version: '2.4.10' });
-
+    expect(axiosMock.history.post.length).toBe(1);
+    expect(JSON.parse(axiosMock.history.post[0].data).targetVersion).toBe('2.4.10');
+    expect(JSON.parse(axiosMock.history.post[0].data).isDirectDependency).toBe(true);
     expect(startPRStatusPollingSpy).toHaveBeenCalledWith({
       id: 'id',
     });

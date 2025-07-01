@@ -12,6 +12,7 @@ public record PullRequestSubmissionDTO(
     String scanId,
     ComponentIdentifier componentIdentifier,
     String targetVersion,
-    String identificationSource)
+    String identificationSource,
+    Boolean isDirectDependency)
 {
 }

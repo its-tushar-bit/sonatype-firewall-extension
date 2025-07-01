@@ -1333,7 +1333,8 @@ public class ReportServiceTest
             eq(stage),
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
-            eq(Collections.emptyList())
+            eq(Collections.emptyList()),
+            eq(true)
         );
   }
 
@@ -1373,7 +1374,8 @@ public class ReportServiceTest
             eq(stage),
             eq(component),
             argThat(remediationMatches(remediationVersionDTO)),
-            eq(Collections.emptyList())
+            eq(Collections.emptyList()),
+            eq(true)
         );
   }
 

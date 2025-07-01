@@ -302,6 +302,7 @@ const openCreatePRModal = createAsyncThunk(
         identificationSource: identificationSource,
         componentHash: hash,
         componentIdentifier,
+        isDirectDependency: component.directDependency,
       })
     );
   }
@@ -321,6 +322,7 @@ const createPR = createAsyncThunk(`${REDUCER_NAME}/createPR`, ({ version }, { ge
       targetVersion: version,
       identificationSource: 'Sonatype',
       componentIdentifier: componentIdentifier,
+      isDirectDependency: component.directDependency,
     })
     .catch((error) => rejectWithValue(error));
 });

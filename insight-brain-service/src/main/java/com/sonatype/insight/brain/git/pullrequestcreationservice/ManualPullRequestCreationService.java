@@ -117,7 +117,8 @@ public class ManualPullRequestCreationService
       final String scanId,
       final ComponentIdentifier componentIdentifier,
       final String targetVersion,
-      final String identificationSource) throws IOException
+      final String identificationSource,
+      final boolean isDirectDependency) throws IOException
   {
     if (targetVersion.equals(componentIdentifier.getCoordinates().get(ComponentIdentifier.VERSION))) {
       throw new BadRequestException("Target version must be different from the current version");
@@ -142,7 +143,7 @@ public class ManualPullRequestCreationService
       throw new BadRequestException("The provided scan ID does not match the latest evaluation for the stage.");
     }
 
-    if (!eligibilityService.isEligibleForManualPullRequest(app, stage, componentIdentifier)) {
+    if (!eligibilityService.isEligibleForManualPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
       throw new BadRequestException(
           "Manual pull request creation is not eligible for application " + app.getPublicId() +
               " component " + ComponentDisplayNameUtil.fromIdentifier(componentIdentifier) +

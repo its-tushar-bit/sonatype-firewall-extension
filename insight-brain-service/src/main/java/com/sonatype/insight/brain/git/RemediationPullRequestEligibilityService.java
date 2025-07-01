@@ -62,10 +62,11 @@ public class RemediationPullRequestEligibilityService
       final Application app,
       final Stage stage,
       final ComponentIdentifier componentIdentifier,
-      final boolean isInnerSourceComponent)
+      final boolean isInnerSourceComponent,
+      final boolean isDirectDependency)
   {
     try {
-      if (!isEligibleForPullRequest(app, stage, componentIdentifier)) {
+      if (!isEligibleForPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
         return false;
       }
 
@@ -87,10 +88,11 @@ public class RemediationPullRequestEligibilityService
   public boolean isEligibleForManualPullRequest(
       final Application app,
       final Stage stage,
-      final ComponentIdentifier componentIdentifier)
+      final ComponentIdentifier componentIdentifier,
+      final boolean isDirectDependency)
   {
     try {
-      if (!isEligibleForPullRequest(app, stage, componentIdentifier)) {
+      if (!isEligibleForPullRequest(app, stage, componentIdentifier, isDirectDependency)) {
         return false;
       }
 
@@ -142,7 +144,8 @@ public class RemediationPullRequestEligibilityService
   private boolean isEligibleForPullRequest(
       final Application app,
       final Stage stage,
-      final ComponentIdentifier componentIdentifier)
+      final ComponentIdentifier componentIdentifier,
+      final boolean isDirectDependency)
   {
     if (app == null || stage == null || componentIdentifier == null) {
       log.debug("One or more required parameters is null");
@@ -152,6 +155,11 @@ public class RemediationPullRequestEligibilityService
     if (!isStageSupported(stage)) {
       log.debug("Pull Request not supported for the stage '{}' for application '{}'",
           stage.getStageTypeId(), app.getPublicId());
+      return false;
+    }
+
+    if (!isDirectDependency) {
+      log.debug("Component '{}' is not a direct dependency.", componentIdentifier);
       return false;
     }
 

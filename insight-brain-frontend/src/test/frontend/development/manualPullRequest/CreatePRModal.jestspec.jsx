@@ -305,6 +305,7 @@ describe('CreatePRModal', () => {
           version: '1.0',
         },
       },
+      isDirectDependency: true,
       submitMaskState: null,
       branchName: 'main',
       error: null,

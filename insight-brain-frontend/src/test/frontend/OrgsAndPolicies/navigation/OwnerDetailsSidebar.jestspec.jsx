@@ -546,4 +546,15 @@ describe('OwnerDetailSidebar', () => {
 
     expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
   });
+
+  it('should not render public data sources when isSbomManager is true', () => {
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+    jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(true);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
+  });
 });

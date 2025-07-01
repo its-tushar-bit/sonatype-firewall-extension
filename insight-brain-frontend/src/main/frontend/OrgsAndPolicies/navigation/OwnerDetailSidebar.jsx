@@ -450,7 +450,7 @@ export default function OwnerDetailSidebar() {
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}
-      {isCpeMatchingSupported && (
+      {isCpeMatchingSupported && !isSbomManager && (
         <NxCollapsibleItems.Child>
           <NxTextLink
             id="public-data-sources-link"

@@ -17,10 +17,12 @@ import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.security.UserSessionResource;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -340,6 +342,18 @@ public class UserInterfaceLinksResourceTest
   }
 
   @Test
+  public void testLinkToRepositoryReport_dockerProxyRepository() throws Exception {
+    Repository repository =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
+
+    String url = UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId());
+    assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repository/" + repository.getId() + "/result");
+    HttpResponse response = get(UserInterfaceLinksHelper.REPO_RESULT_PATH, repository.getId());
+    assertRedirect(response,
+        "assets/index.html#/malware-defense/container/repository/" + repository.getId() + "/results");
+  }
+
+  @Test
   public void testLinkToVulnerabililtyDetails() throws Exception {
     String url = UserInterfaceLinksHelper.getVulnerabilityDetailsUrl("CVE-8765-4321");
     assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/vln/CVE-8765-4321");
@@ -416,6 +430,13 @@ public class UserInterfaceLinksResourceTest
     HttpResponse response =
         get(UserInterfaceLinksHelper.REVIEW_WAIVER_REQUEST_PATH, "application", "owner-id", "waiver-request-id");
     assertRedirect(response, "assets/index.html#/requestWaiverReview/application/owner-id/waiver-request-id");
+  }
+
+  @Test
+  public void testLinkToMalwareDefenseContainerEvaluationReport() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH,
+        "container-public-id", "scan-id");
+    assertRedirect(response, "assets/index.html#/malware-defense/containerReport/container-public-id/scan-id/policy");
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(

@@ -76,6 +76,9 @@ public class UserInterfaceLinksHelper
   public static final String ENTERPRISE_REPORTING_DASHBOARD_PATH =
       "enterpriseReporting/{dashboardId}";
 
+  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH =
+      "malware-defense/containerReport/{containerImagePublicId}/report/{scanId}";
+
   private static String buildStableUrl(String path) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build().toString();
   }
@@ -240,5 +243,15 @@ public class UserInterfaceLinksHelper
    */
   public static String getPolicyViolationDetailsUrl(String violationId) {
     return buildStableUrl(POLICY_VIOLATION_DETAILS_PATH, violationId);
+  }
+
+  /**
+   * Gets the relative URL to the stable hyperlink for the HTML container image report of the given container and scan.
+   */
+  public static String getMalwareDefenseContainerImageEvaluationReportUrl(
+      String containerImagePublicId,
+      String scanId)
+  {
+    return buildStableUrl(MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH, containerImagePublicId, scanId);
   }
 }

@@ -43,6 +43,10 @@ public class ContainerImageReportService
 
   @Authorize(permission = Permission.READ)
   public ContainerImageSummaryDTO getContainerImagesSummary(@AuthzContext(Key.REPOSITORY_ID) String repositoryId) {
+    return getContainerImagesSummaryNoAuthz(repositoryId);
+  }
+
+  public ContainerImageSummaryDTO getContainerImagesSummaryNoAuthz(String repositoryId) {
 
     ContainerImageSummaryDTO summary = new ContainerImageSummaryDTO();
     

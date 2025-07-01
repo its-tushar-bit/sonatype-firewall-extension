@@ -123,7 +123,11 @@ public class ScanUploader
       updateReceiptForCompliance(applicationPublicId, receipt, thirdPartyScanContext);
     }
     else {
-      receipt.setReportUrl(UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId()));
+      String reportUrl = StageTypes.PROXY.getId().equals(stageTypeId)
+          ? UserInterfaceLinksHelper.getMalwareDefenseContainerImageEvaluationReportUrl(
+              applicationPublicId, receipt.getScanId())
+          : UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId());
+      receipt.setReportUrl(reportUrl);
       receipt.setPdfUrl(UserInterfaceLinksHelper.getPdfUrl(applicationPublicId, receipt.getScanId()));
       receipt.setDataUrl(ApiReportDataResourceV2.getDataUrl(applicationPublicId, receipt.getScanId()));
       receipt.setPrioritiesUrl(UserInterfaceLinksHelper.getPrioritiesUrl(applicationPublicId, receipt.getScanId()));

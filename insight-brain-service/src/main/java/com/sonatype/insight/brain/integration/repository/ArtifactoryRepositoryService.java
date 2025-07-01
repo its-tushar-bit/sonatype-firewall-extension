@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -44,12 +45,14 @@ public class ArtifactoryRepositoryService extends AbstractRepositoryService
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
-      com.sonatype.insight.brain.repository.RepositoryService repositoryService)
+      com.sonatype.insight.brain.repository.RepositoryService repositoryService,
+      ContainerImageReportService containerImageReportService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL_FOR_ARTIFACTORY, repositoryComponentTelemetryCreator,
         quarantinedComponentAccessManager, quarantineHdsClient, applicationService, telemetrySender,
         repositoryManagerDAO, repositoryDAO, repositoryComponentDAO, repositoryPolicyViolationDAO,
-        firewallIgnorePatternService, requestSafeComponentsMetricEventService, repositoryService);
+        firewallIgnorePatternService, requestSafeComponentsMetricEventService, repositoryService,
+        containerImageReportService);
   }
 }

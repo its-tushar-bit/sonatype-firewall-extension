@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiRepositoryAdapter;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -63,6 +64,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.repository.ContainerImageSummaryDTO;
 import com.sonatype.insight.brain.repository.ProprietaryComponentNameDetector;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.brain.repository.RepositoryService;
@@ -127,6 +129,8 @@ public abstract class AbstractRepositoryService
 
   private final RepositoryService repositoryService;
 
+  private final ContainerImageReportService containerImageReportService;
+
   static final String REPOSITORY_COMPONENT_REQUESTED_VERSION_COUNT = "repository_component_requested_version_count";
 
   static final String REPOSITORY_COMPONENT_POLICY_COMPLIANT_VERSION_COUNT =
@@ -157,7 +161,8 @@ public abstract class AbstractRepositoryService
           RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
           FirewallIgnorePatternService firewallIgnorePatternService,
           RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
-          RepositoryService repositoryService)
+          RepositoryService repositoryService,
+          ContainerImageReportService containerImageReportService)
   {
     this.repositoryPolicyEvaluator = repositoryPolicyEvaluator;
     this.proprietaryComponentNameDetector = proprietaryComponentNameDetector;
@@ -176,6 +181,7 @@ public abstract class AbstractRepositoryService
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.requestSafeComponentsMetricEventService = requestSafeComponentsMetricEventService;
     this.repositoryService = repositoryService;
+    this.containerImageReportService = containerImageReportService;
   }
 
   protected void checkLicenseFeature() {
@@ -694,18 +700,31 @@ public abstract class AbstractRepositoryService
   }
 
   private RepositoryPolicyEvaluationSummary getPolicyEvaluationSummaryInternal(final Repository repository) {
-    PolicyViolationSummary summary = repositoryPolicyViolationDAO.getPolicyViolationSummary(repository.getId());
-
     RepositoryPolicyEvaluationSummary policyEvaluationSummary = new RepositoryPolicyEvaluationSummary();
-    policyEvaluationSummary.setCriticalComponentCount(summary.getCriticalCount());
-    policyEvaluationSummary.setSevereComponentCount(summary.getSevereCount());
-    policyEvaluationSummary.setModerateComponentCount(summary.getModerateCount());
-    policyEvaluationSummary.setAffectedComponentCount(summary.getAffectedComponentCount());
-    policyEvaluationSummary.setQuarantinedComponentCount(repositoryComponentDAO
-        .getQuarantinedComponentCountByRepositoryId(repository.getId()));
+
+    if ("docker".equals(repository.getFormat()) && RepositoryType.proxy == repository.getRepositoryType()) {
+      ContainerImageSummaryDTO containerImageSummaryDTO =
+          containerImageReportService.getContainerImagesSummaryNoAuthz(repository.getId());
+
+      policyEvaluationSummary.setCriticalComponentCount((int) containerImageSummaryDTO.criticalViolationCount);
+      policyEvaluationSummary.setSevereComponentCount((int) containerImageSummaryDTO.severeViolationCount);
+      policyEvaluationSummary.setModerateComponentCount((int) containerImageSummaryDTO.moderateViolationCount);
+      policyEvaluationSummary.setAffectedComponentCount((int) containerImageSummaryDTO.affectedContainerImageCount);
+      policyEvaluationSummary
+          .setQuarantinedComponentCount((int) containerImageSummaryDTO.quarantinedContainerImageCount);
+    }
+    else {
+      PolicyViolationSummary summary = repositoryPolicyViolationDAO.getPolicyViolationSummary(repository.getId());
+
+      policyEvaluationSummary.setCriticalComponentCount(summary.getCriticalCount());
+      policyEvaluationSummary.setSevereComponentCount(summary.getSevereCount());
+      policyEvaluationSummary.setModerateComponentCount(summary.getModerateCount());
+      policyEvaluationSummary.setAffectedComponentCount(summary.getAffectedComponentCount());
+      policyEvaluationSummary.setQuarantinedComponentCount(
+          repositoryComponentDAO.getQuarantinedComponentCountByRepositoryId(repository.getId()));
+    }
 
     policyEvaluationSummary.setReportUrl(UserInterfaceLinksHelper.getRepositoryReportUrl(repository.getId()));
-
     return policyEvaluationSummary;
   }
 

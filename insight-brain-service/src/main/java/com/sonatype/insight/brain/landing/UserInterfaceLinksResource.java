@@ -20,12 +20,15 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.report.ReportResource;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
@@ -73,6 +76,8 @@ public class UserInterfaceLinksResource
 
   private final TelemetryUtils telemetryUtils;
 
+  private final RepositoryDAO repositoryDAO;
+
   @Inject
   public UserInterfaceLinksResource(
       BaseUrl baseUrl,
@@ -80,7 +85,8 @@ public class UserInterfaceLinksResource
       CurrentUser currentUser,
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      RepositoryDAO repositoryDAO)
   {
     this.baseUrl = baseUrl;
     this.telemetrySender = telemetrySender;
@@ -88,6 +94,7 @@ public class UserInterfaceLinksResource
     this.applicationDAO = applicationDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.telemetryUtils = telemetryUtils;
+    this.repositoryDAO = repositoryDAO;
   }
 
   private Response redirect(UriBuilder uriBuilder, Object... parameters) {
@@ -263,6 +270,14 @@ public class UserInterfaceLinksResource
   @GET
   @Path(REPO_RESULT_PATH)
   public Response linkToRepositoryReport(@PathParam("repositoryId") String repositoryId) {
+    Repository repository = repositoryDAO.getById(repositoryId);
+    if (repository != null && "docker".equals(repository.getFormat())
+        && repository.getRepositoryType() == RepositoryType.proxy) {
+      UriBuilder uriBuilder = baseUrl.redirect();
+      uriBuilder.path(ASSET_INDEX_PATH).fragment("/malware-defense/container/repository/{repositoryId}/results");
+      return redirect(uriBuilder, repositoryId);
+    }
+
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment("/" + REPO_RESULT_PATH);
     return redirect(uriBuilder, repositoryId);
@@ -390,6 +405,19 @@ public class UserInterfaceLinksResource
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment("/enterpriseReportingDashboard/{dashboardId}");
     return redirect(uriBuilder, dashboardId);
+  }
+
+  @GET
+  @Path(MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH)
+  public Response linkToMalwareDefenseContainerEvaluationReport(
+      @PathParam("containerImagePublicId") String containerImagePublicId,
+      @PathParam("scanId") String scanId)
+  {
+    String fragmentTemplate = "/malware-defense/containerReport/{applicationPublicId}/{scanId}/policy";
+    UriBuilder uriBuilder = baseUrl.redirect();
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
+
+    return redirect(uriBuilder, containerImagePublicId, scanId);
   }
 
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {

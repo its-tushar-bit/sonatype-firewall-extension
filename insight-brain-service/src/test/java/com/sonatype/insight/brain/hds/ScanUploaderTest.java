@@ -103,6 +103,20 @@ public class ScanUploaderTest
   }
 
   @Test
+  public void testAugmentScanReceipt_proxyStage() {
+    when(mockConfiguration.getReportTimeoutInSeconds()).thenReturn(2100);
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scan id");
+    scanUploader.augmentScanReceipt("app id", receipt, StageTypes.PROXY.getId(), thirdPartyScanContext);
+    assertThat(receipt.getReportUrl()).isEqualTo("ui/links/malware-defense/containerReport/app%20id/report/scan%20id");
+    assertThat(receipt.getPdfUrl()).isEqualTo("ui/links/application/app%20id/report/scan%20id/pdf");
+    assertThat(receipt.getDataUrl()).isEqualTo("api/v2/applications/app%20id/reports/scan%20id/raw");
+    assertThat(receipt.getPrioritiesUrl()).isEqualTo("ui/links/developer/priorities/app%20id/scan%20id");
+    assertThat(receipt.getIntegrationsPrioritiesUrl()).isEqualTo("ui/links/developer/integrations/app%20id/scan%20id/");
+    assertThat(receipt.getReportTimeoutInSeconds()).isEqualTo(2100);
+  }
+
+  @Test
   public void testUpload_SendAnalyticsToHds() throws Exception {
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     ScanReceipt receipt = new ScanReceipt();

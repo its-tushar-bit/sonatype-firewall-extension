@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.Condition;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
@@ -424,6 +425,60 @@ public abstract class AbstractRepositoryServiceTest
     assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(0);
     assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getReportUrl())
+        .isEqualTo("ui/links/repository/" + repository.getId() + "/result");
+    assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetPolicyEvaluationSummary_dockerProxyRepository() {
+    Organization organization = tempEntity.newOrganization();
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    repository.setRelatedOrganizationId(organization.getId());
+    organization.setRelatedRepositoryId(repository.getId());
+
+    repositoryDAO.update(repository);
+    organizationDAO.update(organization);
+
+    // Container Image applications
+    Application application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
+    Application application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
+
+    //policy evaluation
+    PolicyEvaluation policyEvaluation1 =
+        tempEntity.newPolicyEvaluation(application1.getId(), Stage.ID_PROXY, "scanId1");
+    PolicyEvaluation policyEvaluation2 =
+        tempEntity.newPolicyEvaluation(application2.getId(), Stage.ID_PROXY, "scanId2");
+
+    //policy for policy violation
+    Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1", 10);
+    Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2", 8);
+    Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3", 10);
+    Policy policy4 = tempEntity.newPolicy(application1.getId(), "policy4", 5);
+
+    Policy policy5 = tempEntity.newPolicy(application2.getId(), "policy5", 10);
+    Policy policy6 = tempEntity.newPolicy(application2.getId(), "policy6", 2);
+
+    //create policy violations app 1
+    tempEntity.newPolicyViolation(policyEvaluation1, policy1, 10, PolicyThreatCategory.SECURITY, "g", "a", "v", "h",
+        Action.ID_FAIL);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy2);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy3);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy4);
+
+    //create policy violations app 2
+    tempEntity.newPolicyViolation(policyEvaluation2, policy5);
+    tempEntity.newPolicyViolation(policyEvaluation2, policy6);
+
+    RepositoryPolicyEvaluationSummary policyEvaluationSummary = getRepositoryService()
+        .getPolicyEvaluationSummary(repositoryManager.getInstanceId(), repository.getPublicId(), null);
+
+    assertThat(policyEvaluationSummary.getCriticalComponentCount()).isEqualTo(4);
+    assertThat(policyEvaluationSummary.getSevereComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getModerateComponentCount()).isEqualTo(1);
+    assertThat(policyEvaluationSummary.getAffectedComponentCount()).isEqualTo(2);
     assertThat(policyEvaluationSummary.getReportUrl())
         .isEqualTo("ui/links/repository/" + repository.getId() + "/result");
     assertThat(policyEvaluationSummary.getQuarantinedComponentCount()).isEqualTo(1);

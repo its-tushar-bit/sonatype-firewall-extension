@@ -14,6 +14,7 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.container.images.ContainerImageReportService;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -72,13 +73,14 @@ public class RepositoryService extends AbstractRepositoryService
       RepositoryPolicyViolationDAO repositoryPolicyViolationDAO,
       FirewallIgnorePatternService firewallIgnorePatternService,
       RequestSafeComponentsMetricEventService requestSafeComponentsMetricEventService,
-      com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService)
+      com.sonatype.insight.brain.repository.RepositoryService mainRepositoryService,
+      ContainerImageReportService containerImageReportService)
   {
     super(repositoryPolicyEvaluator, proprietaryComponentNameDetector, productLicense, policyViolationLoggerFactory,
         LicensedFeature.FIREWALL, repositoryComponentTelemetryCreator, quarantinedComponentAccessManager,
         quarantineHdsClient, applicationService, telemetrySender, repositoryManagerDAO, repositoryDAO,
         repositoryComponentDAO, repositoryPolicyViolationDAO, firewallIgnorePatternService,
-        requestSafeComponentsMetricEventService, mainRepositoryService);
+        requestSafeComponentsMetricEventService, mainRepositoryService, containerImageReportService);
     this.repositoryComponentDeleteService = repositoryComponentDeleteService;
   }
 

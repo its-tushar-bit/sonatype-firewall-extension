@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallContainerWaiversTabContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetrics;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallPageTabs;
@@ -74,6 +75,10 @@ public class FirewallPage
     return BaseUrl.resolvePageUrl("malware-defense/dashboard/components/waivers");
   }
 
+  public static String urlToFirewallContainerWaivers() {
+    return BaseUrl.resolvePageUrl("malware-defense/dashboard/containers/waivers");
+  }
+
   public FirewallWaiversTable firewallWaiversTable() {
     return new FirewallWaiversTable(ROOT);
   }
@@ -88,5 +93,9 @@ public class FirewallPage
 
   public FirewallPageTabs firewallPageTabs() {
     return new FirewallPageTabs(ROOT);
+  }
+
+  public FirewallContainerWaiversTabContent firewallContainerWaiversTabContent() {
+    return new FirewallContainerWaiversTabContent(ROOT);
   }
 }

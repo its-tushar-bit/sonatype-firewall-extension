@@ -27,6 +27,7 @@ import {
   getRepositoryPolicyViolationUrl,
   getVersionGraphUrl,
   getFirewallContainerQuarantineListUrl,
+  getFirewallContainerWaiverListUrl,
 } from '../util/CLMLocation';
 import { Messages } from '../utilAngular/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
@@ -108,6 +109,18 @@ export const FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED = 'FIREWALL_CONTAINER_QUA
 const loadContainerQuarantineListRequested = noPayloadActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_REQUESTED);
 const loadContainerQuarantineListFulfilled = payloadParamActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED);
 const loadContainerQuarantineListFailed = payloadParamActionCreator(FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED);
+
+export const FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED = 'FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED';
+export const FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED = 'FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED';
+export const FIREWALL_CONTAINER_WAIVER_LIST_FAILED = 'FIREWALL_CONTAINER_WAIVER_LIST_FAILED';
+
+const loadContainerWaiverListRequested = noPayloadActionCreator(FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED);
+const loadContainerWaiverListFulfilled = payloadParamActionCreator(FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED);
+const loadContainerWaiverListFailed = payloadParamActionCreator(FIREWALL_CONTAINER_WAIVER_LIST_FAILED);
+
+export const FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED = 'FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED';
+export const FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE = 'FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE';
+const containerWaiverGridSetPage = payloadParamActionCreator(FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE);
 
 export const FIREWALL_POLICIES_REQUESTED = 'FIREWALL_POLICIES_REQUESTED';
 export const FIREWALL_POLICIES_FULFILLED = 'FIREWALL_POLICIES_FULFILLED';
@@ -273,6 +286,7 @@ export function loadFirewallData() {
     dispatch(loadQuarantineList());
     dispatch(loadContainerQuarantineList());
     dispatch(loadPolicies());
+    dispatch(loadContainerWaiverList());
   };
 }
 
@@ -549,6 +563,38 @@ export function setContainerQuarantineGridLastUpdated(lastUpdated) {
   return {
     type: FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
     payload: { containerLastUpdated: lastUpdated },
+  };
+}
+
+export function loadContainerWaiverList() {
+  return function (dispatch, getState) {
+    let gridState = getState().firewall.containerWaiverGridState,
+      apiPage = gridState.containerWaiverCurrentPage ? gridState.containerWaiverCurrentPage + 1 : 1;
+
+    dispatch(loadContainerWaiverListRequested());
+    return axios
+      .get(getFirewallContainerWaiverListUrl(apiPage, gridState.containerWaiverPageSize))
+      .then(({ data }) => {
+        dispatch(loadContainerWaiverListFulfilled(data));
+        dispatch(setContainerWaiverGridLastUpdated(new Date()));
+      })
+      .catch((error) => {
+        dispatch(loadContainerWaiverListFailed(Messages.getHttpErrorMessage(error)));
+      });
+  };
+}
+
+export function setContainerWaiverGridPage(page) {
+  return (dispatch) => {
+    dispatch(containerWaiverGridSetPage({ containerWaiverCurrentPage: page }));
+    dispatch(loadContainerWaiverList());
+  };
+}
+
+export function setContainerWaiverGridLastUpdated(lastUpdated) {
+  return {
+    type: FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED,
+    payload: { containerWaiverLastUpdated: lastUpdated },
   };
 }
 

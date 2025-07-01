@@ -600,6 +600,17 @@ export function getFirewallContainerQuarantineListUrl(page, pageSize) {
   return uriTemplate`/api/v2/malware-defense/container-image/policyViolations/quarantined` + params;
 }
 
+export function getFirewallContainerWaiverListUrl(page, pageSize) {
+  let params = toURIParams({
+    page: page,
+    pageSize: pageSize,
+  });
+
+  params = params.length === 0 ? '' : '?' + params;
+
+  return uriTemplate`/api/v2/malware-defense/container-image/policyWaiver` + params;
+}
+
 export function getFirewallQuarantineSummaryUrl() {
   return uriTemplate`/api/v2/malware-defense/quarantine/summary`;
 }

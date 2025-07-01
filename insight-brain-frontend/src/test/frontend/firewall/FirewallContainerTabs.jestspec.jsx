@@ -22,8 +22,17 @@ describe('FirewallContainerTabs', () => {
     containerPageSize: 10,
     containerCurrentPage: 1,
     containerLastUpdated: {},
+    loadContainerWaiverGridError: null,
+    loadingContainerWaiverList: false,
+    containerWaiverList: [],
+    containerWaiverPageCount: 2,
+    containerWaiverPageSize: 10,
+    containerWaiverCurrentPage: 1,
+    containerWaiverLastUpdated: null,
+    loadContainerWaiverList: jest.fn(),
+    setContainerWaiverGridPage: jest.fn(),
     stateGo: jest.fn(),
-    router: jest.fn(),
+    router: {},
   };
 
   it('renders the FirewallContainerTabs component correctly', () => {

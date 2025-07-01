@@ -12,6 +12,7 @@ import { NxTab, NxTabList, NxTabPanel, NxStatefulTabs } from '@sonatype/react-sh
 
 import { QUARANTINE, WAIVERS } from 'MainRoot/constants/states';
 import FirewallContainerQuarantineTable from 'MainRoot/firewall/FirewallContainerQuarantineTable';
+import FirewallContainerWaiverTable from 'MainRoot/firewall/FirewallContainerWaiverTable';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 
 const TABS = [QUARANTINE, WAIVERS];
@@ -65,7 +66,9 @@ const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router
           <FirewallContainerQuarantineTable {...props} />
         </div>
       </NxTabPanel>
-      <NxTabPanel id={`firewall-container-${WAIVERS}-tab-panel`}>Placeholder for Waivers Tab</NxTabPanel>
+      <NxTabPanel id={`firewall-container-${WAIVERS}-tab-panel`}>
+        <FirewallContainerWaiverTable {...props} />
+      </NxTabPanel>
     </NxStatefulTabs>
   );
 });

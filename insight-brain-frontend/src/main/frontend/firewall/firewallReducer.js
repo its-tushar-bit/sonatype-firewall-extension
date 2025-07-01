@@ -70,6 +70,11 @@ import {
   FIREWALL_SET_SELECTED_POLICY_ID,
   FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE,
   FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
+  FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED,
+  FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED,
+  FIREWALL_CONTAINER_WAIVER_LIST_FAILED,
+  FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED,
+  FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE,
 } from './firewallActions';
 import { __, always, assoc, curry, dissoc, lensPath, lensProp, merge, over, prop } from 'ramda';
 import { pathSet, propSet } from '../util/jsUtil';
@@ -187,6 +192,15 @@ export const initialState = Object.freeze({
     containerPageSize: 12,
     containerCurrentPage: null,
     containerLastUpdated: null,
+  }),
+  containerWaiverGridState: Object.freeze({
+    loadContainerWaiverGridError: null,
+    loadingContainerWaiverList: false,
+    containerWaiverList: [],
+    containerWaiverPageCount: 0,
+    containerWaiverPageSize: 10,
+    containerWaiverCurrentPage: null,
+    containerWaiverLastUpdated: null,
   }),
 });
 
@@ -879,6 +893,56 @@ const setContainerQuarantineGridLastUpdated = (payload, state) =>
     state
   );
 
+const loadContainerWaiverListRequested = (_, state) =>
+  over(
+    lensPath(['containerWaiverGridState']),
+    merge(__, {
+      loadingContainerWaiverList: true,
+    }),
+    state
+  );
+
+const loadContainerWaiverListFulfilled = (payload, state) =>
+  over(
+    lensPath(['containerWaiverGridState']),
+    merge(__, {
+      loadingContainerWaiverList: false,
+      loadContainerWaiverGridError: null,
+      containerWaiverList: payload.results,
+      containerWaiverPageCount: payload.pageCount,
+      containerWaiverCurrentPage: payload.pageCount === 0 ? null : payload.page - 1,
+    }),
+    state
+  );
+
+const loadContainerWaiverListFailed = (payload, state) =>
+  over(
+    lensPath(['containerWaiverGridState']),
+    merge(__, {
+      loadingContainerWaiverList: false,
+      loadContainerWaiverGridError: payload,
+    }),
+    state
+  );
+
+const setContainerWaiverGridPage = (payload, state) =>
+  over(
+    lensPath(['containerWaiverGridState']),
+    merge(__, {
+      containerWaiverCurrentPage: payload.containerWaiverCurrentPage,
+    }),
+    state
+  );
+
+const setContainerWaiverGridLastUpdated = (payload, state) =>
+  over(
+    lensPath(['containerWaiverGridState']),
+    merge(__, {
+      containerWaiverLastUpdated: payload.containerWaiverLastUpdated,
+    }),
+    state
+  );
+
 const reducerActionMap = {
   [FIREWALL_SET_SHOW_WELCOME_MODAL]: setShowWelcomeModal,
   [FIREWALL_LOAD_DATA_REQUESTED]: setFirewallLoadDataRequested,
@@ -904,6 +968,11 @@ const reducerActionMap = {
   [FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED]: loadContainerQuarantineListFulfilled,
   [FIREWALL_CONTAINER_QUARANTINE_GRID_SET_PAGE]: setContainerQuarantineGridPage,
   [FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED]: setContainerQuarantineGridLastUpdated,
+  [FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED]: loadContainerWaiverListRequested,
+  [FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED]: loadContainerWaiverListFulfilled,
+  [FIREWALL_CONTAINER_WAIVER_LIST_FAILED]: loadContainerWaiverListFailed,
+  [FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED]: setContainerWaiverGridLastUpdated,
+  [FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE]: setContainerWaiverGridPage,
   [FIREWALL_QUARANTINE_LIST_REQUESTED]: loadQuarantineListRequested,
   [FIREWALL_QUARANTINE_LIST_FAILED]: loadQuarantineListFailed,
   [FIREWALL_QUARANTINE_LIST_FULFILLED]: loadQuarantineListFulfilled,

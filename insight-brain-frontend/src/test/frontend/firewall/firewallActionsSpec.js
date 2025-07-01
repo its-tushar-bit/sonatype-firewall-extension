@@ -111,6 +111,14 @@ import {
   FIREWALL_CONTAINER_QUARANTINE_LIST_FULFILLED,
   FIREWALL_CONTAINER_QUARANTINE_GRID_SET_LAST_UPDATED,
   FIREWALL_CONTAINER_QUARANTINE_LIST_FAILED,
+  FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED,
+  FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED,
+  FIREWALL_CONTAINER_WAIVER_LIST_FAILED,
+  FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED,
+  FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE,
+  loadContainerWaiverList,
+  setContainerWaiverGridLastUpdated,
+  setContainerWaiverGridPage,
 } from '../../../main/frontend/firewall/firewallActions';
 import {
   getFirewallConfigurationUrl,
@@ -130,6 +138,7 @@ import {
   getSimilarWaiversUrl,
   getApplicableWaiversUrl,
   getFirewallContainerQuarantineListUrl,
+  getFirewallContainerWaiverListUrl,
 } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
@@ -149,6 +158,7 @@ describe('firewallActions', function () {
     firewallQuarantineListUrl = getFirewallQuarantineListUrl(),
     firewallQuarantineListWithConditionsUrl = getPoliciesWithProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodeUrl(),
     firewallContainerQuarantineListUrl = getFirewallContainerQuarantineListUrl(),
+    firewallContainerWaiverListUrl = getFirewallContainerWaiverListUrl(),
     policiesUrl = getPoliciesUrl(),
     requestRepositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'RepolicyViolationId'),
     repositoryPolicyViolationUrl = getRepositoryPolicyViolationUrl('repositoryId', 'policyViolationId'),
@@ -223,6 +233,15 @@ describe('firewallActions', function () {
         policiesState: Object.freeze({
           loadedPolicies: false,
           policies: [],
+        }),
+        containerWaiverGridState: Object.freeze({
+          loadContainerWaiverGridError: null,
+          loadingContainerWaiverList: false,
+          containerWaiverList: [],
+          containerWaiverPageCount: 0,
+          containerWaiverPageSize: 10,
+          containerWaiverCurrentPage: null,
+          containerWaiverLastUpdated: null,
         }),
       }),
       firewallConfigurationModal: Object.freeze({
@@ -1363,7 +1382,7 @@ describe('firewallActions', function () {
       store.dispatch(loadFirewallData());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(9);
       expect(actions[0].type).toBe(FIREWALL_LOAD_DATA_REQUESTED);
       expect(actions[0].payload).toBeUndefined();
       expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_REQUESTED);
@@ -1380,6 +1399,8 @@ describe('firewallActions', function () {
       expect(actions[6].payload).toBeUndefined();
       expect(actions[7].type).toBe(FIREWALL_POLICIES_REQUESTED);
       expect(actions[7].payload).toBeUndefined();
+      expect(actions[8].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED);
+      expect(actions[8].payload).toBeUndefined();
     });
   });
 
@@ -2172,6 +2193,111 @@ describe('firewallActions', function () {
         let actions = store.getActions();
         expect(actions.length).toBe(1);
       });
+    });
+  });
+
+  describe('loadContainerWaiverList', () => {
+    const payload = {
+        total: 2,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        results: [{ 'policy-1': 'policy-1-val' }, { 'policy-2': 'policy-2-val' }],
+      },
+      defaultParams = '?page=1&pageSize=10';
+
+    it('immediately dispatches a FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED action', () => {
+      mockAxiosCalls({
+        get: {
+          [firewallContainerWaiverListUrl + defaultParams]: Promise.resolve({}),
+        },
+      });
+      store.dispatch(loadContainerWaiverList());
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED);
+      expect(actions[0].payload).toBeUndefined();
+    });
+
+    describe('after a successful GET call', () => {
+      beforeEach(function () {
+        jasmine.clock().install();
+      });
+
+      afterEach(function () {
+        jasmine.clock().uninstall();
+      });
+
+      it('dispatches a FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED action', (done) => {
+        const lastUpdated = new Date();
+        mockAxiosCalls({
+          get: {
+            [firewallContainerWaiverListUrl + defaultParams]: Promise.resolve({ data: payload }),
+          },
+        });
+        jasmine.clock().mockDate(lastUpdated);
+
+        store.dispatch(loadContainerWaiverList()).then(() => {
+          actions = store.getActions();
+          expect(actions.length).toBe(3);
+          expect(actions[0].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED);
+          expect(actions[0].payload).toBeUndefined();
+          expect(actions[1].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED);
+          expect(actions[1].payload).toEqual(payload);
+          expect(actions[2].type).toBe(FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED);
+          expect(actions[2].payload).toEqual({ containerWaiverLastUpdated: lastUpdated });
+          done();
+        });
+
+        let actions = store.getActions();
+        expect(actions.length).toBe(1);
+      });
+    });
+
+    it('dispatches a FIREWALL_CONTAINER_WAIVER_LIST_FAILED action after a failed GET call', (done) => {
+      mockAxiosCalls({
+        get: {
+          [firewallContainerWaiverListUrl + defaultParams]: () => Promise.reject('something wrong'),
+        },
+      });
+
+      store.dispatch(loadContainerWaiverList()).then(() => {
+        actions = store.getActions();
+        expect(actions.length).toBe(2);
+        expect(actions[0].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED);
+        expect(actions[0].payload).toBeUndefined();
+        expect(actions[1].type).toBe(FIREWALL_CONTAINER_WAIVER_LIST_FAILED);
+        expect(actions[1].payload).toBe('something wrong');
+        done();
+      });
+
+      let actions = store.getActions();
+      expect(actions.length).toBe(1);
+    });
+  });
+
+  describe('setContainerWaiverGridLastUpdated', function () {
+    it('immediately dispatches actions to set the last updated timestamp for the container waiver grid', () => {
+      let lastUpdated = new Date();
+      store.dispatch(setContainerWaiverGridLastUpdated(lastUpdated));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(1);
+      expect(actions[0].type).toBe(FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED);
+      expect(actions[0].payload).toEqual({ containerWaiverLastUpdated: lastUpdated });
+    });
+  });
+
+  describe('setContainerWaiverGridPage', function () {
+    it('immediately dispatches actions to set container waiver grid page', () => {
+      const page = 2;
+      store.dispatch(setContainerWaiverGridPage(page));
+
+      const actions = store.getActions();
+      expect(actions.length).toBe(2);
+      expect(actions[0].type).toBe(FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE);
+      expect(actions[0].payload).toEqual({ containerWaiverCurrentPage: page });
     });
   });
 });

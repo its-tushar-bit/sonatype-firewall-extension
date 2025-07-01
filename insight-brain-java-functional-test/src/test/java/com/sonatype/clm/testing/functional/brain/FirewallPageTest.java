@@ -25,6 +25,7 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerWaiverTile;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetrics;
@@ -36,6 +37,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Constraint;
@@ -80,6 +82,7 @@ import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
+import static com.sonatype.clm.testing.functional.elements.DashboardViolations.CRITICAL;
 import static com.sonatype.clm.testing.functional.elements.DashboardViolations.SEVERE;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName.COMPONENTS_AUTO_RELEASED;
@@ -1085,5 +1088,118 @@ public class FirewallPageTest
     waiver1.scope().shouldHave(text(repository.getName()));
     waiver1.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
     waiver1.upgradeAvailable().shouldHave(text("—"));
+  }
+
+  @Test
+  public void testContainerWaiverTable_rendersCorrectly() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallPage.urlToFirewallContainerWaivers());
+
+    Organization org = tempEntity.newOrganization();
+    PolicyWaiver containerImageWaiver = createFirewallContainerPolicyWaiver(org, "app1", 10, 1);
+    PolicyWaiver containerImageWaiver1 = createFirewallContainerPolicyWaiver(org, "app2", 6, 3);
+
+    refresh();
+    page.firewallContainerWaiversTabContent().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waiverTableTitle().shouldHave(text("Containers Waived"));
+    page.firewallContainerWaiversTabContent().refreshButton().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waiverTable().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(2));
+
+    ContainerWaiverTile waiver1 = page.firewallContainerWaiversTabContent().waiver(0);
+    waiver1.threatIndicator().shouldBe(CRITICAL);
+    waiver1.threatNumber().shouldHave(text("10"));
+    waiver1.createTime().shouldHave(text(DateFormatUtils.format(containerImageWaiver.getCreateTime(), "yyyy-MM-dd")));
+    waiver1.expiryTime().shouldHave(text(DateFormatUtils.format(containerImageWaiver.getExpiryTime(), "yyyy-MM-dd")));
+    waiver1.policy().shouldHave(text("Multiple-Policy-Types(1)"));
+    waiver1.scope().shouldHave(text("app1"));
+    waiver1.component().shouldHave(text("Multiple Components(1)"));
+
+    ContainerWaiverTile waiver2 = page.firewallContainerWaiversTabContent().waiver(1);
+    waiver2.threatIndicator().shouldBe(SEVERE);
+    waiver2.threatNumber().shouldHave(text("6"));
+    waiver2.createTime().shouldHave(text(DateFormatUtils.format(containerImageWaiver1.getCreateTime(), "yyyy-MM-dd")));
+    waiver2.expiryTime().shouldHave(text(DateFormatUtils.format(containerImageWaiver1.getExpiryTime(), "yyyy-MM-dd")));
+    waiver2.policy().shouldHave(text("Multiple-Policy-Types(1)"));
+    waiver2.scope().shouldHave(text("app2"));
+    waiver2.component().shouldHave(text("Multiple Components(3)"));
+  }
+
+  @Test
+  public void testContainerWaiverTable_rendersCorrectPagination() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallPage.urlToFirewallContainerWaivers());
+
+    Organization org = tempEntity.newOrganization();
+    for (int i = 0; i < 12; i++) {
+      createFirewallContainerPolicyWaiver(org, "app" + i, 10, 1);
+    }
+
+    refresh();
+    page.firewallContainerWaiversTabContent().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waiverTable().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(10));
+
+    // on page 1
+    page.firewallContainerWaiversTabContent().nextPageButton().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().paginationButtons().shouldHave(size(2));
+
+    // goto next page
+    page.firewallContainerWaiversTabContent().nextPageButton().click();
+    waitUntilFirewallPageSpinnersGone();
+
+    page.firewallContainerWaiversTabContent().previousPageButton().shouldBe(visible);
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(2));
+
+    // goto previous page
+    page.firewallContainerWaiversTabContent().previousPageButton().click();
+    waitUntilFirewallPageSpinnersGone();
+
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(10));
+
+    // goto page 2
+    page.firewallContainerWaiversTabContent().paginationButtons().get(1).click();
+    waitUntilFirewallPageSpinnersGone();
+
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(2));
+
+    // goto page 1
+    page.firewallContainerWaiversTabContent().paginationButtons().get(0).click();
+    waitUntilFirewallPageSpinnersGone();
+
+    page.firewallContainerWaiversTabContent().waivers().shouldHave(size(10));
+  }
+
+  private PolicyWaiver createFirewallContainerPolicyWaiver(
+      Organization org,
+      String appName,
+      int threatNumber,
+      int containerImageComponentCount)
+  {
+    Application app = tempEntity.newApplication(appName, appName, org.getId());
+    Policy policy = tempEntity.newPolicy(app, threatNumber);
+    Date now = new Date();
+    Date twoDaysAgo = DateUtils.addDays(now, -2);
+    Date threeDaysFromNow = DateUtils.addDays(now, 3);
+
+    for (int i = 0; i < containerImageComponentCount; i++) {
+      tempEntity.newWaiver(new PolicyWaiver()
+          .setHash(appName + i)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setCreateTime(twoDaysAgo)
+          .setExpiryTime(threeDaysFromNow)
+          .setForContainerImage(false)
+          .setForContainerImageComponent(true));
+    }
+
+    return tempEntity.newWaiver(new PolicyWaiver()
+        .setHash(null)
+        .setPolicyId(policy.getId())
+        .setOwnerId(app.getId())
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setForContainerImage(true)
+        .setForContainerImageComponent(false));
   }
 }

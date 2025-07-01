@@ -13,6 +13,9 @@ import com.sonatype.clm.testing.functional.pages.ApplicationReportPage.CipModal;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.createSelector;
+import static com.sonatype.clm.testing.functional.utils.SelectorUtils.nthChild;
+
 public class FirewallPageComponents
 {
   public static final String TEXT_LINK = ".nx-text-link";
@@ -321,6 +324,82 @@ public class FirewallPageComponents
 
     public SelenideElement tabPanel(String id) {
       return child("#firewall-" + id + "-tab-panel");
+    }
+  }
+
+  public static class FirewallContainerWaiversTabContent
+      extends BasicElement<FirewallContainerWaiversTabContent>
+  {
+    public FirewallContainerWaiversTabContent(String rootSelector) {
+      super(rootSelector, "#firewall-container-waiver-tab-content");
+    }
+
+    public SelenideElement refreshButton() {
+      return child(".refresh-button");
+    }
+
+    public SelenideElement waiverTableTitle() {
+      return child(".nx-h2");
+    }
+
+    public SelenideElement waiverTable() {
+      return child("#firewall-container-waiver-table");
+    }
+
+    public ElementsCollection waivers() {
+      return children(".firewall-container-waiver");
+    }
+
+    public ContainerWaiverTile waiver(int index) {
+      return new ContainerWaiverTile(childSelector(createSelector(".firewall-container-waiver", nthChild(index + 1))));
+    }
+
+    public SelenideElement previousPageButton() {
+      return childXpath("//button[@aria-label='goto previous page']");
+    }
+
+    public SelenideElement nextPageButton() {
+      return childXpath("//button[@aria-label='goto next page']");
+    }
+
+    public ElementsCollection paginationButtons() {
+      return children(".nx-btn--pagination.nx-btn");
+    }
+  }
+
+  public static class ContainerWaiverTile
+      extends BasicElement<ContainerWaiverTile>
+  {
+    public ContainerWaiverTile(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement threatIndicator() {
+      return child(".waiver-threat-cell .nx-threat-indicator");
+    }
+
+    public SelenideElement threatNumber() {
+      return child(".waiver-threat-cell .nx-threat-number");
+    }
+
+    public SelenideElement createTime() {
+      return child(createSelector(".nx-cell", nthChild(2)));
+    }
+
+    public SelenideElement expiryTime() {
+      return child(createSelector(".nx-cell", nthChild(3)));
+    }
+
+    public SelenideElement policy() {
+      return child(createSelector(".nx-cell", nthChild(4)));
+    }
+
+    public SelenideElement scope() {
+      return child(createSelector(".nx-cell", nthChild(5)));
+    }
+
+    public SelenideElement component() {
+      return child(createSelector(".nx-cell", nthChild(6)));
     }
   }
 }

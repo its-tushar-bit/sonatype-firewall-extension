@@ -120,6 +120,15 @@ describe('firewallReducer', function () {
       containerCurrentPage: null,
       containerLastUpdated: null,
     }),
+    containerWaiverGridState: Object.freeze({
+      loadContainerWaiverGridError: null,
+      loadingContainerWaiverList: false,
+      containerWaiverList: [],
+      containerWaiverPageCount: 0,
+      containerWaiverPageSize: 10,
+      containerWaiverCurrentPage: null,
+      containerWaiverLastUpdated: null,
+    }),
   });
 
   describe('initial state', function () {
@@ -1462,6 +1471,123 @@ describe('firewallReducer', function () {
           violationDetails: [],
           firewallViolationDetailsError: 'Error',
           firewallViolationDetailsLoading: false,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED action', () => {
+    it('updates the state and sets loadingContainerWaiverList to true', () => {
+      let minimumState = {
+        containerWaiverGridState: {
+          loadingContainerWaiverList: false,
+          loadContainerWaiverGridError: null,
+          containerWaiverList: [],
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_CONTAINER_WAIVER_LIST_REQUESTED' })).toEqual({
+        ...minimumState,
+        containerWaiverGridState: {
+          ...minimumState.containerWaiverGridState,
+          loadingContainerWaiverList: true,
+          loadContainerWaiverGridError: null,
+          containerWaiverList: [],
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED action', () => {
+    it('updates the state and sets containerWaiverList with the response results', () => {
+      let minimumState = {
+        containerWaiverGridState: {
+          loadingContainerWaiverList: true,
+          loadContainerWaiverGridError: null,
+          containerWaiverList: [],
+          containerWaiverCurrentPage: null,
+          containerWaiverPageCount: 0,
+        },
+      };
+
+      const payload = {
+        total: 1,
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        results: [{ waiver1: 'waiver1Val' }, { waiver2: 'waiver2Val' }],
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_CONTAINER_WAIVER_LIST_FULFILLED', payload })).toEqual({
+        ...minimumState,
+        containerWaiverGridState: {
+          ...minimumState.containerWaiverGridState,
+          loadingContainerWaiverList: false,
+          loadContainerWaiverGridError: null,
+          containerWaiverList: payload.results,
+          containerWaiverCurrentPage: 0,
+          containerWaiverPageCount: 1,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CONTAINER_WAIVER_LIST_FAILED action', () => {
+    it('updates the state and sets containerWaiverListError with the request error message', () => {
+      let minimumState = {
+        containerWaiverGridState: {
+          loadingContainerWaiverList: true,
+          loadContainerWaiverGridError: null,
+          containerWaiverList: [],
+        },
+      };
+
+      expect(reduce(minimumState, { type: 'FIREWALL_CONTAINER_WAIVER_LIST_FAILED', payload: 'Error' })).toEqual({
+        ...minimumState,
+        containerWaiverGridState: {
+          ...minimumState.containerWaiverGridState,
+          loadingContainerWaiverList: false,
+          loadContainerWaiverGridError: 'Error',
+          containerWaiverList: [],
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED action', () => {
+    it('updates the state and sets containerWaiverLastUpdated', () => {
+      let minimumState = {
+        containerWaiverGridState: {
+          containerWaiverLastUpdated: null,
+        },
+      };
+
+      const lastUpdated = new Date();
+      const payload = { containerWaiverLastUpdated: lastUpdated };
+      expect(reduce(minimumState, { type: 'FIREWALL_CONTAINER_WAIVER_GRID_SET_LAST_UPDATED', payload })).toEqual({
+        ...minimumState,
+        containerWaiverGridState: {
+          ...minimumState.containerWaiverGridState,
+          containerWaiverLastUpdated: lastUpdated,
+        },
+      });
+    });
+  });
+
+  describe('FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE action', () => {
+    it('updates the state and sets containerWaiverCurrentPage', () => {
+      let minimumState = {
+        containerWaiverGridState: {
+          containerWaiverCurrentPage: null,
+        },
+      };
+      const page = 2;
+      const payload = { containerWaiverCurrentPage: page };
+      expect(reduce(minimumState, { type: 'FIREWALL_CONTAINER_WAIVER_GRID_SET_PAGE', payload })).toEqual({
+        ...minimumState,
+        containerWaiverGridState: {
+          ...minimumState.containerWaiverGridState,
+          containerWaiverCurrentPage: page,
         },
       });
     });

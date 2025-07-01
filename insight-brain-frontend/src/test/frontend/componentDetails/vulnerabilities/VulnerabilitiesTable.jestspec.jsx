@@ -8,7 +8,6 @@ import { render, screen } from 'TestRoot/SpecUtil';
 import { within } from '@testing-library/react';
 import VulnerabilitiesTable from 'MainRoot/componentDetails/VulnerabilitiesTableTile/VulnerabilitiesTable';
 import { SONATYPE_ID_SOURCE, SONATYPE_ID_SOURCE_FOR_UI } from 'MainRoot/util/vulnerabilityUtils';
-import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 describe('VulnerabilitiesTable', () => {
   const TEST_REF_ID = 'CVE-123';
@@ -52,10 +51,7 @@ describe('VulnerabilitiesTable', () => {
 
     expect(actualCells[0]).toHaveTextContent(actualVulnerability.severity);
     expect(actualCells[1]).toHaveTextContent(actualVulnerability.refId);
-
-    isNilOrEmpty(actualVulnerability.identificationSource)
-      ? expect(actualCells[2].firstChild).toBeEmptyDOMElement()
-      : expect(actualCells[2]).toHaveTextContent(actualVulnerability.identificationSource);
+    expect(actualCells[2]).toHaveTextContent('Sonatype Enhanced');
     expect(actualCells[3]).toHaveTextContent(actualVulnerability.status);
   };
 
@@ -65,17 +61,18 @@ describe('VulnerabilitiesTable', () => {
     const vulnerabilitiesTableCols = within(vulnerabilitiesTable).getAllByRole('columnheader');
     expect(vulnerabilitiesTableCols[0]).toHaveTextContent('CVSS');
     expect(vulnerabilitiesTableCols[1]).toHaveTextContent('ISSUE');
-    expect(vulnerabilitiesTableCols[2]).toHaveTextContent('IDENTIFICATION SOURCE');
+    expect(vulnerabilitiesTableCols[2]).toHaveTextContent('DATA ENRICHMENT');
     expect(vulnerabilitiesTableCols[3]).toHaveTextContent('STATUS');
 
     const vulnerabilitiesTableRows = within(vulnerabilitiesTable).getAllByRole('row');
     expect(vulnerabilitiesTableRows[1]).toHaveTextContent('No vulnerabilities');
   });
 
-  it('renders table with vulnerability and valid identification source', async () => {
+  it('renders table with vulnerability and valid data enrichment', async () => {
     const testVulnerability = {
       ...TEST_BASE_VULNERABILITY,
       identificationSource: SONATYPE_ID_SOURCE,
+      detectionType: 'OTHER',
     };
 
     renderComponent(withNewState([testVulnerability]));
@@ -83,5 +80,21 @@ describe('VulnerabilitiesTable', () => {
       ...testVulnerability,
       identificationSource: SONATYPE_ID_SOURCE_FOR_UI,
     });
+  });
+
+  it('renders table with vulnerability and empty data enrichment when dataEnrichmentCalculator returns undefined', async () => {
+    const testVulnerability = {
+      ...TEST_BASE_VULNERABILITY,
+      identificationSource: null,
+      detectionType: null,
+    };
+
+    renderComponent(withNewState([testVulnerability]));
+
+    const dataRow = screen.getAllByRole('rowgroup')[1];
+    const actualRow = within(dataRow).getAllByRole('row')[0];
+    const actualCells = within(actualRow).getAllByRole('cell');
+
+    expect(actualCells[2]).toHaveTextContent('');
   });
 });

@@ -134,18 +134,20 @@ describe('Vulnerabilities Tile', () => {
     let rowCells = within(headersRow).getAllByRole('columnheader');
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
-    expect(rowCells[2]).toHaveTextContent('Verified Status');
-    expect(rowCells[3]).toHaveTextContent('Analysis State');
-    expect(rowCells[4]).toHaveTextContent('Justification');
-    expect(rowCells[5]).toHaveTextContent('Action');
+    expect(rowCells[2]).toHaveTextContent('Verification');
+    expect(rowCells[3]).toHaveTextContent('Data Enrichment');
+    expect(rowCells[4]).toHaveTextContent('Analysis State');
+    expect(rowCells[5]).toHaveTextContent('Justification');
+    expect(rowCells[6]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('6');
     expect(rowCells[1]).toHaveTextContent('CVE-2022-38752');
-    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
-    expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
-    expect(rowCells[4]).toHaveTextContent('Requires dependency');
+    expect(rowCells[2]).toHaveTextContent('');
+    expect(rowCells[3]).toHaveTextContent('');
+    expect(rowCells[4]).toHaveTextContent('Resolved with Pedigree');
+    expect(rowCells[5]).toHaveTextContent('Requires dependency');
     const dropdownFirstRow = within(firstRow).getByRole('button');
     fireEvent.click(dropdownFirstRow);
     expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
@@ -156,10 +158,10 @@ describe('Vulnerabilities Tile', () => {
     rowCells = within(secondRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('4');
     expect(rowCells[1]).toHaveTextContent('CVE-2019-10247');
-    expect(rowCells[2]).toHaveTextContent('Sonatype Verified');
-    expect(rowCells[3]).toHaveTextContent('Unannotated');
-    expect(rowCells[3]).toHaveTextContent('Exploitable');
-    expect(rowCells[4]).toHaveTextContent('Requires dependency');
+    expect(rowCells[2]).toHaveTextContent('');
+    expect(rowCells[3]).toHaveTextContent('');
+    expect(rowCells[4]).toHaveTextContent('Unannotated');
+    expect(rowCells[5]).toHaveTextContent('Requires dependency');
     const dropdownSecondRow = within(secondRow).getByRole('button');
     fireEvent.click(dropdownSecondRow);
     expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
@@ -171,9 +173,10 @@ describe('Vulnerabilities Tile', () => {
     rowCells = within(thirdRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('2');
     expect(rowCells[1]).toHaveTextContent('CVE-2019-11358');
-    expect(rowCells[2]).toHaveTextContent('Unverified');
-    expect(rowCells[3]).toHaveTextContent('Resolved');
-    expect(rowCells[4]).toHaveTextContent('Protected by mitigating control');
+    expect(rowCells[2]).toHaveTextContent('');
+    expect(rowCells[3]).toHaveTextContent('');
+    expect(rowCells[4]).toHaveTextContent('Resolved');
+    expect(rowCells[5]).toHaveTextContent('Protected by mitigating control');
     const dropdownThirdRow = within(thirdRow).getByRole('button');
     fireEvent.click(dropdownThirdRow);
     expect(screen.getByRole('button', { name: 'Edit Annotation' })).toBeVisible();
@@ -194,16 +197,18 @@ describe('Vulnerabilities Tile', () => {
     let rowCells = within(headersRow).getAllByRole('columnheader');
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
-    expect(rowCells[2]).toHaveTextContent('Analysis State');
-    expect(rowCells[3]).toHaveTextContent('Justification');
-    expect(rowCells[4]).toHaveTextContent('Action');
+    expect(rowCells[2]).toHaveTextContent('Data Enrichment');
+    expect(rowCells[3]).toHaveTextContent('Analysis State');
+    expect(rowCells[4]).toHaveTextContent('Justification');
+    expect(rowCells[5]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('10');
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41182');
-    expect(rowCells[2]).toHaveTextContent('Unannotated');
-    expect(rowCells[3]).toHaveTextContent('');
+    expect(rowCells[2]).toHaveTextContent('Sonatype Enhanced');
+    expect(rowCells[3]).toHaveTextContent('Unannotated');
+    expect(rowCells[4]).toHaveTextContent('');
     const dropdownFirstRow = within(firstRow).getByRole('button');
     fireEvent.click(dropdownFirstRow);
     expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
@@ -213,8 +218,9 @@ describe('Vulnerabilities Tile', () => {
     rowCells = within(secondRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('8');
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41183');
-    expect(rowCells[2]).toHaveTextContent('Unannotated');
-    expect(rowCells[3]).toHaveTextContent('');
+    expect(rowCells[2]).toHaveTextContent('Sonatype Enhanced');
+    expect(rowCells[3]).toHaveTextContent('Unannotated');
+    expect(rowCells[4]).toHaveTextContent('');
     const dropdownSecondRow = within(secondRow).getByRole('button');
     fireEvent.click(dropdownSecondRow);
     expect(screen.getByRole('button', { name: 'Add Annotation' })).toBeVisible();
@@ -235,9 +241,10 @@ describe('Vulnerabilities Tile', () => {
     let rowCells = within(headersRow).getAllByRole('columnheader');
     expect(rowCells[0]).toHaveTextContent('CVSS Score');
     expect(rowCells[1]).toHaveTextContent('Issue');
-    expect(rowCells[2]).toHaveTextContent('Analysis State');
-    expect(rowCells[3]).toHaveTextContent('Justification');
-    expect(rowCells[4]).toHaveTextContent('Action');
+    expect(rowCells[2]).toHaveTextContent('Data Enrichment');
+    expect(rowCells[3]).toHaveTextContent('Analysis State');
+    expect(rowCells[4]).toHaveTextContent('Justification');
+    expect(rowCells[5]).toHaveTextContent('Action');
 
     const firstRow = tableRows[1];
     rowCells = within(firstRow).getAllByRole('cell');
@@ -288,19 +295,22 @@ describe('Vulnerabilities Tile', () => {
       let rowCells = within(firstRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('10');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
-      expect(rowCells[2]).toHaveTextContent('Resolved');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved');
 
       const secondRow = tableRows[2];
       rowCells = within(secondRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('5');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
-      expect(rowCells[2]).toHaveTextContent('Unannotated');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Unannotated');
 
       const thirdRow = tableRows[3];
       rowCells = within(thirdRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('1');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
-      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
     });
 
     it('renders the table in the correct sorting order: cvssScore, ascending', async () => {
@@ -319,19 +329,22 @@ describe('Vulnerabilities Tile', () => {
       let rowCells = within(firstRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('1');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
-      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
 
       const secondRow = tableRows[2];
       rowCells = within(secondRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('5');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
-      expect(rowCells[2]).toHaveTextContent('Unannotated');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Unannotated');
 
       const thirdRow = tableRows[3];
       rowCells = within(thirdRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('10');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
-      expect(rowCells[2]).toHaveTextContent('Resolved');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved');
     });
 
     it('renders the table in the correct sorting order: analysisStatus, ascending', async () => {
@@ -351,19 +364,22 @@ describe('Vulnerabilities Tile', () => {
       rowCells = within(firstRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('10');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
-      expect(rowCells[2]).toHaveTextContent('Resolved');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved');
 
       const secondRow = tableRows[2];
       rowCells = within(secondRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('1');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
-      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
 
       const thirdRow = tableRows[3];
       rowCells = within(thirdRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('5');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
-      expect(rowCells[2]).toHaveTextContent('Unannotated');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Unannotated');
     });
 
     it('renders the table in the correct sorting order: analysisStatus, descending', async () => {
@@ -383,19 +399,22 @@ describe('Vulnerabilities Tile', () => {
       rowCells = within(firstRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('5');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0001');
-      expect(rowCells[2]).toHaveTextContent('Unannotated');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Unannotated');
 
       const secondRow = tableRows[2];
       rowCells = within(secondRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('1');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0003');
-      expect(rowCells[2]).toHaveTextContent('Resolved with Pedigree');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved with Pedigree');
 
       const thirdRow = tableRows[3];
       rowCells = within(thirdRow).getAllByRole('cell');
       expect(rowCells[0]).toHaveTextContent('10');
       expect(rowCells[1]).toHaveTextContent('CVE-0000-0002');
-      expect(rowCells[2]).toHaveTextContent('Resolved');
+      expect(rowCells[2]).toHaveTextContent('');
+      expect(rowCells[3]).toHaveTextContent('Resolved');
     });
   });
 });

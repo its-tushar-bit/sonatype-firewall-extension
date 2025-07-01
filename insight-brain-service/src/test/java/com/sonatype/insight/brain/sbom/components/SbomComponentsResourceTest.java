@@ -33,6 +33,8 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.sbom.components.SbomComponentsResource.SBOM_SUMMARY_PATH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SbomComponentsResourceTest extends AbstractResourceTest
@@ -68,7 +70,8 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
             "f1", "n1", "v1", "1249e25aebb15358bedd",
             "pkg:f1/group/n1@v1?type=jar", List.of("dependency:/bom.json/pkg:f1\\n1@v1"), null,
             "similar");
-    tempEntity.newThirdPartyCoordinateSecurity(component, "cve", "d1", "l1", 9, "d1", "f1");
+    tempEntity.newThirdPartyCoordinateSecurity(component, "cve", null, "d1", "l1", 9, "f1", "v1", "cvs1", "d1",
+        "cwes1", "m1", "r1", "ad1", "SBOM", PUBLIC_RESEARCH.getId(), CPE_MATCH.getId());
     File reportFile = work.getReportFile(app.getId(), thirdPartyScan.getScanId());
     FileUtils.copyURLToFile(ReportHelper
         .zipReport("/SbomComponentsResourceTest", tempDir), reportFile);
@@ -97,6 +100,8 @@ public class SbomComponentsResourceTest extends AbstractResourceTest
     assertThat(actual.getVulnerabilitySummary().getVerifiedVulnerabilitiesCount()).isZero();
     assertThat(actual.getVulnerabilitySummary().getUnverifiedVulnerabilitiesCount()).isEqualTo(1);
     assertThat(actual.getDisclosedVulnerabilities().size()).isOne();
+    assertThat(actual.getDisclosedVulnerabilities().get(0).getResearchType()).isEqualTo(PUBLIC_RESEARCH.getId());
+    assertThat(actual.getDisclosedVulnerabilities().get(0).getDetectionType()).isEqualTo(CPE_MATCH.getId());
     assertThat(actual.getSonatypeIdentifiedVulnerabilities()).isEmpty();
     assertThat(actual.getOccurrences()).isNotEmpty().hasSize(1);
     assertThat(actual.getOccurrences()).isEqualTo(component.getOccurrencesList());

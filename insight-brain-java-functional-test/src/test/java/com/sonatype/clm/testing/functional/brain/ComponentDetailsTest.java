@@ -1119,14 +1119,14 @@ public class ComponentDetailsTest
     vulnerabilitiesTable.shouldBe(visible);
 
     vulnerabilitiesTable.getHeaderRow().findAll(By.tagName("th"))
-        .shouldHave(exactTexts("CVSS", "ISSUES", "IDENTIFICATION SOURCE", "STATUS", ""));
+        .shouldHave(exactTexts("CVSS", "ISSUES","DATA ENRICHMENT", "STATUS", ""));
 
     vulnerabilitiesTable.getRows().shouldHave(size(3));
     ElementsCollection rowCells = vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"));
     rowCells.shouldHave(size(5));
-    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "Open", ""));
+    rowCells.shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Enhanced", "Open", ""));
     rowCells = vulnerabilitiesTable.getRow(2).findAll(By.tagName("td"));
-    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Disclosed in SBOM", "Open", ""));
+    rowCells.shouldHave(exactTexts("4", "OSVDB-1234", "Public Data", "Open", ""));
     rowCells = vulnerabilitiesTable.getRows().last().findAll(By.tagName("td"));
     rowCells.shouldHave(exactTexts("0", "OSVDB-4321", "", "Open", ""));
   }
@@ -1170,29 +1170,26 @@ public class ComponentDetailsTest
     weaknessContent.shouldHave(text("CWE123 (Custom)"));
     weaknessContent.shouldHave(text("Sonatype CWE400"));
 
-    SelenideElement detectionTypeContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
-    detectionTypeContent.shouldHave(text("Primary"));
-    assertVulnerabilityDetailsTooltip(detectionTypeContent);
-
-    // Check tooltip text for the primary detection type
-    SelenideElement primarySpan = detectionTypeContent.find("span");
-    String expectedTooltipTextOnPrimary =
-        "Research has validated the association between the component and the vulnerability";
-    primarySpan.shouldHave(attribute("title", expectedTooltipTextOnPrimary));
-
-    SelenideElement identificationSourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
-    identificationSourceContent.shouldHave(text("Sonatype Identified"));
-    assertVulnerabilityDetailsTooltip(identificationSourceContent);
-
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
-    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(8);
+    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
     categoriesContent.shouldHave(text("Data"));
 
     SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByLabel("CVSS Details");
     cvssDetailsContent.shouldHave(text("Severity8.0 (Custom)"));
     cvssDetailsContent.shouldHave(text("Vector Stringtest/vector (Custom)"));
+
+    // Validate the "Vulnerability Research Metadata" section
+    SelenideElement researchMetadataAccordion = $("#vulnerability-research-metadata-accordion");
+    researchMetadataAccordion.shouldBe(visible);
+    researchMetadataAccordion.click();
+
+    SelenideElement detectionType = researchMetadataAccordion.$("span[aria-label^='Detection Type:']");
+    detectionType.shouldHave(text("Primary"));
+
+    SelenideElement detectionSource = researchMetadataAccordion.$("span[aria-label^='Detection Source:']");
+    detectionSource.shouldHave(text("Sonatype Identified"));
 
     VulnerabilityOverrideForm vulnerabilityOverrideForm = vulnerabilityDetailsPopover.getVulnerabilityOverrideForm();
     vulnerabilityOverrideForm.shouldBe(visible);
@@ -1218,7 +1215,7 @@ public class ComponentDetailsTest
     vulnerabilityDetailsPopover.shouldNotBe(visible);
 
     vulnerabilitiesTable.getRows().first().findAll(By.tagName("td"))
-        .shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Identified", "Confirmed", ""));
+        .shouldHave(exactTexts("9", "CVE-1234-56789", "Sonatype Enhanced", "Confirmed", ""));
 
     firstRow.click();
     vulnerabilityOverrideForm.status().getElement().shouldHave(text("CONFIRMED"));

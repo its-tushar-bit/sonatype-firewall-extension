@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import { NxTable, NxTableBody, NxTableCell, NxTableHead, NxTableRow } from '@sonatype/react-shared-components';
 import VulnerabilitiesTableRow from './VulnerabilitiesTableRow';
 import { vulnerabilityPropTypes } from './VulnerabilitiesTableRow';
+import { getDataEnrichmentValue } from 'MainRoot/util/vulnerabilityUtils';
 
 const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVulnerabilityPopoverWithEffects }) => {
   useEffect(() => {
@@ -20,7 +21,7 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVuln
         <NxTableRow>
           <NxTableCell>CVSS</NxTableCell>
           <NxTableCell>ISSUES</NxTableCell>
-          <NxTableCell>IDENTIFICATION SOURCE</NxTableCell>
+          <NxTableCell>DATA ENRICHMENT</NxTableCell>
           <NxTableCell>STATUS</NxTableCell>
           <NxTableCell />
         </NxTableRow>
@@ -36,6 +37,7 @@ const VulnerabilitiesTable = ({ vulnerabilities, loadVulnerabilities, toggleVuln
             key={vulnerability.refId}
             vulnerability={vulnerability}
             toggleVulnerabilityPopoverWithEffects={toggleVulnerabilityPopoverWithEffects}
+            dataEnrichmentCalculator={getDataEnrichmentValue}
           />
         ))}
       </NxTableBody>

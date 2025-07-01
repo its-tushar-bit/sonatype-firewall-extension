@@ -44,6 +44,7 @@ import { selectIssueForActions } from 'MainRoot/sbomManager/features/componentDe
 import { analysisStatusIndicator, transformJustification } from './componentDetailsUtils';
 import cx from 'classnames';
 import { pickFirstVexResponse } from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawer';
+import { getDataEnrichmentValue } from 'MainRoot/util/vulnerabilityUtils';
 
 export const isVexFieldAnnotated = (vexFieldAnnotation, vulnerabilityValidVexFieldStates) => {
   return (
@@ -124,15 +125,18 @@ export default function VulnerabilitiesTile(props) {
 
           {isDisclosedVulnerabilities && (
             <NxTable.Cell>
-              <div>
+              <div className="sbom-verified-wrapper">
                 <NxFontAwesomeIcon
                   className={vulnerability.verified ? 'sbom-verified-icon' : 'sbom-unverified-icon'}
                   icon={vulnerability.verified ? faCheckCircle : faExclamationTriangle}
                 />
-                <span>{vulnerability.verified ? 'Sonatype Verified' : 'Unverified'}</span>
               </div>
             </NxTable.Cell>
           )}
+
+          <NxTable.Cell>
+            {getDataEnrichmentValue(vulnerability.detectionType, vulnerability.identificationSources)?.value || ''}
+          </NxTable.Cell>
 
           <NxTable.Cell>
             {analysisStatusIndicator(vulnerability.analysisStatus)}{' '}
@@ -246,7 +250,8 @@ export default function VulnerabilitiesTile(props) {
             <NxTable.Row>
               <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.cvssScore)}>CVSS Score</NxTable.Cell>
               <NxTable.Cell>Issue</NxTable.Cell>
-              {isDisclosedVulnerabilities && <NxTable.Cell>Verified Status</NxTable.Cell>}
+              {isDisclosedVulnerabilities && <NxTable.Cell className="sbom-verified-header">Verification</NxTable.Cell>}
+              <NxTable.Cell>Data Enrichment</NxTable.Cell>
               <NxTable.Cell {...sortableConfigCreator(SORT_BY_FIELDS.analysisStatus)}>Analysis State</NxTable.Cell>
               <NxTable.Cell>Justification</NxTable.Cell>
               <NxTable.Cell>Actions</NxTable.Cell>

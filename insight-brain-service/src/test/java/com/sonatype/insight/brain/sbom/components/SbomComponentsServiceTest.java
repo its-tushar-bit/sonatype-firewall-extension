@@ -40,6 +40,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.PRIMARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.SECONDARY;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.FAST_TRACK;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.PUBLIC_RESEARCH;
+import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType.VENDOR_RESEARCH;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertThrows;
@@ -87,14 +93,14 @@ public class SbomComponentsServiceTest
         tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
             "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
     ThirdPartyCoordinateSecurity vulnerabilityC =
-        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve3", "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
-            "cwes3", "m3", "r3", "ad3", "Sonatype");
+        tempEntity.newThirdPartyCoordinateSecurity(componentA, "cve3", null, "d3", "l3", 5, "f3", "v3", "cvs3", "sd3",
+            "cwes3", "m3", "r3", "ad3", "Sonatype", VENDOR_RESEARCH.getId(), PRIMARY.getId());
     ThirdPartyCoordinateSecurity vulnerabilityD =
-        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve1", "d1", "l1", 6, "f1", "v1", "cvs1", "sd1",
-            "cwes1", "m1", "r1", "ad1", "SBOM");
+        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve1", null, "d1", "l1", 6, "f1", "v1", "cvs1", "sd1",
+            "cwes1", "m1", "r1", "ad1", "SBOM", FAST_TRACK.getId(), SECONDARY.getId());
     ThirdPartyCoordinateSecurity vulnerabilityE =
-        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve2", "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
-            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype");
+        tempEntity.newThirdPartyCoordinateSecurity(componentB, "cve2", null, "d2", "l2", 7, "f2", "v2", "cvs2", "sd2",
+            "cwes2", "m2", "r2", "ad2", "SBOM,Sonatype", PUBLIC_RESEARCH.getId(), CPE_MATCH.getId());
 
     ThirdPartyVulnerabilityExploitabilityExchange vexA =
         tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(vulnerabilityA, "cve1", "resolved",
@@ -461,6 +467,9 @@ public class SbomComponentsServiceTest
     assertThat(actual.getDetails()).isEqualTo(vexDetail);
     assertThat(actual.getUpdatedAt()).isEqualTo(updatedAt);
     assertThat(actual.getLastUpdatedBy()).isEqualTo(lastUpdatedBy);
+    assertThat(actual.getIdentificationSources()).isEqualTo(vulnerability.getIdentificationSources());
+    assertThat(actual.getResearchType()).isEqualTo(vulnerability.getResearchType());
+    assertThat(actual.getDetectionType()).isEqualTo(vulnerability.getDetectionType());
   }
 
   @Test

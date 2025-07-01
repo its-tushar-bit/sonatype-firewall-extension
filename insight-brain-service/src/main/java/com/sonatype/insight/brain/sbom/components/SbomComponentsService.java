@@ -239,7 +239,8 @@ public class SbomComponentsService
                   vulnerability.getDescription(),
                   vulnerability.getIdentificationSources().contains(IdentificationSource.SBOM.getName()) &&
                       vulnerability.getIdentificationSources().contains(IdentificationSource.SONATYPE.getName()),
-                  vulnerability.getIdentificationSources());
+                  vulnerability.getIdentificationSources(), vulnerability.getResearchType(),
+                  vulnerability.getDetectionType());
           if (vex != null) {
             vulnerabilityDetailsDTO.setAnalysisStatus(vex.getState());
             vulnerabilityDetailsDTO.setJustification(vex.getJustification());

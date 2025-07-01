@@ -151,11 +151,11 @@ public class ComponentDetailsPageTest
     checkDisclosedVulnerabilitiesTableHeader();
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableRows().shouldHave(size(3));
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.disclosedVulnerabilities(),
-        "5.6", "ABC-123", "Unverified", "Unannotated", " ");
+        "5.6", "ABC-123", "Unverified", " ", "Unannotated", " ");
 
     checkSonatypeVulnerabilitiesTableHeader(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile());
     assertVulnerabilityTableRowContent(sbomManagerComponentDetailsPage.sonatypeVulnerabilitiesTile(),
-        "9.6", "sonatype-123", null, "Unannotated", " ");
+        "9.6", "sonatype-123", null, " ", "Unannotated", " ");
 
     eyesWatcher.eyesCheck("mockComponent");
   }
@@ -331,7 +331,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(0, 5);
+        .getColumnData(0, 6);
     dropdownButtonFirstRowColumn.shouldBe(visible);
 
     ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
@@ -358,7 +358,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     dropdownButtonFirstRowColumn.shouldBe(visible);
 
     ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
@@ -385,7 +385,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement dropdownButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     dropdownButtonFirstRowColumn.shouldBe(visible);
 
     ElementsCollection rowButtons = dropdownButtonFirstRowColumn.findAll("button");
@@ -412,7 +412,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(0, 5);
+        .getColumnData(0, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -451,7 +451,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -467,9 +467,9 @@ public class ComponentDetailsPageTest
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
         .getColumnData(1, 1).shouldHave(text("DEF-456"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 3).shouldHave(text("exploitable"));
+        .getColumnData(1, 4).shouldHave(text("exploitable"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 4).shouldHave(text("Code not present"));
+        .getColumnData(1, 5).shouldHave(text("Code not present"));
 
     editAnnotationButton.click();
 
@@ -494,9 +494,9 @@ public class ComponentDetailsPageTest
     actionButtonFirstRowColumn.shouldHave(text("Edit"));
 
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 3).shouldHave(text("In triage"));
+        .getColumnData(1, 4).shouldHave(text("In triage"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 4).shouldHave(text("Protected at perimeter"));
+        .getColumnData(1, 5).shouldHave(text("Protected at perimeter"));
 
     editAnnotationButton.click();
 
@@ -514,7 +514,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -557,7 +557,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -604,7 +604,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -642,7 +642,7 @@ public class ComponentDetailsPageTest
     navigateToComponentDetailsPage();
 
     SelenideElement actionButtonFirstRowColumn = sbomManagerComponentDetailsPage.disclosedVulnerabilities()
-        .getColumnData(1, 5);
+        .getColumnData(1, 6);
     actionButtonFirstRowColumn.shouldBe(visible);
     ElementsCollection rowButtons = actionButtonFirstRowColumn.findAll("button");
     SelenideElement ellipsisButton = rowButtons.get(0);
@@ -832,50 +832,55 @@ public class ComponentDetailsPageTest
   }
 
   private void checkDisclosedVulnerabilitiesTableHeader() {
-    sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableHeaders().shouldHave(size(6));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities().tableHeaders().shouldHave(size(7));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(0).shouldHave(
         text("CVSS SCORE"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(1).shouldHave(
         text("ISSUE"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(2).shouldHave(
-        text("VERIFIED STATUS"));
+        text("VERIFICATION"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(3).shouldHave(
-        text("ANALYSIS STATE"));
+        text("DATA ENRICHMENT"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(4).shouldHave(
-        text("JUSTIFICATION"));
+        text("ANALYSIS STATE"));
     sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(5).shouldHave(
+        text("JUSTIFICATION"));
+    sbomManagerComponentDetailsPage.disclosedVulnerabilities().getColumnHeader(6).shouldHave(
         text("ACTIONS"));
   }
 
   private void checkSonatypeVulnerabilitiesTableHeader(VulnerabilitiesTableTile table) {
-    table.tableHeaders().shouldHave(size(5));
+    table.tableHeaders().shouldHave(size(6));
     table.getColumnHeader(0).shouldHave(
         text("CVSS SCORE"));
     table.getColumnHeader(1).shouldHave(
         text("ISSUE"));
     table.getColumnHeader(2).shouldHave(
-        text("ANALYSIS STATE"));
+        text("DATA ENRICHMENT"));
     table.getColumnHeader(3).shouldHave(
-        text("JUSTIFICATION"));
+        text("ANALYSIS STATE"));
     table.getColumnHeader(4).shouldHave(
+        text("JUSTIFICATION"));
+    table.getColumnHeader(5).shouldHave(
         text("ACTIONS"));
   }
 
   private void assertVulnerabilityTableRowContent(
       VulnerabilitiesTableTile table,
-      String cvssScore, String issue, String verifiedStatus,
+      String cvssScore, String issue, String verification, String dataEnrichment,
       String analysisStatus, String justification)
   {
     table.getColumnData(0, 0).shouldHave(text(cvssScore));
     table.getColumnData(0, 1).shouldHave(text(issue));
-    if (verifiedStatus != null) {
-      table.getColumnData(0, 2).shouldHave(text(verifiedStatus));
-      table.getColumnData(0, 3).shouldHave(text(analysisStatus));
-      table.getColumnData(0, 4).shouldHave(text(justification));
+    if (verification != null) {
+      table.getColumnData(0, 3).shouldHave(text(dataEnrichment));
+      table.getColumnData(0, 4).shouldHave(text(analysisStatus));
+      table.getColumnData(0, 5).shouldHave(text(justification));
     }
     else {
-      table.getColumnData(0, 2).shouldHave(text(analysisStatus));
-      table.getColumnData(0, 3).shouldHave(text(justification));
+      table.getColumnData(0, 2).shouldHave(text(dataEnrichment));
+      table.getColumnData(0, 3).shouldHave(text(analysisStatus));
+      table.getColumnData(0, 4).shouldHave(text(justification));
     }
   }
 

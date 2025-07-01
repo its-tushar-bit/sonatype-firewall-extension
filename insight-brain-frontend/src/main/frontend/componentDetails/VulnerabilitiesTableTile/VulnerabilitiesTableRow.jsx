@@ -7,9 +7,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
-import { getFormattedIdentificationSourceForUI } from 'MainRoot/util/vulnerabilityUtils';
 
-const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWithEffects }) => {
+const VulnerabilitiesTableRow = ({
+  vulnerability,
+  toggleVulnerabilityPopoverWithEffects,
+  dataEnrichmentCalculator,
+}) => {
   const renderAliases = (aliases) => (!aliases ? '' : aliases.map((a) => <div key={a}>{a}</div>));
   return (
     <NxTableRow
@@ -25,7 +28,9 @@ const VulnerabilitiesTableRow = ({ vulnerability, toggleVulnerabilityPopoverWith
         {!vulnerability?.aliases?.isEmpty && renderAliases(vulnerability.aliases)}
       </NxTableCell>
       <NxTableCell>
-        <div>{getFormattedIdentificationSourceForUI(vulnerability.identificationSource)}</div>
+        <div>
+          {dataEnrichmentCalculator(vulnerability.detectionType, vulnerability.identificationSource)?.value || ''}
+        </div>
       </NxTableCell>
       <NxTableCell>
         <span>{vulnerability.status}</span>
@@ -40,11 +45,14 @@ export const vulnerabilityPropTypes = PropTypes.shape({
   severity: PropTypes.number.isRequired,
   status: PropTypes.string.isRequired,
   aliases: PropTypes.arrayOf(PropTypes.string),
+  detectionType: PropTypes.string.isRequired,
+  identificationSource: PropTypes.string.isRequired,
 });
 
 VulnerabilitiesTableRow.propTypes = {
   vulnerability: vulnerabilityPropTypes,
   toggleVulnerabilityPopoverWithEffects: PropTypes.func.isRequired,
+  dataEnrichmentCalculator: PropTypes.func.isRequired,
 };
 
 export default VulnerabilitiesTableRow;

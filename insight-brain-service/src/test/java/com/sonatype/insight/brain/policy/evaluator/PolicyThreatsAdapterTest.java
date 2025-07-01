@@ -226,6 +226,35 @@ public class PolicyThreatsAdapterTest
   }
 
   @Test
+  public void testCreateProxyPolicyThreats_Actions() {
+    ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
+
+    PolicyViolation mavenViolation = buildPolicyViolation("policy1", "hash1", 10, mavenIdentifier, false,
+        false, Action.ID_FAIL);
+    mavenViolation.setStageTypeId("proxy");
+
+    List<PolicyViolation> violations = Lists.newArrayList(mavenViolation);
+    Map policyIdPolicyOwnerMap = new HashMap<String, Owner>();
+    Application app = new Application("ROOT_ORGANIZATION_ID","ROOT_ORGANIZATION","ROOT_ORGANIZATION_ID");
+    policyIdPolicyOwnerMap.put("policy1", app);
+
+    PolicyThreats threats = PolicyThreatsAdapter.createPolicyThreats(violations, null, policyIdPolicyOwnerMap);
+
+    // Make sure we have two components.
+    assertThat(threats.aaData).hasSize(1);
+
+    // Each component has a fail action
+    for (PolicyThreats.Component component : threats.aaData) {
+      assertThat(component.activeViolations).hasSize(1);
+      assertThat(component.activeViolations.get(0).actions).hasSize(1);
+      List<PolicyThreats.PolicyAction> actions = component.activeViolations.get(0).actions;
+      assertThat(actions.get(0).actionType).isEqualTo(Action.ID_FAIL);
+      assertThat(actions.get(0).actionSummary).isEqualTo("Proxy Failed");
+    }
+    assertPolicyThreats(threats, violations);
+  }
+
+  @Test
   public void testCreatePolicyThreats_Actions() {
     ComponentIdentifier mavenIdentifier = ComponentIdentifier.createMavenCoordinates("g", "a", "v");
     ComponentIdentifier nugetIdentifier = ComponentIdentifier.createNugetCoordinates("p", "v");
@@ -251,7 +280,7 @@ public class PolicyThreatsAdapterTest
       assertThat(component.activeViolations.get(0).actions).hasSize(1);
       List<PolicyThreats.PolicyAction> actions = component.activeViolations.get(0).actions;
       assertThat(actions.get(0).actionType).isEqualTo(Action.ID_FAIL);
-      assertThat(actions.get(0).actionSummary).isEqualTo(ActionTypes.getById(Action.ID_FAIL).getSummary());
+      assertThat(actions.get(0).actionSummary).isEqualTo(ActionTypes.getById(Action.ID_FAIL).getSummary("stageId1"));
     }
     assertPolicyThreats(threats, violations);
   }
@@ -415,7 +444,8 @@ public class PolicyThreatsAdapterTest
 
     for (PolicyThreats.PolicyAction action : policyViolation.actions) {
       assertThat(action.actionType).isEqualTo(violation.getActionTypeId());
-      assertThat(action.actionSummary).isEqualTo(ActionTypes.getById(violation.getActionTypeId()).getSummary());
+      assertThat(action.actionSummary).isEqualTo(
+          ActionTypes.getById(violation.getActionTypeId()).getSummary(violation.getStageTypeId()));
     }
 
     assertPolicyThreatsPolicyConstraints(policyViolation.constraints, violation.getConstraintFacts());

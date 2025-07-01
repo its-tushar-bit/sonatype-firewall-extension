@@ -11,5 +11,5 @@ public interface ActionType
 
   String getName();
 
-  String getSummary();
+  String getSummary(String stageTypeId);
 }

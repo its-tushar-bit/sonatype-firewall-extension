@@ -24,7 +24,10 @@ public class FailActionType
   }
 
   @Override
-  public String getSummary() {
+  public String getSummary(String stageTypeId) {
+    if ("proxy".equalsIgnoreCase(stageTypeId)) {
+      return "Proxy Failed";
+    }
     return "Build Failed";
   }
 }

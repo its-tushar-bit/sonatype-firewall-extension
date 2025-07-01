@@ -24,7 +24,10 @@ public class WarnActionType
   }
 
   @Override
-  public String getSummary() {
+  public String getSummary(String stageTypeId) {
+    if ("proxy".equalsIgnoreCase(stageTypeId)) {
+      return "Proxy Warning";
+    }
     return "Build Warning";
   }
 }

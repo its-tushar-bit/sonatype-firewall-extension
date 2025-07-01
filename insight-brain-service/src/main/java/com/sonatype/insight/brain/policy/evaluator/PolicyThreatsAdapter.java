@@ -112,7 +112,7 @@ public class PolicyThreatsAdapter
     if (violation.getActionTypeId() != null) {
       PolicyThreats.PolicyAction action = new PolicyThreats.PolicyAction();
       action.actionType = violation.getActionTypeId();
-      action.actionSummary = ActionTypes.getById(violation.getActionTypeId()).getSummary();
+      action.actionSummary = ActionTypes.getById(violation.getActionTypeId()).getSummary(violation.getStageTypeId());
       result.add(action);
     }
 

@@ -36,7 +36,7 @@ public class NotifyActionType
   }
 
   @Override
-  public String getSummary() {
+  public String getSummary(String stageTypeId) {
     return "Notification Sent";
   }
 }

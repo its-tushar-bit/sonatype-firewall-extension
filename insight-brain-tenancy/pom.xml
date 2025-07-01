@@ -20,7 +20,7 @@
 
   <properties>
     <auth0.version>1.44.1</auth0.version>
-    <okay.http3.version>4.11.0</okay.http3.version>
+    <okay.http3.version>4.12.0</okay.http3.version>
   </properties>
 
   <dependencies>

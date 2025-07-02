@@ -5,7 +5,61 @@
   "components": [
     {
       "type": "file",
-      "bom-ref": "fa35685e-b34d-4c45-a5e8-c6a6a51f52ef",
+      "bom-ref": "28d1cc5d-fcfc-4eee-ada7-f5a15fc30111",
+      "group": "*",
+      "name": "java_se_runtime_environment",
+      "version": "1.2.3",
+      "purl": "pkg:cpe/%2A/java_se_runtime_environment@1.2.3",
+      "properties": [
+        {
+          "name": "componentRef",
+          "value": "6b46de02a6170f5dab5df776ed7ba3ece5836c10"
+        },
+        {
+          "name": "sonatypeIdentifier",
+          "value": "8efb9cbeb6964a06b40655080db044bc"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "6d508d11-8189-4279-9a5c-10c0cec7e747",
+      "group": "wordpress",
+      "name": "wordpress",
+      "version": "1.2.3",
+      "purl": "pkg:cpe/wordpress/wordpress@1.2.3",
+      "properties": [
+        {
+          "name": "componentRef",
+          "value": "f63a440f52b30aff870c9c11810e199b73badac2"
+        },
+        {
+          "name": "sonatypeIdentifier",
+          "value": "570d3c9973034728bb797261df6ccf3c"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "6fdafabd-b6ab-452b-9954-640e960e2dc6",
+      "group": "monolog",
+      "name": "monolog",
+      "version": "1.2.3",
+      "purl": "pkg:composer/monolog/monolog@1.2.3",
+      "properties": [
+        {
+          "name": "componentRef",
+          "value": "7f7d5ecc1195a98635f0549e68d5f9708031fe8b"
+        },
+        {
+          "name": "sonatypeIdentifier",
+          "value": "3303521387804304a3db82f60e921f81"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "2cbbae01-472f-4975-b853-1adaf187ad76",
       "group": "org.springframework",
       "name": "spring-core",
       "version": "5.3.31",
@@ -13,85 +67,85 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "484d73c139b6896bb297586d369f5130d76800e3"
+          "value": "f31f8fe5edd12673865fcfd3d348cc3dcf3f14fe"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "a67d730738f84890b275c5942bcd6176"
+          "value": "f425ae291a45425f91a03d450a8dde1b"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "b1e97405-9d14-4c58-8754-0f1899a2fbdc",
+      "bom-ref": "b1fcfd2f-6152-4941-bf73-4d441e4dcdd6",
       "name": "Newtonsoft.Json",
       "version": "13.0.3",
       "purl": "pkg:nuget/Newtonsoft.Json@13.0.3",
       "properties": [
         {
           "name": "componentRef",
-          "value": "a3d7769d79b41a7ced9875e4848cba25e6b9f769"
+          "value": "472bc527d6834553de748c43e0a7a1dacffbe616"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "df878de519484916818b7593352d29d5"
+          "value": "1cb9eac9428c4e1d9958db1607bf0df1"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "f1219a79-ec52-4dea-afff-6638f0cbbe28",
+      "bom-ref": "0c5f7afd-7f98-4ea8-bb62-6462adf5bb8d",
       "name": "react",
       "version": "18.2.0",
       "purl": "pkg:npm/react@18.2.0",
       "properties": [
         {
           "name": "componentRef",
-          "value": "12c0c7e53a6396100e999ef9f237d33be7580eb2"
+          "value": "4c3171e22078b114a9a87b73153185654de30bdf"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "7713d7431d5c4279a767b2c0add1627c"
+          "value": "174b7ed7de8149b3b06d1d6d7001610f"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "3aac6871-0ef1-4852-9a42-61dbfa400f63",
+      "bom-ref": "fbd10e2a-e3de-40c6-ace2-d377656d9e19",
       "name": "flask",
       "version": "3.0.3",
       "purl": "pkg:pypi/flask@3.0.3",
       "properties": [
         {
           "name": "componentRef",
-          "value": "c4a145257376d5a1c57d7760d7fc88b7def4ccd9"
+          "value": "d11e0311ba2f43eb5971fc90b51cab0c4db14f5f"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "070135b45b1647939c77d1517a914351"
+          "value": "908e4bd9ab074b5b92bb0c4846a1334d"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "7be95c06-f7c9-42a3-bcd3-b5935a5dcc84",
+      "bom-ref": "0864e231-9b8c-4483-a128-972936ede3b3",
       "name": "rails",
       "version": "7.1.3",
       "purl": "pkg:gem/rails@7.1.3",
       "properties": [
         {
           "name": "componentRef",
-          "value": "947cbaddcb6cb72f961f14dfae639e2562219bfa"
+          "value": "dedef910d31c55755bd92b8d90cf29e6ae875d1e"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "4b034fbc3bc146caa5419b099638258c"
+          "value": "7510f5dc0dbf4371b5d99e4e1e67cce5"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "dd5e4be4-761b-4866-aa1e-08f6d402da2c",
+      "bom-ref": "1aadbeb9-18c2-4d98-9469-7245f9f66764",
       "group": "alpine:3.6.5",
       "name": "alpine-baselayout",
       "version": "3.0.4-r0",
@@ -99,17 +153,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "d38bf9a2b78f87588a8e914c0a4bbfb09d75ff8a"
+          "value": "3568cf7cb999dea48c0e968b395c3793fb1c4e65"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "0764332e6dc2406d8afc42031c805b38"
+          "value": "4672d6bce2e240eeab6f2b72e7cb2b8f"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "8cec454a-576f-4c42-9626-79b220dad8b1",
+      "bom-ref": "27c02a85-8076-4fcd-b2bc-eeec215f9412",
       "group": "alpine:3.6.5",
       "name": "alpine-keys",
       "version": "2.1-r1",
@@ -117,17 +171,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "8d339b51091f4a750e26b54d783f5e224c71eb42"
+          "value": "513b7904bfb1cc6da93243a820d4e4f651703f05"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "fa22764d8bf44fcdb5383c8e1ed4624f"
+          "value": "daaca781b76f42338d597a6a229415e5"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "3ef97d4c-f857-4d0f-8f68-64e2e0d8f844",
+      "bom-ref": "b5e9b23e-f572-4f08-a3ab-c93aaedfa1a9",
       "group": "alpine:3.6.5",
       "name": "zlib",
       "version": "1.2.11-r0",
@@ -135,17 +189,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "bd9de19de820670ae1607fdaa398b5473fc3d611"
+          "value": "492a2959d7cfc6a52d7589c4437b1ff5b3fcb7af"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "8e77df78c0df4f2b8d87dff6b7bf6a23"
+          "value": "e4900ef0a09542e79081c7463e4a3640"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "3b3bf392-6847-4d1c-8428-2190a791083b",
+      "bom-ref": "f93652f9-6fb2-42fc-a124-7522c549f677",
       "group": "alpine:3.6.5",
       "name": "musl",
       "version": "1.1.16-r15",
@@ -153,17 +207,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "6a53c7a252025c4975c6f60e53919ad8c3e962e7"
+          "value": "29f40d6a1368fd9bbb86f2e63c14371e754f7b5a"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "d14625e7e6ec4960b35e9029f7879953"
+          "value": "05ff1693d7c54daeb0cac9fde567382a"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "6d400965-6716-41b9-a174-ea03c7bf27a9",
+      "bom-ref": "b8fa0651-c738-4168-a17d-3c38697010f0",
       "group": "alpine:3.6.5",
       "name": "busybox",
       "version": "1.26.2-r11",
@@ -171,17 +225,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "42a45e426082deab337b75128b790bfdc48fba04"
+          "value": "e23948ebe779dbd5348508dfca2649181dfdf638"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "87ba050a24f74d01919d4398de86c46d"
+          "value": "43c7b0db03144b86b0359f3ab4b011b4"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "3f56ae37-39a0-44d7-bfcb-fb288c0ad275",
+      "bom-ref": "9af18817-f9e2-4b22-9735-ff3af3be6a8f",
       "group": "alpine:3.6.5",
       "name": "libressl",
       "version": "2.5.5-r2",
@@ -189,17 +243,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "6a3d88311991f89190c4e07794d73e5649f7141f"
+          "value": "d74319a6232e7bc6412e8643a9b212e0bc07e44c"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "5716cd97a94c4f8ab8494c0fdd59bd60"
+          "value": "ff3645cafdbe41ac8a8d31ea91e16a07"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "12c20cd5-165b-4934-8fc6-ffdcf22c82dd",
+      "bom-ref": "e1666601-c9f2-4cb0-94a4-3c3ba7914115",
       "group": "alpine:3.6.5",
       "name": "apk-tools",
       "version": "2.7.6-r0",
@@ -207,17 +261,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "37a744172974ba203f987063e4070fb99914e8cb"
+          "value": "dc808a86323dd2d25968b7e31e2f5c2d6547065e"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "01b4e648b331479aa675fc4914d00bba"
+          "value": "53badbc11e094367a4f0ec0efc24c18b"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "6a123474-a2f4-4a38-8f23-d63d3c05b02c",
+      "bom-ref": "7b595d92-5ff3-473c-acb0-0e4c1021532d",
       "group": "alpine:3.6.5",
       "name": "pax-utils",
       "version": "1.2.2-r0",
@@ -225,17 +279,17 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "1276a021781d077375594e6bb47210d91b760fa4"
+          "value": "bf80868970668fc66ad811ad80a005640cb11d6f"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "2cca5b3c303a4612923c216df8186ca7"
+          "value": "d449ff9353444f3980bf7e12434f7bdf"
         }
       ]
     },
     {
       "type": "file",
-      "bom-ref": "d6854f81-4228-4bf6-8d7d-d9be350f63a4",
+      "bom-ref": "02989e5f-5922-4f03-9c78-dea39f968c4e",
       "group": "alpine:3.6.5",
       "name": "libc-dev",
       "version": "0.7.1-r0",
@@ -243,11 +297,11 @@
       "properties": [
         {
           "name": "componentRef",
-          "value": "a945420543d344b9199bf92c3f75c8505fd301e2"
+          "value": "9492a9e0b6400f69e1c1bc6772f1dafdc3c2f744"
         },
         {
           "name": "sonatypeIdentifier",
-          "value": "5aa28f3a6e914362bcefa0ac6994c8e0"
+          "value": "c3a1281cb3ee4545b864156dc8864a58"
         }
       ]
     }

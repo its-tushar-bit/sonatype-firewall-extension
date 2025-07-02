@@ -13,6 +13,21 @@
     "vulnerabilities": [],
     "modules": [
       {
+        "name": "jar:java_se_runtime_environment",
+        "version": "1.2.3",
+        "source": "jar"
+      },
+      {
+        "name": "Wordpress",
+        "version": "1.2.3",
+        "source": "Wordpress"
+      },
+      {
+        "name": "php:monolog:monolog",
+        "version": "1.2.3",
+        "source": "php"
+      },
+      {
         "name": "org.springframework:spring-core",
         "version": "5.3.31",
         "source": "jar"

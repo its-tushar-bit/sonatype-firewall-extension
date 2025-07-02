@@ -252,7 +252,7 @@ public class ContainerResultHandler
         String groupId = parts[0];
         String artifactId = parts[1];
         return groupId.equals("jar")
-          ? ComponentIdentifier.createContainerCoordinates(module.getSource(), resourceId, module.getVersion())
+          ? ComponentIdentifier.createCpeCoordinates("*", artifactId, module.getVersion())
           : ComponentIdentifier.createMavenCoordinates(groupId, artifactId, module.getVersion());
       }
       case ".NET": {
@@ -273,19 +273,16 @@ public class ContainerResultHandler
         String name = resourceId.split(":")[1];
         return ComponentIdentifier.createRubyGemsCoordinates(name, module.getVersion(), null);
       }
-      // TODO: To be implemented after scanner includes namespace/vendor
-      // https://sonatype.atlassian.net/browse/NEXUS-47708
-      // case "php": {
-      //   String[] parts = resourceId.split(":");
-      //   String namespace = parts[0];
-      //   String name = parts[1];
-      //   return ComponentIdentifier.createComposerCoordinates(
-      //           namespace, name, module.getVersion());
-      // }
-      // case "Wordpress": {
-      //   return ComponentIdentifier.createComposerCoordinates(
-      //           resourceId, resourceId, module.getVersion());
-      // }
+      case "php": {
+        String[] parts = resourceId.split(":");
+        String vendor = parts[1];
+        String name = parts[2];
+        return ComponentIdentifier.createComposerCoordinates(
+                vendor, name, module.getVersion());
+      }
+      case "Wordpress":
+        return ComponentIdentifier.createCpeCoordinates(
+                "wordpress", "wordpress", module.getVersion());
       default:
         return ComponentIdentifier.createContainerCoordinates(
                 module.getSource(), resourceId, module.getVersion()

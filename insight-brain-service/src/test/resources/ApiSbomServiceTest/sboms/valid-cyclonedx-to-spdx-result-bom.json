@@ -14,10 +14,6 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
-      "referenceType" : "purl"
-    }, {
       "comment" : "source: SONATYPE",
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://link.to/vuln/Sonatype-2024-123",
@@ -27,6 +23,10 @@
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "https://nvd.nist.gov/vuln/detail/CVE-2007-2353",
       "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/apache/axis@1.0?type=jar",
+      "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "(Apache-2.0 AND MIT)",

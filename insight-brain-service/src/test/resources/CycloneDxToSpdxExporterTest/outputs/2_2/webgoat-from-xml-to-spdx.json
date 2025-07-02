@@ -2,8 +2,8 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.2",
   "creationInfo" : {
-    "created" : "2024-06-11T23:03:54Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.178.0-SNAPSHOT" ]
+    "created" : "2025-07-01T19:00:48Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT" ]
   },
   "name" : "webgoat",
   "dataLicense" : "CC0-1.0",
@@ -32,14 +32,14 @@
       "referenceLocator" : "http://www.source.com/abc-123",
       "referenceType" : "advisory"
     }, {
-      "comment" : "source: SONATYPE",
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2010-0053",
-      "referenceType" : "advisory"
-    }, {
       "comment" : "source: NVD",
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307",
+      "referenceType" : "advisory"
+    }, {
+      "comment" : "source: SONATYPE",
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2010-0053",
       "referenceType" : "advisory"
     } ],
     "filesAnalyzed" : false,
@@ -85,13 +85,13 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "cpe:/a:commons-discovery:commons-discovery:0.2",
-      "referenceType" : "cpe22Type"
-    }, {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:maven/commons-discovery/commons-discovery@0.2?type=jar",
       "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:/a:commons-discovery:commons-discovery:0.2",
+      "referenceType" : "cpe22Type"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
@@ -103,13 +103,13 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/commons-logging/commons-logging@1.0.4?type=jar",
-      "referenceType" : "purl"
-    }, {
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "cpe:2.3:a:commons-logging:commons-logging:1.0.4:*:*:*:*:*:*:*",
       "referenceType" : "cpe23Type"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/commons-logging/commons-logging@1.0.4?type=jar",
+      "referenceType" : "purl"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",
@@ -154,10 +154,10 @@
   }, {
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c"
+    "relatedSpdxElement" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003"
   }, {
     "spdxElementId" : "SPDXRef-c9f3c210-670e-41c0-993b-af8a7768f25b",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-32dd9982-7edc-4cde-85f6-8946cabca003"
+    "relatedSpdxElement" : "SPDXRef-333584e5-0101-4a21-8f5b-61b10926cf3c"
   } ]
 }

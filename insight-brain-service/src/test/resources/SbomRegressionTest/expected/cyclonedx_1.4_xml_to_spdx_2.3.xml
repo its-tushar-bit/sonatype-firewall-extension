@@ -3,8 +3,8 @@
   <SPDXID>SPDXRef-DOCUMENT</SPDXID>
   <spdxVersion>SPDX-2.3</spdxVersion>
   <creationInfo>
-    <created>2025-05-12T06:11:46Z</created>
-    <creators>Tool: Sonatype SBOM Manager - 1.192.0-SNAPSHOT</creators>
+    <created>2025-07-02T10:11:28Z</created>
+    <creators>Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT</creators>
   </creationInfo>
   <name>SbomRegressionTestApp</name>
   <dataLicense>CC0-1.0</dataLicense>
@@ -13,7 +13,7 @@
     <extractedText>Extracted license created by Sonatype SBOM Manager</extractedText>
     <name>Some random license</name>
   </hasExtractedLicensingInfos>
-  <documentNamespace>http://localhost:10040/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1</documentNamespace>
+  <documentNamespace>http://localhost:10064/ui/links/sbomManager/management/view/application/SbomRegressionTestApp/bom/9.1.1</documentNamespace>
   <packages>
     <SPDXID>SPDXRef-pkg-maven-partner-shaded-library-1.0</SPDXID>
     <copyrightText>NOASSERTION</copyrightText>
@@ -66,28 +66,28 @@
     <SPDXID>SPDXRef-gnrtd0</SPDXID>
     <attributionTexts>Evidence license text for: (Apache-2.0)</attributionTexts>
     <checksums>
-      <algorithm>BLAKE2b-256</algorithm>
-      <checksumValue>d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</checksumValue>
-    </checksums>
-    <checksums>
       <algorithm>SHA3-256</algorithm>
       <checksumValue>7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>BLAKE3</algorithm>
-      <checksumValue>26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>MD5</algorithm>
-      <checksumValue>641b6e166f8b33c5e959e2adcc18b1c7</checksumValue>
     </checksums>
     <checksums>
       <algorithm>SHA256</algorithm>
       <checksumValue>d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964</checksumValue>
     </checksums>
     <checksums>
+      <algorithm>BLAKE3</algorithm>
+      <checksumValue>26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>BLAKE2b-256</algorithm>
+      <checksumValue>d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</checksumValue>
+    </checksums>
+    <checksums>
       <algorithm>SHA1</algorithm>
       <checksumValue>9188560f22e0b73070d2efce670c74af2bdf30af</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>641b6e166f8b33c5e959e2adcc18b1c7</checksumValue>
     </checksums>
     <copyrightText>NOASSERTION</copyrightText>
     <description>Modified version of Apache Catalina</description>
@@ -131,19 +131,19 @@
       <checksumValue>2342c2eaf1feb9a80195dbaddf2ebaa3</checksumValue>
     </checksums>
     <checksums>
-      <algorithm>SHA1</algorithm>
-      <checksumValue>68b78babe00a053f9e35ec6a2d9080f5b90122b0</checksumValue>
-    </checksums>
-    <checksums>
       <algorithm>SHA256</algorithm>
       <checksumValue>708f1f53b41f11f02d12a11b1a38d2905d47b099afc71a0f1124ef8582ec7313</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>68b78babe00a053f9e35ec6a2d9080f5b90122b0</checksumValue>
     </checksums>
     <copyrightText>Copyright Example Inc. All rights reserved.</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>cpe:/a:example:myapplication:1.0.0</referenceLocator>
-      <referenceType>cpe22Type</referenceType>
+      <referenceLocator>http://example.org/security</referenceLocator>
+      <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
       <comment>All component versions are documented here</comment>
@@ -152,14 +152,14 @@
       <referenceType>http://cyclonedx.org/referenctype/documentation</referenceType>
     </externalRefs>
     <externalRefs>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>cpe:/a:example:myapplication:1.0.0</referenceLocator>
+      <referenceType>cpe22Type</referenceType>
+    </externalRefs>
+    <externalRefs>
       <referenceCategory>PACKAGE-MANAGER</referenceCategory>
       <referenceLocator>pkg:maven/com.example/myapplication@1.0.0?packaging=war</referenceLocator>
       <referenceType>purl</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://example.org/security</referenceLocator>
-      <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>(GPL-2.0-with-classpath-exception AND EPL-2.0)</licenseConcluded>
@@ -178,16 +178,16 @@
     <attributionTexts>Copyright (C) 2004,2005 University of Maryland</attributionTexts>
     <attributionTexts>Evidence license text for: (LGPL-2.1-only AND Apache-2.0)</attributionTexts>
     <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>cfcb0b64aacd2f81c1cd546543de965a</checksumValue>
+    </checksums>
+    <checksums>
       <algorithm>SHA256</algorithm>
       <checksumValue>0384db3cec55d86a6898c489fdb75a8e75fe66b26639634983d2f3c3558493d1</checksumValue>
     </checksums>
     <checksums>
       <algorithm>SHA1</algorithm>
       <checksumValue>7fbeef2346c45d565c3341f037bce4e088af8a52</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>MD5</algorithm>
-      <checksumValue>cfcb0b64aacd2f81c1cd546543de965a</checksumValue>
     </checksums>
     <copyrightText>NOASSERTION</copyrightText>
     <description>Example Inc, enterprise framework</description>

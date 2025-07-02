@@ -13,13 +13,13 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "SECURITY",
-      "referenceLocator" : "cpe:2.3:a:pip_developers_\\<distutils_sig_project:python-pip:24.0:*:*:*:*:*:*:*",
-      "referenceType" : "cpe23Type"
-    }, {
       "referenceCategory" : "PACKAGE-MANAGER",
       "referenceLocator" : "pkg:pypi/pip@24.0",
       "referenceType" : "purl"
+    }, {
+      "referenceCategory" : "SECURITY",
+      "referenceLocator" : "cpe:2.3:a:pip_developers_\\<distutils_sig_project:python-pip:24.0:*:*:*:*:*:*:*",
+      "referenceType" : "cpe23Type"
     } ],
     "filesAnalyzed" : false,
     "licenseConcluded" : "NOASSERTION",

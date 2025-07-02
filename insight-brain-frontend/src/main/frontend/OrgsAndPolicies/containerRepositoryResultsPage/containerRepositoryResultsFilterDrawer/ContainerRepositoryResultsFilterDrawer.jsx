@@ -38,6 +38,7 @@ const ContainerRepositoryResultsFilterDrawer = () => {
     dispatch(actions.setLoading(true));
     dispatch(actions.setPage(1));
     dispatch(actions.loadTable());
+    dispatch(actions.setLoading(false));
   };
 
   const clearFilters = () => {

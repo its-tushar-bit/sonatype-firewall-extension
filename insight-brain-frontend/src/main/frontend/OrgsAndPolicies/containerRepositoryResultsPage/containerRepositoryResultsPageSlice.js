@@ -254,7 +254,7 @@ const loadRepositoryInformationFailed = (state, { payload }) => {
 
 const loadRepositoryInformationFulfilled = (state, { payload }) => {
   state.errorMessage = null;
-  state.repositoryInformation = payload.repositoryInformation;
+  state.repositoryInformation = payload.repository;
 };
 
 // load-evaluation-summary

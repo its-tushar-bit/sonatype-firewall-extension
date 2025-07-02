@@ -46,6 +46,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('AdGem-User-TOS-RD02022021','AdGem-User-TOS-RD02022021','AdGem User Terms of Service - Release Date 02-02-2021');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-RigoChat-NC-LA-RD01152025','ADIC-RigoChat-NC-LA-RD01152025','ADIC RigoChat Non-Commercial License Agreement - Release Date 01-15-2025');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-UPM-MEL-NC-LA-RD05232025','ADIC-UPM-MEL-NC-LA-RD05232025','ADIC and UPM MEL Non-Commercial License Agreement - Release Date 05-23-2025');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-UPM-MEL-NC-LA-UNSPECIFIED','ADIC-UPM-MEL-NC-LA','ADIC-UPM-MEL-NC-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Adikteev-CrossDK-LA','Adikteev-CrossDK-LA','Adikteev CrossDK License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Adobe','Adobe','Adobe Systems Incorporated Source Code License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Adobe-Acrobat-Viewer-EULA','Adobe-Acrobat-Viewer-EULA','Adobe Acrobat Viewer End User License Agreement');
@@ -911,6 +912,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Caldera-no-preamble','Caldera-no-preamble','Caldera License (without preamble)');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Callback-Tech-EULA','Callback-Tech-EULA','Callback Technologies End User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Camellia-License-1.0','Camellia-License-1.0','Camellia License Version 1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Camellia-License-UNSPECIFIED','Camellia-License','Camellia-License-Style Not Identifiable by Sonatype');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Camunda-1.0','Camunda-1.0','Camunda License 1.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('CanvasXpress-ULA','CanvasXpress-ULA','CanvasXpress User License Agreement');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('Capgemini-Technology-Services-License','Capgemini-Technology-Services-License','Capgemini Technology Services License');
@@ -1778,6 +1780,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-1.0+-MIT','GPL-1.0+ or MIT','Dual License Consisting of GPL-1.0 or later and MIT License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-1.0+-UNKNOWN','GPL-1.0+ or Non-Standard','Dual License Consisting of GPL 1.0 or later and Raw License String Could Not Be Mapped to a Standardized SPDX License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-1.0-MIT','GPL-1.0 or MIT','Dual License Consisting of GPL-1.0 and MIT License');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-1.0-OpenSSL','GPL-1.0 or OpenSSL','Dual License Consisting of GPL-1.0 and OpenSSL License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0','GPL-2.0','GNU General Public License v2.0 only');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+','GPL-2.0+','GNU General Public License v2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-GPL-3.0+','GPL-2.0+ or GPL-3.0+','Dual License Consisting of GPL 2.0 or later and GPL 3.0 or later');
@@ -1813,6 +1816,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-MPL-2.0','GPL-2.0+ or MPL-2.0','Dual License Consisting of GPL 2.0 or later and Mozilla Public License 2.0');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-NPL-1.1','GPL-2.0+ or NPL-1.1','Dual License Consisting of GPL 2.0 or later and Netscape Public License v1.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-OFL-UNSPECIFIED','GPL-2.0+ or OFL','Dual License Consisting of GPL 2.0 or later and OFL-Style License Not Identifiable by Sonatype');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-OpenSSL','GPL-2.0+ or OpenSSL','Dual License Consisting of GPL 2.0 or later and OpenSSL License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-OSL-2.1','GPL-2.0+ or OSL-2.1','Dual License Consisting of GPL 2.0 or later and Open Software License 2.1');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-PUBLIC-DOMAIN','GPL-2.0+ or Public Domain','Dual License Consisting of GPL 2.0 or later and The work has been placed in the public domain');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-Python-UNSPECIFIED','GPL-2.0+ or Python','Dual License Consisting of GPL 2.0 or later and Python-Style License Not Identifiable by Sonatype');
@@ -1824,6 +1828,7 @@ INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VA
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-with-classpath-exception','GPL-2.0+-with-classpath-exception','GNU General Public License v2.0 or later w/Classpath exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-with-GNAT-exception','GPL-2.0+-with-GNAT-exception','GNU General Public License v2.0 or later w/GNAT exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-with-GPL-CC-1.0','GPL-2.0+-with-GPL-CC-1.0','GNU General Public License v2.0 or later w/GPL Cooperation Commitment 1.0');
+INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-with-UBDL-exception','GPL-2.0+-with-UBDL-exception','GNU General Public License v2.0 or later w/Unmodified Binary Distribution exception');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0+-WTFPL','GPL-2.0+ or WTFPL','Dual License Consisting of GPL 2.0 or later and Do What The F*ck You Want To Public License');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-GPL-2.0+','GPL-2.0 or GPL-2.0+','Dual License Consisting of GPL 2.0 and GPL 2.0 or later');
 INSERT INTO multi_license (multi_license_id,shortDisplayName,longDisplayName) VALUES ('GPL-2.0-GPL-2.0+-MIT','GPL-2.0 or GPL-2.0+ or MIT','Triple License Consisting of GPL 2.0, GPL 2.0 or later and MIT License');

@@ -34,6 +34,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ADG-L
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('AdGem-User-TOS-RD02022021','AdGem-User-TOS-RD02022021','AdGem User Terms of Service - Release Date 02-02-2021');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-RigoChat-NC-LA-RD01152025','ADIC-RigoChat-NC-LA-RD01152025','ADIC RigoChat Non-Commercial License Agreement - Release Date 01-15-2025');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-UPM-MEL-NC-LA-RD05232025','ADIC-UPM-MEL-NC-LA-RD05232025','ADIC and UPM MEL Non-Commercial License Agreement - Release Date 05-23-2025');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('ADIC-UPM-MEL-NC-LA-UNSPECIFIED','ADIC-UPM-MEL-NC-LA','ADIC-UPM-MEL-NC-LA-Style License Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Adikteev-CrossDK-LA','Adikteev-CrossDK-LA','Adikteev CrossDK License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Adobe','Adobe','Adobe Systems Incorporated Source Code License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Adobe-Acrobat-Viewer-EULA','Adobe-Acrobat-Viewer-EULA','Adobe Acrobat Viewer End User License Agreement');
@@ -430,6 +431,7 @@ INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Calde
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Caldera-no-preamble','Caldera-no-preamble','Caldera License (without preamble)');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Callback-Tech-EULA','Callback-Tech-EULA','Callback Technologies End User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Camellia-License-1.0','Camellia-License-1.0','Camellia License Version 1.0');
+INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Camellia-License-UNSPECIFIED','Camellia-License','Camellia-License-Style Not Identifiable by Sonatype');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Camunda-1.0','Camunda-1.0','Camunda License 1.0');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('CanvasXpress-ULA','CanvasXpress-ULA','CanvasXpress User License Agreement');
 INSERT INTO license (license_id,shortDisplayName,longDisplayName) VALUES ('Capgemini-Technology-Services-License','Capgemini-Technology-Services-License','Capgemini Technology Services License');

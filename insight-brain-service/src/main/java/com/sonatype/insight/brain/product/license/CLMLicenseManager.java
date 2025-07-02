@@ -566,6 +566,7 @@ public class CLMLicenseManager
     return getProducts().stream()
         .map(CLMLicenseManager::getProductMarketingName)
         .filter(Objects::nonNull)
+        .distinct()
         .toArray(String[]::new);
   }
 

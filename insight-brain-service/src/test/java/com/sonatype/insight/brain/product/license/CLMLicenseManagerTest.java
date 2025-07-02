@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -42,7 +41,6 @@ import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import com.sonatype.insight.productlicense.ProductLicenseConfig;
 import com.sonatype.insight.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
-
 import org.sonatype.licensing.LicensingException;
 
 import com.google.inject.Binder;
@@ -2412,6 +2410,18 @@ public class CLMLicenseManagerTest
     assertThat(info.products).containsExactlyInAnyOrder("Sonatype Lifecycle Foundation");
     assertThat(info.properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS).split(","))
         .containsExactlyInAnyOrder("Foundation");
+  }
+
+  @Test
+  public void testGetLicenseInfo_DoesNotIncludeDuplicateProducts() throws Exception {
+    licenseManager.setProducts(ProductLicenseDetails.PRODUCT_FIREWALL, ProductLicenseDetails.PRODUCT_FIREWALL_V2);
+
+    installLicense();
+    LicenseInfo info = clmLicenseManager.getLicenseInfo();
+    assertThat(info).isNotNull();
+    assertThat(info.products).containsExactlyInAnyOrder("Sonatype Repository Firewall");
+    assertThat(info.properties.getProperty(ProductLicenseDetails.PROPERTY_PRODUCTS).split(","))
+        .containsExactlyInAnyOrder("Firewall", "FirewallV2");
   }
 
   @Test

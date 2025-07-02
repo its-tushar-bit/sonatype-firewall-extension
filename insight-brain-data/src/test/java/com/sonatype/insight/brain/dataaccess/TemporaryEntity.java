@@ -1203,6 +1203,27 @@ public class TemporaryEntity
     return org;
   }
 
+  public Organization newOrgWithRepoManagerAndProxyRepo(
+      String name,
+      String publicId,
+      String format,
+      boolean auditEnabled,
+      boolean quarantineEnabled)
+  {
+    Organization org = new Organization(name);
+    RepositoryManager repositoryManager = newRepositoryManager();
+    Repository repository = newProxyRepository(repositoryManager, publicId, format, auditEnabled,
+        quarantineEnabled);
+    org.setRelatedRepositoryId(repository.getId());
+    org.setRelatedRepositoryManagerId(repositoryManager.getId());
+    orgDAO.insert(org);
+    repositoryManager.setRelatedOrganizationId(org.getId());
+    repositoryManagerDAO.update(repositoryManager);
+    repository.setRelatedOrganizationId(org.getId());
+    repositoryDAO.update(repository);
+    return org;
+  }
+
   public Organization newOrganizationWithSpecificId(String id) {
     return newOrganizationWithSpecificId(id, null);
   }

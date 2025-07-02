@@ -129,6 +129,28 @@ describe('Report Page component', () => {
     expect(backToPriorities).toBeVisible();
   });
 
+  it('renders a "Back to Firewall Dashboard" back button if navigated from Firewall Dashboard', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    jest.spyOn(routerSelectors, 'selectPrevStateIsFirewallDashboard').mockReturnValue(true);
+
+    renderComponent();
+
+    const backToFirewallDashboard = screen.getByRole('link', { name: 'Back to Firewall Dashboard' });
+    expect(backToFirewallDashboard).toBeVisible();
+  });
+
+  it('renders a "Back to Repository Results" back button if it is for container report', () => {
+    selectDisplayedComponentListSpy.mockReturnValue([]);
+    jest
+      .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+      .mockReturnValue(true);
+
+    renderComponent();
+
+    const backToFirewallDashboard = screen.getByRole('link', { name: 'Back to Repository Results' });
+    expect(backToFirewallDashboard).toBeVisible();
+  });
+
   it('renders a ReportTitle', async () => {
     selectDisplayedComponentListSpy.mockReturnValue([]);
     SpecUtil.requestIdleCallbackInvokeImmediateJest();

@@ -402,4 +402,85 @@ public class FirewallPageComponents
       return child(createSelector(".nx-cell", nthChild(6)));
     }
   }
+
+  public static class FirewallContainerQuarantineTabContent
+      extends BasicElement<FirewallContainerQuarantineTabContent>
+  {
+    public FirewallContainerQuarantineTabContent(String rootSelector) {
+      super(rootSelector, "#firewall-container-quarantine-table");
+    }
+
+    public SelenideElement quarantineTableTitle() {
+      return child(".nx-h2");
+    }
+
+    public SelenideElement refreshButton() {
+      return child("#firewall-container-quarantine-table--refresh-button");
+    }
+
+    public SelenideElement quarantineTable() {
+      return child("#pagination-firewall-container-quarantine-table");
+    }
+
+    public ElementsCollection quarantinedContainers() {
+      return children(".firewall-container-quarantine");
+    }
+
+    public ContainerQuarantineTile quarantinedContainer(int index) {
+      return new ContainerQuarantineTile(
+          childSelector(createSelector(".firewall-container-quarantine", nthChild(index + 1))));
+    }
+
+    public SelenideElement previousPageButton() {
+      return childXpath("//button[@aria-label='goto previous page']");
+    }
+
+    public SelenideElement nextPageButton() {
+      return childXpath("//button[@aria-label='goto next page']");
+    }
+
+    public ElementsCollection paginationButtons() {
+      return children(".nx-btn--pagination.nx-btn");
+    }
+  }
+
+  public static class ContainerQuarantineTile
+      extends BasicElement<ContainerQuarantineTile>
+  {
+    public ContainerQuarantineTile(String selector) {
+      super(selector);
+    }
+
+    public SelenideElement threatIndicator() {
+      return child(".quarantine-threat-cell .nx-threat-indicator");
+    }
+
+    public SelenideElement threatNumber() {
+      return child(".quarantine-threat-cell .nx-threat-number");
+    }
+
+    public SelenideElement policy() {
+      return child(createSelector(".nx-cell", nthChild(2)));
+    }
+
+    public SelenideElement quarantineTime() {
+      return child(createSelector(".nx-cell", nthChild(3)));
+    }
+
+    public SelenideElement container() {
+      return child(createSelector(".nx-cell", nthChild(4)));
+    }
+
+    public SelenideElement containerReportPageLink() {
+      return container().find(".nx-text-link");
+    }
+
+    public SelenideElement repository() {
+      return child(createSelector(".nx-cell", nthChild(5)));
+    }
+
+    public SelenideElement repositoryResultsPageLink() {
+      return repository().find(".nx-text-link");
+    }
+  }
 }

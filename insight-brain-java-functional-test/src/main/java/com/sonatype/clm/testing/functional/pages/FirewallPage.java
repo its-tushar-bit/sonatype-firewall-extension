@@ -15,6 +15,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.Firewall
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallWaiversTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetricsTab;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetrics;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallContainerQuarantineTabContent;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.ElementsCollection;
@@ -37,6 +38,10 @@ public class FirewallPage
   
   public static String roiTabUrl() {
     return BaseUrl.resolvePageUrl("/malware-defense/dashboard?roiEnabled=true");
+  }
+
+  public static String urlToFirewallContainerQuarantine() {
+    return BaseUrl.resolvePageUrl("malware-defense/dashboard/containers/quarantine");
   }
 
   public SelenideElement title() {
@@ -97,5 +102,9 @@ public class FirewallPage
 
   public FirewallContainerWaiversTabContent firewallContainerWaiversTabContent() {
     return new FirewallContainerWaiversTabContent(ROOT);
+  }
+
+  public FirewallContainerQuarantineTabContent firewallContainerQuarantineTabContent() {
+    return new FirewallContainerQuarantineTabContent(ROOT);
   }
 }

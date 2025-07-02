@@ -26,6 +26,7 @@ import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerWaiverTile;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerQuarantineTile;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetrics;
@@ -36,18 +37,22 @@ import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.FirewallMetricsDAO;
-import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.ProprietaryNameConflictConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
@@ -976,7 +981,7 @@ public class FirewallPageTest
     RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
     roiFirewallMetrics.title().shouldHave(text("Return on Investment (ROI)"));
     roiFirewallMetrics.total().shouldHave(text("Total USD Saved$600,000"));
-    
+
     roiFirewallMetrics.contentHeader(malwareAttackPreventedSelector)
         .shouldHave(text("Malware attacks prevented"));
     roiFirewallMetrics.contentHeader(namespaceAttacksPreventedSelector)
@@ -987,24 +992,24 @@ public class FirewallPageTest
     roiFirewallMetrics.contentHeaderTooltipIcon(malwareAttackPreventedSelector).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text(
-        "Determined based on the number of Malware attacks prevented and the ROI value configured per attack.")
+          "Determined based on the number of Malware attacks prevented and the ROI value configured per attack.")
     );
     roiFirewallMetrics.contentHeaderTooltipIcon(namespaceAttacksPreventedSelector).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text(
-        "Determined based on the number of namespace attacks protected and the ROI value configured per attack.")
+          "Determined based on the number of namespace attacks protected and the ROI value configured per attack.")
     );
     roiFirewallMetrics.contentHeaderTooltipIcon(safeComponentsAutoSelectedSelector).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text(
-        "Determined based on the number of safe components auto-selected and the ROI value configured per attack.")
+          "Determined based on the number of safe components auto-selected and the ROI value configured per attack.")
     );
-    
+
     roiFirewallMetrics.contentValue(malwareAttackPreventedSelector).shouldHave(text("$100,000"));
     roiFirewallMetrics.contentValue(namespaceAttacksPreventedSelector).shouldHave(text("$200,000"));
     roiFirewallMetrics.contentValue(safeComponentsAutoSelectedSelector).shouldHave(text("$300,000"));
   }
-    
+
   @Test
   public void testRoiFirewallMetrics_rendersCorrectDescriptionForSystemAdmin() {
     String roiFirewallMetricsDescriptionConfigurePermission = "The metrics below highlights the Return on " +
@@ -1016,7 +1021,7 @@ public class FirewallPageTest
     RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
     roiFirewallMetrics.description().shouldHave(text(roiFirewallMetricsDescriptionConfigurePermission));
   }
-    
+
   @Test
   public void testRoiFirewallMetrics_rendersCorrectDescriptionForNotSystemAdmin() {
     String roiFirewallMetricsDescriptionNoConfigurePermission = "The metrics below highlights the Return on " +
@@ -1032,12 +1037,12 @@ public class FirewallPageTest
     page.roiFirewallMetricsTab().click();
     RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
     roiFirewallMetrics.description().shouldHave(text(roiFirewallMetricsDescriptionNoConfigurePermission));
-    
+
     logout();
     refreshOrOpen(FirewallPage.url());
     loginAsAdmin();
   }
-    
+
   @Test
   public void testRoiFirewallMetrics_tabDoesNotRenderIfUrlDoesNotHaveQueryParam() {
     refreshOrOpen(FirewallPage.url());
@@ -1170,6 +1175,85 @@ public class FirewallPageTest
     page.firewallContainerWaiversTabContent().waivers().shouldHave(size(10));
   }
 
+  @Test
+  public void testContainerQuarantineTable_rendersCorrectly() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallPage.urlToFirewallContainerQuarantine());
+
+    Organization org =
+        tempEntity.newOrgWithRepoManagerAndProxyRepo("org-with-repo", "docker-proxy", "docker", true, true);
+    Application app = tempEntity.newApplication("test-app", "test-app", org.getId());
+    Policy policy = tempEntity.newPolicy(app);
+    PolicyEvaluation policyEvaluation =
+        tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scanId");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy, 9,
+        PolicyThreatCategory.OTHER, "test-group-id", "test-artifact-id", "v1",
+        "test-hash", FailActionType.ID);
+
+    refresh();
+    page.firewallContainerQuarantineTabContent().quarantineTableTitle()
+        .shouldHave(text("Containers Actively in Quarantine"));
+    page.firewallContainerQuarantineTabContent().refreshButton().shouldBe(visible);
+    page.firewallContainerQuarantineTabContent().quarantineTable().shouldBe(visible);
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(1));
+
+    ContainerQuarantineTile quarantinedContainer = page.firewallContainerQuarantineTabContent().quarantinedContainer(0);
+    quarantinedContainer.threatIndicator().shouldBe(CRITICAL);
+    quarantinedContainer.threatNumber().shouldHave(text("9"));
+    quarantinedContainer.policy().shouldHave(text("Multiple-Policy-Types(1)"));
+    quarantinedContainer.quarantineTime()
+        .shouldHave(text(DateFormatUtils.format(policyViolation.getOpenTime(), "yyyy-MM-dd")));
+    quarantinedContainer.container().shouldHave(text("test-app"));
+    quarantinedContainer.containerReportPageLink().shouldBe(visible);
+    quarantinedContainer.repository().shouldHave(text("docker-proxy"));
+    quarantinedContainer.repositoryResultsPageLink().shouldBe(visible);
+  }
+
+  @Test
+  public void testContainerQuarantineTable_rendersPaginationCorrectly() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    refreshOrOpen(FirewallPage.urlToFirewallContainerQuarantine());
+
+    Organization org =
+        tempEntity.newOrgWithRepoManagerAndProxyRepo("org-with-repo", "docker-proxy", "docker", true, true);
+    for (int i = 0; i <= 14; i++) {
+      Application app = tempEntity.newApplication("test-app-" + i, "test-app-" + i, org.getId());
+      Policy policy = tempEntity.newPolicy(app);
+      PolicyEvaluation policyEvaluation =
+          tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scanId-" + i);
+      tempEntity.newPolicyViolation(policyEvaluation, policy, 9,
+          PolicyThreatCategory.OTHER, "test-group-id-" + i, "test-artifact-id-" + i, "v" + i,
+          "test-hash-" + i, FailActionType.ID);
+    }
+
+    refresh();
+    page.firewallContainerQuarantineTabContent().quarantineTableTitle()
+        .shouldHave(text("Containers Actively in Quarantine"));
+    page.firewallContainerQuarantineTabContent().quarantineTable().shouldBe(visible);
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(12));
+
+    // goto next page
+    page.firewallContainerQuarantineTabContent().nextPageButton().shouldBe(visible).click();
+    waitUntilFirewallPageSpinnersGone();
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(3));
+
+    // goto previous page
+    page.firewallContainerQuarantineTabContent().previousPageButton().shouldBe(visible).click();
+    waitUntilFirewallPageSpinnersGone();
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(12));
+
+    // goto page 2
+    page.firewallContainerQuarantineTabContent().paginationButtons().shouldHave(size(2));
+    page.firewallContainerQuarantineTabContent().paginationButtons().get(1).click();
+    waitUntilFirewallPageSpinnersGone();
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(3));
+
+    // goto page 1
+    page.firewallContainerQuarantineTabContent().paginationButtons().get(0).click();
+    waitUntilFirewallPageSpinnersGone();
+    page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(12));
+  }
+
   private PolicyWaiver createFirewallContainerPolicyWaiver(
       Organization org,
       String appName,
@@ -1203,3 +1287,4 @@ public class FirewallPageTest
         .setForContainerImageComponent(false));
   }
 }
+

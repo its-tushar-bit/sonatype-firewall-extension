@@ -1353,27 +1353,36 @@ public class PolicyViolationDAO
 
   public List<ContainerImageInQuarantineData> getContainerImagesInQuarantine(int page, int pageSize) {
     String sQuery = String.format("""
-        SELECT MAX(pv.threat_level) as threat_level,
-               MAX(pv.open_time),
+        WITH AggregatedPolicyViolation AS (
+            SELECT pv.application_id,
+                   MAX(pv.open_time) AS max_open_time,
+                   MAX(pv.threat_level) AS max_threat_level,
+                   COUNT(pv.application_id) AS policy_violation_count
+            FROM %1$s.policy_violation pv
+            WHERE pv.stage_type_id = 'proxy'
+              AND pv.action_type_id = 'fail'
+              AND pv.waive_time IS NULL
+              AND pv.legacy_violation_time IS NULL
+              AND pv.fix_time IS NULL
+            GROUP BY pv.application_id
+        )
+        SELECT max_threat_level AS threat_level,
+               max_open_time AS open_time,
                a.public_id AS application_public_id,
                a.application_id,
                a.name AS application_name,
                r.public_id AS repository_public_id,
                r.repository_id,
-               COUNT(pv.application_id) AS policy_violation_count
-        FROM %1$s.policy_violation pv
-                 JOIN %1$s.application a ON pv.application_id = a.application_id
+               apv.policy_violation_count,
+               pe.scan_id
+        FROM AggregatedPolicyViolation apv
+                 JOIN %1$s.application a ON apv.application_id = a.application_id
                  JOIN %1$s.organization o ON a.organization_id = o.organization_id
                  JOIN %1$s.repository r ON o.related_repository_id = r.repository_id
+                 JOIN %1$s.policy_evaluation pe ON apv.application_id = pe.application_id
+                          AND apv.max_open_time = pe.time
         WHERE r.format = 'docker'
-          AND pv.stage_type_id = 'proxy'
-          AND pv.action_type_id = 'fail'
-          AND pv.waive_time IS NULL
-          AND pv.legacy_violation_time IS NULL
-          AND pv.fix_time IS NULL
-        GROUP BY a.application_id,
-                 r.repository_id
-        ORDER BY  MAX(pv.open_time) DESC, a.application_id ASC
+        ORDER BY  apv.max_open_time DESC, a.application_id ASC
         """, getDatabaseSchema());
 
     int offset = (page - 1) * pageSize;
@@ -1388,7 +1397,8 @@ public class PolicyViolationDAO
               (String) array[4], // applicationName
               (String) array[5], // repositoryPublicId
               (String) array[6], // repositoryId
-              ((Number) array[7]).longValue() // policyViolationCount
+              ((Number) array[7]).longValue(), // policyViolationCount
+              (String) array[8] // scanId
           )).toList();
     }
   }
@@ -1401,7 +1411,8 @@ public class PolicyViolationDAO
       String applicationName,
       String repositoryPublicId,
       String repositoryId,
-      Long policyViolationCount) { }
+      Long policyViolationCount,
+      String scanId) { }
 
   private List<PolicyViolation> loadPolicyViolationsWithDateFilters(
       Collection<String> applicationIds,

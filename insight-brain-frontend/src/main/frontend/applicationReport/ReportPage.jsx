@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useState, Fragment } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { pick } from 'ramda';
+import { pick, pathOr } from 'ramda';
 import {
   NxButton,
   NxErrorAlert,
@@ -28,11 +28,13 @@ import {
   selectIsPolicyTypeFilterEnabled,
   selectReportStageId,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
+  selectApplicationReportMetaData,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import {
   selectRouterCurrentParams,
   selectIsPrioritiesPageContainer,
   selectPrioritiesPageName,
+  selectPrevStateIsFirewallDashboard,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from './applicationReportActions';
@@ -183,8 +185,13 @@ function BackButton() {
   const uiRouterState = useRouterState();
   const isPrioritiesPageContainer = useSelector(selectIsPrioritiesPageContainer);
   const prioritiesPageName = useSelector(selectPrioritiesPageName);
+  const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
+  const isPrevFirewallDashboardPage = useSelector(selectPrevStateIsFirewallDashboard);
+  const metadataDetails = useSelector(selectApplicationReportMetaData);
+  const repositoryId = pathOr('', ['application', 'organization', 'relatedRepositoryId'], metadataDetails);
 
   const { publicId, scanId } = useSelector(selectRouterCurrentParams);
+
   if (isPrioritiesPageContainer) {
     const prioritiesPageHref = uiRouterState.href(prioritiesPageName, {
       scanId: scanId,
@@ -192,5 +199,16 @@ function BackButton() {
     });
     return <MenuBarBackButton href={prioritiesPageHref} text="Back to Priorities" />;
   }
+
+  if (isPrevFirewallDashboardPage) {
+    const backHref = uiRouterState.href('firewall.firewallPage.containers');
+    return <MenuBarBackButton href={backHref} text="Back to Firewall Dashboard" />;
+  } else if (isContainerImagesEvaluation) {
+    const backHref = uiRouterState.href('firewall.containerRepositoryResults', {
+      repositoryId: repositoryId,
+    });
+    return <MenuBarBackButton href={backHref} text="Back to Repository Results" />;
+  }
+
   return <MenuBarBackButton text="All Reports" stateName={'violations'} />;
 }

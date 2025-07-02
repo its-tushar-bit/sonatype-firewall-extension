@@ -206,7 +206,7 @@ describe('Vulnerabilities Tile', () => {
     rowCells = within(firstRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('10');
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41182');
-    expect(rowCells[2]).toHaveTextContent('Sonatype Enhanced');
+    expect(rowCells[2]).toHaveTextContent('');
     expect(rowCells[3]).toHaveTextContent('Unannotated');
     expect(rowCells[4]).toHaveTextContent('');
     const dropdownFirstRow = within(firstRow).getByRole('button');
@@ -218,7 +218,7 @@ describe('Vulnerabilities Tile', () => {
     rowCells = within(secondRow).getAllByRole('cell');
     expect(rowCells[0]).toHaveTextContent('8');
     expect(rowCells[1]).toHaveTextContent('CVE-2021-41183');
-    expect(rowCells[2]).toHaveTextContent('Sonatype Enhanced');
+    expect(rowCells[2]).toHaveTextContent('');
     expect(rowCells[3]).toHaveTextContent('Unannotated');
     expect(rowCells[4]).toHaveTextContent('');
     const dropdownSecondRow = within(secondRow).getByRole('button');

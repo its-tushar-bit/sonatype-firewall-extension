@@ -11,7 +11,6 @@ import * as R from 'ramda';
 import {
   getContainerRepositoryReportSummaryUrl,
   getContainerRepositoryResultsUrl,
-  getRepositoryEvaluateUrl,
   getRepositoryInfoUrl,
 } from 'MainRoot/util/CLMLocation';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -105,41 +104,6 @@ const setRepositoryId = (state, { payload }) => {
 
 const setLoading = (state, { payload }) => {
   state.loading = payload;
-};
-
-// re-evaluation-modal
-const setShowReevaluationModal = (state, { payload }) => {
-  state.showReevaluationModal = payload;
-};
-
-const reevaluateRepository = createAsyncThunk(
-  `${REDUCER_NAME}/reevaluateRepository`,
-  async (_, { getState, rejectWithValue }) => {
-    const state = getState();
-    const { repositoryId } = selectContainerRepositoryResultsPage(state);
-    axios.post(getRepositoryEvaluateUrl(repositoryId)).then(R.prop('data')).catch(rejectWithValue);
-  }
-);
-
-const reevaluateRepositoryPending = (state) => {
-  state.submitMask = {
-    show: true,
-    success: false,
-  };
-};
-
-const reevaluateRepositoryFulfilled = (state) => {
-  state.submitMask = {
-    show: true,
-    success: true,
-  };
-};
-
-const reevaluateRepositoryRejected = (state) => {
-  state.submitMask = {
-    show: false,
-    success: false,
-  };
 };
 
 // filter-drawer
@@ -324,8 +288,6 @@ const containerRepositoryResultsSlice = createSlice({
     setRepositoryId,
     setLoading,
 
-    setShowReevaluationModal,
-
     // Filter Drawer
     setShowFilterDrawer,
     setThreatLevelRange,
@@ -351,10 +313,6 @@ const containerRepositoryResultsSlice = createSlice({
     [loadTable.pending]: loadTablePending,
     [loadTable.fulfilled]: loadTableFulfilled,
     [loadTable.rejected]: loadTableFailed,
-
-    [reevaluateRepository.pending]: reevaluateRepositoryPending,
-    [reevaluateRepository.fulfilled]: reevaluateRepositoryFulfilled,
-    [reevaluateRepository.rejected]: reevaluateRepositoryRejected,
   },
 });
 
@@ -363,7 +321,6 @@ export const actions = {
   loadRepositoryInformation,
   loadEvaluationSummary,
   loadTable,
-  reevaluateRepository,
 
   loadNextPage,
   loadPreviousPage,

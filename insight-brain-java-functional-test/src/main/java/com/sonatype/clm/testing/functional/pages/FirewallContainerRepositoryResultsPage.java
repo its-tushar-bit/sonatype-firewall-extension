@@ -29,31 +29,6 @@ public class FirewallContainerRepositoryResultsPage
     return child("#container-repository-results-page__title");
   }
 
-  public SelenideElement reevaluateButton() {
-    return child("#container-repository-results-page__reevaluate-button");
-  }
-
-  public static class ReevaluateModal extends BasicElement<ReevaluateModal>
-  {
-    public static final String ROOT = "#reevaluate-modal";
-
-    public ReevaluateModal() {
-      super(ROOT);
-    }
-
-    public SelenideElement modalTitle() {
-      return child(".nx-modal__title");
-    }
-
-    public SelenideElement continueButton() {
-      return child("#reevaluate-modal-continue-button");
-    }
-
-    public SelenideElement cancelButton() {
-      return child("#reevaluate-modal-cancel-button");
-    }
-  }
-
   public static class ContainerRepositoryResultsTable extends BasicElement<ContainerRepositoryResultsTable>
   {
     public static final String ROOT = "#container-repository-results-table";

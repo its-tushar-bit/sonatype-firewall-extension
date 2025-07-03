@@ -941,6 +941,7 @@ public class SbomResultsMerger
       }
 
       // Walk through the remaining coordinate securities in this list. These are the orphan ones.
+      // NOTE: identification source can be SONATYPE, SBOM or both. Frontend code will need to handle this.
       for (String refId : coordinateSecuritiesFromDBForComponentMap.keySet()) {
         ThirdPartyCoordinateSecurity coordinateSecurity = coordinateSecuritiesFromDBForComponentMap.get(refId);
         if (coordinateSecurity.getIdentificationSources().contains(IdentificationSource.SONATYPE.getId()) &&

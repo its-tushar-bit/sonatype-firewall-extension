@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
-
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -64,9 +63,11 @@ public class MultiTenantTaskScheduler
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       TenantManager tenantManager,
       TenantUtil tenantUtil,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      QuartzJobSchedulingService quartzJobSchedulingService)
   {
-    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler);
+    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler,
+        quartzJobSchedulingService);
 
     this.mtiqBatchJobStoreTX = mtiqBatchJobStoreTX;
     this.tenantContextJobListener = tenantContextJobListener;
@@ -155,10 +156,10 @@ public class MultiTenantTaskScheduler
   }
 
   @Override
-  protected void scheduleTask(JobDetail job, InsightJob insightJob, Trigger... triggers) {
+  protected void scheduleTask(InsightJob insightJob, JobDetail job, JobLogger jobLogger, Trigger... triggers) {
     Scheduler scheduler = getSchedulerForJobType(job.getJobClass());
 
-    super.scheduleTask(job, scheduler, triggers);
+    super.scheduleTask(scheduler, job, jobLogger, triggers);
   }
 
   @Override

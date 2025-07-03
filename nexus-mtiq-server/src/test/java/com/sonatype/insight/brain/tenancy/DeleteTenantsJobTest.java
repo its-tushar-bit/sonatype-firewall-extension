@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -58,21 +59,23 @@ public class DeleteTenantsJobTest
 
   public static final String GOOD_APPLICATION_ID = "appId";
 
-  DeleteTenantsJob deleteTenantsJob;
+  private DeleteTenantsJob deleteTenantsJob;
 
-  TenantManager tenantManager;
+  private TenantManager tenantManager;
 
-  InsightConfig config;
+  private InsightConfig config;
 
-  OperationalDataStore dataStore;
+  private OperationalDataStore dataStore;
 
-  DeletedTenantDAO deletedTenantDAO;
+  private DeletedTenantDAO deletedTenantDAO;
 
-  TaskScheduler taskScheduler;
+  private TaskScheduler taskScheduler;
 
-  TenantMetadataDAO tenantMetadataDAO;
+  private TenantMetadataDAO tenantMetadataDAO;
 
-  SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  private QuartzJobSchedulingService quartzJobSchedulingService;
 
   @Before
   public void setup() {
@@ -84,6 +87,7 @@ public class DeleteTenantsJobTest
     deletedTenantDAO = getCLMServer().getInstance(DeletedTenantDAO.class);
     tenantMetadataDAO = getCLMServer().getInstance(TenantMetadataDAO.class);
     systemConfigurationPropertyDAO = getCLMServer().getInstance(SystemConfigurationPropertyDAO.class);
+    quartzJobSchedulingService = getCLMServer().getInstance(QuartzJobSchedulingService.class);
 
     // Clean deleted tenant table
     for (DeletedTenant deletedTenant : deletedTenantDAO.getAll()) {
@@ -279,6 +283,7 @@ public class DeleteTenantsJobTest
     for (int i = 0; i < 10; i++) {
       taskScheduler.schedulePeriodicTask(newJob(), Duration.ofHours(1L));
     }
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
   }
 
   private InsightJob newJob() {

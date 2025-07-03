@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.policy.waiver;
 
 import java.time.LocalTime;
 import java.util.Random;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,7 +14,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,8 +58,6 @@ public class WaivedComponentUpgradeScheduler implements TenantManaged
       LocalTime startTime = LocalTime.of(configuration.getWaivedComponentUpgradeInspectionHour(), 0)
           .plusMinutes(randomizedStartMinuteAfterConfiguredHour);
       taskScheduler.scheduleDailyTask(waivedComponentUpgradeTask, startTime);
-      log.info("Next waived component upgrade inspection execution scheduled for tenant {} at {}",
-          TenantThreadLocal.getTenant(), taskScheduler.getNextExecutionTime(waivedComponentUpgradeTask));
     }
     else {
       log.info("Waived component upgrade task not configured");

@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -85,6 +87,9 @@ public class TaskSchedulerTest
 
   @Inject
   private OperationalDataStore operationalDataStore;
+
+  @Inject
+  private QuartzJobSchedulingService quartzJobSchedulingService;
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
@@ -195,6 +200,7 @@ public class TaskSchedulerTest
 
     testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
 
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
     assertThat(taskScheduler.isTaskScheduled(testJob)).isTrue();
   }
 
@@ -209,25 +215,36 @@ public class TaskSchedulerTest
 
     testInMultipleThreadsAndThrowAnyException(runnable, 4, Duration.ofSeconds(3));
 
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
     assertThat(taskScheduler.isTaskScheduled(testJob)).isFalse();
   }
 
   @Test
   public void testTriggerTaskNow() throws Exception {
     taskScheduler.start();
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    });
     assertThat(TestJob.getExecutions()).isZero();
-    taskScheduler.triggerTaskNow(testJob, null);
+    runTestAndWaitForReady(() -> {
+      taskScheduler.triggerTaskNow(testJob, null);
+    });
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(TestJob.getExecutions()).isOne());
   }
 
   @Test
   public void testTriggerTaskNow_WithParameters() throws Exception {
     taskScheduler.start();
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    });
     assertThat(TestJob.getExecutions()).isZero();
     Map<String, String> params = Collections.singletonMap("testKey", "testValue");
-    taskScheduler.triggerTaskNow(testJob, params);
+
+    runTestAndWaitForReady(() -> {
+      taskScheduler.triggerTaskNow(testJob, params);
+    });
+
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
       assertThat(TestJob.getExecutions()).isOne();
       assertThat(TestJob.getJobParameters(0)).containsAllEntriesOf(params);
@@ -239,7 +256,9 @@ public class TaskSchedulerTest
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
 
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
+    });
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -262,7 +281,9 @@ public class TaskSchedulerTest
     scheduler.start();
 
     String name = "TestJob";
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(1));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(1));
+    });
     scheduler.triggerJob(JobKey.jobKey(name));
 
     await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(testJobListener.getExecutions()).isEqualTo(1));
@@ -277,7 +298,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(testJob);
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleOneTimeTask(testJob);
+    });
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -300,7 +323,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(testJob, parameters);
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleOneTimeTask(testJob, parameters);
+    });
 
     JobKey jobKey = JobKey.jobKey(name);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -320,7 +345,9 @@ public class TaskSchedulerTest
   public void testGetNextExecutionTime() {
     ZonedDateTime now = ZonedDateTime.now().withSecond(0).withNano(0);
     taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(now.plusHours(1).getHour(), now.getMinute()));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.of(now.plusHours(1).getHour(), now.getMinute()));
+    });
 
     Date nextExecutionTime = taskScheduler.getNextExecutionTime(testJob);
 
@@ -332,14 +359,19 @@ public class TaskSchedulerTest
   public void testUnscheduleTask() throws Exception {
     String name = "TestJob";
     Scheduler scheduler = taskScheduler.createScheduler();
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
+
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.of(1, 0));
+    });
+
     JobKey jobKey = JobKey.jobKey(name);
     TriggerKey triggerKey = TriggerKey.triggerKey(jobKey.getName(), jobKey.getGroup());
     assertThat(scheduler.getJobDetail(jobKey)).isNotNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNotNull();
 
-    taskScheduler.unscheduleTask(testJob);
+    boolean result = taskScheduler.unscheduleTask(testJob);
 
+    assertThat(result).isTrue();
     assertThat(scheduler.getJobDetail(jobKey)).isNull();
     assertThat(scheduler.getTrigger(triggerKey)).isNull();
   }
@@ -349,7 +381,7 @@ public class TaskSchedulerTest
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = JobBuilder.newJob(TestJob.class).withIdentity(jobKey).build();
 
-    assertThatNoException().isThrownBy(() -> taskScheduler.scheduleTask(job, (Scheduler) null));
+    assertThatNoException().isThrownBy(() -> taskScheduler.scheduleTask((Scheduler) null, job, null, null));
     logOutput.assertThat().atWarnLevel().contains(
         "Cannot schedule task, jobKey 'DEFAULT.TestJob' " +
             "for tenant Tenant[tenantSlug='notused', createdByThread='main', valid='true'] " +
@@ -361,7 +393,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     Date now = new Date();
 
-    taskScheduler.scheduleOneTimeTask(testJob, LocalTime.of(23, 0));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleOneTimeTask(testJob, LocalTime.of(23, 0));
+    });
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -383,7 +417,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
 
     LocalDateTime nextStart = LocalDateTime.now().plusDays(1).plusMinutes(1);
-    taskScheduler.scheduleOneTimeTask(testJob, nextStart);
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleOneTimeTask(testJob, nextStart);
+    });
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -406,7 +442,9 @@ public class TaskSchedulerTest
     Scheduler scheduler = taskScheduler.createScheduler();
     int intervalMillis = 10000;
 
-    taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(intervalMillis));
+    runTestAndWaitForReady(() -> {
+      taskScheduler.schedulePeriodicTask(testJob, Duration.ofMillis(intervalMillis));
+    });
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -464,7 +502,11 @@ public class TaskSchedulerTest
     TestJob.setDurations(execution -> 5000);
     Scheduler scheduler = taskScheduler.createScheduler();
     scheduler.start();
-    taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+
+    runTestAndWaitForReady(() -> {
+      taskScheduler.scheduleDailyTask(testJob, LocalTime.now().plusHours(4));
+    });
+
     assertThat(taskScheduler.isJobTriggered(testJob, Collections.emptyMap())).isTrue();
     assertThat(TestJob.getExecutions()).isZero();
     taskScheduler.triggerTaskNow(testJob, Collections.singletonMap("key", "true"));
@@ -524,7 +566,9 @@ public class TaskSchedulerTest
     Set<String> nodeIds = Sets.newHashSet("node1", "node2");
     when(taskSchedulerSpy.getOtherNodeIds()).thenReturn(nodeIds);
 
-    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob);
+    runTestAndWaitForReady(() -> {
+      taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob);
+    });
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -558,7 +602,9 @@ public class TaskSchedulerTest
     parameters.put("key1", "value1");
     parameters.put("key2", "value2");
 
-    taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob, parameters);
+    runTestAndWaitForReady(() -> {
+      taskSchedulerSpy.scheduleOneTimeTaskForAllOtherNodes(testJob, parameters);
+    });
 
     JobKey jobKey = JobKey.jobKey(TestJob.NAME);
     JobDetail job = scheduler.getJobDetail(jobKey);
@@ -722,6 +768,42 @@ public class TaskSchedulerTest
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();
+    }
+  }
+
+  private void runTestAndWaitForReady(Runnable runnable) {
+    runnable.run();
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
+  }
+
+  private void testInMultipleThreadsAndThrowAnyException(
+      final Runnable runnable,
+      final int threadCount,
+      final Duration duration)
+      throws Exception
+  {
+    java.util.concurrent.atomic.AtomicReference<Exception> exception = new AtomicReference<>();
+
+    List<Thread> threads = new ArrayList<>();
+    for (int i = 0; i < threadCount; i++) {
+      threads.add(new Thread(() -> {
+        try {
+          long start = System.currentTimeMillis();
+          while (System.currentTimeMillis() - start < duration.toMillis() && exception.get() == null) {
+            runnable.run();
+          }
+        }
+        catch (Exception e) {
+          exception.set(e);
+        }
+      }));
+    }
+    threads.forEach(Thread::start);
+    for (Thread thread : threads) {
+      thread.join();
+    }
+    if (exception.get() != null) {
+      throw exception.get();
     }
   }
 }

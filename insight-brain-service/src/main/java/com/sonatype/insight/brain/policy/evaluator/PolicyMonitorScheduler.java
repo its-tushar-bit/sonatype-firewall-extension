@@ -18,7 +18,6 @@ import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +76,6 @@ public class PolicyMonitorScheduler
     // When the task is actually run, quartz creates a new PolicyMonitoringTask instance, which for MTIQ means one
     // PolicyMonitoringTask instance per tenant.
     taskScheduler.scheduleDailyTask(policyMonitoringTask, startTime);
-    log.info("Next Policy Monitor execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),
-        taskScheduler.getNextExecutionTime(policyMonitoringTask));
   }
 
   private synchronized void stopMonitoring() {

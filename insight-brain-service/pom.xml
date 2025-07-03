@@ -900,6 +900,7 @@
                 <include>**/TestProductLicenseDetailsCache/*.json</include>
                 <include>**/TestQuartzJobStoreTx*</include>
                 <include>**/TestTaskScheduler*</include>
+                <include>**/QuartzJobSchedulingServiceRule**</include>
                 <include>**/productlicense/license.lic</include>
                 <include>**/SlowMoFilter*</include>
                 <include>**/RestRequestFilter*</include>

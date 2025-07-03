@@ -17,6 +17,8 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -24,6 +26,8 @@ import org.quartz.spi.JobFactory;
 public class TestTaskScheduler
     extends TaskScheduler
 {
+  private final Logger log = LoggerFactory.getLogger(TestTaskScheduler.class);
+
   private final OperationalDataStore operationalDataStore;
 
   @Inject
@@ -32,9 +36,11 @@ public class TestTaskScheduler
       JobFactory jobFactory,
       QuartzTriggerListener quartzTriggerListener,
       OperationalDataStore operationalDataStore,
-      ShutdownHandler shutdownHandler)
+      ShutdownHandler shutdownHandler,
+      QuartzJobSchedulingService quartzJobSchedulingService)
   {
-    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener, shutdownHandler);
+    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener, shutdownHandler,
+        quartzJobSchedulingService);
     this.operationalDataStore = operationalDataStore;
   }
 

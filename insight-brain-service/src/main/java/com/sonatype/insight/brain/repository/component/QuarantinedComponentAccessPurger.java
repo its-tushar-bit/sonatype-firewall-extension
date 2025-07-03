@@ -64,9 +64,6 @@ public class QuarantinedComponentAccessPurger
   @Override
   public void register() {
     taskScheduler.schedulePeriodicTask(this, Duration.ofDays(1));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.debug("Scheduled periodic purging of obsolete quarantined component report access entries for {}",
-        nextExecutionTime);
   }
 
   @Override

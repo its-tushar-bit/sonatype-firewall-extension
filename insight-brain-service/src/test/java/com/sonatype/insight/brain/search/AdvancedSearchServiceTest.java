@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -43,6 +44,9 @@ public class AdvancedSearchServiceTest
 
   @Inject
   private SystemConfigurationPropertyDAO dao;
+
+  @Inject
+  private QuartzJobSchedulingService quartzJobSchedulingService;
 
   @Mock
   private TelemetrySender telemetrySenderMock;
@@ -146,6 +150,8 @@ public class AdvancedSearchServiceTest
     assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isFalse();
 
     indexService.createIndexAsync();
+
+    quartzJobSchedulingServiceRule.waitForRealSchedulingToComplete(quartzJobSchedulingService);
 
     assertThat(advancedSearchService.getStatus().isFullIndexTriggered).isTrue();
   }

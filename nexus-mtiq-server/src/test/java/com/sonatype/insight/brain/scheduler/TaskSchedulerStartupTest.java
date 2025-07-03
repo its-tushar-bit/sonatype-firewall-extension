@@ -33,7 +33,8 @@ public class TaskSchedulerStartupTest
             Mockito.mock(MultiTenantBatchModeJobStoreTX.class), Mockito.mock(JobFactory.class), "schedulerName",
             Mockito.mock(QuartzTriggerListener.class), Mockito.mock(TenantContextJobListener.class),
             Mockito.mock(SystemConfigurationPropertyDAO.class), Mockito.mock(TenantManager.class),
-            Mockito.mock(TenantUtil.class), Mockito.mock(ShutdownHandler.class));
+            Mockito.mock(TenantUtil.class), Mockito.mock(ShutdownHandler.class),
+            Mockito.mock(QuartzJobSchedulingService.class));
 
     exit.expectSystemExitWithStatus(11);
     multiTenantTaskScheduler.start();

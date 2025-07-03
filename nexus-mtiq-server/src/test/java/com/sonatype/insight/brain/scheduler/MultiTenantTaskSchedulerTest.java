@@ -74,6 +74,9 @@ public class MultiTenantTaskSchedulerTest
   private ShutdownHandler mockShutdownHandler;
 
   @Mock
+  private QuartzJobSchedulingService mockQuartzJobSchedulingService;
+
+  @Mock
   private MultiTenantInsightConfig mockMultiTenantInsightConfig;
 
   private MultiTenantTaskScheduler spyUnderTest;
@@ -93,7 +96,8 @@ public class MultiTenantTaskSchedulerTest
             mockSystemConfigurationPropertyDAO,
             mockTenantManager,
             mockTenantUtil,
-            mockShutdownHandler
+            mockShutdownHandler,
+            mockQuartzJobSchedulingService
         )
     );
   }

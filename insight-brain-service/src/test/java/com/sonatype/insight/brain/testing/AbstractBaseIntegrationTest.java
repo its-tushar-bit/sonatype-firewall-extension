@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.TestProductLicenseRule;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -184,6 +185,9 @@ public abstract class AbstractBaseIntegrationTest
 
   @Rule(order = 1)
   public DatabaseContainerRule databaseContainerRule = getDatabaseContainerRule();
+
+  @Rule
+  public QuartzJobSchedulingServiceRule quartzJobSchedulingServiceRule = new QuartzJobSchedulingServiceRule();
 
   @Rule
   public TemporaryFolder tempDir = new TemporaryFolder();

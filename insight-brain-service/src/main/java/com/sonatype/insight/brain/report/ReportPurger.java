@@ -154,8 +154,6 @@ public class ReportPurger
     }
 
     taskScheduler.scheduleDailyTask(this, LocalTime.of(1, 0));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.debug("Scheduled periodic purging of obsolete reports for {}", nextExecutionTime);
   }
 
   @Override

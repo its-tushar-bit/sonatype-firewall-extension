@@ -9,7 +9,6 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -20,7 +19,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
-import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import org.slf4j.Logger;
@@ -82,8 +80,6 @@ public class AutomaticQuarantineReleaseScheduler
     // one AutomaticQuarantineReleaseTask instance per tenant.
     taskScheduler.schedulePeriodicTask(automaticQuarantineReleaseTask,
         timeInterval, getAutomaticQuarantineReleaseStartTime());
-    log.info("Next Automatic Quarantine Release execution scheduled for tenant {} at {}", TenantThreadLocal.getTenant(),
-        taskScheduler.getNextExecutionTime(automaticQuarantineReleaseTask));
   }
 
   private Date getAutomaticQuarantineReleaseStartTime() {

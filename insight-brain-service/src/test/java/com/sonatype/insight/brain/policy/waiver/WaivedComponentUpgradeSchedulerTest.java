@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.waiver;
 
+import java.time.LocalTime;
+
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
@@ -15,6 +17,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -49,11 +54,7 @@ public class WaivedComponentUpgradeSchedulerTest
 
     scheduler.scheduleWaivedComponentUpgradeInspection();
 
-    // We expect the message that the task is getting scheduled but not verifying configured time to not create
-    // more complicated mock configurations
-    assertThatLogMessagesContain(
-        info("Next waived component upgrade inspection execution scheduled for tenant Tenant[tenantSlug='notused', "
-            + "createdByThread='main', valid='true'] at null"));
+    verify(taskSchedulerMock).scheduleDailyTask(eq(waivedComponentUpgradeTask), any(LocalTime.class));
   }
 
   @Test

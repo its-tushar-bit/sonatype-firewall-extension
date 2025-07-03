@@ -84,8 +84,6 @@ public class PendingSbomMetadataCleaner
     }
 
     taskScheduler.scheduleDailyTask(this, getTenantExecutionTime());
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.info("Scheduled periodic {} for {}.", JOB_NAME, nextExecutionTime);
   }
 
   @Override

@@ -7,11 +7,9 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -45,6 +43,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
@@ -114,6 +113,9 @@ public class AbstractComponentTest
 
   @Rule
   public MockitoRule mockito = MockitoJUnit.rule().strictness(Strictness.STRICT_STUBS);
+
+  @Rule
+  public QuartzJobSchedulingServiceRule quartzJobSchedulingServiceRule = new QuartzJobSchedulingServiceRule();
 
   protected static final String USERNAME = "testuser";
 
@@ -401,36 +403,5 @@ public class AbstractComponentTest
   private void loadSsoConfiguration() {
     SsoUserService ssoUserService = lookup(SsoUserService.class);
     ssoUserService.loadSsoConfiguration();
-  }
-
-  protected void testInMultipleThreadsAndThrowAnyException(
-      final Runnable runnable,
-      final int threadCount,
-      final Duration duration)
-      throws Exception
-  {
-    AtomicReference<Exception> exception = new AtomicReference<>();
-
-    List<Thread> threads = new ArrayList<>();
-    for (int i = 0; i < threadCount; i++) {
-      threads.add(new Thread(() -> {
-        try {
-          long start = System.currentTimeMillis();
-          while (System.currentTimeMillis() - start < duration.toMillis() && exception.get() == null) {
-            runnable.run();
-          }
-        }
-        catch (Exception e) {
-          exception.set(e);
-        }
-      }));
-    }
-    threads.forEach(Thread::start);
-    for (Thread thread : threads) {
-      thread.join();
-    }
-    if (exception.get() != null) {
-      throw exception.get();
-    }
   }
 }

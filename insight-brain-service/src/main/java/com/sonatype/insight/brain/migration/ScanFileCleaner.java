@@ -95,7 +95,6 @@ public class ScanFileCleaner
     }
 
     taskScheduler.scheduleOneTimeTask(this, LocalTime.of(23, 0));
-    log.info("Scan file cleaner scheduled for {}.", taskScheduler.getNextExecutionTime(this));
   }
 
   @Override

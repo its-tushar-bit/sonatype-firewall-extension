@@ -56,7 +56,6 @@ public class ApplicationCountHistoryKeeper implements InsightJob
 
     taskScheduler.scheduleDailyTask(this, LocalTime.of(1,
         30 + ThreadLocalRandom.current().nextInt(30))); // randomize minute to avoid coordinated load spike
-    log.debug("Scheduled application count history keeping for {}", taskScheduler.getNextExecutionTime(this));
   }
 
   @Override

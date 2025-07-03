@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.component;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
@@ -68,8 +67,6 @@ public class RepositoryIdentifiedComponentPurger
     }
 
     taskScheduler.scheduleDailyTask(this, EXECUTION_TIME);
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.debug("Scheduled periodic {} for {}.", DESCRIPTION, nextExecutionTime);
   }
 
   @Override

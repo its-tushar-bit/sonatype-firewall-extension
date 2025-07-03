@@ -83,8 +83,6 @@ public class SuccessMetricsPurger
       return;
     }
     taskScheduler.scheduleDailyTask(this, LocalTime.of(1, 30));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.debug("Scheduled periodic purging of obsolete success metrics for {}", nextExecutionTime);
   }
 
   @Override

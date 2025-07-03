@@ -10,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalTime;
-import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -93,8 +92,6 @@ public class TenantSizeMetricsJob
     }
 
     taskScheduler.scheduleDailyTask(this, LocalTime.of(2, 0));
-    Date nextExecutionTime = taskScheduler.getNextExecutionTime(this);
-    log.info("Scheduled periodic updating of tenant schema sizes for {}", nextExecutionTime);
   }
 
   @Override

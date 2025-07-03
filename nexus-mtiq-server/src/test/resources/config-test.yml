@@ -17,7 +17,7 @@ logging:
           auditLogBasePath: "./target/test-audit-logs"
   appenders:
     - type: console
-      logFormat: "%date %-5level [%thread] %logger - %msg%n"
+      logFormat: "%date %-5level [%X{tenant}] [%thread] %logger - %msg%n"
 
 # for tests we disable the health checks
 mtiq-health:

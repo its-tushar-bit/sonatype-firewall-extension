@@ -21,6 +21,7 @@ import {
   selectDependencyTreeRouterParams,
   selectDependencyTreeUnavailableMessage,
   selectIsPolicyTypeFilterEnabled,
+  selectActiveProxyFailedViolationCount,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { dependencyTreeData } from '../dependencyTree/dependencyTreeMockData';
 
@@ -405,6 +406,26 @@ describe('applicationReportSelectors', () => {
       };
 
       expect(selectIsPolicyTypeFilterEnabled(state)).toBe(true);
+    });
+  });
+
+  describe('selectActiveProxyFailedViolationCount', () => {
+    it('returns 0 if activeProxyFailedViolationCount is not present', () => {
+      const state = {
+        applicationReport: {
+          selectedReport: {},
+        },
+      };
+      expect(selectActiveProxyFailedViolationCount(state)).toBe(0);
+    });
+
+    it('returns the value of activeProxyFailedViolationCount if present', () => {
+      const state = {
+        applicationReport: {
+          selectedReport: { activeProxyFailedViolationCount: 5 },
+        },
+      };
+      expect(selectActiveProxyFailedViolationCount(state)).toBe(5);
     });
   });
 });

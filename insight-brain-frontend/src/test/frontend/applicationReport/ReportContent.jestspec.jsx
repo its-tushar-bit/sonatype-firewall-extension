@@ -259,6 +259,7 @@ describe('ReportContent component', function () {
       });
 
       it('renders Waive All Fail Policy Violations button and navigate to add waiver page when button is clicked', () => {
+        jest.spyOn(applicationReportSelectors, 'selectActiveProxyFailedViolationCount').mockReturnValue(1);
         renderComponent();
 
         const waiveAllViolationsButton = screen.getByRole('button', { name: 'Waive All Fail Policy Violations' });
@@ -269,6 +270,24 @@ describe('ReportContent component', function () {
           publicId: 'publicId',
           scanId: 'scanId',
         });
+      });
+
+      it('enables Waive All Fail Policy Violations button when activeProxyFailedViolationCount is greater than 0', () => {
+        jest.spyOn(applicationReportSelectors, 'selectActiveProxyFailedViolationCount').mockReturnValue(5);
+
+        renderComponent();
+        const waiveAllViolationsButton = screen.getByRole('button', { name: 'Waive All Fail Policy Violations' });
+        expect(waiveAllViolationsButton).toBeInTheDocument();
+        expect(waiveAllViolationsButton).not.toBeDisabled();
+      });
+
+      it('disables Waive All Fail Policy Violations button button when activeProxyFailedViolationCount is 0', () => {
+        jest.spyOn(applicationReportSelectors, 'selectActiveProxyFailedViolationCount').mockReturnValue(0);
+
+        renderComponent();
+        const waiveAllViolationsButton = screen.getByRole('button', { name: 'Waive All Fail Policy Violations' });
+        expect(waiveAllViolationsButton).toBeInTheDocument();
+        expect(waiveAllViolationsButton).toBeDisabled();
       });
     });
   });

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { propOr, pathOr } from 'ramda';
+import { propOr } from 'ramda';
 import {
   NxTable,
   NxTableHead,
@@ -39,7 +39,7 @@ import {
   selectDependencyTreeIsAvailable,
   selectDependencyTreeUnavailableMessage,
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
-  selectSelectedReport,
+  selectActiveProxyFailedViolationCount,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
 
 const policyThreatLevelSettings = {
@@ -82,8 +82,7 @@ export default function ReportContent() {
   const dependencyTreeIsAvailable = useSelector(selectDependencyTreeIsAvailable);
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
   const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
-  const selectedReport = useSelector(selectSelectedReport);
-  const nonLowViolationCount = pathOr(0, ['nonLowViolationCount'], selectedReport);
+  const activeProxyFailedViolationCount = useSelector(selectActiveProxyFailedViolationCount);
 
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
@@ -153,13 +152,14 @@ export default function ReportContent() {
           </NxTooltip>
         </div>
 
-        {isContainerImagesEvaluation && nonLowViolationCount ? (
+        {isContainerImagesEvaluation ? (
           <div className="nx-tile__actions">
             <NxButton
               type="button"
               variant="tertiary"
               id="add-container-image-waiver-button"
               onClick={redirectToAddContainerImageWaiverPage}
+              disabled={activeProxyFailedViolationCount <= 0}
             >
               Waive All Fail Policy Violations
             </NxButton>

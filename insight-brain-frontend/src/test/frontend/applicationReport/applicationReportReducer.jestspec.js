@@ -376,6 +376,7 @@ describe('applicationReportReducer', function () {
           severeViolationCount: 1,
           criticalViolationCount: 1,
           nonLowViolationCount: 3,
+          activeProxyFailedViolationCount: 0,
           reportVersion: 3,
           isInnerSourceEnabled: false,
         },
@@ -513,6 +514,7 @@ describe('applicationReportReducer', function () {
           severeViolationCount: 1,
           criticalViolationCount: 1,
           nonLowViolationCount: 2,
+          activeProxyFailedViolationCount: 0,
           reportVersion: 3,
           isInnerSourceEnabled: true,
         },
@@ -1853,6 +1855,74 @@ describe('applicationReportReducer', function () {
       ]);
 
       expect(newState.reportRawData.allEntries).toBe(state.reportRawData.allEntries);
+    });
+
+    it('correctly calculates activeProxyFailedViolationCount in selectedReport', function () {
+      const state = Object.freeze({
+        pendingLoads: new Set(['policy']),
+        sortFields: ['-policyThreatLevel'],
+      });
+
+      const entries = [
+        // Should be counted: policyThreatLevel >= 2, not ignored, has fail/Proxy Failed
+        {
+          policyThreatLevel: 8,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should be counted: policyThreatLevel >= 2, not ignored, has fail/Proxy Failed
+        {
+          policyThreatLevel: 4,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: policyThreatLevel < 2
+        {
+          policyThreatLevel: 1,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: legacyViolation true
+        {
+          policyThreatLevel: 8,
+          legacyViolation: true,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: grandfathered true
+        {
+          policyThreatLevel: 8,
+          grandfathered: true,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: waived true
+        {
+          policyThreatLevel: 8,
+          waived: true,
+          actions: [{ actionType: 'fail', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: actions does not include fail/Proxy Failed
+        {
+          policyThreatLevel: 8,
+          actions: [{ actionType: 'warn', actionSummary: 'Proxy Failed' }],
+        },
+        // Should NOT be counted: actions missing
+        {
+          policyThreatLevel: 8,
+        },
+        // Should NOT be counted: actions present but no fail/Proxy Failed
+        {
+          policyThreatLevel: 8,
+          actions: [{ actionType: 'fail', actionSummary: 'Other' }],
+        },
+      ];
+
+      const newState = reduce(state, {
+        type: 'LOAD_REPORT_FULFILLED',
+        payload: {
+          allEntries: entries,
+          reportVersion: 3,
+          isInnerSourceEnabled: false,
+        },
+      });
+
+      expect(newState.selectedReport.activeProxyFailedViolationCount).toBe(2);
     });
   });
 

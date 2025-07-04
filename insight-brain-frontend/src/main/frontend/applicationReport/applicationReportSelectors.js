@@ -121,3 +121,8 @@ export const selectIsFirewallOrRepositoryAndNotProxyStage = createSelector(
   selectReportStageId,
   (isFirewallOrRepository, stageId) => isFirewallOrRepository && stageId !== 'proxy'
 );
+
+export const selectActiveProxyFailedViolationCount = createSelector(
+  selectSelectedReport,
+  (report) => report?.activeProxyFailedViolationCount || 0
+);

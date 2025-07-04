@@ -468,7 +468,15 @@ function getViolationCountsPerThreatLevel(entries) {
   const rejectIgnored = reject((v) => v.legacyViolation || v.grandfathered || v.waived || v.policyThreatLevel < 2);
   const nonZeroCounts = pipe(rejectIgnored, reduceToCountsByThreatLevel)(entries);
   const nonLowViolationCount = sum(values(nonZeroCounts));
-  return { ...zeroCounts, ...nonZeroCounts, nonLowViolationCount };
+  const activeProxyFailedViolationCount =
+    nonLowViolationCount > 0
+      ? rejectIgnored(entries).filter(
+          (v) =>
+            Array.isArray(v.actions) &&
+            v.actions.some((a) => a.actionType === 'fail' && a.actionSummary === 'Proxy Failed')
+        ).length
+      : 0;
+  return { ...zeroCounts, ...nonZeroCounts, nonLowViolationCount, activeProxyFailedViolationCount };
 }
 
 const mutatePendingLoads = curryN(3, function mutatePendingLoads(setMutator, loads, state) {

@@ -366,7 +366,7 @@ public class PolicyViolationDAO
         .anyMatch(filter -> filter.equals("VIOLATION_STATE_ALL") || filter.equals("VIOLATION_STATE_NOT_VIOLATING"));
   }
 
-  private List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerAggregate(
+  protected List<RepositoryResultsForImageContainer> getRepositoryResultsForImageContainerAggregate(
       Collection<String> repositoryIds, Collection<String> applicationIds,
       RepositoryResultsForImageContainerFilter detailsFilter)
   {
@@ -395,7 +395,7 @@ public class PolicyViolationDAO
       String baseQuery = "SELECT max(threat_level) as threat_level," + //
           " count(threat_level) as violation_count," + //
           " app.name as object," + //
-          " max(open_time) as quarantine_time," + //
+          " max(CASE WHEN waive_time IS NOT NULL THEN NULL ELSE open_time END) as quarantine_time," + //
           " app.application_id," + //
           " app.public_id" + //
           " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
@@ -408,6 +408,7 @@ public class PolicyViolationDAO
           addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
           addViolationStateFilters(detailsFilter.violationStateFilters) +
           addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+          " AND pv.action_type_id = '" + Action.ID_FAIL + "'" + //
           " GROUP BY app.application_id, app.name, pv.open_time" + //
           addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
           validateAndAddSortFields(detailsFilter.sortFields) +

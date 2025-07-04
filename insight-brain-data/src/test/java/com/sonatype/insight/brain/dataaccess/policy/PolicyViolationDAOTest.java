@@ -19,6 +19,10 @@ import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO.ContainerImageInQuarantineData;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainer;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField.SortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -2191,6 +2195,63 @@ public class PolicyViolationDAOTest
         "scan-1");
 
     assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void getRepositoryResultsForImageContainerAggregate_TestNullQuarantineTime() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Application app2 = tempEntity.newApplication("app2", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    //First container with violations
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID,
+        "scan-1");
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 8, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id1", "v1", "test-hash", FailActionType.ID);
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 9, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id2", "v1", "test-hash", FailActionType.ID);
+
+    // Second container image with violations
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ProxyStageType.ID,
+        "scan-2");
+    // Create PolicyViolation with waiver time not null
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
+        "Version1");
+    PolicyViolation policyViolation2 = new PolicyViolation(policyEvaluation2, policy.getId(), policy.getName(), 5,
+        PolicyThreatCategory.OTHER, "hash", componentIdentifier, List.of(constraintFact), "filename");
+    policyViolation2.setWaiveTime(DateUtils.addDays(new Date(), 1));
+    policyViolation2.setActionTypeId(FailActionType.ID);
+    dao.insert(policyViolation2);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Arrays.asList(app1.getId(), app2.getId());
+    final RepositoryResultsForImageContainerFilter detailsFilter = getDetailsFilter();
+    List<RepositoryResultsForImageContainer>
+        result = dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, detailsFilter);
+    assertThat(result).hasSize(2);
+    assertThat(result.get(1).quarantineTime).isNull();
+  }
+
+  private RepositoryResultsForImageContainerFilter getDetailsFilter() {
+    RepositoryResultsForImageContainerFilter detailsFilter = new RepositoryResultsForImageContainerFilter();
+    detailsFilter.page = 1;
+    detailsFilter.pageSize = 50;
+    detailsFilter.aggregate = true;
+    detailsFilter.searchFilters = Collections.EMPTY_MAP;
+    detailsFilter.violationStateFilters = Collections.singleton("VIOLATION_STATE_ALL");
+    SortField sortField = new SortField();
+    sortField.asc = false;
+    sortField.sortPriority = 1;
+    sortField.sortableField = SortableField.QUARANTINE_TIME;
+    detailsFilter.sortFields = Collections.singletonList(sortField);
+    return detailsFilter;
   }
 
   private void setupContainerImagesWithViolations(final Organization org) {

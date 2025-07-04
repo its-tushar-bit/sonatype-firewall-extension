@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.api.v2.dto.RepositoryResultsForImageContainerDto;
 import com.sonatype.insight.brain.api.v2.dto.RepositoryResultsForImageContainerRequestDto;
 import com.sonatype.insight.brain.api.v2.dto.RepositoryResultsForImageContainerRequestDto.SearchFilter;
@@ -238,11 +239,17 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     PolicyViolation policyViolation6 = tempEntity.newPolicyViolation(policyEvaluation2, policy6);
 
     policyViolation1.setThreatLevel(10);
+    policyViolation1.setActionTypeId(Action.ID_FAIL);
     policyViolation2.setThreatLevel(8);
+    policyViolation2.setActionTypeId(Action.ID_FAIL);
     policyViolation3.setThreatLevel(10);
+    policyViolation3.setActionTypeId(Action.ID_FAIL);
     policyViolation4.setThreatLevel(5);
+    policyViolation4.setActionTypeId(Action.ID_FAIL);
     policyViolation5.setThreatLevel(10);
+    policyViolation5.setActionTypeId(Action.ID_FAIL);
     policyViolation6.setThreatLevel(2);
+    policyViolation6.setActionTypeId(Action.ID_FAIL);
 
     policyViolationDAO.update(policyViolation1);
     policyViolationDAO.update(policyViolation2);
@@ -538,11 +545,17 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     PolicyViolation policyViolation6 = tempEntity.newPolicyViolation(policyEvaluation2, policy6);
 
     policyViolation1.setThreatLevel(10);
+    policyViolation1.setActionTypeId(Action.ID_FAIL);
     policyViolation2.setThreatLevel(8);
+    policyViolation2.setActionTypeId(Action.ID_FAIL);
     policyViolation3.setThreatLevel(10);
+    policyViolation3.setActionTypeId(Action.ID_FAIL);
     policyViolation4.setThreatLevel(5);
+    policyViolation4.setActionTypeId(Action.ID_FAIL);
     policyViolation5.setThreatLevel(10);
+    policyViolation5.setActionTypeId(Action.ID_FAIL);
     policyViolation6.setThreatLevel(2);
+    policyViolation6.setActionTypeId(Action.ID_FAIL);
 
     policyViolationDAO.update(policyViolation1);
     policyViolationDAO.update(policyViolation2);

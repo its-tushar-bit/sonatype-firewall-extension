@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -20,6 +21,9 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
+import com.sonatype.insight.brain.service.config.StorageConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+
 import io.dropwizard.core.Configuration;
 import io.dropwizard.util.Duration;
 import org.junit.Rule;
@@ -251,6 +255,116 @@ public class InsightConfigTest
   public void testGetApplicationConnectorPorts() {
     InsightConfig config = new InsightConfig();
     assertThat(config.getApplicationConnectorPorts()).isNotNull();
+  }
+
+  @Test
+  public void testStorageConfig_default() {
+    InsightConfig config = new InsightConfig();
+
+    // Should be valid
+    assertThat(config.isValidStorageConfig()).isTrue();
+  }
+
+  @Test
+  public void testStorageConfig_null() {
+    InsightConfig config = new InsightConfig();
+    config.setStorage(null);
+
+    // Should be valid
+    assertThat(config.isValidStorageConfig()).isTrue();
+  }
+
+  @Test
+  public void testStorageConfig_fileType_valid() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.FILE);
+    config.setStorage(storageConfig);
+
+    // Should be valid
+    assertThat(config.isValidStorageConfig()).isTrue();
+    assertThat(logOutput).doesNotContain("Invalid storage config");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_valid() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    S3DataStoreConfig s3 = new S3DataStoreConfig();
+    s3.setBucketName("bucket");
+    s3.setRegion("us-east-1");
+    s3.setObjectKeyPrefix("prefix/");
+    storageConfig.setS3Config(s3);
+    config.setStorage(storageConfig);
+
+    // Should be valid
+    assertThat(config.isValidStorageConfig()).isTrue();
+    assertThat(logOutput).doesNotContain("Invalid storage config");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_missingS3Config() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    config.setStorage(storageConfig);
+
+    // Should be invalid
+    assertThat(config.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: s3Config is required when the data store type is S3.");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_missingBucket() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    S3DataStoreConfig s3 = new S3DataStoreConfig();
+    s3.setRegion("us-east-1");
+    storageConfig.setS3Config(s3);
+    config.setStorage(storageConfig);
+
+    // Should be invalid
+    assertThat(config.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'bucketName' must be provided and non-empty.");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_missingRegion() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    S3DataStoreConfig s3 = new S3DataStoreConfig();
+    s3.setBucketName("bucket");
+    storageConfig.setS3Config(s3);
+    config.setStorage(storageConfig);
+
+    // Should be invalid
+    assertThat(config.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: Property 'region' must be provided and non-empty.");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_invalidObjectKeyPrefix() {
+    InsightConfig config = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    S3DataStoreConfig s3 = new S3DataStoreConfig();
+    s3.setBucketName("bucket");
+    s3.setRegion("us-east-1");
+    s3.setObjectKeyPrefix("invalid prefix!@#");
+    storageConfig.setS3Config(s3);
+    config.setStorage(storageConfig);
+
+    // Should be invalid
+    assertThat(config.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains(
+        "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
+            + S3DataStoreConfig.S3_KEY_PREFIX);
   }
 
   private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {

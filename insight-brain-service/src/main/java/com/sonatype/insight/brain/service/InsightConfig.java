@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.validation.Valid;
+import javax.validation.ValidationException;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -975,6 +976,21 @@ public class InsightConfig
 
   public StorageConfig getStorage() {
     return storage;
+  }
+
+  @JsonIgnore
+  @ValidationMethod(message = "Invalid storage configuration")
+  public boolean isValidStorageConfig() {
+    try {
+      if (storage != null) {
+        storage.validate();
+      }
+      return true;
+    }
+    catch (ValidationException e) {
+      log.error("Invalid storage configuration: {}", e.getMessage());
+      return false;
+    }
   }
 
   public String getApplicationConnectorPorts() {

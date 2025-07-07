@@ -34,6 +34,15 @@ public class StorageConfig
     this.s3Config = s3Config;
   }
 
+  public void validate() {
+    if (type == DataStoreType.S3) {
+      if (s3Config == null) {
+        throw new ValidationException("s3Config is required when the data store type is S3.");
+      }
+      s3Config.validate();
+    }
+  }
+
   public enum DataStoreType
   {
     FILE, S3
@@ -90,11 +99,20 @@ public class StorageConfig
     }
 
     public void setObjectKeyPrefix(@Nullable final String objectKeyPrefix) {
+      this.objectKeyPrefix = objectKeyPrefix;
+    }
+
+    public void validate() {
+      if (bucketName == null || bucketName.isEmpty()) {
+        throw new ValidationException("Property 'bucketName' must be provided and non-empty.");
+      }
+      if (region == null || region.isEmpty()) {
+        throw new ValidationException("Property 'region' must be provided and non-empty.");
+      }
       if (objectKeyPrefix != null && !objectKeyPrefix.matches(S3_KEY_PREFIX)) {
         throw new ValidationException(
             "Property 'objectKeyPrefix' does not match the expected regex pattern " + S3_KEY_PREFIX);
       }
-      this.objectKeyPrefix = objectKeyPrefix;
     }
   }
 }

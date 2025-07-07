@@ -36,10 +36,10 @@ public class ApplicationReportPersistenceServiceProvider implements Provider<App
 
   @Override
   public ApplicationReportPersistenceService get() {
-    if (insightConfig.getReportDataStoreConfig() == null) {
+    if (insightConfig.getStorage() == null) {
       return fileApplicationReportPersistenceServiceProvider.get();
     }
-    return switch (insightConfig.getReportDataStoreConfig().getType()) {
+    return switch (insightConfig.getStorage().getType()) {
       case FILE -> fileApplicationReportPersistenceServiceProvider.get();
       case S3 -> s3ApplicationReportPersistenceServiceProvider.get();
     };

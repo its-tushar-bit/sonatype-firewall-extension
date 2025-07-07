@@ -11,18 +11,18 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
-public class ReportDataStoreConfig
+public class StorageConfig
 {
   @NotNull
-  private ReportDataStoreType type = ReportDataStoreType.FILE;
+  private StorageConfig.DataStoreType type = DataStoreType.FILE;
 
   private S3DataStoreConfig s3Config;
 
-  public ReportDataStoreType getType() {
+  public DataStoreType getType() {
     return type;
   }
 
-  public void setType(final ReportDataStoreType type) {
+  public void setType(final DataStoreType type) {
     this.type = type;
   }
 
@@ -34,7 +34,7 @@ public class ReportDataStoreConfig
     this.s3Config = s3Config;
   }
 
-  public enum ReportDataStoreType
+  public enum DataStoreType
   {
     FILE, S3
   }

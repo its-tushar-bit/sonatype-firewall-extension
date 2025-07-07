@@ -12,7 +12,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.config.ReportDataStoreConfig.S3DataStoreConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
@@ -36,7 +36,7 @@ public class S3ClientProvider
 
   @Override
   public S3Client get() {
-    S3DataStoreConfig s3Config = config.getReportDataStoreConfig().getS3Config();
+    S3DataStoreConfig s3Config = config.getStorage().getS3Config();
     if (s3Config == null) {
       return null;
     }

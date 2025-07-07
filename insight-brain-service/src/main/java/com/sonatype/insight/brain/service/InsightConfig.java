@@ -25,7 +25,7 @@ import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurat
 import com.sonatype.insight.brain.migration.SourceControlConfigurationMigrator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.AllowedIp;
-import com.sonatype.insight.brain.service.config.ReportDataStoreConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -335,8 +335,8 @@ public class InsightConfig
   private String advancedSearchCSVExportDelimiter;
 
   @Valid
-  @JsonProperty(value = "reportDataStore")
-  private ReportDataStoreConfig reportDataStoreConfig = new ReportDataStoreConfig();
+  @JsonProperty(value = "storage")
+  private StorageConfig storage = new StorageConfig();
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -969,12 +969,12 @@ public class InsightConfig
     this.advancedSearchCSVExportDelimiter = advancedSearchCSVExportDelimiter;
   }
 
-  public void setReportDataStoreConfig(ReportDataStoreConfig reportDataStoreConfig) {
-    this.reportDataStoreConfig = reportDataStoreConfig;
+  public void setStorage(StorageConfig storage) {
+    this.storage = storage;
   }
 
-  public ReportDataStoreConfig getReportDataStoreConfig() {
-    return reportDataStoreConfig;
+  public StorageConfig getStorage() {
+    return storage;
   }
 
   public String getApplicationConnectorPorts() {

@@ -12,8 +12,8 @@ import java.util.List;
 import com.google.inject.Binder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.service.config.ReportDataStoreConfig;
-import com.sonatype.insight.brain.service.config.ReportDataStoreConfig.S3DataStoreConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -75,15 +75,15 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
       public void configure(InsightConfig config) {
         super.configure(config);
 
-        var reportDataStoreConfig = config.getReportDataStoreConfig();
+        var storageConfig = config.getStorage();
         var s3Config = new S3DataStoreConfig();
         s3Config.setBucketName(BUCKET_NAME);
         s3Config.setRegion(REGION);
         s3Config.setObjectKeyPrefix(prefix);
         s3Config.setEndpoint(localstack.getEndpoint());
 
-        reportDataStoreConfig.setS3Config(s3Config);
-        reportDataStoreConfig.setType(ReportDataStoreConfig.ReportDataStoreType.S3);
+        storageConfig.setS3Config(s3Config);
+        storageConfig.setType(DataStoreType.S3);
       }
     };
 

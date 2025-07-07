@@ -149,7 +149,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
   }
 
   private String getBucketName() {
-    return insightConfig.getReportDataStoreConfig().getS3Config().getBucketName();
+    return insightConfig.getStorage().getS3Config().getBucketName();
   }
 
   private String readKey(String key) {

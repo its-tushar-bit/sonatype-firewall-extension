@@ -20,7 +20,7 @@ There is another key prefix that ends with `additional.files` where files that d
 
 To enable S3 you need to specify the config in your config.yml file as follows:
 ```yaml
-reportDataStore:
+storage:
   type: S3 # must match exactly, as this is an enum. Other option is File, but as File is default its better to omit the config entirely
   s3Config:
     # Endpoint is optional, defaults to AWS S3. This example would be for localstack
@@ -46,7 +46,7 @@ Note: There are other ways to run LocalStack https://docs.localstack.cloud/user-
 
 Configure the application to use your LocalStack S3 by adding the following to your config.yml
 ```yaml
-reportDataStore:
+storage:
   type: S3
   s3Config:
     endpoint: http://127.0.0.1:4566

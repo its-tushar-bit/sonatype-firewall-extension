@@ -171,7 +171,7 @@ public class S3ApplicationReportPersistenceService
       final S3Client s3Client,
       final InsightConfig insightConfig)
   {
-    var s3Config = insightConfig.getReportDataStoreConfig().getS3Config();
+    var s3Config = insightConfig.getStorage().getS3Config();
     this.s3Client = requireNonNull(s3Client);
     this.bucketName = requireNonNull(s3Config.getBucketName());
     this.keyPrefix = requireNonNull(s3Config.getObjectKeyPrefix());

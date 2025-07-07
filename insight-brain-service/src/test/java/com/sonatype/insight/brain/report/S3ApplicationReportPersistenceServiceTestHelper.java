@@ -74,7 +74,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
     String key = "%ssonatype-work/report/%s/%s/report.files/index.html".formatted(
         expectedEffectivePrefix,
         APPLICATION_ID,
-        SCAN_ID
+        scanId
     );
 
     s3Client.putObject(

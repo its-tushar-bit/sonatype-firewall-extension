@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
@@ -408,8 +407,25 @@ public class S3ApplicationReportPersistenceService
   public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
       throws IOException
   {
-    // To be implemented in https://sonatype.atlassian.net/browse/CLM-34365
-    throw new UnsupportedOperationException("Not supported in S3 yet");
+    deleteReport(appId, destinationScanId);
+    Set<S3Object> s3Objects;
+    String sourceBasePrefix = keyPrefix + String.format(BASE_FORMAT, appId, sourceScanId);
+    try (var objects = getS3Objects(sourceBasePrefix)) {
+      s3Objects = objects.collect(Collectors.toSet());
+    }
+    String targetBasePrefix = keyPrefix + String.format(BASE_FORMAT, appId, destinationScanId);
+    for (S3Object s3Object : s3Objects) {
+      String sourceKey = s3Object.key();
+      String targetKey = targetBasePrefix + sourceKey.substring(sourceBasePrefix.length());
+      CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+          .sourceBucket(bucketName)
+          .sourceKey(sourceKey)
+          .destinationBucket(bucketName)
+          .destinationKey(targetKey)
+          .build();
+      wrapS3Exception(() -> s3Client.copyObject(copyRequest));
+    }
+    deleteReport(appId, sourceScanId);
   }
 
   private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {

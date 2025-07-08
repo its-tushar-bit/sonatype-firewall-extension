@@ -868,6 +868,9 @@ public class ScanPolicyEvaluator
             policyViolationDAO.update(tx, oldPolicyViolation);
 
             if (keepExistingViolation) {
+              // CLM-35315 - make sure after replacement to keep the latest reachability status
+              oldPolicyViolation.setReachabilityStatus(newPolicyViolation.getReachabilityStatus());
+
               results.allViolations.remove(newPolicyViolation);
               results.allViolations.add(oldPolicyViolation);
             }

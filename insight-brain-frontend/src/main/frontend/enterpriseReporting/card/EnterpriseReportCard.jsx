@@ -27,6 +27,12 @@ export default function EnterpriseReportCard(props) {
   const isEnterprise = dashboard.category === 'enterprise';
 
   const dispatch = useDispatch();
+
+  const retiringRegex = /retiring/i;
+  const cardClassNames = classNames('iq-enterprise-reporting-card iq-enterprise-reporting-card--dashboard', {
+    retiring: retiringRegex.test(dashboard.spotlightText),
+  });
+
   const iconContainerClassName = classNames('iq-enterprise-reporting-card__icon', {
     enterprise: isEnterprise,
   });
@@ -51,7 +57,7 @@ export default function EnterpriseReportCard(props) {
     <div>
       <NxCard
         id={`enterprise-reporting-dashboard-${dashboard.dashboardId}`}
-        className="iq-enterprise-reporting-card iq-enterprise-reporting-card--dashboard"
+        className={cardClassNames}
         role="enterprise-reporting-dashboard-card"
       >
         {dashboard.spotlight || dashboard.spotlightText ? (

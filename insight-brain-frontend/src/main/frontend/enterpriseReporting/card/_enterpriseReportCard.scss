@@ -106,4 +106,8 @@
     border-top: none;
     padding-top: 0;
   }
+
+  &.retiring {
+    border-color: var(--nx-swatch-red-30);
+  }
 }

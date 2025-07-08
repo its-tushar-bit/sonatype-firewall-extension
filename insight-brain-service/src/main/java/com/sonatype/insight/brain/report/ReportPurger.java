@@ -123,6 +123,8 @@ public class ReportPurger
 
   private final Configuration configuration;
 
+  private final ApplicationReportPersistenceService applicationReportPersistenceService;
+
   @Inject
   public ReportPurger(
       final InsightWork work,
@@ -131,7 +133,8 @@ public class ReportPurger
       final OwnerDAO ownerDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final TaskScheduler taskScheduler,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ApplicationReportPersistenceService applicationReportPersistenceService)
   {
     super("purgeObsoleteReports");
     this.work = work;
@@ -145,6 +148,7 @@ public class ReportPurger
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
         .collect(toList());
+    this.applicationReportPersistenceService = applicationReportPersistenceService;
   }
 
   @Override
@@ -314,10 +318,12 @@ public class ReportPurger
       try {
         if (purgeReport(application, reportId)) {
           purged++;
-          trashBucket.add();
-          if (trashBucket.isFull()) {
-            log.debug("Trash bucket {} is full for today", trashBucket.bucketId);
-            break;
+          if (applicationReportPersistenceService.supportsTrash()) {
+            trashBucket.add();
+            if (trashBucket.isFull()) {
+              log.debug("Trash bucket {} is full for today", trashBucket.bucketId);
+              break;
+            }
           }
         }
       }
@@ -330,6 +336,7 @@ public class ReportPurger
   }
 
   private boolean purgeReport(Application application, String reportId) throws IOException {
+    // TODO: update this to purge scan files in S3 as part of https://sonatype.atlassian.net/browse/CLM-35415
     String purgeScanFiles = configuration.getPurgeScanFiles();
     if (ConfigurationUtils.WITH_REPORTS.equals(purgeScanFiles)) {
       try {
@@ -341,53 +348,55 @@ public class ReportPurger
       }
     }
 
-    Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
-    if (!Files.exists(reportDir)) {
+    if (!applicationReportPersistenceService.reportExists(application.getId(), reportId)) {
       return false;
     }
-    List<Path> reportFiles;
-    try (Stream<Path> pathStream = Files.walk(reportDir)) {
-      reportFiles = pathStream.collect(toCollection(ArrayList::new));
-    }
 
-    Path trashDir = work.getTrashDir().toPath().resolve(LocalDate.now().toString());
-    // NOTE: Big installations have 5000+ evaluations per day and hence thousands of reports that need to be purged
-    // To avoid having too many files in a single directory, we spread the daily trash load over several buckets
-    trashDir = trashDir.resolve(getTrashBucketId(application));
-    Files.createDirectories(trashDir);
-    Path trashFile = trashDir.resolve("app-" + application.getId() + "-report-" + reportId + ".zip");
+    if (applicationReportPersistenceService.supportsTrash()) {
+      Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
+      List<Path> reportFiles;
+      try (Stream<Path> pathStream = Files.walk(reportDir)) {
+        reportFiles = pathStream.collect(toCollection(ArrayList::new));
+      }
 
-    try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(trashFile))) {
-      String zipEntryPrefix = toZipEntryName(work.getReportDir().toPath().relativize(reportDir)) + "/";
-      for (Path reportFile : reportFiles) {
-        if (!Files.isRegularFile(reportFile)) {
-          continue;
+      Path trashDir = work.getTrashDir().toPath().resolve(LocalDate.now().toString());
+      // NOTE: Big installations have 5000+ evaluations per day and hence thousands of reports that need to be purged
+      // To avoid having too many files in a single directory, we spread the daily trash load over several buckets
+      trashDir = trashDir.resolve(getTrashBucketId(application));
+      Files.createDirectories(trashDir);
+      Path trashFile = trashDir.resolve("app-" + application.getId() + "-report-" + reportId + ".zip");
+
+      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(trashFile))) {
+        String zipEntryPrefix = toZipEntryName(work.getReportDir().toPath().relativize(reportDir)) + "/";
+        for (Path reportFile : reportFiles) {
+          if (!Files.isRegularFile(reportFile)) {
+            continue;
+          }
+          String zipEntryName = toZipEntryName(reportDir.relativize(reportFile));
+          if ("report.pdf".equals(zipEntryName)) {
+            continue;
+          }
+          ZipEntry zipEntry = new ZipEntry(zipEntryPrefix + zipEntryName);
+          zos.putNextEntry(zipEntry);
+          Files.copy(reportFile, zos);
         }
-        String zipEntryName = toZipEntryName(reportDir.relativize(reportFile));
-        if ("report.pdf".equals(zipEntryName)) {
-          continue;
+      }
+      catch (Exception e) {
+        try {
+          Files.deleteIfExists(trashFile);
         }
-        ZipEntry zipEntry = new ZipEntry(zipEntryPrefix + zipEntryName);
-        zos.putNextEntry(zipEntry);
-        Files.copy(reportFile, zos);
+        catch (Exception suppressed) {
+          e.addSuppressed(suppressed);
+        }
+        throw e;
       }
-    }
-    catch (Exception e) {
-      try {
-        Files.deleteIfExists(trashFile);
-      }
-      catch (Exception suppressed) {
-        e.addSuppressed(suppressed);
-      }
-      throw e;
+      log.info("Purging report {} from application {} to {}", reportDir, application.getName(), trashFile);
     }
 
-    Collections.reverse(reportFiles);
-    for (Path reportFile : reportFiles) {
-      Files.delete(reportFile);
-    }
+    applicationReportPersistenceService.deleteReport(application.getId(), reportId);
 
-    log.info("Purged report {} from application {} to {}", reportDir, application.getName(), trashFile);
+    log.info("Purged report {} from application {}", reportId, application.getName());
+
     return true;
   }
 

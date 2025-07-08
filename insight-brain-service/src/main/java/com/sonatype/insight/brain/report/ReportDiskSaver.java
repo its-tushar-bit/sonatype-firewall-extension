@@ -15,11 +15,12 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -100,22 +101,30 @@ public class ReportDiskSaver
 
   private static final int errorThreshold = 100;
 
-  private final InsightWork work;
+  private final InsightWork insightWork;
+
+  private final InsightConfig insightConfig;
 
   @Inject
-  public ReportDiskSaver(InsightWork work) {
+  public ReportDiskSaver(InsightWork insightWork, InsightConfig insightConfig) {
     super("reduceReportZipSize");
-    this.work = work;
+    this.insightWork = insightWork;
+    this.insightConfig = insightConfig;
   }
 
   @Override
   public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
+    if (insightConfig.getStorage() != null &&
+        insightConfig.getStorage().getType() == DataStoreType.S3) {
+      throw new UnsupportedOperationException(
+          "Report zip minification is only needed for legacy reports using local file storage.");
+    }
     log.debug("Starting report zips minifying");
     minifyReports();
   }
 
   private void minifyReports() {
-    minifyReports(work.getReportDir());
+    minifyReports(insightWork.getReportDir());
   }
 
   @VisibleForTesting

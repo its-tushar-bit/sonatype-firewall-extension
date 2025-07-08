@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
@@ -531,5 +530,10 @@ public class FileApplicationReportPersistenceService
     else {
       return Stream.empty();
     }
+  }
+
+  @Override
+  public boolean supportsTrash() {
+    return true;
   }
 }

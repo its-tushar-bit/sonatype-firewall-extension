@@ -153,4 +153,12 @@ public abstract class ApplicationReportPersistenceService
       throw new IllegalArgumentException("Invalid name: " + name);
     }
   }
+
+  /**
+   * @return true if report files are accessible in the report directory and should be zipped and moved to the trash
+   * directory before being deleted.
+   */
+  public boolean supportsTrash() {
+    return false;
+  }
 }

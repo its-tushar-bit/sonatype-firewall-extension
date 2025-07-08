@@ -638,33 +638,14 @@ public abstract class AbstractRepositoryService
 
     validateRepositoryMatchesRepositoryManager(repository, repositoryManagerInstanceId);
 
-    if (!repository.isAuditEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
-        || repository.getFormat() == null) {
-      if (!repository.isAuditEnabled() && persistEvaluationResults) {
-        log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
-            repository.getPublicId(), repository.getId());
-        repository.setAuditEnabled(true);
-        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONNECT_REPOSITORY, false)) {
-          AuditData.get().setRepository(repository).setData("repositoryManagerInstanceId", repositoryManagerInstanceId);
-        }
-      }
-      if (withQuarantine && persistEvaluationResults) {
-        if (!repository.isQuarantineEnabled()) {
-          log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
-              repository.getPublicId(), repository.getId());
-          repository.setQuarantineEnabled(true);
-          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_QUARANTINE, false)) {
-            AuditData.get().setRepository(repository).setData("quarantine", "enabled");
-          }
-        }
-      }
-      if (componentEvaluationDataRequestList != null && componentEvaluationDataRequestList.components != null
-          && !componentEvaluationDataRequestList.components.isEmpty()) {
-        repository.setFormat(componentEvaluationDataRequestList.components.get(0).format);
-      }
-      repositoryDAO.update(repository);
-      AuditData.get().commitSubEvents();
+    String format = null;
+    if (componentEvaluationDataRequestList != null && componentEvaluationDataRequestList.components != null
+        && !componentEvaluationDataRequestList.components.isEmpty()) {
+      format = componentEvaluationDataRequestList.components.get(0).format;
     }
+
+    configureAuditAndQuarantineInRepository(null, repositoryManagerInstanceId, repository, format, withQuarantine,
+        persistEvaluationResults);
 
     updateUserAgent(clientUserAgent, repository);
 
@@ -685,6 +666,55 @@ public abstract class AbstractRepositoryService
         System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  public void configureAuditAndQuarantineInRepository(
+      TransactionContext tx,
+      String repositoryManagerInstanceId,
+      Repository repository,
+      String format,
+      boolean withQuarantine,
+      boolean persistEvaluationResults)
+  {
+    boolean needToUpdateRepository = false;
+
+    if (!repository.isAuditEnabled() || (withQuarantine && !repository.isQuarantineEnabled())
+        || repository.getFormat() == null) {
+      if (!repository.isAuditEnabled() && persistEvaluationResults) {
+        log.info("Enabled audit for repository {}:{} ({})", repository.getRepositoryManagerId(),
+            repository.getPublicId(), repository.getId());
+        repository.setAuditEnabled(true);
+        needToUpdateRepository = true;
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONNECT_REPOSITORY, false)) {
+          AuditData.get().setRepository(repository).setData("repositoryManagerInstanceId", repositoryManagerInstanceId);
+        }
+      }
+      if (withQuarantine && persistEvaluationResults) {
+        if (!repository.isQuarantineEnabled()) {
+          log.info("Enabled quarantine for repository {}:{} ({})", repository.getRepositoryManagerId(),
+              repository.getPublicId(), repository.getId());
+          repository.setQuarantineEnabled(true);
+          needToUpdateRepository = true;
+          try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CONFIGURE_QUARANTINE, false)) {
+            AuditData.get().setRepository(repository).setData("quarantine", "enabled");
+          }
+        }
+      }
+      if (format != null && !format.equals(repository.getFormat())) {
+        repository.setFormat(format);
+        needToUpdateRepository = true;
+      }
+      
+      if (needToUpdateRepository) {
+        if (tx != null) {
+          repositoryDAO.update(tx, repository);
+        }
+        else {
+          repositoryDAO.update(repository);
+        }
+        AuditData.get().commitSubEvents();
+      }
+    }
   }
 
   private void validateRepositoryMatchesRepositoryManager(

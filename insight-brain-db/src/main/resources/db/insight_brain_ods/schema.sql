@@ -17,6 +17,7 @@ CREATE TABLE organization (
   allow_artifactory_connection_override boolean DEFAULT true NOT NULL,
   related_repository_manager_id varchar(50),
   related_repository_id varchar(50),
+  related_repository_container_id varchar(50),
   CONSTRAINT organization_pk PRIMARY KEY (organization_id),
   CONSTRAINT organization_name_uk UNIQUE (name_lowercase_no_whitespace),
   CONSTRAINT organization_parent_organization_fk FOREIGN KEY (parent_organization_id) REFERENCES organization(organization_id)

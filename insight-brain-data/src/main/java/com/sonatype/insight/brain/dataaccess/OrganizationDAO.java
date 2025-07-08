@@ -366,7 +366,9 @@ public class OrganizationDAO
 
   @Override
   protected SearchIndexChange newSearchIndexChange(Organization entity) {
-    if (entity.getRelatedRepositoryManagerId() != null || entity.getRelatedRepositoryId() != null) {
+    if (entity.getRelatedRepositorContainerId() != null
+        || entity.getRelatedRepositoryManagerId() != null
+        || entity.getRelatedRepositoryId() != null) {
       return null;
     }
     return new SearchIndexChange(ChangeType.ORGANIZATION, entity.getId());

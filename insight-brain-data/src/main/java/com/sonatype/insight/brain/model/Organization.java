@@ -74,6 +74,9 @@ public class Organization extends Nameable
   @Column(name = "related_repository_manager_id")
   private String relatedRepositoryManagerId;
 
+  @Column(name = "related_repository_container_id")
+  private String relatedRepositorContainerId;
+
   public Organization() {
   }
 
@@ -186,6 +189,14 @@ public class Organization extends Nameable
 
   public void setRelatedRepositoryManagerId(final String relatedRepositoryManagerId) {
     this.relatedRepositoryManagerId = relatedRepositoryManagerId;
+  }
+
+  public String getRelatedRepositorContainerId() {
+    return relatedRepositorContainerId;
+  }
+
+  public void setRelatedRepositorContainerId(String relatedRepositorContainerId) {
+    this.relatedRepositorContainerId = relatedRepositorContainerId;
   }
 
   @Override

@@ -73,7 +73,7 @@ public class NameHelper
     }
 
     String repositoryManagerBaseUrlWithoutProtocol =
-        StringUtils.removeStartIgnoreCase(repositoryManagerBaseUrl.trim(), "https://");
+        StringUtils.removeStartIgnoreCase(repositoryManagerBaseUrl.trim().replaceAll("/+$", ""), "https://");
     repositoryManagerBaseUrlWithoutProtocol =
         StringUtils.removeStartIgnoreCase(repositoryManagerBaseUrlWithoutProtocol, "http://");
 
@@ -88,18 +88,5 @@ public class NameHelper
     applicationPublicId = applicationPublicId.replaceAll("[^a-zA-Z0-9\\-._]", "_");
 
     return applicationPublicId;
-  }
-
-  public static String convertToValidName(String value) {
-    if (StringUtils.isBlank(value)) {
-      throw new InvalidNameException("A name cannot be empty or blank");
-    }
-
-    String name = StringUtils.removeStartIgnoreCase(value.trim(), "https://");
-    name = StringUtils.removeStartIgnoreCase(name, "http://");
-    name = name.replaceAll("[^a-zA-Z0-9\\-._]", "_");
-    name = StringUtils.left(name, MAX_NAME_LENGTH);
-
-    return name;
   }
 }

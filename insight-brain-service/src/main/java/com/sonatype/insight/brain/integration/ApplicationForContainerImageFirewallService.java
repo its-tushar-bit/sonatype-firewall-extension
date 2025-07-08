@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.api.v2.dto.ApiVerifyOrCreateApplicationForContainerImageFirewallDTO;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
+import com.sonatype.insight.brain.integration.repository.RepositoryService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.Organization;
@@ -38,6 +40,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
+@Singleton
 public class ApplicationForContainerImageFirewallService
 {
   private static final Logger log = LoggerFactory.getLogger(ApplicationForContainerImageFirewallService.class);
@@ -56,6 +59,8 @@ public class ApplicationForContainerImageFirewallService
 
   private final MembershipMappingDAO membershipMappingDAO;
 
+  private final RepositoryService repositoryService;
+
   @Inject
   public ApplicationForContainerImageFirewallService(
       RepositoryManagerDAO repositoryManagerDAO,
@@ -63,7 +68,8 @@ public class ApplicationForContainerImageFirewallService
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       RepositoryContainerDAO repositoryContainerDAO,
-      MembershipMappingDAO membershipMappingDAO)
+      MembershipMappingDAO membershipMappingDAO,
+      RepositoryService repositoryService)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -71,6 +77,7 @@ public class ApplicationForContainerImageFirewallService
     this.organizationDAO = organizationDAO;
     this.repositoryContainerDAO = repositoryContainerDAO;
     this.membershipMappingDAO = membershipMappingDAO;
+    this.repositoryService = repositoryService;
   }
 
   /**
@@ -87,7 +94,7 @@ public class ApplicationForContainerImageFirewallService
     validate(dto);
 
     if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
-        || !"docker".equals(repository.getFormat())) {
+        || !StringUtils.equalsAny(repository.getFormat(), "docker", null)) {
       throw new BadRequestException("Repository must be of type proxy and format docker");
     }
 
@@ -102,6 +109,9 @@ public class ApplicationForContainerImageFirewallService
             + repositoryManager.getInstanceId());
       }
 
+      repositoryService.configureAuditAndQuarantineInRepository(tx, repositoryManager.getInstanceId(), repository,
+          "docker", true, true);
+
       String applicationPublicId = NameHelper.convertContainerImageToApplicationPublicIdAndName(
           dto.getBaseUrl(),
           dto.getRepositoryPublicId(),
@@ -112,20 +122,12 @@ public class ApplicationForContainerImageFirewallService
       Application application = getExistingApplication(tx, repository, applicationPublicId);
 
       if (application == null) {
-        application = createApplicationHierarchy(tx, repositoryManager, repository, applicationPublicId, dto);
+        application = createApplicationHierarchy(tx, repositoryManager, repository, applicationPublicId);
       }
 
       if (!dto.getBaseUrl().equals(repositoryManager.getBaseUrl())) {
         repositoryManager.setBaseUrl(dto.getBaseUrl());
         repositoryManagerDAO.update(tx, repositoryManager);
-
-        Organization organizationForRepository = organizationDAO.getById(tx, application.getParentOwnerId());
-        Organization organizationForRepositoryManager =
-            organizationDAO.getById(tx, organizationForRepository.getParentOwnerId());
-        if (!organizationForRepositoryManager.getName().equals(dto.getBaseUrl())) {
-          organizationForRepositoryManager.setName(NameHelper.convertToValidName(dto.getBaseUrl()));
-          organizationDAO.update(tx, organizationForRepositoryManager);
-        }
       }
 
       tx.commit();
@@ -178,8 +180,7 @@ public class ApplicationForContainerImageFirewallService
       TransactionContext tx,
       RepositoryManager repositoryManager,
       Repository repository,
-      String applicationPublicId,
-      ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto)
+      String applicationPublicId)
   {
     Triple<Organization, Organization, Organization> existingOrganizations =
         getExistingOrganizations(tx, repositoryManager, repository);
@@ -199,6 +200,7 @@ public class ApplicationForContainerImageFirewallService
       organizationForRepositoryContainer = new Organization();
       organizationForRepositoryContainer.setName(organizationForRepositoryContainerName);
       organizationForRepositoryContainer.setParentOrganizationId(Organization.ROOT_ORGANIZATION_ID);
+      organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       organizationDAO.insert(tx, organizationForRepositoryContainer);
 
       repositoryContainerDAO.setRelatedOrganizationIdNotNull(tx, organizationForRepositoryContainer.getId());
@@ -211,7 +213,7 @@ public class ApplicationForContainerImageFirewallService
 
     if (organizationForRepositoryManager == null) {
       organizationForRepositoryManager = new Organization();
-      organizationForRepositoryManager.setName(NameHelper.convertToValidName(dto.getBaseUrl()));
+      organizationForRepositoryManager.setName(repositoryManager.getId());
       organizationForRepositoryManager.setParentOrganizationId(organizationForRepositoryContainer.getId());
       organizationForRepositoryManager.setRelatedRepositoryManagerId(repositoryManager.getId());
       organizationDAO.insert(tx, organizationForRepositoryManager);
@@ -227,7 +229,7 @@ public class ApplicationForContainerImageFirewallService
 
     if (organizationForRepository == null) {
       organizationForRepository = new Organization();
-      organizationForRepository.setName(repository.getPublicId());
+      organizationForRepository.setName(repository.getId());
       organizationForRepository.setParentOrganizationId(organizationForRepositoryManager.getId());
       organizationForRepository.setRelatedRepositoryId(repository.getId());
       organizationDAO.insert(tx, organizationForRepository);

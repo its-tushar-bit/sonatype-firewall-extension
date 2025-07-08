@@ -183,6 +183,18 @@ public class NameHelperTest
         NameHelper.convertContainerImageToApplicationPublicIdAndName(baseUrl, repoPublicId, "namespace", "name",
             "version")).isEqualTo("test-repo.sonatype.com-docker-proxy-namespace-name-version");
 
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(baseUrl + "/", repoPublicId, "namespace", "name",
+            "version")).isEqualTo("test-repo.sonatype.com-docker-proxy-namespace-name-version");
+
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(baseUrl + "//", repoPublicId, "namespace", "name",
+            "version")).isEqualTo("test-repo.sonatype.com-docker-proxy-namespace-name-version");
+
+    assertThat(
+        NameHelper.convertContainerImageToApplicationPublicIdAndName(baseUrl + "/a", repoPublicId, "namespace", "name",
+            "version")).isEqualTo("test-repo.sonatype.com_a-docker-proxy-namespace-name-version");
+
     assertThat(NameHelper.convertContainerImageToApplicationPublicIdAndName(
         baseUrl, repoPublicId, "namespace 1", "name 2", "version 3"))
             .isEqualTo("test-repo.sonatype.com-docker-proxy-namespace1-name2-version3");
@@ -203,26 +215,6 @@ public class NameHelperTest
             "version"))
             .hasSize(NameHelper.MAX_NAME_LENGTH_APP_ORG)
             .isEqualTo(expectedLongResult);
-  }
-
-  @Test
-  public void testConvertToValidName_empty() {
-    assertThatThrownBy(() -> NameHelper.convertToValidName(""))
-        .isInstanceOf(InvalidNameException.class)
-        .hasMessage("A name cannot be empty or blank");
-
-    assertThatThrownBy(() -> NameHelper.convertToValidName(" "))
-        .isInstanceOf(InvalidNameException.class)
-        .hasMessage("A name cannot be empty or blank");
-  }
-
-  @Test
-  public void testConvertToValidName() {
-    assertThat(NameHelper.convertToValidName("test")).isEqualTo("test");
-    assertThat(NameHelper.convertToValidName("test?")).isEqualTo("test_");
-
-    String longName = "test".repeat(NameHelper.MAX_NAME_LENGTH + 10);
-    assertThat(NameHelper.convertToValidName(longName)).isEqualTo(longName.substring(0, NameHelper.MAX_NAME_LENGTH));
   }
 
   private void verifyNameHasBadWhitespace(String name) {

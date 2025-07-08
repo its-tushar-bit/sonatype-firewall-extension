@@ -300,6 +300,7 @@ public class ApplicationForContainerImageFirewallServiceTest
 
     Organization organizationForRepositoryContainer = tempEntity.newOrganization();
     organizationForRepositoryContainer.setName(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
+    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     organizationDAO.update(organizationForRepositoryContainer);
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepositoryContainer.getId());
 
@@ -325,10 +326,12 @@ public class ApplicationForContainerImageFirewallServiceTest
 
     Organization organizationForRepositoryContainer = tempEntity.newOrganization();
     organizationForRepositoryContainer.setName(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
+    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     organizationDAO.update(organizationForRepositoryContainer);
     repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepositoryContainer.getId());
 
     Organization organizationForRepositoryManager = tempEntity.newOrganization(organizationForRepositoryContainer);
+    organizationForRepositoryManager.setName(repositoryManager.getId());
     organizationForRepositoryManager.setRelatedRepositoryManagerId(repositoryManager.getId());
     organizationDAO.update(organizationForRepositoryManager);
     repositoryManager.setRelatedOrganizationId(organizationForRepositoryManager.getId());
@@ -352,6 +355,25 @@ public class ApplicationForContainerImageFirewallServiceTest
 
     String result = service.verifyOrCreateApplicationForContainerImage(hierarchyHolder.repository, dto);
     assertHierarchy(result, hierarchyHolder.repositoryManager, hierarchyHolder.repository, "base-url");
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_allOrganizationsExistButRepositoryNotConfigured() {
+    HierarchyHolder hierarchyHolder = new HierarchyHolder();
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto = hierarchyHolder.toDto();
+
+    hierarchyHolder.repository.setAuditEnabled(false);
+    hierarchyHolder.repository.setQuarantineEnabled(false);
+    hierarchyHolder.repository.setFormat(null);
+    applicationDAO.delete(hierarchyHolder.application);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(hierarchyHolder.repository, dto);
+    assertHierarchy(result, hierarchyHolder.repositoryManager, hierarchyHolder.repository, "base-url");
+
+    Repository repository = repositoryDAO.getById(hierarchyHolder.repository.getId());
+    assertThat(repository.isAuditEnabled()).isTrue();
+    assertThat(repository.isQuarantineEnabled()).isTrue();
+    assertThat(repository.getFormat()).isEqualTo("docker");
   }
 
   private void assertHierarchy(
@@ -382,7 +404,7 @@ public class ApplicationForContainerImageFirewallServiceTest
         organizationDAO.getById(organizationForRepositoryResult.getParentOwnerId());
     assertThat(organizationForRepositoryManagerResult.getRelatedRepositoryManagerId())
         .isEqualTo(repositoryManager.getId());
-    assertThat(organizationForRepositoryManagerResult.getName()).isEqualTo(NameHelper.convertToValidName(baseUrl));
+    assertThat(organizationForRepositoryManagerResult.getName()).isEqualTo(repositoryManager.getId());
 
     Map<String, String> membershipsInOrganizationForRepositoryManagerResult =
         membershipMappingDAO.getByContextId(organizationForRepositoryManagerResult.getId()).stream()
@@ -399,6 +421,8 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(organizationForRepositoryContainerResult.getId())
         .isEqualTo(repositoryContainerDAO.getRelatedOrganizationId());
     assertThat(organizationForRepositoryContainerResult.getName()).startsWith(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
+    assertThat(organizationForRepositoryContainerResult.getRelatedRepositorContainerId())
+        .isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
 
     Map<String, String> membershipsInOrganizationForRepositoryContainerResult =
         membershipMappingDAO.getByContextId(organizationForRepositoryContainerResult.getId()).stream()
@@ -464,6 +488,8 @@ public class ApplicationForContainerImageFirewallServiceTest
       tempEntity.newMembershipMapping(repository.getId(), roleRepository.getId(), USERNAME);
 
       organizationForRepoContainer = tempEntity.newOrganization(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
+      organizationForRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+      organizationDAO.update(organizationForRepoContainer);
       repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepoContainer.getId());
 
       tempEntity.newMembershipMapping(organizationForRepoContainer.getId(), roleRepositoryContainer.getId(), USERNAME);
@@ -472,7 +498,7 @@ public class ApplicationForContainerImageFirewallServiceTest
       repositoryManager.setRelatedOrganizationId(organizationForRepoManager.getId());
       repositoryManagerDAO.update(repositoryManager);
       organizationForRepoManager.setRelatedRepositoryManagerId(repositoryManager.getId());
-      organizationForRepoManager.setName(NameHelper.convertToValidName(repositoryManager.getBaseUrl()));
+      organizationForRepoManager.setName(repositoryManager.getId());
       organizationDAO.update(organizationForRepoManager);
 
       tempEntity.newMembershipMapping(organizationForRepoManager.getId(), roleRepositoryManager.getId(), USERNAME);

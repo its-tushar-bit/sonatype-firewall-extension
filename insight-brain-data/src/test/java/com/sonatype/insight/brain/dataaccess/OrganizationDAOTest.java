@@ -65,6 +65,7 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -919,8 +920,14 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
   @Test
   public void testNewSearchIndexChange_WithRelatedRepositoryManagerOrRepository() {
+    Organization orgWithRepoContainer = tempEntity.newOrganization();
+    orgWithRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    dao.update(orgWithRepoContainer);
+    SearchIndexChange result = dao.newSearchIndexChange(orgWithRepoContainer);
+    assertThat(result).isNull();
+
     Organization orgWithRepoManager = tempEntity.newOrganizationWithRepositoryManager("org-with-repo-manager");
-    SearchIndexChange result = dao.newSearchIndexChange(orgWithRepoManager);
+    result = dao.newSearchIndexChange(orgWithRepoManager);
     assertThat(result).isNull();
 
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager();

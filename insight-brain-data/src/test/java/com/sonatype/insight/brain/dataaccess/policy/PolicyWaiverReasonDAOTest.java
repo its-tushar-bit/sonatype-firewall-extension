@@ -5,15 +5,15 @@
  */
 package com.sonatype.insight.brain.dataaccess.policy;
 
+import java.util.Arrays;
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -23,25 +23,28 @@ public class PolicyWaiverReasonDAOTest
   private PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
   public static final PolicyWaiverReason ACKNOWLEDGED_VIOLATION_WAIVER_REASON = new PolicyWaiverReason(
-      "9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 0);
+      "9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation", 10);
+
+  public static final PolicyWaiverReason EVALUATING_COMPONENT_WAIVER_REASON = new PolicyWaiverReason(
+      "ab704ef5bc064fc29d7fe08a251ee9aa", "system", "Evaluating component", 15);
 
   public static final PolicyWaiverReason MITIGATED_EXTERNALLY_WAIVER_REASON = new PolicyWaiverReason(
-      "42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 1);
+      "42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally", 20);
 
   public static final PolicyWaiverReason NO_UPGRADE_PATH_WAIVER_REASON = new PolicyWaiverReason(
-      "39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 2);
+      "39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path", 30);
 
   public static final PolicyWaiverReason NOT_EXPLOITABLE_WAIVER_REASON = new PolicyWaiverReason(
-      "f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 3);
+      "f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable", 40);
 
   public static final PolicyWaiverReason NOT_REACHABLE_WAIVER_REASON = new PolicyWaiverReason(
-      "19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 4);
+      "19bbf1a7d591497698ab3172461d971a", "system", "Not reachable", 50);
 
   public static final PolicyWaiverReason RESEARCHING_WAIVER_REASON = new PolicyWaiverReason(
-      "3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 5);
+      "3446e70e60e04676a90131f3dea9bdb5", "system", "Researching", 60);
 
   public static final PolicyWaiverReason OTHER_WAIVER_REASON = new PolicyWaiverReason(
-      "c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 6);
+      "c991ef95866d4903ad0c6c217ac47c07", "system", "Other", 70);
 
   @Before
   @Override
@@ -77,11 +80,14 @@ public class PolicyWaiverReasonDAOTest
 
     final var results = policyWaiverReasonDAO.getPolicyWaiverReasonIdToPolicyWaiverReasonMap();
 
-    assertThat(results.size()).isEqualTo(8);
+    assertThat(results.size()).isEqualTo(9);
     assertPolicyWaiverReasonsEqual(results.get(policyWaiverReason1.getId()), policyWaiverReason1);
     assertPolicyWaiverReasonsEqual(
         results.get(ACKNOWLEDGED_VIOLATION_WAIVER_REASON.getId()),
         ACKNOWLEDGED_VIOLATION_WAIVER_REASON);
+    assertPolicyWaiverReasonsEqual(
+        results.get(EVALUATING_COMPONENT_WAIVER_REASON.getId()),
+        EVALUATING_COMPONENT_WAIVER_REASON);
     assertPolicyWaiverReasonsEqual(
         results.get(MITIGATED_EXTERNALLY_WAIVER_REASON.getId()),
         MITIGATED_EXTERNALLY_WAIVER_REASON);
@@ -146,8 +152,8 @@ public class PolicyWaiverReasonDAOTest
     final var apples  = tempEntity.newWaiverReason("system", "apples", null);
     final var plumbs = tempEntity.newWaiverReason("system", "plumbs", null);
 
-    final var overLappingSortOrder = tempEntity.newWaiverReason("system", "over-lapping-sort-order", 0);
-    final var endOfTheLine = tempEntity.newWaiverReason("system", "end-of-the-line", 7);
+    final var overLappingSortOrder = tempEntity.newWaiverReason("system", "over-lapping-sort-order", 10);
+    final var endOfTheLine = tempEntity.newWaiverReason("system", "end-of-the-line", 77);
 
     final List<PolicyWaiverReason> results = policyWaiverReasonDAO.getAll();
     assertPolicyWaiverReasonListEqual(
@@ -161,6 +167,7 @@ public class PolicyWaiverReasonDAOTest
             plumbs,
             ACKNOWLEDGED_VIOLATION_WAIVER_REASON,
             overLappingSortOrder, // show come second, same sort-order, but greater alphabetical value
+            EVALUATING_COMPONENT_WAIVER_REASON,
             MITIGATED_EXTERNALLY_WAIVER_REASON,
             NO_UPGRADE_PATH_WAIVER_REASON,
             NOT_EXPLOITABLE_WAIVER_REASON,

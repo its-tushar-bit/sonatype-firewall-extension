@@ -32,6 +32,7 @@ public class ApiPolicyWaiverReasonServiceTest
 
     assertThat(results).containsExactlyInAnyOrder(
         new ApiPolicyWaiverReasonDTO("9b704ef5bc064fc29d7fe08a251ee9a6", "system", "Acknowledged violation"),
+        new ApiPolicyWaiverReasonDTO("ab704ef5bc064fc29d7fe08a251ee9aa", "system", "Evaluating component"),
         new ApiPolicyWaiverReasonDTO("42069f58114f4df8b435a40a415d2835", "system", "Mitigated externally"),
         new ApiPolicyWaiverReasonDTO("39984de3d6e64f508df82b4cbfd72f70", "system", "No upgrade path"),
         new ApiPolicyWaiverReasonDTO("f6990a32cd8d4ea78853ca829d948927", "system", "Not exploitable"),

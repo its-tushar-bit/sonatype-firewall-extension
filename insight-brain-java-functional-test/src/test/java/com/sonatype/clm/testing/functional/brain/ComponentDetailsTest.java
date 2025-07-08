@@ -18,6 +18,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -117,7 +118,19 @@ import org.openqa.selenium.support.ui.Wait;
 import static com.codeborne.selenide.CollectionCondition.exactTexts;
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.checked;
+import static com.codeborne.selenide.Condition.cssClass;
+import static com.codeborne.selenide.Condition.disabled;
+import static com.codeborne.selenide.Condition.disappear;
+import static com.codeborne.selenide.Condition.empty;
+import static com.codeborne.selenide.Condition.enabled;
+import static com.codeborne.selenide.Condition.exist;
+import static com.codeborne.selenide.Condition.hidden;
+import static com.codeborne.selenide.Condition.matchText;
+import static com.codeborne.selenide.Condition.selected;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.value;
+import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 import static com.sonatype.clm.testing.functional.utils.FormUtils.DEFAULT_VALIDATION_ERRORS_PREFIX;
@@ -924,10 +937,9 @@ public class ComponentDetailsTest
     requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
-    requestWaiverPage.requestWaiverReasonOptions().shouldHave(size(8));
     requestWaiverPage.requestWaiverReasonOptions().shouldHave(
-        exactTexts("Select a reason", "Acknowledged violation", "Mitigated externally", "No upgrade path",
-            "Not exploitable", "Not reachable", "Researching", "Other"));
+        exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
+            "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
     requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComments().shouldBe(empty);

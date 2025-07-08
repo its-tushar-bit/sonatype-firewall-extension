@@ -17,15 +17,17 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.UnsavedModal;
-import com.sonatype.clm.testing.functional.pages.*;
+import com.sonatype.clm.testing.functional.pages.AddContainerImageWaiverPage;
+import com.sonatype.clm.testing.functional.pages.FirewallPage;
+import com.sonatype.clm.testing.functional.pages.IndexPage;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.Policy;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.actions.FailActionType;
@@ -39,7 +41,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
-import static com.codeborne.selenide.Condition.*;
+import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.visible;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallAddContainerImageWaiverPageTest
@@ -149,12 +152,13 @@ public class FirewallAddContainerImageWaiverPageTest
     addContainerImageWaiverPage.waiverReasonSelect().getSelectedOption().shouldHave(text("Select a reason"));
     addContainerImageWaiverPage.waiverReasonOptions().get(0).shouldHave(text("Select a reason"));
     addContainerImageWaiverPage.waiverReasonOptions().get(1).shouldHave(text("Acknowledged violation"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(2).shouldHave(text("Mitigated externally"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(3).shouldHave(text("No upgrade path"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(4).shouldHave(text("Not exploitable"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(5).shouldHave(text("Not reachable"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(6).shouldHave(text("Researching"));
-    addContainerImageWaiverPage.waiverReasonOptions().get(7).shouldHave(text("Other"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(2).shouldHave(text("Evaluating component"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(3).shouldHave(text("Mitigated externally"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(4).shouldHave(text("No upgrade path"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(5).shouldHave(text("Not exploitable"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(6).shouldHave(text("Not reachable"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(7).shouldHave(text("Researching"));
+    addContainerImageWaiverPage.waiverReasonOptions().get(8).shouldHave(text("Other"));
 
     addContainerImageWaiverPage.comments().shouldBe(visible);
     addContainerImageWaiverPage.cancel().shouldBe(visible);

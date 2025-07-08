@@ -824,10 +824,9 @@ public class ViolationDetailsTest
     requestWaiverPage.requestWaiverExpiryTimeOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverReason().shouldHave(text("Reason"));
-    requestWaiverPage.requestWaiverReasonOptions().shouldHave(size(8));
     requestWaiverPage.requestWaiverReasonOptions().shouldHave(
-        exactTexts("Select a reason", "Acknowledged violation", "Mitigated externally", "No upgrade path",
-            "Not exploitable", "Not reachable", "Researching", "Other"));
+        exactTexts("Select a reason", "Acknowledged violation", "Evaluating component", "Mitigated externally",
+            "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other"));
     requestWaiverPage.requestWaiverReasonOptions().get(0).shouldBe(selected);
 
     requestWaiverPage.requestWaiverComments().shouldBe(empty);

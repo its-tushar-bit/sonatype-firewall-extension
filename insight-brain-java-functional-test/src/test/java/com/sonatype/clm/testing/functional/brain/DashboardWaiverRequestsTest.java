@@ -841,8 +841,9 @@ public class DashboardWaiverRequestsTest
 
     List<String> labels = dashboardReasonsFilter.getLabels().stream().map(label -> label.getText().trim()).toList();
 
-    assertThat(labels).containsExactly("all/none", "Acknowledged violation", "Mitigated externally", "No upgrade path",
-        "Not exploitable", "Not reachable", "Researching", "Other", "(No reason provided)");
+    assertThat(labels).containsExactly("all/none", "Acknowledged violation", "Evaluating component",
+        "Mitigated externally", "No upgrade path", "Not exploitable", "Not reachable", "Researching", "Other",
+        "(No reason provided)");
   }
 
   private ArrayList<PolicyWaiverRequest> createWaiverRequests() {

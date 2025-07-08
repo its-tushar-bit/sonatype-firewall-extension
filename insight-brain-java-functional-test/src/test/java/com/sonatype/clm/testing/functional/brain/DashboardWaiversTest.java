@@ -1046,6 +1046,7 @@ public class DashboardWaiversTest
     assertThat(labels).containsExactly(
         "all/none",
         "Acknowledged violation",
+        "Evaluating component",
         "Mitigated externally",
         "No upgrade path",
         "Not exploitable",

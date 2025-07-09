@@ -6,14 +6,9 @@
 package com.sonatype.insight.brain.dataaccess.configuration.saml;
 
 import java.io.ByteArrayOutputStream;
-import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -21,15 +16,10 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
+import com.sonatype.insight.brain.security.certificate.CertificateFactory;
+import com.sonatype.insight.brain.security.keypair.KeyPairFactory;
+import com.sonatype.insight.brain.security.keystore.KeyStoreFactory;
 import com.sonatype.insight.dataaccess.TransactionContext;
-
-import org.bouncycastle.asn1.x500.X500Name;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.X509v1CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
-import org.bouncycastle.operator.ContentSigner;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 
 /**
  * @since 1.72
@@ -39,9 +29,15 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 public class SamlConfigurationInternalDAO
     extends AbstractOperationalSqlDAO<SamlConfigurationInternal>
 {
+  private final SamlPasswordFactory samlPasswordFactory;
+
   @Inject
-  public SamlConfigurationInternalDAO(OperationalDataStore operationalDataStore) {
+  public SamlConfigurationInternalDAO(
+      final OperationalDataStore operationalDataStore,
+      final SamlPasswordFactory samlPasswordFactory)
+  {
     super(operationalDataStore);
+    this.samlPasswordFactory = samlPasswordFactory;
   }
 
   /**
@@ -72,32 +68,18 @@ public class SamlConfigurationInternalDAO
   private void generateKeyStore(SamlConfigurationInternal samlConfigurationInternal) {
     try {
       // Create an empty keystore.
-      KeyStore keyStore = KeyStore.getInstance("pkcs12");
+      KeyStore keyStore = KeyStoreFactory.createKeyStore();
       char[] keyStorePassword = generatePassword();
       keyStore.load(null, keyStorePassword);
 
-      KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-      keyPairGenerator.initialize(2048, new SecureRandom());
-
-      KeyPair keyPair = keyPairGenerator.generateKeyPair();
-      X500Name issuerAndSubject = new X500Name("CN=SAML KeyStore");
-      SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded());
-      X509v1CertificateBuilder builder = new X509v1CertificateBuilder(
-          issuerAndSubject,
-          BigInteger.valueOf(System.currentTimeMillis()),
-          new Date(),
-          dateTenYearsFromNow(),
-          issuerAndSubject,
-          subjectPublicKeyInfo);
-
-      ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256withRSA").build(keyPair.getPrivate());
-      X509CertificateHolder holder = builder.build(contentSigner);
-      X509Certificate[] cert = {new JcaX509CertificateConverter().getCertificate(holder)};
+      KeyPair keyPair = KeyPairFactory.generateKeyPair();
+      X509Certificate[] certificate = CertificateFactory.createCertificate(keyPair);
 
       // Save the key and certificate in the keystore.
-      keyStore.setKeyEntry(SamlConfigurationInternal.KEYSTORE_ALIAS, keyPair.getPrivate(), keyStorePassword, cert);
+      keyStore.setKeyEntry(SamlConfigurationInternal.KEYSTORE_ALIAS, keyPair.getPrivate(), keyStorePassword,
+          certificate);
 
-      samlConfigurationInternal.setKeyStorePassword(keyStorePassword);
+      samlConfigurationInternal.setKeyStorePassword(samlPasswordFactory.encryptPassword(keyStorePassword));
       try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream()) {
         keyStore.store(byteArrayOutputStream, keyStorePassword);
         samlConfigurationInternal.setKeyStoreBytes(byteArrayOutputStream.toByteArray());
@@ -106,12 +88,6 @@ public class SamlConfigurationInternalDAO
     catch (Exception e) {
       throw new IllegalStateException("Could not generate SAML keystore.", e);
     }
-  }
-
-  private static Date dateTenYearsFromNow() {
-    Calendar c = Calendar.getInstance();
-    c.add(Calendar.YEAR, 10);
-    return c.getTime();
   }
 
   private char[] generatePassword() {

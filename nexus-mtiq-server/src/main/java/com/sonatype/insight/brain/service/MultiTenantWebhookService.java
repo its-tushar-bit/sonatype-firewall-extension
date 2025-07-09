@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -39,12 +38,11 @@ public class MultiTenantWebhookService
   @Inject
   public MultiTenantWebhookService(
       final Configuration configuration,
-      final PlexusCipher plexusCipher,
       final ProductLicense productLicense,
       final WebhookDAO webhookDao,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
-    super(configuration, plexusCipher, productLicense, webhookDao, organizationApplicationManagementEventService);
+    super(configuration, productLicense, webhookDao, organizationApplicationManagementEventService);
   }
 
   @Override

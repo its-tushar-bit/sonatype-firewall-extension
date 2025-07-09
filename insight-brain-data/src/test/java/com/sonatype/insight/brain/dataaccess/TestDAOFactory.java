@@ -172,6 +172,8 @@ public class TestDAOFactory
 
   private final SearchIndexManager searchIndexManager;
 
+  private final TestSamlFactory testSamlFactory = new TestSamlFactory();
+
   public TestDAOFactory(final DataStoreProvider dataStoreProvider) {
     this.dataStoreProvider = dataStoreProvider;
     this.searchIndexManager = new DefaultSearchIndexManager(createSearchIndexChangeDAO());
@@ -353,12 +355,15 @@ public class TestDAOFactory
   @Override
   public SamlConfigurationDAO createSamlConfigurationDAO() {
     SamlConfigurationInternalDAO samlConfigurationInternalDAO = createSamlConfigurationInternalDAO();
-    return new SamlConfigurationDAO(samlConfigurationInternalDAO);
+    return new SamlConfigurationDAO(samlConfigurationInternalDAO, testSamlFactory.createSamlConfigurationService());
   }
 
   @Override
   public SamlConfigurationInternalDAO createSamlConfigurationInternalDAO() {
-    return new SamlConfigurationInternalDAO(dataStoreProvider.getOperationalDataStore());
+    return new SamlConfigurationInternalDAO(
+        dataStoreProvider.getOperationalDataStore(),
+        testSamlFactory.createSamlPasswordFactory()
+    );
   }
 
   @Override

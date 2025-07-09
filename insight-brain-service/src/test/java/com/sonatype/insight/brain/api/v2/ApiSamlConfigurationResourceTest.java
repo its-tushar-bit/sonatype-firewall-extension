@@ -104,7 +104,8 @@ public class ApiSamlConfigurationResourceTest
   }
 
   private String validIdentityProviderXml() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
+    URL resource = ApiSamlConfigurationResourceTest.class.getResource(
+        "/" + ApiSamlConfigurationResourceTest.class.getSimpleName() + "/identity-provider-metadata.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 

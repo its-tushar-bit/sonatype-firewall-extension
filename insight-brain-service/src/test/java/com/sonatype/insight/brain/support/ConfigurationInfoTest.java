@@ -74,6 +74,8 @@ public class ConfigurationInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DB_BACKUP_DIR, "sonatype-work");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
         "test-passphrase");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS,
+        "test-passphrase");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         String.valueOf(false));
     tempEntity.newSystemConfigurationProperty(
@@ -126,6 +128,7 @@ public class ConfigurationInfoTest
         SystemConfigurationProperty.POLICY_MONITORING_HOUR,
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
@@ -169,6 +172,7 @@ public class ConfigurationInfoTest
         .isEqualTo("12");
     assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("sonatype-work");
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
+    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("false");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
         .asText()).isEqualTo("true");
@@ -227,6 +231,7 @@ public class ConfigurationInfoTest
         .isEqualTo("null");
     assertThat(configNode.get(SystemConfigurationProperty.DB_BACKUP_DIR).asText()).endsWith("db-backup");
     assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE).asText()).isEqualTo("****");
+    assertThat(configNode.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS).asText()).isEqualTo("****");
     assertThat(configNode.get(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED).asText()).isEqualTo("true");
     assertThat(configNode.get(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING)
         .asText()).isEqualTo("false");

@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -79,7 +78,7 @@ public class TenantSsoConfigurationServiceTest
 
   @Before
   public void setup() {
-    passwordHandler = new PasswordHandler(new DefaultPlexusCipher(), new TestMultiTenantEncryptionKeyStore());
+    passwordHandler = new PasswordHandler(new TestMultiTenantEncryptionKeyStore());
 
     when(mockTenantValidator.validateTenantExists(anyString())).thenReturn(true);
     underTest = new TenantSsoConfigurationService(passwordHandler, mockTenantUtil, mockTenantValidator,

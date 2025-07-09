@@ -248,7 +248,8 @@ public class InsightConfigTest
             "web.xss-protection.block",
             "web.xss-protection.enabled",
             "web.xss-protection.on",
-            "webhookSecretPassphrase");
+            "webhookSecretPassphrase",
+            "webhookSecretPassphraseFips");
   }
 
   @Test

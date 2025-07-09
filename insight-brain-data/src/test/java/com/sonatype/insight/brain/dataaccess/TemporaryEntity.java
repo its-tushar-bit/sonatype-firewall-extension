@@ -4110,6 +4110,14 @@ public class TemporaryEntity
     return webhook;
   }
 
+  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events,
+                                      String description, String secretKey)
+  {
+    Webhook webhook = new Webhook(url, secretKey, events, description);
+    webhookDAO.insert(webhook);
+    return webhook;
+  }
+
   public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events) {
     return newWebhookWithSecret(url, events, null);
   }

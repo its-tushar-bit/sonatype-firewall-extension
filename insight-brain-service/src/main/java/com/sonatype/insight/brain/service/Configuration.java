@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.releasegraph.ReleaseGraphCacheProvider;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTask;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
@@ -181,6 +182,7 @@ public class Configuration
         SystemConfigurationProperty.POLICY_MONITORING_HOUR,
         SystemConfigurationProperty.DB_BACKUP_DIR,
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE,
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS,
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED,
         SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         SystemConfigurationProperty.FRAME_ANCESTORS_ALLOWLIST,
@@ -590,7 +592,9 @@ public class Configuration
   }
 
   public String getWebhookSecretPassphrase() {
-    return configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
+    return FIPSModeDetector.isEnabled() ?
+        configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS) :
+        configCache.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE);
   }
 
   public boolean isExternalHyperlinksAllowed() {

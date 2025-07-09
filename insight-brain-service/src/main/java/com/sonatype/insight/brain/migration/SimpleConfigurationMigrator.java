@@ -75,6 +75,7 @@ public class SimpleConfigurationMigrator
     nameToGetter.put(POLICY_MONITORING_HOUR, InsightConfig::getPolicyMonitoringHour);
     nameToGetter.put(DB_BACKUP_DIR, InsightConfig::getDbBackupDir);
     nameToGetter.put(WEBHOOK_SECRET_PASSPHRASE, InsightConfig::getWebhookSecretPassphrase);
+    nameToGetter.put(WEBHOOK_SECRET_PASSPHRASE_FIPS, InsightConfig::getWebhookSecretPassphraseFips);
     nameToGetter.put(EXTERNAL_HYPERLINKS_ALLOWED, InsightConfig::isExternalHyperlinksAllowed);
     nameToGetter.put(MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING, config ->
         config.getMatcherConfiguration() == null ? null : ConfigurationUtils.parseBooleanWithDefault(

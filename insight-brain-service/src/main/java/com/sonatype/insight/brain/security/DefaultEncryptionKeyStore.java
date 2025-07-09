@@ -8,15 +8,15 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getDefaultEncryptionKeyStoreKey;
+
 @Named
 @Singleton
 public class DefaultEncryptionKeyStore
     implements EncryptionKeyStore
 {
-  private static final String ENC = "CMMDwoV";
-
   @Override
   public String getKey() {
-    return ENC;
+    return getDefaultEncryptionKeyStoreKey();
   }
 }

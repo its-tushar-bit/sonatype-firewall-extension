@@ -8,7 +8,10 @@ package com.sonatype.insight.brain.service;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
+import java.security.Provider;
 import java.security.Security;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -106,7 +109,9 @@ import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
+import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
@@ -147,13 +152,10 @@ public class InsightBrainService
       System.exit(10);
     }
   }
-  
-  // Visible for testing
-  static FIPSModeDetector fipsModeDetector = new FIPSModeDetector();
 
-  private static void logErrorIfFIPSModeIsEnabled() {
-    if (Boolean.TRUE.equals(fipsModeDetector.isEnabled())) {
-      log.error("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+  private static void logInfoIfFIPSModeIsEnabled() {
+    if (FIPSModeDetector.isEnabled()) {
+      log.info("FIPS mode is enabled for Nexus IQ Server.");
     }
   }
 
@@ -213,7 +215,6 @@ public class InsightBrainService
   @Override
   public void run(String... arguments) throws Exception {
     startTime = System.currentTimeMillis();
-    logErrorIfFIPSModeIsEnabled();
     setSisuUrlCachesToTrueIfNotSet();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
@@ -236,6 +237,7 @@ public class InsightBrainService
 
         MDCUsernameScope.forSystem();
         printVersion();
+        logInfoIfFIPSModeIsEnabled();
 
         // Note DatabaseContainer is created within the DropWizard 'ServerCommand#run' (see also DbMigrationCommand)
         databaseContainer = createAndInitDatabaseContainer(insightConfig);
@@ -273,15 +275,31 @@ public class InsightBrainService
 
   @VisibleForTesting
   static void ensureBouncyCastleProviderIsLowestPreference() {
-    // Adding BouncyCastleProvider here via Security.addProvider(...) ensures it gets the lowest preference position.
-    // This prevents org.keycloak.saml.processing.core.util.ProvidersUtil.ensure() from adding it at a higher preference
-    // position, which can cause CLM-13629 due to the IQ Server uber JAR invalidating BouncyCastleProvider by excluding
-    // its signatures
+    if (FIPSModeDetector.isEnabled()) {
+      // Remove the BouncyCastleProvider if it is already present.
+      // To only support the BouncyCastleFipsProvider and BouncyCastleJsseProvider.
+      Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
 
-    // First remove it in case it is already added
-    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-    // Second add it at the lowest preference position
-    Security.addProvider(new BouncyCastleProvider());
+      // Adding BouncyCastleProviderFips here via Security.addProvider(...) ensures it gets the
+      // lowest preference position (1) in the list of security providers.
+      // This is important because the BouncyCastleProviderFips provider is used for FIPS mode
+      // operations and we want to ensure that it is the first provider in the list.
+
+      loadFipsProvider();
+    }
+
+    else {
+      // Adding BouncyCastleProvider here via Security.addProvider(...) ensures it gets the lowest preference position.
+      // This prevents org.keycloak.saml.processing.core.util.ProvidersUtil.ensure() from adding it
+      // at a higher preference position, which can cause CLM-13629 due to the IQ Server uber JAR
+      // invalidating BouncyCastleProvider by excluding
+      // its signatures
+
+      // First remove it in case it is already added
+      Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+      // Second add it at the lowest preference position
+      loadNonFipsProvider();
+    }
   }
 
   public static File getConfigFile() {
@@ -639,5 +657,42 @@ public class InsightBrainService
       log.error(e.getMessage(), e);
       return null;
     }
+  }
+
+  private static Provider createFipsProvider() {
+    try {
+      URL fipsJarUrl = BouncyCastleFipsProvider.class.getProtectionDomain().getCodeSource().getLocation();
+      URLClassLoader fipsClassLoader = new URLClassLoader(new URL[]{fipsJarUrl}, null);
+
+      Class<?> providerClass = fipsClassLoader.loadClass(
+          "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider");
+      return (Provider) providerClass.getConstructor().newInstance();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed to create FIPS provider", e);
+    }
+  }
+
+  private static Provider createNonFipsProvider() {
+    try {
+      URL bouncyCastleJarUrl = BouncyCastleProvider.class.getProtectionDomain().getCodeSource().getLocation();
+      URLClassLoader bouncyCastleClassLoader = new URLClassLoader(new URL[]{bouncyCastleJarUrl}, null);
+
+      Class<?> providerClass = bouncyCastleClassLoader.loadClass("org.bouncycastle.jce.provider.BouncyCastleProvider");
+      return (Provider) providerClass.getConstructor().newInstance();
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed to create non-FIPS provider", e);
+    }
+  }
+
+  private static void loadNonFipsProvider() {
+    Provider provider = createNonFipsProvider();
+    Security.addProvider(provider);
+  }
+
+  private static void loadFipsProvider() {
+    Provider fipsProvider = createFipsProvider();
+    Security.addProvider(fipsProvider);
   }
 }

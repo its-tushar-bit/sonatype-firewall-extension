@@ -21,20 +21,26 @@ public class SamlConfigurationDAO
 {
   private final SamlConfigurationInternalDAO samlConfigurationInternalDAO;
 
+  private final SamlConfigurationService samlConfigurationService;
+
   @Inject
-  public SamlConfigurationDAO(final SamlConfigurationInternalDAO samlConfigurationInternalDAO) {
+  public SamlConfigurationDAO(
+      final SamlConfigurationInternalDAO samlConfigurationInternalDAO,
+      final SamlConfigurationService samlConfigurationService)
+  {
     this.samlConfigurationInternalDAO = samlConfigurationInternalDAO;
+    this.samlConfigurationService = samlConfigurationService;
   }
 
   public SamlConfiguration getById(String id) {
-    return SamlConfigurationInternal.toSamlConfiguration(samlConfigurationInternalDAO.getById(id));
+    return samlConfigurationService.toSamlConfiguration(samlConfigurationInternalDAO.getById(id));
   }
 
   /**
    * Returns the one and only SAML configuration or null if SAML is not configured.
    */
   public SamlConfiguration get() {
-    return SamlConfigurationInternal.toSamlConfiguration(samlConfigurationInternalDAO.get());
+    return samlConfigurationService.toSamlConfiguration(samlConfigurationInternalDAO.get());
   }
 
   public void insert(SamlConfiguration samlConfiguration) {
@@ -43,19 +49,19 @@ public class SamlConfigurationDAO
     }
 
     SamlConfigurationInternal samlConfigurationInternal =
-        SamlConfigurationInternal.fromSamlConfiguration(samlConfiguration);
+        samlConfigurationService.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.insert(samlConfigurationInternal);
 
     samlConfiguration.setId(samlConfigurationInternal.getId());
-    samlConfigurationInternal.loadKeyStoreData(samlConfiguration);
+    samlConfigurationService.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
   }
 
   public void update(SamlConfiguration samlConfiguration) {
     SamlConfigurationInternal samlConfigurationInternal =
-        SamlConfigurationInternal.fromSamlConfiguration(samlConfiguration);
+        samlConfigurationService.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.update(samlConfigurationInternal);
 
-    samlConfigurationInternal.loadKeyStoreData(samlConfiguration);
+    samlConfigurationService.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
   }
 
   // A parameterless delete method may be needed if the SAML configuration is corrupt see CLM-14027

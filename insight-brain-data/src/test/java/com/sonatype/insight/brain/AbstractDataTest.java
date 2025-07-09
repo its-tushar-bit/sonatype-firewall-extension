@@ -33,7 +33,7 @@ public abstract class AbstractDataTest
   protected DAOFactory daoFactory;
 
   @Rule(order = 2)
-  public TemporaryEntity tempEntity = new TemporaryEntity(databaseRule);
+  public TemporaryEntity tempEntity = createTemporaryEntity();
 
   @Before
   public void initialize() {
@@ -47,5 +47,16 @@ public abstract class AbstractDataTest
     // Re-inject classes that have static dependencies
     ConditionTypesTestHelper.initConditionTypes(daoFactory);
     ConditionTypesTestHelper.initConditionValueTypes(daoFactory);
+  }
+
+  /**
+   * Creates a new instance of {@link TemporaryEntity}. This method is protected to allow subclasses to override the
+   * creation logic if needed, for example, to insert any dependencies or configurations used by the
+   * {@link TemporaryEntity}
+   *
+   * @return a new instance of {@link TemporaryEntity}.
+   */
+  protected TemporaryEntity createTemporaryEntity() {
+    return new TemporaryEntity(databaseRule);
   }
 }

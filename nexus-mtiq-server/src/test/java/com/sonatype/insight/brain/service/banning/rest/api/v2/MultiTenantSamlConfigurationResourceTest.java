@@ -82,7 +82,8 @@ public class MultiTenantSamlConfigurationResourceTest
   }
 
   private String validIdentityProviderXml() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
+    URL resource = MultiTenantSamlConfigurationResourceTest.class.getResource(
+        "/" + MultiTenantSamlConfigurationResourceTest.class.getSimpleName() + "/identity-provider-metadata.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 }

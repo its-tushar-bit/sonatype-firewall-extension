@@ -66,6 +66,7 @@ public class ConfigurationInfo
         configuration.getHistoricalPolicyViolationTelemetryHour());
     entries.put(SystemConfigurationProperty.DB_BACKUP_DIR, configuration.getDbBackupDir());
     entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, MASK);
+    entries.put(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, MASK);
     entries.put(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, configuration.isExternalHyperlinksAllowed());
     entries.put(SystemConfigurationProperty.MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING,
         configuration.getMatcherConfiguration() != null ? configuration.getMatcherConfiguration().get(

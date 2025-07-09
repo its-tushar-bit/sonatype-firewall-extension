@@ -58,7 +58,6 @@ import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryBackfillTask;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.client.utils.HttpClientUtils;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.google.inject.Module;
 import io.dropwizard.configuration.ConfigurationException;
@@ -147,7 +146,7 @@ public class TestMultiTenantInsightBrainService
     testProxyServerConfiguration.setUsername(user);
     testProxyServerConfiguration
         .setPassword(
-            new PasswordHandler(new DefaultPlexusCipher(), new TestMultiTenantEncryptionKeyStore()).encryptPassword(
+            new PasswordHandler(new TestMultiTenantEncryptionKeyStore()).encryptPassword(
                 pass.toCharArray()));
   }
 

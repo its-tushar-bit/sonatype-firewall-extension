@@ -27,6 +27,7 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_CLEAR;
+import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.WEBHOOK_SECRET_KEY_ENCRYPTED;
 import static com.sonatype.insight.brain.model.configuration.webhook.Webhook.FAKE_SECRET_KEY;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.ORG_APP_MANAGEMENT;
@@ -48,7 +49,7 @@ public class WebhookServiceTest
   private WebhookService webhookService;
 
   @Inject
-  private Configuration configuration;
+  protected Configuration configuration;
 
   @Inject
   private PlexusCipher plexusCipher;
@@ -149,7 +150,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final String secretKey = "some secret key";
@@ -167,7 +168,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final String secretKey = "some secret key";
@@ -185,7 +186,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final String secretKey = "some secret key";
@@ -283,7 +284,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
@@ -300,7 +301,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
@@ -317,7 +318,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(POLICY_ALERT, ORG_APP_MANAGEMENT));
@@ -333,7 +334,7 @@ public class WebhookServiceTest
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", EnumSet.of(POLICY_ALERT, ORG_APP_MANAGEMENT));
@@ -345,20 +346,24 @@ public class WebhookServiceTest
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
   }
 
-  @Test
-  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull() {
+  protected void testUpdateWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull(String secretKey) {
     final OrganizationApplicationManagementEventService orgAppManagementEventServiceSpy =
         spy(organizationApplicationManagementEventService);
     final WebhookService webhookService =
-        new WebhookService(configuration, plexusCipher, testProductLicense, webhookDAO,
+        new WebhookService(configuration, testProductLicense, webhookDAO,
             orgAppManagementEventServiceSpy);
 
     final Webhook webhook = tempEntity.newWebhook("http://localhost", null);
-    webhook.setSecretKey(WEBHOOK_SECRET_KEY_CLEAR);
+    webhook.setSecretKey(secretKey);
 
     webhookService.updateWebhook(webhook);
 
     verify(orgAppManagementEventServiceSpy, never()).postEvent();
+  }
+
+  @Test
+  public void testUpdateWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull() {
+    testUpdateWebhook_DoNotPostOrgAppManagementListWhenEventTypesSetIsNull(WEBHOOK_SECRET_KEY_CLEAR);
   }
 
   @Test
@@ -381,8 +386,9 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testGetDecrypted() {
-    Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost", EnumSet.of(APPLICATION_EVALUATION));
+  public void testGetDecrypted() throws PlexusCipherException {
+    Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost",
+        EnumSet.of(APPLICATION_EVALUATION), null, WEBHOOK_SECRET_KEY_ENCRYPTED);
 
     Webhook result = webhookService.getDecrypted(webhook.getId());
 

@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -48,7 +47,7 @@ public abstract class AbstractSourceControlEditorTest
   public void init() {
     sourceControlDAO = lookup(SourceControlDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
-    TOKEN = new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).encryptPassword(
+    TOKEN = new String(new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
         "secret_key".toCharArray()));
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
@@ -80,7 +79,7 @@ public abstract class AbstractSourceControlEditorTest
   }
 
   private String getDecryptedToken(String token) {
-    return new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).decryptPassword(
+    return new String(new PasswordHandler(new DefaultEncryptionKeyStore()).decryptPassword(
         token.toCharArray()));
   }
 

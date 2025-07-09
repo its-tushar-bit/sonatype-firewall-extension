@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.security.CipherFactory;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -58,16 +59,15 @@ public class WebhookService
   @Inject
   public WebhookService(
       final Configuration configuration,
-      final PlexusCipher plexusCipher,
       final ProductLicense productLicense,
       final WebhookDAO webhookDao,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService)
   {
     this.configuration = configuration;
-    this.plexusCipher = plexusCipher;
     this.productLicense = productLicense;
     this.webhookDao = webhookDao;
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
+    this.plexusCipher = CipherFactory.createCipher();
   }
 
   @Authorize(permission = Permission.READ)

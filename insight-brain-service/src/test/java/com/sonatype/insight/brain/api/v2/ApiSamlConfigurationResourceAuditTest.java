@@ -43,7 +43,8 @@ public class ApiSamlConfigurationResourceAuditTest
     samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
 
     if (xml == null) {
-      URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
+      URL resource = getClass().getResource(
+          "/" + ApiSamlConfigurationResourceAuditTest.class.getSimpleName() + "/identity-provider-metadata.xml");
       xml = FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
     }
     apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();

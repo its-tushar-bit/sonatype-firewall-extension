@@ -19,6 +19,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.security.FIPSConfig;
+import com.sonatype.insight.brain.security.FipsTestUtil;
 import com.sonatype.insight.brain.utils.AbstractHttpClientTest;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
@@ -32,23 +34,28 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class WebhookClientUtilTest
     extends AbstractHttpClientTest
 {
-  private Server server;
+  @Rule
+  public LogOutput logOutput = new LogOutput(WebhookClientUtil.class);
 
-  private AbstractHandler handler;
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+  private static final String WEBHOOK_ID = "webhookId";
 
   @Inject
   private WebhookClientUtil webhookClientUtil;
 
-  private final String webhookId = "webhookId";
+  private Server server;
 
-  @Rule
-  public LogOutput logOutput = new LogOutput(WebhookClientUtil.class);
+  private AbstractHandler handler;
 
   @Before
   public void before() throws Exception {
@@ -83,9 +90,21 @@ public class WebhookClientUtilTest
   public void testPost_PopulatesHeaders() {
     final Map<String, String> headers = getRequestHeaders();
     doWebhookClientUtilPost();
-    assertThat(headers).containsEntry(WebhookClientUtil.WEBHOOK_ID_HEADER, webhookId)
+    assertThat(headers).containsEntry(WebhookClientUtil.WEBHOOK_ID_HEADER, WEBHOOK_ID)
         .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER, "HmacSHA1")
         .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER, "52b582138706ac0c597c315cfc1a1bf177408a4d");
+  }
+
+  @Test
+  public void testPost_PopulatesHeaders_FIPSMode() {
+    enableFipsMode();
+    final Map<String, String> headers = getRequestHeaders();
+    doWebhookClientUtilPost();
+    assertThat(headers).containsEntry(WebhookClientUtil.WEBHOOK_ID_HEADER, WEBHOOK_ID)
+        .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_ALGORITHM_HEADER, FIPSConfig.getFipsHmacAlgorithm())
+        .containsEntry(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER,
+            "3f3ab3986b656abb17af3eb1443ed6c08ef8fff9fea83915909d1b421aec89be");
+    disableFipsMode();
   }
 
   @Test
@@ -94,7 +113,7 @@ public class WebhookClientUtilTest
     doWebhookClientUtilPost();
 
     String deliveryId = headers.get(WebhookClientUtil.WEBHOOK_DELIVERY_HEADER);
-    assertThat(logOutput).atDebugLevel().contains("Sending Webhook " + webhookId + " with delivery ID " + deliveryId);
+    assertThat(logOutput).atDebugLevel().contains("Sending Webhook " + WEBHOOK_ID + " with delivery ID " + deliveryId);
   }
 
   @Test
@@ -116,6 +135,26 @@ public class WebhookClientUtilTest
   }
 
   @Test
+  public void testPost_SerializesJson_FIPSMode() {
+    enableFipsMode();
+    final List<String> bodies = new ArrayList<>();
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+        bodies.add(body);
+        baseRequest.setHandled(true);
+      }
+    };
+    doWebhookClientUtilPost();
+    assertThat(bodies).contains("{\"foo\":\"bar\"}");
+    disableFipsMode();
+  }
+
+  @Test
   public void testPost_LogsHttpErrors() {
     final List<String> deliveryIds = new ArrayList<>();
     handler = new AbstractHandler()
@@ -129,7 +168,7 @@ public class WebhookClientUtilTest
     };
 
     doWebhookClientUtilPost();
-    assertThat(logOutput).atErrorLevel().contains("Unable to perform HTTP request for Webhook " + webhookId
+    assertThat(logOutput).atErrorLevel().contains("Unable to perform HTTP request for Webhook " + WEBHOOK_ID
         + " with delivery ID " + deliveryIds.get(0) + " due to Status Code: 400 Message: Bad Request");
   }
 
@@ -162,6 +201,16 @@ public class WebhookClientUtilTest
       @SuppressWarnings("unused")
       public String foo = "bar";
     };
-    webhookClientUtil.post(webhook, webhookId, webhookPayload);
+    webhookClientUtil.post(webhook, WEBHOOK_ID, webhookPayload);
+  }
+
+  private void enableFipsMode() {
+    FipsTestUtil.insertBouncyCastleFipsProvider();
+    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
+  }
+
+  private void disableFipsMode() {
+    FipsTestUtil.removeBouncyCastleFipsProvider();
+    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "false");
   }
 }

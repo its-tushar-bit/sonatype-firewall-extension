@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.CipherFactory;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
@@ -68,7 +69,6 @@ public class ApiCompositeSourceControlService
       final IqForScmLicenseChecker licenseChecker,
       final OrganizationDAO organizationDAO,
       final OwnerDAO ownerDAO,
-      final PlexusCipher plexusCipher,
       final EncryptionKeyStore encryptionKeyStore)
   {
     this.sourceControlDAO = sourceControlDAO;
@@ -76,7 +76,7 @@ public class ApiCompositeSourceControlService
     this.licenseChecker = licenseChecker;
     this.organizationDAO = organizationDAO;
     this.ownerDAO = ownerDAO;
-    this.plexusCipher = plexusCipher;
+    this.plexusCipher = CipherFactory.createCipher();
     this.encryptionKeyStore = encryptionKeyStore;
   }
 
@@ -307,7 +307,7 @@ public class ApiCompositeSourceControlService
     }
     synchronized (plexusCipher) {
       try {
-        return plexusCipher.decrypt(value, encryptionKeyStore.getKey());
+        return plexusCipher.decryptDecorated(value, encryptionKeyStore.getKey());
       }
       catch (PlexusCipherException e) {
         log.error("Unable to decrypt SourceControl token", e);

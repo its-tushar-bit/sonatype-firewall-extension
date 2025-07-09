@@ -98,7 +98,7 @@ public class CLMLicenseManagerTest
   private MigrationTrackerDAO migrationTrackerDAO;
 
   @Mock
-  private TaskScheduler taskSchedulerMock;
+  protected TaskScheduler taskSchedulerMock;
 
   @Before
   public void before() throws Exception {

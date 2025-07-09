@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.test.LogOutput;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -60,7 +59,7 @@ public class RotateEncryptionKeyTaskTest
   @Mock
   private TaskScheduler taskScheduler;
 
-  private final PasswordHandler passwordHandler = new PasswordHandler(new DefaultPlexusCipher(), null);
+  private final PasswordHandler passwordHandler = new PasswordHandler(null);
 
   private final MultiTenantInsightConfig multiTenantInsightConfig = new MultiTenantInsightConfig();
 

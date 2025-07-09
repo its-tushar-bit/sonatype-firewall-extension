@@ -491,6 +491,13 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testGetConfiguration_WebhookSecretPassphraseFipsNotSet_ReturnsDefault() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
+  }
+
+  @Test
   public void testGetConfiguration_ExternalHyperlinksAllowedNotSet_ReturnsDefault() {
     assertThat(
         service.getConfigurationNoAuthz(
@@ -1457,6 +1464,16 @@ public class ApiConfigurationServiceTest
   }
 
   @Test
+  public void testSetConfiguration_WebhookSecretPassphraseFips_Null() {
+    service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "^d1swM!FF&qQ$%0/");
+  }
+
+  @Test
   public void testSetConfiguration_WebhookSecretPassphrase() {
     service.setConfigurationNoAuthz(
         Maps.newHashMap(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom"));
@@ -1465,6 +1482,17 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE))).containsEntry(
         SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, "custom");
+  }
+
+  @Test
+  public void testSetConfiguration_WebhookSecretPassphraseFips() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "custom"));
+
+    assertThat(dao.get(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)).isEqualTo("custom");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS))).containsEntry(
+        SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, "custom");
   }
 
   @Test

@@ -160,6 +160,8 @@ public class SystemConfigurationProperty
 
   public static final String WEBHOOK_SECRET_PASSPHRASE = "webhookSecretPassphrase";
 
+  public static final String WEBHOOK_SECRET_PASSPHRASE_FIPS = "webhookSecretPassphraseFips";
+
   public static final String EXTERNAL_HYPERLINKS_ALLOWED = "externalHyperlinksAllowed";
 
   public static final String MATCHER_CONFIGURATION_DISABLE_CONAN_NAMESPACE_MATCHING =

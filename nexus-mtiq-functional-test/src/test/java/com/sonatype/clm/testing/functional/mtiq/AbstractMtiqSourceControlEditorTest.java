@@ -13,7 +13,6 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import static com.codeborne.selenide.Condition.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,7 +45,7 @@ public abstract class AbstractMtiqSourceControlEditorTest
   protected static final boolean COMMIT_STATUS_OFF = false;
 
   protected static final String TOKEN =
-      new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).encryptPassword(
+      new String(new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
           "secret_key".toCharArray()));
 
   protected void init(Owner currentOwner) {
@@ -85,7 +84,7 @@ public abstract class AbstractMtiqSourceControlEditorTest
   }
 
   private String getDecryptedToken(String token) {
-    return new String(new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).decryptPassword(
+    return new String(new PasswordHandler(new DefaultEncryptionKeyStore()).decryptPassword(
             token.toCharArray()));
   }
 

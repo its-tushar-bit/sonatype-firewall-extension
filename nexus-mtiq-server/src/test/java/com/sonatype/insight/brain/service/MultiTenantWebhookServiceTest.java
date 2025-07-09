@@ -24,13 +24,13 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 public class MultiTenantWebhookServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
-  private WebhookDAO webhookDAO;
+  protected Configuration configuration;
+
+  protected WebhookDAO webhookDAO;
 
   private MultiTenantWebhookService webhookService;
 
   private PlexusCipher plexusCipher;
-
-  private Configuration configuration;
 
   @Before
   public void setup() {

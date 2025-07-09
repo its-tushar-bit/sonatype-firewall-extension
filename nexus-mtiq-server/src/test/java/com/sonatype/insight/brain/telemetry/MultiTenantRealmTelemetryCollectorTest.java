@@ -66,7 +66,8 @@ public class MultiTenantRealmTelemetryCollectorTest
 
   private String getSamlMetadata(String resourceName) {
     try {
-      return Resources.toString(getClass().getResource("/" + getClass().getSimpleName() + "/" + resourceName),
+      return Resources.toString(MultiTenantRealmTelemetryCollectorTest.class.getResource(
+              "/" + MultiTenantRealmTelemetryCollectorTest.class.getSimpleName() + "/" + resourceName),
           StandardCharsets.UTF_8);
     }
     catch (IOException e) {

@@ -14,8 +14,21 @@ import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
+import org.apache.shiro.crypto.hash.HashRequest;
+import org.apache.shiro.crypto.hash.Sha256Hash;
+import org.apache.shiro.crypto.support.hashes.argon2.Argon2HashProvider;
+import org.apache.shiro.lang.util.SimpleByteSource;
+import org.junit.After;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_HASH_ALGORITHM;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.HASH_ITERATIONS;
+import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.PasswordService.ITERATIONS_PARAM;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PasswordServiceTest
@@ -26,8 +39,21 @@ public class PasswordServiceTest
   private static final String DEFAULT_ADMIN_HASHED_PASSWORD =
       "$shiro1$SHA-256$10$7PC5QqeewnJK3iBQLPoq+Q==$5G44CC6HIYL8113tbp9lL0lNDP5CQJzbar0mWWkKbIM=";
 
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
   @Inject
   private PasswordService passwordService;
+
+  @After
+  @Override
+  public void afterTest() {
+    super.afterTest();
+
+    // Ensure that the Bouncy Castle FIPS provider is removed after the tests as
+    // some providers are accessed in the afterTest parent method.
+    removeBouncyCastleFipsProvider();
+  }
 
   @Test
   public void testHashPassword() {
@@ -70,5 +96,49 @@ public class PasswordServiceTest
         .should().callMethod(PasswordService.class, "useWeakHashIterationForTestsOnly");
 
     rule.check(importedClasses);
+  }
+
+  @Test
+  public void testCreateHashRequest_FIPSMode() {
+    insertBouncyCastleFipsProvider();
+
+    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "true");
+
+    byte[] plaintext = "test".getBytes();
+    HashRequest hashRequest = passwordService.createHashRequest(new SimpleByteSource(plaintext));
+    assertThat(hashRequest.getAlgorithmName())
+        .isPresent()
+        .get()
+        .isEqualTo(FIPS_HASH_ALGORITHM);
+
+    if (passwordService.isUsingWeakIterationsForTests()) {
+      assertThat(hashRequest.getParameters())
+          .containsEntry(ITERATIONS_PARAM, 10);
+    }
+    else {
+      assertThat(hashRequest.getParameters())
+          .containsEntry(ITERATIONS_PARAM, HASH_ITERATIONS);
+    }
+  }
+
+  @Test
+  public void testCreateHashRequest_NotFIPSMode() {
+    environmentVariables.set(FIPS_MODE_ENABLED_ENV, "false");
+
+    byte[] plaintext = "test".getBytes();
+    HashRequest hashRequest = passwordService.createHashRequest(new SimpleByteSource(plaintext));
+
+    if (passwordService.isUsingWeakIterationsForTests()) {
+      assertThat(hashRequest.getAlgorithmName())
+          .isPresent()
+          .get()
+          .isEqualTo(Sha256Hash.ALGORITHM_NAME);
+    }
+    else {
+      assertThat(hashRequest.getAlgorithmName())
+          .isPresent()
+          .get()
+          .isEqualTo(Argon2HashProvider.Parameters.DEFAULT_ALGORITHM_NAME);
+    }
   }
 }

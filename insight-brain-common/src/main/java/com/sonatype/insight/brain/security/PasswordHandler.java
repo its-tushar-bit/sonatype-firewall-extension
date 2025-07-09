@@ -14,14 +14,14 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 @Named
 public class PasswordHandler
 {
-  private final PlexusCipher cipher;
-
   private final EncryptionKeyStore encryptionKeyStore;
 
+  private final PlexusCipher cipher;
+
   @Inject
-  public PasswordHandler(PlexusCipher cipher, EncryptionKeyStore encryptionKeyStore) {
-    this.cipher = cipher;
+  public PasswordHandler(EncryptionKeyStore encryptionKeyStore) {
     this.encryptionKeyStore = encryptionKeyStore;
+    this.cipher = CipherFactory.createCipher();
   }
 
   public char[] decryptPassword(char[] encryptedPassword) {
@@ -47,13 +47,13 @@ public class PasswordHandler
       return "";
     }
 
-    try {
-      synchronized (cipher) {
+    synchronized (cipher) {
+      try {
         return cipher.decryptDecorated(encryptedPassword, encryptionKey);
       }
-    }
-    catch (PlexusCipherException e) {
-      throw new IllegalStateException(e);
+      catch (PlexusCipherException e) {
+        throw new IllegalStateException(e);
+      }
     }
   }
 
@@ -72,13 +72,14 @@ public class PasswordHandler
     if (password == null) {
       return null;
     }
-    try {
-      synchronized (cipher) {
+
+    synchronized (cipher) {
+      try {
         return cipher.encryptAndDecorate(password, encryptionKey);
       }
-    }
-    catch (PlexusCipherException e) {
-      throw new IllegalStateException(e);
+      catch (PlexusCipherException e) {
+        throw new IllegalStateException(e);
+      }
     }
   }
 

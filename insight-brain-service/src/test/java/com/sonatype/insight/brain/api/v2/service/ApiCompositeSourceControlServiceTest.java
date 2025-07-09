@@ -45,13 +45,13 @@ public class ApiCompositeSourceControlServiceTest
   private TelemetrySender telemetrySenderMock;
 
   @Inject
-  private SourceControlDAO sourceControlDAO;
+  protected SourceControlDAO sourceControlDAO;
 
   @Inject
-  private OrganizationDAO organizationDAO;
+  protected OrganizationDAO organizationDAO;
 
   @Inject
-  private PlexusCipher plexusCipher;
+  protected PlexusCipher plexusCipher;
 
   private Application app;
 
@@ -61,11 +61,11 @@ public class ApiCompositeSourceControlServiceTest
 
   private Organization level2ChildOrg;
 
-  private Organization rootOrganization;
+  protected Organization rootOrganization;
 
-  private SourceControl rootOrgSourcecontrol;
+  protected SourceControl rootOrgSourcecontrol;
 
-  private static final String ENC = "CMMDwoV";
+  protected static final String ENC = "CMMDwoV";
 
   @Override
   public void configure(final Binder binder) {

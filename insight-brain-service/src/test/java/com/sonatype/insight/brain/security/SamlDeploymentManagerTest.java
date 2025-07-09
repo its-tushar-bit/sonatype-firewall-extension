@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Base64;
@@ -62,8 +63,9 @@ public class SamlDeploymentManagerTest
 
   private String getSamlMetadata(String resourceName) {
     try {
-      return Resources.toString(getClass().getResource("/" + getClass().getSimpleName() + "/" + resourceName),
-          StandardCharsets.UTF_8);
+      URL resource = SamlDeploymentManagerTest.class.getResource(
+          "/" + SamlDeploymentManagerTest.class.getSimpleName() + "/" + resourceName);
+      return Resources.toString(resource, StandardCharsets.UTF_8);
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);

@@ -412,7 +412,7 @@ public abstract class AbstractFunctionalTest
   }
 
   @After
-  public final void afterTest() throws Exception {
+  public void afterTest() throws Exception {
     log.info("After: {}", testName.getMethodName());
     mocks.clear();
     InsightConfig insightConfig = testCLMServer.getCLMServer().getConfiguration();

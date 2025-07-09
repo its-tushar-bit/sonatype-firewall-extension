@@ -479,17 +479,20 @@ public class ApiSamlConfigurationServiceTest
   }
 
   private String validIdentityProviderXml() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/identity-provider-metadata.xml");
+    URL resource = ApiSamlConfigurationServiceTest.class.getResource(
+        "/" + ApiSamlConfigurationServiceTest.class.getSimpleName() + "/identity-provider-metadata.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 
   private String invalidIdentityProviderXml() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/missing-entity-descriptor.xml");
+    URL resource = ApiSamlConfigurationServiceTest.class.getResource(
+        "/" + ApiSamlConfigurationServiceTest.class.getSimpleName() + "/missing-entity-descriptor.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 
   private String invalidCertificate() throws Exception {
-    URL resource = getClass().getResource("/" + getClass().getSimpleName() + "/invalid-certificate.xml");
+    URL resource = ApiSamlConfigurationServiceTest.class.getResource(
+        "/" + ApiSamlConfigurationServiceTest.class.getSimpleName() + "/invalid-certificate.xml");
     return FileUtils.readFileToString(new File(resource.getFile()), StandardCharsets.UTF_8);
   }
 

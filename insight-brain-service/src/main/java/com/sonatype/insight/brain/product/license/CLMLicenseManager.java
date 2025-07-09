@@ -46,6 +46,9 @@ import com.sonatype.insight.brain.model.MigrationTracker;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
+import com.sonatype.insight.brain.security.certificate.CertificateFactory;
+import com.sonatype.insight.brain.security.keystore.KeyStoreFactory;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
@@ -130,6 +133,13 @@ public class CLMLicenseManager
   static final String TASK_NAME = "ProductLicenseLoad";
 
   private static final String LICENSE_LOADING_ERROR = "Error when loading the product license";
+
+  // no-op
+  private static final String FIPS_LICENSE_KEYSTORE_EXTENSION = ".bcfks";
+
+  private static final String LEGACY_LICENSE_KEYSTORE_EXTENSION = ".p12";
+
+  private static final String LICENSING_KEYSTORE_NAME = "licensing-keystore";
 
   private final InsightConfig config;
 
@@ -347,7 +357,7 @@ public class CLMLicenseManager
 
   private void verifySignature(SignedProductLicenseDetailsDTO licenseDetails, String licenseFingerprint) {
     try {
-      Signature signature = Signature.getInstance("SHA256withRSA");
+      Signature signature = Signature.getInstance(CertificateFactory.getSignatureAlgorithm());
       signature.initVerify(loadCertificateForSignatureVerification(licenseDetails.signatureKeyAlias));
       for (String feature : licenseDetails.features) {
         signature.update(feature.getBytes(StandardCharsets.UTF_8));
@@ -376,9 +386,8 @@ public class CLMLicenseManager
   private Certificate loadCertificateForSignatureVerification(String keyAlias) {
     Certificate certificate;
     try {
-      KeyStore keyStore = KeyStore.getInstance("pkcs12");
-      keyStore.load(getClass().getResourceAsStream("licensing-keystore.p12"), LicensingUtil
-          .unobfuscate(new long[]{0xA8874A6C58A5CD5BL, 0xDADEE6943E19F478L, 0x34D18D0FE23233C2L}).toCharArray());
+      KeyStore keyStore = KeyStoreFactory.createKeyStore();
+      keyStore.load(getResourceForLicensingKeystore(), getUnobfuscatedLicensingKeysPassword());
       certificate = keyStore.getCertificate(keyAlias);
     }
     catch (Exception e) {
@@ -1160,5 +1169,17 @@ public class CLMLicenseManager
   @Override
   public String getJobName() {
     return TASK_NAME;
+  }
+
+  private InputStream getResourceForLicensingKeystore() {
+    String extension =
+        FIPSModeDetector.isEnabled() ? FIPS_LICENSE_KEYSTORE_EXTENSION : LEGACY_LICENSE_KEYSTORE_EXTENSION;
+    return getClass().getResourceAsStream(LICENSING_KEYSTORE_NAME.concat(extension));
+  }
+
+  private char[] getUnobfuscatedLicensingKeysPassword() {
+    return LicensingUtil
+        .unobfuscate(new long[]{0xA8874A6C58A5CD5BL, 0xDADEE6943E19F478L, 0x34D18D0FE23233C2L})
+        .toCharArray();
   }
 }

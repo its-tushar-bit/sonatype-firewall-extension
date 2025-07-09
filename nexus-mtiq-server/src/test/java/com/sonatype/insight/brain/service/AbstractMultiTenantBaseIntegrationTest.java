@@ -157,9 +157,30 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
     // For MTIQ TemporaryEntity runs as the test tenant
     testAsTestTenant(test -> {
-      tenantTemporaryEntity = new TemporaryEntity(databaseContainerRule);
+      tenantTemporaryEntity = createTenantTemporaryEntity();
       tenantTemporaryEntity.before();
     });
+  }
+
+  /**
+   * Creates a new instance of {@link TemporaryEntity}. This method is protected to allow subclasses to override the
+   * creation logic if needed, for example, to insert any dependencies or configurations used by the
+   * {@link TemporaryEntity}
+   *
+   * @return a new instance of {@link TemporaryEntity}.
+   */
+  protected TemporaryEntity createTenantTemporaryEntity() {
+    return new TemporaryEntity(databaseContainerRule);
+  }
+
+  /**
+   * Returns the class of the {@link EncryptionKeyStore} to be used in the tests. This method is protected to allow
+   * subclasses to override the key store class if needed.
+   *
+   * @return the class of the {@link EncryptionKeyStore}
+   */
+  protected Class<? extends EncryptionKeyStore> getEncryptionKeyStoreClass() {
+    return TestMultiTenantEncryptionKeyStore.class;
   }
 
   @Override
@@ -170,7 +191,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       @Override
       protected void configure() {
         bind(TenantUtil.class).toInstance(tenantUtil);
-        bind(EncryptionKeyStore.class).to(TestMultiTenantEncryptionKeyStore.class);
+        bind(EncryptionKeyStore.class).to(getEncryptionKeyStoreClass());
       }
     });
 

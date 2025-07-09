@@ -32,7 +32,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.ProjectUrl;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
@@ -68,7 +67,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
     extends AbstractBrainServiceIntegrationTest
 {
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
+      new PasswordHandler(new DefaultEncryptionKeyStore())
           .encryptPassword("password".toCharArray())
   );
 

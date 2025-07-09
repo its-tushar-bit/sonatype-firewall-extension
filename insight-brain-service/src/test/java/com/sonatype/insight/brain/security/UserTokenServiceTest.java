@@ -286,7 +286,7 @@ public class UserTokenServiceTest
   @Test
   public void testPurgeUserTokens() throws Exception {
     embeddedTestLdapServer.start();
-    embeddedTestLdapServer.loadData("/" + getClass().getSimpleName() + "/ldap_users.ldif");
+    embeddedTestLdapServer.loadData("/" + UserTokenServiceTest.class.getSimpleName() + "/ldap_users.ldif");
 
     LdapServer ldapServer = tempEntity.newLdapServer("test");
     tempEntity.newLdapConnection(ldapServer.getId(), embeddedTestLdapServer.getPort());

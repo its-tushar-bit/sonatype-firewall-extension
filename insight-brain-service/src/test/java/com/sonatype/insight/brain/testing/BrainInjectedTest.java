@@ -53,7 +53,7 @@ public abstract class BrainInjectedTest
   public DatabaseContainerRule databaseContainerRule = DatabaseContainerRule.getInstance(BrainInjectedTest.class);
 
   @Rule(order = 2)
-  public TemporaryEntity tempEntity = new TemporaryEntity(databaseContainerRule);
+  public TemporaryEntity tempEntity = createTemporaryEntity();
 
   /** You should only use this `daoFactory` when you override the `configure` method and you need to crate DAOs there.
    * Otherwise, always prefer the use of the `@Inject` annotation to inject the DAOs you need for your test */
@@ -108,5 +108,16 @@ public abstract class BrainInjectedTest
       binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
       binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
     }
+  }
+
+  /**
+   * Creates a new instance of {@link TemporaryEntity}. This method is protected to allow subclasses to override the
+   * creation logic if needed, for example, to insert any dependencies or configurations used by the
+   * {@link TemporaryEntity}
+   *
+   * @return a new instance of {@link TemporaryEntity}.
+   */
+  protected TemporaryEntity createTemporaryEntity() {
+    return new TemporaryEntity(databaseContainerRule);
   }
 }

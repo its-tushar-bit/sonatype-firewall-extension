@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
@@ -141,6 +142,9 @@ public class ConfigurationProperty
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE, String.class,
           (p, s) -> Objects.toString(s, "^d1swM!FF&qQ"),
+          (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS, String.class,
+          (p, s) -> Objects.toString(s, FIPSConfig.getFipsWebhookSecretPassphraseOrDefault()),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),

@@ -169,6 +169,12 @@ public class InsightConfig
   private String webhookSecretPassphrase;
 
   /**
+   * @since 1.193.0
+   */
+  @JsonProperty
+  private String webhookSecretPassphraseFips;
+
+  /**
    * @since 1.25.0
    */
   @JsonProperty
@@ -599,6 +605,14 @@ public class InsightConfig
 
   public void setWebhookSecretPassphrase(final String webhookSecretPassphrase) {
     this.webhookSecretPassphrase = webhookSecretPassphrase;
+  }
+
+  public String getWebhookSecretPassphraseFips() {
+    return webhookSecretPassphraseFips;
+  }
+
+  public void setWebhookSecretPassphraseFips(final String webhookSecretPassphraseFips) {
+    this.webhookSecretPassphraseFips = webhookSecretPassphraseFips;
   }
 
   /**

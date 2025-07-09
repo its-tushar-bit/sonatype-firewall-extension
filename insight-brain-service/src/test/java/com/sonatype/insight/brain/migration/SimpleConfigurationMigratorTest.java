@@ -569,6 +569,25 @@ public class SimpleConfigurationMigratorTest
   }
 
   @Test
+  public void testMigrate_WebhookSecretPassphraseFips() {
+    insightConfig.setWebhookSecretPassphraseFips(
+        configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS) + "2");
+
+    simpleConfigurationMigrator.migrate();
+
+    assertThat(
+        configurationService.getConfigurationNoAuthz(
+            SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS)
+        ).isEqualTo(insightConfig.getWebhookSecretPassphraseFips());
+    logOutput.assertThat().atWarnLevel()
+        .contains(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS + EXPECTED_OBSOLETE_SUFFIX);
+    verify(mockConfigurationService).applyConfigurationToClients(
+        Sets.newHashSet(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS));
+    verifyNoInteractions(mockConfigFeaturesService);
+    assertThat(migrationTrackerDAO.isTrackerPresent(SimpleConfigurationMigrator.MIGRATION_ID)).isTrue();
+  }
+
+  @Test
   public void testMigrate_ExternalHyperlinksAllowed() {
     insightConfig.setExternalHyperlinksAllowed(!(boolean) configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED));
@@ -852,6 +871,8 @@ public class SimpleConfigurationMigratorTest
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.DB_BACKUP_DIR) + File.separator + "2");
     insightConfig.setWebhookSecretPassphrase(
         configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE) + "2");
+    insightConfig.setWebhookSecretPassphraseFips(
+        configurationService.getConfigurationNoAuthz(SystemConfigurationProperty.WEBHOOK_SECRET_PASSPHRASE_FIPS) + "2");
     insightConfig.setExternalHyperlinksAllowed(!(boolean) configurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.EXTERNAL_HYPERLINKS_ALLOWED));
     Map<String, String> matcherConfiguration = new HashMap<>();

@@ -251,6 +251,18 @@
       <artifactId>bcpkix-jdk18on</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bc-fips</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bcpkix-fips</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.bouncycastle</groupId>
+      <artifactId>bctls-fips</artifactId>
+    </dependency>
+    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-tenancy</artifactId>
     </dependency>
@@ -258,6 +270,11 @@
       <groupId>com.datadoghq</groupId>
       <artifactId>dd-trace-api</artifactId>
       <version>${datadog.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.github.stefanbirkner</groupId>
+      <artifactId>system-rules</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -329,6 +346,7 @@
                 <include>**/SbomMetadataBuilder*</include>
                 <include>**/ScmUserMappingsHelper*</include>
                 <include>**/TemporaryTableHelperTest*</include>
+                <include>**/TestSamlFactory*</include>
               </includes>
             </configuration>
           </execution>

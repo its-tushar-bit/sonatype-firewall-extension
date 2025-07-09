@@ -19,7 +19,6 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.google.inject.Binder;
 import org.apache.shiro.authz.UnauthenticatedException;
@@ -43,7 +42,7 @@ public class ApiSourceControlServiceAuthzTest
   private static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
+      new PasswordHandler(new DefaultEncryptionKeyStore())
           .encryptPassword("token".toCharArray())
   );
 

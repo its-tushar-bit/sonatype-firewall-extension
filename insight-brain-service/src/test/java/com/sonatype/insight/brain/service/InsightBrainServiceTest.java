@@ -84,9 +84,13 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
+import org.mockito.MockedStatic;
 import org.quartz.JobPersistenceException;
 
+import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
+import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.telemetry.PaginatedTelemetryCollectorImpl.DATA_LIST;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -94,7 +98,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.awaitility.Awaitility.await;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 public class InsightBrainServiceTest
@@ -116,6 +122,12 @@ public class InsightBrainServiceTest
   @Rule
   public final ExpectedSystemExit expectedExit = ExpectedSystemExit.none();
 
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+  @Rule
+  public LogOutput logOutputFIPSModeDetector = new LogOutput(FIPSModeDetector.class);
+
   private OrganizationDAO organizationDAO;
 
   private ApplicationDAO applicationDAO;
@@ -134,7 +146,8 @@ public class InsightBrainServiceTest
   @After
   public void after() {
     System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
-    InsightBrainService.fipsModeDetector = new FIPSModeDetector();
+
+    removeBouncyCastleFipsProvider();
   }
 
   @Test
@@ -440,8 +453,7 @@ public class InsightBrainServiceTest
 
   @Test
   public void testEnsureBouncyCastleProviderIsLowestPreference_BouncyCastleProviderIsNotLowestPreference() {
-    Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
-    Security.insertProviderAt(new BouncyCastleProvider(), 1);
+    insertBouncyCastleFipsProvider();
 
     InsightBrainService.ensureBouncyCastleProviderIsLowestPreference();
 
@@ -581,43 +593,86 @@ public class InsightBrainServiceTest
 
   @Test
   @ManualIqServerInit
-  public void testInitialize_FIPSEnabled_LogError() throws Exception {
-    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
-    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(true);
+  public void testInitialize_FIPSEnabled_LogInfo() throws Exception {
+    try (MockedStatic<FIPSModeDetector> mocked = mockStatic(FIPSModeDetector.class, CALLS_REAL_METHODS)) {
+      insertBouncyCastleFipsProvider();
 
-    startIqTestServer(config -> {
-    });
+      when(FIPSModeDetector.isEnabled()).thenReturn(true);
+      startIqTestServer(config -> {
+      });
 
-    assertThat(logOutput)
-        .atErrorLevel()
-        .contains("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+      assertThat(logOutput)
+          .atInfoLevel()
+          .contains("FIPS mode is enabled for Nexus IQ Server.");
+    }
   }
 
   @Test
   @ManualIqServerInit
-  public void testInitialize_FIPSDisabled_NoLogError() throws Exception {
-    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
-    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(false);
+  public void testInitialize_FIPSDisabled_NoLogInfo() throws Exception {
+    try (MockedStatic<FIPSModeDetector> mocked = mockStatic(FIPSModeDetector.class, CALLS_REAL_METHODS)) {
+      when(FIPSModeDetector.isEnabled()).thenReturn(false);
 
-    startIqTestServer(config -> {
-    });
+      startIqTestServer(config -> {
+      });
 
-    assertThat(logOutput)
-        .atErrorLevel()
-        .doesNotContain("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+      assertThat(logOutput)
+          .atInfoLevel()
+          .doesNotContain("FIPS mode is enabled for Nexus IQ Server.");
+    }
   }
 
   @Test
   @ManualIqServerInit
-  public void testInitialize_FIPSUnknown_NoLogError() throws Exception {
-    InsightBrainService.fipsModeDetector = mock(FIPSModeDetector.class);
-    when(InsightBrainService.fipsModeDetector.isEnabled()).thenReturn(null);
+  public void testInitialize_FIPSEnabledByEnvironmentVariable_LogDebug() throws Exception {
+    insertBouncyCastleFipsProvider();
+
+    environmentVariables.set("FIPS_MODE_ENABLED", "true");
 
     startIqTestServer(config -> {
     });
 
+    assertThat(logOutputFIPSModeDetector)
+        .atDebugLevel()
+        .contains("FIPS mode is enabled through environment variable FIPS_MODE_ENABLED");
+
+    // still assert that the error log is printed
+    assertThat(logOutput)
+        .atInfoLevel()
+        .contains("FIPS mode is enabled for Nexus IQ Server.");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_FIPSDisabledByEnvironmentVariable_LogDebug() throws Exception {
+    environmentVariables.set("FIPS_MODE_ENABLED", "false");
+
+    startIqTestServer(config -> {
+    });
+
+    assertThat(logOutputFIPSModeDetector)
+        .atDebugLevel()
+        .contains("FIPS mode is disabled through environment variable FIPS_MODE_ENABLED");
+
     assertThat(logOutput)
         .atErrorLevel()
-        .doesNotContain("FIPS mode appears to be enabled, Nexus IQ Server cannot run in FIPS mode.");
+        .doesNotContain("FIPS mode is enabled for Nexus IQ Server.");
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testInitialize_FIPSInvalidEnvironmentVariable_NoLogs() throws Exception {
+    environmentVariables.set("FIPS_MODE_ENABLED", "notaboolean");
+
+    startIqTestServer(config -> {
+    });
+
+    assertThat(logOutputFIPSModeDetector)
+        .atDebugLevel()
+        .doesNotContain("FIPS mode is disabled through environment variable FIPS_MODE_ENABLED");
+
+    assertThat(logOutput)
+        .atInfoLevel()
+        .doesNotContain("FIPS mode is enabled for Nexus IQ Server.");
   }
 }

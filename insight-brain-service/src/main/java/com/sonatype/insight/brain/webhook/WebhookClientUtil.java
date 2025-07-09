@@ -19,6 +19,8 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
+import com.sonatype.insight.brain.security.FIPSConfig;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.client.utils.AbstractClient;
@@ -120,6 +122,8 @@ public class WebhookClientUtil
 
     private final String json;
 
+    private final String hmacAlgorithm;
+
     private WebhookClient(final Configuration config,
                             final String deliveryId,
                             final Webhook decryptedWebhook,
@@ -137,6 +141,8 @@ public class WebhookClientUtil
           .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
           .setSerializationInclusion(JsonInclude.Include.NON_NULL);
       this.json = objectMapper.writeValueAsString(payload);
+
+      this.hmacAlgorithm = FIPSModeDetector.isEnabled() ? FIPSConfig.getFipsHmacAlgorithm() : HMAC_SHA1;
     }
 
     public Result post() throws IOException {
@@ -149,7 +155,7 @@ public class WebhookClientUtil
         request.setHeader(WEBHOOK_ID_HEADER, webhookId);
         request.setHeader(WEBHOOK_DELIVERY_HEADER, deliveryId);
         if (StringUtils.isNotBlank(decryptedWebhook.getSecretKey())) {
-          request.setHeader(WEBHOOK_SIGNATURE_ALGORITHM_HEADER, HMAC_SHA1);
+          request.setHeader(WEBHOOK_SIGNATURE_ALGORITHM_HEADER, hmacAlgorithm);
           request.setHeader(WEBHOOK_SIGNATURE_HEADER, sign(json, decryptedWebhook.getSecretKey()));
         }
 
@@ -167,8 +173,8 @@ public class WebhookClientUtil
     private String sign(final String json, final String secretKey) throws NoSuchAlgorithmException,
                                                                           InvalidKeyException
     {
-      SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), HMAC_SHA1);
-      Mac mac = Mac.getInstance(HMAC_SHA1);
+      SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), hmacAlgorithm);
+      Mac mac = Mac.getInstance(hmacAlgorithm);
       mac.init(key);
       byte[] bytes = mac.doFinal(json.getBytes());
       return hex.encode(bytes);

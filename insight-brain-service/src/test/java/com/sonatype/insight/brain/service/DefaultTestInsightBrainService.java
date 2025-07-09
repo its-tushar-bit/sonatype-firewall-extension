@@ -60,7 +60,6 @@ import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseEngine;
 import com.sonatype.insight.db.H2DatabaseEngine;
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 
 import com.google.inject.Module;
 import io.dropwizard.configuration.ConfigurationException;
@@ -144,7 +143,7 @@ public class DefaultTestInsightBrainService
     testProxyServerConfiguration.setPort(port);
     testProxyServerConfiguration.setUsername(user);
     testProxyServerConfiguration.setPassword(
-        new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore()).encryptPassword(
+        new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
             pass.toCharArray()));
   }
 

@@ -35,8 +35,7 @@ import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
-import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
+import org.assertj.core.api.Assertions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -46,7 +45,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpHeaders;
 import org.apache.http.HttpStatus;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -70,7 +68,7 @@ public class ApiSourceControlResourceTest
   static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultPlexusCipher(), new DefaultEncryptionKeyStore())
+      new PasswordHandler(new DefaultEncryptionKeyStore())
           .encryptPassword("token".toCharArray())
   );
 

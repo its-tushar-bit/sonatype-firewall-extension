@@ -5,9 +5,12 @@
  */
 package com.sonatype.insight.brain.users;
 
+import java.net.HttpCookie;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.HttpRequest;
@@ -16,18 +19,23 @@ import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.auth.MultiTenantAuth0ManagementService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
+import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnablementService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.OAuth2User;
+import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.SsoUser;
+import com.sonatype.insight.brain.security.UserSessionResource;
+import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.jaxrs.JsonUtils;
 
 import com.auth0.json.mgmt.users.User;
@@ -37,6 +45,10 @@ import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenant;
+import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class MtiqUserResourceTest
@@ -212,6 +224,64 @@ public class MtiqUserResourceTest
     finally {
       TestMtiqFeatureService.isFeatureEnabledDuringTest = true;
     }
+  }
+
+  @Test
+  public void testSessionTimeout_PerTenant() {
+    AtomicReference<HttpCookie> cookie1 = new AtomicReference<>();
+    AtomicReference<HttpCookie> cookie2 = new AtomicReference<>();
+
+    Tenant tenant1 = testAsNewTenant("tenant1", t -> {
+      provisionTenant(t.tenantSlug);
+      HttpResponse response =
+          adminRestRequest(ADMIN_CONFIG_PATH).parameter("tenant1").body(Map.of(SESSION_TIMEOUT_MINUTES, 3)).put();
+      assertResponseStatus(204, response);
+      com.sonatype.insight.brain.model.security.User user = tenantTemporaryEntity.newUser();
+
+      response = super.restRequest().path(UserSessionResource.RESOURCE_PATH).auth(user).post();
+
+      assertResponseStatus(204, response);
+      List<PersistedUserSession> persistedUserSessions = lookup(PersistedUserSessionDAO.class).getAll();
+      assertThat(persistedUserSessions).hasSize(1);
+      PersistedUserSession persistedUserSession = persistedUserSessions.get(0);
+      assertThat(persistedUserSession.getSession().getTimeout()).isEqualTo(3 * 60 * 1000);
+      cookie1.set(response.getSessionCookie());
+      assertThat(cookie1.get()).isNotNull();
+    });
+    Tenant tenant2 = testAsNewTenant("tenant2", t -> {
+      provisionTenant(t.tenantSlug);
+      com.sonatype.insight.brain.model.security.User user = tenantTemporaryEntity.newUser();
+
+      HttpResponse response = super.restRequest().path(UserSessionResource.RESOURCE_PATH).auth(user).post();
+
+      assertResponseStatus(204, response);
+      List<PersistedUserSession> persistedUserSessions = lookup(PersistedUserSessionDAO.class).getAll();
+      assertThat(persistedUserSessions).hasSize(1);
+      PersistedUserSession persistedUserSession = persistedUserSessions.get(0);
+      assertThat(persistedUserSession.getSession().getTimeout()).isEqualTo(30 * 60 * 1000);
+      cookie2.set(response.getSessionCookie());
+      assertThat(cookie2.get()).isNotNull();
+    });
+
+    testAsTenant(tenant1, t -> {
+      setTenantSlug(tenant1.tenantSlug);
+
+      HttpResponse response = super.restRequest().path(UserSessionResource.RESOURCE_PATH).cookie(cookie1.get()).get();
+
+      assertResponseStatus(200, response);
+      AuthenticationStatus authenticationStatus = response.getBody(AuthenticationStatus.class);
+      assertThat(authenticationStatus.getSessionTimeoutMilliseconds()).isEqualTo(3 * 60 * 1000);
+    });
+
+    testAsTenant(tenant2, t -> {
+      setTenantSlug(tenant2.tenantSlug);
+
+      HttpResponse response = super.restRequest().path(UserSessionResource.RESOURCE_PATH).cookie(cookie2.get()).get();
+
+      assertResponseStatus(200, response);
+      AuthenticationStatus authenticationStatus = response.getBody(AuthenticationStatus.class);
+      assertThat(authenticationStatus.getSessionTimeoutMilliseconds()).isEqualTo(30 * 60 * 1000);
+    });
   }
 
   private static class TestMultiTenantAuth0ManagementService

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Collection;
 import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -17,13 +16,11 @@ import com.sonatype.insight.brain.security.oauth2.JwtAuthenticationFilter;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 
-import com.google.inject.TypeLiteral;
 import com.google.inject.binder.AnnotatedBindingBuilder;
 import io.dropwizard.lifecycle.Managed;
 import org.apache.shiro.authc.Authenticator;
 import org.apache.shiro.guice.ShiroModule;
 import org.apache.shiro.mgt.SecurityManager;
-import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionManager;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.filter.mgt.DefaultFilterChainManager;
@@ -52,9 +49,6 @@ public class SecurityModule
   protected void configureShiro() {
     bind(Managed.class).toInstance(new Destroyer());
     expose(Managed.class);
-    TypeLiteral<Collection<SessionListener>> sessionListenerCollectionType =
-        new TypeLiteral<>() { };
-    bind(sessionListenerCollectionType).toProvider(SessionListenerProvider.class);
     bindWebSecurityManager(bind(WebSecurityManager.class));
     expose(WebSecurityManager.class);
     bind(FilterChainResolver.class).to(PathMatchingFilterChainResolver.class);
@@ -193,7 +187,7 @@ public class SecurityModule
   protected void bindSessionManager(AnnotatedBindingBuilder<SessionManager> bind) {
     bind.to(WebSessionManager.class);
     bind(WebSessionManager.class).to(DefaultWebSessionManager.class);
-    bind(DefaultWebSessionManager.class).in(Singleton.class);
+    bind(DefaultWebSessionManager.class).to(InsightSessionManager.class);
     expose(DefaultWebSessionManager.class);
     bind(SessionDAO.class).to(ShiroSessionDAO.class);
     expose(SessionDAO.class);

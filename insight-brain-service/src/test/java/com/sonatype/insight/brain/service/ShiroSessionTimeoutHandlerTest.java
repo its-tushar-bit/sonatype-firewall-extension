@@ -5,54 +5,71 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.Set;
 
-import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.security.InsightSessionManager;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
-import org.junit.Before;
+import jakarta.inject.Inject;
+import org.apache.shiro.session.Session;
+import org.apache.shiro.session.mgt.AbstractSessionManager;
 import org.junit.Test;
-import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.mockito.MockitoAnnotations.openMocks;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class ShiroSessionTimeoutHandlerTest
-    extends AbstractBrainServiceIntegrationTest
+    extends AbstractComponentTest
 {
-  public static final String SESSION_TIMEOUT_MINUTES = "sessionTimeout";
+  @Inject
+  private ShiroSessionTimeoutHandler shiroSessionTimeoutHandler;
 
-  @Mock
-  private ApiConfigurationService configurationService;
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  @Mock
-  private DefaultWebSessionManager defaultWebSessionManager;
+  @Inject
+  private InsightSessionManager insightSessionManager;
 
-  ShiroSessionTimeoutHandler shiroSessionTimeoutHandler;
-
-  @Before
-  public void setUp() {
-    openMocks(this);
-    shiroSessionTimeoutHandler = new ShiroSessionTimeoutHandler(configurationService, defaultWebSessionManager);
+  @Test
+  public void testShiroSessionTimeout() {
+    assertThat(shiroSessionTimeoutHandler).isInstanceOf(ConfigurationListener.class);
+    assertThat(shiroSessionTimeoutHandler).isInstanceOf(TenantManaged.class);
   }
 
   @Test
-  public void configurationChanged_withWrongConfig() {
-    shiroSessionTimeoutHandler.configurationChanged(Collections.singleton("wrongConfig"));
-    verify(defaultWebSessionManager, never()).setGlobalSessionTimeout(anyLong());
+  public void testConfigurationChanged() {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, "5");
+
+    shiroSessionTimeoutHandler.configurationChanged(Set.of(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES));
+
+    Session session = insightSessionManager.start(null);
+    assertThat(session.getTimeout()).isEqualTo(5 * 60 * 1000);
   }
 
   @Test
-  public void configurationChanged_withCorrectConfig() {
-    Map<String, Object> stringObjectMap = Collections.singletonMap(SESSION_TIMEOUT_MINUTES, 10);
-    when(configurationService.getConfigurationNoAuthz(Collections.singleton(SESSION_TIMEOUT_MINUTES))).thenReturn(
-        stringObjectMap);
-    shiroSessionTimeoutHandler.configurationChanged(Collections.singleton(SESSION_TIMEOUT_MINUTES));
-    verify(defaultWebSessionManager).setGlobalSessionTimeout(anyLong());
+  public void testConfigurationChanged_OtherProperty() {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, "5");
+
+    shiroSessionTimeoutHandler.configurationChanged(Set.of("other"));
+
+    Session session = insightSessionManager.start(null);
+    assertThat(session.getTimeout()).isEqualTo(AbstractSessionManager.DEFAULT_GLOBAL_SESSION_TIMEOUT);
+  }
+
+  @Test
+  public void testRegister() {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES, "5");
+
+    shiroSessionTimeoutHandler.register();
+
+    Session session = insightSessionManager.start(null);
+    assertThat(session.getTimeout()).isEqualTo(5 * 60 * 1000);
+  }
+
+  @Test
+  public void testIncludeGlobalTenantDuringRegistration() {
+    assertThat(shiroSessionTimeoutHandler.includeGlobalTenantDuringRegistration()).isTrue();
   }
 }

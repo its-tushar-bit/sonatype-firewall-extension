@@ -26,6 +26,9 @@ import com.sonatype.insight.model.HasStringId;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
+import jakarta.persistence.EntityManagerFactory;
+import org.apache.openjpa.persistence.OpenJPAEntityManagerFactorySPI;
+import org.apache.openjpa.persistence.OpenJPAPersistence;
 
 import static java.util.stream.Collectors.toList;
 
@@ -52,7 +55,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   static int MAX_ALLOWED_DB_RESULTS =
       ConfigUtil.getIntegerConfig("com.sonatype.insight.maxAllowedDbResults", DEFAULT_MAX_ALLOWED_DB_RESULTS);
 
-  private final String entityName;
+  private final Class<T> entityClass;
 
   /**
    * Constructor for DAOs that require the search index. These DAOs must override one of the methods:
@@ -65,7 +68,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
    */
   protected AbstractSqlDAO(final SearchIndexManager searchIndexManager) {
     this.searchIndexManager = searchIndexManager;
-    entityName = ((Class<?>) getParameterizedSuperClass().getActualTypeArguments()[0]).getSimpleName();
+    entityClass = (Class<T>) getParameterizedSuperClass().getActualTypeArguments()[0];
   }
 
   /**
@@ -138,7 +141,7 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
   }
 
   public String getEntityName() {
-    return entityName;
+    return entityClass.getSimpleName();
   }
 
   @Override
@@ -361,5 +364,22 @@ public abstract class AbstractSqlDAO<T extends HasStringId>
     }
 
     return null;
+  }
+
+  public void removeEntityFromCache(T entity) {
+    if (entity != null) {
+      removeEntityFromCacheByPrimaryKey(entity.getId());
+    }
+  }
+
+  public void removeEntityFromCacheByPrimaryKey(Object primaryKey) {
+    getDataStore().getJPAEntityManagerFactory().getCache().evict(entityClass, primaryKey);
+  }
+
+  public void clearQueryCache() {
+    EntityManagerFactory entityManagerFactory = getDataStore().getJPAEntityManagerFactory();
+    OpenJPAEntityManagerFactorySPI openJPAEntityManagerFactorySPI =
+        (OpenJPAEntityManagerFactorySPI) OpenJPAPersistence.cast(entityManagerFactory);
+    openJPAEntityManagerFactorySPI.getQueryResultCache().evictAll(entityClass);
   }
 }

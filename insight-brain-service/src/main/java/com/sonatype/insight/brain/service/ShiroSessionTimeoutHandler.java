@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.service;
 
 import java.util.Collections;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,30 +14,29 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
-
-import io.dropwizard.lifecycle.Managed;
-import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
+import com.sonatype.insight.brain.security.InsightSessionManager;
+import com.sonatype.insight.brain.tenancy.TenantManaged;
 
 @Named
 @Singleton
 public class ShiroSessionTimeoutHandler
-    implements ConfigurationListener, Managed
+    implements ConfigurationListener, TenantManaged
 {
   private final ApiConfigurationService configurationService;
 
-  private final DefaultWebSessionManager defaultWebSessionManager;
+  private final InsightSessionManager insightSessionManager;
 
   @Inject
   public ShiroSessionTimeoutHandler(
       ApiConfigurationService configurationService,
-      DefaultWebSessionManager defaultWebSessionManager)
+      InsightSessionManager insightSessionManager)
   {
     this.configurationService = configurationService;
-    this.defaultWebSessionManager = defaultWebSessionManager;
+    this.insightSessionManager = insightSessionManager;
   }
 
   @Override
-  public void start() throws Exception {
+  public void register() {
     configurationChanged(Collections.singleton(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES));
   }
 
@@ -48,7 +46,12 @@ public class ShiroSessionTimeoutHandler
       int sessionTimeout = (int) configurationService.getConfigurationNoAuthz(
               Collections.singleton(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES))
           .get(SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES);
-      defaultWebSessionManager.setGlobalSessionTimeout(sessionTimeout * 60000L);
+      insightSessionManager.setTenantSessionTimeout(sessionTimeout * 60000L);
     }
+  }
+
+  @Override
+  public boolean includeGlobalTenantDuringRegistration() {
+    return true;
   }
 }

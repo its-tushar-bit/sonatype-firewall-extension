@@ -16,7 +16,7 @@ import org.apache.shiro.session.SessionListenerAdapter;
  * effort for RUT).
  */
 @Named
-class AuditSessionListener
+public class AuditSessionListener
     extends SessionListenerAdapter
 {
   @Override

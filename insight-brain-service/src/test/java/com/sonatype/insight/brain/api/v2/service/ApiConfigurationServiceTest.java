@@ -87,8 +87,12 @@ public class ApiConfigurationServiceTest
   @Inject
   private TestConfigurationListener spyTestConfigurationListener;
 
+  private SystemConfigurationPropertyDAO spySystemConfigurationPropertyDAO;
+
   @Override
   public void configure(Binder binder) {
+    spySystemConfigurationPropertyDAO = spy(daoFactory.createSystemConfigurationPropertyDAO());
+    binder.bind(SystemConfigurationPropertyDAO.class).toInstance(spySystemConfigurationPropertyDAO);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(ConfigurationListener.class).toInstance(mockConfigurationListener);
     binder.bind(TestConfigurationListener.class).toInstance(spy(new TestConfigurationListener()));
@@ -696,11 +700,17 @@ public class ApiConfigurationServiceTest
         .applyConfigurationToClients(SystemConfigurationProperty.BASE_URL, SystemConfigurationProperty.FORCE_BASE_URL);
     JobExecutionContext mockJobExecutionContext = mock(JobExecutionContext.class);
     when(mockJobExecutionContext.getMergedJobDataMap()).thenReturn(jobDataMap);
+    spySystemConfigurationPropertyDAO.set(SystemConfigurationProperty.BASE_URL, "someBaseUrl");
+    SystemConfigurationProperty systemConfigurationProperty =
+        spySystemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.BASE_URL);
 
     try (MDCUsernameScope mdcUsernameScope = MDCUsernameScope.forUser("username")) {
       spy.execute(mockJobExecutionContext);
     }
 
+    verify(spySystemConfigurationPropertyDAO).clearQueryCache();
+    verify(spySystemConfigurationPropertyDAO).removeEntityFromCacheByPrimaryKey(systemConfigurationProperty.getId());
+    verify(spySystemConfigurationPropertyDAO).removeEntityFromCache(null);
     verify(spy).applyConfigurationToClients(SystemConfigurationProperty.BASE_URL,
         SystemConfigurationProperty.FORCE_BASE_URL);
   }

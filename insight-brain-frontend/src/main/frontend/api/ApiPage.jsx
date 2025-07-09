@@ -22,10 +22,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { selectApiPageSlice } from 'MainRoot/api/apiPageSelectors';
 import { actions } from 'MainRoot/api/apiPageSlice';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
+import { fetchUser } from 'MainRoot/user/userSession';
+import { selectCurrentUser } from 'MainRoot/user/userSelectors';
 
 export default function ApiPage() {
   const dispatch = useDispatch();
   const { loading, loadError, publicOpenApi, experimentalOpenApi } = useSelector(selectApiPageSlice);
+  const currentUser = useSelector(selectCurrentUser);
   const loadOpenApi = (endpoint) => dispatch(actions.loadOpenApi(endpoint));
   const [activeTabId, setActiveTabId] = useState(0);
   const load = () => {
@@ -42,6 +45,15 @@ export default function ApiPage() {
       ?.split('=')[1];
     const url = new URL(request.url);
     request.url = BASE_URL + url.pathname + url.search;
+
+    // Schedule to send a request to keep any user session alive after the API request.
+    // This is useful if somebody is working just within the API page
+    // and doesn't want to be nagged or auto-logged out due to what looks like inactivity
+    // but is actually just them sending raw API requests.
+    if (currentUser) {
+      setTimeout(() => fetchUser(false), 0);
+    }
+
     return request;
   };
 

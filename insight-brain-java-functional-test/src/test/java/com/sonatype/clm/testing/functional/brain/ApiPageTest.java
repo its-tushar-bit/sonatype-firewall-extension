@@ -13,20 +13,24 @@ import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.pages.ApiPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.SessionExpirationCookieFilter;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.openqa.selenium.WebDriver;
 
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(Parameterized.class)
 public class ApiPageTest
@@ -104,13 +108,19 @@ public class ApiPageTest
   }
 
   @Test
-  public void testSwaggerGetApplications() {
+  public void testSwagger_Execute() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
     ApiPage apiPage = new ApiPage();
     apiPage.shouldBe(visible).swaggerUi().shouldBe(visible).shouldHave(text("/api/v2"));
-
     MainHeader.loginButton().shouldBe(visible).click();
     loginAsAdmin();
+    refreshOrOpen(url);
+    WebDriver driver = WebDriverRunner.getWebDriver();
+    long sessionExpirationBeforeExecute = Long.parseLong(
+        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue()
+    );
+    Thread.sleep(100); // Tiny delay to ensure we do refresh the session expiration
+
     SelenideElement getApplicationsDiv = apiPage.swaggerUi().find("#operations-Applications-getApplications");
     getApplicationsDiv.shouldBe(visible).click();
     SelenideElement tryItOutButton = getApplicationsDiv.find(".try-out__btn");
@@ -119,5 +129,9 @@ public class ApiPageTest
     executeButton.shouldBe(visible).click();
     SelenideElement responseDiv = getApplicationsDiv.find(".response-col_description .microlight");
     responseDiv.shouldBe(visible).shouldHave(text(application.getId()));
+    long sessionExpirationAfterExecute = Long.parseLong(
+        driver.manage().getCookieNamed(SessionExpirationCookieFilter.EXPIRATION_COOKIE_NAME).getValue()
+    );
+    assertThat(sessionExpirationAfterExecute).isGreaterThan(sessionExpirationBeforeExecute);
   }
 }

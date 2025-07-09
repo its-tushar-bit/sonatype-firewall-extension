@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.service.Configuration;
 
@@ -33,9 +34,12 @@ public class SolutionUrlResolver
 
   private final Configuration configuration;
 
+  private final DashboardUtils dashboardUtils;
+
   @Inject
-  public SolutionUrlResolver(Configuration configuration) {
+  public SolutionUrlResolver(Configuration configuration, DashboardUtils dashboardUtils) {
     this.configuration = configuration;
+    this.dashboardUtils = dashboardUtils;
   }
 
   /**
@@ -63,7 +67,13 @@ public class SolutionUrlResolver
       if (!baseUrl.endsWith("/")) {
         baseUrl = baseUrl + '/';
       }
-      result = baseUrl + SOLUTION_PATH_MAP.get(solution);
+
+      if (solution.equals(Solution.LIFECYCLE) && dashboardUtils.isDashboardDisabled()) {
+        result = baseUrl + UserInterfaceLinksHelper.getLifecycleAltHomePath();
+      }
+      else {
+        result = baseUrl + SOLUTION_PATH_MAP.get(solution);
+      }
     }
 
     return result;

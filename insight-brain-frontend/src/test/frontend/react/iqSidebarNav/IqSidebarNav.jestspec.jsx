@@ -141,15 +141,6 @@ describe('IqSidebarNav', function () {
       assertNoLinksInNavigation();
     });
 
-    it('renders a link to the dashboard waivers overview when isDashboardWaiversAvailable is true', function () {
-      renderComponent({
-        isLoggedIn: true,
-        isDashboardWaiversAvailable: true,
-      });
-
-      assertNavSectionContainsLink('href-dashboard.overview.waivers', 'Dashboard', 'house');
-    });
-
     it('renders a link to the dashboard violations overview when isDashboardAvailable is true', function () {
       renderComponent({
         isLoggedIn: true,
@@ -157,6 +148,16 @@ describe('IqSidebarNav', function () {
       });
 
       assertNavSectionContainsLink('href-dashboard.overview.violations', 'Dashboard', 'house');
+    });
+
+    it('does not render a link to the dashboard violations overview when isDashboardAvailable is false', function () {
+      renderComponent({
+        isLoggedIn: true,
+        isDashboardAvailable: false,
+      });
+
+      const navigationSection = screen.getByRole('navigation');
+      expect(within(navigationSection).queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument();
     });
 
     it('renders a link to Orgs and Policies when isLicensed is true', function () {
@@ -205,18 +206,6 @@ describe('IqSidebarNav', function () {
       });
 
       assertNavSectionContainsLink('href-advancedSearch', 'Advanced Search', 'magnifying-glass');
-    });
-
-    it('does not render a link to the Dashboard when neither isDashboardAvailable nor isDashboardWaiversAvailable are true', function () {
-      renderComponent({
-        isLoggedIn: true,
-        isLicensed: true,
-        isDashboardAvailable: false,
-        isDashboardWaiversAvailable: false,
-      });
-
-      const navigationSection = screen.getByRole('navigation');
-      expect(within(navigationSection).queryByRole('link', { name: 'Dashboard' })).not.toBeInTheDocument();
     });
 
     it('renders an NxGlobalSidebarNavigationLink for legal if allowed', function () {

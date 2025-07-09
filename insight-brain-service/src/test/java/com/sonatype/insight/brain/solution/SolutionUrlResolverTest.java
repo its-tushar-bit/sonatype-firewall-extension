@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.solution;
 
+import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
 
@@ -30,8 +31,10 @@ public class SolutionUrlResolverTest
     // given: no base url set in config
     BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(BASE_URL + '/', false);
     Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
-    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(false);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
 
     // when: get the URLs for the solutions
     String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, false);
@@ -53,8 +56,10 @@ public class SolutionUrlResolverTest
     // given: no base url set in config
     BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(BASE_URL, false);
     Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
-    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(false);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
 
     // when: get the URLs for the solutions
     String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, false);
@@ -79,8 +84,10 @@ public class SolutionUrlResolverTest
 
     BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(baseUrl, false);
     Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
-    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(false);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
 
     // when:
     String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, allowRelativePaths);
@@ -98,14 +105,16 @@ public class SolutionUrlResolverTest
   }
 
   @Test
-  public void testWitoutBaseUrlAndRelativePathsNotAllowed() {
+  public void testWithoutBaseUrlAndRelativePathsNotAllowed() {
     // given: no base url set in config
     final boolean relativePathsNotAllowed = false;
 
     BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(null, false);
     Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
-    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(false);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
 
     // when:
     String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, relativePathsNotAllowed);
@@ -120,5 +129,30 @@ public class SolutionUrlResolverTest
     assertThat(lifecycleUrl).isBlank();
     assertThat(repoManagerUrl).isBlank();
     assertThat(sbomManagerUrl).isBlank();
+  }
+
+  @Test
+  public void testFullUrls_DashboardUnavailable() {
+    // given: no base url set in config and dashboard is unavailable
+    BaseUrlConfiguration baseUrlConfig = new BaseUrlConfiguration(BASE_URL + '/', false);
+    Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils mockDashboardUtils = Mockito.mock(DashboardUtils.class);
+    when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfig);
+    when(mockDashboardUtils.isDashboardDisabled()).thenReturn(true);
+    SolutionUrlResolver urlResolver = new SolutionUrlResolver(mockConfiguration, mockDashboardUtils);
+
+    // when: get the URLs for the solutions
+    String developerUrl = urlResolver.getUrlForSolution(Solution.DEVELOPER, true);
+    String firewallUrl = urlResolver.getUrlForSolution(Solution.FIREWALL, true);
+    String lifecycleUrl = urlResolver.getUrlForSolution(Solution.LIFECYCLE, true);
+    String repoManagerUrl = urlResolver.getUrlForSolution(Solution.REPO_MANAGER, true);
+    String sbomManagerUrl = urlResolver.getUrlForSolution(Solution.SBOM_MANAGER, true);
+
+    // then: only lifecycle has an alternative path
+    assertThat(developerUrl).isEqualTo("https://locahost:8070/ui/links/developer/dashboard");
+    assertThat(firewallUrl).isEqualTo("https://locahost:8070/ui/links/firewall/dashboard");
+    assertThat(lifecycleUrl).isEqualTo("https://locahost:8070/ui/links/lifecycle/reports");
+    assertThat(repoManagerUrl).isBlank();
+    assertThat(sbomManagerUrl).isEqualTo("https://locahost:8070/ui/links/sbomManager/dashboard");
   }
 }

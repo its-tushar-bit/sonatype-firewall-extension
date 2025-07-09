@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicensedSolutionDTO;
+import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
@@ -149,7 +150,8 @@ public class ApiLicensedSolutionsServiceTest
   private SolutionUrlResolver createSolutionUrlResolver(String baseUrl) {
     BaseUrlConfiguration baseUrlConfiguration = new BaseUrlConfiguration(baseUrl, false);
     Configuration mockConfiguration = Mockito.mock(Configuration.class);
+    DashboardUtils dashboardUtils = Mockito.mock(DashboardUtils.class);
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(baseUrlConfiguration);
-    return new SolutionUrlResolver(mockConfiguration);
+    return new SolutionUrlResolver(mockConfiguration, dashboardUtils);
   }
 }

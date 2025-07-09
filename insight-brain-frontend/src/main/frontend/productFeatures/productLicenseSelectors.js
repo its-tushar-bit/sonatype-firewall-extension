@@ -9,7 +9,12 @@ import * as R from 'ramda';
 import { isSbomManagerOnlyLicenseProduct } from 'MainRoot/sbomManager/sbomManagerUtil';
 
 export const PRODUCT_LICENSES = Object.freeze({
-  lifecycle: ['Sonatype Lifecycle', 'Sonatype Lifecycle SaaS'],
+  lifecycle: [
+    'Sonatype Lifecycle',
+    'Sonatype Lifecycle SaaS',
+    'Sonatype Lifecycle Cloud',
+    'Sonatype Lifecycle Foundation',
+  ],
   firewall: [
     'Sonatype Repository Firewall',
     'Sonatype Firewall for Artifactory',

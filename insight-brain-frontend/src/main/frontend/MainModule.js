@@ -32,12 +32,12 @@ import modalContainerModule from './modalContainer/module';
 import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
+import { selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import {
   selectIsAllowExternalHyperlinksSupported,
   selectIsFirewallSupportedForNavigationContainer,
   selectIsDashboardSupported,
-  selectIsDashboardWaiversSupported,
   selectIsFirewallSupported,
   selectIsReportListSupported,
   selectIsSbomManagerEnabled,
@@ -105,13 +105,13 @@ export const InitModule = angular
                 .then((results) => {
                   unwrapResult(results[0]);
                   const state = $ngRedux.getState();
+                  const hasLifecycleLicense = selectHasLifecycleLicense(state);
                   const isDashboardAvailable = selectIsDashboardSupported(state);
                   const isFirewallAvailable = selectIsFirewallSupported(state);
                   const isFirewallEnabled = selectIsFirewallSupportedForNavigationContainer(state);
                   const isReportsListAvailable = selectIsReportListSupported(state);
                   const isSbomManagerEnabled = selectIsSbomManagerEnabled(state);
                   const isSbomManagerOnlyLicense = selectIsSbomManagerOnlyLicense(state);
-                  const isWaiversDashboardAvailable = selectIsDashboardWaiversSupported(state);
                   const unconfiguredRepoManager = selectUnconfiguredRepoManager(state);
 
                   if (isSbomManagerEnabled && isSbomManagerOnlyLicense) {
@@ -120,8 +120,8 @@ export const InitModule = angular
                     return 'firewallOnboarding.firewallOnboardingPage';
                   } else if (isDashboardAvailable) {
                     return 'dashboard.overview.violations';
-                  } else if (isWaiversDashboardAvailable && !isFirewallEnabled) {
-                    return 'dashboard.overview.waivers';
+                  } else if (!isDashboardAvailable && isReportsListAvailable && hasLifecycleLicense) {
+                    return 'violations'; //Landing page is reports page if dashboard is not available for LC
                   } else if (isFirewallAvailable) {
                     return 'firewall.firewallPage';
                   } else if (isReportsListAvailable) {

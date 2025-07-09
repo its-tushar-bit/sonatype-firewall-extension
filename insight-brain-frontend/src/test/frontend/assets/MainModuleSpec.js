@@ -273,6 +273,39 @@ describe('mainModuleSpec', function () {
         expect(pendoServiceMock.start).toHaveBeenCalled();
       });
 
+      it('validate state with dashboard unavailable and reports-list available', async function () {
+        $rootScope.isAllowExternalHyperlinks = false;
+        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+          productFeatures: {
+            productFeatures: {
+              dashboard: false,
+              'reports-list': true,
+            },
+          },
+          firewallOnboarding: {
+            unconfiguredRepoManagers: {
+              repoManagers: [],
+              loading: false,
+              loadError: null,
+            },
+          },
+        });
+        $rootScope.$digest();
+        productLicenseLoadDefer.resolve({});
+        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+
+        initService.start();
+
+        await userSession.waitForLogin();
+        $rootScope.$digest();
+        expect($rootScope.licensed).toEqual(true);
+        expect($rootScope.username).toEqual('myname');
+        expect($window.externalLinkClickHandler).toBeDefined();
+        expect($state.current.name).toBe('violations');
+
+        expect(pendoServiceMock.start).toHaveBeenCalled();
+      });
+
       it('validate state with only reports-list available', async function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({

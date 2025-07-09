@@ -44,6 +44,7 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.clm.testing.functional.elements.CLM.CSS_SIDEBAR_CLOSED;
 import static com.sonatype.clm.testing.functional.elements.CLM.CSS_SIDEBAR_OPEN;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.DASHBOARD_DISABLED;
 
 public class SidebarNavigationTest
     extends AbstractFunctionalTest
@@ -97,7 +98,14 @@ public class SidebarNavigationTest
   }
 
   @Test
-  public void testDashboardIcon_DashboardNotAvailable() {
+  public void testDashboardIcon_DashboardNotAvailable_FeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(DASHBOARD_DISABLED, "true");
+    refresh();
+    SidebarNavigation.dashboardNavigationButton().shouldBe(hidden);
+  }
+
+  @Test
+  public void testDashboardIcon_DashboardNotAvailable_Nexus() {
     setLicensedProducts(ProductLicenseDetails.PRODUCT_NEXUS);
     refresh();
     SidebarNavigation.policiesNavigationButton().shouldBe(visible);

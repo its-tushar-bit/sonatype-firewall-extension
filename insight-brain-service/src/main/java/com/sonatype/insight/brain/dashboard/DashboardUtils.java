@@ -111,6 +111,10 @@ public class DashboardUtils
     return stages;
   }
 
+  public boolean isDashboardDisabled() {
+    return systemConfigurationPropertyDAO.getByName(DASHBOARD_DISABLED) != null;
+  }
+
   public Set<String> getStageTypeIds(final Collection<StageType> stageTypes) {
     Set<String> stageTypeIds = new HashSet<>();
     for (StageType stageType : stageTypes) {

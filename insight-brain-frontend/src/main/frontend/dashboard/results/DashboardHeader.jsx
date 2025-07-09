@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import LoadWrapper from '../../react/LoadWrapper';
 import ExportButton, { exportButtonPropTypes } from './dashboardSummary/ExportButton';
@@ -45,10 +45,10 @@ export default function DashboardResults(props) {
   }, []);
 
   return (
-    <Fragment>
-      <div className="dashboard-summary">
-        <div className="nx-page-title">
-          <h1 className="nx-h1">Results</h1>
+    <div className="dashboard-summary">
+      <div className="nx-page-title">
+        <h1 className="nx-h1">Results</h1>
+        {isDashboardEnabled && (
           <div className="nx-btn-bar">
             <ExportButton exportTitle={exportTitle} exportRequestData={exportRequestData} exportUrl={exportUrl} />
             <NxButton variant="secondary" id="filter-toggle" onClick={() => toggleFilterSidebar(!filterSidebarOpen)}>
@@ -57,21 +57,21 @@ export default function DashboardResults(props) {
               {appliedFilterName || DEFAULT_FILTER_NAME}
             </NxButton>
           </div>
-        </div>
-        {!isDashboardEnabled ? (
-          <NxInfoAlert>The Dashboard feature has been disabled by your administrator.</NxInfoAlert>
-        ) : (
-          <LoadWrapper loading={filterLoading} error={loadFilterError} retryHandler={loadFilter}>
-            <DashboardTabs
-              stateGo={stateGo}
-              {...dashboard}
-              isDashboardEnabled={isDashboardEnabled}
-              isWaiversTabEnabled={isWaiversTabEnabled}
-            />
-          </LoadWrapper>
         )}
       </div>
-    </Fragment>
+      {!isDashboardEnabled ? (
+        <NxInfoAlert>The Dashboard feature has been disabled by your administrator.</NxInfoAlert>
+      ) : (
+        <LoadWrapper loading={filterLoading} error={loadFilterError} retryHandler={loadFilter}>
+          <DashboardTabs
+            stateGo={stateGo}
+            {...dashboard}
+            isDashboardEnabled={isDashboardEnabled}
+            isWaiversTabEnabled={isWaiversTabEnabled}
+          />
+        </LoadWrapper>
+      )}
+    </div>
   );
 }
 

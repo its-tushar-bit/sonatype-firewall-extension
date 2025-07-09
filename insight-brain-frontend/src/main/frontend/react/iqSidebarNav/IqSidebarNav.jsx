@@ -43,7 +43,6 @@ function IqSidebarNav(props) {
     isLoggedIn,
     isLicensed,
     isDashboardAvailable,
-    isDashboardWaiversAvailable,
     isReportsListAvailable,
     isSuccessMetricsEnabled,
     isAdvancedSearchEnabled,
@@ -66,9 +65,7 @@ function IqSidebarNav(props) {
 
   const apiHref = uiRouterState.href('api');
   const enterpriseReportingHref = uiRouterState.href('enterpriseReporting');
-  const dashboardHref = isDashboardAvailable
-    ? uiRouterState.href('dashboard.overview.violations')
-    : uiRouterState.href('dashboard.overview.waivers');
+  const dashboardHref = uiRouterState.href('dashboard.overview.violations');
   const logoHref = uiRouterState.href('home');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
@@ -124,7 +121,7 @@ function IqSidebarNav(props) {
     >
       {isLoggedIn && !isProductsLoading && !isStandaloneFirewall && (
         <NxGlobalSidebarNavigation id="global-sidebar-buttons">
-          {(isDashboardAvailable || isDashboardWaiversAvailable) && (
+          {isDashboardAvailable && (
             <NxGlobalSidebarNavigationLink
               isSelected={isSelected('dashboard')}
               id="dashboard-navigation-button"
@@ -248,7 +245,6 @@ IqSidebarNav.propTypes = {
   isLoggedIn: PropTypes.bool,
   isLicensed: PropTypes.bool,
   isDashboardAvailable: PropTypes.bool,
-  isDashboardWaiversAvailable: PropTypes.bool,
   isReportsListAvailable: PropTypes.bool,
   isSuccessMetricsEnabled: PropTypes.bool,
   isAdvancedSearchEnabled: PropTypes.bool,

@@ -22,6 +22,8 @@ public class UserInterfaceLinksHelper
 
   public static final String LIFECYCLE_HOME_PATH = "lifecycle/dashboard";
 
+  public static final String LIFECYCLE_ALT_HOME_PATH = "lifecycle/reports";
+
   public static final String SBOM_MANAGER_HOME_PATH = "sbomManager/dashboard";
 
   public static final String MANAGEMENT_PATH = "{ownerType: application|organization}/{ownerId}/management";
@@ -97,6 +99,10 @@ public class UserInterfaceLinksHelper
 
   public static String getLifecycleHomePath() {
     return buildStableUrl(LIFECYCLE_HOME_PATH);
+  }
+
+  public static String getLifecycleAltHomePath() {
+    return buildStableUrl(LIFECYCLE_ALT_HOME_PATH);
   }
 
   public static String getSbomManagerHomePath() {

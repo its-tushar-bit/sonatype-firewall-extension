@@ -65,7 +65,7 @@ public class PageLoadTest
     vulnPage.shouldBe(visible);
     loginAsAdmin();
 
-    // wait a bit to ensure that that the page isn't redirecting somewhere else (like the dashboard)
+    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
     Selenide.sleep(1000);
     MainHeader.loginButton().shouldNotBe(visible);
     loginModal.shouldNotBe(visible);
@@ -92,7 +92,7 @@ public class PageLoadTest
     vulnPage.shouldBe(visible);
     loginAsAdmin();
 
-    // wait a bit to ensure that that the page isn't redirecting somewhere else (like the dashboard)
+    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
     Selenide.sleep(1000);
     MainHeader.loginButton().shouldNotBe(visible);
     loginModal.shouldNotBe(visible);
@@ -118,7 +118,7 @@ public class PageLoadTest
     loginModal.cancelButton().shouldBe(visible).click();
     vulnPage.shouldBe(visible);
 
-    // wait a bit to ensure that that the page isn't redirecting somewhere else (like the dashboard)
+    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
     Selenide.sleep(1000);
     MainHeader.loginButton().shouldBe(visible);
     loginModal.shouldNotBe(visible);
@@ -142,7 +142,7 @@ public class PageLoadTest
     vulnPage.shouldBe(visible);
     loginAsAdmin();
 
-    // wait a bit to ensure that that the page isn't redirecting somewhere else (like the dashboard)
+    // wait a bit to ensure that the page isn't redirecting somewhere else (like the dashboard)
     Selenide.sleep(1000);
     MainHeader.loginButton().shouldNotBe(visible);
     loginModal.shouldNotBe(visible);
@@ -192,8 +192,18 @@ public class PageLoadTest
   }
 
   @Test
-  public void testLoadIndexHtml_NoDashboard() {
+  public void testLoadIndexHtml_DashboardNotLicensed() {
     setMissingFeatures(LicensedFeature.DASHBOARD, LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_FOR_ARTIFACTORY);
+
+    refreshOrOpen(IndexPage.url());
+    loginAsAdmin();
+    waitUntilUrl(ReportListPage.url());
+    ReportListPage.listContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testLoadIndexHtml_DashboardFeatureDisabled() {
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.DASHBOARD_DISABLED, "true");
 
     refreshOrOpen(IndexPage.url());
     loginAsAdmin();

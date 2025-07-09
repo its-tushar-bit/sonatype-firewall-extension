@@ -131,6 +131,15 @@ public class UserInterfaceLinksResource
   }
 
   @GET
+  @Path(LIFECYCLE_ALT_HOME_PATH)
+  public Response linkToLifecycleAltHome() {
+    UriBuilder uriBuilder = baseUrl.redirect()
+        .path(ASSET_INDEX_PATH)
+        .fragment("/reports/violations");
+    return redirect(uriBuilder);
+  }
+
+  @GET
   @Path(SBOM_MANAGER_HOME_PATH)
   public Response linkToSbomManagerHome() {
     UriBuilder uriBuilder = baseUrl.redirect()

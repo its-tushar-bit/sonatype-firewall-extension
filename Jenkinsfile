@@ -123,6 +123,12 @@ void postBuild() {
   if (isDeployBranch(env, 'main')) {
     def imageVersion = mtiqImageVersion()
     pushMTIQDockerImage(isMtiqImagePushEnabled(), imageVersion)
+
+    if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+        echo 'Skipping MTIQ deployment for IQ on-premise release'
+        return
+    }
+
     // Successful builds on the `main` branch trigger the MTIQ job to bump the image version in the K8S deployment
     def isSuccess = currentBuild.currentResult == 'SUCCESS'
     if (isSuccess) {

@@ -78,6 +78,10 @@ public class WaiverDetailsPage
     return child("#iq-waiver-details-header");
   }
 
+  public SelenideElement detailsInfoAlert() {
+    return child(".nx-alert--info");
+  }
+
   public SelenideElement detailsPolicy() {
     return child(".iq-waiver-details__policy .nx-read-only__data");
   }
@@ -181,6 +185,10 @@ public class WaiverDetailsPage
 
     public SelenideElement componentName() {
       return child(".nx-list__subtext .iq-component-display-text");
+    }
+
+    public SelenideElement componentNameWithoutDisplayText() {
+      return child(".nx-list__subtext");
     }
 
     public SelenideElement organizationFullName() {

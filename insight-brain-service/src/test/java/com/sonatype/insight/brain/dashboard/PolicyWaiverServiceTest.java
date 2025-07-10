@@ -1410,6 +1410,8 @@ public class PolicyWaiverServiceTest
     assertThat(dto.getExpiryTime()).isNotNull();
     assertThat(dto.policyWaiverReasonId).isEqualTo(waiver.getWaiverReasonId());
     assertThat(dto.reasonText).isEqualTo("Test Reason");
+    assertThat(dto.isForContainerImage()).isEqualTo(waiver.isForContainerImage());
+    assertThat(dto.isForContainerImageComponent()).isEqualTo(waiver.isForContainerImageComponent());
   }
 
   private PolicyWaiver createPolicyWaiverWithFullDetails(Application application) {

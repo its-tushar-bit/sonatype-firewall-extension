@@ -1262,6 +1262,7 @@ public class PolicyWaiverDAOTest
 
     assertThat(waivers).hasSize(1);
     assertThat(waivers.get(0).policyWaiverId()).isEqualTo(waiverContainerImage.getId());
+    assertThat(waivers.get(0).ownerId()).isEqualTo(waiverContainerImage.getOwnerId());
   }
 
   @Test

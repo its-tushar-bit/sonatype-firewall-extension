@@ -30,6 +30,7 @@ describe('SidebarNavWaiversList', function () {
           associatedPackageUrl: 'a/package/url',
           scope: 'Root Organization',
           isAutoWaiver: false,
+          forContainerImage: false,
           componentMatchStrategy: waiverMatcherStrategy.EXACT_COMPONENT,
           displayName: {
             parts: [
@@ -64,6 +65,7 @@ describe('SidebarNavWaiversList', function () {
           ownerType: 'application',
           scope: 'Application - unprotected zip big java app',
           isAutoWaiver: false,
+          forContainerImage: false,
           associatedPackageUrl: 'a/package/url',
           componentMatchStrategy: waiverMatcherStrategy.ALL_VERSIONS,
           displayName: {
@@ -107,7 +109,31 @@ describe('SidebarNavWaiversList', function () {
           componentUpgradeAvailable: false,
           isAutoWaiver: true,
           displayName: null,
+          forContainerImage: false,
           scope: 'Application - Auto Waiver App',
+        },
+        {
+          id: 'b1b59985e22a4dd095e6812732af6407',
+          threatLevel: 9,
+          policyId: '7e2d159c02734df6be7529ff5b88f67f',
+          policyName: 'docker-policy-sonatype-container',
+          ownerId: '0caa731cc7b149e7bc24fe9602e3a7dd',
+          ownerName: 'localhost_8070-docker-proxy-library-alpine-3.614',
+          ownerType: 'application',
+          componentMatchStrategy: 'ALL_COMPONENTS',
+          hash: null,
+          constraintFacts: null,
+          comment: null,
+          creatorId: null,
+          creatorName: null,
+          componentIdentifier: null,
+          componentUpgradeAvailable: null,
+          isAutoWaiver: false,
+          isExpireWhenRemediationAvailable: false,
+          policyWaiverReason: null,
+          forContainerImage: true,
+          displayName: null,
+          scope: 'Application - localhost_8070-docker-proxy-library-alpine-3.614',
         },
       ],
     };
@@ -116,7 +142,17 @@ describe('SidebarNavWaiversList', function () {
   });
 
   function validateNavListItems(ulChild, waiver, expectedThreatClass) {
-    const { policyName, threatLevel, ownerName, ownerType, ownerId, id, componentMatchStrategy, isAutoWaiver } = waiver;
+    const {
+      policyName,
+      threatLevel,
+      ownerName,
+      ownerType,
+      ownerId,
+      id,
+      componentMatchStrategy,
+      isAutoWaiver,
+      forContainerImage,
+    } = waiver;
     const isStandaloneFirewall = false;
 
     fireEvent.click(ulChild);
@@ -136,26 +172,38 @@ describe('SidebarNavWaiversList', function () {
 
     const policyNameElement = ulChild.children[1];
     expect(policyNameElement.textContent).toEqual(
-      isAutoWaiver ? `≤ ${threatLevel}Auto` : `${threatLevel} ${policyName}`
+      isAutoWaiver
+        ? `≤ ${threatLevel}Auto`
+        : forContainerImage
+        ? `${threatLevel} ${ownerName}`
+        : `${threatLevel} ${policyName}`
     );
 
-    const subTextItems = ulChild.children[2];
-    const componentDisplay = subTextItems.children[0];
-    const componentNameText = componentDisplay.children[0];
+    if (!isAutoWaiver) {
+      const subTextItems = ulChild.children[2];
+      const componentDisplay = forContainerImage ? subTextItems : subTextItems.children[0];
+      const componentNameText = forContainerImage ? componentDisplay : componentDisplay.children[0];
 
-    switch (componentMatchStrategy) {
-      case waiverMatcherStrategy.EXACT_COMPONENT:
-        expect(componentNameText.textContent).toEqual('test-group:test-artifact:1.2.3');
-        break;
-      case waiverMatcherStrategy.ALL_VERSIONS:
-        expect(componentNameText.textContent).toEqual('test-group:test-artifact (all versions)');
-        break;
+      switch (componentMatchStrategy) {
+        case waiverMatcherStrategy.EXACT_COMPONENT:
+          expect(componentNameText.textContent).toEqual('test-group:test-artifact:1.2.3');
+          break;
+        case waiverMatcherStrategy.ALL_VERSIONS:
+          expect(componentNameText.textContent).toEqual('test-group:test-artifact (all versions)');
+          break;
+        case waiverMatcherStrategy.ALL_COMPONENTS:
+          expect(componentNameText.textContent).toEqual('All components');
+          break;
+      }
     }
 
-    const fullOrgName = isAutoWaiver ? subTextItems.children[0] : subTextItems.children[1];
-    expect(fullOrgName.textContent).toEqual(
-      displayWaiverScope({ scopeOwnerType: ownerType, scopeOwnerName: ownerName })
-    );
+    if (!forContainerImage) {
+      const subTextItems = ulChild.children[2];
+      const fullOrgName = isAutoWaiver ? subTextItems.children[0] : subTextItems.children[1];
+      expect(fullOrgName.textContent).toEqual(
+        displayWaiverScope({ scopeOwnerType: ownerType, scopeOwnerName: ownerName })
+      );
+    }
   }
 
   it('properly renders a list of waivers', function () {
@@ -163,11 +211,12 @@ describe('SidebarNavWaiversList', function () {
     renderComponent();
 
     const wrappingList = screen.getByRole('list');
-    expect(wrappingList.children.length).toEqual(3);
+    expect(wrappingList.children.length).toEqual(4);
 
     validateNavListItems(wrappingList.children[0], waivers[0], 'nx-threat-indicator--severe');
     validateNavListItems(wrappingList.children[1], waivers[1], 'nx-threat-indicator--critical');
     validateNavListItems(wrappingList.children[2], waivers[2], 'nx-threat-indicator--severe');
+    validateNavListItems(wrappingList.children[3], waivers[3], 'nx-threat-indicator--critical');
 
     expect(screen.getByText('test-group:test-artifact (all versions)')).toBeVisible();
     expect(screen.getByText('test-group:test-artifact:1.2.3')).toBeVisible();

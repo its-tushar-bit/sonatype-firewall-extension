@@ -27,6 +27,18 @@ describe('WaiverRow', () => {
     policyWaiverId: null,
   };
 
+  const mockContainerImageWaiver = {
+    createTime: new Date(),
+    expireWhenRemediationAvailable: false,
+    creatorName: 'admin',
+    scopeOwnerType: 'application',
+    scopeOwnerName: 'docker-proxy-library-alpine-3.6',
+    forContainerImageComponent: false,
+    matcherStrategy: 'ALL_COMPONENTS',
+    reasonText: null,
+    policyWaiverId: 'b1b59985e2',
+  };
+
   const mockDeleteWaiver = jest.fn();
   const defaultProps = {
     violationDetails: mockViolationDetails,
@@ -193,6 +205,37 @@ describe('WaiverRow', () => {
 
       fireEvent.click(screen.getByText('Cancel'));
       expect(screen.queryByText('Remove Automated Waiver')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Container Image Waiver', () => {
+    it('renders WaiverRow', () => {
+      renderComponent({
+        waiver: { ...mockContainerImageWaiver },
+        deleteWaiver: mockDeleteWaiver,
+      });
+      const cells = screen.getAllByRole('cell');
+      const durationCell = cells[0];
+      const detailsCell = cells[1];
+      const deleteCell = cells[2];
+      expect(within(durationCell).getByText(moment(mockWaiver.createTime).format(STANDARD_DATE_FORMAT))).toBeVisible();
+      expect(within(durationCell).getByText('Does not expire')).toBeVisible();
+      expect(within(detailsCell).getByText('Application - docker-proxy-library-alpine-3.6')).toBeVisible();
+      expect(within(detailsCell).getByText('All')).toBeVisible();
+      expect(within(detailsCell).getByText('admin')).toBeVisible();
+      expect(within(deleteCell).getByRole('button')).toBeVisible();
+    });
+
+    it('calls deleteWaiver on delete button click', () => {
+      renderComponent({
+        waiver: { ...mockContainerImageWaiver },
+        deleteWaiver: mockDeleteWaiver,
+      });
+      const cells = screen.getAllByRole('cell');
+      const deleteCell = cells[2];
+      const deletButton = within(deleteCell).getByRole('button');
+      fireEvent.click(deletButton);
+      expect(mockDeleteWaiver).toHaveBeenCalledWith(mockContainerImageWaiver);
     });
   });
 });

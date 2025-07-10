@@ -8,6 +8,7 @@ import { screen, within, fireEvent } from '@testing-library/react';
 
 import { render } from 'TestRoot/SpecUtil';
 import FirewallContainerWaiverTable from 'MainRoot/firewall/FirewallContainerWaiverTable';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('FirewallContainerWaiverTable', () => {
   const props = {
@@ -33,13 +34,14 @@ describe('FirewallContainerWaiverTable', () => {
     const bodyRows = within(rowGroups[1]).getAllByRole('row');
     const bodyCells = within(bodyRows[0]).getAllByRole('cell');
 
-    expect(headerColumnHeaders).toHaveLength(6);
+    expect(headerColumnHeaders).toHaveLength(7);
     expect(headerColumnHeaders[0]).toHaveTextContent('Threat');
     expect(headerColumnHeaders[1]).toHaveTextContent('Date Created');
     expect(headerColumnHeaders[2]).toHaveTextContent('Expirations');
     expect(headerColumnHeaders[3]).toHaveTextContent('Policy');
     expect(headerColumnHeaders[4]).toHaveTextContent('Scope');
     expect(headerColumnHeaders[5]).toHaveTextContent('Components');
+    expect(headerColumnHeaders[6]).toHaveTextContent('Select Row');
     expect(bodyCells).toHaveLength(1);
     expect(bodyCells[0]).toHaveTextContent('No data found');
     expect(screen.getByRole('button', { name: 'Refresh' })).toBeInTheDocument();
@@ -149,5 +151,41 @@ describe('FirewallContainerWaiverTable', () => {
 
     fireEvent.click(pages[1]);
     expect(props.setContainerWaiverGridPage).toHaveBeenCalledWith(0, expect.anything());
+  });
+
+  it('calls stateGo when table row is clicked', async () => {
+    const stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+    const mockData = {
+      containerWaiverList: [
+        {
+          policyWaiverId: 'b57049bf6e41424ebfa2002e06f955e5',
+          ownerId: 'f63ae7c6a97745cba6f1a99975e47dd1',
+          createTime: 1750368468308,
+          expiryTime: 1782856750977,
+          maxThreatLevel: 6,
+          applicationScope: 'localhost_8070-docker-proxy-library-alpine-3.61',
+          uniquePolicyCount: 3,
+          uniqueComponentCount: 9,
+        },
+      ],
+      containerWaiverPageCount: 1,
+      containerWaiverCurrentPage: 0,
+    };
+
+    render(<FirewallContainerWaiverTable {...{ ...props, ...mockData }} stateGo={stateGoSpy} />);
+
+    const table = screen.getByRole('table');
+    const rowGroups = within(table).getAllByRole('rowgroup');
+    const bodyRows = within(rowGroups[1]).getAllByRole('row');
+
+    fireEvent.click(bodyRows[0]);
+    expect(stateGoSpy).toHaveBeenCalledWith('firewall.waiver.details', {
+      waiverId: 'b57049bf6e41424ebfa2002e06f955e5',
+      ownerId: 'f63ae7c6a97745cba6f1a99975e47dd1',
+      ownerType: 'application',
+      type: 'waiver',
+      sidebarReference: 'filter',
+      page: 1,
+    });
   });
 });

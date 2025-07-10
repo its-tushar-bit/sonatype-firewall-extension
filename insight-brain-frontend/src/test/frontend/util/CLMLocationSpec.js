@@ -1864,4 +1864,12 @@ describe('CLMLocation.js', function () {
       expect(clmLocation.getContainerRepositoryReportSummaryUrl(repositoryId)).toBe(expectedUrl);
     });
   });
+
+  describe('getDeleteContainerImagePolicyWaiverUrl', () => {
+    it('should return correct URL with the given containerImageId', () => {
+      const containerImageId = 'containerImage123';
+      const expectedUrl = `/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+      expect(clmLocation.getDeleteContainerImagePolicyWaiverUrl(containerImageId)).toBe(expectedUrl);
+    });
+  });
 });

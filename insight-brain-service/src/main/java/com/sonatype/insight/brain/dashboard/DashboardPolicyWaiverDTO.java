@@ -70,6 +70,8 @@ public class DashboardPolicyWaiverDTO
 
   public PolicyWaiverReason policyWaiverReason;
 
+  public boolean forContainerImage;
+
   @JsonProperty(access = Access.READ_ONLY)
   public ComponentDisplayName getDisplayName() {
     return this.componentIdentifier == null

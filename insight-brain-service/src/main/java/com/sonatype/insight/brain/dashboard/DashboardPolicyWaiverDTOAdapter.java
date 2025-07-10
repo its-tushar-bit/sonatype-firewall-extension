@@ -50,6 +50,7 @@ public class DashboardPolicyWaiverDTOAdapter
     dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
     dto.isAutoWaiver = false;
     dto.isExpireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
+    dto.forContainerImage = policyWaiver.isForContainerImage();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

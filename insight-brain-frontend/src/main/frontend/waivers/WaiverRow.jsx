@@ -104,6 +104,8 @@ const DisplayWaiverInTableRow = ({
     'list-waivers-row--expired': isWaiverExpired,
   });
   const classPrefix = 'iq-waivers-table__';
+  const forContainerImageComponent = waiver?.forContainerImageComponent;
+  const showDeleteWaiverButton = deleteWaiver && !forContainerImageComponent;
   const getExpirationDate = (waiver) => {
     if (waiver.expiryTime) {
       return waiver.expireWhenRemediationAvailable && !isSimilarWaiver
@@ -177,7 +179,7 @@ const DisplayWaiverInTableRow = ({
           {waiver?.creatorName || '\u2014'}
         </NxReadOnly.Data>
       </NxTableCell>
-      {deleteWaiver && (
+      {showDeleteWaiverButton && (
         <NxTableCell className={`${classPrefix}delete waiver-row-delete`}>
           <div className="nx-btn-bar">
             <NxButton

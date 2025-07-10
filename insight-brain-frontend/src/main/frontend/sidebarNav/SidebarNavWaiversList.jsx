@@ -53,6 +53,8 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
           <NxSmallTag color="green">Auto</NxSmallTag>
         </span>
       );
+    } else if (item.forContainerImage) {
+      return `${item.threatLevel} ${item.ownerName}`;
     }
     return `${item.threatLevel} ${item.policyName}`;
   };
@@ -87,9 +89,11 @@ export default function SidebarNavWaiversList({ currentWaiverId, waivers, onClic
             )}
           </>
         )}
-        <NxOverflowTooltip>
-          <span className="nx-truncate-ellipsis">{getFullOwner(item)}</span>
-        </NxOverflowTooltip>
+        {!item.forContainerImage && (
+          <NxOverflowTooltip>
+            <span className="nx-truncate-ellipsis">{getFullOwner(item)}</span>
+          </NxOverflowTooltip>
+        )}
       </div>
     </li>
   ));

@@ -172,6 +172,13 @@ public class ApiPolicyWaiverDTO
    */
   public String policyWaiverReasonId;
 
+  /**
+   * @since 1.193
+   */
+  public boolean forContainerImage;
+
+  public boolean forContainerImageComponent;
+
   public static ApiPolicyWaiverDTO toDto(
       PolicyWaiver policyWaiver,
       PolicyWaiverReason policyWaiverReason,
@@ -189,6 +196,8 @@ public class ApiPolicyWaiverDTO
     dto.creatorName = policyWaiver.getCreatorName();
     dto.componentUpgradeAvailable = policyWaiver.isComponentUpgradeAvailable();
     dto.expireWhenRemediationAvailable = policyWaiver.isExpireWhenRemediationAvailable();
+    dto.forContainerImage = policyWaiver.isForContainerImage();
+    dto.forContainerImageComponent = policyWaiver.isForContainerImageComponent();
 
     if (policyWaiver.getComponentIdentifier() != null) {
       dto.componentIdentifier = ApiComponentIdentifierDTOV2

@@ -17,6 +17,7 @@ import {
   getOwnerContextHierarchyUrl,
   deleteWaiverUrl,
   getSimilarWaiversUrl,
+  getDeleteContainerImagePolicyWaiverUrl,
 } from '../util/CLMLocation';
 import {
   fetchCrossStageViolation,
@@ -401,10 +402,9 @@ export const filterDataByIdAndRedirectToNextWaiverOrDashboard = (waiverList, wai
   };
 };
 
-export function deleteWaiver(ownerType, ownerId, waiverId) {
+export function deleteWaiver(ownerType, ownerId, waiverId, ownerName, forContainerImage) {
   return (dispatch, getState) => {
     dispatch(deleteWaiverRequested());
-
     const state = getState();
     const { sidebarNavList } = state;
     const { reloadComponentWaivers } = selectComponentDetailsViolationsSlice(state);
@@ -415,7 +415,9 @@ export function deleteWaiver(ownerType, ownerId, waiverId) {
 
     const isStandaloneFirewall = selectIsStandaloneFirewall(state);
 
-    const endpointUrl = deleteWaiverUrl(ownerType, ownerId, waiverId);
+    const endpointUrl = forContainerImage
+      ? getDeleteContainerImagePolicyWaiverUrl(ownerName)
+      : deleteWaiverUrl(ownerType, ownerId, waiverId);
 
     return axios
       .delete(endpointUrl)

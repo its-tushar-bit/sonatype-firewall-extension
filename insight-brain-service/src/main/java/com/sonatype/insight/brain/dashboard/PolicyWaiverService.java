@@ -443,6 +443,8 @@ public class PolicyWaiverService
     dto.setComponentMatchStrategy(waiver.getComponentMatchStrategy());
     dto.setExpireWhenRemediationAvailable(waiver.isExpireWhenRemediationAvailable());
     dto.setExpiryTime(waiver.getExpiryTime());
+    dto.setForContainerImage(waiver.isForContainerImage());
+    dto.setForContainerImageComponent(waiver.isForContainerImageComponent());
     if (waiver.getWaiverReasonId() != null) {
       dto.policyWaiverReasonId = waiver.getWaiverReasonId();
       dto.reasonText = policyWaiverReasonMap.get(waiver.getWaiverReasonId()).getReasonText();

@@ -23,6 +23,7 @@ describe('When the WaiverDetailsPage', function () {
     expectedWaiverDetailsUrl,
     renderComponent,
     waiverDetails,
+    containerWaiverDetails,
     allComponentsWaiverDetails,
     allVersionsWaiverDetails,
     unknownComponentWaiverDetails,
@@ -32,6 +33,11 @@ describe('When the WaiverDetailsPage', function () {
     initialState,
     expectedDeleteWaiverUrl;
 
+  const CONTAINER_WAIVER_INFO_ALERT =
+    "Details of all the specific policies waived aren't displayed on this " +
+    'page. To review the individual policies and components affected by this waiver, please refer to the Container ' +
+    'Image Report.';
+
   beforeAll(function () {
     axiosMock = axiosMockAdapter();
   });
@@ -40,6 +46,45 @@ describe('When the WaiverDetailsPage', function () {
     ownerType = 'owner-type';
     ownerId = 'owner-id';
     waiverId = 'waiver-id';
+
+    containerWaiverDetails = {
+      policyWaiverId: 'b1b59985e22a4dd095e6812732af6407',
+      comment: 'test comment',
+      createTime: WAIVER_CREATE_TIME,
+      scopeOwnerType: 'application',
+      scopeOwnerId: '0caa731cc7b149e7bc24fe9602e3a7dd',
+      scopeOwnerName: 'application-docker-proxy-library-alpine-3.6',
+      policyId: '7e2d159c02734df6be7529ff5b88f67f',
+      policyName: 'docker-policy-sonatype-container',
+      constraintFacts: [
+        {
+          constraintId: 'dfff41a5f5304ceaa945f46aa2dda64d',
+          constraintName: 'all-docker-container',
+          operatorName: 'OR',
+          conditionFacts: [
+            {
+              conditionTypeI: 'IdentificationSource',
+              conditionIndex: 0,
+              summary: 'Identification Source is Sonatype-Container',
+              reason: 'Identification Source was Sonatype-Container',
+              reference: null,
+              triggerJson: null,
+            },
+          ],
+        },
+      ],
+      creatorName: 'Admin',
+      matcherStrategy: 'ALL_COMPONENTS',
+      associatedPackageUrl: null,
+      componentIdentifier: null,
+      threatLevel: 9,
+      reasonText: null,
+      expireWhenRemediationAvailable: false,
+      policyWaiverReasonId: null,
+      forContainerImage: true,
+      forContainerImageComponent: false,
+      displayName: null,
+    };
 
     waiverDetails = {
       comment: 'a comment',
@@ -178,6 +223,25 @@ describe('When the WaiverDetailsPage', function () {
       expect(await screen.findByText('*Indicates the component name when the waiver was created')).toBeVisible();
       expect(await screen.findByText('test-group:test-artifact:1.2.3')).toBeVisible();
       expect(await screen.findByText('Upgrade Available')).toBeVisible();
+    });
+
+    it('it renders the expected container waiver details', async function () {
+      axiosMock.onGet(expectedWaiverDetailsUrl).reply(200, containerWaiverDetails);
+      renderComponent();
+
+      expect(screen.getByText('Loading…')).toBeVisible();
+      expect(await screen.findByText('docker-policy-sonatype-container')).toBeVisible();
+      expect(await screen.findByText('all-docker-container')).toBeVisible();
+      expect(await screen.findByText('Identification Source was Sonatype-Container')).toBeVisible();
+      expect(await screen.findByText('application-docker-proxy-library-alpine-3.6')).toBeVisible();
+      expect(await screen.findByText('2022-08-18')).toBeVisible();
+      expect(await screen.findByText('Does not expire')).toBeVisible();
+      expect(await screen.findByText('test comment')).toBeVisible();
+      expect(await screen.findByText('Admin')).toBeVisible();
+      expect(await screen.findByRole('button', { name: 'Delete Waiver for All Policy Violations' })).toBeVisible();
+      expect(await screen.findByTestId('container-waiver-details-info-alert')).toHaveTextContent(
+        CONTAINER_WAIVER_INFO_ALERT
+      );
     });
 
     it('it opens vulnerability details modal upon clicking vulnerability link', async function () {

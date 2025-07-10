@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { useDispatch } from 'react-redux';
 import * as PropTypes from 'prop-types';
 
 import {
@@ -27,7 +28,7 @@ import { formatDate, FIREWALL_TIME_DATE_FORMAT, STANDARD_DATE_FORMAT } from 'Mai
 import './_firewall.scss';
 
 export default function FirewallContainerWaiverTable(props) {
-  const { loadContainerWaiverList, setContainerWaiverGridPage } = props;
+  const { loadContainerWaiverList, setContainerWaiverGridPage, stateGo } = props;
   const {
     loadContainerWaiverGridError,
     loadingContainerWaiverList,
@@ -36,6 +37,20 @@ export default function FirewallContainerWaiverTable(props) {
     containerWaiverCurrentPage,
     containerWaiverLastUpdated,
   } = props;
+  const dispatch = useDispatch();
+
+  const goToWaiverDetails = (waiver) => {
+    dispatch(
+      stateGo('firewall.waiver.details', {
+        waiverId: waiver.policyWaiverId,
+        ownerId: waiver.ownerId,
+        ownerType: 'application',
+        type: 'waiver',
+        sidebarReference: 'filter',
+        page: containerWaiverCurrentPage + 1,
+      })
+    );
+  };
 
   const getExpiryTime = (expiryTime) => (expiryTime ? formatDate(expiryTime, STANDARD_DATE_FORMAT) : 'Never');
 
@@ -65,6 +80,7 @@ export default function FirewallContainerWaiverTable(props) {
               <NxTable.Cell className="iq-cel--policy">Policy</NxTable.Cell>
               <NxTable.Cell className="iq-cel--scope">Scope</NxTable.Cell>
               <NxTable.Cell className="iq-cel--components">Components</NxTable.Cell>
+              <NxTable.Cell chevron />
             </NxTable.Row>
           </NxTableHead>
           <NxTableBody
@@ -74,7 +90,12 @@ export default function FirewallContainerWaiverTable(props) {
           >
             {containerWaiverList &&
               containerWaiverList.map((waiver, idx) => (
-                <NxTableRow key={idx} className="firewall-container-waiver">
+                <NxTableRow
+                  key={idx}
+                  className="firewall-container-waiver"
+                  onClick={() => goToWaiverDetails(waiver)}
+                  isClickable
+                >
                   <NxTableCell isNumeric className="waiver-threat-cell">
                     <NxThreatIndicator policyThreatLevel={waiver.maxThreatLevel || 0} />
                     <span className="nx-threat-number">{waiver.maxThreatLevel || 0}</span>
@@ -100,6 +121,7 @@ export default function FirewallContainerWaiverTable(props) {
                       </div>
                     </NxOverflowTooltip>
                   </NxTableCell>
+                  <NxTable.Cell chevron />
                 </NxTableRow>
               ))}
           </NxTableBody>

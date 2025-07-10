@@ -1714,6 +1714,10 @@ export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
   return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
 }
 
+export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
+  return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+}
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

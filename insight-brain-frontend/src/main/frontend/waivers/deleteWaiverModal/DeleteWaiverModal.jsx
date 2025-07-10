@@ -15,7 +15,7 @@ export default function DeleteWaiverModal(props) {
   const { waiverToDelete, deleteWaiver, hideDeleteWaiverModal, deleteWaiverError, deleteWaiverSaving } = props;
 
   const handleDeleteWaiver = () => {
-    const { scopeOwnerId, scopeOwnerType, policyWaiverId } = waiverToDelete;
+    const { scopeOwnerId, scopeOwnerType, policyWaiverId, scopeOwnerName, forContainerImage } = waiverToDelete;
     let ownerType;
     switch (scopeOwnerType) {
       case 'root_organization':
@@ -28,7 +28,7 @@ export default function DeleteWaiverModal(props) {
         ownerType = scopeOwnerType;
     }
 
-    deleteWaiver(ownerType, scopeOwnerId, policyWaiverId);
+    deleteWaiver(ownerType, scopeOwnerId, policyWaiverId, scopeOwnerName, forContainerImage);
   };
 
   return (

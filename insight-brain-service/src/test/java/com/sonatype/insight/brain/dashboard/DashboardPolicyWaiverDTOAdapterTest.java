@@ -150,6 +150,7 @@ public class DashboardPolicyWaiverDTOAdapterTest
     assertThat(dto.getDisplayName().toString())
         .isEqualTo(ComponentDisplayNameUtil.fromIdentifier(testPolicyWaiver.getComponentIdentifier()).toString());
     assertThat(dto.componentUpgradeAvailable).isEqualTo(testPolicyWaiver.isComponentUpgradeAvailable());
+    assertThat(dto.forContainerImage).isEqualTo(testPolicyWaiver.isForContainerImage());
   }
 
   private void assertAutoPolicyWaiverWithoutDetails(DashboardPolicyWaiverDTO dto, AutoPolicyWaiver autoPolicyWaiver) {
@@ -201,7 +202,8 @@ public class DashboardPolicyWaiverDTOAdapterTest
         .setComment("a comment")
         .setCreateTime(today)
         .setExpiryTime(aWeekFromNow)
-        .setComponentUpgradeAvailable(true);
+        .setComponentUpgradeAvailable(true)
+        .setForContainerImage(false);
 
     return tempEntity.newWaiver(policyWaiver);
   }

@@ -1576,6 +1576,14 @@ describe('waiverActions', function () {
       expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
     });
 
+    it('sends a DELETE request to the appropriate url when forContainerImage is true ', function () {
+      const expectedUrl = '/api/v2/malware-defense/container-image/containerImage123/policyWaiver';
+      jest.spyOn(axios, 'delete').mockResolvedValue();
+
+      store.dispatch(deleteWaiver('ownerType', 'ownerId', 'waiverId', 'containerImage123', true));
+      expect(axios.delete).toHaveBeenCalledWith(expectedUrl);
+    });
+
     describe('after a successful DELETE', function () {
       it('dispatches WAIVERS_DELETE_WAIVER_FULFILLED and reloads existing waivers if on the component details page and reloadComponentWaivers is false', function (done) {
         const waiversData = [{ id: 'waiver1' }];

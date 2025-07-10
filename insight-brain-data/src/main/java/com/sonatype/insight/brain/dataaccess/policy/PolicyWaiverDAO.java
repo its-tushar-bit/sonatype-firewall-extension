@@ -577,6 +577,7 @@ public class PolicyWaiverDAO
           pw.policy_waiver_id,
           pw.create_time,
           pw.expiry_time,
+          pw.owner_id,
           agg.max_threat_level,
           agg.application_scope,
           agg.unique_policy_count,
@@ -594,10 +595,11 @@ public class PolicyWaiverDAO
               (String) array[0],
               (Date) array[1],
               (Date) array[2],
-              ((Number) array[3]).intValue(),
-              (String) array[4],
-              ((Number) array[5]).longValue(),
-              ((Number) array[6]).longValue()))
+              (String) array[3],
+              ((Number) array[4]).intValue(),
+              (String) array[5],
+              ((Number) array[6]).longValue(),
+              ((Number) array[7]).longValue()))
           .toList();
     }
   }
@@ -639,6 +641,7 @@ public class PolicyWaiverDAO
       String policyWaiverId,
       Date createTime,
       Date expiryTime,
+      String ownerId,
       int maxThreatLevel,
       String applicationScope,
       Long uniquePolicyCount,

@@ -67,7 +67,7 @@ const FirewallContainerTabs = forwardRef(function FirewallContainerTabs({ router
         </div>
       </NxTabPanel>
       <NxTabPanel id={`firewall-container-${WAIVERS}-tab-panel`}>
-        <FirewallContainerWaiverTable {...props} />
+        <FirewallContainerWaiverTable {...props} stateGo={stateGo} />
       </NxTabPanel>
     </NxStatefulTabs>
   );

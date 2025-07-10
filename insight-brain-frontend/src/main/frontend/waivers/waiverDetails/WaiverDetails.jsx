@@ -15,6 +15,7 @@ import {
   NxPositiveStatusIndicator,
   NxBlockquote,
   NxFontAwesomeIcon,
+  NxInfoAlert,
 } from '@sonatype/react-shared-components';
 import {
   formatWaiverDetails,
@@ -39,6 +40,10 @@ import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/Delet
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import { faSitemap, faTerminal } from '@fortawesome/pro-solid-svg-icons';
 
+const CONTAINER_IMAGE_WAIVER_INFO =
+  "Details of all the specific policies waived aren't displayed on this page. " +
+  'To review the individual policies and components affected by this waiver, please refer to the Container Image Report.';
+
 export default function WaiverDetails() {
   const isLoading = useSelector(selectWaiverDetailsLoading);
   const loadError = useSelector(selectWaiverDetailsError);
@@ -61,6 +66,7 @@ export default function WaiverDetails() {
   const waiver = useSelector(selectWaiverDetails);
   const waiverToDelete = useSelector(selectWaiverToDelete);
   const isApplication = waiver?.scopeOwnerType === 'application';
+  const forContainerImageWaiver = waiver?.forContainerImage;
 
   const scopeIcon = isApplication ? <NxFontAwesomeIcon icon={faTerminal} /> : <NxFontAwesomeIcon icon={faSitemap} />;
 
@@ -141,12 +147,15 @@ export default function WaiverDetails() {
         </NxTile.HeaderTitle>
         <NxTile.HeaderActions className="iq-waiver-details__delete-waiver">
           <NxButton variant="tertiary" onClick={handleDeleteWaiverButtonClick}>
-            Delete Waiver
+            {forContainerImageWaiver ? `Delete Waiver for All Policy Violations` : `Delete Waiver`}
           </NxButton>
         </NxTile.HeaderActions>
       </NxTile.Header>
       <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={getDetails}>
         <div className="iq-waiver-details-content">
+          {forContainerImageWaiver && (
+            <NxInfoAlert data-testid="container-waiver-details-info-alert">{CONTAINER_IMAGE_WAIVER_INFO}</NxInfoAlert>
+          )}
           {/* Policy */}
           <NxReadOnly className="iq-waiver-details__policy">
             <NxReadOnly.Label>Policy</NxReadOnly.Label>
@@ -186,33 +195,37 @@ export default function WaiverDetails() {
               <NxReadOnly.Label>Waiver Expiration</NxReadOnly.Label>
               <NxReadOnly.Data>{expiration}</NxReadOnly.Data>
             </NxReadOnly.Item>
-            {/* Components */}
-            <NxReadOnly.Item className="iq-waiver-details__components">
-              <NxReadOnly.Label>Components</NxReadOnly.Label>
-              <NxReadOnly.Data>
-                {component && isWaiverAllVersionsOrExact(component) ? (
-                  <>
-                    {renderDisclaimer()}
-                    <div className="component-name-and-upgrade-indicator">
-                      <ComponentDisplay
-                        component={component}
-                        truncate={true}
-                        matcherStrategy={componentMatchStrategy()}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  '--'
-                )}
-              </NxReadOnly.Data>
-            </NxReadOnly.Item>
-            {/* Version */}
-            <NxReadOnly.Item className="iq-waiver-details__version">
-              <NxReadOnly.Label>Version</NxReadOnly.Label>
-              <NxReadOnly.Data data-testid="waiver-details-version">
-                {getComponentVersion()} {renderUpgradeAvailableIndicator()}
-              </NxReadOnly.Data>
-            </NxReadOnly.Item>
+            {!forContainerImageWaiver && (
+              <>
+                {/* Components */}
+                <NxReadOnly.Item className="iq-waiver-details__components">
+                  <NxReadOnly.Label>Components</NxReadOnly.Label>
+                  <NxReadOnly.Data>
+                    {component && isWaiverAllVersionsOrExact(component) ? (
+                      <>
+                        {renderDisclaimer()}
+                        <div className="component-name-and-upgrade-indicator">
+                          <ComponentDisplay
+                            component={component}
+                            truncate={true}
+                            matcherStrategy={componentMatchStrategy()}
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      '--'
+                    )}
+                  </NxReadOnly.Data>
+                </NxReadOnly.Item>
+                {/* Version */}
+                <NxReadOnly.Item className="iq-waiver-details__version">
+                  <NxReadOnly.Label>Version</NxReadOnly.Label>
+                  <NxReadOnly.Data data-testid="waiver-details-version">
+                    {getComponentVersion()} {renderUpgradeAvailableIndicator()}
+                  </NxReadOnly.Data>
+                </NxReadOnly.Item>
+              </>
+            )}
             {/* Reason */}
             <NxReadOnly.Item className="iq-waiver-details__reason">
               <NxReadOnly.Label>Reason</NxReadOnly.Label>

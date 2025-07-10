@@ -81,7 +81,7 @@ const loadFulfilled = (state, { payload }) => {
   return {
     ...state,
     violations: populateViolationsWithApplicableWaivers(componentWaivers, violations, expiredComponentWaivers),
-    waivers: componentWaivers,
+    waivers: componentWaivers.filter((waiver) => !waiver.forContainerImageComponent),
     loading: false,
     loadError: null,
     hasPermissionToAddWaivers: permissionResult,

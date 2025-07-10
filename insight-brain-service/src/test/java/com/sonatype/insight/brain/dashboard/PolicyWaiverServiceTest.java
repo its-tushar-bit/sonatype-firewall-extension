@@ -385,6 +385,13 @@ public class PolicyWaiverServiceTest
         .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     tempEntity.newWaiver(policyWaiverRepoContainer);
 
+    PolicyWaiver policyWaiverRepoContainerComponent = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID)
+        .setForContainerImageComponent(true);
+    tempEntity.newWaiver(policyWaiverRepoContainerComponent);
+
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
         dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.withPageSize(10).build());
 

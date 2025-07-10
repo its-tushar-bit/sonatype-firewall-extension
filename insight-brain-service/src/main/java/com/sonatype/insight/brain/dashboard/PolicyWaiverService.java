@@ -164,7 +164,8 @@ public class PolicyWaiverService
     Predicate<PolicyWaiver> filteringPredicate =
         getFilteringPredicateForPolicyWaivers(owners.keySet())
             .and(getFilteringPredicateForExpirationDates(expirationDate))
-            .and(getFilteringPredicateForWaiverReasons(policyWaiverReasonIds));
+            .and(getFilteringPredicateForWaiverReasons(policyWaiverReasonIds))
+            .and(getFilteringPredicateForContainerImageComponent());
 
     // we want to fetch this once per re-request outside any loops so we don't go to the database too often
     // from a memory standpoint it should not pose a problem, it is presenetly hard coded at 7 rows, custom entries
@@ -283,6 +284,10 @@ public class PolicyWaiverService
       filter = filter.and(policy -> policyThreatLevelRange.test(policy.getThreatLevel()));
     }
     return policyDAO.getAll().stream().filter(filter).collect(Collectors.toMap(Policy::getId, Function.identity()));
+  }
+
+  private Predicate<PolicyWaiver> getFilteringPredicateForContainerImageComponent() {
+    return policyWaiver -> !policyWaiver.isForContainerImageComponent();
   }
 
   private Predicate<PolicyWaiver> getFilteringPredicateForWaiverReasons(final Set<String> policyWaiverReasonIds) {

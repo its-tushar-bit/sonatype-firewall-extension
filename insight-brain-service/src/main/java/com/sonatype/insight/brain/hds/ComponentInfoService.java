@@ -45,6 +45,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.cpematching.CpeMatchingHelper;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -155,6 +156,8 @@ public class ComponentInfoService
 
   private final ReportDataReader reportDataReader;
 
+  private final CpeMatchingHelper cpeMatchingHelper;
+
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -179,7 +182,8 @@ public class ComponentInfoService
       final IdUtils idUtils,
       ManualPullRequestService manualPullRequestService,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      ReportDataReader reportDataReader)
+      ReportDataReader reportDataReader,
+      CpeMatchingHelper cpeMatchingHelper)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -200,6 +204,7 @@ public class ComponentInfoService
     this.manualPullRequestService = manualPullRequestService;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.reportDataReader = reportDataReader;
+    this.cpeMatchingHelper = cpeMatchingHelper;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -308,8 +313,8 @@ public class ComponentInfoService
       String identificationSource) throws IOException
   {
     // Case 1: SBOM identification source with no supported formats
-    if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
+    if (IdentificationSource.SBOM.getId().equals(identificationSource)
+        && cpeMatchingHelper.isFormatValidForCpeMatching(identifier.getFormat(), owner.getId())) {
       return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
 
@@ -927,8 +932,8 @@ public class ComponentInfoService
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
     // Case 2: SBOM identification source with formats not supported by HDS (CPE matches)
-    else if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
-        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
+    else if (IdentificationSource.SBOM.getId().equals(identificationSource)
+        && cpeMatchingHelper.isFormatValidForCpeMatching(identifier.getFormat(), owner.getId())) {
       NamedComponentDetails details =
           reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
       if (details != null) {

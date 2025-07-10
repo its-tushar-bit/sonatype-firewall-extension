@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
@@ -208,6 +209,9 @@ public class ComponentInfoServiceTest
 
   @Inject
   private IdUtils idUtils;
+
+  @Inject
+  private OrganizationDAO organizationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -3403,6 +3407,35 @@ public class ComponentInfoServiceTest
         .thenReturn(componentDetails);
 
     ComponentDetailsList result = componentInfoService.getComponentDetailsList(GENERIC_COORDINATES, app,
+        IdentificationSource.SBOM.getId(), scanId, DependencyType.DIRECT, true).getLeft();
+
+    assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(componentDetails);
+  }
+
+  @Test
+  public void testGetComponentDetailsList_CpeComponent_ContainerFromFirewallForDocker() {
+    Repository repository =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
+
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.SBOM.getId();
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createContainerCoordinates("ns", "name", "v");
+
+    NamedComponentDetails componentDetails = newNamedComponentDetails(componentIdentifier);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(componentIdentifier, application.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, application,
         IdentificationSource.SBOM.getId(), scanId, DependencyType.DIRECT, true).getLeft();
 
     assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(componentDetails);

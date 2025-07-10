@@ -18,6 +18,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyMonitoringDAO;
@@ -73,6 +74,8 @@ public class RepositoryDAOTest
 
   private LicenseOverrideDAO licenseOverrideDAO;
 
+  private OrganizationDAO organizationDAO;
+
   private RepositoryDAO dao;
 
   @Before
@@ -89,6 +92,7 @@ public class RepositoryDAOTest
     policyDAO = daoFactory.createPolicyDAO();
     securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
   }
 
   @Test
@@ -776,5 +780,32 @@ public class RepositoryDAOTest
 
     // querying directly by repo id should not return that repo nor anything else
     assertThat(dao.getByAncestorId(repo11.getId())).isEmpty();
+  }
+
+  @Test
+  public void testGetByContainerImageId() {
+    Repository repository1 =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
+
+    organization.setRelatedRepositoryId(repository1.getId());
+    organizationDAO.update(organization);
+
+    // entities that should be found
+    Repository repository2 =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo2", RepositoryType.proxy, "docker");
+    Organization organization2 = tempEntity.newOrganization();
+    organization2.setRelatedRepositoryId(repository2.getId());
+    tempEntity.newApplicationWithParent(organization2);
+
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo3", RepositoryType.proxy, "docker");
+    tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo4", RepositoryType.hosted, "docker");
+
+    Repository result = dao.getByContainerImageId(application.getId());
+    assertThat(result).isNotNull();
+    JPA.assertEntityEquals(result, repository1);
+
+    result = dao.getByContainerImageId(application.getPublicId());
+    assertThat(result).isNotNull();
+    JPA.assertEntityEquals(result, repository1);
   }
 }

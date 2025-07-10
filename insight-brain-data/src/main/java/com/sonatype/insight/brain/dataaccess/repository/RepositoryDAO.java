@@ -357,4 +357,17 @@ public class RepositoryDAO
 
     return get(sQuery, repositoryManagerId, repositoryId);
   }
+
+  public Repository getByContainerImageId(String containerImageId) {
+    String sQuery = """
+        SELECT repository
+          FROM Repository repository, Organization organization, Application application
+         WHERE (application.id = ?1 OR application.publicId = ?1)
+           AND organization.id = application.organizationId
+           AND repository.id = organization.relatedRepositoryId
+           AND repository.repositoryType = ?2
+           AND repository.format = ?3
+        """;
+    return get(sQuery, containerImageId, RepositoryType.proxy, "docker");
+  }
 }

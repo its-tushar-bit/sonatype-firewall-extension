@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.cpematching.CpeMatchingHelper;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -277,6 +278,9 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
+  @Inject
+  private CpeMatchingHelper cpeMatchingHelper;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
@@ -330,8 +334,8 @@ public class ApiLicenseLegalServiceTest
             new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
             null,
             mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
-            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, null, idUtils,
-            null, null, null);
+            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO,
+            policyDAO, null, idUtils, null, null, null, cpeMatchingHelper);
     return componentInfoService;
   }
 

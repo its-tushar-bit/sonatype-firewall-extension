@@ -73,10 +73,10 @@ public class FirewallAddContainerImageWaiverPageTest
   @Before
   public void setUp() {
     setFeatures(
-            LicensedFeature.CONTAINER_IMAGES_EVALUATION,
-            LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
-            LicensedFeature.APPLICATION_EVALUATION,
-            LicensedFeature.APPLICATION_REPORTS
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.APPLICATION_EVALUATION,
+        LicensedFeature.APPLICATION_REPORTS
     );
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
@@ -88,11 +88,14 @@ public class FirewallAddContainerImageWaiverPageTest
     app = tempEntity.newApplication("ContainerReportTest", "ContainerReportTest", org.getId());
     policy = tempEntity.newPolicy(app.getId());
     policyEvaluation = tempEntity.newPolicyEvaluation(app.getId(), ProxyStageType.ID, "scan1");
-    TreeMap<String, String> coordinates = new TreeMap<>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>()
+    {
+      {
         this.put("name", "apk-tools");
         this.put("namespace", "alpine:3.6.5");
         this.put("version", "2.7.6-r0");
-      }};
+      }
+    };
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("container", coordinates);
     tempEntity.newPolicyViolation(policyEvaluation, policy, 9, PolicyThreatCategory.SECURITY,
         componentIdentifier, "hash1", FailActionType.ID);
@@ -129,8 +132,10 @@ public class FirewallAddContainerImageWaiverPageTest
     addContainerImageWaiverPage.threatCounter("moderate").shouldHave(text("1"));
     addContainerImageWaiverPage.violationText().shouldHave(text("3 FAIL VIOLATION"));
     addContainerImageWaiverPage.violationSubText().shouldHave(text("Affecting 1 component"));
-    addContainerImageWaiverPage.infoAlert().shouldHave(text("The waiver you are going to create applies to the " +
-        "whole docker image for all fail policy violations."));
+    addContainerImageWaiverPage.infoAlert().shouldHave(text("""
+        Proceeding to create a waiver will waive all failing policy violations identified in this evaluation.
+        After applying this waiver, you can review waived policy violations per component within the
+        Container Image Report."""));
     addContainerImageWaiverPage.policyLabel().shouldHave(text("Policies"));
     addContainerImageWaiverPage.policyValue().shouldHave(text(policy.getName()));
     addContainerImageWaiverPage.containerImageLabel().shouldHave(text("alpine"));

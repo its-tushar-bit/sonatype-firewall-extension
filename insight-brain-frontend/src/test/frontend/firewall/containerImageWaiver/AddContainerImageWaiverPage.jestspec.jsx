@@ -8,8 +8,8 @@ import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'Te
 
 import {
   getActiveViolationsWithActionFailUrl,
-  getPolicyWaiverReasonsUrl,
   getAddContainerImagePolicyWaiverUrl,
+  getPolicyWaiverReasonsUrl,
 } from 'MainRoot/util/CLMLocation';
 import AddContainerImageWaiverPage from 'MainRoot/firewall/containerImageWaiver/AddContainerImageWaiverPage';
 import { activeViolationsResult as mockPayload, waiverReasons } from './data';
@@ -65,7 +65,9 @@ describe('AddContainerImageWaiverPage', () => {
     expect(screen.getByText('Affecting 3 components')).toBeInTheDocument();
     expect(screen.getByRole('status')).toBeInTheDocument();
     expect(screen.getByRole('status')).toHaveTextContent(
-      'The waiver you are going to create applies to the whole docker image for all fail policy violations.'
+      'Proceeding to create a waiver will waive all failing policy violations identified in this evaluation. ' +
+        'After applying this waiver, you can review waived policy violations per component within the ' +
+        'Container Image Report.'
     );
     expect(screen.getByText('docker-all')).toBeInTheDocument();
     expect(screen.getByText('docker-policy-2.7.6-r0')).toBeInTheDocument();

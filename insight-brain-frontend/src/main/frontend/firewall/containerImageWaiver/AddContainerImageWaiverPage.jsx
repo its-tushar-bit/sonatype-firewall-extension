@@ -40,8 +40,9 @@ import {
 
 import './_addContainerImageWaiverPage.scss';
 
-const INFO_ALERT_TEXT =
-  'The waiver you are going to create applies to the whole docker ' + 'image for all fail policy violations. ';
+const INFO_ALERT_TEXT = `Proceeding to create a waiver will waive all failing policy violations identified in this evaluation. 
+  After applying this waiver, you can review waived policy violations per component within the 
+  Container Image Report.`;
 
 const FEATURE_NOT_SUPPORTED_TEXT = 'This feature is not supported.';
 

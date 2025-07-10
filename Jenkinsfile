@@ -91,19 +91,7 @@ make(
               iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
               failBuildOnNetworkError: true,
               reachability: reachabilityConfig
-
-          if (stage == 'release') {
-            build(job: 'lifecycle-for-sonatype/generate-attribution-report',
-                  parameters: [
-                    string(name: 'applicationId', value: 'insight-brain'),
-                    string(name: 'applicationName', value: 'Nexus Lifecycle'),
-                    string(name: 'applicationVersion', value: params.version)
-                  ]
-              )
-              copyArtifacts filter: "*insight-brain-${params.version}*.html",
-                  projectName: 'lifecycle-for-sonatype/generate-attribution-report'
-            }
-          }
+        }
     },
     distFiles: [
       includes: [
@@ -112,8 +100,7 @@ make(
         'nexus-iq-server/target/jreleaser/assemble/nexus-iq-server/jlink/*.tgz',
         'nexus-iq-server/target/*.tar.gz*',
         'nexus-iq-diagnostics/target/*.jar*',
-        'nexus-mtiq-server/target/*.tar.gz*',
-        "*insight-brain-${params.version}*.html"
+        'nexus-mtiq-server/target/*.tar.gz*'
       ],
       excludes: [
         '**/*-sources.jar*',

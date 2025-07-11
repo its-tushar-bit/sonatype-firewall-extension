@@ -146,11 +146,6 @@
       <classifier>tests</classifier>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.brain</groupId>
-      <artifactId>insight-brain-common</artifactId>
-      <type>test-jar</type>
-    </dependency>
-    <dependency>
       <groupId>org.apache.directory.server</groupId>
       <artifactId>apacheds-core-integ</artifactId>
       <scope>test</scope>

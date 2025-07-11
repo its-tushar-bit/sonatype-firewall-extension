@@ -71,7 +71,7 @@ pipeline {
 
               if (!stagingDashboards.containsKey(selectedDashboardId)) {
                 def existingDashboardKeys = stagingDashboards.keySet().toList()
-                error("'${selectedDashboardId}' does not exist, please choosed a valid identifier:\n" +
+                error("'${selectedDashboardId}' does not exist, please choose a valid identifier:\n" +
                     "${existingDashboardKeys}")
               }
 

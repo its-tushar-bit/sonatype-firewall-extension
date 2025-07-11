@@ -33,7 +33,7 @@
       margin-left: var(--nx-spacing-4x);
       padding-left: var(--nx-spacing-4x);
       border-left: 1px solid var(--nx-swatch-indigo-90);
-      color: var(--nx-swatch-grey-30);
+      color: var(--nx-color-text);
 
       b {
         color: var(--nx-color-text-dark);
@@ -43,7 +43,7 @@
 
   .nx-footer {
     a.nx-btn {
-      color: var(--nx-swatch-blue-40);
+      color: var(--nx-color-secondary-button-text);
     }
   }
 }

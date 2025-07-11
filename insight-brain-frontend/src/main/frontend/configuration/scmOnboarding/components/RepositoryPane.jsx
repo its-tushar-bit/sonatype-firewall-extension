@@ -197,7 +197,7 @@ export default function RepositoryPane(props) {
               }
             >
               <span id="import-label-question-icon">
-                <NxFontAwesomeIcon icon={faQuestionCircle} color="blue" />
+                <NxFontAwesomeIcon icon={faQuestionCircle} />
               </span>
             </NxTooltip>
           </h2>

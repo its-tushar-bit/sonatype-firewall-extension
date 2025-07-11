@@ -12,6 +12,9 @@ import java.util.List;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
+import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.SearchConfig.AwsOpenSearchConfig;
+import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
 import ch.qos.logback.classic.Level;
@@ -19,6 +22,10 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.dropwizard.configuration.ConfigurationFactory;
 import io.dropwizard.configuration.ConfigurationParsingException;
+import io.dropwizard.core.server.DefaultServerFactory;
+import io.dropwizard.core.server.ServerFactory;
+import io.dropwizard.core.setup.Bootstrap;
+import io.dropwizard.core.setup.Environment;
 import io.dropwizard.jackson.Jackson;
 import io.dropwizard.jetty.ConnectorFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
@@ -32,10 +39,6 @@ import io.dropwizard.logging.common.LoggerConfiguration;
 import io.dropwizard.logging.common.SyslogAppenderFactory;
 import io.dropwizard.request.logging.LogbackAccessRequestLogFactory;
 import io.dropwizard.request.logging.old.LogbackClassicRequestLogFactory;
-import io.dropwizard.core.server.DefaultServerFactory;
-import io.dropwizard.core.server.ServerFactory;
-import io.dropwizard.core.setup.Bootstrap;
-import io.dropwizard.core.setup.Environment;
 import io.dropwizard.util.Duration;
 import org.apache.commons.io.FileUtils;
 import org.junit.AfterClass;
@@ -602,5 +605,41 @@ public class InsightConfigurationFactoryTest
 
     // verify that the HSTS headers can be disabled
     assertThat(insightConfig.getWebConfiguration().getHstsHeaderFactory().isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Default() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-default.yml");
+
+    assertThat(insightConfig.getSearchConfig()).isNull();
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Http() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-http.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isNotNull();
+    assertThat(searchConfig).isInstanceOf(HttpOpenSearchConfig.class);
+
+    HttpOpenSearchConfig httpOpenSearchConfig = (HttpOpenSearchConfig) searchConfig;
+    assertThat(httpOpenSearchConfig.getHostname()).isEqualTo("example.com");
+    assertThat(httpOpenSearchConfig.getScheme()).isEqualTo("https");
+    assertThat(httpOpenSearchConfig.getPort()).isEqualTo(123);
+    assertThat(httpOpenSearchConfig.getUsername()).isEqualTo("john");
+    assertThat(httpOpenSearchConfig.getPassword()).isEqualTo("secret");
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Aws() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-aws.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isNotNull();
+    assertThat(searchConfig).isInstanceOf(AwsOpenSearchConfig.class);
+
+    AwsOpenSearchConfig awsOpenSearchConfig = (AwsOpenSearchConfig) searchConfig;
+    assertThat(awsOpenSearchConfig.getEndpoint()).isEqualTo("foobar.amazonaws.com");
+    assertThat(awsOpenSearchConfig.getRegion()).isEqualTo("us-east-2");
   }
 }

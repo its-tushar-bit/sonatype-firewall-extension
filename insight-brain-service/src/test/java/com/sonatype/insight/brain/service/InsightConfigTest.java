@@ -219,6 +219,7 @@ public class InsightConfigTest
             "releaseGraphCacheSize",
             "reportTimeoutInSeconds",
             "reverseProxyAuthentication",
+            "search",
             "socketTimeoutInSeconds",
             "sonatypeWork",
             "sourceControl",

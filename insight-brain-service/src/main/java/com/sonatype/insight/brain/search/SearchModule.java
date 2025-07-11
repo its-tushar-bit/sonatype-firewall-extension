@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.search;
+
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
+import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
+import com.sonatype.insight.brain.service.InsightConfig;
+
+import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
+
+/**
+ * Guice module to bind the appropriate search classes based on the search configuration.
+ */
+public class SearchModule
+    extends DropwizardAwareModule<InsightConfig>
+{
+  @Override
+  public void configure() {
+    SearchConfig searchConfig = configuration().getSearchConfig();
+    if (searchConfig == null) {
+      bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class).asEagerSingleton();
+    }
+    else {
+      bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class).asEagerSingleton();
+    }
+  }
+}

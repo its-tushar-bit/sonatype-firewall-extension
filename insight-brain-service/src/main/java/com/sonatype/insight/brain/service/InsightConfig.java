@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.migration.ProxyServerConfigurationMigrator;
 import com.sonatype.insight.brain.migration.ReverseProxyAuthenticationConfigurationMigrator.ReverseProxyAuthenticationConfig;
 import com.sonatype.insight.brain.migration.SourceControlConfigurationMigrator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 
@@ -344,6 +345,10 @@ public class InsightConfig
   @Valid
   @JsonProperty(value = "storage")
   private StorageConfig storage = new StorageConfig();
+
+  @Valid
+  @JsonProperty(value = "search")
+  private SearchConfig searchConfig;
 
   public ProxyServerConfigurationMigrator.ProxyConfig getProxyConfig() {
     return proxy;
@@ -1005,6 +1010,14 @@ public class InsightConfig
       log.error("Invalid storage configuration: {}", e.getMessage());
       return false;
     }
+  }
+
+  public SearchConfig getSearchConfig() {
+    return searchConfig;
+  }
+
+  public void setSearchConfig(final SearchConfig searchConfig) {
+    this.searchConfig = searchConfig;
   }
 
   public String getApplicationConnectorPorts() {

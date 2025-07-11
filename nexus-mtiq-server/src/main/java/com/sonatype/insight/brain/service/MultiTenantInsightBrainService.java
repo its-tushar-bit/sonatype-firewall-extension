@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.scheduler.MultiTenantQuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -309,6 +310,7 @@ public class MultiTenantInsightBrainService
 
     modules.add(new SecurityModule());
     modules.add(new SecurityAopModule());
+    modules.add(new SearchModule());
     modules.add(new DropwizardAwareModule<InsightConfig>()
     {
       @Override

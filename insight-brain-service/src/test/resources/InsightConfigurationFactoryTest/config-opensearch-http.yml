@@ -1,0 +1,7 @@
+search:
+  type: http
+  hostname: example.com
+  scheme: https
+  port: 123
+  username: john
+  password: secret

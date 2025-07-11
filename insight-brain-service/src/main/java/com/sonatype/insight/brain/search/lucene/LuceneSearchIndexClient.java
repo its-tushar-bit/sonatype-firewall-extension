@@ -27,8 +27,6 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -72,6 +70,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -140,8 +139,11 @@ import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
 import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
 import static java.util.stream.Collectors.toList;
 
-@Named
-@Singleton
+/**
+ * Lucene support for {@link SearchIndexClient}
+ * <p>
+ * Note: See {@link SearchModule} for Guice bindings
+ */
 public class LuceneSearchIndexClient
     implements SearchIndexClient
 {

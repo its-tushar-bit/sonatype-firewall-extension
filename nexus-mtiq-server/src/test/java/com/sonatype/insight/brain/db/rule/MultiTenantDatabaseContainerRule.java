@@ -83,7 +83,7 @@ public class MultiTenantDatabaseContainerRule
   }
 
   @Override
-  protected DatabaseFixture createNewDatabaseFixture() {
+  protected DatabaseFixture createNewFixture() {
     if (DatabaseRuleAnnotations.isH2InMemoryTest(annotation) || DatabaseRuleAnnotations.isH2DiskTest(annotation)) {
       throw new RuntimeException("MTIQ tests cannot use H2");
     }
@@ -95,7 +95,7 @@ public class MultiTenantDatabaseContainerRule
   }
 
   @Override
-  protected DatabaseType getDatabaseType() {
+  protected DatabaseType getType() {
     return DatabaseType.POSTGRES_DB;
   }
 
@@ -109,8 +109,8 @@ public class MultiTenantDatabaseContainerRule
   }
 
   private void cloneTenant(final String tenantName) {
-    MultiTenantPostgresDatabaseFixture fixture = (MultiTenantPostgresDatabaseFixture) databaseFixture;
-    fixture.cloneTenant(tenantName);
+    MultiTenantPostgresDatabaseFixture localFixture = (MultiTenantPostgresDatabaseFixture) fixture;
+    localFixture.cloneTenant(tenantName);
   }
 
   public void setTestName(final String testName) {

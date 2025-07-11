@@ -75,6 +75,7 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
+import com.sonatype.insight.brain.search.SearchIndexRule;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -186,6 +187,9 @@ public abstract class AbstractBaseIntegrationTest
   @Rule(order = 1)
   public DatabaseContainerRule databaseContainerRule = getDatabaseContainerRule();
 
+  @Rule(order = 2)
+  public SearchIndexRule searchIndexRule = getSearchIndexRule();
+
   @Rule
   public QuartzJobSchedulingServiceRule quartzJobSchedulingServiceRule = new QuartzJobSchedulingServiceRule();
 
@@ -229,6 +233,10 @@ public abstract class AbstractBaseIntegrationTest
 
   protected DatabaseContainerRule getDatabaseContainerRule() {
     return DatabaseContainerRule.getInstance(AbstractBaseIntegrationTest.class);
+  }
+
+  protected SearchIndexRule getSearchIndexRule() {
+    return SearchIndexRule.getInstance(AbstractBaseIntegrationTest.class);
   }
 
   @Before
@@ -330,8 +338,14 @@ public abstract class AbstractBaseIntegrationTest
       }
 
       // if the database test fixture says its not-reusable
-      if (!databaseContainerRule.isDatabaseFixtureReusable()) {
+      if (!databaseContainerRule.isFixtureReusable()) {
         log.info("Test IQ server is not reusable due to custom database settings. Will restart test IQ server.");
+        stopIqServer = true;
+      }
+
+      // if the search test fixture says its not-reusable
+      if (!searchIndexRule.isFixtureReusable()) {
+        log.info("Test IQ server is not reusable due to custom search index settings. Will restart test IQ server.");
         stopIqServer = true;
       }
 

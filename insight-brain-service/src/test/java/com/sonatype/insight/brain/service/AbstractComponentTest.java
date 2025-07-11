@@ -48,8 +48,6 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
-import com.sonatype.insight.brain.search.index.SearchIndexClient;
-import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
@@ -265,7 +263,6 @@ public class AbstractComponentTest
     binder.bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
     binder.bind(TaskScheduler.class).to(TestTaskScheduler.class);
     binder.bind(TelemetryId.class).toInstance(mock(TelemetryId.class));
-    binder.bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class);
 
     binder.requestStaticInjection(ConditionTypes.class);
     binder.requestStaticInjection(ConditionValueTypes.class);

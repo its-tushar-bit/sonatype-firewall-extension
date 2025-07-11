@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,7 +14,6 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.search.SearchConfig;
-import com.sonatype.insight.brain.search.SearchConfig.AwsOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
@@ -623,23 +623,8 @@ public class InsightConfigurationFactoryTest
     assertThat(searchConfig).isInstanceOf(HttpOpenSearchConfig.class);
 
     HttpOpenSearchConfig httpOpenSearchConfig = (HttpOpenSearchConfig) searchConfig;
-    assertThat(httpOpenSearchConfig.getHostname()).isEqualTo("example.com");
-    assertThat(httpOpenSearchConfig.getScheme()).isEqualTo("https");
-    assertThat(httpOpenSearchConfig.getPort()).isEqualTo(123);
+    assertThat(httpOpenSearchConfig.getUri()).isEqualTo(URI.create("https://example.com:123"));
     assertThat(httpOpenSearchConfig.getUsername()).isEqualTo("john");
     assertThat(httpOpenSearchConfig.getPassword()).isEqualTo("secret");
-  }
-
-  @Test
-  public void testBuild_OpenSearch_Aws() throws Exception {
-    InsightConfig insightConfig = build("config-opensearch-aws.yml");
-
-    SearchConfig searchConfig = insightConfig.getSearchConfig();
-    assertThat(searchConfig).isNotNull();
-    assertThat(searchConfig).isInstanceOf(AwsOpenSearchConfig.class);
-
-    AwsOpenSearchConfig awsOpenSearchConfig = (AwsOpenSearchConfig) searchConfig;
-    assertThat(awsOpenSearchConfig.getEndpoint()).isEqualTo("foobar.amazonaws.com");
-    assertThat(awsOpenSearchConfig.getRegion()).isEqualTo("us-east-2");
   }
 }

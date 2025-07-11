@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.search.SearchIndexRule;
+import com.sonatype.insight.brain.search.SearchModule;
 import com.sonatype.insight.brain.service.DbBasedModule;
 import com.sonatype.insight.brain.service.SisuApplication;
 
@@ -53,6 +55,9 @@ public abstract class BrainInjectedTest
   public DatabaseContainerRule databaseContainerRule = DatabaseContainerRule.getInstance(BrainInjectedTest.class);
 
   @Rule(order = 2)
+  public SearchIndexRule searchIndexRule = SearchIndexRule.getInstance(BrainInjectedTest.class);
+
+  @Rule(order = 3)
   public TemporaryEntity tempEntity = createTemporaryEntity();
 
   /** You should only use this `daoFactory` when you override the `configure` method and you need to crate DAOs there.
@@ -94,6 +99,7 @@ public abstract class BrainInjectedTest
   public void configure(final Binder binder) {
     binder.install(new DataStoreTestModule());
     binder.install(new DbBasedModule(() -> databaseContainerRule.getDatabaseContainer()));
+    binder.install(new SearchModule(() -> searchIndexRule.getSearchConfig()));
   }
 
   private class DataStoreTestModule

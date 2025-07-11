@@ -7,8 +7,9 @@ package com.sonatype.insight.brain.db.rule;
 
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
-import java.util.Map;
+import java.util.List;
 
+import com.sonatype.insight.brain.common.test.InsightFixtureRule;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -26,18 +27,12 @@ import com.sonatype.insight.brain.db.fixture.h2.H2DiskDatabaseFixture;
 import com.sonatype.insight.brain.db.fixture.h2.H2InMemoryDatabaseFixture;
 import com.sonatype.insight.brain.db.fixture.postgres.PostgresDatabaseFixture;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrators;
+import com.sonatype.insight.brain.db.rule.DatabaseRule.DatabaseType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
-import org.junit.rules.ExternalResource;
-import org.junit.runner.Description;
-import org.junit.runners.model.Statement;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.getCleanDatabase;
 import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.getSuppressMigrations;
 import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isH2DiskTest;
 import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isH2InMemoryTest;
@@ -45,7 +40,7 @@ import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isPostg
 
 /**
  * <p>
- * Encapsulate the database test fixtures needed for IQ as a JUNit rule. The intent of the rule is to mange the
+ * Encapsulate the database test fixtures needed for IQ as a JUNit rule. The intent of the rule is to manage the
  * {@link DatabaseFixture} which is the running database itself. This rule is a singleton designed to be used with the
  * {@link DatabaseRule#getInstance(Class)} method to encapsulate that logic. Namely that the db fixture itself can keep
  * running between tests but it still allows for 'before' and 'after' logic to reset it as needed.
@@ -90,22 +85,12 @@ import static com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.isPostg
  * </p>
  */
 public class DatabaseRule
-    extends ExternalResource
+    extends InsightFixtureRule<DatabaseType, DatabaseFixture>
     implements DataStoreProvider
 {
-  protected static final Logger log = LoggerFactory.getLogger(DatabaseRule.class);
-
   private static final DatabaseRule INSTANCE = new DatabaseRule();
 
-  protected DatabaseFixture databaseFixture;
-
-  private DatabaseType databaseType;
-
   private boolean suppressMigrations;
-
-  private boolean cleanDatabase;
-
-  private DatabaseType previousDatabaseType;
 
   protected OperationalDataStore operationalDataStore;
 
@@ -114,20 +99,6 @@ public class DatabaseRule
   protected DataMartDataStore dataMartDataStore;
 
   protected ThirdPartyScansDataStore thirdPartyScansDataStore;
-
-  // Track if the current database fixture is brand new for the current test
-  // - True if the database fixture was just (re-)initialized during the current single test
-  // - False if the database fixture has remained the same compared to the previous test
-  private boolean isNewDatabaseFixtureForCurrentTest;
-
-  // A test can mark the current database as dirty meaning it needs to be closed and a fresh one created
-  private boolean isCurrentDatabaseDirty = true;
-
-  private boolean lastTestHadCustomSettings = false;
-
-  protected Annotation annotation;
-
-  protected volatile String testName;
 
   protected DatabaseRule() {
     // private constructor for singleton enforcement
@@ -145,48 +116,64 @@ public class DatabaseRule
    */
   public static DatabaseRule getInstance(Class<?> baseTestClassType) {
     if (currentTestClassType != baseTestClassType) {
-      INSTANCE.markDatabaseAsDirty();
+      INSTANCE.markFixtureAsDirty();
       currentTestClassType = baseTestClassType;
     }
     return INSTANCE;
   }
 
   @Override
-  public Statement apply(final Statement base, final Description description) {
-    // grab the annotation for this test
-    annotation = DatabaseRuleAnnotations.getAnnotation(description);
-    testName = description.getMethodName();
-
-    return super.apply(base, description);
+  protected void before() throws Throwable {
+    suppressMigrations = getSuppressMigrations(annotation);
+    super.before();
   }
 
   @Override
-  protected void before() throws Throwable {
-    // get the current database type, if defined, for the current method under test
-    databaseType = getDatabaseType();
-    suppressMigrations = getSuppressMigrations(annotation);
-    cleanDatabase = getCleanDatabase(annotation);
+  protected boolean getLastTestHadCustomSettings(final Annotation annotation) {
+    return DatabaseRuleAnnotations.hasCustomSettings(annotation);
+  }
 
-    if (needsDatabaseInitialization()) {
-      log.info("(Re)initializing test database");
+  @Override
+  protected List<Class<? extends Annotation>> getAnnotationTypes() {
+    return DatabaseRuleAnnotations.ANNOTATION_TYPES;
+  }
 
-      initializeDatabaseFixture();
+  @Override
+  protected boolean getForceClean(final Annotation annotation) {
+    return DatabaseRuleAnnotations.getForceClean(annotation);
+  }
 
-      initializeDataStores();
+  @Override
+  protected boolean hasAnnotation() {
+    return DatabaseRuleAnnotations.hasAnyAnnotation(annotation);
+  }
+
+  @Override
+  protected DatabaseFixture createNewFixture() {
+    if (type.equals(DatabaseType.POSTGRES_DB)) {
+      return new PostgresDatabaseFixture(testName, DatabaseRuleAnnotations.getPostgresTest(annotation));
+    }
+    else if (type.equals(DatabaseType.H2_DISK_DB)) {
+      return new H2DiskDatabaseFixture(DatabaseRuleAnnotations.getH2DiskTest(annotation));
+    }
+    else {
+      return new H2InMemoryDatabaseFixture(DatabaseRuleAnnotations.getH2InMemoryTest(annotation));
     }
   }
 
   @Override
-  protected void after() {
-    isNewDatabaseFixtureForCurrentTest = false;
-
-    // after each test method is complete, mark the database type that was used for it
-    previousDatabaseType = databaseType;
-
-    lastTestHadCustomSettings = DatabaseRuleAnnotations.hasCustomSettings(annotation);
-
-    if (databaseFixture != null && !databaseFixture.isFixtureReusable()) {
-      closePreviousFixture();
+  protected DatabaseType getType() {
+    if (isPostgresTest(annotation)) {
+      return DatabaseType.POSTGRES_DB;
+    }
+    else if (isH2DiskTest(annotation)) {
+      return DatabaseType.H2_DISK_DB;
+    }
+    else if (isH2InMemoryTest(annotation)) {
+      return DatabaseType.H2_IN_MEMORY_DB;
+    }
+    else {
+      return DatabaseType.H2_IN_MEMORY_DB;
     }
   }
 
@@ -201,67 +188,14 @@ public class DatabaseRule
    * Get a {@link DatabaseConfig} to access the provisioned test database
    */
   public DatabaseConfig getDatabaseConfig(final String databaseName) {
-    return databaseFixture.getDatabaseConfig(databaseName);
-  }
-
-  /**
-   * Checks if the current test needs to re-initialize the databases
-   */
-  private boolean needsDatabaseInitialization() {
-    if (hasDatabaseTypeChanged()) {
-      log.info("Database type has changed from '{}' to '{}'. Need to re-initialize database.", previousDatabaseType,
-          databaseType);
-      return true;
-    }
-
-    // If any db annotation (@H2DiskTest, @H2InMemoryTest, @PostgresTest) exists it means that the database needs to
-    // be re-provisioned.
-    if (hasAnnotation()) {
-      log.info("Current test is using custom database configuration. Need to re-initialize database.");
-      return true;
-    }
-
-    if (lastTestHadCustomSettings()) {
-      log.info("Last test had `customSettings`. Need to re-initialize database.");
-
-      // reset it
-      lastTestHadCustomSettings = false;
-      return true;
-    }
-
-    if (cleanDatabase) {
-      log.info("Clean database requested. Need to re-initialize database.");
-      return true;
-    }
-
-    if (isCurrentDatabaseDirty) {
-      log.info("Database marked as dirty. Need to re-initialize database.");
-      return true;
-    }
-
-    return false;
-  }
-
-  private boolean hasAnnotation() {
-    return DatabaseRuleAnnotations.hasAnyAnnotation(annotation);
-  }
-
-  private boolean lastTestHadCustomSettings() {
-    return lastTestHadCustomSettings;
-  }
-
-  /**
-   * Has the database type changed between the previous test and current test
-   */
-  public boolean hasDatabaseTypeChanged() {
-    return previousDatabaseType != databaseType;
+    return fixture.getDatabaseConfig(databaseName);
   }
 
   /**
    * Get a {@link DataSourceProvider} to access the provisioned test database
    */
   public DataSourceProvider getDataSourceProvider() {
-    return databaseFixture.getDataSourceProvider();
+    return fixture.getDataSourceProvider();
   }
 
   @Override
@@ -284,28 +218,8 @@ public class DatabaseRule
     return thirdPartyScansDataStore;
   }
 
-  private void initializeDatabaseFixture() {
-    // close the previous database fixture if necessary
-    if (previousDatabaseType != null) {
-      closePreviousFixture();
-    }
-
-    initializeNewDatabaseFixture();
-    isCurrentDatabaseDirty = false;
-  }
-
-  private void closePreviousFixture() {
-    if (databaseFixture != null) {
-      try {
-        databaseFixture.close();
-      }
-      catch (Exception e) {
-        throw new RuntimeException("Unable to close previous database fixture", e);
-      }
-    }
-  }
-
-  private void initializeDataStores() {
+  @Override
+  protected void afterInitializeFixture() {
     createNewDataStores();
 
     // init the data stores
@@ -333,70 +247,12 @@ public class DatabaseRule
     new DatabaseMigrators(this).runMigrators();
   }
 
-  private void initializeNewDatabaseFixture() {
-    databaseFixture = createNewDatabaseFixture();
-    isNewDatabaseFixtureForCurrentTest = true;
-  }
-
-  protected DatabaseFixture createNewDatabaseFixture() {
-    log.info("Creating new database fixture: " + databaseType);
-    if (databaseType.equals(DatabaseType.POSTGRES_DB)) {
-      return new PostgresDatabaseFixture(testName, DatabaseRuleAnnotations.getPostgresTest(annotation));
-    }
-    else if (databaseType.equals(DatabaseType.H2_DISK_DB)) {
-      return new H2DiskDatabaseFixture(DatabaseRuleAnnotations.getH2DiskTest(annotation));
-    }
-    else {
-      return new H2InMemoryDatabaseFixture(DatabaseRuleAnnotations.getH2InMemoryTest(annotation));
-    }
-  }
-
-  public Map<String, Object> getDatabaseMetadata() {
-    return databaseFixture.getDatabaseMetadata();
-  }
-
-  /**
-   * Special test method which forces a shutdown of the database. Only use if you test requires it. Will nuke the
-   * database fixture so no other calls to it can be made, and a new fixture will be provisioned for the next test.
-   */
-  public void shutdown() throws Exception {
-    databaseFixture.close();
-    databaseFixture = null;
-  }
-
-  public boolean isDatabaseFixtureReusable() {
-    // Not reusable if this is a new database fixture for the current test
-    return !isNewDatabaseFixtureForCurrentTest;
-  }
-
   public String dumpSchema(final String schema) {
-    return databaseFixture.dumpSchema(schema);
+    return fixture.dumpSchema(schema);
   }
 
   public void loadSqlDump(final Path sqlFile) {
-    databaseFixture.loadSqlDump(sqlFile);
-  }
-
-  /**
-   * Any test that fudges the database should mark it as dirty so the next test will get a cleanly provisioned db
-   */
-  public void markDatabaseAsDirty() {
-    isCurrentDatabaseDirty = true;
-  }
-
-  protected DatabaseType getDatabaseType() {
-    if (isPostgresTest(annotation)) {
-      return DatabaseType.POSTGRES_DB;
-    }
-    else if (isH2DiskTest(annotation)) {
-      return DatabaseType.H2_DISK_DB;
-    }
-    else if (isH2InMemoryTest(annotation)) {
-      return DatabaseType.H2_IN_MEMORY_DB;
-    }
-    else {
-      return DatabaseType.H2_IN_MEMORY_DB;
-    }
+    fixture.loadSqlDump(sqlFile);
   }
 
   public enum DatabaseType

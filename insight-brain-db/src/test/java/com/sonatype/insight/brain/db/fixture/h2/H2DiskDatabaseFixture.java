@@ -116,7 +116,7 @@ public class H2DiskDatabaseFixture
   }
 
   @Override
-  public Map<String, Object> getDatabaseMetadata() {
+  public Map<String, Object> getMetadata() {
     Map<String, Object> metadata = new HashMap<>();
     metadata.put(H2DiskTest.DATABASE_PATH, databaseDir.getAbsolutePath());
     return metadata;

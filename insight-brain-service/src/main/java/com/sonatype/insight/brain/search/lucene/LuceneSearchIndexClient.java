@@ -27,6 +27,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -144,6 +145,7 @@ import static java.util.stream.Collectors.toList;
  * <p>
  * Note: See {@link SearchModule} for Guice bindings
  */
+@Singleton
 public class LuceneSearchIndexClient
     implements SearchIndexClient
 {

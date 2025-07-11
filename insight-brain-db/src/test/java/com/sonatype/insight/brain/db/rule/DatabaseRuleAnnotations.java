@@ -12,10 +12,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.Arrays;
-import java.util.Optional;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.junit.runner.Description;
+import java.util.List;
 
 /**
  * The annotations for use by {@link DatabaseRule} and tests using it.
@@ -26,6 +23,9 @@ import org.junit.runner.Description;
  */
 public class DatabaseRuleAnnotations
 {
+  static final List<Class<? extends Annotation>> ANNOTATION_TYPES =
+      Arrays.asList(H2InMemoryTest.class, H2DiskTest.class, PostgresTest.class);
+
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.METHOD, ElementType.TYPE})
   @Inherited
@@ -156,7 +156,7 @@ public class DatabaseRuleAnnotations
     }
   }
 
-  public static boolean getCleanDatabase(final Annotation annotation) {
+  public static boolean getForceClean(final Annotation annotation) {
     if (isPostgresTest(annotation)) {
       return getPostgresTest(annotation).cleanDatabase();
     }
@@ -185,30 +185,5 @@ public class DatabaseRuleAnnotations
     else {
       return false;
     }
-  }
-
-  /**
-   * Retrieves any defined db annotation for the test:
-   * <ul>
-   *   <li>annotations on the method have higher precedence than the class</li>
-   *   <li>annotations on the subclass have higher precedence than the super class</li>
-   * </ul>
-   */
-  public static Annotation getAnnotation(final Description description) {
-    // method annotations have higher priority
-    Annotation[] methodAnnotations =
-        description.getAnnotations().toArray(new Annotation[description.getAnnotations().size()]);
-    Annotation[] classAnnotations = description.getTestClass().getAnnotations();
-
-    // reverse them as the subclass should have priority
-    ArrayUtils.reverse(methodAnnotations);
-    ArrayUtils.reverse(classAnnotations);
-
-    Annotation[] annotations = ArrayUtils.addAll(methodAnnotations, classAnnotations);
-
-    Optional<Annotation> annotation = Arrays.stream(annotations)
-        .filter(a -> a instanceof H2InMemoryTest || a instanceof H2DiskTest || a instanceof PostgresTest)
-        .findFirst();
-    return annotation.orElse(null);
   }
 }

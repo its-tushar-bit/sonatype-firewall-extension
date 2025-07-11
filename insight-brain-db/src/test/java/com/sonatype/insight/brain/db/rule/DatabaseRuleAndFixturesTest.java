@@ -15,10 +15,10 @@ import java.sql.Statement;
 import javax.sql.DataSource;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
-import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.db.DatabaseConfig;
 
 import org.assertj.core.api.Assertions;
@@ -142,7 +142,7 @@ public class DatabaseRuleAndFixturesTest
   }
 
   private void assertDBFilesAreCreated() {
-    String databasePath = (String) databaseRule.getDatabaseMetadata().get(H2DiskTest.DATABASE_PATH);
+    String databasePath = (String) databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH);
 
     assertThat(databasePath).isNotNull();
     assertThat(new File(databasePath, "ods.h2.db")).isFile();

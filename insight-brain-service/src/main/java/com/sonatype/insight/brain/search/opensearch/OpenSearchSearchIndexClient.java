@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search.opensearch;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
  * <p>
  * Note: See {@link com.sonatype.insight.brain.search.SearchModule} for Guice bindings
  */
+@Singleton
 public class OpenSearchSearchIndexClient
     implements SearchIndexClient
 {

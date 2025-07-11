@@ -129,6 +129,11 @@
       <scope>test</scope>
     </dependency>
     <dependency>
+      <groupId>org.opensearch</groupId>
+      <artifactId>opensearch-testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>localstack</artifactId>
       <scope>test</scope>
@@ -751,6 +756,10 @@
         </exclusion>
       </exclusions>
     </dependency>
+    <dependency>
+      <groupId>org.opensearch.client</groupId>
+      <artifactId>opensearch-java</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
@@ -943,6 +952,8 @@
                 <include>**/FunctionUtils*</include>
                 <include>**/VulnerabilitySignatureAnalysisDTOHelper*</include>
                 <include>**/ZScalerMockServerRule*</include>
+                <include>**/*SearchIndexFixture*</include>
+                <include>**/SearchIndexRule*</include>
               </includes>
             </configuration>
           </execution>

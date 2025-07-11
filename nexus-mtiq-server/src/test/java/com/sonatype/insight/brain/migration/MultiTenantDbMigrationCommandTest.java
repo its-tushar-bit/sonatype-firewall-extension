@@ -21,7 +21,7 @@ public class MultiTenantDbMigrationCommandTest
   @After
   public void after() {
     // databases for this are not reusable
-    databaseRule.markDatabaseAsDirty();
+    databaseRule.markFixtureAsDirty();
   }
 
   @Test

@@ -6,21 +6,20 @@
 package com.sonatype.insight.brain.db.fixture;
 
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.sonatype.insight.brain.db.rule.DatabaseRule;
+import com.sonatype.insight.brain.common.test.InsightTestFixture;
 import com.sonatype.insight.brain.db.datasource.DataSourceProvider;
+import com.sonatype.insight.brain.db.rule.DatabaseRule;
 import com.sonatype.insight.db.DatabaseConfig;
 
 /**
  * Test fixtures for the database. Direct use is normally not required, use {@link DatabaseRule}.
  */
 public interface DatabaseFixture
-    extends AutoCloseable
+    extends InsightTestFixture
 {
   /**
-   * Return an IQ {@link DatabaseConfig} object for this database fixture
+   * Return an IQ {@link DatabaseConfig} object for the given database name
    */
   DatabaseConfig getDatabaseConfig(final String databaseName);
 
@@ -30,16 +29,6 @@ public interface DatabaseFixture
    * @return
    */
   DataSourceProvider getDataSourceProvider();
-
-  default Map<String, Object> getDatabaseMetadata() {
-    return new HashMap<>();
-  }
-
-  /**
-   * Indicates if the DB fixture can be re-used by the next test or if it should be deleted and databases
-   * re-initialized
-   */
-  boolean isFixtureReusable();
 
   /**
    * Load the given SQL file into the database

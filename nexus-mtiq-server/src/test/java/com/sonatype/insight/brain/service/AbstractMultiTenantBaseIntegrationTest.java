@@ -111,7 +111,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   @AfterClass
   public static void afterClass() {
     stopClmServer();
-    MultiTenantDatabaseContainerRule.getInstance().markDatabaseAsDirty();
+    MultiTenantDatabaseContainerRule.getInstance().markFixtureAsDirty();
   }
 
   @Override

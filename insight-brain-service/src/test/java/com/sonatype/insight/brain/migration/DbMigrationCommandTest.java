@@ -131,7 +131,7 @@ public class DbMigrationCommandTest
     verify(spyDatabaseProvisioner).initializeDatabaseWithoutMigration();
     verify(spyDatabaseProvisioner).migrateDatabase();
 
-    databaseContainerRule.markDatabaseAsDirty();
+    databaseContainerRule.markFixtureAsDirty();
   }
 
   @Test

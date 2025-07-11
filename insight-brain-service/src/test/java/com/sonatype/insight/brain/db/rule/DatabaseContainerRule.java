@@ -53,7 +53,7 @@ public class DatabaseContainerRule
    */
   public static DatabaseContainerRule getInstance(Class<?> baseTestClassType) {
     if (currentTestClassType != baseTestClassType) {
-      INSTANCE.markDatabaseAsDirty();
+      INSTANCE.markFixtureAsDirty();
       currentTestClassType = baseTestClassType;
     }
 
@@ -64,7 +64,7 @@ public class DatabaseContainerRule
   protected void before() throws Throwable {
     super.before();
 
-    if (hasDatabaseTypeChanged() || !isDatabaseFixtureReusable()) {
+    if (hasFixtureTypeChanged() || !isFixtureReusable()) {
       this.databaseContainer = createTestDatabaseContainer();
     }
   }

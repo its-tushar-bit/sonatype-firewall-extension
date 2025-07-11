@@ -45,7 +45,7 @@ public class TenantMigratorTest
   @After
   public void after() {
     // this test migrates test tenants and we need clean/new tenants for each run
-    databaseRule.markDatabaseAsDirty();
+    databaseRule.markFixtureAsDirty();
   }
 
   @Test

@@ -1,0 +1,5 @@
+search:
+  type: http
+  uri: https://localhost:9200
+  username: admin
+  password: password

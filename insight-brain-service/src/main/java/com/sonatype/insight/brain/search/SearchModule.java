@@ -18,14 +18,25 @@ import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 public class SearchModule
     extends DropwizardAwareModule<InsightConfig>
 {
+  private final SearchConfigSupplier searchConfigSupplier;
+
+  public SearchModule() {
+    this.searchConfigSupplier = () -> configuration().getSearchConfig();
+  }
+
+  public SearchModule(final SearchConfigSupplier searchConfigSupplier) {
+    this.searchConfigSupplier = searchConfigSupplier;
+  }
+
   @Override
   public void configure() {
-    SearchConfig searchConfig = configuration().getSearchConfig();
+    SearchConfig searchConfig = searchConfigSupplier.getSearchConfig();
     if (searchConfig == null) {
-      bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class).asEagerSingleton();
+      bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class);
     }
     else {
-      bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class).asEagerSingleton();
+      bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
+      bind(SearchConfig.class).toInstance(searchConfig);
     }
   }
 }

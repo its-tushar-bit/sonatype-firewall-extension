@@ -83,7 +83,7 @@ public class ExportEmbeddedDatabaseCommandTest
     File dumpFile = new File(tempDir.getRoot(), "dump.sql");
 
     // The test fixture automatically creates H2 db files. Manually delete them for this test
-    File file = new File(databaseRule.getDatabaseMetadata().get(H2DiskTest.DATABASE_PATH) + "/ods.h2.db");
+    File file = new File(databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH) + "/ods.h2.db");
     file.delete();
 
     assertThatExceptionOfType(RuntimeException.class)

@@ -25,7 +25,7 @@ public abstract class AbstractDatabaseTest
   public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractDatabaseTest.class);
 
   protected File getDatabasePath() {
-    Map<String, Object> metadata = databaseRule.getDatabaseMetadata();
+    Map<String, Object> metadata = databaseRule.getMetadata();
     return new File((String) metadata.get(H2DiskTest.DATABASE_PATH));
   }
 

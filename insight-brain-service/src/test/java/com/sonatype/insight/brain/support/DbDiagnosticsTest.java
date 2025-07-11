@@ -36,7 +36,7 @@ public class DbDiagnosticsTest
         .startsWith("-- Database Diagnostics --\n")
         .contains("Database product name: H2")
         .contains("Database product version: ")
-        .contains("Database path: " + databaseRule.getDatabaseMetadata().get(H2DiskTest.DATABASE_PATH))
+        .contains("Database path: " + databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH))
         .contains("Total database size: ")
         .contains("Schema version: ")
         .contains("Latency Information")

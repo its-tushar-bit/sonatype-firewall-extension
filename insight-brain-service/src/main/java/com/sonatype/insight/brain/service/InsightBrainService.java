@@ -618,7 +618,6 @@ public class InsightBrainService
     });
     modules.add(new SecurityModule());
     modules.add(new SecurityAopModule());
-    modules.add(new SearchModule());
     modules.add(new DropwizardAwareModule<InsightConfig>()
     {
       @Override
@@ -637,6 +636,8 @@ public class InsightBrainService
     modules.addAll(baseModules());
     // Set up bindings based on which database is used.
     modules.add(new DbBasedModule(() -> databaseContainer));
+    // Set up bindings based on which search index is used.
+    modules.add(new SearchModule());
 
     return modules;
   }

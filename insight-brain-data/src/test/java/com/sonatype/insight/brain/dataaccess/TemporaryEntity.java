@@ -86,7 +86,6 @@ import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.jira.JiraConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;
@@ -226,7 +225,6 @@ import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.model.label.ComponentLabel;
@@ -553,8 +551,6 @@ public class TemporaryEntity
 
   private ShiroSessionDAO shiroSessionDAO;
 
-  private InnerSourceComponentDAO innerSourceComponentDAO;
-
   private InnerSourceApplicationDAO innerSourceApplicationDAO;
 
   private InnerSourceVersionDAO innerSourceVersionDAO;
@@ -867,7 +863,6 @@ public class TemporaryEntity
     // Entities deleted via cascaded deletes
     // - ApplicationTag: cascaded from Application
     // - ComponentLabel: cascaded from Label
-    // - InnerSourceComponent: cascaded from Application
     // - LdapConnection: cascaded from LdapServer
     // - LdapUserMapping: cascaded from LdapServer
     // - LicenseThreatGroupLicense: cascaded from LicenseThreatGroup
@@ -5265,15 +5260,6 @@ public class TemporaryEntity
     return Collections.singletonList(constraintFact);
   }
 
-  public InnerSourceComponent newInnerSourceComponent(
-      String purl,
-      Application application)
-  {
-    InnerSourceComponent innerSourceComponent = new InnerSourceComponent(application.getId(), purl);
-    innerSourceComponentDAO.insert(innerSourceComponent);
-    return innerSourceComponent;
-  }
-
   public InnerSourceApplication newInnerSourceApplication(
       String purl,
       Application application)
@@ -6414,7 +6400,6 @@ public class TemporaryEntity
     persistedPolicyEvaluationPollingResultDAO = daoFactory.createPersistedPolicyEvaluationPollingResultDAO();
     persistedUserSessionDAO = daoFactory.createPersistedUserSessionDAO();
     shiroSessionDAO = daoFactory.createShiroSessionDAO();
-    innerSourceComponentDAO = daoFactory.createInnerSourceComponentDAO();
     innerSourceApplicationDAO = daoFactory.createInnerSourceApplicationDAO();
     innerSourceVersionDAO = daoFactory.createInnerSourceVersionDAO();
     persistedScanTicketDAO = daoFactory.createPersistedScanTicketDAO();

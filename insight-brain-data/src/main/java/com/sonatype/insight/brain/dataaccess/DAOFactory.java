@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
@@ -222,8 +221,6 @@ public interface DAOFactory
   UserIdePolicyEvaluationDAO createUserIdePolicyEvaluationDAO();
 
   InnerSourceApplicationDAO createInnerSourceApplicationDAO();
-
-  InnerSourceComponentDAO createInnerSourceComponentDAO();
 
   InnerSourceVersionDAO createInnerSourceVersionDAO();
 

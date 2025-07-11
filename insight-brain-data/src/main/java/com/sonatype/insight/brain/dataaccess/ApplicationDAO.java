@@ -29,7 +29,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
@@ -53,7 +52,6 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
-import com.sonatype.insight.brain.model.innersource.InnerSourceComponent;
 import com.sonatype.insight.brain.model.label.Label;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -97,8 +95,6 @@ public class ApplicationDAO
 
   private final ProprietaryConfigDAO proprietaryConfigDAO;
 
-  private final InnerSourceComponentDAO innerSourceComponentDAO;
-
   private final MembershipMappingDAO membershipMappingDAO;
 
   private final PolicyViolationAggregationDAO policyViolationAggregationDAO;
@@ -131,7 +127,6 @@ public class ApplicationDAO
       final ApplicationTagDAO applicationTagDAO,
       final Provider<ApplicationComponentDAO> applicationComponentDAOProvider,
       final ProprietaryConfigDAO proprietaryConfigDAO,
-      final InnerSourceComponentDAO innerSourceComponentDAO,
       final MembershipMappingDAO membershipMappingDAO,
       final PolicyViolationAggregationDAO policyViolationAggregationDAO,
       final RepositoryConnectionDAO repositoryConnectionDAO,
@@ -152,7 +147,6 @@ public class ApplicationDAO
     this.applicationTagDAO = applicationTagDAO;
     this.applicationComponentDAOProvider = applicationComponentDAOProvider;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
-    this.innerSourceComponentDAO = innerSourceComponentDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.policyViolationAggregationDAO = policyViolationAggregationDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
@@ -699,13 +693,6 @@ public class ApplicationDAO
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, application.getId());
     if (proprietaryConfig != null) {
       proprietaryConfigDAO.delete(tx, proprietaryConfig);
-    }
-
-    // Cascade to InnerSource components
-    List<InnerSourceComponent> innerSourceComponents =
-        innerSourceComponentDAO.getByApplicationId(tx, application.getId());
-    for (InnerSourceComponent innerSourceComponent : innerSourceComponents) {
-      innerSourceComponentDAO.delete(tx, innerSourceComponent);
     }
 
     // Cascade to SastScan table

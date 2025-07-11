@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthentic
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceComponentDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
 import com.sonatype.insight.brain.dataaccess.zscaler.ZScalerMetricsDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;
@@ -213,7 +212,6 @@ public class TestDAOFactory
     Provider<ApplicationComponentDAO> applicationComponentDAOProvider = this::createApplicationComponentDAO;
     ApplicationTagDAO applicationTagDAO = createApplicationTagDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
-    InnerSourceComponentDAO innerSourceComponentDAO = createInnerSourceComponentDAO();
     MembershipMappingDAO membershipMappingDAO = createMembershipMappingDAO();
     PolicyViolationAggregationDAO policyViolationAggregationDAO = createPolicyViolationAggregationDAO();
     RepositoryConnectionDAO repositoryConnectionDAO = createRepositoryConnectionDAO();
@@ -226,7 +224,7 @@ public class TestDAOFactory
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
-        applicationComponentDAOProvider, proprietaryConfigDAO, innerSourceComponentDAO, membershipMappingDAO,
+        applicationComponentDAOProvider, proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
         organizationDAO, temporaryTableHelper);
@@ -399,11 +397,6 @@ public class TestDAOFactory
   @Override
   public UserIdePolicyEvaluationDAO createUserIdePolicyEvaluationDAO() {
     return new UserIdePolicyEvaluationDAO(dataStoreProvider.getOperationalDataStore());
-  }
-
-  @Override
-  public InnerSourceComponentDAO createInnerSourceComponentDAO() {
-    return new InnerSourceComponentDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

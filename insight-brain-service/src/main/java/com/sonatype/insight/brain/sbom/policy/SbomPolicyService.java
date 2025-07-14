@@ -31,7 +31,8 @@ import com.fasterxml.jackson.databind.node.ContainerNode;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 
 @Named
 public class SbomPolicyService
@@ -69,7 +70,7 @@ public class SbomPolicyService
       String sbomVersion)
   {
     String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
-    return reportService.processBrowseReport(applicationId, scanId, "policythreats.json");
+    return reportService.processBrowseReport(applicationId, scanId, POLICY_THREATS.getName());
   }
 
   @Authorize(permission = Permission.READ)
@@ -119,7 +120,7 @@ public class SbomPolicyService
       String hash) throws IOException
   {
     ReportEntry bomReportEntry =
-        reportService.processBrowseReport(applicationId, scanId, BOM_JSON_FILENAME);
+        reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
     if (bomReportEntry == null) {
       return null;
     }

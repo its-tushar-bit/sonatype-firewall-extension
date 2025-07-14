@@ -25,8 +25,8 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.model.license.MultiLicense;
-import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
+import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.HealthCheckReportRowDTO;
 import com.sonatype.insight.scan.HealthCheckReportSecurityRowDTO;
@@ -47,16 +47,14 @@ import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+
 @Singleton
 @Named
 public class ReportDataReader
 {
-  public static final String BOM_JSON_FILENAME = "bom.json";
-
-  public static final String SECURITY_JSON_FILENAME = "security.json";
-
-  public static final String LICENSE_JSON_FILENAME = "licenses.json";
-
   private static final Logger log = LoggerFactory.getLogger(ReportDataReader.class);
 
   public static final ObjectMapper MAPPER = new ObjectMapper()
@@ -100,14 +98,14 @@ public class ReportDataReader
 
     Map<String, ReportComponentDTO> reportData = new HashMap<>();
     try {
-      final ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+      final ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
       final List<BillOfMaterialsRowDTO> bomRows =
           readData(bomEntry, new TypeReference<>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
-        ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
+        ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
         final List<HealthCheckReportSecurityRowDTO> securityRows =
             readData(securityReportEntry, new TypeReference<>() { });
-        ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSE_JSON_FILENAME);
+        ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
         final List<HealthCheckReportRowDTO> licenseRows =
             readData(licenseReportEntry, new TypeReference<>() { });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);

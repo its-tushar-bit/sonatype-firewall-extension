@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -114,16 +113,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.PARTIAL_MATCHED_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
-import static com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.*;
 
 @Named
 public class ReportService
@@ -318,7 +308,7 @@ public class ReportService
     ReportEntry reportEntry = null;
     try {
       reportEntry = applicationReport.getEntry(name);
-      if (SECURITY_JSON_FILENAME.equals(name)) {
+      if (SECURITY_JSON.getName().equals(name)) {
         reportEntry = loadCombinedSecurityData(reportEntry, applicationReport);
       }
     }
@@ -330,7 +320,7 @@ public class ReportService
 
   private String toEntryName(final String path) {
     if (null == path || path.isEmpty()) {
-      return INDEX_HTML_FILENAME;
+      return INDEX_HTML.getName();
     }
     boolean seenSlash = true;
     StringBuilder buf = null;
@@ -348,7 +338,7 @@ public class ReportService
       seenSlash = isSlash;
     }
     if (seenSlash && buf != null) {
-      buf.append(INDEX_HTML_FILENAME);
+      buf.append(INDEX_HTML.getName());
     }
     return buf != null ? buf.toString() : path;
   }
@@ -356,7 +346,7 @@ public class ReportService
   private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, ApplicationReport applicationReport)
       throws IOException
   {
-    ReportEntry thirdPartyReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON_FILENAME);
+    ReportEntry thirdPartyReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON.getName());
     if (reportEntry != null && thirdPartyReportEntry != null) {
       ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
       ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
@@ -364,7 +354,7 @@ public class ReportService
       ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
       securityRootNode.addAll(thirdPartySecurityRootNode);
 
-      return new ReportEntry(SECURITY_JSON_FILENAME, reportEntry.time, JsonUtils.generate(securityNode));
+      return new ReportEntry(SECURITY_JSON.getName(), reportEntry.time, JsonUtils.generate(securityNode));
     }
     return reportEntry;
   }
@@ -415,7 +405,7 @@ public class ReportService
     metadata.setApplication(application);
 
     ApplicationReport applicationReport = getReport(application, scanId);
-    final ContainerNode<?> data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
+    final ContainerNode<?> data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON.getName()).buf);
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
       throw new BadRequestException(
@@ -442,7 +432,7 @@ public class ReportService
     }
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
-    if (applicationReport.getEntry("template.properties") != null) {
+    if (applicationReport.getEntry(TEMPLATE_PROPERTIES.getName()) != null) {
       JsonNode scanLabelNode = data.path("scanLabel");
       if (scanLabelNode.isTextual()) {
         metadata.getApplication().setName(scanLabelNode.asText());
@@ -478,7 +468,7 @@ public class ReportService
     }
     ApplicationReport applicationReport = getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
 
-    return applicationReport.getEntry("bom.json");
+    return applicationReport.getEntry(BOM_JSON.getName());
   }
 
   public PolicyThreats getPolicyThreats(
@@ -489,7 +479,7 @@ public class ReportService
     final ApplicationReport applicationReport = getReport(application, scanId);
 
     try {
-      final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS_FILENAME);
+      final ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
 
       if (reportEntry == null) {
         throw new NotFoundException(String.format("Report policy threats entry is missing for the requested " +
@@ -533,14 +523,15 @@ public class ReportService
         repositoryMatcher, telemetrySender, telemetryUtils);
 
     // these data items have already had changes applied as part of applyComponentRelatedChanges above
-    final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON_FILENAME).buf);
-    final ContainerNode<?> licenses = JsonUtils.parse(applicationReport.getEntry(LICENSES_JSON_FILENAME).buf);
-    final ContainerNode<?> partialMatched = JsonUtils.parse(applicationReport.getEntry(PARTIAL_MATCHED_FILENAME).buf);
+    final ContainerNode<?> security = JsonUtils.parse(applicationReport.getEntry(SECURITY_JSON.getName()).buf);
+    final ContainerNode<?> licenses = JsonUtils.parse(applicationReport.getEntry(LICENSES_JSON.getName()).buf);
+    final ContainerNode<?> partialMatched =
+        JsonUtils.parse(applicationReport.getEntry(PARTIAL_MATCHED_JSON.getName()).buf);
 
     Map<ComponentIdentifier, Set<Integer>> depthsByIdentifier =
-        parseDependencyDepths(JsonUtils.parse(applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME).buf));
+        parseDependencyDepths(JsonUtils.parse(applicationReport.getEntry(DEPENDENCIES_JSON.getName()).buf));
 
-    final ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
+    final ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON.getName()).buf);
     final int[] securityCounts = getSecurityCounts(data);
     final int[] licenseCounts = new int[11];
 
@@ -610,8 +601,8 @@ public class ReportService
       }
     }
 
-    applicationReport.saveReportEntry(LICENSES_JSON_FILENAME, licenses);
-    applicationReport.saveReportEntry(PARTIAL_MATCHED_FILENAME, partialMatched);
+    applicationReport.saveReportEntry(LICENSES_JSON.getName(), licenses);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialMatched);
     writeLicenseThreatsToReportFile(application, applicationReport);
 
     JacksonNodeUtils.fill(data.putArray("securityCounts"), securityCounts);
@@ -620,22 +611,9 @@ public class ReportService
     JacksonNodeUtils.fill(data.putArray("securityPunchCard"), securityPunchCard);
     JacksonNodeUtils.fill(data.putArray("licensePunchCard"), licensePunchCard);
 
-    applicationReport.saveReportEntry(DATA_JSON_FILENAME, data);
+    applicationReport.saveReportEntry(DATA_JSON.getName(), data);
 
     log.debug("Applied changes to report in {} ms", System.currentTimeMillis() - start);
-  }
-
-  private void embedApplicationPublicId(final ApplicationReport applicationReport, final Application application)
-      throws IOException
-  {
-    String filename = "index.html";
-    ReportEntry reportEntry = applicationReport.getEntry(filename);
-    String originalIndexHtmlContent = new String(reportEntry.buf, StandardCharsets.UTF_8);
-    String augmentedIndexHtmlContent =
-        originalIndexHtmlContent.replace("applicationId = ''", "applicationId = '" + application.getPublicId() + "'");
-    if (!augmentedIndexHtmlContent.equals(originalIndexHtmlContent)) {
-      applicationReport.putEntry(filename, augmentedIndexHtmlContent.getBytes(StandardCharsets.UTF_8));
-    }
   }
 
   /**
@@ -653,17 +631,17 @@ public class ReportService
   {
     long start = System.currentTimeMillis();
 
-    ContainerNode<?> bomJsonData = applicationReport.loadReportEntry(BOM_JSON_FILENAME);
-    ContainerNode<?> dataJson = applicationReport.loadReportEntry(DATA_JSON_FILENAME);
-    ContainerNode<?> summaryJsonData = applicationReport.loadReportEntry(SUMMARY_JSON_FILENAME);
+    ContainerNode<?> bomJsonData = applicationReport.loadReportEntry(BOM_JSON.getName());
+    ContainerNode<?> dataJson = applicationReport.loadReportEntry(DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = applicationReport.loadReportEntry(SUMMARY_JSON.getName());
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData, cpeResultsTelemetry);
 
     // must start from un-edited data
-    ContainerNode<?> licensesJsonData = applicationReport.loadReportEntry(LICENSES_JSON_FILENAME);
-    ContainerNode<?> securityJsonData = applicationReport.loadReportEntry(SECURITY_JSON_FILENAME);
-    ContainerNode<?> dependenciesJsonData = applicationReport.loadReportEntry(DEPENDENCIES_JSON_FILENAME);
+    ContainerNode<?> licensesJsonData = applicationReport.loadReportEntry(LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = applicationReport.loadReportEntry(SECURITY_JSON.getName());
+    ContainerNode<?> dependenciesJsonData = applicationReport.loadReportEntry(DEPENDENCIES_JSON.getName());
     thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
         applicationReport);
 
@@ -671,7 +649,7 @@ public class ReportService
 
     // now apply any data edits (e.g. modified flag)
     augmentDependenciesGraph(dependenciesJsonData);
-    applicationReport.saveReportEntry(DEPENDENCIES_JSON_FILENAME, dependenciesJsonData);
+    applicationReport.saveReportEntry(DEPENDENCIES_JSON.getName(), dependenciesJsonData);
 
     DependencyResolver
         .getInstance(dependenciesJsonData, bomJsonData, dataJson, summaryJsonData, stageTypeId, application,
@@ -691,22 +669,22 @@ public class ReportService
     ArrayNode licensesAaData = (ArrayNode) licensesJsonData.get("aaData");
     componentIdentifiersWithLicenseOverrides
         .addAll(addLicenseOverridesForClaimedComponents(licensesAaData, claimedComponentsByHash.values(), application));
-    applicationReport.saveReportEntry(LICENSES_JSON_FILENAME, licensesJsonData);
+    applicationReport.saveReportEntry(LICENSES_JSON.getName(), licensesJsonData);
 
-    applicationReport.saveReportEntry(DATA_JSON_FILENAME, dataJson);
-    applicationReport.saveReportEntry(SUMMARY_JSON_FILENAME, summaryJsonData);
+    applicationReport.saveReportEntry(DATA_JSON.getName(), dataJson);
+    applicationReport.saveReportEntry(SUMMARY_JSON.getName(), summaryJsonData);
 
     augmentModified(componentIdentifiersWithLicenseOverrides, bomJsonData);
-    applicationReport.saveReportEntry(BOM_JSON_FILENAME, bomJsonData);
+    applicationReport.saveReportEntry(BOM_JSON.getName(), bomJsonData);
 
     fixComponentIdentifiers(securityJsonData, componentIdentifiers);
     applySecurityVulnerabilityOverrides(securityJsonData, application, cpeResultsTelemetry);
-    applicationReport.saveReportEntry(SECURITY_JSON_FILENAME, securityJsonData);
+    applicationReport.saveReportEntry(SECURITY_JSON.getName(), securityJsonData);
 
     // must start from un-edited data
-    ContainerNode<?> partialmatchedJsonData = applicationReport.loadReportEntry(PARTIAL_MATCHED_FILENAME);
+    ContainerNode<?> partialmatchedJsonData = applicationReport.loadReportEntry(PARTIAL_MATCHED_JSON.getName());
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
-    applicationReport.saveReportEntry(PARTIAL_MATCHED_FILENAME, partialmatchedJsonData);
+    applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialmatchedJsonData);
 
     log.debug("applyComponentRelatedChanges finished  in {} ms", System.currentTimeMillis() - start);
   }
@@ -1295,7 +1273,7 @@ public class ReportService
     }
     ObjectNode licenseThreatsJson = mapper.createObjectNode();
     licenseThreatsJson.set("aaData", licenseTable);
-    applicationReport.saveReportEntry(ApplicationReport.LICENSE_THREATS_JSON_FILENAME, licenseThreatsJson);
+    applicationReport.saveReportEntry(LICENSE_THREATS_JSON.getName(), licenseThreatsJson);
   }
 
   @VisibleForTesting

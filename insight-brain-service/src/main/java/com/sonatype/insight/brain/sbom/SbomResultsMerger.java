@@ -112,10 +112,10 @@ import org.cyclonedx.model.vulnerability.Vulnerability;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.DependencyResolver.FIELD_ANALYZER_FEATURES;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static com.sonatype.insight.brain.sbom.export.SbomExportUtils.createCycloneDxLicenseForThirdpartyLicense;
@@ -292,10 +292,10 @@ public class SbomResultsMerger
       final CpeResultsTelemetry cpeResultsTelemetry)
       throws IOException
   {
-    bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON_FILENAME)).buf);
+    bomJsonData = JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(BOM_JSON.getName())).buf);
     readSonatypeSecurityResults(applicationReport);
     readSonatypeLicenseResults(applicationReport);
-    final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
+    final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
     dependenciesJsonData =
         dependenciesReportEntry != null ? JsonUtils.parse(dependenciesReportEntry.buf) : null;
     sbomPostImportMetricsTelemetry = new SbomPostImportMetricsTelemetry();
@@ -354,7 +354,7 @@ public class SbomResultsMerger
     // update bom.json only in the case of binary scans
     if (originalBom != null) {
       try {
-        applicationReport.saveReportEntry(BOM_JSON_FILENAME, bomJsonData);
+        applicationReport.saveReportEntry(BOM_JSON.getName(), bomJsonData);
       }
       catch (IOException e) {
         log.debug("Failed to update bom.json in the binary scan application report for thirdPartyFileId {} ",
@@ -753,7 +753,7 @@ public class SbomResultsMerger
 
   private void readSonatypeSecurityResults(final ApplicationReport applicationReport) throws IOException {
     ContainerNode<?> securityJsonData =
-        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON_FILENAME)).buf);
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(SECURITY_JSON.getName())).buf);
     ArrayNode securityJsonArray = (ArrayNode) securityJsonData.get("aaData");
     for (JsonNode securityJsonNode : securityJsonArray) {
       ComponentIdentifier securityComponentIdentifier =
@@ -772,7 +772,7 @@ public class SbomResultsMerger
       throws IOException
   {
     ContainerNode<?> licensesJsonData =
-        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON_FILENAME)).buf);
+        JsonUtils.parse(Objects.requireNonNull(applicationReport.getEntry(LICENSES_JSON.getName())).buf);
     ArrayNode licenseJsonArray = (ArrayNode) licensesJsonData.get("aaData");
     for (JsonNode licenseJsonNode : licenseJsonArray) {
       ComponentIdentifier componentIdentifier = ComponentIdentifierAdapter.getComponentIdentifier(licenseJsonNode);

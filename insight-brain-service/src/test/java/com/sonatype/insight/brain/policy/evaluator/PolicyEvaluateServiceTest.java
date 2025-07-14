@@ -119,6 +119,7 @@ import static com.sonatype.clm.dto.model.policy.Stage.ID_COMPLIANCE;
 import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -1034,7 +1035,7 @@ public class PolicyEvaluateServiceTest
 
     // check the calculated policy threat
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
-    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
+    ReportEntry policyThreatsReportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
     final JsonNode policyThreats = JsonUtils.parse(policyThreatsReportEntry.buf).get("aaData");
     assertThat(policyThreats).isNotEmpty();
     assertThat(policyThreats.get(0).get("policyThreatLevel").asInt()).isEqualTo(8);

@@ -99,7 +99,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.COMPONENTS_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
 
 @Path(ReportResource.RESOURCE_PATH)
 @Named
@@ -263,7 +266,7 @@ public class ReportResource
     // we don't want to deal with any kind file timestamp stuff with index.html, since we are modifying
     // the contents loaded from the file before serving up to the browser, the timestamp on the file won't
     // change, even when brain versions do, so index.html is always sent in response
-    if (reportEntry.name.equals(INDEX_HTML_FILENAME)) {
+    if (reportEntry.name.equals(INDEX_HTML.getName())) {
       reportEntry = appendCacheBustingParams(reportEntry, versionService.getVersion());
     }
     else {
@@ -272,7 +275,7 @@ public class ReportResource
         return Response.status(304).build();
       }
     }
-    if ("bom.json".equals(reportEntry.name) && (reportEntry.buf.length > FILE_SIZE_THRESHOLD)) {
+    if (BOM_JSON.getName().equals(reportEntry.name) && (reportEntry.buf.length > FILE_SIZE_THRESHOLD)) {
       reportEntry = removeBomPathnames(reportEntry);
     }
     String mimeType = httpRequest.getServletContext().getMimeType(reportEntry.name);
@@ -285,7 +288,7 @@ public class ReportResource
     final ResponseBuilder response = Response.ok(reportEntry.buf);
     response.lastModified(new Date(reportEntry.time));
     response.type(mimeType);
-    if (!reportEntry.name.endsWith(".json") && !reportEntry.name.equals(INDEX_HTML_FILENAME)) {
+    if (!reportEntry.name.endsWith(".json") && !reportEntry.name.equals(INDEX_HTML.getName())) {
       response.expires(new Date(System.currentTimeMillis() + YEAR));
     }
     else {
@@ -405,7 +408,7 @@ public class ReportResource
 
     ApiReportRawDataDTOV2 reportData = reportDataService.getDataNoAuth(appPublicId, scanId);
     List<PolicyAlert> alerts = Arrays.asList(
-        JsonUtils.parse(applicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME).buf,
+        JsonUtils.parse(applicationReport.getEntry(POLICY_ALERTS.getName()).buf,
             PolicyAlert[].class));
 
     File updatedFile = Files.createTempFile("report", ".zip").toFile();
@@ -421,7 +424,7 @@ public class ReportResource
       try (InputStream inputStream = reportPdf.getInputStream()) {
         updater.add(dataPath + "report.pdf", inputStream);
       }
-      updater.add(dataPath + "components.json", reportData);
+      updater.add(dataPath + COMPONENTS_JSON.getName(), reportData);
 
       addUniqueComponentsToUpdater(appPublicId, scanId, dataPath, dataVersion, reportData.components, updater);
 

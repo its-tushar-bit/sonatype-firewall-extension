@@ -45,6 +45,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
+
 public class ApiReportServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReportServiceV2.class);
@@ -170,7 +173,7 @@ public class ApiReportServiceV2
       ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
       PolicyThreats policyThreats = JsonUtils.parse(
-          Objects.requireNonNull(applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME)).buf,
+          Objects.requireNonNull(applicationReport.getEntry(POLICY_THREATS.getName())).buf,
           PolicyThreats.class);
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
@@ -194,7 +197,7 @@ public class ApiReportServiceV2
   }
 
   private String getScannerVersion(final ApplicationReport applicationReport) throws IOException {
-    ReportEntry entry = applicationReport.getEntry(ApplicationReport.SUMMARY_JSON_FILENAME);
+    ReportEntry entry = applicationReport.getEntry(SUMMARY_JSON.getName());
     if (entry == null || entry.buf == null) {
       return null;
     }

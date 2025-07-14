@@ -128,10 +128,10 @@ import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.search.index.FieldIdentifier.*;
 import static com.sonatype.insight.brain.search.index.ItemType.APPLICATION_CATEGORY;
 import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
@@ -789,10 +789,10 @@ public class LuceneSearchIndexClient
       if (!applicationReport.exists()) {
         return Collections.emptyList();
       }
-      ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
-      ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
-      ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
-      ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
+      ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
+      ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
+      ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
+      ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
       if (licenseReportEntry == null || securityReportEntry == null || bomReportEntry == null ||
           dependenciesReportEntry == null) {
         return Collections.emptyList();

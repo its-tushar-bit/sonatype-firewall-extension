@@ -40,7 +40,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationReachabilityServiceTest
@@ -82,7 +82,7 @@ public class PolicyViolationReachabilityServiceTest
         policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), Stage.ID_BUILD);
     assertThat(policyViolations).hasSize(1);
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
-    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS.getName());
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus)
         .isEqualTo(ReachabilityStatus.REACHABLE);
@@ -122,7 +122,7 @@ public class PolicyViolationReachabilityServiceTest
     assertThat(policyViolations.get(0).getReachabilityStatus()).isEqualTo(ReachabilityStatus.UNKNOWN);
     assertThat(policyViolations.get(0).isWaived()).isTrue();
     assertThat(policyViolations.get(1).getReachabilityStatus()).isEqualTo(ReachabilityStatus.REACHABLE);
-    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS_FILENAME);
+    ReportEntry reportEntry = reportZip.getEntry(POLICY_THREATS.getName());
     PolicyThreats policyThreats = JsonUtils.parse(reportEntry.buf, PolicyThreats.class);
     assertThat(policyThreats.aaData.get(0).activeViolations.get(0).reachabilityStatus).isEqualTo(
         ReachabilityStatus.REACHABLE);

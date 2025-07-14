@@ -21,6 +21,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.aws.s3.S3OutputStream;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import datadog.trace.api.Trace;
@@ -184,8 +186,10 @@ public class S3ApplicationReportPersistenceService
       final String name) throws IOException
   {
     ReportEntity entity = getAdditionalReportEntity(applicationId, scanId, name);
-
-    if (entity.exists()) {
+    ReportFile reportFile = ReportFile.fromName(name);
+    boolean isUnknownOrAdditional =
+        reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL);
+    if (isUnknownOrAdditional && entity.exists()) {
       return entity;
     }
     else {

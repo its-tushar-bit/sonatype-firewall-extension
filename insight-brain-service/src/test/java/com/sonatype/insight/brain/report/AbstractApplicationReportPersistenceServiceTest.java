@@ -14,7 +14,6 @@ import java.nio.file.FileSystems;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -692,5 +691,47 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     assertThat(helper.readFromOriginalFiles(APPLICATION_ID, "scan2", "index.html")).isNull();
     assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
     assertThat(service.reportExists(APPLICATION_ID, "scan2")).isFalse();
+  }
+
+  @Test
+  public void testGetReportEntity_Unknown_ChecksAdditional() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("some_unknown_file", "foobar");
+
+    var entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "some_unknown_file");
+    assertThat(entity.exists()).isTrue();
+    helper.assertEntityContents(entity, "foobar");
+
+    assertThat(helper.readFromLocalFiles("some_unknown_file")).isNull();
+    assertThat(helper.readFromOriginalFiles("some_unknown_file")).isNull();
+    assertThat(helper.readFromAdditionalFiles("some_unknown_file")).isEqualTo("foobar");
+  }
+
+  @Test
+  public void testGetReportEntity_KnownAndAdditional_ChecksAdditional() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("thirdparty-bom.json", "foobar");
+
+    var entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "thirdparty-bom.json");
+    assertThat(entity.exists()).isTrue();
+    helper.assertEntityContents(entity, "foobar");
+
+    assertThat(helper.readFromLocalFiles("thirdparty-bom.json")).isNull();
+    assertThat(helper.readFromOriginalFiles("thirdparty-bom.json")).isNull();
+    assertThat(helper.readFromAdditionalFiles("thirdparty-bom.json")).isEqualTo("foobar");
+  }
+
+  @Test
+  public void testGetReportEntity_KnownAndNotAdditional_DoesNotCheckAdditional() throws Exception {
+    helper.saveEmptyMockReport();
+    // Write an additional file that should not normally exist there and so shouldn't be read
+    helper.writeAdditionalFile("bom.json", "foobar");
+
+    var entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "bom.json");
+    assertThat(entity.exists()).isFalse();
+
+    assertThat(helper.readFromLocalFiles("bom.json")).isNull();
+    assertThat(helper.readFromOriginalFiles("bom.json")).isNull();
+    assertThat(helper.readFromAdditionalFiles("bom.json")).isEqualTo("foobar");
   }
 }

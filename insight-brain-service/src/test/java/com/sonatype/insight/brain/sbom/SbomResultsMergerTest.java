@@ -79,7 +79,7 @@ import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
 import static com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils.PROPERTY_COMPONENT_REFS;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.PRIMARY;
@@ -316,7 +316,7 @@ public class SbomResultsMergerTest
 
     //verify bom.json update
     ContainerNode<ObjectNode> bomJsonData =
-        JsonUtils.parse(Objects.requireNonNull(appReport.getEntry(BOM_JSON_FILENAME)).buf);
+        JsonUtils.parse(Objects.requireNonNull(appReport.getEntry(BOM_JSON.getName())).buf);
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
     for (JsonNode jsonNode : bomArray) {
       List<String> bomNodeComponentRefs = JsonUtils.getStringListFromArray(jsonNode.get(PROPERTY_COMPONENT_REFS));

@@ -71,11 +71,12 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -150,9 +151,9 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
-    ReportEntry countsEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
-    ReportEntry policyThreatsEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
+    ReportEntry countsEntry = applicationReport.getEntry(DATA_JSON.getName());
+    ReportEntry policyThreatsEntry = applicationReport.getEntry(POLICY_THREATS.getName());
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(
@@ -199,8 +200,8 @@ public class ApiReportDataServiceV2
 
     ApplicationReport applicationReport = reportService.getReport(appId, scanId);
     ReportEntry dependenciesEntry =
-        applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+        applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
     if (dependenciesEntry != null && bomEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
       JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
@@ -434,11 +435,11 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
-    ReportEntry securityEntry = applicationReport.getEntry(SECURITY_JSON_FILENAME);
-    ReportEntry licenseEntry = applicationReport.getEntry(LICENSES_JSON_FILENAME);
-    ReportEntry dataEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
+    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
+    ReportEntry securityEntry = applicationReport.getEntry(SECURITY_JSON.getName());
+    ReportEntry licenseEntry = applicationReport.getEntry(LICENSES_JSON.getName());
+    ReportEntry dataEntry = applicationReport.getEntry(DATA_JSON.getName());
+    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
         dependenciesReportEntry == null) {

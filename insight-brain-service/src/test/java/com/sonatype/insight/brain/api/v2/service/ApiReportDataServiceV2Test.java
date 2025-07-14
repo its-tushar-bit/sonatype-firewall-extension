@@ -33,7 +33,6 @@ import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.FileApplicationReportPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -50,7 +49,10 @@ import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertFalse;
 
@@ -89,7 +91,7 @@ public class ApiReportDataServiceV2Test
     String reportPath = "/ApiReportDataServiceTest/" + resource;
     ReportHelper.saveMockReport(work, tempDir, reportPath, app.getId(), scanId);
 
-    Path licenseJsonPath = Path.of(getClass().getResource(reportPath).toURI()).resolve(LICENSES_JSON_FILENAME);
+    Path licenseJsonPath = Path.of(getClass().getResource(reportPath).toURI()).resolve(LICENSES_JSON.getName());
     JsonNode licenseNode = JsonUtils.read(licenseJsonPath.toFile());
     for (JsonNode node : licenseNode.get("aaData")) {
       String status = JsonUtils.getNullableString(node.get("status"));
@@ -107,24 +109,21 @@ public class ApiReportDataServiceV2Test
   private void populatePolicyThreats(String resource, String policyThreatsFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + policyThreatsFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, ApplicationReport.POLICY_THREATS_FILENAME,
-          stream);
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, POLICY_THREATS.getName(), stream);
     }
   }
   
   private void populateDependencies(String resource, String dependenciesFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + dependenciesFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId,
-          ApplicationReport.DEPENDENCIES_JSON_FILENAME, stream);
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, DEPENDENCIES_JSON.getName(), stream);
     }
   }
 
   private void populateBom(String resource, String bomFile) throws IOException {
     String policyThreatsPath = "/ApiReportDataServiceTest/" + resource + "/" + bomFile;
     try (var stream = getClass().getResourceAsStream(policyThreatsPath)) {
-      applicationReportPersistenceService.saveReportFile(app.getId(), scanId,
-          ApplicationReport.BOM_JSON_FILENAME, stream);
+      applicationReportPersistenceService.saveReportFile(app.getId(), scanId, BOM_JSON.getName(), stream);
     }
   }
 

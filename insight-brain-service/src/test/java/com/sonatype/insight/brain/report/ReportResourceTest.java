@@ -88,8 +88,9 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
 import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
@@ -150,12 +151,12 @@ public class ReportResourceTest
         .as("insight.js expires in 365 days: " + expires + " vs " + calendar.getTime()).isLessThan(2 * 60 * 1000);
 
     calendar.setTime(new Date());
-    response = request.subpath(DATA_JSON_FILENAME).get();
+    response = request.subpath(DATA_JSON.getName()).get();
     assertResponseStatus(200, response);
     expiresHeader = response.getHeader("Expires");
     expires = expirationHeaderFormat.parse(expiresHeader);
     assertThat(Math.abs(calendar.getTimeInMillis() - expires.getTime()))
-        .as(DATA_JSON_FILENAME + " expires immediately: " + expires + " vs " + calendar.getTime())
+        .as(DATA_JSON.getName() + " expires immediately: " + expires + " vs " + calendar.getTime())
         .isLessThan(2 * 60 * 1000);
 
     calendar.set(Calendar.DAY_OF_MONTH, calendar.get(Calendar.DAY_OF_MONTH) + 1);
@@ -241,7 +242,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (DATA_JSON_FILENAME.equals(entry)) {
+      if (DATA_JSON.getName().equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -378,7 +379,7 @@ public class ReportResourceTest
         assertThat(contentType).isEqualToIgnoringCase("image/png");
       }
 
-      if (DATA_JSON_FILENAME.equals(entry)) {
+      if (DATA_JSON.getName().equals(entry)) {
         String actual = response.getBodyText();
         testDataJsonApplyChanges(actual);
       }
@@ -935,7 +936,7 @@ public class ReportResourceTest
 
       assertThat(zip.getEntry("data/components.json")).isNotNull();
       assertThat(zip.getEntry("data/release-graph/tomcat/tomcat-util/5.5.23.png")).isNotNull();
-      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + POLICY_THREATS.getName())).isNotNull();
 
       assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
       ComponentDetails details = JsonUtils.parse(
@@ -1038,7 +1039,7 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/release-graph/maven/"
           + "artifactId=tomcat-util/classifier=/extension=jar/groupId=tomcat/version=5.5.23/releases.png"))
               .isNotNull();
-      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + POLICY_THREATS.getName())).isNotNull();
 
       assertThat(zip.getEntry("cip/details/f0776db1593e215146d2.json")).isNull();
       TestNamedComponentDetails details = JsonUtils.parse(
@@ -1135,7 +1136,7 @@ public class ReportResourceTest
       assertThat(zip.getEntry("data/release-graph/maven/"
           + "artifactId=reactivex%3arxjs/classifier=/extension=jar/groupId=org.webjars.npm/version=5.0.0-alpha.7/"
           + "releases.png")).isNotNull();
-      assertThat(zip.getEntry("data/" + ApplicationReport.POLICY_THREATS_FILENAME)).isNotNull();
+      assertThat(zip.getEntry("data/" + POLICY_THREATS.getName())).isNotNull();
 
       assertThat(zip.getEntry("cip/details/9276b9bfccfcd3614dc2.json")).isNull();
       TestNamedComponentDetails details = JsonUtils.parse(
@@ -1414,7 +1415,7 @@ public class ReportResourceTest
     final String scanId = "ReportResourceTest_ScanId";
     createReportFile(app.getId(), scanId, "/ReportResourceTest/" + dirName);
     HttpResponse response =
-        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, SECURITY_JSON_FILENAME).get();
+        restRequest(app.getPublicId(), scanId).path(BROWSE_PATH, SECURITY_JSON.getName()).get();
     assertResponseStatus(200, response);
 
     File temp = tempDir.newFile();

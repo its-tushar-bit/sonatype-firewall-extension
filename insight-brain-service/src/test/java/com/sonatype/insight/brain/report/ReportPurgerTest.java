@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ReportPurgerTest
@@ -45,7 +44,7 @@ public class ReportPurgerTest
       reportDir = reportDir.resolve("report.cache");
       Files.createDirectories(reportDir);
       for (String filename : new String[]{
-          "index.html", "bom.json", DATA_JSON_FILENAME, "licenses.json",
+          "index.html", "bom.json", "data.json", "licenses.json",
           "licensethreats.json", "partialmatched.json", "policyalerts.json", "policythreats.json", "security.json",
           "summary.json"
       }) {
@@ -92,7 +91,7 @@ public class ReportPurgerTest
       String[] expectedZipEntries = {
           "report.zip", "report.cache/index.html",
           "report.cache/bom.json",
-          "report.cache/" + DATA_JSON_FILENAME,
+          "report.cache/data.json",
           "report.cache/licenses.json",
           "report.cache/licensethreats.json",
           "report.cache/partialmatched.json",

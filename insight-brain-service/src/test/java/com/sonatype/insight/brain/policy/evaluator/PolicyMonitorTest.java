@@ -56,12 +56,10 @@ import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.policy.PolicyResource;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyComponentDAO;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -75,8 +73,12 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 
-import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
@@ -612,7 +614,7 @@ public class PolicyMonitorTest
     assertThat(reportFile).isFile();
     File reportCacheDir = new File(reportFile.getParentFile(), "report.cache");
     assertThat(reportCacheDir).isDirectory();
-    File policyAlertsFile = new File(reportCacheDir, ApplicationReport.POLICY_ALERTS_FILENAME);
+    File policyAlertsFile = new File(reportCacheDir, POLICY_ALERTS.getName());
     assertThat(policyAlertsFile).isFile();
   }
 
@@ -666,9 +668,9 @@ public class PolicyMonitorTest
     assertThat(reportFile).isFile();
     File parentDir = new File(reportFile.getParentFile() + "/additional.files");
 
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, THIRD_PARTY_BOM_JSON.getName());
+    assertThirdPartyFile(parentDir, THIRD_PARTY_LICENSE_JSON.getName());
+    assertThirdPartyFile(parentDir, THIRD_PARTY_SECURITY_JSON.getName());
 
     assertShutdownHandler();
   }
@@ -813,9 +815,9 @@ public class PolicyMonitorTest
     assertThat(reportFile).isFile();
     File parentDir = new File(reportFile.getParentFile() + "/additional.files");
 
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_BOM_JSON_FILENAME);
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_LICENSE_JSON_FILENAME);
-    assertThirdPartyFile(parentDir, ThirdPartyComponentDAO.THIRD_PARTY_SECURITY_JSON_FILENAME);
+    assertThirdPartyFile(parentDir, THIRD_PARTY_BOM_JSON.getName());
+    assertThirdPartyFile(parentDir, THIRD_PARTY_LICENSE_JSON.getName());
+    assertThirdPartyFile(parentDir, THIRD_PARTY_SECURITY_JSON.getName());
 
     assertShutdownHandler();
   }

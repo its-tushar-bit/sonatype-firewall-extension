@@ -21,7 +21,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -58,6 +57,7 @@ import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -74,8 +74,8 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
-import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
+import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.AutoPolicyWaiverExclusionMatcherWrapper;
 import com.sonatype.insight.brain.policy.LegacyViolationService;
 import com.sonatype.insight.brain.policy.PathForwardInspector;
@@ -103,7 +103,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -115,9 +114,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.updateReachabilityStatus;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_ALERTS_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -446,11 +446,11 @@ public class ScanPolicyEvaluator
     List<PolicyAlert> alerts = createPolicyAlerts(scanPolicyEvaluatorResults.evaluation.getApplicationId(),
         scanPolicyEvaluatorResults.evaluation.getScanId(), stage.getStageTypeId(), forMonitoring,
         components, scanPolicyEvaluatorResults.activeViolations);
-    applicationReport.putEntry(POLICY_ALERTS_FILENAME, JsonUtils.generate(JsonUtils.aaData(alerts)));
+    applicationReport.putEntry(POLICY_ALERTS.getName(), JsonUtils.generate(JsonUtils.aaData(alerts)));
     PolicyThreats policyThreats = PolicyThreatsAdapter.createPolicyThreats(scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId(),
         policyIdPolicyOwnerMap);
-    applicationReport.putEntry(POLICY_THREATS_FILENAME, JsonUtils.generate(policyThreats));
+    applicationReport.putEntry(POLICY_THREATS.getName(), JsonUtils.generate(policyThreats));
 
     updateDataJson(applicationReport, policyThreats);
   }
@@ -473,12 +473,12 @@ public class ScanPolicyEvaluator
       }
     }
 
-    ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON_FILENAME).buf);
+    ObjectNode data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON.getName()).buf);
     JacksonNodeUtils.fill(data.putArray("policyCounts"), policyCounts);
     data.put("policyComponentCount", policyComponentCount);
     data.put("grandfatheredPolicyViolationCount", legacyViolationCount);
     data.put("legacyViolationCount", legacyViolationCount);
-    applicationReport.putEntry(DATA_JSON_FILENAME, JsonUtils.generate(data));
+    applicationReport.putEntry(DATA_JSON.getName(), JsonUtils.generate(data));
   }
 
   /**
@@ -515,7 +515,7 @@ public class ScanPolicyEvaluator
       AuditData.get().setIsReevaluation(isReevaluation);
       PolicyEvaluation policyEvaluation = new PolicyEvaluation(appId, stage.getStageTypeId(), scanId, isReevaluation,
           forMonitoring, currentUser.getUsernameOrSystem(), scanTriggerType, clientScanType);
-      final ReportEntry dataJsonEntry = applicationReport.getEntry(DATA_JSON_FILENAME);
+      final ReportEntry dataJsonEntry = applicationReport.getEntry(DATA_JSON.getName());
       policyEvaluation.setCommitHash(extractField(dataJsonEntry, "commitHash"));
       policyEvaluation.setBranchName(extractField(dataJsonEntry, "branchName"));
       PolicyEvaluation lastPrimaryPolicyEvaluation = policyEvaluationDAO.getLastPrimaryByApplicationIdAndStageId(tx,
@@ -1210,7 +1210,7 @@ public class ScanPolicyEvaluator
     try {
       ApplicationReport applicationReport =
           reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      ReportEntry summaryEntry = applicationReport.getEntry(ApplicationReport.SUMMARY_JSON_FILENAME);
+      ReportEntry summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
       if (summaryEntry != null) {
         JsonNode content = JsonUtils.parse(summaryEntry.buf);
         return content.get("totalArtifactCount").asInt();

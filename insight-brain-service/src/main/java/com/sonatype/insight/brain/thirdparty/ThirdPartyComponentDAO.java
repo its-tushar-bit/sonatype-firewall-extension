@@ -18,12 +18,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
-import com.google.common.collect.Iterables;
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -71,12 +69,16 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_LICENSE_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static com.sonatype.insight.brain.report.DependencyResolver.MATCH_STATE;
 import static java.lang.System.currentTimeMillis;
 
@@ -86,12 +88,6 @@ import static java.lang.System.currentTimeMillis;
 @Named
 public class ThirdPartyComponentDAO
 {
-  public static final String THIRD_PARTY_BOM_JSON_FILENAME = "thirdparty-bom.json";
-
-  public static final String THIRD_PARTY_SECURITY_JSON_FILENAME = "thirdparty-security.json";
-
-  public static final String THIRD_PARTY_LICENSE_JSON_FILENAME = "thirdparty-license.json";
-
   private static final Logger log = LoggerFactory.getLogger(ThirdPartyComponentDAO.class);
 
   public static final ObjectMapper MAPPER = new ObjectMapper()
@@ -135,14 +131,14 @@ public class ThirdPartyComponentDAO
 
     Map<String, ThirdPartyReportComponentDTO> reportData = new HashMap<>();
     try {
-      final ReportEntry tpBomEntry = applicationReport.getEntry(THIRD_PARTY_BOM_JSON_FILENAME);
+      final ReportEntry tpBomEntry = applicationReport.getEntry(THIRD_PARTY_BOM_JSON.getName());
       final List<ThirdPartyBillOfMaterialsRowDTO> bomRows =
           readData(tpBomEntry, new TypeReference<>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
-        ReportEntry tpSecurityReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON_FILENAME);
+        ReportEntry tpSecurityReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON.getName());
         final List<ThirdPartyHealthCheckReportSecurityRowDTO> securityRows =
             readData(tpSecurityReportEntry, new TypeReference<>() { });
-        ReportEntry tpLicenseReportEntry = applicationReport.getEntry(THIRD_PARTY_LICENSE_JSON_FILENAME);
+        ReportEntry tpLicenseReportEntry = applicationReport.getEntry(THIRD_PARTY_LICENSE_JSON.getName());
         final List<ThirdPartyLicenseRowDTO> licenseRows =
             readData(tpLicenseReportEntry, new TypeReference<>() { });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);

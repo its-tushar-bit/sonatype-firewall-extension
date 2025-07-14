@@ -70,9 +70,9 @@ import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationComparator;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
@@ -88,7 +88,8 @@ import org.joda.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static java.util.stream.Collectors.toSet;
 
 /**
@@ -510,13 +511,13 @@ public class ApiPolicyViolationServiceV2
   private List<Component> getComponents(String applicationId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+      ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON.getName());
       if (reportEntry != null) {
         return componentLoaderFactory.createComponentLoader(
                 idUtils.getOwnerNotNull(OwnerType.APPLICATION, applicationId))
             .getAll(null, null, reportEntry.buf, null);
       }
-      log.debug("{} not found for application id {} and scan id {}.", BOM_JSON_FILENAME, applicationId, scanId);
+      log.debug("{} not found for application id {} and scan id {}.", BOM_JSON.getName(), applicationId, scanId);
     }
     catch (IOException | NotFoundException e) {
       log.debug(e.getMessage(), e);
@@ -627,14 +628,13 @@ public class ApiPolicyViolationServiceV2
   private List<PolicyViolation> getPolicyViolations(String applicationId, String stageTypeId, String scanId) {
     try {
       ApplicationReport applicationReport = reportService.getReport(applicationId, scanId);
-      ReportEntry reportEntry = applicationReport.getEntry(ApplicationReport.POLICY_THREATS_FILENAME);
+      ReportEntry reportEntry = applicationReport.getEntry(POLICY_THREATS.getName());
       if (reportEntry != null) {
         return JsonUtils.parse(reportEntry.buf, PolicyThreats.class).aaData.stream()
             .flatMap(component -> toPolicyViolations(applicationId, stageTypeId, component).stream())
             .collect(Collectors.toList());
       }
-      log.debug("{} not found for application id {} and scan id {}.", ApplicationReport.POLICY_THREATS_FILENAME,
-          applicationId, scanId);
+      log.debug("{} not found for application id {} and scan id {}.", POLICY_THREATS.getName(), applicationId, scanId);
     }
     catch (IOException | NotFoundException e) {
       log.debug(e.getMessage(), e);

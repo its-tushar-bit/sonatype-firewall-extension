@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.report;
 
+import java.io.IOException;
+
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -15,11 +17,10 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateResource;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 
-import java.io.IOException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.report.ReportResource.PRINT_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -100,7 +101,7 @@ public class ReportResourceAuditTest
   public void testBrowseReport_Json() throws Exception {
     createReportFile(app.getId(), SCAN_ID);
 
-    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, DATA_JSON_FILENAME).get();
+    restRequest(app.getPublicId(), SCAN_ID).path(BROWSE_PATH, DATA_JSON.getName()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, null);
     assertApplicationData(auditDTO, app);
@@ -119,7 +120,7 @@ public class ReportResourceAuditTest
 
   @Test
   public void testBrowseReport_Unauthorized() throws Exception {
-    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, DATA_JSON_FILENAME).get();
+    restRequest(app.getPublicId(), SCAN_ID).with(unauthorizedUser()).path(BROWSE_PATH, DATA_JSON.getName()).get();
 
     AuditDTO auditDTO = assertAuditLog(AuditEvent.VIEW_APPLICATION_COMPOSITION_REPORT, "unauthorized");
     assertApplicationData(auditDTO, app);

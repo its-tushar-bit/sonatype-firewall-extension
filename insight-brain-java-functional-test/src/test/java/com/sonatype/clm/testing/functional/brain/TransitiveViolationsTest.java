@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.ElementsCollection;
@@ -73,7 +74,7 @@ import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -132,7 +133,7 @@ public class TransitiveViolationsTest
     );
     ApplicationReport applicationReport = testCLMServer.getCLMServer().getInstance(ReportService.class)
         .getReport(application.getId(), policyEvaluation.getScanId());
-    ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+    ReportEntry reportEntry = applicationReport.getEntry(BOM_JSON.getName());
     components = lookup(ComponentLoaderFactory.class).createComponentLoader(application)
         .getAll(null, null, reportEntry.buf, null);
     component = components.stream().filter(c -> c.getHash().equals("hash1")).findFirst().orElse(null);

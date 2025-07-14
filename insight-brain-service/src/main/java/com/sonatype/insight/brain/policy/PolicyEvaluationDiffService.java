@@ -25,9 +25,9 @@ import com.sonatype.insight.brain.policy.evaluator.ComponentIdentifierAndHashCom
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDiff;
 import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
@@ -35,7 +35,8 @@ import org.apache.commons.collections4.SetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_ALERTS;
 
 /**
  * @since 1.82.0
@@ -122,7 +123,7 @@ public class PolicyEvaluationDiffService
     }
 
     try {
-      final ReportEntry fromReportEntry = fromApplicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME);
+      final ReportEntry fromReportEntry = fromApplicationReport.getEntry(POLICY_ALERTS.getName());
       if (fromReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'from' scan report with commit {}, " +
@@ -131,7 +132,7 @@ public class PolicyEvaluationDiffService
             fromApplicationReport.getLocation());
         return Optional.empty();
       }
-      final ReportEntry toReportEntry = toApplicationReport.getEntry(ApplicationReport.POLICY_ALERTS_FILENAME);
+      final ReportEntry toReportEntry = toApplicationReport.getEntry(POLICY_ALERTS.getName());
       if (toReportEntry == null) {
         log.debug(
             "Could not find policy alerts for 'to' scan report with commit {}, " +
@@ -192,7 +193,7 @@ public class PolicyEvaluationDiffService
   private Set<ComponentIdentifierAndHashComparable> loadComponentsFromReport(ApplicationReport applicationReport)
       throws IOException
   {
-    ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
+    ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(null);
     Set<ComponentIdentifierAndHashComparable> result = new TreeSet<>(ComponentIdentifierAndHashComparator.COMPARATOR);
     result.addAll(componentLoader.getAll(null /* license data */, null /* security data */, bomReportEntry.buf,

@@ -117,14 +117,14 @@ import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.model.license.LicenseOverrideStatus.OVERRIDDEN;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DATA_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.INDEX_HTML_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.LICENSES_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.POLICY_THREATS_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SECURITY_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.SUMMARY_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DATA_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -360,10 +360,10 @@ public class ReportServiceTest
 
     // Verify bom.json
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
-    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
-    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON_FILENAME);
-    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON_FILENAME);
+    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON.getName());
+    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON.getName());
+    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON.getName());
+    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON.getName());
     List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(3);
@@ -403,12 +403,12 @@ public class ReportServiceTest
     assertLicenses(components.get(2), Collections.singleton("GPL-2.0"), Collections.emptySet());
 
     // Verify summary.json
-    ReportEntry summaryReportEntry = reportZip.getEntry(SUMMARY_JSON_FILENAME);
+    ReportEntry summaryReportEntry = reportZip.getEntry(SUMMARY_JSON.getName());
     JsonNode summaryJsonNode = JsonUtils.parse(summaryReportEntry.buf);
     assertThat(summaryJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
 
     // Verify data.json
-    ReportEntry dataReportEntry = reportZip.getEntry(DATA_JSON_FILENAME);
+    ReportEntry dataReportEntry = reportZip.getEntry(DATA_JSON.getName());
     JsonNode dataJsonNode = JsonUtils.parse(dataReportEntry.buf);
     assertThat(dataJsonNode.path("exactlyMatchedComponentCount").asInt()).isEqualTo(3);
     assertThat(dataJsonNode.path("knownArtifactCount").asInt()).isEqualTo(3);
@@ -758,10 +758,10 @@ public class ReportServiceTest
     ApplicationReport reportZip = reportService.fetchReport(app, scanId, StageTypes.RELEASE.getId());
 
     ComponentLoader componentLoader = componentLoaderFactory.createComponentLoader(app);
-    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON_FILENAME);
-    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON_FILENAME);
-    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON_FILENAME);
-    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON_FILENAME);
+    ReportEntry licenseReportEntry = reportZip.getEntry(LICENSES_JSON.getName());
+    ReportEntry securityReportEntry = reportZip.getEntry(SECURITY_JSON.getName());
+    ReportEntry bomReportEntry = reportZip.getEntry(BOM_JSON.getName());
+    ReportEntry dependenciesReportEntry = reportZip.getEntry(DEPENDENCIES_JSON.getName());
     List<Component> components = componentLoader
         .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf, dependenciesReportEntry.buf);
     assertThat(components).hasSize(9);
@@ -983,7 +983,7 @@ public class ReportServiceTest
     final PolicyThreats givenPolicyThreatsStoredForReport = createPolicyThreat();
 
     final ReportEntry givenReportEntryReturned =
-        new ReportEntry(POLICY_THREATS_FILENAME, 1L, (new ObjectMapper())
+        new ReportEntry(POLICY_THREATS.getName(), 1L, (new ObjectMapper())
             .writeValueAsBytes(givenPolicyThreatsStoredForReport));
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
@@ -1281,18 +1281,18 @@ public class ReportServiceTest
         "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
 
     var bomFileBeforeReUpload = applicationReportPersistenceService
-        .getReportEntity(app.getId(), scanId, BOM_JSON_FILENAME);
+        .getReportEntity(app.getId(), scanId, BOM_JSON.getName());
     var indexFileBeforeReUpload = applicationReportPersistenceService
-        .getReportEntity(app.getId(), scanId, INDEX_HTML_FILENAME);
+        .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileBeforeReUpload)).isNotEqualTo("{}\n");
     assertThat(getEntityContents(indexFileBeforeReUpload)).isNotEqualTo("<html></html>");
 
     reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
 
     var bomFileAfterReUpload = applicationReportPersistenceService
-        .getReportEntity(app.getId(), scanId, BOM_JSON_FILENAME);
+        .getReportEntity(app.getId(), scanId, BOM_JSON.getName());
     var indexFileAfterReUpload = applicationReportPersistenceService
-        .getReportEntity(app.getId(), scanId, INDEX_HTML_FILENAME);
+        .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
     assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
   }

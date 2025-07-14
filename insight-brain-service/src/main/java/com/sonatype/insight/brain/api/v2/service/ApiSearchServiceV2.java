@@ -33,9 +33,9 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.ArtifactCoordinate;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
-import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -45,8 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static com.sonatype.insight.brain.report.ApplicationReport.BOM_JSON_FILENAME;
-import static com.sonatype.insight.brain.report.ApplicationReport.DEPENDENCIES_JSON_FILENAME;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
 
 /**
  * @since 1.13.0
@@ -203,8 +203,8 @@ public class ApiSearchServiceV2
 
     try {
       ApplicationReport applicationReport = reportService.getReport(app.getId(), eval.getScanId());
-      final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON_FILENAME);
-      final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON_FILENAME);
+      final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
+      final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
 
       if (bomReportEntry != null && dependenciesReportEntry != null) {
         List<Component> components =

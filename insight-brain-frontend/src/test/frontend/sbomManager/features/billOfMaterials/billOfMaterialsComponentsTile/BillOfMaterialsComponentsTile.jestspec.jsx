@@ -6,7 +6,16 @@
 import React from 'react';
 import { update } from 'ramda';
 
-import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
+import {
+  axiosMockAdapter,
+  fireEvent,
+  removePortalContainer,
+  render,
+  screen,
+  setupPortalContainer,
+  waitFor,
+  within,
+} from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
@@ -15,11 +24,6 @@ import {
   SORT_BY_FIELDS,
   SORT_DIRECTION,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
-
-import {
-  cleanUpComponentsFilterDrawerPortalContainer,
-  setupComponentsFilterDrawerPortalContainer,
-} from './componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
 describe('BillOfMaterialsComponentsTile', () => {
   let axiosMock, initialState;
@@ -160,9 +164,10 @@ describe('BillOfMaterialsComponentsTile', () => {
 
   const renderComponent = (preloadedState) => render(<BillOfMaterialsComponentsTile />, { preloadedState });
 
-  beforeEach(() => {
-    setupComponentsFilterDrawerPortalContainer();
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
+  beforeEach(() => {
     axiosMock = axiosMockAdapter();
 
     initialState = {
@@ -196,10 +201,6 @@ describe('BillOfMaterialsComponentsTile', () => {
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(200, generateResponse(componentParametersList));
-  });
-
-  afterEach(() => {
-    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders the correct title', async () => {

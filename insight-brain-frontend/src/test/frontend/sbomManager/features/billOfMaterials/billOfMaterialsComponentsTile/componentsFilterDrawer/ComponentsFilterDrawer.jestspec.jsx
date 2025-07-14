@@ -6,12 +6,18 @@
 import React from 'react';
 import { assocPath } from 'ramda';
 
-import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import {
+  axiosMockAdapter,
+  fireEvent,
+  removePortalContainer,
+  render,
+  screen,
+  setupPortalContainer,
+  waitFor,
+} from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
-import ComponentsFilterDrawer, {
-  COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME,
-} from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
+import ComponentsFilterDrawer from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
 
 import {
   COMPONENTS_PER_PAGE,
@@ -20,23 +26,6 @@ import {
   defaultFilterConfiguration,
   paginationInitialState,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
-
-export const cleanUpComponentsFilterDrawerPortalContainer = () => {
-  const existingContainer = document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`);
-  if (existingContainer) {
-    document.body.removeChild(existingContainer);
-  }
-};
-
-export const setupComponentsFilterDrawerPortalContainer = () => {
-  const existingContainer = document.querySelector(`.${COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME}`);
-  if (existingContainer) {
-    document.body.removeChild(existingContainer);
-  }
-  const container = document.createElement('div');
-  container.setAttribute('class', COMPONENTS_FILTER_DRAWER_PORTAL_TARGET_CLASSNAME);
-  document.body.appendChild(container);
-};
 
 describe('ComponentsFilterDrawer', () => {
   let axiosMock, initialState;
@@ -68,9 +57,10 @@ describe('ComponentsFilterDrawer', () => {
 
   const renderComponent = (props, preloadedState) => render(<ComponentsFilterDrawer {...props} />, { preloadedState });
 
-  beforeEach(() => {
-    setupComponentsFilterDrawerPortalContainer();
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
+  beforeEach(() => {
     axiosMock = axiosMockAdapter();
 
     initialState = {
@@ -100,10 +90,6 @@ describe('ComponentsFilterDrawer', () => {
     axiosMock
       .onGet(getBillOfMaterialsComponentsUrl(...baseUrlParams))
       .reply(200, { totalResultsCount: 0, results: [] });
-  });
-
-  afterEach(() => {
-    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders the correct initial content', async () => {

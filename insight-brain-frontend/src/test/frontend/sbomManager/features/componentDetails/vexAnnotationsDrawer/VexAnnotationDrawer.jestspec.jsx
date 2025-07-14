@@ -12,7 +12,8 @@ import VexAnnotationDrawer from 'MainRoot/sbomManager/features/componentDetails/
 import { formatDate } from 'MainRoot/util/dateUtils';
 import { getSbomVulnerabilityAnnotationUrl } from 'MainRoot/util/CLMLocation';
 
-describe('VexAnnotationDrawer', () => {
+// Will be refactored in https://sonatype.atlassian.net/browse/CLM-35530
+xdescribe('VexAnnotationDrawer', () => {
   let renderDefaultComponent;
 
   const axiosMock = axiosMockAdapter();

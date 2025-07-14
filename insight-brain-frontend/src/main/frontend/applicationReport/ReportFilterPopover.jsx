@@ -7,6 +7,7 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { equals, head, last, map, range, reduce, reject } from 'ramda';
 
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import { NxDrawer, NxStatefulTreeViewMultiSelect } from '@sonatype/react-shared-components';
 import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
 import { policyTypes } from 'MainRoot/dashboard/filter/staticFilterEntries';
@@ -137,7 +138,7 @@ export default function ReportFilterPopover() {
   };
 
   return (
-    <NxDrawer
+    <PortalDrawer
       open={showFilterPopover}
       id="iq-component-filter-popover"
       aria-labelledby="application-report-filter-drawer"
@@ -219,6 +220,6 @@ export default function ReportFilterPopover() {
           <span>Policy Threat Level</span>
         </IqTreeViewPolicyThreatSlider>
       </NxDrawer.Content>
-    </NxDrawer>
+    </PortalDrawer>
   );
 }

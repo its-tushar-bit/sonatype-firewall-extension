@@ -5,10 +5,18 @@
  */
 import React from 'react';
 import moment from 'moment';
-import { fireEvent, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
-import { axiosMockAdapter, screen, render, waitFor } from 'TestRoot/SpecUtil';
+import {
+  axiosMockAdapter,
+  screen,
+  render,
+  waitFor,
+  setupPortalContainer,
+  removePortalContainer,
+  fireEvent,
+  within,
+} from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
 
 import {
   getApplicationSummaryUrl,
@@ -25,10 +33,6 @@ import {
   COMPONENTS_PER_PAGE,
   SORT_BY_FIELDS,
 } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
-import {
-  cleanUpComponentsFilterDrawerPortalContainer,
-  setupComponentsFilterDrawerPortalContainer,
-} from './billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer.jestspec';
 
 describe('BillOfMaterials Page', () => {
   let axiosMock, renderPage;
@@ -138,8 +142,10 @@ describe('BillOfMaterials Page', () => {
     false,
   ]);
 
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
+
   beforeEach(() => {
-    setupComponentsFilterDrawerPortalContainer();
     axiosMock = axiosMockAdapter();
 
     const preloadedState = {
@@ -168,10 +174,6 @@ describe('BillOfMaterials Page', () => {
 
     renderPage = (additionalPreloadedState = {}) =>
       render(<BillOfMaterials />, { preloadedState: { ...preloadedState, ...additionalPreloadedState } });
-  });
-
-  afterEach(() => {
-    cleanUpComponentsFilterDrawerPortalContainer();
   });
 
   it('renders page content', async () => {

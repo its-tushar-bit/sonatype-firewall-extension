@@ -104,7 +104,7 @@ describe('IqAssociationEditor', () => {
     const fieldSet = screen.getByRole('group', {
       name: /label/i,
     });
-    const icons = fieldSet.querySelectorAll("[data-icon='ad']");
+    const icons = within(fieldSet).getAllByRole('img', { hidden: true });
 
     expect(icons[0]).toBeVisible();
     expect(icons[0]).toHaveClassName(`nx-selectable-color--${angularToRscColorMap[minimalProps.items[0].color]}`);

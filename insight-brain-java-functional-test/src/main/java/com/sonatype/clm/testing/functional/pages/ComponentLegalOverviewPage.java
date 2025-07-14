@@ -295,6 +295,6 @@ public class ComponentLegalOverviewPage
   }
 
   public static SelenideElement backLink() {
-    return $(".nx-back-button");
+    return $(".nx-back-button .nx-text-link");
   }
 }

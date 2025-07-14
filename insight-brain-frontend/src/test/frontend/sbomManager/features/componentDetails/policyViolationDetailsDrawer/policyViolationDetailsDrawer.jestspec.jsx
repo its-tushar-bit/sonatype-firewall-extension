@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, waitFor } from 'TestRoot/SpecUtil';
+import { removePortalContainer, render, screen, setupPortalContainer, waitFor } from 'TestRoot/SpecUtil';
 
 import PolicyViolationDetailsDrawer from 'MainRoot/sbomManager/features/componentDetails/policyViolationDetailsDrawer/PolicyViolationDetailsDrawer';
 
@@ -32,6 +32,9 @@ describe('PolicyViolationDetailsDrawer', () => {
     identifier: 'VULNERABILITY-ID',
     description: 'vulnerability-details-mock-description',
   });
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     initialState = Object.freeze({

@@ -7,7 +7,14 @@ import React from 'react';
 import { screen, fireEvent, queryByText } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
+import {
+  axiosMockAdapter,
+  removePortalContainer,
+  render,
+  setupPortalContainer,
+  waitFor,
+  within,
+} from 'TestRoot/SpecUtil';
 import {
   getApplicationSummaryUrl,
   getSbomComponentDetailsUrl,
@@ -442,9 +449,6 @@ describe('ComponentDetailsPage', () => {
     ],
   };
 
-  const getVexDrawerSubmitButton = (container) =>
-    container.querySelector('.vex-annotation-drawer__form__submit-button');
-
   const openDeleteAnnotationModal = async () => {
     renderPage();
 
@@ -492,6 +496,21 @@ describe('ComponentDetailsPage', () => {
 
     return dialog;
   };
+
+  const getVexDialog = async () => {
+    let dialog;
+    await waitFor(async () => {
+      // There are 2 dialogs, one for the vulnerability details and one for the VEX annotations
+      dialog = screen.getAllByRole('dialog', { hidden: true })[1];
+      expect(dialog).toBeInTheDocument();
+      await fireEvent.animationEnd(dialog);
+    });
+
+    return dialog;
+  };
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     const preloadedState = {
@@ -734,7 +753,8 @@ describe('ComponentDetailsPage', () => {
     axiosMock
       .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
-    const { container } = renderPage();
+
+    renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -745,14 +765,13 @@ describe('ComponentDetailsPage', () => {
     expect(editButton).toBeVisible();
     fireEvent.click(editButton);
 
-    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
-    expect(
-      queryByText(container.querySelector('.vex-annotation-drawer__form__details'), 'Unreachable code')
-    ).toBeInTheDocument();
-    const closeButton = container.querySelector('header .nx-icon--close');
+    const dialog = await getVexDialog();
+    expect(dialog).toHaveTextContent('Annotate sonatype-2018-0863');
+    expect(dialog).toHaveTextContent('Unreachable code');
+    const closeButton = within(dialog).getByRole('button', { name: 'Close' });
     expect(closeButton).toBeInTheDocument();
     fireEvent.click(closeButton);
-    expect(screen.queryByRole('complementary')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('should open Vex annotation drawer and save form successfully', async () => {
@@ -771,7 +790,7 @@ describe('ComponentDetailsPage', () => {
       .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
 
-    const { container } = renderPage();
+    renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -782,8 +801,10 @@ describe('ComponentDetailsPage', () => {
     expect(editButton).toBeVisible();
     fireEvent.click(editButton);
 
-    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
-    const saveButton = getVexDrawerSubmitButton(container);
+    const dialog = await getVexDialog();
+    expect(dialog).toHaveTextContent('Annotate sonatype-2018-0863');
+
+    const saveButton = within(dialog).getByRole('button', { name: 'Update' });
     expect(saveButton).toBeInTheDocument();
     fireEvent.click(saveButton);
     await waitFor(() => expect(screen.getByText(/Success/)).toBeInTheDocument());
@@ -948,7 +969,7 @@ describe('ComponentDetailsPage', () => {
       .onGet(getSbomPolicyViolationReportUrl(applicationInternalId, sbomVersion, fileCoordinateId, componentHash))
       .reply(200, mockSbomPolicyViolationReport);
 
-    const { container } = renderPage();
+    renderPage();
 
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
@@ -959,11 +980,13 @@ describe('ComponentDetailsPage', () => {
     expect(editButton).toBeVisible();
     fireEvent.click(editButton);
 
-    expect(queryByText(container, 'Annotate sonatype-2018-0863')).toBeInTheDocument();
-    expect(queryByText(container, /An error occurred loading data./)).toBeInTheDocument();
-    expect(queryByText(container, /Please retry./)).toBeInTheDocument();
-    const retryButton = queryByText(container.querySelector('.vex-annotation-drawer .nx-drawer-content'), 'Retry');
-    expect(retryButton).toBeInTheDocument();
+    const dialog = await getVexDialog();
+
+    expect(dialog).toHaveTextContent('Annotate sonatype-2018-0863');
+    expect(dialog).toHaveTextContent(/An error occurred loading data./);
+
+    // 2 retry buttons, 1 in the dialog content and 1 in the footer
+    expect(within(dialog).getAllByRole('button', { name: 'Retry' })).toHaveLength(2);
   });
 
   it('shows error when the SBOM Manager license is disabled', async () => {

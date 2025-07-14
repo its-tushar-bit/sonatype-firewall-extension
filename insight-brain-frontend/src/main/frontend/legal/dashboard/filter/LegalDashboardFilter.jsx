@@ -5,6 +5,7 @@
  */
 import React, { Fragment } from 'react';
 import { NxDrawer, NxErrorAlert, NxStatefulTreeViewMultiSelect, NxFooter } from '@sonatype/react-shared-components';
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import LoadWrapper from '../../../react/LoadWrapper';
 import IqOrgAppPicker from '../../../components/iqOrgAppPicker/IqOrgAppPicker';
 import Hexagon from '../../../react/Hexagon';
@@ -93,7 +94,7 @@ export default function LegalDashboardFilter(props) {
     <>
       {showSaveFilterModal && <SaveLegalFilterModalContainer />}
       {showDeleteFilterModal && <DeleteLegalFilterModalContainer />}
-      <NxDrawer
+      <PortalDrawer
         id="iq-legal-dashboard-filter-drawer"
         open={filterSidebarOpen}
         onClose={handleCloseBtnClick}
@@ -188,7 +189,7 @@ export default function LegalDashboardFilter(props) {
             }}
           />
         </NxFooter>
-      </NxDrawer>
+      </PortalDrawer>
     </>
   );
 }

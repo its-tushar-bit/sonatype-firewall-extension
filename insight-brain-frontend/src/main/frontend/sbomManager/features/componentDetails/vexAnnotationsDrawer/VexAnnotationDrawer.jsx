@@ -42,6 +42,7 @@ import {
 import cx from 'classnames';
 import { formatDate } from 'MainRoot/util/dateUtils';
 import VexAnnotationDrawerHeader from 'MainRoot/sbomManager/features/componentDetails/vexAnnotationsDrawer/VexAnnotationDrawerHeader';
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 
 export default function VexAnnotationDrawer(props) {
   const {
@@ -485,12 +486,13 @@ export default function VexAnnotationDrawer(props) {
   };
 
   return (
-    <NxDrawer
+    <PortalDrawer
       size="medium"
       id="vex-annotation-popover"
       className="vex-annotation-drawer"
       onClose={onClose}
       open={isDrawerOpen}
+      aria-label={`Annotate ${issue}`}
     >
       <NxDrawer.Header>
         <VexAnnotationDrawerHeader
@@ -559,7 +561,7 @@ export default function VexAnnotationDrawer(props) {
           </NxButton>
         </div>
       </NxFooter>
-    </NxDrawer>
+    </PortalDrawer>
   );
 }
 

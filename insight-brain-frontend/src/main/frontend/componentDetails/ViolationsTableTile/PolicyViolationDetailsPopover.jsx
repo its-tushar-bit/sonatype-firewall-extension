@@ -15,6 +15,7 @@ import {
   NxPolicyViolationIndicator,
 } from '@sonatype/react-shared-components';
 
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import ViolationPageContainer from 'MainRoot/violation/ViolationPageContainer';
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
 import AddOrRequestWaiverButton from 'MainRoot/waivers/AddOrRequestWaiverButton';
@@ -87,7 +88,7 @@ export default function PolicyViolationDetailsPopover() {
   }, []);
 
   return (
-    <NxDrawer
+    <PortalDrawer
       id="component-details-policy-violations-popover"
       aria-labelledby="policy-violation-details-popover-title"
       open={isViolationsDetailPopoverOpen}
@@ -131,6 +132,6 @@ export default function PolicyViolationDetailsPopover() {
           </NxButtonBar>
         ) : null}
       </NxFooter>
-    </NxDrawer>
+    </PortalDrawer>
   );
 }

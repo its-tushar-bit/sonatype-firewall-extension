@@ -11,6 +11,9 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 
+import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Selenide.$$;
+
 public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
 {
   public static final String ROOT = "legal-dashboard";
@@ -113,7 +116,7 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   }
 
   public ElementsCollection filterCollapsibleItems() {
-    return children(".nx-collapsible-items");
+    return $$("#iq-legal-dashboard-filter-drawer .nx-collapsible-items");
   }
 
   public SelenideElement createAttributionReportButton() {
@@ -145,6 +148,6 @@ public class LegalDashboardPage extends BasicElement<LegalDashboardPage>
   }
 
   public SelenideElement filterApplyButton() {
-    return child("#legal-dashboard-filter-apply");
+    return $("#legal-dashboard-filter-apply");
   }
 }

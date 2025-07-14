@@ -13,6 +13,7 @@ import {
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
 
 import selectContainerRepositoryResultsPage from '../containerRepositoryResultsPageSelectors';
@@ -48,7 +49,7 @@ const ContainerRepositoryResultsFilterDrawer = () => {
   };
 
   return (
-    <NxDrawer
+    <PortalDrawer
       id="container-results-filter-drawer"
       data-testid="container-results-filter-drawer"
       aria-labelledby="container-results-filter-drawer-header"
@@ -94,7 +95,7 @@ const ContainerRepositoryResultsFilterDrawer = () => {
           </NxButton>
         </NxButtonBar>
       </NxFooter>
-    </NxDrawer>
+    </PortalDrawer>
   );
 };
 

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen } from 'TestRoot/SpecUtil';
+import { removePortalContainer, render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
 import PolicyViolationDetailsPopover from 'MainRoot/componentDetails/ViolationsTableTile/PolicyViolationDetailsPopover';
 
 import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyViolationsSlice';
@@ -12,6 +12,9 @@ import { actions } from 'MainRoot/componentDetails/ViolationsTableTile/policyVio
 describe('PolicyViolationDetailsPopover', () => {
   let renderComponent, state;
   const violationId = 'violationId';
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     state = {

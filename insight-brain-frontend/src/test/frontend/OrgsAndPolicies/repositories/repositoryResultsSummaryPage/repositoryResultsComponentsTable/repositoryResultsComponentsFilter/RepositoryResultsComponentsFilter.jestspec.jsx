@@ -6,7 +6,7 @@
 
 import React from 'react';
 import userEvent from '@testing-library/user-event';
-import { getAllByRole, render, screen } from 'TestRoot/SpecUtil';
+import { getAllByRole, removePortalContainer, render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
 import RepositoryResultsComponentsFilter from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsComponentsTable/repositoryResultsComponentsFilter/RepositoryResultsComponentsFilter';
 import { actions as repositoryComponentsActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSlice';
 import { fireEvent } from '@testing-library/react';
@@ -31,6 +31,9 @@ describe('RepositoryResultsComponentsFilter', () => {
     const drawer = screen.getByRole('dialog', { hidden: true });
     fireEvent.animationEnd(drawer);
   }
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     applyFiltersSpy = jest.spyOn(repositoryComponentsActions, 'applyFilters');

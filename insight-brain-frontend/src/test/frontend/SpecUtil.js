@@ -567,16 +567,62 @@ export function mockInterceptionObserver() {
   global.IntersectionObserver = IntersectionObserver;
 }
 
+/* * Sets up the portal container structure in the document body.
+ * The DOM is structured as follows:
+body
+└── div.nx-page (pageRoot)
+    └── div#iq-content (contentRoot)
+        └── div#iq-footer-container (footerRoot)
+            └── main.nx-page-main (main)
+                ├── div#menu-bar__back-button-container (backButtonRoot)
+                └── div#menu-bar__bread-crumb-container (breadcrumbRoot)
+ */
 export const setupPortalContainer = () => {
+  const main = global.document.createElement('main');
+  main.setAttribute('class', 'nx-page-main');
+
   const backButtonRoot = global.document.createElement('div');
   backButtonRoot.setAttribute('id', 'menu-bar__back-button-container');
+
+  const breadcrumbRoot = global.document.createElement('div');
+  breadcrumbRoot.setAttribute('id', 'menu-bar__bread-crumb-container');
+
+  const pageRoot = global.document.createElement('div');
+  pageRoot.setAttribute('class', 'nx-page');
+
+  const contentRoot = global.document.createElement('div');
+  contentRoot.setAttribute('id', 'iq-content');
+
+  const footerRoot = global.document.createElement('div');
+  footerRoot.setAttribute('id', 'iq-footer-container');
+
   const body = global.document.querySelector('body');
-  body.appendChild(backButtonRoot);
+  body.appendChild(pageRoot);
+  pageRoot.appendChild(contentRoot);
+  contentRoot.appendChild(footerRoot);
+  footerRoot.appendChild(main);
+  main.appendChild(backButtonRoot);
+  main.appendChild(breadcrumbRoot);
 };
 
 export const removePortalContainer = () => {
+  const main = global.document.querySelector('.nx-page-main');
+  main?.remove();
+
   const backButtonRoot = global.document.querySelector('#menu-bar__back-button-container');
-  backButtonRoot && backButtonRoot.remove();
+  backButtonRoot?.remove();
+
+  const breadcrumbRoot = global.document.querySelector('#menu-bar__bread-crumb-container');
+  breadcrumbRoot?.remove();
+
+  const pageRoot = global.document.querySelector('.nx-page');
+  pageRoot?.remove();
+
+  const contentRoot = global.document.querySelector('#iq-content');
+  contentRoot?.remove();
+
+  const footerRoot = global.document.querySelector('#iq-footer-container');
+  footerRoot?.remove();
 };
 
 export const getSpecUtil = () => window.SpecUtil;

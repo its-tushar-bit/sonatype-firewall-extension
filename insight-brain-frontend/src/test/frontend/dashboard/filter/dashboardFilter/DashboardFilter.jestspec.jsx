@@ -14,6 +14,8 @@ import {
   fireEvent,
   waitFor,
   waitForElementToBeRemoved,
+  setupPortalContainer,
+  removePortalContainer,
 } from 'TestRoot/SpecUtil';
 import {
   ages,
@@ -43,6 +45,9 @@ describe('DashboardFilter', () => {
   const group1Id = 'group-id-1';
 
   let axiosMock, selectIsAutoWaiversSpy;
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     selectIsAutoWaiversSpy = jest.spyOn(productFeaturesSelectors, 'selectIsAutoWaiversEnabled').mockReturnValue(true);

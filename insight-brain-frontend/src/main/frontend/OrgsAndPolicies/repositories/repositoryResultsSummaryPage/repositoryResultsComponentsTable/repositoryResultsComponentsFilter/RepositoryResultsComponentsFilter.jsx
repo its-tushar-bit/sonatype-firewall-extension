@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import IqPopover from 'MainRoot/react/IqPopover';
 import {
   NxButton,
   NxButtonBar,
@@ -22,6 +21,7 @@ import {
 import { actions } from '../../repositoryResultsSummaryPageSlice';
 import * as PropTypes from 'prop-types';
 import IqTreeViewPolicyThreatSlider from 'MainRoot/react/IqTreeViewPolicyThreatSlider';
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 
 const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   const dispatch = useDispatch();
@@ -56,7 +56,7 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
   const changeThreatLevelFilters = (payload) => dispatch(actions.changeThreatLevelFilters(payload));
 
   return (
-    <NxDrawer
+    <PortalDrawer
       id="iq-summary-page-components-filter"
       variant="narrow"
       data-testid="components-filter-popover"
@@ -107,7 +107,7 @@ const RepositoryResultsComponentsFilter = ({ repositoryId }) => {
           </NxButton>
         </NxButtonBar>
       </NxFooter>
-    </NxDrawer>
+    </PortalDrawer>
   );
 };
 

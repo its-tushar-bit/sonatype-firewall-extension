@@ -23,6 +23,7 @@ import { selectSbomComponentDetails, selectInternalAppId } from '../componentDet
 import SbomManagerViolationDetailsTile from './SbomManagerViolationDetailsTile';
 
 import './PolicyViolationDetailsDrawer.scss';
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 
 export default function PolicyViolationDetailsDrawer() {
   const dispatch = useDispatch();
@@ -107,7 +108,7 @@ export default function PolicyViolationDetailsDrawer() {
   ) : null;
 
   return (
-    <NxDrawer
+    <PortalDrawer
       id="sbom-manager-policy-violation-details-drawer"
       className="sbom-manager-policy-violation-details-drawer"
       aria-labelledby="policy-violation-details-drawer-title"
@@ -115,6 +116,6 @@ export default function PolicyViolationDetailsDrawer() {
       onClose={() => hideDrawer()}
     >
       {drawerContent}
-    </NxDrawer>
+    </PortalDrawer>
   );
 }

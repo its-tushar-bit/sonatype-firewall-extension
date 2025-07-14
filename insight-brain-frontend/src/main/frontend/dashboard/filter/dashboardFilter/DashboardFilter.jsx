@@ -21,6 +21,7 @@ import LoadWrapper from '../../../react/LoadWrapper';
 import Hexagon from '../../../react/Hexagon';
 import { filterToJson } from '../dashboardFilterService';
 
+import PortalDrawer from 'MainRoot/react/PortalDrawer';
 import DashboardFilterFooter from './DashboardFilterFooter';
 import SaveFilterModalContainer from '../saveFilterModal/SaveFilterModalContainer';
 import ManageFiltersDropdown from '../manageFiltersDropdown/ManageFiltersDropdown';
@@ -163,7 +164,7 @@ export default function DashboardFilter() {
     <>
       {showSaveFilterModal && <SaveFilterModalContainer />}
       {showDeleteFilterModal && <DeleteFilterModalContainer />}
-      <NxDrawer
+      <PortalDrawer
         id="dashboard-filter-container"
         open={filterSidebarOpen}
         onClose={handleCloseBtnClick}
@@ -321,7 +322,7 @@ export default function DashboardFilter() {
             }}
           />
         </NxFooter>
-      </NxDrawer>
+      </PortalDrawer>
     </>
   );
 

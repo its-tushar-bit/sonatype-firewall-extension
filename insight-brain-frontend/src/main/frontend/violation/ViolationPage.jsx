@@ -27,6 +27,7 @@ import { indexOf } from 'ramda';
 import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile';
 import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 import ListSimilarWaiversTable from 'MainRoot/waivers/ListSimilarWaiversTable';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
 
 // TABS
 const VULNERABILITY_DETAILS = 'VULNERABILITY_DETAILS';
@@ -152,6 +153,7 @@ export default function ViolationPage(props) {
 
   return (
     <div id="violation-page">
+      {!isFromPolicyViolations && <MenuBarBackButton stateName="dashboard.overview.violations" />}
       <InvalidViolationGuard violationMissingDatabaseIdentifier={violationMissingDatabaseIdentifier}>
         <LoadWrapper error={error} loading={violationLoading} retryHandler={load}>
           <ViolationDetailsTile

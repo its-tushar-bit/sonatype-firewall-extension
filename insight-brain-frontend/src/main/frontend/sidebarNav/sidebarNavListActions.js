@@ -7,8 +7,7 @@
 import { loadFilter } from '../dashboard/filter/dashboardFilterActions';
 import { payloadParamActionCreator } from '../util/reduxUtil';
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
-import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 export const LOAD_SIDEBAR_NAV_LIST_REQUESTED = 'LOAD_SIDEBAR_NAV_LIST_REQUESTED';
 export const LOAD_SIDEBAR_NAV_LIST_FULFILLED = 'LOAD_SIDEBAR_NAV_LIST_FULFILLED';
@@ -57,7 +56,6 @@ function loadViolations(dispatch, getState, sidebarReference) {
         loadSidebarNavListFulfilled({
           data: dashboard.violations.results,
           contentType: 'violations',
-          backButtonStateName: 'dashboard.overview.violations',
         })
       );
     })
@@ -75,10 +73,6 @@ function loadWaivers(dispatch, getState, sidebarReference) {
       return dispatch(loadSidebarNavListFailed(`Unknown sidebarReference: ${sidebarReference}`));
   }
 
-  const state = getState();
-  const isStandaloneFirewall = selectIsStandaloneFirewall(state);
-  const backButtonStateName = isStandaloneFirewall ? FIREWALL_FIREWALLPAGE_WAIVERS : 'dashboard.overview.waivers';
-
   return filterPromise
     .then(() => {
       const state = getState();
@@ -87,7 +81,6 @@ function loadWaivers(dispatch, getState, sidebarReference) {
         loadSidebarNavListFulfilled({
           data: dashboard.waivers.results,
           contentType: 'waivers',
-          backButtonStateName: backButtonStateName,
         })
       );
     })

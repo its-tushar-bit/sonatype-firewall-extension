@@ -6,7 +6,6 @@
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 
-import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
 import LoadWrapper from '../react/LoadWrapper';
 import SidebarNavViolationList, { SidebarViolationDataType } from './SidebarNavViolationList';
 import SidebarNavWaiversList, {
@@ -23,7 +22,6 @@ export default function SidebarNavList(props) {
     goToWaiverWithType,
     data,
     contentType,
-    backButtonStateName,
     stateParams,
     prevParams,
     scrollToSelection,
@@ -73,7 +71,6 @@ export default function SidebarNavList(props) {
 
   return (
     <aside id="sidebar-nav-list" className="nx-viewport-sized__container">
-      {backButtonStateName && <MenuBarBackButton stateName={backButtonStateName} />}
       <LoadWrapper error={error} loading={loading} retryHandler={load}>
         <h4 className="nx-h4">{contentType}</h4>
         <div className="nx-scrollable nx-scrollable--nav-list nx-viewport-sized__scrollable">
@@ -88,7 +85,6 @@ SidebarNavList.propTypes = {
   loadSidebarNav: PropTypes.func.isRequired,
   gotoNewVulnerability: PropTypes.func.isRequired,
   goToWaiverWithType: PropTypes.func.isRequired,
-  backButtonStateName: PropTypes.string,
   contentType: PropTypes.string,
   loading: PropTypes.bool.isRequired,
   error: LoadWrapper.propTypes.error,

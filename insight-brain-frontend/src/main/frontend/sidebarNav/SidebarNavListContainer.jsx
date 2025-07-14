@@ -8,26 +8,21 @@ import { connect } from 'react-redux';
 
 import { gotoNewVulnerability, goToWaiverWithType, loadSidebarNav } from './sidebarNavListActions';
 import SidebarNavList from './SidebarNavList';
-import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { FIREWALL_FIREWALLPAGE_WAIVERS, FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
+import { FIREWALL_WAIVER_DETAILS } from 'MainRoot/constants/states';
 
 function mapStateToProps(state) {
   const { sidebarNavList, router, violation, waiverDetails } = state;
 
-  const isStandaloneFirewall = selectIsStandaloneFirewall(state);
-
-  let props = pick(['data', 'error', 'loading', 'contentType', 'backButtonStateName'], sidebarNavList);
+  let props = pick(['data', 'error', 'loading', 'contentType'], sidebarNavList);
 
   const whenCond = (cond, fn) => (cond ? fn() : props);
 
   const whenNoContentType = (fn) => whenCond(!props.contentType, fn);
-  const getProps = (data, contentType, backButtonStateName, loading = false, error = null) =>
-    whenCond(data, always({ data: [data], loading, contentType, backButtonStateName, error }));
-  const waiversBackButtonStateName = isStandaloneFirewall
-    ? FIREWALL_FIREWALLPAGE_WAIVERS
-    : 'dashboard.overview.waivers';
-  const getWaiverProps = (data) => getProps(data, 'waivers', waiversBackButtonStateName);
-  const getViolationProps = (data) => getProps(data, 'violations', 'dashboard.overview.violations');
+  const getProps = (data, contentType, loading = false, error = null) =>
+    whenCond(data, always({ data: [data], loading, contentType, error }));
+
+  const getWaiverProps = (data) => getProps(data, 'waivers');
+  const getViolationProps = (data) => getProps(data, 'violations');
 
   props = whenNoContentType(() => {
     const currentStateName = router.currentState.name;

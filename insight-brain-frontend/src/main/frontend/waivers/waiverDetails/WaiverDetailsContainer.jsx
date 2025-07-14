@@ -5,17 +5,31 @@
  */
 import React from 'react';
 import { useSelector } from 'react-redux';
-import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectRouterCurrentParams,
+  selectCurrentRouteName,
+  selectIsStandaloneFirewall,
+} from 'MainRoot/reduxUiRouter/routerSelectors';
 import WaiverDetails from './WaiverDetails';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
+import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { FIREWALL_FIREWALLPAGE_WAIVERS } from 'MainRoot/constants/states';
 
 export default function WaiverDetailsContainer() {
   const currentRouteName = useSelector(selectCurrentRouteName);
   const routerCurrentParams = useSelector(selectRouterCurrentParams);
+  const isStandaloneFirewall = useSelector(selectIsStandaloneFirewall);
 
-  if (currentRouteName === 'waiver.details' && routerCurrentParams?.type === 'autoWaiver') {
-    return <AutoWaiverDetails />;
-  }
+  const waiversBackButtonStateName = isStandaloneFirewall
+    ? FIREWALL_FIREWALLPAGE_WAIVERS
+    : 'dashboard.overview.waivers';
 
-  return <WaiverDetails />;
+  const showAutoWaiverDetails = currentRouteName === 'waiver.details' && routerCurrentParams?.type === 'autoWaiver';
+
+  return (
+    <>
+      <MenuBarBackButton stateName={waiversBackButtonStateName} />
+      {showAutoWaiverDetails ? <AutoWaiverDetails /> : <WaiverDetails />}
+    </>
+  );
 }

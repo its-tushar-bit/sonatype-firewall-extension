@@ -5,9 +5,10 @@
  */
 
 import React from 'react';
-import { render, screen, within } from 'TestRoot/SpecUtil';
+import { removePortalContainer, render, screen, setupPortalContainer, within } from 'TestRoot/SpecUtil';
 import ViolationPage, { MISSING_VIOLATION_ID_MESSAGE_TEXT } from 'MainRoot/violation/ViolationPage';
 import { always } from 'ramda';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('ViolationPage', () => {
   let minimalProps,
@@ -16,9 +17,21 @@ describe('ViolationPage', () => {
     stateGoSpy,
     loadFirewallPolicyVulnerabilityDetailsSpy,
     loadFirewallViolationDetailsSpy,
-    loadSimilarWaiversSpy;
+    loadSimilarWaiversSpy,
+    routerContextMock;
+
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
 
   beforeEach(function () {
+    routerContextMock = {
+      href: jest.fn('href').mockImplementation(() => '#/dashboard/violations'),
+      get: jest.fn('get').mockImplementation((state) => state),
+      includes: jest.fn(),
+    };
+
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
+
     loadViolationSpy = jest.fn();
     fetchStageTypesSpy = jest.fn();
     stateGoSpy = jest.fn();
@@ -71,6 +84,19 @@ describe('ViolationPage', () => {
   it('calls loadFirewallViolationDetails with params --temp', function () {
     renderComponent({ isFirewallContext: true });
     expect(loadFirewallViolationDetailsSpy).toHaveBeenCalledWith('02a6107559a94c39b04d4ec8374b9508');
+  });
+
+  it('renders a back button with correct href', () => {
+    renderComponent();
+    const backButton = screen.getByRole('link');
+    expect(backButton).toBeInTheDocument();
+    expect(backButton).toHaveAttribute('href', '#/dashboard/violations');
+  });
+
+  it('does not render a back button if isFromPolicyViolations is true', () => {
+    renderComponent({ isFromPolicyViolations: true });
+    const backButton = screen.queryByRole('link');
+    expect(backButton).not.toBeInTheDocument();
   });
 
   describe('Tabs with no active waiver', () => {

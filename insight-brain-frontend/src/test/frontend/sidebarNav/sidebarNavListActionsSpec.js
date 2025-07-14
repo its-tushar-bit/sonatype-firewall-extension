@@ -135,7 +135,6 @@ describe('sidebarNavListActions', function () {
           expect(store.getActions()[2].payload).toEqual({
             data: null,
             contentType: 'violations',
-            backButtonStateName: 'dashboard.overview.violations',
           });
 
           done();
@@ -159,7 +158,6 @@ describe('sidebarNavListActions', function () {
           expect(store.getActions()[2].payload).toEqual({
             data: { foo: 'bar' },
             contentType: 'waivers',
-            backButtonStateName: 'dashboard.overview.waivers',
           });
 
           done();

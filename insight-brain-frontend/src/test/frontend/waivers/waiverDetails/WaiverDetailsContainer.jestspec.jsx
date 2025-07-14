@@ -5,11 +5,12 @@
  */
 import React from 'react';
 import WaiverDetailsContainer from 'MainRoot/waivers/waiverDetails/WaiverDetailsContainer';
-import { screen, render } from 'TestRoot/SpecUtil';
+import { screen, render, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
 import { set, lensPath } from 'ramda';
+import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('WaiverDetailsContainer', () => {
-  let renderComponent;
+  let renderComponent, routerContextMock;
 
   const defaultPreloadedState = {
     router: {
@@ -20,7 +21,23 @@ describe('WaiverDetailsContainer', () => {
     },
   };
 
+  beforeAll(() => setupPortalContainer());
+  afterAll(() => removePortalContainer());
+
   beforeEach(() => {
+    routerContextMock = {
+      href: jest.fn('href').mockImplementation((stateName) => {
+        if (stateName.includes('firewall')) {
+          return '#/malware-defense/dashboard/components/waivers';
+        }
+        return '#/dashboard/waivers';
+      }),
+      get: jest.fn('get').mockImplementation((state) => state),
+      includes: jest.fn(),
+    };
+
+    jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
+
     renderComponent = (preloadedState) =>
       render(<WaiverDetailsContainer />, { preloadedState: preloadedState || defaultPreloadedState });
   });
@@ -38,5 +55,25 @@ describe('WaiverDetailsContainer', () => {
     renderComponent(newState);
     expect(screen.getByTestId('waiver-details-page')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Waiver Detail View' })).toBeInTheDocument();
+  });
+
+  it('renders a back button with correct href for lifecycle', () => {
+    renderComponent();
+    const backButton = screen.getByRole('link');
+    expect(backButton).toBeInTheDocument();
+    expect(backButton).toHaveAttribute('href', '#/dashboard/waivers');
+  });
+
+  it('renders a back button with correct href for firewall', () => {
+    const firewallPreloadedState = set(
+      lensPath(['router', 'currentState', 'name']),
+      'firewall.firewallPage.components.waivers',
+      defaultPreloadedState
+    );
+
+    renderComponent(firewallPreloadedState);
+    const backButton = screen.getByRole('link');
+    expect(backButton).toBeInTheDocument();
+    expect(backButton).toHaveAttribute('href', '#/malware-defense/dashboard/components/waivers');
   });
 });

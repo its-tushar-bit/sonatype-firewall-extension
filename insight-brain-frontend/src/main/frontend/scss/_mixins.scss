@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 @use './variables' as *;
 
 // NOTE: Typography mixins are located in _typography.scss
@@ -95,5 +97,35 @@
   &:active:focus {
     color: var(--nx-color-link-active);
     outline: none;
+  }
+}
+
+// Dependency indicator coloring
+@mixin dependency-indicator-colors {
+  &.direct {
+    background: $iq-direct-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-direct-dependency-dark-mode;
+      color: $iq-off-black;
+    }
+  }
+
+  &.transitive {
+    background: $iq-transitive-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-transitive-dependency-dark-mode;
+      color: $iq-off-black;
+    }
+  }
+
+  &.inner-source {
+    background: $iq-inner-source-dependency-light-mode;
+    color: $iq-off-white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background: $iq-inner-source-dependency-dark-mode;
+      color: $iq-off-black;
+    }
   }
 }

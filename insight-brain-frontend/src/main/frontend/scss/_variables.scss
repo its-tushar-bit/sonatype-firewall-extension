@@ -40,14 +40,17 @@ $iq-link-color-disabled: var(--nx-color-link-disabled);
 
 $iq-dark-blue: #006bbf;
 $iq-light-blue: #97cbee;
+$iq-rich-blue: #3da7fb;
 
 $iq-dark-purple: #885195;
 $iq-light-purple: #dbc6df;
 $iq-medium-purple: #b087ba;
+$iq-rich-purple: #c38cd0;
 
 $iq-dark-green: #099843;
 $iq-light-green: #b6e9ab;
 $iq-light-turquoise: #11a499;
+$iq-rich-turquoise: #1fb4a9;
 
 $iq-dark-red: #bc012f;
 $iq-light-red: #edb1af;
@@ -72,6 +75,18 @@ $iq-fail-color-hover: #5d0000;
 $pickable-colors: ('dark-blue', $iq-dark-blue), ('light-blue', $iq-light-blue), ('dark-green', $iq-dark-green),
   ('light-green', $iq-light-green), ('orange', $iq-orange), ('dark-purple', $iq-dark-purple),
   ('light-purple', $iq-light-purple), ('dark-red', $iq-dark-red), ('light-red', $iq-light-red), ('yellow', $iq-yellow);
+
+/*
+  ##Dependency Indicator Colors
+*/
+
+$iq-direct-dependency-light-mode: $iq-dark-blue;
+$iq-transitive-dependency-light-mode: $iq-dark-purple;
+$iq-inner-source-dependency-light-mode: $iq-light-turquoise;
+
+$iq-direct-dependency-dark-mode: $iq-rich-blue;
+$iq-transitive-dependency-dark-mode: $iq-rich-purple;
+$iq-inner-source-dependency-dark-mode: $iq-rich-turquoise;
 
 /*
   ##Threat Colors

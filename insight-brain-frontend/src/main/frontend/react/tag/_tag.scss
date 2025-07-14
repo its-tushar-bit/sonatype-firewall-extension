@@ -5,8 +5,14 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+@use '../../scss/mixins' as *;
+@use '../../scss/variables' as *;
 
 .nx-tag {
+  @include dependency-indicator-colors;
+
   .nx-tag__text {
     @include nx-container-helpers.container-horizontal;
 
@@ -17,7 +23,12 @@
   }
 
   &.iq-component-format-tag {
+    color: $iq-off-black;
     background-color: white;
     border-color: white;
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-selectable-color-dark);
+      border-color: var(--nx-selectable-color-dark);
+    }
   }
 }

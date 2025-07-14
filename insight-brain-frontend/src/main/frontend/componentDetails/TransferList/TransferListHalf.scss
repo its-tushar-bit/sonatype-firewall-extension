@@ -37,7 +37,7 @@ $-visible-item-count: 10;
   $item-height: '(1em * var(--nx-line-height) + 2 * #{$-item-vertical-padding})';
   height: calc(#{$-visible-item-count} * #{$item-height} + #{$-visible-item-count - 1} * #{$-item-vertical-margin});
 
-  background-color: var(--nx-swatch-indigo-97);
+  background-color: var(--nx-color-transfer-list-item-list-background);
   border-top: var(--nx-border-default);
   border-bottom: var(--nx-border-default);
   box-sizing: content-box;

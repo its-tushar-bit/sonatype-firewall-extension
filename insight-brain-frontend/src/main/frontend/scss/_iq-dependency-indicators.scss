@@ -6,10 +6,12 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 
+@use './mixins' as *;
 @use './variables' as *;
 
 .iq-dependency-indicator {
   @include nx-text-helpers.bold;
+  @include dependency-indicator-colors;
 
   border-radius: 5px;
   color: $iq-off-white;
@@ -20,18 +22,6 @@
   text-align: center;
   width: 18px;
   min-width: 18px;
-
-  &.direct {
-    background: $iq-dark-blue;
-  }
-
-  &.transitive {
-    background: $iq-dark-purple;
-  }
-
-  &.inner-source {
-    background: $iq-light-turquoise;
-  }
 }
 
 .iq-dependency-indicator--long {

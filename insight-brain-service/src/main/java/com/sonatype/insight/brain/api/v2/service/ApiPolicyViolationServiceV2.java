@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
@@ -366,12 +367,11 @@ public class ApiPolicyViolationServiceV2
     return getTransitivePolicyViolations(stageIdLowercase, componentIdentifier, packageUrl, hash, policyEvaluations);
   }
 
-  @Authorize(permission = Permission.READ)
   public ApiPageResult<ContainerImageInQuarantineData> getContainerImagesInQuarantine(
       final int page,
       final int pageSize)
   {
-
+    checkReadPermission(RepositoryContainer.SINGLETON);
     long total = policyViolationDAO.getContainerImagesQuarantinedCount();
     List<ContainerImageInQuarantineData> containerImagesInQuarantine =
         policyViolationDAO.getContainerImagesInQuarantine(page, pageSize);
@@ -671,5 +671,9 @@ public class ApiPolicyViolationServiceV2
       results.add(result);
     }
     return results;
+  }
+
+  @Authorize(permission = Permission.READ)
+  void checkReadPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
   }
 }

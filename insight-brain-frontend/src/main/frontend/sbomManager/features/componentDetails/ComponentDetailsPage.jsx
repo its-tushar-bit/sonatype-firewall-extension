@@ -122,14 +122,10 @@ export default function ComponentDetailsPage() {
   const loadSbomComponentVulnerabilities = (vulnerability) =>
     dispatch(
       actions.loadVulnerabilityDetails({
-        vulnerability: { refId: vulnerability.issue, source: vulnerability.identificationSources },
-        componentIdentifier: componentDetails?.componentIdentifier,
-        extraParams: {
-          ownerId: applicationPublicId,
-          hash: componentDetails?.hash,
-          isRepository: false,
-          scanId: componentDetails?.metadata?.scanId,
-        },
+        internalAppId: internalAppId,
+        refId: vulnerability.issue,
+        sbomVersion: sbomVersion,
+        hash: componentDetails?.hash,
       })
     );
 

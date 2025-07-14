@@ -34,8 +34,10 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
+import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityDataDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
-import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityAnalysisService;
+import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityService;
+import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -87,20 +89,25 @@ public class ApiSbomResource
 
   public static final String SBOM_STATUS_PATH = SBOMS_APPLICATION_PATH + "/status/{importRequestId}";
 
-  public static final String SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH =
-      SBOM_VERSION_PATH + "/vulnerability/{refId}/analysis";
+  public static final String SBOM_VULNERABILITY_PATH = SBOM_VERSION_PATH + "/vulnerability/{refId}";
+
+  public static final String SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH = SBOM_VULNERABILITY_PATH + "/analysis";
 
   private final ApiSbomService apiSbomService;
 
-  private final ApiSbomVulnerabilityAnalysisService apiSbomVulnerabilityAnalysisService;
+  private final ApiSbomVulnerabilityService apiSbomVulnerabilityService;
+
+  private final VulnerabilityDetailsService vulnerabilityDetailsService;
 
   @Inject
   public ApiSbomResource(
       final ApiSbomService apiSbomService,
-      final ApiSbomVulnerabilityAnalysisService apiSbomVulnerabilityAnalysisService)
+      final ApiSbomVulnerabilityService apiSbomVulnerabilityService,
+      final VulnerabilityDetailsService vulnerabilityDetailsService)
   {
     this.apiSbomService = apiSbomService;
-    this.apiSbomVulnerabilityAnalysisService = apiSbomVulnerabilityAnalysisService;
+    this.apiSbomVulnerabilityService = apiSbomVulnerabilityService;
+    this.vulnerabilityDetailsService = vulnerabilityDetailsService;
   }
 
   @Operation(summary = "Delete sbom version",
@@ -318,6 +325,38 @@ public class ApiSbomResource
     return apiSbomService.getImportStatus(applicationId, importRequestId);
   }
 
+  @Operation(
+      description = "Use this method to retrieve details for a vulnerability belongs to a specific sbom version ",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains vulnerability details corresponding to the vulnerability",
+              content = @Content(mediaType = "application/json")),
+          @ApiResponse(responseCode = "404", description = "Target vulnerability not found")
+      })
+
+  @GET
+  @Path(SBOM_VULNERABILITY_PATH)
+  @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
+  @Produces({MediaType.APPLICATION_JSON})
+  public SecurityVulnerabilityDataDTO getVulnerabilityDetails(
+      @Parameter(description = "The internal id of the application", required = true)
+      @PathParam("applicationId") String applicationId,
+      @Parameter(description = "The version for a specific SBOM where the vulnerability " +
+          "is present", required = true)
+      @PathParam("version") String sbomVersion,
+      @Parameter(description = "The vulnerability id of a vulnerability", required = true)
+      @PathParam("refId") String refId,
+      @Parameter(description = "(One of packageUrl or componentHash is required) Enter the packageUrl " +
+          "of the component with the vulnerability")
+      @QueryParam("packageUrl") String packageUrl,
+      @Parameter(description = "(One of packageUrl or componentHash is required) Enter the componentHash " +
+          "of the component with the vulnerability")
+      @QueryParam("componentHash") String componentHash)
+  {
+    return apiSbomVulnerabilityService.getSecurityVulnerabilityDetailsDTO(applicationId, sbomVersion, refId,
+        packageUrl, componentHash);
+  }
+
   @Operation(summary = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
       description = "Updates a vulnerability analysis annotation for a specific SBOM vulnerability",
       responses = {
@@ -345,7 +384,7 @@ public class ApiSbomResource
       ApiSbomVulnerabilityAnalysisRequestDTO apiSbomVulnerabilityAnalysisRequestDto)
   {
     AuditData.get().setVulnerability(apiSbomVulnerabilityAnalysisRequestDto, refId);
-    return apiSbomVulnerabilityAnalysisService.saveVulnerabilityAnalysis(applicationId, sbomVersion, refId,
+    return apiSbomVulnerabilityService.saveVulnerabilityAnalysis(applicationId, sbomVersion, refId,
         apiSbomVulnerabilityAnalysisRequestDto);
   }
 
@@ -374,7 +413,7 @@ public class ApiSbomResource
       ComponentLocator componentLocator)
   {
     AuditData.get().setVulnerability(componentLocator, refId);
-    return apiSbomVulnerabilityAnalysisService.deleteVulnerabilityAnalysis(applicationId, sbomVersion, refId,
+    return apiSbomVulnerabilityService.deleteVulnerabilityAnalysis(applicationId, sbomVersion, refId,
         componentLocator);
   }
 }

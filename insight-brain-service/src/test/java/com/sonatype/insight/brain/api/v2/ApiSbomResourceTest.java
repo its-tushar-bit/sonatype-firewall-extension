@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequest
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.Response;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis.State;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityDataDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
@@ -995,6 +996,66 @@ public class ApiSbomResourceTest
         .delete();
 
     assertResponseStatus(Status.NO_CONTENT.getStatusCode(), response);
+  }
+
+  @Test
+  public void testGetVulnerabilityDetails_ByComponentHash() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    String refId = "CVE-123";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "file.tgz");
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
+            "pkg:npm/bloom@1.0");
+    tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical", "1.2.0");
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_PATH)
+        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
+        .query("componentHash", component.getHash())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    SecurityVulnerabilityDataDTO vulnerabilityDetails = response.getBody(SecurityVulnerabilityDataDTO.class);
+    assertThat(vulnerabilityDetails.identifier).isEqualTo(refId);
+    assertThat(vulnerabilityDetails.mainSeverity.score).isEqualTo(8.1f);
+  }
+
+  @Test
+  public void testGetVulnerabilityDetails_ByPackageUrl() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+    tempEntity.newThirdPartyScan(thirdPartyFile);
+    String refId = "CVE-123";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, "file.tgz");
+    ThirdPartyFileCoordinate component =
+        tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "ThirdParty", "npm", "bloom", "1.0", "hash001",
+            "pkg:npm/bloom@1.0");
+    tempEntity.newThirdPartyCoordinateSecurity(component, refId, "description", "link", 8.1, "Critical", "1.2.0");
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_PATH)
+        .parameter(sbomMetadata.getApplicationId(), sbomMetadata.getSbomVersion(), refId)
+        .query("packageUrl", component.getPackageUrl())
+        .get();
+
+    assertResponseStatus(Status.OK.getStatusCode(), response);
+    SecurityVulnerabilityDataDTO vulnerabilityDetails = response.getBody(SecurityVulnerabilityDataDTO.class);
+    assertThat(vulnerabilityDetails.identifier).isEqualTo(refId);
+    assertThat(vulnerabilityDetails.mainSeverity.score).isEqualTo(8.1f);
+  }
+
+  @Test
+  public void testGetVulnerabilityDetails_NotFound() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest().path(ApiSbomResource.SBOM_VULNERABILITY_PATH)
+        .parameter(app.getId(), "v1", "CVE-123")
+        .query("componentHash", "hash")
+        .get();
+
+    assertResponseStatus(Status.NOT_FOUND.getStatusCode(), response);
   }
 
   private static VulnerabilityAnalysis mockAnalysisRequest() {

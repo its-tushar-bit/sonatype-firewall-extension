@@ -5,7 +5,11 @@
  */
 
 .sbom-manager-policy-violation-details-drawer.nx-drawer {
-  width: 720px;
+  width: 820px;
+}
+
+.sbom-manager-policy-violation-details-drawer .sbom-vulnerability-details .nx-grid-row .nx-grid-col:first-child {
+  flex: 0.5;
 }
 
 #policy-violation-details-drawer-title {
@@ -65,4 +69,13 @@
 
 .sbom-manager-threat-level--critical {
   color: var(--nx-color-threat-critical);
+}
+
+#sbom-manager-policy-violation-details-drawer
+  #vulnerability-research-metadata-accordion
+  .nx-read-only__label
+  > .research-metadata-value-span {
+  font-weight: normal;
+  margin-left: var(--nx-spacing-2x);
+  float: none;
 }

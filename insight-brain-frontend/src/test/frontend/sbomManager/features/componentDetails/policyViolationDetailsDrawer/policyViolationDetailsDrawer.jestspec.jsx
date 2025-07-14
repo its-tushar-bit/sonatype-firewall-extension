@@ -29,6 +29,7 @@ describe('PolicyViolationDetailsDrawer', () => {
   });
 
   const mockVulnerabilityDetails = Object.freeze({
+    identifier: 'VULNERABILITY-ID',
     description: 'vulnerability-details-mock-description',
   });
 

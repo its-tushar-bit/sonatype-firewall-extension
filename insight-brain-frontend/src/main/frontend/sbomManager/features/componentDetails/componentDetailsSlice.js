@@ -35,11 +35,9 @@ import {
   getSbomVulnerabibilityAnalysisReferenceData,
   getSbomVulnerabilityAnnotationUrl,
   getSbomPolicyViolationReportUrl,
-  getVulnerabilityJsonDetailUrl,
-  getVulnerabilityOverrideUrl,
   getBillOfMaterialsComponentsUrl,
+  getSbomVulnerabilityDetailsUrl,
 } from 'MainRoot/util/CLMLocation';
-import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -290,54 +288,13 @@ const loadComponentDependencyTreeData = createAsyncThunk(
 
 const loadVulnerabilityDetails = createAsyncThunk(
   `${REDUCER_NAME}/loadVulnerabilityDetails`,
-  ({ componentIdentifier, vulnerability, extraParams }, { rejectWithValue }) => {
-    const { ownerId, hash, isRepositoryComponent, scanId } = extraParams;
-    const ownerType = isRepositoryComponent ? 'repository' : 'application';
-    const extraQueryParameters = {
-      ownerType,
-      ownerId,
-      scanId,
-      identificationSource: vulnerability.source,
-    };
-
-    const vulnerabilityJsonDetailUrl = getVulnerabilityJsonDetailUrl(
-      vulnerability.refId,
-      componentIdentifier,
-      extraQueryParameters
-    );
-    const vulnerabilityOverrideUrl = getVulnerabilityOverrideUrl(ownerType, ownerId, hash, vulnerability);
-
-    return axios
-      .all([axios.get(vulnerabilityJsonDetailUrl), axios.get(vulnerabilityOverrideUrl)])
-      .then(([{ data: vulnerabilityDetails }, { data: vulnerabilityOverride }]) => {
-        if (ownerType === 'application') {
-          return axios
-            .get(getApplicationSummaryUrl(ownerId))
-            .then(({ data }) => {
-              return checkPermissions(['WRITE'], ownerType, data.id);
-            })
-            .then(() => {
-              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment, hasEditIqPermission: true };
-            })
-            .catch(() => {
-              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
-            });
-        } else {
-          return checkPermissions(['WRITE'], 'repository', ownerId)
-            .then((_) => {
-              return {
-                ...vulnerabilityDetails,
-                comment: vulnerabilityOverride.comment,
-                hasEditIqPermission: true,
-                _,
-              };
-            })
-            .catch(() => {
-              return { ...vulnerabilityDetails, comment: vulnerabilityOverride.comment };
-            });
-        }
-      })
-      .catch(rejectWithValue);
+  async ({ internalAppId, sbomVersion, refId, hash }, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(getSbomVulnerabilityDetailsUrl(internalAppId, sbomVersion, refId, hash));
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
   }
 );
 

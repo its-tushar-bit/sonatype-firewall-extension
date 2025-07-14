@@ -19,7 +19,7 @@ import PolicyViolationConstraintInfo from 'MainRoot/violation/PolicyViolationCon
 import SbomVulnerabilityDetails from '../vulnerabilitiesDrawer/SbomVulnerabilityDetails';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { actions } from '../componentDetailsSlice';
-import { selectSbomComponentDetails, selectPolicyViolationDetailsDrawer } from '../componentDetailsSelector';
+import { selectSbomComponentDetails, selectInternalAppId } from '../componentDetailsSelector';
 import SbomManagerViolationDetailsTile from './SbomManagerViolationDetailsTile';
 
 import './PolicyViolationDetailsDrawer.scss';
@@ -35,10 +35,11 @@ export default function PolicyViolationDetailsDrawer() {
     loadVulnerabilityDetailError,
   } = useSelector(selectSbomComponentDetails);
   const routerParams = useSelector(selectRouterCurrentParams);
+  const internalAppId = useSelector(selectInternalAppId);
 
   const hideDrawer = () => dispatch(actions.hidePolicyViolationDetailsDrawer());
 
-  const { applicationPublicId } = routerParams;
+  const { sbomVersion, componentHash } = routerParams;
 
   const violation = (policy?.allViolations || policy?.activeViolations || []).find(
     (violation) => violation.policyViolationId === policyViolationId
@@ -55,13 +56,10 @@ export default function PolicyViolationDetailsDrawer() {
   const loadSbomComponentVulnerabilities = () =>
     dispatch(
       actions.loadVulnerabilityDetails({
-        vulnerability: { refId: vulnerabilityRefId },
-        componentIdentifier: componentDetails?.componentIdentifier,
-        extraParams: {
-          ownerId: applicationPublicId,
-          hash: componentDetails?.hash,
-          isRepository: false,
-        },
+        internalAppId: internalAppId,
+        sbomVersion: sbomVersion,
+        refId: vulnerabilityRefId,
+        hash: componentHash,
       })
     );
 

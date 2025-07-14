@@ -49,6 +49,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
+import static com.codeborne.selenide.Condition.partialText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -273,7 +274,6 @@ public class ComponentDetailsPageTest
     sbomManagerViolationDetailsTile.threatLevelValue().shouldHave(text("9"));
 
     sbomManagerViolationDetailsTile.policyTypeValue().shouldHave(text("Security"));
-
   }
 
   @Test
@@ -813,7 +813,7 @@ public class ComponentDetailsPageTest
     }
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "CVE-4812", null, "test vulnerability",
         "http://12345.xyz", 1.5d, "testUser", "source", "CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H", "testSeverity",
-        "12345", "m3", "r3", "a3", identificationSource, null, null);
+        "12345", "m3", "r3", "a3", identificationSource, "DEEP_DIVE", "PRIMARY");
 
     tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "sonatype-123", "test sonatype vulnerability",
         "http://sonatype.com", 9.6d, "testUser", "SONATYPE",
@@ -980,38 +980,40 @@ public class ComponentDetailsPageTest
     issueContent.shouldHave(text("CVE-4812"));
 
     SelenideElement severityContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(2);
-    severityContent.shouldHave(text("Unknown1.5"));
+    severityContent.shouldHave(text("CVE CVSS 31.5 CVE CVSS 2.00.0"));
 
     SelenideElement kevContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
     kevContent.shouldHave(text("Not listed"));
 
     SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
-    weaknessContent.shouldHave(text("CWE12345"));
+    weaknessContent.shouldHave(text("CVE CWE400"));
 
     SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
-    sourceContent.shouldHave(text("source"));
+    sourceContent.shouldHave(text("National Vulnerability Database"));
 
     SelenideElement explanationContent =
         vulnerabilityDetailsPopover.getVulnerabilityDetailsContentBySecondColumnIdx(1);
-    explanationContent.shouldHave(text("test vulnerability"));
+    explanationContent.shouldHave(partialText("In spring security versions prior to 5.4.11+"));
 
     SelenideElement recomendationContent = vulnerabilityDetailsPopover
         .getVulnerabilityDetailsContentBySecondColumnIdx(2);
-    recomendationContent.shouldHave(text("r3"));
+    recomendationContent.shouldHave(
+        partialText("The spring-security-web package is vulnerable to Authorization Bypass"));
 
     SelenideElement detectionContent = vulnerabilityDetailsPopover
         .getVulnerabilityDetailsContentBySecondColumnIdx(3);
-    detectionContent.shouldHave(text("a3"));
+    detectionContent.shouldHave(text("The application is vulnerable by using this component."));
 
     SelenideElement cdssDetailsContent = vulnerabilityDetailsPopover
         .getVulnerabilityDetailsContentBySecondColumnIdx(4);
-    cdssDetailsContent.shouldHave(text("CVSS VectorCVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
+    cdssDetailsContent.shouldHave(partialText("We recommend upgrading to a version of this component"));
   }
 
   public void assertVulnerabilityDetails(VulnerabilityDetailsPopover vulnerabilityDetailsPopover) {
     vulnerabilityDetailsPopover.popoverTitle().shouldHave(text("Vulnerability Details CVE-4812"));
     vulnerabilityDetailsPopover.packageUrl().shouldHave(text("pkg:maven/2/3@1.1"));
     vulnerabilityDetailsPopover.vulnerabilityId().shouldHave(text("CVE-4812"));
+    vulnerabilityDetailsPopover.getResearchTypeTag().shouldHave(text("Deep Dive")).shouldBe(visible);
 
     SelenideElement issueContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(1);
     issueContent.shouldHave(text("CVE-4812"));
@@ -1068,6 +1070,24 @@ public class ComponentDetailsPageTest
         .getVulnerabilityDetailsContentBySecondColumnIdx(7);
     cvssDetailsContent.shouldHave(text("CVE CVSS 31.5"));
     cvssDetailsContent.shouldHave(text("CVSS:3.0/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"));
+
+    vulnerabilityDetailsPopover.getResearchMetadataHeader().shouldHave(text("Vulnerability Research Metadata"))
+        .shouldBe(visible);
+    vulnerabilityDetailsPopover.getResearchMetadataHeader().click();
+    SelenideElement researchMetadataContent = vulnerabilityDetailsPopover.getResearchMetadataContent();
+    researchMetadataContent.shouldHave(text("Vulnerability Detection Type"));
+    researchMetadataContent.shouldHave(text("Primary"));
+    researchMetadataContent.shouldHave(
+        text("Research has validated the association between the component and the vulnerability."));
+    researchMetadataContent.shouldHave(text("Data Enrichment"));
+    researchMetadataContent.shouldHave(text("Sonatype Enhanced"));
+    researchMetadataContent.shouldHave(text(
+        "Sonatype Research has done additional research to confirm the association" +
+            " of the vulnerability to the component."));
+    researchMetadataContent.shouldHave(text("Detection Source"));
+    researchMetadataContent.shouldHave(text("Sonatype Identified"));
+    researchMetadataContent.shouldHave(text(
+        "The association between this vulnerability and the component was identified in Sonatype's data catalog."));
   }
 
   private void mockHdsResponseForVulnerabilityDetails() {

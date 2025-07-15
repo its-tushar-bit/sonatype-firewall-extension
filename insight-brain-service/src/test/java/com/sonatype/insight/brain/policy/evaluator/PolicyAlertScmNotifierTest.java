@@ -41,7 +41,6 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -330,9 +329,8 @@ public class PolicyAlertScmNotifierTest
     threadArgumentCaptor.getValue().join(millis);
   }
 
-  @Ignore("JIRA: CLM-34808")
   @Test
-  public void testSendNotification_formatIsNotSupported() {
+  public void testSendNotification_formatIsNotSupported() throws Exception {
     ComponentIdentifier unsupportedComponent =
         ComponentIdentifier.createContainerCoordinates("groupid", "Package1", "1.2.3");
 
@@ -343,8 +341,10 @@ public class PolicyAlertScmNotifierTest
     List<SourceControlEvent> all = sourceControlEventDAO.getAll();
     assertThat(all).isEmpty();
 
-    assertThat(logOutput).atDebugLevel()
-        .contains("Application '" + application.getPublicId() + "' not eligible for automated PR");
+    assertShutDownEventAndJoin(1000);
+    assertThat(logOutput).atDebugLevel().contains(
+        "Component '" + unsupportedComponent + "' in application '" + application.getPublicId() +
+            "' is not eligible for automated PR");
   }
 
   private List<PolicyNotification> buildPolicyNotification() {

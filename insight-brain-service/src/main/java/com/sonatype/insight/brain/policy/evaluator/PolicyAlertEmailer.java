@@ -86,7 +86,8 @@ public class PolicyAlertEmailer
       final String scanId,
       final Stage stage,
       final List<PolicyNotification> policyNotifications,
-      final int legacyViolationCount)
+      final int legacyViolationCount,
+      final boolean isForMonitoring)
   {
     if (!productLicense.hasFeature(LicensedFeature.NOTIFICATIONS)) {
       log.debug("Not sending notifications for application {} and scan {} in stage {}" +
@@ -120,7 +121,10 @@ public class PolicyAlertEmailer
               PolicyAlertCounts policyAlertCounts = new PolicyAlertCounts(details.getValue());
               AuditData.get().setData("totalPolicyViolationCount", policyAlertCounts.getTotal());
               StageType stageType = StageTypes.getById(stage.getStageTypeId());
-              final String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
+              String subject = createPolicyMailSubject(policyAlertCounts, app.getName(), stageType);
+              if (isForMonitoring) {
+                subject = "Continuous Monitoring: " + subject;
+              }
               Map<String, Object> baseModel =
                   createPolicyMailModel(getMail().getCdnUrl(), app, stageType, details.getValue());
               final String body;

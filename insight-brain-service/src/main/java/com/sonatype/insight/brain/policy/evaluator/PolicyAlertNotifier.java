@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -81,7 +80,8 @@ public class PolicyAlertNotifier
 
       try {
         policyAlertEmailer
-            .sendNotifications(app, scanId, stage, policyNotifications, legacyViolationPolicyCount);
+            .sendNotifications(app, scanId, stage, policyNotifications, legacyViolationPolicyCount,
+                results.evaluation.isForMonitoring());
       }
       catch (Exception e) {
         log.error("Email notification failed", e);

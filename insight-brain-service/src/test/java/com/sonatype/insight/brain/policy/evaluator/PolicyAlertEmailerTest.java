@@ -128,6 +128,9 @@ public class PolicyAlertEmailerTest
   @Captor
   private ArgumentCaptor<String> toAddressesArgumentCaptor;
 
+  @Captor
+  private ArgumentCaptor<String> emailSubjectArgumentCaptor;
+
   @Rule
   public TestLdapServer testLdapServer1 = new TestLdapServer();
 
@@ -217,7 +220,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
         "Not sending notification emails for application " + app.getPublicId() + " and scan " + eval.getScanId()
@@ -244,7 +247,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel()
         .contains("Sending notification email via " + mailer.getServer() + " to " + email + " for application "
@@ -269,7 +272,7 @@ public class PolicyAlertEmailerTest
     Exception ex = new RuntimeException();
     doThrow(ex).when(mailer).sendHtml(anyString(), anyString(), anyString());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atErrorLevel()
         .contains("Unable to send notification email to " + email + " for application " + app.getPublicId()
@@ -277,7 +280,7 @@ public class PolicyAlertEmailerTest
   }
 
   @Test
-  public void test_Notification_Email() {
+  public void testSendNotifications_Notification_Email() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -295,9 +298,10 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     // emailAddress3 should not get a message
     assertEmailAddresses(emailAddress1, emailAddress2);
+    assertEmailSubject("Policy Alert for " + app.getName() + " at stage Build: 1 severe violation out of 1");
   }
 
   @Test
@@ -317,12 +321,12 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).times(0)).sendHtml(any(), anyString(), anyString());
   }
 
   @Test
-  public void test_Monitoring_Notification_Email() {
+  public void testSendNotifications_Monitoring_Notification_Email() {
     Application app = tempEntity.newApplicationWithParent("test");
     Stage stage = new Stage(Stage.ID_BUILD);
     String scanId = "scan-id";
@@ -343,8 +347,10 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3, emailAddress4);
+    assertEmailSubject(
+        "Continuous Monitoring: Policy Alert for " + app.getName() + " at stage Build: 1 severe violation out of 1");
   }
 
   @Test
@@ -375,7 +381,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     // emailAddress4 should not get a message
     assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
   }
@@ -403,14 +409,14 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
 
     String newAddress = "newaddress@sonatype.com";
     user.setEmail(newAddress);
     userDAO.update(user);
 
-    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications, 0, eval.isForMonitoring());
     assertEmailAddresses(oldAddress, newAddress);
   }
 
@@ -436,12 +442,12 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis())).sendHtml(anyString(), anyString(), anyString());
 
     testLdapServer1.loadData("/PolicyAlertEmailerTest/alter_testuser1_1_email.ldif");
 
-    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, "scan-id2", stage, policyNotifications, 0, eval.isForMonitoring());
     assertEmailAddresses("test.user1_1@company.com", "test.user1_1modified@company.com");
   }
 
@@ -467,7 +473,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user3_1@company.com",
         "test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
   }
@@ -494,7 +500,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     assertEmailAddresses("test.user1_1@company.com", "test.user2_1@company.com", "test.user1_2@company.com",
         "test.user2_2@company.com");
   }
@@ -550,7 +556,7 @@ public class PolicyAlertEmailerTest
         thirdPartySbomMetadataDAO
     );
 
-    undertest.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    undertest.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     // make sure emails from server 2 still go out
     assertEmailAddresses("test.user1_2@company.com", "test.user2_2@company.com", "test.user3_2@company.com");
     assertThat(logOutput).atErrorLevel().contains("Cannot send notifications to members of group " + groupName
@@ -588,7 +594,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
     // emailAddress4 should not get a message
     assertEmailAddresses(emailAddress1, emailAddress2, emailAddress3);
   }
@@ -608,7 +614,7 @@ public class PolicyAlertEmailerTest
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
 
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
 
     // No email should be sent out with only Jira Notification
     await().atMost(NOTIFICATION_WAIT_TIMEOUT).untilAsserted(() -> assertThat(logOutput).atDebugLevel().contains(
@@ -730,7 +736,7 @@ public class PolicyAlertEmailerTest
     policyViolations.add(tempEntity.newPolicyViolation(eval, policy));
     List<PolicyNotification> policyNotifications = policyNotificationUtil
         .createPolicyNotifications(app, policyViolations, eval.getStageTypeId(), eval.isForMonitoring());
-    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
   }
 
   private void assertEmailAddresses(String... expectedEmailAddresses) {
@@ -738,6 +744,13 @@ public class PolicyAlertEmailerTest
         .sendHtml(toAddressesArgumentCaptor.capture(), anyString(), anyString());
 
     assertThat(toAddressesArgumentCaptor.getAllValues()).containsExactlyInAnyOrder(expectedEmailAddresses);
+  }
+
+  private void assertEmailSubject(String expectedEmailSubject) {
+    verify(mailer, timeout(NOTIFICATION_WAIT_TIMEOUT.toMillis()).atLeastOnce())
+        .sendHtml(any(), emailSubjectArgumentCaptor.capture(), anyString());
+
+    assertThat(emailSubjectArgumentCaptor.getValue()).isEqualTo(expectedEmailSubject);
   }
 
   private void startLdapServer1() throws Exception {

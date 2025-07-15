@@ -93,7 +93,8 @@ public class PolicyAlertNotifierTest
     notifier.sendNotifications(app, results);
 
     // then see the notifications go to email
-    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1),
+        eq(eval.isForMonitoring()));
 
     // and see the notifications go to jira
     verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
@@ -115,7 +116,8 @@ public class PolicyAlertNotifierTest
 
     // given each notifier throws an exception
     doThrow(new RuntimeException("oh no in email!")).when(policyAlertEmailer)
-        .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+        .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1),
+            eq(eval.isForMonitoring()));
     doThrow(new RuntimeException("oh no in jira!")).when(jiraPolicyAlertNotifier)
         .sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());
     doThrow(new RuntimeException("oh no in scm!")).when(policyAlertScmNotifier)
@@ -125,7 +127,8 @@ public class PolicyAlertNotifierTest
     notifier.sendNotifications(app, results);
 
     // then see the notifications go to email
-    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1));
+    verify(policyAlertEmailer, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList(), eq(1),
+        eq(eval.isForMonitoring()));
 
     // and see the notifications still go to jira
     verify(jiraPolicyAlertNotifier, times(1)).sendNotifications(eq(app), eq("scan-id"), any(Stage.class), anyList());

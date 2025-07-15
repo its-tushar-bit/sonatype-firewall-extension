@@ -78,7 +78,7 @@ public class PolicyAlertEmailerAuditTest
   public void testSendNotifications() {
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
 
-    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0, false);
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
     auditDTOs.sort(EMAIL_COMPARATOR);
@@ -91,7 +91,7 @@ public class PolicyAlertEmailerAuditTest
     List<PolicyNotification> policyNotifications = createPolicyNotifications();
     doThrow(new RuntimeException()).doNothing().when(mockInsightMail).sendHtml(any(), anyString(), anyString());
 
-    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0);
+    policyAlertEmailer.sendNotifications(application, SCAN_ID, new Stage(STAGE_ID), policyNotifications, 0, false);
 
     List<AuditDTO> auditDTOs = awaitLogEntries(AuditEvent.SEND_MAIL, 2);
     auditDTOs.sort(EMAIL_COMPARATOR);

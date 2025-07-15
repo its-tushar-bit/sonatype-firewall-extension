@@ -450,7 +450,7 @@ public abstract class AbstractFunctionalTest
         SidebarNavigation.openNavigationSidebar();
       }
     }
-    catch (RuntimeException unexpectedException) {
+    catch (Exception | UIAssertionError unexpectedException) {
       // there might be an element interfering with the click but since we are not sure of it's nature we'll ignore
       log.debug("Attempted to return the header to open but failed", unexpectedException);
     }

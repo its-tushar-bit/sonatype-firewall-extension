@@ -12,6 +12,7 @@ import { getOwnerDetailsUrl, getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as productLicenseSelectors from 'MainRoot/productFeatures/productLicenseSelectors';
 
 const defaultPreloadedState = {
   router: {
@@ -540,6 +541,8 @@ describe('OwnerDetailSidebar', () => {
 
   it('should not render public data sources when isPublicDataSourcesEnabled is false', () => {
     jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(false);
+    jest.spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense').mockReturnValue(false);
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
 
     renderComponent();
@@ -547,8 +550,9 @@ describe('OwnerDetailSidebar', () => {
     expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
   });
 
-  it('should not render public data sources when isSbomManager is true', () => {
+  it('should not render public data sources when is not a multilicense SBOM Manager product', () => {
     jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+    jest.spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense').mockReturnValue(true);
     jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(true);
 
     mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
@@ -556,5 +560,17 @@ describe('OwnerDetailSidebar', () => {
     renderComponent();
 
     expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
+  });
+
+  it('should render public data sources when is a multilicense SBOM Manager product and CPE matching is supported', () => {
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(true);
+    jest.spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense').mockReturnValue(false);
+    jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(true);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.getByText('Public Data Sources')).toBeInTheDocument();
   });
 });

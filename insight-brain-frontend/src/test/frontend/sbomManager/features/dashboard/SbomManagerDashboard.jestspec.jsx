@@ -31,6 +31,7 @@ describe('SbomManagerDashboard page', () => {
       productFeatures: {
         productFeatures: {
           'sbom-manager': true,
+          'cpe-matching': true,
         },
       },
       router: { currentState: { name: 'sbomManager.dashboard' } },
@@ -100,6 +101,49 @@ describe('SbomManagerDashboard page', () => {
       'An error occurred loading data. The SBOM Manager license feature is not enabled.'
     );
     expect(errorMessage).toBeVisible();
+  });
+
+  describe('Info Alert dismiss logic', () => {
+    const ALERT_DISMISSED_KEY = 'sbomManagerDashboardInfoAlertDismissed';
+
+    beforeEach(() => {
+      window.localStorage.removeItem(ALERT_DISMISSED_KEY);
+    });
+
+    it('shows the info alert if not dismissed', () => {
+      renderComponent();
+      expect(screen.getByText(findSpecificAlert)).toBeVisible();
+    });
+
+    it('hides the info alert after dismiss and sets localStorage', () => {
+      renderComponent();
+      const closeButton = screen.getByRole('button', { name: /close/i });
+      closeButton.click();
+      expect(screen.queryByText(findSpecificAlert)).toBeNull();
+      expect(window.localStorage.getItem(ALERT_DISMISSED_KEY)).toBe('true');
+    });
+
+    it('does not show the info alert if dismissed in localStorage', () => {
+      window.localStorage.setItem(ALERT_DISMISSED_KEY, 'true');
+      renderComponent();
+      expect(screen.queryByText(findSpecificAlert)).toBeNull();
+    });
+
+    const findSpecificAlert = (content, element) => {
+      const elementText = element.textContent;
+
+      const hasCorrectText =
+        elementText.includes('SBOM Manager') &&
+        elementText.includes('now supports C/C++') &&
+        elementText.includes('See the') &&
+        elementText.includes('Public Data Sources documentation') &&
+        elementText.includes('for more details');
+
+      const isCorrectElement =
+        element.tagName.toLowerCase() === 'div' && element.classList.contains('nx-alert__content');
+
+      return hasCorrectText && isCorrectElement;
+    };
   });
 
   function checkSbomReleaseStatusTile() {

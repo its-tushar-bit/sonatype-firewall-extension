@@ -208,6 +208,14 @@ function routes($stateProvider) {
           isDirty: ['orgsAndPolicies', 'policyMonitoring', 'isDirty'],
         },
         component: 'sbomContinuousMonitoring',
+      })
+      .state('sbomManager.management.edit.' + ownerType.type + '.public-data-sources-editor', {
+        url: '/publicDataSourcesEditor',
+        data: {
+          title: ownerType.name + ' Public Data Sources',
+          isDirty: ['orgsAndPolicies', 'publicDataSources', 'isDirty'],
+        },
+        component: 'publicDataSourcesEditor',
       });
   });
 

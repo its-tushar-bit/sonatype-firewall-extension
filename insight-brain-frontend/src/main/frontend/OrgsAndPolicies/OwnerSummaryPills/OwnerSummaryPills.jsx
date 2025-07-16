@@ -26,6 +26,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import NavPills from 'MainRoot/navPills/NavPills';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function OwnerSummaryPills() {
   const isApp = useSelector(selectIsApplication);
@@ -45,10 +46,10 @@ export default function OwnerSummaryPills() {
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
-  const isCpeMathingEnabled = useSelector(selectIsCpeMatchingSupported);
-
+  const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
   const isMultiTenant = useSelector(selectTenantMode) === 'multi-tenant';
   const isDataRetentionConfigEnabled = isDataRetentionEnabled && !isMultiTenant;
+  const hasSbomManagerLicenseOnly = useSelector(selectIsSbomManagerOnlyLicense);
 
   const navList = useMemo(() => {
     return [
@@ -126,7 +127,7 @@ export default function OwnerSummaryPills() {
       {
         label: 'Public Data Sources',
         target: 'owner-pill-public-data-sources',
-        isDisplayed: isCpeMathingEnabled && !isSbomManager,
+        isDisplayed: isPublicDataEnabled && !hasSbomManagerLicenseOnly,
       },
     ];
   }, [

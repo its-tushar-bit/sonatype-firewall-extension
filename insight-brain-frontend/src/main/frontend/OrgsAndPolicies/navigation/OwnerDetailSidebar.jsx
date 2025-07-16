@@ -66,6 +66,7 @@ import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { selectAreAnyCategoriesDefined } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function OwnerDetailSidebar() {
   const dispatch = useDispatch();
@@ -109,6 +110,7 @@ export default function OwnerDetailSidebar() {
   const licenseThreatGroupSiblings = useSelector(selectLicenseThreatGroupSiblings);
   const areAnyCategoriesDefined = useSelector(selectAreAnyCategoriesDefined);
   const isSbomManager = useSelector(selectIsSbomManager);
+  const isSbomManagerOnlyLicense = useSelector(selectIsSbomManagerOnlyLicense);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
   const isWaivers = useSelector(selectIsWaivers);
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
@@ -450,7 +452,7 @@ export default function OwnerDetailSidebar() {
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}
-      {isCpeMatchingSupported && !isSbomManager && (
+      {isCpeMatchingSupported && !isSbomManagerOnlyLicense && (
         <NxCollapsibleItems.Child>
           <NxTextLink
             id="public-data-sources-link"

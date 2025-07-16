@@ -77,24 +77,6 @@ describe('PublicDataSourcesTile', () => {
     };
   });
 
-  describe('Tile not rendered', () => {
-    it('does not render tile when CPE matching feature is disabled', () => {
-      mockSelectorsForRenderingTile(false, false);
-      renderComponent();
-
-      // verify the tile title is not rendered
-      expect(screen.queryByText(PUBLIC_DATA_SOURCES_TILE_TITLE)).not.toBeInTheDocument();
-    });
-
-    it('does not render tile when SBOM manager is enabled', () => {
-      mockSelectorsForRenderingTile(true, true);
-      renderComponent();
-
-      // verify the tile title is not rendered
-      expect(screen.queryByText(PUBLIC_DATA_SOURCES_TILE_TITLE)).not.toBeInTheDocument();
-    });
-  });
-
   describe('Tile is rendered', () => {
     beforeEach(() => {
       mockSelectorsForRenderingTile(false, true);
@@ -124,6 +106,7 @@ describe('PublicDataSourcesTile', () => {
         },
       });
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} enabled`)).toBeVisible();
     });
 
@@ -134,6 +117,7 @@ describe('PublicDataSourcesTile', () => {
       });
       renderComponent();
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(
         screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} enabled ${getInheritedText('Test Org')}`)
       ).toBeVisible();
@@ -146,6 +130,7 @@ describe('PublicDataSourcesTile', () => {
       });
       renderComponent();
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} disabled`)).toBeVisible();
     });
 
@@ -156,6 +141,7 @@ describe('PublicDataSourcesTile', () => {
       });
       renderComponent();
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(
         screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} disabled ${getInheritedText('Test Org')}`)
       ).toBeVisible();
@@ -165,6 +151,7 @@ describe('PublicDataSourcesTile', () => {
       mockSelectorsForRenderingTileContent(null);
       renderComponent();
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} disabled`)).toBeVisible();
     });
 
@@ -172,6 +159,7 @@ describe('PublicDataSourcesTile', () => {
       mockSelectorsForRenderingTileContent(undefined);
       renderComponent();
 
+      expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_TITLE}`)).toBeVisible();
       expect(screen.getByText(`${PUBLIC_DATA_SOURCES_TILE_BASE_MSG} disabled`)).toBeVisible();
     });
   });

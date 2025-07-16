@@ -69,6 +69,12 @@ describe('PublicDataSourcesEditor', () => {
       productFeatures: {
         productFeatures: { 'cpe-matching': true },
       },
+      productLicense: {
+        license: {
+          productEdition: 'Lifecycle',
+          products: ['Sonatype SBOM Manager', 'Sonatype Lifecycle'],
+        },
+      },
       router: {
         currentState: { name: 'organization' },
         isApplication: false,
@@ -175,5 +181,69 @@ describe('PublicDataSourcesEditor', () => {
     });
     expect(screen.getByLabelText(/Disabled/i)).toBeDisabled();
     expect(screen.getByLabelText(/Allow users to enable public data sources/i)).toBeDisabled();
+  });
+
+  it('disables all controls when isSbomManager is true', async () => {
+    await setupAndRender({
+      router: {
+        ...baseState.router,
+        currentState: { name: 'sbomManager.organization' },
+      },
+    });
+
+    expect(screen.getByText(/Public Data Sources are configured within Lifecycle/i)).toBeInTheDocument();
+    expect(screen.getByText('Click here to update configuration')).toBeInTheDocument();
+
+    const radios = screen.getAllByRole('radio');
+    radios.forEach((radio) => {
+      expect(radio).toBeDisabled();
+    });
+
+    const checkbox = screen.getByLabelText(/Allow users to enable public data sources/i);
+    expect(checkbox).toBeDisabled();
+
+    expect(screen.queryByText('Update')).toHaveClass('hidden');
+  });
+
+  it('does not show NxInfoAlert when isSbomManager is false', async () => {
+    await setupAndRender();
+
+    expect(screen.queryByText('Public Data Sources are configured within Lifecycle.')).not.toBeInTheDocument();
+    expect(screen.queryByText('Click here to update configuration')).not.toBeInTheDocument();
+  });
+
+  it('does not show NxInfoAlert when isCpeMatchingSupported is false', async () => {
+    await setupAndRender({
+      router: {
+        ...baseState.router,
+        currentState: { name: 'sbomManager.organization' },
+      },
+      productFeatures: {
+        productFeatures: { 'cpe-matching': false },
+      },
+    });
+
+    expect(screen.queryByText('Public Data Sources are configured within Lifecycle.')).not.toBeInTheDocument();
+  });
+
+  it('does not show NxInfoAlert when is not a multilicense SBOM Manager product is false', async () => {
+    await setupAndRender({
+      router: {
+        ...baseState.router,
+        currentState: { name: 'sbomManager.organization' },
+      },
+      productFeatures: {
+        productFeatures: { 'cpe-matching': true },
+      },
+      productLicense: {
+        license: {
+          products: ['Sonatype SBOM Manager'],
+        },
+      },
+    });
+
+    expect(screen.queryByText(/Public Data Sources are configured within Lifecycle/i)).not.toBeInTheDocument();
+    expect(screen.queryByText('Click here to update configuration')).not.toBeInTheDocument();
+    expect(screen.getByText(/Public Data Sources are not supported by your license/i)).toBeInTheDocument();
   });
 });

@@ -9,9 +9,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import { NxList, NxTile, NxH2, NxLoadWrapper } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions } from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSlice';
-import { selectIsCpeMatchingSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectCpeConfiguration,
   selectPublicDatasourcesLinkParams,
@@ -28,8 +26,6 @@ export default function PublicDataSourcesTile() {
   const href = uiStateRouter.href(to, params);
 
   const dispatch = useDispatch();
-  const isSbomManager = useSelector(selectIsSbomManager);
-  const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
   const ownerCpeMatchingConfigData = useSelector(selectCpeConfiguration);
 
   const isLoading = useSelector(selectLoading);
@@ -61,20 +57,17 @@ export default function PublicDataSourcesTile() {
   };
 
   return (
-    isPublicDataEnabled &&
-    !isSbomManager && (
-      <NxTile id="owner-pill-public-data-sources">
-        <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
-          <NxTile.Header>
-            <NxTile.HeaderTitle>
-              <NxH2>Public Data Sources</NxH2>
-            </NxTile.HeaderTitle>
-          </NxTile.Header>
-          <NxTile.Content>
-            <NxList id="public-data-sources">{renderContent()}</NxList>
-          </NxTile.Content>
-        </NxLoadWrapper>
-      </NxTile>
-    )
+    <NxTile id="owner-pill-public-data-sources" data-testid="owner-pill-public-data-sources">
+      <NxLoadWrapper loading={isLoading} error={loadError} retryHandler={doLoad}>
+        <NxTile.Header>
+          <NxTile.HeaderTitle>
+            <NxH2>Public Data Sources</NxH2>
+          </NxTile.HeaderTitle>
+        </NxTile.Header>
+        <NxTile.Content>
+          <NxList id="public-data-sources">{renderContent()}</NxList>
+        </NxTile.Content>
+      </NxLoadWrapper>
+    </NxTile>
   );
 }

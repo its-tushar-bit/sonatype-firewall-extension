@@ -4,8 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
-import { NxH1, NxLoadWrapper, NxPageMain, NxPageTitle } from '@sonatype/react-shared-components';
+import React, { useEffect, useState } from 'react';
+import {
+  NxH1,
+  NxInfoAlert,
+  NxLoadWrapper,
+  NxPageMain,
+  NxPageTitle,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   selectLoadErrorFeatures,
@@ -20,8 +27,11 @@ import RecentlyImportedSbomsTile from './recentlyImportedSbomsTile/RecentlyImpor
 import SbomReleaseStatusTile from './sbomReleaseStatusTile/SbomReleaseStatusTile';
 import { actions } from './sbomCountsSlice';
 import { selectSbomCounts } from 'MainRoot/sbomManager/features/dashboard/sbomManagerDashboardSelectors';
+import { selectIsCpeMatchingSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 import './SbomManagerDashboard.scss';
+
+const ALERT_DISMISSED_KEY = 'sbomManagerDashboardInfoAlertDismissed';
 
 export default function SbomManagerDashboard() {
   const dispatch = useDispatch();
@@ -29,6 +39,16 @@ export default function SbomManagerDashboard() {
   const errorLoadingProductFeatures = useSelector(selectLoadErrorFeatures);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const sbomCounts = useSelector(selectSbomCounts);
+  const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
+
+  const [showInfoAlert, setShowInfoAlert] = useState(() => {
+    return localStorage.getItem(ALERT_DISMISSED_KEY) !== 'true';
+  });
+
+  const handleDismiss = () => {
+    setShowInfoAlert(false);
+    localStorage.setItem(ALERT_DISMISSED_KEY, 'true');
+  };
 
   const load = () => {
     dispatch(actions.load());
@@ -47,6 +67,21 @@ export default function SbomManagerDashboard() {
         loading={isProductFeaturesLoading}
         error={errorLoadingProductFeatures || noSbomManagerEnabledError}
       >
+        {showInfoAlert && isCpeMatchingSupported && (
+          <NxInfoAlert onClose={handleDismiss}>
+            SBOM Manager <strong>now supports C/C++.</strong> See the{' '}
+            <NxTextLink
+              href={'https://links.sonatype.com/products/insight/public-data-sources'}
+              target="_blank"
+              rel="noopener noreferrer"
+              noReferrer
+              newTab
+            >
+              Public Data Sources documentation
+            </NxTextLink>{' '}
+            for more details.
+          </NxInfoAlert>
+        )}
         <NxPageTitle>
           <NxH1>SBOM Manager Dashboard</NxH1>
         </NxPageTitle>

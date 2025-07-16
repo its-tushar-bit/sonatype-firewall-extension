@@ -11,7 +11,9 @@ import {
   getDashboardStageUrl,
   getApplicationSummaryUrl,
 } from 'MainRoot/util/CLMLocation';
-import { render, axiosMockAdapter, within, screen, fireEvent } from 'TestRoot/SpecUtil';
+import { render, axiosMockAdapter, within, screen, fireEvent, spyOn } from 'TestRoot/SpecUtil';
+import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as productLicenseSelectors from 'MainRoot/productFeatures/productLicenseSelectors';
 
 describe('OwnerSummary', () => {
   let axiosMock, preloadedState;
@@ -552,5 +554,100 @@ describe('OwnerSummary', () => {
 
     renderComponent(preloadedState);
     expect(screen.getByText('Loading…')).toBeVisible();
+  });
+
+  describe('Public Data Sources', () => {
+    const preloadedState = {
+      router: {
+        currentState: {
+          name: 'management.view.application',
+          url: '/application/{applicationPublicId}',
+          data: {
+            title: 'Application Management',
+            viewportSized: true,
+          },
+        },
+        currentParams: {
+          applicationPublicId: 'sbom_test',
+        },
+      },
+      orgsAndPolicies: {
+        labels: {
+          applicableLabels: [],
+          inheritedLabelsOpen: {},
+          loadError: null,
+          loading: false,
+          ownerId: ownerId,
+        },
+        ownerSummary: {
+          hasEditIqPermission: false,
+        },
+        sourceControl: {
+          data: {
+            repositoryUrl: null,
+            provider: {
+              value: null,
+              parentValue: 'github',
+            },
+            token: {
+              value: null,
+            },
+          },
+        },
+        root: {
+          selectedOwner: {
+            name: 'Owner name',
+          },
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          'sbom-manager': true,
+          'sbom-policies': true,
+        },
+      },
+    };
+
+    beforeEach(() => {
+      axiosMock.onGet(getApplicationSummaryUrl('sbom_test')).reply(200, {
+        contact: {
+          displayName: 'Provided Contact Display Name',
+        },
+        id: ownerId,
+        name: 'sbom_test',
+        organizationId: '1b3066fd0c6f4f4785a5bcb27a9652e4',
+        organizationName: '4-level-org',
+        publicId: 'sbom_test',
+        policyEvaluations: {},
+        policyEvaluationsResults: {},
+      });
+    });
+
+    it('renders pill and tile', async () => {
+      spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense', () => false);
+      spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported', () => true);
+      renderComponent(preloadedState);
+
+      expect(await screen.findByTestId('owner-pill-public-data-sources-button')).toBeVisible();
+      expect(await screen.findByTestId('owner-pill-public-data-sources')).toBeVisible();
+    });
+
+    it('will not render pill and tile because when Sbom Manager is the only product in license', async () => {
+      spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense', () => true);
+      spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported', () => true);
+      renderComponent(preloadedState);
+
+      expect(await screen.queryByTestId('owner-pill-public-data-sources-button')).not.toBeInTheDocument();
+      expect(await screen.queryByTestId('owner-pill-public-data-sources')).not.toBeInTheDocument();
+    });
+
+    it('will not render pill and tile when cpe matching feature is not enabled', async () => {
+      spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense', () => true);
+      spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported', () => false);
+      renderComponent(preloadedState);
+
+      expect(await screen.queryByTestId('owner-pill-public-data-sources-button')).not.toBeInTheDocument();
+      expect(await screen.queryByTestId('owner-pill-public-data-sources')).not.toBeInTheDocument();
+    });
   });
 });

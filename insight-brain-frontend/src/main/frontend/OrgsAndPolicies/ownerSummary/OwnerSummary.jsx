@@ -18,6 +18,7 @@ import {
   selectNoSbomManagerEnabledError,
   selectIsSbomContinuousMonitoringUiEnabled,
   selectIsSbomPoliciesSupported,
+  selectIsCpeMatchingSupported,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import ActionDropdown from 'MainRoot/OrgsAndPolicies/actionDropdown/ActionDropdown';
@@ -48,6 +49,7 @@ import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/i
 import ImportSbomModal from 'MainRoot/OrgsAndPolicies/importSbomModal/ImportSbomModal';
 import AutoWaiversTile from 'MainRoot/OrgsAndPolicies/ownerSummary/AutoWaiversTile';
 import PublicDataSourcesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/PublicDataSourcesTile';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 function DefaultTiles() {
   return (
@@ -65,7 +67,6 @@ function DefaultTiles() {
       <AutoWaiversTile />
       <ArtifactoryRepositoryTile />
       <AccessTile />
-      <PublicDataSourcesTile />
     </>
   );
 }
@@ -80,6 +81,10 @@ function SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoli
     </>
   );
 }
+
+const renderPublicDataSourcesTile = (isPublicDataEnabled, hasSbomManagerLicenseOnly) => {
+  return !hasSbomManagerLicenseOnly && isPublicDataEnabled && <PublicDataSourcesTile />;
+};
 
 export default function OwnerSummary() {
   const dispatch = useDispatch();
@@ -98,6 +103,8 @@ export default function OwnerSummary() {
   const isSbomPoliciesSupported = useSelector(selectIsSbomPoliciesSupported);
   const loadingOwnerSummaryAndEntityId = loading || !entityId || entityId !== owner[isApp ? 'publicId' : 'id'];
   const error = loadError || loadSelectedOwnerError || (isSbomManager && noSbomManagerEnabledError);
+  const isPublicDataEnabled = useSelector(selectIsCpeMatchingSupported);
+  const hasSbomManagerLicenseOnly = useSelector(selectIsSbomManagerOnlyLicense);
 
   const doLoad = () => dispatch(ownerSummaryActions.loadOwnerSummary());
 
@@ -146,6 +153,7 @@ export default function OwnerSummary() {
         {isSbomManager
           ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported)
           : DefaultTiles()}
+        {renderPublicDataSourcesTile(isPublicDataEnabled, hasSbomManagerLicenseOnly)}
       </div>
       <DeleteOwnerModal />
       <LegacyViolationModal />

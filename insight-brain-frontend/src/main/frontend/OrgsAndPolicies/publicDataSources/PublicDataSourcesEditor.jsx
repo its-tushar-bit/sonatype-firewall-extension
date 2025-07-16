@@ -8,13 +8,15 @@ import {
   NxErrorAlert,
   NxFieldset,
   NxH1,
+  NxInfoAlert,
   NxLoadWrapper,
   NxPageTitle,
   NxRadio,
   NxStatefulForm,
+  NxTextLink,
   NxTile,
 } from '@sonatype/react-shared-components';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSlice';
@@ -23,12 +25,17 @@ import {
   selectCpeConfiguration,
   selectPublicDataSourcesSlice,
 } from 'MainRoot/OrgsAndPolicies/publicDataSources/publicDataSourcesSelectors';
-import { selectIsCpeMatchingSupported } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsCpeMatchingSupported, selectLoadingFeatures } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectOwnerProperties, selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import classNames from 'classnames';
+import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function PublicDataSourcesEditor() {
   const dispatch = useDispatch();
+  const isSbomManager = useSelector(selectIsSbomManager);
   const { loading, loadError, isDirty, submitMaskState, submitError } = useSelector(selectPublicDataSourcesSlice) || {};
   const {
     allowOverride,
@@ -42,10 +49,16 @@ export default function PublicDataSourcesEditor() {
   const isApp = useSelector(selectIsApplication);
   const isRootOrg = useSelector(selectIsRootOrganization);
   const ownerId = useSelector(selectSelectedOwnerId);
-  const doLoad = () => dispatch(actions.loadCpeConfiguration());
+  const selectedOwnerProperties = useSelector(selectOwnerProperties);
+  const isSbomManagerOnlyLicense = useSelector(selectIsSbomManagerOnlyLicense);
+  const isLoadingFeatures = useSelector(selectLoadingFeatures);
+  const disabled = isSbomManager || (!parentAllowOverride && !isRootOrg);
+
+  const uiRouterState = useRouterState();
   const handleSubmit = () => {
     dispatch(actions.saveCpeConfiguration());
   };
+
   const handleChange = (value) => {
     if (value === 'inherit') {
       dispatch(actions.setCpeStatus({ inherited: true, enabled: null }));
@@ -56,6 +69,17 @@ export default function PublicDataSourcesEditor() {
     }
   };
 
+  const href = uiRouterState.href(
+    `management.edit.${isApp ? 'application' : 'organization'}.public-data-sources-editor`,
+    isApp
+      ? { applicationPublicId: selectedOwnerProperties.ownerId }
+      : { organizationId: selectedOwnerProperties.ownerId }
+  );
+
+  const doLoad = async () => {
+    await dispatch(actions.loadCpeConfiguration());
+  };
+
   useEffect(() => {
     dispatch(rootActions.loadSelectedOwner());
   }, [dispatch]);
@@ -64,7 +88,7 @@ export default function PublicDataSourcesEditor() {
     if (ownerId) {
       doLoad();
     }
-  }, [dispatch, ownerId]);
+  }, [ownerId, isSbomManagerOnlyLicense]);
 
   return (
     <>
@@ -75,8 +99,17 @@ export default function PublicDataSourcesEditor() {
           research vulnerabilities from the NVD (National Vulnerability Database).
         </NxPageTitle.Description>
       </NxPageTitle>
+      {isCpeMatchingSupported && isSbomManager && !isSbomManagerOnlyLicense && (
+        <NxInfoAlert>
+          Public Data Sources are configured within Lifecycle.{' '}
+          <NxTextLink href={href} target="_blank" rel="noopener noreferrer" noReferrer newTab>
+            Click here to update configuration
+          </NxTextLink>
+          .
+        </NxInfoAlert>
+      )}
       <NxLoadWrapper id="public-data-sources-loader" loading={loading} error={loadError} retryHandler={doLoad}>
-        {isCpeMatchingSupported ? (
+        {isCpeMatchingSupported && !isSbomManagerOnlyLicense ? (
           <NxTile id="public-data-sources-settings">
             <NxStatefulForm
               id="public-data-sources-form"
@@ -89,6 +122,9 @@ export default function PublicDataSourcesEditor() {
               doLoad={doLoad}
               loadError={loadError}
               submitError={submitError}
+              submitBtnClasses={classNames({
+                hidden: isSbomManager,
+              })}
             >
               <NxTile.Content>
                 <NxFieldset
@@ -103,7 +139,7 @@ export default function PublicDataSourcesEditor() {
                       value="inherit"
                       onChange={() => handleChange('inherit')}
                       isChecked={!!inheritedFromOrganizationName}
-                      disabled={!parentAllowOverride && !isRootOrg}
+                      disabled={disabled}
                     >
                       {`Inherit from parent (${enabledInParent ? 'Enabled' : 'Disabled'})`}
                     </NxRadio>
@@ -114,7 +150,7 @@ export default function PublicDataSourcesEditor() {
                     value="enabled"
                     onChange={() => handleChange('enabled')}
                     isChecked={!!enabled && !inheritedFromOrganizationName}
-                    disabled={!parentAllowOverride && !isRootOrg}
+                    disabled={disabled}
                   >
                     Enabled
                   </NxRadio>
@@ -124,7 +160,7 @@ export default function PublicDataSourcesEditor() {
                     value="disabled"
                     onChange={() => handleChange('disabled')}
                     isChecked={!enabled && !inheritedFromOrganizationName}
-                    disabled={!parentAllowOverride && !isRootOrg}
+                    disabled={disabled}
                   >
                     Disabled
                   </NxRadio>
@@ -138,7 +174,7 @@ export default function PublicDataSourcesEditor() {
                     <NxCheckbox
                       id="allow-public-data-override"
                       isChecked={allowOverride || false}
-                      disabled={!parentAllowOverride && !isRootOrg}
+                      disabled={disabled}
                       onChange={() => dispatch(actions.toggleCpeOverride())}
                     >
                       Allow users to enable public data sources per organization or application
@@ -149,9 +185,11 @@ export default function PublicDataSourcesEditor() {
             </NxStatefulForm>
           </NxTile>
         ) : (
-          <NxErrorAlert id="public-data-license-error" aria-live="assertive">
-            Public Data Sources are not supported by your license.
-          </NxErrorAlert>
+          !isLoadingFeatures && (
+            <NxErrorAlert id="public-data-license-error" aria-live="assertive">
+              Public Data Sources are not supported by your license.
+            </NxErrorAlert>
+          )
         )}
       </NxLoadWrapper>
     </>

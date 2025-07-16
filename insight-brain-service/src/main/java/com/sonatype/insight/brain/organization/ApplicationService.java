@@ -20,13 +20,16 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
 
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.security.Authorize;
@@ -72,6 +75,8 @@ public class ApplicationService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
+  private final RepositoryDAO repositoryDAO;
+
   @Inject
   public ApplicationService(
       ApplicationDAO applicationDAO,
@@ -82,7 +87,8 @@ public class ApplicationService
       final PolicyViolationLoggerFactory policyViolationLoggerFactory,
       final OrganizationApplicationManagementEventService organizationApplicationManagementEventService,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
-      final PolicyEvaluationDAO policyEvaluationDAO)
+      final PolicyEvaluationDAO policyEvaluationDAO,
+      final RepositoryDAO repositoryDAO)
   {
     this.applicationDAO = applicationDAO;
     this.applicationCleaner = applicationCleaner;
@@ -93,6 +99,7 @@ public class ApplicationService
     this.organizationApplicationManagementEventService = organizationApplicationManagementEventService;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
     this.policyEvaluationDAO = policyEvaluationDAO;
+    this.repositoryDAO = repositoryDAO;
   }
 
   public String validateApplicationPublicId(final String applicationPublicId) {
@@ -311,18 +318,17 @@ public class ApplicationService
     return application;
   }
 
-  @Authorize(permission = Permission.WRITE)
-  public void deleteApplicationByPublicId(
-      @AuthzContext(AuthzContext.Key.APPLICATION_PUBLIC_ID) final String applicationPublicId)
-      throws IOException
-  {
+  public void deleteApplicationByPublicId(final String applicationPublicId) throws IOException {
     Application application;
+    Organization organization;
     try (TransactionContext tx = applicationDAO.createTransactionContext()) {
       tx.begin();
       application = applicationDAO.getByPublicIdNotNull(tx, applicationPublicId);
+      organization = organizationDAO.getByIdNotNull(application.getParentOwnerId());
+      validateIfDockerProxyApplication(application, organization);
       AuditData.get()
           .setApplicationWithDetails(application)
-          .setParentOrganization(organizationDAO.getByIdNotNull(application.getParentOwnerId()));
+          .setParentOrganization(organization);
       applicationCleaner.delete(tx, application);
       tx.commit();
 
@@ -341,5 +347,30 @@ public class ApplicationService
       }
     }
     return applicationIds;
+  }
+
+  public void validateIfDockerProxyApplication(Application application, Organization organization) {
+    Repository repository = repositoryDAO.getById(organization.getRelatedRepositoryId());
+    if (repository == null || repository.getRepositoryType() != RepositoryType.proxy
+            || !"docker".equals(repository.getFormat())) {
+      checkWritePermission(application);
+    }
+    else {
+      checkEvaluateComponentPermission(application);
+    }
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(
+          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.WRITE)
+  void checkWritePermission(
+          @SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
   }
 }

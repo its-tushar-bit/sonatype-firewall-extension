@@ -11,6 +11,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 
@@ -71,6 +72,19 @@ public class ApplicationServiceAuthzTest
   public void testDeleteApplicationById_Authorized() throws Exception {
     grantWritePermission(app.getId());
     applicationService.deleteApplicationByPublicId(app.getPublicId());
+  }
+
+  @Test
+  public void testDeleteApplicationById_DockerProxyAuthorized() throws Exception {
+    Organization organization = tempEntity.newOrgWithRepoManagerAndProxyRepo(
+            "My Organization",
+            "dockerOrg",
+            "docker",
+            true,
+            true);
+    Application application = tempEntity.newApplication(organization.getId());
+    grantEvaluateComponentPermission(application.getId());
+    applicationService.deleteApplicationByPublicId(application.getPublicId());
   }
 
   @Test(expected = UnauthenticatedException.class)

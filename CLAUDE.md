@@ -22,11 +22,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Maven Build Commands
 - **Full build with tests**: `mvn clean install` (WARNING: takes a long time)
 - **Quick build (skip tests)**: `mvn clean install -Pquick`
-- **Fast tests only**: `mvn test -DexcludedGroups=SlowTest`
+- **Fast tests only**: `mvn verify -DexcludedGroups=SlowTest`
 - **Skip functional tests**: Add `-D skip-functional-test` to any mvn command
 - **Local Chrome for functional tests**: `-Dwebdriver.chrome.driver=/your/path/to/chromedriver`
-- **Single test class**: `mvn test -Dtest=TestClassName`
-- **Single test method**: `mvn test -Dtest=TestClassName#testMethodName`
+- **Single test class**: `mvn verify -Dtest=TestClassName -Dit.test=TestClassName`
+- **Single test method**: `mvn verify -Dtest=TestClassName#testMethodName -Dit.test=TestClassName#testMethodName`
 
 ### Frontend Build Commands (insight-brain-frontend/)
 - **Start dev server**: `yarn start`

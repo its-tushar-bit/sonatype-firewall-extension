@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.model.policy.conditions;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -209,12 +208,16 @@ public class ConditionTypes
   }
 
   public static Collection<ConditionType> getAll() {
-    return Collections.unmodifiableCollection(allConditionTypes.values());
+    // Return condition types sorted alphabetically by their display name
+    return allConditionTypes.values().stream()
+        .sorted((c1, c2) -> c1.getName().compareToIgnoreCase(c2.getName()))
+        .collect(Collectors.toUnmodifiableList());
   }
 
   public static Collection<ConditionType> getAllWithAutoUnquarantineSupported() {
-    return Collections.unmodifiableCollection(
-        getAll().stream().filter(ConditionType::isAutoUnquarantineSupported).collect(Collectors.toList()));
+    return getAll().stream()
+        .filter(ConditionType::isAutoUnquarantineSupported)
+        .collect(Collectors.toUnmodifiableList());
   }
 
   public static ConditionType getById(final String conditionTypeId) {

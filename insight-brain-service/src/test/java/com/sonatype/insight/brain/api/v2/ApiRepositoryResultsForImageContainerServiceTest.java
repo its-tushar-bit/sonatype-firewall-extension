@@ -86,6 +86,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
 
   @Before
   public void setup() {
+    Date now = new Date();
     repositoryDAO = lookup(RepositoryDAO.class);
     lastPolicyEvaluationDAO = lookup(LastPolicyEvaluationDAO.class);
     policyViolationDAO = lookup(PolicyViolationDAO.class);
@@ -118,7 +119,8 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     application1 = tempEntity.newApplication("app1", "appPublicId1", organization.getId());
     application2 = tempEntity.newApplication("app2", "appPublicId2", organization.getId());
 
-    //policy evaluation
+    tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanIdOld",
+        new Date(now.getTime() - 1000), "abcdef1234abcdef1234abcdef1234abcdef1234");
     policyEvaluation1 = tempEntity.newPolicyEvaluation(application1.getId(), "proxy", "scanId1");
     policyEvaluation2 = tempEntity.newPolicyEvaluation(application2.getId(), "proxy", "scanId2");
 
@@ -618,7 +620,6 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     detailsRequest1.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
     detailsRequest1.sortFields = Arrays.asList(sortField3, sortField4);
     detailsRequest1.searchFilters = Arrays.asList(searchFilter1);
-
     RepositoryResultsForImageContainerResponseDto responseDto1 =
         repositoryResultsService.getDetails(OwnerType.REPOSITORY,
             repository.getId(),
@@ -629,6 +630,116 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     assertThat(repositoryResultsDetails1.get(0).applicationPublicId).isEqualTo("appPublicId2");
     assertThat(repositoryResultsDetails1.get(0).threatLevel).isEqualTo(10);
     assertThat(repositoryResultsDetails1.get(0).scanId).isEqualTo("scanId2");
+  }
+
+  @Test
+  public void testGetDetails_Aggregated_NotPolicyEvaluationExist() {
+    Repository repository1 = tempEntity.newRepository(repositoryManager, "publicId1");
+    RepositoryResultsForImageContainerRequestDto detailsRequest = new RepositoryResultsForImageContainerRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.aggregate = true;
+    detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
+
+    RepositoryResultsForImageContainerResponseDto responseDto =
+            repositoryResultsService.getDetails(OwnerType.REPOSITORY,
+                    repository1.getId(),
+                    detailsRequest);
+    List<RepositoryResultsForImageContainerDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(0);
+  }
+
+  @Test
+  public void testGetDetails_Aggregated_ValidatePolicyEvaluationExist() {
+    //policy for policy violation
+    Policy policy1 = tempEntity.newPolicy(application1.getId(), "policy1");
+    Policy policy2 = tempEntity.newPolicy(application1.getId(), "policy2");
+    Policy policy3 = tempEntity.newPolicy(application1.getId(), "policy3");
+    Policy policy4 = tempEntity.newPolicy(application1.getId(), "policy4");
+    Policy policy5 = tempEntity.newPolicy(application1.getId(), "policy5");
+    Policy policy6 = tempEntity.newPolicy(application1.getId(), "policy6");
+
+    Application application3 = tempEntity.newApplication("app3", "appPublicId3", organization.getId());
+    Application application4 = tempEntity.newApplication("app4", "appPublicId4", organization.getId());
+
+    //should not appear in the details, does not have policy evaluation
+    tempEntity.newApplication("app5", "appPublicId5", organization.getId());
+    tempEntity.newApplication("app6", "appPublicId6", organization.getId());
+
+    tempEntity.newPolicyEvaluation(application3.getId(), "proxy", "scanId3");
+    tempEntity.newPolicyEvaluation(application4.getId(), "proxy", "scanId4");
+
+    //create policy violations
+    PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
+    PolicyViolation policyViolation2 = tempEntity.newPolicyViolation(policyEvaluation1, policy2);
+    PolicyViolation policyViolation3 = tempEntity.newPolicyViolation(policyEvaluation1, policy3);
+    PolicyViolation policyViolation4 = tempEntity.newPolicyViolation(policyEvaluation1, policy4);
+    PolicyViolation policyViolation5 = tempEntity.newPolicyViolation(policyEvaluation2, policy5);
+    PolicyViolation policyViolation6 = tempEntity.newPolicyViolation(policyEvaluation2, policy6);
+    PolicyViolation policyViolation7 = tempEntity.newPolicyViolation(policyEvaluation1, policy6);
+    PolicyViolation policyViolation8 = tempEntity.newPolicyViolation(policyEvaluation1, policy6);
+
+    policyViolation1.setThreatLevel(10);
+    policyViolation1.setActionTypeId(Action.ID_FAIL);
+    policyViolation2.setThreatLevel(8);
+    policyViolation2.setActionTypeId(Action.ID_FAIL);
+    policyViolation3.setThreatLevel(10);
+    policyViolation3.setActionTypeId(Action.ID_FAIL);
+    policyViolation4.setThreatLevel(5);
+    policyViolation4.setActionTypeId(Action.ID_FAIL);
+    policyViolation5.setThreatLevel(10);
+    policyViolation5.setActionTypeId(Action.ID_FAIL);
+    policyViolation6.setThreatLevel(2);
+    policyViolation6.setActionTypeId(Action.ID_FAIL);
+
+    policyViolationDAO.update(policyViolation1);
+    policyViolationDAO.update(policyViolation2);
+    policyViolationDAO.update(policyViolation3);
+    policyViolationDAO.update(policyViolation4);
+    policyViolationDAO.update(policyViolation5);
+    policyViolationDAO.update(policyViolation6);
+
+    //policyViolation thread level low are not counted
+    policyViolation7.setThreatLevel(1);
+    policyViolation7.setActionTypeId(Action.ID_FAIL);
+    policyViolation8.setThreatLevel(1);
+    policyViolation8.setActionTypeId(Action.ID_FAIL);
+    policyViolationDAO.update(policyViolation7);
+    policyViolationDAO.update(policyViolation8);
+
+    // filter by object name
+    SortField sortField1 = new SortField();
+    sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
+    sortField1.sortPriority = 1;
+    sortField1.asc = true;
+
+    SortField sortField2 = new SortField();
+    sortField2.sortableField = SortableField.OBJECT_NAME;
+    sortField2.sortPriority = 2;
+    sortField2.asc = true;
+
+    RepositoryResultsForImageContainerRequestDto detailsRequest = new RepositoryResultsForImageContainerRequestDto();
+    detailsRequest.page = 1;
+    detailsRequest.pageSize = 50;
+    detailsRequest.aggregate = true;
+    detailsRequest.sortFields = Arrays.asList(sortField1, sortField2);
+    detailsRequest.violationStateFilters = ImmutableList.of(ViolationStateFilter.VIOLATION_STATE_ALL);
+
+    RepositoryResultsForImageContainerResponseDto responseDto =
+        repositoryResultsService.getDetails(OwnerType.REPOSITORY,
+            repository.getId(),
+            detailsRequest);
+    List<RepositoryResultsForImageContainerDto> repositoryResultsDetails = responseDto.repositoryResultsDetails;
+    assertThat(repositoryResultsDetails).hasSize(4);
+    assertThat(repositoryResultsDetails.get(0).objectName).isEqualTo("app1");
+    assertThat(repositoryResultsDetails.get(0).violationCount).isEqualTo(4);
+    assertThat(repositoryResultsDetails.get(1).objectName).isEqualTo("app2");
+    assertThat(repositoryResultsDetails.get(1).violationCount).isEqualTo(2);
+    assertThat(repositoryResultsDetails.get(2).objectName).isEqualTo("app3");
+    assertThat(repositoryResultsDetails.get(2).violationCount).isEqualTo(0);
+    assertThat(repositoryResultsDetails.get(3).objectName).isEqualTo("app4");
+    assertThat(repositoryResultsDetails.get(3).violationCount).isEqualTo(0);
+
   }
 
   @Test
@@ -1301,6 +1412,11 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     policyViolationDAO.update(policyViolation13);
     policyViolationDAO.update(policyViolation14);
 
+    tempEntity.newPolicyEvaluation(application3.getId(), "proxy", "scanId3");
+    tempEntity.newPolicyEvaluation(application4.getId(), "proxy", "scanId4");
+    tempEntity.newPolicyEvaluation(application5.getId(), "proxy", "scanId5");
+    tempEntity.newPolicyEvaluation(application6.getId(), "proxy", "scanId6");
+
     SortField sortField1 = new SortField();
     sortField1.sortableField = SortableField.POLICY_THREAT_LEVEL;
     sortField1.sortPriority = 1;
@@ -1361,6 +1477,11 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     Policy policy8 = tempEntity.newPolicy(application4.getId(), "policy8");
     Policy policy9 = tempEntity.newPolicy(application5.getId(), "policy9");
     Policy policy10 = tempEntity.newPolicy(application6.getId(), "policy10");
+
+    tempEntity.newPolicyEvaluation(application3.getId(), "proxy", "scanId3");
+    tempEntity.newPolicyEvaluation(application4.getId(), "proxy", "scanId4");
+    tempEntity.newPolicyEvaluation(application5.getId(), "proxy", "scanId5");
+    tempEntity.newPolicyEvaluation(application6.getId(), "proxy", "scanId6");
 
     //create policy violations
     PolicyViolation policyViolation1 = tempEntity.newPolicyViolation(policyEvaluation1, policy1);
@@ -1682,21 +1803,37 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     PolicyViolation policyViolation16 = tempEntity.newPolicyViolation(policyEvaluation4, policy8);
 
     policyViolation1.setThreatLevel(10);
+    policyViolation1.setActionTypeId(Action.ID_FAIL);
     policyViolation2.setThreatLevel(8);
+    policyViolation2.setActionTypeId(Action.ID_FAIL);
     policyViolation3.setThreatLevel(10);
+    policyViolation3.setActionTypeId(Action.ID_FAIL);
     policyViolation4.setThreatLevel(5);
+    policyViolation4.setActionTypeId(Action.ID_FAIL);
     policyViolation5.setThreatLevel(10);
+    policyViolation5.setActionTypeId(Action.ID_FAIL);
     policyViolation6.setThreatLevel(2);
+    policyViolation6.setActionTypeId(Action.ID_FAIL);
     policyViolation7.setThreatLevel(3);
+    policyViolation7.setActionTypeId(Action.ID_FAIL);
     policyViolation8.setThreatLevel(7);
+    policyViolation8.setActionTypeId(Action.ID_FAIL);
     policyViolation9.setThreatLevel(10);
+    policyViolation9.setActionTypeId(Action.ID_FAIL);
     policyViolation10.setThreatLevel(9);
+    policyViolation10.setActionTypeId(Action.ID_FAIL);
     policyViolation11.setThreatLevel(10);
+    policyViolation11.setActionTypeId(Action.ID_FAIL);
     policyViolation12.setThreatLevel(9);
+    policyViolation12.setActionTypeId(Action.ID_FAIL);
     policyViolation13.setThreatLevel(2);
+    policyViolation13.setActionTypeId(Action.ID_FAIL);
     policyViolation14.setThreatLevel(3);
+    policyViolation14.setActionTypeId(Action.ID_FAIL);
     policyViolation15.setThreatLevel(4);
+    policyViolation15.setActionTypeId(Action.ID_FAIL);
     policyViolation16.setThreatLevel(5);
+    policyViolation16.setActionTypeId(Action.ID_FAIL);
 
     policyViolationDAO.update(policyViolation1);
     policyViolationDAO.update(policyViolation2);
@@ -1728,6 +1865,7 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     RepositoryResultsForImageContainerRequestDto detailsRequest1 = new RepositoryResultsForImageContainerRequestDto();
     detailsRequest1.page = 1;
     detailsRequest1.pageSize = 5;
+    detailsRequest1.aggregate = true;
     detailsRequest1.sortFields = Arrays.asList(sortField1, sortField2);
 
     RepositoryResultsForImageContainerResponseDto responseDto1 =
@@ -1737,13 +1875,15 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     List<RepositoryResultsForImageContainerDto> repositoryResultsDetails1 = responseDto1.repositoryResultsDetails;
     assertThat(repositoryResultsDetails1).hasSize(5);
     assertThat(repositoryResultsDetails1.get(0).threatLevel).isEqualTo(2);
-    assertThat(repositoryResultsDetails1.get(1).threatLevel).isEqualTo(2);
-    assertThat(repositoryResultsDetails1.get(2).threatLevel).isEqualTo(3);
-    assertThat(repositoryResultsDetails1.get(3).threatLevel).isEqualTo(3);
-    assertThat(repositoryResultsDetails1.get(4).threatLevel).isEqualTo(4);
+    assertThat(repositoryResultsDetails1.get(1).threatLevel).isEqualTo(3);
+    assertThat(repositoryResultsDetails1.get(2).threatLevel).isEqualTo(4);
+    assertThat(repositoryResultsDetails1.get(3).threatLevel).isEqualTo(5);
+    assertThat(repositoryResultsDetails1.get(4).threatLevel).isEqualTo(7);
+    assertThat(responseDto1.hasNextPage).isEqualTo(true);
 
     RepositoryResultsForImageContainerRequestDto detailsRequest2 = new RepositoryResultsForImageContainerRequestDto();
     detailsRequest2.page = 2;
+    detailsRequest2.aggregate = true;
     detailsRequest2.pageSize = 5;
     detailsRequest2.sortFields = Arrays.asList(sortField1, sortField2);
 
@@ -1753,14 +1893,16 @@ public class ApiRepositoryResultsForImageContainerServiceTest
             detailsRequest2);
     List<RepositoryResultsForImageContainerDto> repositoryResultsDetails2 = responseDto2.repositoryResultsDetails;
     assertThat(repositoryResultsDetails2).hasSize(5);
-    assertThat(repositoryResultsDetails2.get(0).threatLevel).isEqualTo(5);
-    assertThat(repositoryResultsDetails2.get(1).threatLevel).isEqualTo(5);
-    assertThat(repositoryResultsDetails2.get(2).threatLevel).isEqualTo(7);
-    assertThat(repositoryResultsDetails2.get(3).threatLevel).isEqualTo(8);
-    assertThat(repositoryResultsDetails2.get(4).threatLevel).isEqualTo(9);
+    assertThat(repositoryResultsDetails2.get(0).threatLevel).isEqualTo(9);
+    assertThat(repositoryResultsDetails2.get(1).threatLevel).isEqualTo(9);
+    assertThat(repositoryResultsDetails2.get(2).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails2.get(3).threatLevel).isEqualTo(10);
+    assertThat(repositoryResultsDetails2.get(4).threatLevel).isEqualTo(10);
+    assertThat(responseDto2.hasNextPage).isEqualTo(true);
 
     RepositoryResultsForImageContainerRequestDto detailsRequest3 = new RepositoryResultsForImageContainerRequestDto();
     detailsRequest3.page = 3;
+    detailsRequest3.aggregate = true;
     detailsRequest3.pageSize = 5;
     detailsRequest3.sortFields = Arrays.asList(sortField1, sortField2);
 
@@ -1769,23 +1911,9 @@ public class ApiRepositoryResultsForImageContainerServiceTest
             repository.getId(),
             detailsRequest3);
     List<RepositoryResultsForImageContainerDto> repositoryResultsDetails3 = responseDto3.repositoryResultsDetails;
-    assertThat(repositoryResultsDetails3).hasSize(5);
-    assertThat(repositoryResultsDetails3.get(0).threatLevel).isEqualTo(9);
+    assertThat(repositoryResultsDetails3).hasSize(2);
+    assertThat(repositoryResultsDetails3.get(0).threatLevel).isEqualTo(10);
     assertThat(repositoryResultsDetails3.get(1).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails3.get(2).threatLevel).isEqualTo(10);
-    assertThat(repositoryResultsDetails3.get(3).threatLevel).isEqualTo(10);
-
-    RepositoryResultsForImageContainerRequestDto detailsRequest4 = new RepositoryResultsForImageContainerRequestDto();
-    detailsRequest4.page = 4;
-    detailsRequest4.pageSize = 5;
-    detailsRequest4.sortFields = Arrays.asList(sortField1, sortField2);
-
-    RepositoryResultsForImageContainerResponseDto responseDto4 =
-        repositoryResultsService.getDetails(OwnerType.REPOSITORY,
-            repository.getId(),
-            detailsRequest4);
-    List<RepositoryResultsForImageContainerDto> repositoryResultsDetails4 = responseDto4.repositoryResultsDetails;
-    assertThat(repositoryResultsDetails4).hasSize(1);
-    assertThat(repositoryResultsDetails4.get(0).threatLevel).isEqualTo(10);
+    assertThat(responseDto3.hasNextPage).isEqualTo(false);
   }
 }

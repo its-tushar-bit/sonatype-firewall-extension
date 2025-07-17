@@ -295,6 +295,8 @@ public class PolicyViolationDAO
       int threatLevelFiltersSize =
           detailsFilter.threatLevelFilters != null ? detailsFilter.threatLevelFilters.size() : 0;
       int repositoryIdsSize = repositoryIds.size();
+      // POLICY_NAME, QUARANTINE_TIME, OBJECT_NAME
+      // are the only possible search filters used in the Query (as of May 2025)
       int repositoryIdsParamStartPosition = 1;
       int threatLevelFiltersParamStartPosition = repositoryIdsSize + 1;
       int searchFiltersParamStartPosition = repositoryIdsSize + threatLevelFiltersSize + 1;
@@ -302,6 +304,10 @@ public class PolicyViolationDAO
       List<PolicyEvaluation> policyEvalList =
           policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
               Set.of(Stage.ID_PROXY));
+
+      if (policyEvalList.isEmpty()) {
+        return new ArrayList<>();
+      }
 
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
@@ -317,11 +323,16 @@ public class PolicyViolationDAO
           " app.public_id" + //
           " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
           " ON org.organization_id = app.organization_id" + //
+          " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
+          " ON lpe.application_id = app.application_id" + //
+          " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
+          " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
           " " + getDatabaseSchema() + ".policy_violation pv" + //
           " ON app.application_id = pv.application_id" + //
           " WHERE related_repository_id IN "
-          + buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition);
+          + buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) + //
+          " AND pv.fix_time IS NULL";
 
       StringBuilder sQuery = new StringBuilder(baseQuery);
 
@@ -386,6 +397,9 @@ public class PolicyViolationDAO
           policyEvaluationDAO.getLastByApplicationIdsAndStageIds(applicationIds.stream().collect(Collectors.toSet()),
               Set.of(Stage.ID_PROXY));
 
+      if (policyEvalList.isEmpty()) {
+        return new ArrayList<>();
+      }
       Map<String, String> applicationIdsToScanIdMap = policyEvalList.stream()
           .collect(Collectors.toMap(
               PolicyEvaluation::getApplicationId, // Key: applicationId
@@ -393,27 +407,31 @@ public class PolicyViolationDAO
           ));
 
       String baseQuery = "SELECT max(threat_level) as threat_level," + //
-          " count(threat_level) as violation_count," + //
-          " app.name as object," + //
-          " max(CASE WHEN waive_time IS NOT NULL THEN NULL ELSE open_time END) as quarantine_time," + //
-          " app.application_id," + //
-          " app.public_id" + //
-          " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
-          " ON org.organization_id = app.organization_id" + //
-          ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
-          " " + getDatabaseSchema() + ".policy_violation pv" + //
-          " ON app.application_id = pv.application_id" + //
-          " WHERE related_repository_id IN" + //
-          buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
-          addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
-          addViolationStateFilters(detailsFilter.violationStateFilters) +
-          addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-          " AND pv.action_type_id = '" + Action.ID_FAIL + "'" + //
-          " GROUP BY app.application_id, app.name, pv.open_time" + //
-          addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
-          validateAndAddSortFields(detailsFilter.sortFields) +
-          " LIMIT " + pageSize +
-          " OFFSET " + offset;
+              " COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count," + //
+              " app.name as object," + //
+              " max(CASE WHEN waive_time IS NOT NULL THEN NULL ELSE open_time END) as quarantine_time," + //
+              " app.application_id," + //
+              " app.public_id" + //
+              " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
+              " ON org.organization_id = app.organization_id" + //
+              ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
+              " " + getDatabaseSchema() + ".policy_violation pv" + //
+              " ON app.application_id = pv.application_id" + //
+              " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
+              " ON lpe.application_id = app.application_id" + //
+              " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //
+              " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
+              " WHERE related_repository_id IN" + //
+              buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) +
+              addThreatLevelFilters(detailsFilter.threatLevelFilters, threatLevelFiltersParamStartPosition) +
+              addViolationStateFilters(detailsFilter.violationStateFilters) +
+              addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+              " AND pv.fix_time IS NULL" + //
+              " GROUP BY app.application_id, app.name" + //
+              addPolicyViolationCountForHavingClause(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
+              validateAndAddSortFields(detailsFilter.sortFields) +
+              " LIMIT " + pageSize +
+              " OFFSET " + offset;
 
       jakarta.persistence.Query query = tx.createNativeQuery(baseQuery);
       addPositionalParameters(query, repositoryIds, repositoryIdsParamStartPosition);
@@ -457,7 +475,7 @@ public class PolicyViolationDAO
             break;
           case "VIOLATION_STATE_OPEN":
             query.append(filterCount > 1 ? " OR" : " AND (");
-            query.append(" pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL AND pv.fix_time IS NULL");
+            query.append(" pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL");
             break;
           case "VIOLATION_STATE_QUARANTINED":
             query.append(filterCount > 1 ? " OR" : " AND (");

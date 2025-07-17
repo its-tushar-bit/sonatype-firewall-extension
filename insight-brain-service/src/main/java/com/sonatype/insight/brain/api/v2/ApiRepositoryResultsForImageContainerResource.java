@@ -59,9 +59,10 @@ public class ApiRepositoryResultsForImageContainerResource
           }
   )
   public RepositoryResultsForImageContainerResponseDto getDetails(
+      @Parameter(description = "Enter the value for ownerType.", required = true)
+      @PathParam("ownerType") final OwnerType ownerType,
       @Parameter(description = "The public ID of the repository to get results for",
           required = true)
-      @PathParam("ownerType") final OwnerType ownerType,
       @PathParam("ownerId") final String ownerId,
       @RequestBody(description = "The request JSON should contain" +
           "<ol>" +

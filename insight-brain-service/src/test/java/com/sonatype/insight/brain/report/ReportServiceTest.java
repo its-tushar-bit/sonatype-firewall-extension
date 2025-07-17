@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -244,6 +245,9 @@ public class ReportServiceTest
   @Inject
   private AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
+  @Inject
+  private ScanPersistenceService scanPersistenceService;
+
   private AutomatedPullRequestCreationService automatedPullRequestCreationServiceSpy;
 
   @Mock
@@ -280,7 +284,8 @@ public class ReportServiceTest
         productLicense, sbomMetadataUtils, licenseDao, componentLoaderFactory, thirdPartyComponentDAO,
         licenseThreatGroupDAO, hashComponentIdentifierDAO, licenseOverrideDAO, securityVulnerabilityOverrideDAO,
         multiLicenseDAO, innerSourceApplicationDAO, innerSourceVersionDAO, proprietaryConfigService, reportDataStoreSpy,
-        mockScanUploadService, insightWork, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService);
+        mockScanUploadService, automatedPullRequestCreationServiceSpy, cpeMatchingConfigurationService,
+        scanPersistenceService);
   }
 
   @Test

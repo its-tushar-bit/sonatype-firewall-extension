@@ -26,10 +26,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,8 +79,6 @@ class ScanTask
 
   private final PolicyAlertNotifier policyAlertNotifier;
 
-  private final InsightWork work;
-
   private final PersistedScanTicketDAO persistedScanTicketDAO;
 
   private FileCleaner fileCleaner;
@@ -91,6 +88,8 @@ class ScanTask
   private final ScanUploadService scanUploadService;
 
   private final TelemetryUtils telemetryUtils;
+
+  private final ScanPersistenceService scanPersistenceService;
 
   private final String id;
 
@@ -121,22 +120,22 @@ class ScanTask
       Scanner scanner,
       ScanPolicyEvaluator scanPolicyEvaluator,
       PolicyAlertNotifier policyAlertNotifier,
-      InsightWork work,
       FileCleaner fileCleaner,
       ProprietaryConfigService proprietaryConfigService,
       ScanUploadService scanUploadService,
       PersistedScanTicketDAO persistedScanTicketDAO,
-      TelemetryUtils telemetryUtils)
+      TelemetryUtils telemetryUtils,
+      ScanPersistenceService scanPersistenceService)
   {
     this.scanner = scanner;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
-    this.work = work;
     this.fileCleaner = fileCleaner;
     this.proprietaryConfigService = proprietaryConfigService;
     this.scanUploadService = scanUploadService;
     this.persistedScanTicketDAO = persistedScanTicketDAO;
     this.telemetryUtils = telemetryUtils;
+    this.scanPersistenceService = scanPersistenceService;
     id = UUID.randomUUID().toString().replace("-", "");
   }
 
@@ -211,20 +210,20 @@ class ScanTask
       persistedScanTicketDAO.update(toPersistedScanTicket());
       ProprietaryConfig proprietaryConfig = proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION,
           app.getPublicId());
-      ScanResult scanResult = scanner.scan(binFile, filename, work.getScanDir(app.getId()), proprietaryConfig);
+      ScanResult scanResult = scanner.scan(binFile, filename, app.getId(), proprietaryConfig);
 
       // upload the scan
       state = State.UPLOADING_SCAN;
       persistedScanTicketDAO.update(toPersistedScanTicket());
 
-      ScanReceipt scanReceipt = scanUploadService.upload(scanResult.getScanFile(), app, stage.getStageTypeId(),
+      ScanReceipt scanReceipt = scanUploadService.upload(scanResult.getScanEntity(), app, stage.getStageTypeId(),
           scanResult.getClientScanType(),
           userAgent,
           telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
               userAgent), null);
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
-        FileUtils.moveFile(scanResult.getScanFile(), work.getScanFile(app.getId(), scanReceipt.getScanId()));
+        scanPersistenceService.moveTempScan(scanResult.getScanEntity(), app.getId(), scanReceipt.getScanId());
       }
 
       // wait for the report

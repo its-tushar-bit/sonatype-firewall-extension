@@ -23,6 +23,10 @@ import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.FileScanPersistenceService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryDataObfuscator;
@@ -68,6 +72,8 @@ public class ScanTaskTest
 
   private final ProprietaryConfigService proprietaryConfigService = mock(ProprietaryConfigService.class);
 
+  private final ScanPersistenceService scanPersistenceService = new FileScanPersistenceService(work, fileCleaner);
+
   private final TelemetryUtils telemetryUtils =
       new TelemetryUtils(new TelemetryDataObfuscator(mock(Configuration.class)));
 
@@ -83,35 +89,32 @@ public class ScanTaskTest
 
   private String bundleFilename;
 
-  private File scanDir;
-
   private File scanFile;
 
-  private File tmpScanFile;
+  private FileScanEntity tmpScanEntity;
 
   @Rule
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Before
   public void init() throws Exception {
-    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, work, fileCleaner, proprietaryConfigService,
-        uploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
+    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,
+        uploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils, scanPersistenceService);
 
     scanReceipt.setScanId("scan-id");
     bundleFile = tmpDir.newFile("app.zip");
     bundleFilename = "test-app.zip";
-    scanDir = tmpDir.newFolder(app.getId());
+    File scanDir = tmpDir.newFolder(app.getId());
     scanFile = new File(scanDir, "scan-" + scanReceipt.getScanId() + ".xml.gz");
-    tmpScanFile = new File(scanDir, "temp.xml.gz");
-    tmpScanFile.createNewFile();
+    File file = new File(scanDir, "temp.xml.gz");
+    file.createNewFile();
+    tmpScanEntity = new FileScanEntity(file);
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
-    when(work.getScanFile(eq(app.getId()), eq(scanReceipt.getScanId()))).thenReturn(scanFile);
-
-    when(uploadService.upload(eq(tmpScanFile), eq(app), anyString(), any(ClientScanType.class), eq(null), any(),
+    when(uploadService.upload(eq(tmpScanEntity), eq(app), anyString(), any(ClientScanType.class), eq(null), any(),
         any())).thenReturn(scanReceipt);
-    ScanResult scanResult = new ScanResult(tmpScanFile, false);
-    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null))).thenReturn(scanResult);
-    when(uploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+    ScanResult scanResult = new ScanResult(tmpScanEntity, false);
+    when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(app.getId()), eq(null))).thenReturn(scanResult);
+    when(uploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
         any(), any(), any())).thenReturn(scanReceipt);
   }
 
@@ -137,12 +140,12 @@ public class ScanTaskTest
   public void savedApplicationBinaryIsScanned() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
-    assertThat(tmpScanFile).isFile();
+    assertThat(tmpScanEntity.file()).isFile();
     assertThat(scanFile).doesNotExist();
     task.run();
 
-    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(scanDir), eq(null));
-    assertThat(tmpScanFile).doesNotExist();
+    verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(app.getId()), eq(null));
+    assertThat(tmpScanEntity.file()).doesNotExist();
     assertThat(scanFile).isFile();
   }
 
@@ -171,7 +174,7 @@ public class ScanTaskTest
   public void erorredTaskHasErrorMessage() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
-    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
+    when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
@@ -198,7 +201,7 @@ public class ScanTaskTest
 
   @Test
   public void erorredTaskDeletesTemporaryApplicationBinary() throws IOException {
-    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
+    when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");
@@ -227,20 +230,21 @@ public class ScanTaskTest
 
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
-    File scanBinary = new File("any");
+    File scanBinary = new File("any/path");
+    FileScanEntity scanBinaryEntity = new FileScanEntity(scanBinary);
     ScanReceipt receipt = mock(ScanReceipt.class);
-    when(uploadService.upload(scanBinary, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
+    when(uploadService.upload(scanBinaryEntity, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
         null, null, null)).thenReturn(scanReceipt);
 
     task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
-    when(scanner.scan(any(File.class), any(String.class), any(File.class), eq(null)))
-        .thenReturn(new ScanResult(scanBinary, true));
+    when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
+        .thenReturn(new ScanResult(scanBinaryEntity, true));
 
-    when(uploadService.upload(any(File.class), eq(app), anyString(), any(ClientScanType.class), any(), any(),
+    when(uploadService.upload(any(ScanEntity.class), eq(app), anyString(), any(ClientScanType.class), any(), any(),
         any())).thenReturn(receipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(uploadService).upload(eq(scanBinary), eq(app), eq(stage.getStageTypeId()),
+    verify(uploadService).upload(eq(scanBinaryEntity), eq(app), eq(stage.getStageTypeId()),
         eq(ClientScanType.SONATYPE_THIRD_PARTY), eq("agent"), arg.capture(), eq(null));
 
     TelemetryData telemetryData = arg.getValue();

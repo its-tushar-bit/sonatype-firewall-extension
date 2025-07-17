@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
@@ -169,7 +170,7 @@ public class SourceControlScanServiceTest
     licenseChecker = new IqForScmLicenseChecker(testProductLicense);
 
     service = new SourceControlScanService(mockGitApiFactory, spySourceControlUtils, mockApplicationDAO, licenseChecker,
-        proprietaryConfigService, policyEvaluateService, mockPolicyEvaluationPollingResultUtils, mockInsightWork,
+        proprietaryConfigService, policyEvaluateService, mockPolicyEvaluationPollingResultUtils,
         scanner, mockAuditRecorder, sourceControlSshService);
 
     proprietaryConfig = new ProprietaryConfig();
@@ -215,10 +216,8 @@ public class SourceControlScanServiceTest
 
     // and a scan result
     scanResult = new ScanResult();
-    File scanDir = mock(File.class);
-    scanResult.setScanFile(mock(File.class));
-    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    scanResult.setScanEntity(mock(ScanEntity.class));
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // when we receive a source control scan event
@@ -231,13 +230,13 @@ public class SourceControlScanServiceTest
     verify(mockGitApi).cloneOrPullRepository(isA(File.class), eq(sourceControlEvent.getBranchName()));
 
     // and it calls the scanner
-    verify(scanner).scan(eq(Collections.singletonList(mockInsightWork.getSourceControlDir(APP_ID))), eq(scanDir),
+    verify(scanner).scan(eq(Collections.singletonList(mockInsightWork.getSourceControlDir(APP_ID))), eq(APP_ID),
         eq(proprietaryConfig), any(ScanConfiguration.class), any(ScanMetadata.class));
 
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
-        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
+        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(ScanEntity.class), eq("api"),
         eq("userAgent"), any());
 
     verifySshServiceInvoked();
@@ -289,10 +288,8 @@ public class SourceControlScanServiceTest
 
     // and a scan result
     scanResult = new ScanResult();
-    File scanDir = mock(File.class);
-    scanResult.setScanFile(mock(File.class));
-    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    scanResult.setScanEntity(mock(ScanEntity.class));
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // Sparse checkout leaves no entry on working directory - exception thrown
@@ -313,7 +310,7 @@ public class SourceControlScanServiceTest
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"),
         isA(Application.class), eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
-        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(File.class), eq("api"),
+        eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_ONBOARDING), isA(ScanEntity.class), eq("api"),
         eq("userAgent"), any());
 
     verifySshServiceInvoked();
@@ -328,18 +325,16 @@ public class SourceControlScanServiceTest
 
     // and a scan result
     scanResult = new ScanResult();
-    File scanDir = mock(File.class);
-    scanResult.setScanFile(mock(File.class));
-    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
+    scanResult.setScanEntity(mock(ScanEntity.class));
     ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
-    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // and a policy evaluation
     Stage stage = new Stage(Stage.ID_DEVELOP);
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
-        any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
+        any(ScanEntity.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
             .thenReturn(policyEvaluation);
 
     // it evaluates the SCM repository content and it returns the expected policy evaluation
@@ -359,18 +354,17 @@ public class SourceControlScanServiceTest
 
     // and a scan result
     scanResult = new ScanResult();
-    File scanDir = mock(File.class);
+    scanResult.setScanEntity(mock(ScanEntity.class));
     scanResult.setScanFile(mock(File.class));
-    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
     ArgumentCaptor<ScanConfiguration> scanConfigurationArgCaptor = ArgumentCaptor.forClass(ScanConfiguration.class);
-    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // and a policy evaluation
     Stage stage = new Stage(Stage.ID_DEVELOP);
     PolicyEvaluation policyEvaluation = new PolicyEvaluation();
     when(policyEvaluateService.evaluateSynchronousNoAuth(any(Application.class), any(ClientScanType.class),
-        any(File.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
+        any(ScanEntity.class), eq(stage), eq(ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST), eq(null)))
             .thenReturn(policyEvaluation);
 
     // when: we do synchronous source control scan and evaluate the SCM repository content
@@ -443,10 +437,8 @@ public class SourceControlScanServiceTest
 
     // and a scan result
     scanResult = new ScanResult();
-    File scanDir = mock(File.class);
-    scanResult.setScanFile(mock(File.class));
-    when(mockInsightWork.getScanDir(eq(APP_ID))).thenReturn(scanDir);
-    when(scanner.scan(any(List.class), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    scanResult.setScanEntity(mock(ScanEntity.class));
+    when(scanner.scan(any(List.class), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class))).thenReturn(scanResult);
 
     // when we receive a source control scan event
@@ -462,13 +454,13 @@ public class SourceControlScanServiceTest
     File sourceControlDir = mockInsightWork.getSourceControlDir(APP_ID);
     List<File> expectedScanTargets =
         scanTargets.stream().map(scanTarget -> new File(sourceControlDir, scanTarget)).collect(Collectors.toList());
-    verify(scanner).scan(eq(expectedScanTargets), eq(scanDir), eq(proprietaryConfig), any(ScanConfiguration.class),
+    verify(scanner).scan(eq(expectedScanTargets), eq(APP_ID), eq(proprietaryConfig), any(ScanConfiguration.class),
         any(ScanMetadata.class));
 
     // and it evaluates a policy
     verify(policyEvaluateService).evaluateWithPolling(eq("statusId"), isA(Application.class),
         eq(ClientScanType.SONATYPE), argThat(s -> s.getStageTypeId().equals(Stage.ID_DEVELOP)),
-        eq(ScanTriggerType.SOURCE_CONTROL_API), isA(File.class), eq("api"), eq("userAgent"), any());
+        eq(ScanTriggerType.SOURCE_CONTROL_API), isA(ScanEntity.class), eq("api"), eq("userAgent"), any());
 
     verifySshServiceInvoked();
   }

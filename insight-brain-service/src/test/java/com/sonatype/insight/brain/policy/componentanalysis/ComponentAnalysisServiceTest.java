@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -160,8 +162,8 @@ public class ComponentAnalysisServiceTest
 
   @Test
   public void testAnalyzeComponentsWithPolling_Success() throws Exception {
-    final File file = new File("test-file.xml");
-    doReturn(file)
+    final FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml"), app.getId());
+    doReturn(fileScanEntity)
         .when(scanHandler)
         .createTempScanFile(any(HttpServletRequest.class), any(Application.class));
     doReturn("test-client-user-agent")
@@ -174,7 +176,7 @@ public class ComponentAnalysisServiceTest
     scanReceipt.setScanId(scanId);
     doReturn(scanReceipt)
         .when(scanHandler)
-        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
             anyString(), anyString(), anyString(), eq(null));
 
     PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,
@@ -206,7 +208,7 @@ public class ComponentAnalysisServiceTest
   public void testAnalyzeComponentsWithPolling_Failure() throws Exception {
     doThrow(IOException.class)
         .when(scanHandler)
-        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
             anyString(), anyString(), anyString(), eq(null));
 
     final PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,

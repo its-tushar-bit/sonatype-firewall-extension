@@ -5,15 +5,14 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,6 +23,8 @@ import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -62,19 +63,23 @@ public class ScanFileCleaner
 
   public boolean disableForTesting;
 
+  private ScanPersistenceService scanPersistenceService;
+
   @Inject
   public ScanFileCleaner(
       InsightWork insightWork,
       TaskScheduler taskScheduler,
       MigrationTrackerDAO migrationTrackerDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
-      ApplicationDAO applicationDAO)
+      ApplicationDAO applicationDAO,
+      ScanPersistenceService scanPersistenceService)
   {
     this.insightWork = insightWork;
     this.taskScheduler = taskScheduler;
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.applicationDAO = applicationDAO;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   @Override
@@ -113,64 +118,48 @@ public class ScanFileCleaner
 
     log.debug("Deleting obsolete scan files...");
 
-    int deletedFilesCount = 0;
+    final AtomicInteger deletedFilesCount = new AtomicInteger(0);
     List<Application> apps = applicationDAO.getAll();
     for (Application app : apps) {
       String appId = app.getId();
 
-      File scanDir = insightWork.getScanDir(appId);
-      if (!scanDir.isDirectory()) {
-        log.info("There is no scan directory for application '{}' with ID {}.", app.getName(), appId);
-        continue;
-      }
-
-      // Don't use Files.list() as that may result in a lot of file handlers being used and not released.
-      // See https://stackoverflow.com/questions/36990053/
-      // resource-leak-in-files-listpath-dir-when-stream-is-not-explicitly-closed
-      File[] scanFiles = scanDir.listFiles();
-      if (scanFiles.length == 0) {
-        log.info("There are no scan files for application '{}' with ID {}.", app.getName(), appId);
-        continue;
-      }
-
       log.info("Deleting obsolete scan files for application '{}' with ID {}.", app.getName(), appId);
 
-      Set<Path> lastPolicyEvaluationScanFiles =
+      Set<ScanEntity> lastPolicyEvaluationScanFiles =
           policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(appId)).stream() //
               .map(PolicyEvaluation::getScanId) //
-              .map(scanId -> insightWork.getScanFile(appId, scanId).toPath().toAbsolutePath()) //
+              .map(scanId -> scanPersistenceService.getScan(appId, scanId)) //
               .collect(Collectors.toSet());
 
-      for (File scanFile : scanFiles) {
-        Path scanFilePath = scanFile.toPath().toAbsolutePath();
+      scanPersistenceService.allScanFilesFor(appId).forEach(scanEntity -> {
 
         // Don't delete files that are yonger than one hour in order to not interfere with concurrent policy
         // evaluations.
         try {
-          if (!isOlderThanOneHour(scanFilePath)) {
-            continue;
+          if (!isOlderThanOneHour(scanEntity)) {
+            return;
           }
         }
         catch (Exception e) {
-          log.warn("Error accessing the last modified timestamp for scan file '{}': {}", scanFilePath, e.toString());
-          continue;
+          log.warn("Error accessing the last modified timestamp for scan file '{}': {}", scanEntity, e.toString());
+          return;
         }
 
         // Don't delete scan files that are for the last policy evaluation for a stage.
-        if (lastPolicyEvaluationScanFiles.contains(scanFilePath)) {
-          continue;
+        if (lastPolicyEvaluationScanFiles.contains(scanEntity)) {
+          return;
         }
 
         // Delete the scan file.
         try {
-          Files.delete(scanFilePath);
-          deletedFilesCount++;
-          log.info("Deleted obsolete scan file: '{}'.", scanFilePath);
+          scanPersistenceService.deleteScan(scanEntity);
+          deletedFilesCount.getAndIncrement();
+          log.info("Deleted obsolete scan file: '{}'.", scanEntity);
         }
         catch (Exception e) {
-          log.warn("Error deleting scan file '{}': {}", scanFilePath, e.toString());
+          log.warn("Error deleting scan file '{}': {}", scanEntity, e.toString());
         }
-      }
+      });
     }
 
     if (!migrationTrackerDAO.isTrackerPresent(MARKER_ID)) {
@@ -181,9 +170,9 @@ public class ScanFileCleaner
         System.currentTimeMillis() - start);
   }
 
-  private boolean isOlderThanOneHour(Path file) throws IOException {
-    FileTime lastModifiedTime = Files.getLastModifiedTime(file);
-    return System.currentTimeMillis() - lastModifiedTime.toMillis() > DateTimeConstants.MILLIS_PER_HOUR;
+  private boolean isOlderThanOneHour(ScanEntity scanEntity) throws IOException {
+    long lastModifiedTime = scanEntity.getLastModifiedTime();
+    return System.currentTimeMillis() - lastModifiedTime > DateTimeConstants.MILLIS_PER_HOUR;
   }
 
   // Visible for tests

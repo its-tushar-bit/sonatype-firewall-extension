@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluatorResults;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
@@ -126,7 +127,7 @@ public class ApiPromoteScanServiceV2Test
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
     String toStageId = Stage.ID_OPERATE;
-    when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class),
         eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
     evaluatorResults.evaluation = tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID);
@@ -204,8 +205,8 @@ public class ApiPromoteScanServiceV2Test
       ScanReceipt scanReceipt = new ScanReceipt();
       scanReceipt.setScanId(NEW_SCAN_ID);
       String toStageId = Stage.ID_OPERATE;
-      when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
-          eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
+      when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(),
+          any(ClientScanType.class), eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
       ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();
       evaluatorResults.evaluation =
           tempEntity.newPolicyEvaluation(app.getId(), toStageId, NEW_SCAN_ID, ClientScanType.SONATYPE_THIRD_PARTY);
@@ -238,8 +239,9 @@ public class ApiPromoteScanServiceV2Test
     lenient().doAnswer((Answer<ScanReceipt>) invocationOnMock -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(scanUploadService).upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
-        eq(null), any(), any());
+    }).when(scanUploadService)
+        .upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class), eq(null), any(),
+          any());
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
     ApiApplicationEvaluationStatusDTOV2 apiApplicationEvaluationStatusDTOV2 = service
         .promoteScan(app.getId(), ApiPromoteScanRequestDTOV2.fromScan(SCAN_ID, Stage.ID_OPERATE), null /* userAgent */);
@@ -261,7 +263,7 @@ public class ApiPromoteScanServiceV2Test
   @Test
   public void testGetApplicationEvaluationStatus_Failure() throws Exception {
     createScanFile();
-    when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class),
         eq(null), any(), any()))
         .thenThrow(new RuntimeException("ruh-roh"));
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, SCAN_ID);
@@ -287,7 +289,7 @@ public class ApiPromoteScanServiceV2Test
     createScanFile();
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(NEW_SCAN_ID);
-    when(scanUploadService.upload(any(File.class), any(Application.class), anyString(), any(ClientScanType.class),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), anyString(), any(ClientScanType.class),
         eq(null), any(), any(), eq(null))).thenReturn(scanReceipt);
     String toStageId = Stage.ID_OPERATE;
     ScanPolicyEvaluatorResults evaluatorResults = new ScanPolicyEvaluatorResults();

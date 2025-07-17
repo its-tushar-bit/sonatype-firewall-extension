@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.sbom;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -63,6 +62,8 @@ import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanResult;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -91,7 +92,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -193,6 +193,8 @@ public class SbomResultsMerger
 
   private Bom filteredBom;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public SbomResultsMerger(
       final DuplicateAwareThirdPartyFileCoordinatePersister thirdPartyFileCoordinatePersister,
@@ -207,7 +209,8 @@ public class SbomResultsMerger
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
-      final InsightWork insightWork)
+      final InsightWork insightWork,
+      final ScanPersistenceService scanPersistenceService)
   {
     this.thirdPartyFileCoordinatePersister = thirdPartyFileCoordinatePersister;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
@@ -222,6 +225,7 @@ public class SbomResultsMerger
     this.telemetryUtils = telemetryUtils;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.insightWork = insightWork;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   @VisibleForTesting
@@ -836,21 +840,21 @@ public class SbomResultsMerger
     String bomString = generateBomString(filteredBom);
     Application app = applicationDAO.getById(sbomMetadata.getApplicationId());
     ThirdPartyScan tpScan = thirdPartyScanDAO.getByThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
-    ScanResult scanResult =
-        sbomMetadataUtils.scanSbomContent(app, bomString, insightWork.getScanDir(sbomMetadata.getApplicationId()),
-            SbomFormat.JSON, ItemContentType.SBOM, ScannerDriver.SBOM_API);
+    ScanResult scanResult = sbomMetadataUtils.scanSbomContent(app, bomString, SbomFormat.JSON, ItemContentType.SBOM,
+        ScannerDriver.SBOM_API);
 
     String filteredScanFileName = SbomCommonUtils.newFilteredScanFileName(tpScan.getScanId());
-    File filteredScanFile = new File(insightWork.getScanDir(sbomMetadata.getApplicationId()), filteredScanFileName);
+    ScanEntity filteredScanEntity =
+        scanPersistenceService.getScanByName(sbomMetadata.getApplicationId(), filteredScanFileName);
     //in the case of cli/container scans the filtered scan file may already exist
-    if (!filteredScanFile.exists()) {
+    if (!filteredScanEntity.exists()) {
       try {
-        FileUtils.moveFile(scanResult.getScanFile(), filteredScanFile);
-        tpScan.setFilteredScanFile(filteredScanFile.getName());
+        scanPersistenceService.copyScanFile(scanResult.getScanEntity(), filteredScanEntity);
+        tpScan.setFilteredScanFile(filteredScanEntity.getName());
         thirdPartyScanDAO.update(tpScan);
       }
       catch (IOException e) {
-        log.error("Error saving filtered scan file {}", filteredScanFile.getName(), e);
+        log.error("Error saving filtered scan file {}", filteredScanEntity.getName(), e);
       }
     }
   }

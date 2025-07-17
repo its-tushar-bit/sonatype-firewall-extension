@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -21,8 +20,9 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.features.FeaturesService;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.client.ClientScanRequest;
@@ -76,6 +76,8 @@ public class Scanner
 
   private final FeaturesService featuresService;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public Scanner(
       ScanPropertiesLoader configLoader,
@@ -83,7 +85,8 @@ public class Scanner
       FileScanner fileScanner,
       ScanWriterFactory writerFactory,
       FileCleaner fileCleaner,
-      FeaturesService featuresService)
+      FeaturesService featuresService,
+      ScanPersistenceService scanPersistenceService)
   {
     this.configLoader = configLoader;
     this.clientScanner = clientScanner;
@@ -91,21 +94,22 @@ public class Scanner
     this.writerFactory = writerFactory;
     this.fileCleaner = fileCleaner;
     this.featuresService = featuresService;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   /**
    * Scans the specified target file and returns the resulting scan file, using the given directory as parent.
-   * 
+   *
    * @param scanTarget The binary to be scanned
    * @param filename The name of the binary to be scanned. This is not necessarily the same as the target's file name.
    *          When the binary to be scanned is uploaded via the UI, it is saved in a temporary file (this is the target
    *          that will be scanned). The filename parameter holds the name of the file that was uploaded via the UI.
-   * @param scanDir The directory where to store the scan file.
-   */
-  public ScanResult scan(File scanTarget, String filename, File scanDir, ProprietaryConfig proprietaryConfig)
+   * @param appId The application the scan is associated with.
+   * */
+  public ScanResult scan(File scanTarget, String filename, String appId, ProprietaryConfig proprietaryConfig)
       throws IOException
   {
-    return scan(Collections.singletonList(scanTarget), filename, scanDir, proprietaryConfig,
+    return scan(Collections.singletonList(scanTarget), filename, appId, proprietaryConfig,
         null /* scanConfiguration */, null /* scanMetadata */);
   }
 
@@ -115,28 +119,27 @@ public class Scanner
    */
   public ScanResult scan(
       List<File> scanTargets,
-      File scanDir,
+      String appId,
       ProprietaryConfig proprietaryConfig,
       ScanConfiguration inputScanConfiguration,
       ScanMetadata scanMetadata)
       throws IOException
   {
-    return scan(scanTargets, null /* filename */, scanDir, proprietaryConfig, inputScanConfiguration, scanMetadata);
+    return scan(scanTargets, null /* filename */, appId, proprietaryConfig, inputScanConfiguration, scanMetadata);
   }
 
   private ScanResult scan(
       List<File> scanTargets,
       String filename,
-      File scanDir,
+      String appId,
       ProprietaryConfig proprietaryConfig,
       ScanConfiguration inputScanConfiguration,
       ScanMetadata scanMetadata) throws IOException
   {
-    Files.createDirectories(scanDir.toPath());
-    File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
-    log.debug("Saving scan of {} to {}", scanTargets, scanFile);
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(appId);
+    log.debug("Saving scan of {} to {}", scanTargets, scanEntity);
     ScanResult scanResult = new ScanResult();
-    scanResult.setScanFile(scanFile);
+    scanResult.setScanEntity(scanEntity);
     try {
       Scan scan = new Scan();
 
@@ -144,7 +147,7 @@ public class Scanner
       scan.setConfiguration(scanConfiguration);
       scan.setMetadata(scanMetadata);
 
-      try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
+      try (ScanWriter writer = writerFactory.newWriter(scanEntity.getWriter())) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
         writer.writeMetadata(scanMetadata);
@@ -167,10 +170,10 @@ public class Scanner
     }
     catch (RuntimeException | IOException e) {
       try {
-        fileCleaner.delete(scanFile);
+        scanPersistenceService.deleteScan(scanEntity);
       }
-      catch (FileDeletionException fde) {
-        log.error(COULD_NOT_DELETE_SCAN_FILE, scanFile, fde);
+      catch (IOException fde) {
+        log.error(COULD_NOT_DELETE_SCAN_FILE, scanEntity, fde);
       }
       throw e;
     }
@@ -179,23 +182,22 @@ public class Scanner
 
   public ScanResult scanThirdPartyContent(
       String content,
-      File scanDir,
+      String appId,
       ItemContentType contentType,
       String source,
       SbomFormat format,
       ProprietaryConfig proprietaryConfig,
       String scannerDriver) throws IOException
   {
-    Files.createDirectories(scanDir.toPath());
-    File scanFile = Files.createTempFile(scanDir.toPath(), TEMP_SCAN_PREFIX, SCAN_SUFFIX).toFile();
-    log.debug("Adding Sbom file to {}", scanFile);
+    ScanEntity scanEntity = scanPersistenceService.createTempScan(appId);
+    log.debug("Adding Sbom file to {}", scanEntity);
     ScanResult scanResult = new ScanResult();
-    scanResult.setScanFile(scanFile);
+    scanResult.setScanEntity(scanEntity);
     try {
       Scan scan = new Scan();
       scan.setHasThirdPartyScanContent(true);
       scan.setConfiguration(buildScanConfiguration(proprietaryConfig, null));
-      try (ScanWriter writer = writerFactory.newWriter(scanFile)) {
+      try (ScanWriter writer = writerFactory.newWriter(scanEntity.getWriter())) {
         writer.openScan(scan);
         writer.writeConfiguration(scan.getConfiguration());
         scan.getSummary().setScannerDriver(scannerDriver);
@@ -224,10 +226,10 @@ public class Scanner
     }
     catch (RuntimeException | IOException e) {
       try {
-        fileCleaner.delete(scanFile);
+        scanPersistenceService.deleteScan(scanEntity);
       }
-      catch (FileDeletionException fde) {
-        log.error(COULD_NOT_DELETE_SCAN_FILE, scanFile, fde);
+      catch (IOException fde) {
+        log.error(COULD_NOT_DELETE_SCAN_FILE, scanEntity, fde);
       }
       throw e;
     }
@@ -256,10 +258,10 @@ public class Scanner
     if (SystemConfigurationPropertyFeature.BUILT_FROM_SOURCE.isEnabled()) {
       props.put("includeSha256", "true");
     }
-    
+
     configLoader.loadDefaults(props, null);
     configLoader.resolveAliases(props);
-    
+
     if (inputScanConfiguration != null) {
       props.putAll(inputScanConfiguration.getProperties());
     }

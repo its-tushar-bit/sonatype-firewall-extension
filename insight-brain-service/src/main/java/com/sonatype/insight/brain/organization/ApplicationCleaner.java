@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
@@ -42,19 +43,23 @@ public class ApplicationCleaner
 
   private final ApplicationReportPersistenceService applicationReportPersistenceService;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public ApplicationCleaner(
       final InsightWork work,
       final FileCleaner fileCleaner,
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
       final ApplicationDAO applicationDAO,
-      final ApplicationReportPersistenceService applicationReportPersistenceService)
+      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final ScanPersistenceService scanPersistenceService)
   {
     this.work = work;
     this.fileCleaner = fileCleaner;
     this.ownerMaintenanceTelemetryCreator = ownerMaintenanceTelemetryCreator;
     this.applicationDAO = applicationDAO;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   public void delete(final TransactionContext tx, final Application application) throws IOException {
@@ -63,6 +68,7 @@ public class ApplicationCleaner
     fileCleaner.delete(work.getSourceControlDir(application.getId()));
     fileCleaner.delete(work.getSbomDir(application.getId(), false));
 
+    scanPersistenceService.deleteScansFor(application.getId());
     applicationReportPersistenceService.deleteReports(application.getId());
 
     File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());

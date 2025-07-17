@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -86,9 +84,10 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -133,8 +132,6 @@ public class ScanPolicyEvaluator
 
   public static final String SKIPPING_AUTO_WAIVERS_NOT_ALLOWED_FOR_PRIMARY_EVALUATIONS =
       "Auto-waivers can only be skipped in re-evaluations not primary policy evaluations.";
-
-  private final InsightWork work;
 
   private final ReportService reportService;
 
@@ -200,9 +197,10 @@ public class ScanPolicyEvaluator
 
   private final LicenseNameProvider licenseNameProvider;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public ScanPolicyEvaluator(
-      final InsightWork insightWork,
       final ReportService reportService,
       final PolicyDAO policyDAO,
       final PolicyViolationDAO policyViolationDAO,
@@ -235,9 +233,9 @@ public class ScanPolicyEvaluator
       final AutoPolicyWaiverTelemetryCollector autoPolicyWaiverTelemetryCollector,
       final PathForwardInspector pathForwardInspector,
       final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService,
-      final LicenseNameProvider licenseNameProvider)
+      final LicenseNameProvider licenseNameProvider,
+      final ScanPersistenceService scanPersistenceService)
   {
-    this.work = insightWork;
     this.reportService = reportService;
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
@@ -271,6 +269,7 @@ public class ScanPolicyEvaluator
     this.pathForwardInspector = pathForwardInspector;
     this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
     this.licenseNameProvider = licenseNameProvider;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1010,16 +1009,16 @@ public class ScanPolicyEvaluator
   }
 
   private void deletePreviousScanFile(String appId, Stage stage, String previousScanId) {
-    File previousScanFile = work.getScanFile(appId, previousScanId);
+    ScanEntity previousScanEntity = scanPersistenceService.getScan(appId, previousScanId);
     try {
-      if (Files.deleteIfExists(previousScanFile.toPath())) {
+      if (scanPersistenceService.deleteScan(previousScanEntity)) {
         log.debug("Deleted obsolete scan file for app ID {} and stage {}: {}.", appId, stage,
-            previousScanFile.getAbsolutePath());
+            previousScanEntity.getLocation());
       }
     }
     catch (Exception e) {
       log.error("Cannot delete previous scan file for app ID {} and stage {}: {}. Cause: {}", appId, stage,
-          previousScanFile.getAbsolutePath(), e.getMessage(), e);
+          previousScanEntity.getLocation(), e.getMessage(), e);
     }
   }
 

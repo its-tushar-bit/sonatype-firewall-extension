@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
@@ -45,6 +44,7 @@ import com.sonatype.insight.brain.model.configuration.DataRetentionPolicy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -125,6 +125,8 @@ public class ReportPurger
 
   private final ApplicationReportPersistenceService applicationReportPersistenceService;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public ReportPurger(
       final InsightWork work,
@@ -134,7 +136,8 @@ public class ReportPurger
       final PolicyEvaluationDAO policyEvaluationDAO,
       final TaskScheduler taskScheduler,
       final Configuration configuration,
-      final ApplicationReportPersistenceService applicationReportPersistenceService)
+      final ApplicationReportPersistenceService applicationReportPersistenceService,
+      final ScanPersistenceService scanPersistenceService)
   {
     super("purgeObsoleteReports");
     this.work = work;
@@ -144,6 +147,7 @@ public class ReportPurger
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.taskScheduler = taskScheduler;
     this.configuration = configuration;
+    this.scanPersistenceService = scanPersistenceService;
     contextIds = Stream
         .concat(StageTypes.getAll().stream().map(StageType::getId).filter(stageId -> !Stage.ID_PROXY.equals(stageId)),
             Stream.of(DataRetentionPolicy.CONTEXT_ID_CONTINUOUS_MONITORING))
@@ -284,17 +288,17 @@ public class ReportPurger
         deleteFrom = Math.min(deleteFrom, oldestRetainedIndex + 1);
       }
     }
-    Set<String> purgeableReportIds =
+    Set<String> purgeableScanIds =
         evaluations.subList(deleteFrom, evaluations.size()).stream().map(PolicyEvaluation::getScanId).collect(toSet());
-    if (!evaluations.isEmpty() && !purgeableReportIds.isEmpty()) {
+    if (!evaluations.isEmpty() && !purgeableScanIds.isEmpty()) {
       PolicyEvaluation fromEvaluation = evaluations.get(evaluations.size() - 1);
       PolicyEvaluation toEvaluation = evaluations.get(deleteFrom);
-      log.debug("Purging {} reports from report {} with time {} to report {} with time {}.", purgeableReportIds.size(),
+      log.debug("Purging {} reports from report {} with time {} to report {} with time {}.", purgeableScanIds.size(),
           fromEvaluation.getScanId(), fromEvaluation.getTime(), toEvaluation.getScanId(), toEvaluation.getTime());
     }
     policyEvaluationDAO.getLastByApplicationIds(Collections.singleton(application.getId())).stream()
-        .map(PolicyEvaluation::getScanId).forEach(purgeableReportIds::remove);
-    return purgeReports(application, purgeableReportIds, trashBucket);
+        .map(PolicyEvaluation::getScanId).forEach(purgeableScanIds::remove);
+    return purgeReports(application, purgeableScanIds, trashBucket);
   }
 
   private DataRetentionPolicy getDataRetentionPolicy(Application application, String contextId) {
@@ -312,11 +316,11 @@ public class ReportPurger
     return Date.from(ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS).minusDays(maxAgeInDays).toInstant());
   }
 
-  private int purgeReports(Application application, Collection<String> reportIds, TrashBucket trashBucket) {
+  private int purgeReports(Application application, Collection<String> scanIds, TrashBucket trashBucket) {
     int purged = 0;
-    for (String reportId : reportIds) {
+    for (String scanId : scanIds) {
       try {
-        if (purgeReport(application, reportId)) {
+        if (purgeReport(application, scanId)) {
           purged++;
           if (applicationReportPersistenceService.supportsTrash()) {
             trashBucket.add();
@@ -329,31 +333,29 @@ public class ReportPurger
       }
       catch (IOException e) {
         throw new UncheckedIOException(
-            "Failed to purge obsolete report " + reportId + " from application " + application.getName(), e);
+            "Failed to purge obsolete report " + scanId + " from application " + application.getName(), e);
       }
     }
     return purged;
   }
 
-  private boolean purgeReport(Application application, String reportId) throws IOException {
-    // TODO: update this to purge scan files in S3 as part of https://sonatype.atlassian.net/browse/CLM-35415
+  private boolean purgeReport(Application application, String scanId) throws IOException {
     String purgeScanFiles = configuration.getPurgeScanFiles();
     if (ConfigurationUtils.WITH_REPORTS.equals(purgeScanFiles)) {
       try {
-        File scanFile = work.getScanFile(application.getId(), reportId);
-        Files.deleteIfExists(scanFile.toPath());
+        scanPersistenceService.deleteScan(application.getId(), scanId);
       }
       catch (Exception suppressed) {
-        log.info("Failed to delete scan file for: " + reportId, suppressed);
+        log.info("Failed to delete scan file for: {}", scanId, suppressed);
       }
     }
 
-    if (!applicationReportPersistenceService.reportExists(application.getId(), reportId)) {
+    if (!applicationReportPersistenceService.reportExists(application.getId(), scanId)) {
       return false;
     }
 
     if (applicationReportPersistenceService.supportsTrash()) {
-      Path reportDir = work.getReportDir(application.getId(), reportId).toPath();
+      Path reportDir = work.getReportDir(application.getId(), scanId).toPath();
       List<Path> reportFiles;
       try (Stream<Path> pathStream = Files.walk(reportDir)) {
         reportFiles = pathStream.collect(toCollection(ArrayList::new));
@@ -364,7 +366,7 @@ public class ReportPurger
       // To avoid having too many files in a single directory, we spread the daily trash load over several buckets
       trashDir = trashDir.resolve(getTrashBucketId(application));
       Files.createDirectories(trashDir);
-      Path trashFile = trashDir.resolve("app-" + application.getId() + "-report-" + reportId + ".zip");
+      Path trashFile = trashDir.resolve("app-" + application.getId() + "-report-" + scanId + ".zip");
 
       try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(trashFile))) {
         String zipEntryPrefix = toZipEntryName(work.getReportDir().toPath().relativize(reportDir)) + "/";
@@ -393,9 +395,9 @@ public class ReportPurger
       log.info("Purging report {} from application {} to {}", reportDir, application.getName(), trashFile);
     }
 
-    applicationReportPersistenceService.deleteReport(application.getId(), reportId);
+    applicationReportPersistenceService.deleteReport(application.getId(), scanId);
 
-    log.info("Purged report {} from application {}", reportId, application.getName());
+    log.info("Purged report {} from application {}", scanId, application.getName());
 
     return true;
   }

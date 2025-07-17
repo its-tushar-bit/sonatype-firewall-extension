@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -31,9 +29,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultUtils;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationUtil;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -57,27 +56,27 @@ public class ApiPromoteScanServiceV2
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final InsightWork work;
-
   private final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils;
 
   private final PolicyEvaluationUtil policyEvaluationUtil;
+
+  private final ScanPersistenceService scanPersistenceService;
 
   @Inject
   public ApiPromoteScanServiceV2(
       ApplicationDAO applicationDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyEvaluateService policyEvaluateService,
-      InsightWork work,
       PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
       ShutdownHandler shutdownHandler,
-      PolicyEvaluationUtil policyEvaluationUtil)
+      PolicyEvaluationUtil policyEvaluationUtil,
+      ScanPersistenceService scanPersistenceService)
   {
     super(applicationDAO, policyEvaluateService);
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.work = work;
     this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
     this.policyEvaluationUtil = policyEvaluationUtil;
+    this.scanPersistenceService = scanPersistenceService;
 
     executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
@@ -106,8 +105,8 @@ public class ApiPromoteScanServiceV2
     }
 
     if (requestDTO.scanId != null) {
-      final File scanFile = work.getScanFile(applicationId, requestDTO.scanId);
-      if (!scanFile.isFile()) {
+      final ScanEntity scanEntity = scanPersistenceService.getScan(applicationId, requestDTO.scanId);
+      if (!scanEntity.exists()) {
         throw new BadRequestException("A scan with ID " + requestDTO.scanId +
             " does not exist on the server and may be obsolete. Note that only the most recent scan for the given" +
             " stage can be promoted by default. Set configuration purgeScanFiles to withReports to retain older" +
@@ -181,7 +180,7 @@ public class ApiPromoteScanServiceV2
 
     @Override
     public void run() {
-      File tempScanFile = null;
+      ScanEntity tempScanEntity;
       final String targetStageId = apiPromoteScanRequestDTOV2.targetStageId;
       try {
         final Application application = applicationDAO.getByIdNotNull(applicationId);
@@ -190,12 +189,12 @@ public class ApiPromoteScanServiceV2
                 : "from stage " + apiPromoteScanRequestDTOV2.sourceStageId,
             application.getName(), targetStageId, statusId);
 
-        tempScanFile = work.getScanFile(applicationId, "tmp-" + statusId);
+        tempScanEntity = scanPersistenceService.getScan(applicationId, "tmp-" + statusId);
         String sourceScanId = getSourceScanId();
         while (true) {
-          File sourceScanFile = work.getScanFile(application.getId(), sourceScanId);
+          ScanEntity sourceScanEntity = scanPersistenceService.getScan(application.getId(), sourceScanId);
           try {
-            Files.copy(sourceScanFile.toPath(), tempScanFile.toPath());
+            scanPersistenceService.copyScanFile(sourceScanEntity, tempScanEntity);
             break;
           }
           catch (IOException e) {
@@ -226,7 +225,7 @@ public class ApiPromoteScanServiceV2
         }
 
         policyEvaluateService.evaluateWithPolling(statusId, application, clientScanType,
-            new Stage(targetStageId), scanTriggerType, tempScanFile, "api", userAgent, null);
+            new Stage(targetStageId), scanTriggerType, tempScanEntity, "api", userAgent, null);
       }
       catch (Exception e) {
         log.error("Failed to promote scan of app {} to stage {}. The status ID of the operation is {}.", applicationId,

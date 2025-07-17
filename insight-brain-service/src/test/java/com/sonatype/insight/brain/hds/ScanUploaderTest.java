@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -17,6 +16,8 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -126,9 +127,10 @@ public class ScanUploaderTest
 
     ArgumentCaptor<HdsClientAnalytics> analyticsArg = ArgumentCaptor.forClass(HdsClientAnalytics.class);
     when(mockHdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), anyMap(), any(String[].class))).thenReturn(receipt);
+        any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
@@ -142,10 +144,11 @@ public class ScanUploaderTest
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), clientUserAgentArgCaptor.capture(),
-        any(String.class), any(File.class), anyMap(), any(String[].class))) //
+        any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, testClientUserAgent, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
@@ -159,10 +162,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> metadataArgs = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), metadataArgs.capture(), any(String[].class))) //
+        any(ScanEntity.class), metadataArgs.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
   }
@@ -178,10 +182,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -201,10 +206,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, ProxyStageType.ID, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -226,10 +232,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, ProxyStageType.ID, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -252,10 +259,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, ProxyStageType.ID, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -277,10 +285,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, ProxyStageType.ID, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -303,10 +312,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, ProxyStageType.ID, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -329,10 +339,11 @@ public class ScanUploaderTest
     ArgumentCaptor<Map<String, String>> queryParamsCaptor = ArgumentCaptor.forClass(Map.class);
 
     when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), queryParamsCaptor.capture(), any(String[].class))) //
+        any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    scanUploader.upload(tempDir.newFile(), app, null, null, thirdPartyScanContext);
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();

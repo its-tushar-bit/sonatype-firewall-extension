@@ -5,10 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -24,7 +21,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
@@ -33,7 +31,6 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +41,7 @@ public class ScanUploadService
 
   private final ScanUploader uploader;
 
-  private final InsightWork work;
+  private final ScanPersistenceService scanPersistenceService;
 
   private final ThirdPartyScanResultsProcessor scanResultsProcessor;
 
@@ -58,17 +55,17 @@ public class ScanUploadService
       ScanUploader uploader,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      InsightWork work)
+      ScanPersistenceService scanPersistenceService)
   {
     this.scanResultsProcessor = scanResultsProcessor;
     this.uploader = uploader;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
-    this.work = work;
+    this.scanPersistenceService = scanPersistenceService;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
   }
 
   public ScanReceipt upload(
-      File scanFile,
+      ScanEntity scanEntity,
       Application app,
       String stageTypeId,
       ClientScanType clientScanType,
@@ -77,7 +74,7 @@ public class ScanUploadService
       String scanRequestId) throws IOException
   {
     return upload(
-        scanFile,
+        scanEntity,
         app,
         stageTypeId,
         clientScanType,
@@ -89,7 +86,7 @@ public class ScanUploadService
   }
 
   public ScanReceipt upload(
-      File scanFile,
+      ScanEntity scanEntity,
       Application app,
       String stageTypeId,
       ClientScanType clientScanType,
@@ -98,25 +95,25 @@ public class ScanUploadService
       String scanRequestId,
       ScanContext scanContext) throws IOException
   {
-    if (scanFile == null || app == null) {
+    if (scanEntity == null || app == null) {
       throw new IllegalArgumentException("scanFile and application is required for scan uploads");
     }
     ThirdPartyScanContext thirdPartyScanContext =
-        getThirdPartyScanContext(scanRequestId, scanFile, app, stageTypeId, scanContext);
+        getThirdPartyScanContext(scanRequestId, scanEntity, app, stageTypeId, scanContext);
     if (thirdPartyScanTelemetryData != null) {
       thirdPartyScanTelemetryData.put("scan_file_type", thirdPartyScanContext.getScanType().name());
     }
     ScanReceipt scanReceipt;
     if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
       scanReceipt =
-          filterAndUpload(scanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
+          filterAndUpload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
               thirdPartyScanTelemetryData);
     }
     else {
-      scanReceipt = uploader.upload(scanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
+      scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
-        saveFilteredScanFileIfNeeded(thirdPartyScanContext, scanFile);
+        saveFilteredScanFileIfNeeded(thirdPartyScanContext, scanEntity);
       }
     }
     return scanReceipt;
@@ -124,7 +121,7 @@ public class ScanUploadService
 
   //visible for testing
   ScanReceipt filterAndUpload(
-      File scanFile,
+      ScanEntity scanEntity,
       Application app,
       String stageTypeId,
       String clientUserAgent,
@@ -132,21 +129,20 @@ public class ScanUploadService
       TelemetryData thirdPartyScanTelemetryData)
       throws IOException
   {
-    File scanDir = work.getScanDir(app.getId());
-    File tempScanFile = FileUtils.createTempFile("tmp-", ".xml.gz", scanDir);
+    ScanEntity tempScanEntity = scanPersistenceService.createTempScan(app.getId());
 
     String scanRequestId =
-        scanResultsProcessor.filterAndSaveData(scanFile, tempScanFile, scanDir, thirdPartyScanContext,
+        scanResultsProcessor.filterAndSaveData(scanEntity, tempScanEntity, thirdPartyScanContext,
             thirdPartyScanTelemetryData);
-    ScanReceipt scanReceipt = uploader.upload(tempScanFile, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
+    ScanReceipt scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveContainerUriPaths(stageTypeId, thirdPartyScanContext);
-    saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanFile);
+    saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanEntity);
     try {
-      Files.delete(tempScanFile.toPath());
+      scanPersistenceService.deleteScan(tempScanEntity);
     }
     catch (IOException e) {
-      log.error("Unable to remove temporary scan file {}", tempScanFile.toPath(), e);
+      log.error("Unable to remove temporary scan file {}", tempScanEntity.getLocation(), e);
     }
     return scanReceipt;
   }
@@ -166,7 +162,7 @@ public class ScanUploadService
   }
 
   //visible for testing
-  void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final File filteredScanFile) {
+  void saveFilteredScanFileIfNeeded(final ThirdPartyScanContext scanContext, final ScanEntity filteredScanEntity) {
     if (scanContext == null) {
       return;
     }
@@ -176,15 +172,15 @@ public class ScanUploadService
     if (scanContext.isSbomSavedForScan() && !SbomScanType.BINARY.equals(scanContext.getScanType())) {
       ThirdPartyScan tpScan = thirdPartyScanDAO.getById(scanContext.getThirdPartyScanId());
       if (tpScan != null) {
-        File scanFileCopy = new File(work.getScanDir(scanContext.getApplicationId()),
+        ScanEntity scanEntityCopy = scanPersistenceService.getScanByName(scanContext.getApplicationId(),
             SbomCommonUtils.newFilteredScanFileName(tpScan.getScanId()));
         try {
-          Files.copy(filteredScanFile.toPath(), scanFileCopy.toPath(), StandardCopyOption.REPLACE_EXISTING);
-          tpScan.setFilteredScanFile(scanFileCopy.getName());
+          scanPersistenceService.copyScanFile(filteredScanEntity, scanEntityCopy);
+          tpScan.setFilteredScanFile(scanEntityCopy.getName());
           thirdPartyScanDAO.update(tpScan);
         }
         catch (IOException e) {
-          log.error("Error saving filtered scan file {}", scanFileCopy.getName(), e);
+          log.error("Error saving filtered scan file {}", scanEntityCopy.getName(), e);
         }
       }
     }
@@ -192,7 +188,7 @@ public class ScanUploadService
 
   private ThirdPartyScanContext getThirdPartyScanContext(
       final String scanRequestId,
-      final File scanFile,
+      final ScanEntity scanEntity,
       final Application app,
       final String stageTypeId,
       final ScanContext scanContext)
@@ -204,7 +200,7 @@ public class ScanUploadService
             thirdPartySbomMetadataDAO.getByThirdPartyFileId(scan.getThirdPartyFileId());
         ThirdPartyScanContext thirdPartyScanContext =
             new ThirdPartyScanContext(scanRequestId, app.getId(), SbomScanType.valueOf(sbomMetadata.getScanType()),
-                scanFile, stageTypeId);
+                scanEntity, stageTypeId);
         thirdPartyScanContext.setThirdPartyFileId(sbomMetadata.getThirdPartyFileId());
         thirdPartyScanContext.setSbomFileName(sbomMetadata.getFilename());
         thirdPartyScanContext.setApplicationVersion(sbomMetadata.getSbomVersion());
@@ -218,7 +214,7 @@ public class ScanUploadService
 
     String newScanRequestId = UUID.randomUUID().toString().replace("-", "");
     ThirdPartyScanContext thirdPartyScanContext =
-        new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanFile, stageTypeId);
+        new ThirdPartyScanContext(newScanRequestId, app.getId(), SbomScanType.SBOM, scanEntity, stageTypeId);
     if (scanContext != null) {
       thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
       thirdPartyScanContext.setIsValid(scanContext.isValid());

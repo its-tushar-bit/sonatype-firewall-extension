@@ -97,14 +97,13 @@ public class SbomMetadataUtils
   public ScanResult scanSbomInputStream(
       final Application app,
       final InputStream sbomInputStream,
-      final File scanDir,
       final SbomFormat sbomFormat,
       final ItemContentType itemContentType,
       final ScannerDriver scannerDriver)
   {
     try {
       String sbomContent = IOUtils.toString(sbomInputStream, StandardCharsets.UTF_8);
-      return scanSbomContent(app, sbomContent, scanDir, sbomFormat, itemContentType, scannerDriver);
+      return scanSbomContent(app, sbomContent, sbomFormat, itemContentType, scannerDriver);
     }
     catch (IOException e) {
       throw new UncheckedIOException("unable to read supplied sbom", e);
@@ -113,13 +112,12 @@ public class SbomMetadataUtils
 
   public ScanResult scanBinaryFile(
       final Application app,
-      final File binaryFile,
-      final File scanDir)
+      final File binaryFile)
   {
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scan(binaryFile, binaryFile.getName(), scanDir, proprietaryConfig);
+      return scanner.scan(binaryFile, binaryFile.getName(), app.getId(), proprietaryConfig);
     }
     catch (IOException e) {
       throw new UncheckedIOException("unable to read supplied file", e);
@@ -129,7 +127,6 @@ public class SbomMetadataUtils
   public ScanResult scanSbomContent(
       final Application app,
       final String sbom,
-      final File scanDir,
       final SbomFormat sbomFormat,
       final ItemContentType itemContentType,
       ScannerDriver scannerDriver)
@@ -137,7 +134,7 @@ public class SbomMetadataUtils
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanThirdPartyContent(sbom, scanDir, itemContentType, SBOM_IDENTIFICATION_SOURCE, sbomFormat,
+      return scanner.scanThirdPartyContent(sbom, app.getId(), itemContentType, SBOM_IDENTIFICATION_SOURCE, sbomFormat,
           proprietaryConfig, scannerDriver.getValue());
     }
     catch (IOException ex) {

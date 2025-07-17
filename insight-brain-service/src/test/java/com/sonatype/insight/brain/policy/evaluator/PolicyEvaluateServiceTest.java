@@ -84,6 +84,8 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -227,15 +229,16 @@ public class PolicyEvaluateServiceTest
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
 
-    File file = new File("test-file.xml");
+    FileScanEntity fileScanEntity = new FileScanEntity(new File("parent/test-file.xml"), app.getId());
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
-        .thenReturn(file);
+        .thenReturn(fileScanEntity);
     HttpServletRequest mockedReq = mock(HttpServletRequest.class);
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, mockedReq, new Stage(ID_COMPLIANCE)));
 
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
-        "statusId", app, ClientScanType.SONATYPE, new Stage(ID_COMPLIANCE), ScanTriggerType.SBOM_API, mock(File.class),
+        "statusId", app, ClientScanType.SONATYPE, new Stage(ID_COMPLIANCE), ScanTriggerType.SBOM_API,
+        mock(ScanEntity.class),
         "thirdPartyScanType", "clientUserAgent", "clientInstanceId"));
   }
 
@@ -583,10 +586,10 @@ public class PolicyEvaluateServiceTest
         .thenReturn(testClientUserAgent);
 
     when(mockScanHandler.createTempScanFile(eq(mockHttpServletRequest), any(Application.class)))
-        .thenReturn(mock(File.class));
+        .thenReturn(mock(ScanEntity.class));
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
             anyString(), clientUserAgentArgCaptor.capture(), anyString(), eq(null)))
         .thenReturn(scanReceipt);
 
@@ -619,8 +622,8 @@ public class PolicyEvaluateServiceTest
     scanReceipt.setScanId(scanId);
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
-        .thenReturn(mock(File.class));
-    when(mockScanHandler.handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
+        .thenReturn(mock(ScanEntity.class));
+    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
         telemetryDataArgumentCaptor.capture(), anyString(), anyString(), anyString(), eq(null)))
         .thenReturn(scanReceipt);
 
@@ -656,10 +659,10 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("scanId");
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(File.class));
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
 
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
             anyString(), eq(null), anyString(), eq(null)))
         .thenReturn(scanReceipt);
 
@@ -861,7 +864,7 @@ public class PolicyEvaluateServiceTest
 
     doThrow(new IOException("HDS Upload Scan Failure!!!"))
         .when(mockScanHandler)
-        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
             anyString(), anyString());
 
     PolicyEvaluationReceipt receipt = policyEvaluateService
@@ -889,9 +892,9 @@ public class PolicyEvaluateServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(File.class));
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
             anyString(), eq(null), anyString(), eq(null)))
         .thenReturn(scanReceipt);
 
@@ -954,9 +957,9 @@ public class PolicyEvaluateServiceTest
     String scanId = simulateReportIsAvailable();
     scanReceipt.setScanId(scanId);
 
-    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(File.class));
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     when(mockScanHandler
-        .handle(any(File.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
             anyString(), eq(null), anyString(), eq(null)))
         .thenReturn(scanReceipt);
 
@@ -1103,21 +1106,21 @@ public class PolicyEvaluateServiceTest
     addNotificationsToPolicy(policy, stage.getStageTypeId(), new UserNotification(mail, stage.getStageTypeId()));
 
     String scanId = simulateReportIsAvailable();
-    File scanFile = ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
-
+    ScanEntity scanEntity =
+        new FileScanEntity(ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId));
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(mockScanHandler.handle(eq(scanFile), eq(app), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
+    when(mockScanHandler.handle(eq(scanEntity), eq(app), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
         eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture())).thenReturn(scanReceipt);
 
     // evaluate policy
     String testClientUserAgent = "testClientUserAgent";
     ScanTriggerType scanTriggerType = ScanTriggerType.CLI;
     PolicyEvaluation policyEvaluation = policyEvaluateService.evaluateSynchronousNoAuth(app, ClientScanType.SONATYPE,
-        scanFile, stage, scanTriggerType, testClientUserAgent);
+        scanEntity, stage, scanTriggerType, testClientUserAgent);
 
     assertThat(policyEvaluation.getApplicationId()).isEqualTo(app.getId());
     assertThat(policyEvaluation.getScanId()).isEqualTo(scanId);
@@ -1149,9 +1152,8 @@ public class PolicyEvaluateServiceTest
   @Test
   public void testEvaluateWithPolling_CLI_SbomManager_ComplianceStage_MaxSbomLimitReached() throws IOException {
     testProductLicense.setMaxSbom(0);
-    File mockedFile = mock(File.class);
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
-        .thenReturn(mockedFile);
+        .thenReturn(mock(ScanEntity.class));
     HttpServletRequest mockedReq = mock(HttpServletRequest.class);
 
     assertThatExceptionOfType(PaymentRequiredException.class)
@@ -1360,8 +1362,8 @@ public class PolicyEvaluateServiceTest
   private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {
     HttpServletRequest httpRequest = mock(HttpServletRequest.class);
 
-    final File file = new File("test-file.xml");
-    doReturn(file)
+    FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml"), app.getId());
+    doReturn(fileScanEntity)
         .when(mockScanHandler)
         .createTempScanFile(any(HttpServletRequest.class), any(Application.class));
     doReturn("test-client-user-agent")
@@ -1374,7 +1376,7 @@ public class PolicyEvaluateServiceTest
     scanReceipt.setScanId(scanId);
     doReturn(scanReceipt)
         .when(mockScanHandler)
-        .handle(any(File.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
+        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
             anyString(), anyString(), anyString(), eq(null));
 
     PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(

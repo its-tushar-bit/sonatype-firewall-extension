@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnknownHostException;
@@ -31,6 +30,7 @@ import javax.ws.rs.core.UriBuilder;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.Retry;
@@ -611,11 +611,11 @@ public class HdsClient
       Class<T> clazz,
       String clientUserAgent,
       String path,
-      File uploadFile,
+      ScanEntity uploadScanEntity,
       Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
-    return put(retryCreator.apply(path), analytics, clazz, clientUserAgent, path, uploadFile, queryParams,
+    return put(retryCreator.apply(path), analytics, clazz, clientUserAgent, path, uploadScanEntity, queryParams,
         uriParams);
   }
 
@@ -631,16 +631,17 @@ public class HdsClient
       Class<T> clazz,
       String clientUserAgent,
       String path,
-      File uploadFile,
+      ScanEntity scanEntity,
       Map<String, String> queryParams,
       String... uriParams) throws IOException
   {
-    if (!uploadFile.exists()) {
-      throw new FileNotFoundException(uploadFile.getAbsolutePath());
+    if (!scanEntity.exists()) {
+      throw new RuntimeException("Missing scan " + scanEntity.getLocation());
     }
 
     HttpPut cloudReq = createPutRequest(buildUri(null, path, queryParams, uriParams), analytics, clientUserAgent);
-    cloudReq.setEntity(new FileEntity(uploadFile, ContentType.DEFAULT_BINARY));
+    cloudReq.setEntity(
+        new BufferedHttpEntity(new InputStreamEntity(scanEntity.getInputStream(), ContentType.DEFAULT_BINARY)));
     return execute(retry, cloudReq, clazz);
   }
 

@@ -46,7 +46,6 @@ import com.sonatype.insight.brain.scan.Scanner;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.CurrentUser;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.scan.application.ScannerDriver;
@@ -76,8 +75,6 @@ public class ApiThirdPartyScanService
 
   private final ProprietaryConfigService proprietaryConfigService;
 
-  private final InsightWork work;
-
   private final PolicyEvaluateService policyEvaluateService;
 
   private final ApplicationDAO applicationDAO;
@@ -92,7 +89,6 @@ public class ApiThirdPartyScanService
   public ApiThirdPartyScanService(
       final Scanner scanner,
       final ProprietaryConfigService proprietaryConfigService,
-      final InsightWork work,
       final PolicyEvaluateService policyEvaluateService,
       final ApplicationDAO applicationDAO,
       final StageTypeService stageTypeService,
@@ -101,7 +97,6 @@ public class ApiThirdPartyScanService
   {
     this.scanner = scanner;
     this.proprietaryConfigService = proprietaryConfigService;
-    this.work = work;
     this.policyEvaluateService = policyEvaluateService;
     this.applicationDAO = applicationDAO;
     this.stageTypeService = stageTypeService;
@@ -137,7 +132,7 @@ public class ApiThirdPartyScanService
     ScanResult scanResult = createScanFile(app, sbom, source, format, type);
 
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
-        new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanFile(),
+        new Stage(stageTypeId), ScanTriggerType.THIRD_PARTY, scanResult.getScanEntity(),
         ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent, null);
 
     return scanTicketDTO;
@@ -195,8 +190,8 @@ public class ApiThirdPartyScanService
     try {
       ProprietaryConfig proprietaryConfig =
           proprietaryConfigService.getProprietaryConfig(OwnerType.APPLICATION, app.getPublicId());
-      return scanner.scanThirdPartyContent(sbom, work.getScanDir(app.getId()), type,
-          source, format, proprietaryConfig, ScannerDriver.THIRD_PARTY_API.getValue());
+      return scanner.scanThirdPartyContent(sbom, app.getId(), type, source, format, proprietaryConfig,
+          ScannerDriver.THIRD_PARTY_API.getValue());
     }
     catch (IOException ex) {
       log.error("Error processing sbom content", ex);

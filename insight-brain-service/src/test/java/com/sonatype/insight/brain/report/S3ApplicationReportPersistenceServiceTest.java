@@ -122,7 +122,7 @@ public class S3ApplicationReportPersistenceServiceTest
   @Override
   public void testGetReportLocation() {
     assertThat(service.getReportLocation("app1", "scan1"))
-        .isEqualTo("s3://test-bucket/" + expectedPrefix + "sonatype-work/report/app1/scan1/");
+        .isEqualTo("s3://test-bucket/" + expectedPrefix + "report/app1/scan1/");
   }
 
   @Override

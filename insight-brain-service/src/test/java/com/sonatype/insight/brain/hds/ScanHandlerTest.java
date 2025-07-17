@@ -16,6 +16,9 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.ScanContext.Builder;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -64,8 +67,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(scanUploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
-        any(), any(), any(), eq(new ScanContext.Builder().isValid(true).build()))).thenReturn(scanReceipt);
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+        any(), any(), any(), eq(new Builder().isValid(true).build()))).thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
@@ -82,17 +85,17 @@ public class ScanHandlerTest
     mockScanReceipt.setScanId(scanId);
     File scanDir = work.getScanDir(app.getId());
     Files.createDirectories(scanDir.toPath());
-    File scanFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
-    String scanFileContent = "test scan file content";
-    Files.writeString(scanFile.getAbsoluteFile().toPath(), scanFileContent);
+    File tempFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
+    Files.writeString(tempFile.getAbsoluteFile().toPath(), "test scan file content");
+    ScanEntity scanEntity = new FileScanEntity(tempFile, app.getId());
 
-    when(scanUploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
-        any(), any(), any(), eq(new ScanContext.Builder().isValid(true).build()))).thenReturn(mockScanReceipt);
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+        any(), any(), any(), eq(new Builder().isValid(true).build()))).thenReturn(mockScanReceipt);
 
-    ScanReceipt scanReceipt = scanHandler.handle(scanFile, app, ClientScanType.SONATYPE, null, ComplianceStageType.ID,
+    ScanReceipt scanReceipt = scanHandler.handle(scanEntity, app, ClientScanType.SONATYPE, null, ComplianceStageType.ID,
         null, scanRequestId);
     verify(scanUploadService, times(1))
-        .upload(eq(scanFile), eq(app), eq(ComplianceStageType.ID), eq(ClientScanType.SONATYPE), eq(null), eq(null),
+        .upload(eq(scanEntity), eq(app), eq(ComplianceStageType.ID), eq(ClientScanType.SONATYPE), eq(null), eq(null),
             eq(scanRequestId), eq(new ScanContext.Builder().isValid(true).build()));
     assertThat(mockScanReceipt).isEqualTo(scanReceipt);
   }
@@ -107,12 +110,14 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(scanUploadService.upload(any(File.class), any(Application.class), eq(null), any(), eq(null), eq(null), any(),
-        eq(new ScanContext.Builder().isValid(true).build()))).thenReturn(scanReceipt);
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), eq(null), any(), eq(null), eq(null),
+        any(),
+        eq(new Builder().isValid(true).build()))).thenReturn(scanReceipt);
     scanReceipt = scanHandler.handle(servletRequest, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY);
     assertThat(scanReceipt.getScanId()).isEqualTo(scanId);
     verify(scanUploadService, times(1))
-        .upload(any(File.class), any(Application.class), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY), eq(null),
+        .upload(any(ScanEntity.class), any(Application.class), eq(null), eq(ClientScanType.SONATYPE_THIRD_PARTY),
+            eq(null),
             eq(null), any(), eq(new ScanContext.Builder().isValid(true).build()));
   }
 
@@ -129,7 +134,7 @@ public class ScanHandlerTest
     when(servletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(scanUploadService.upload(any(File.class), any(Application.class), eq(null), any(ClientScanType.class),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), eq(null), any(ClientScanType.class),
         clientUserAgentArgCaptor.capture(), eq(null), any(),
         eq(new ScanContext.Builder().isValid(true).build()))).thenReturn(scanReceipt);
 
@@ -152,7 +157,7 @@ public class ScanHandlerTest
     when(servletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn(testClientUserAgent);
 
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(scanUploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
         clientUserAgentArgCaptor.capture(), any(), any(),
         eq(new ScanContext.Builder().isValid(true).build()))).thenReturn(scanReceipt);
 
@@ -177,7 +182,8 @@ public class ScanHandlerTest
     String scanFileContent = "test scan file content";
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
-    when(scanUploadService.upload(any(File.class), any(Application.class), any(), eq(ClientScanType.SONATYPE), any(),
+    when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
+        any(),
         any(), any(), eq(new ScanContext.Builder().isValid(true).build()))).thenThrow(new RuntimeException("test"));
 
     assertThatExceptionOfType(RuntimeException.class)

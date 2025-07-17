@@ -26,7 +26,6 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.ScanResult;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.scan.application.ScannerDriver;
@@ -40,8 +39,6 @@ public class SbomScanEvaluator
 {
   private final ApplicationDAO applicationDAO;
 
-  private final InsightWork insightWork;
-
   private final PolicyEvaluateService policyEvaluateService;
 
   private final SbomMetadataUtils sbomMetadataUtils;
@@ -51,13 +48,11 @@ public class SbomScanEvaluator
   @Inject
   public SbomScanEvaluator(
       final ApplicationDAO applicationDAO,
-      final InsightWork insightWork,
       final PolicyEvaluateService policyEvaluateService,
       final SbomMetadataUtils sbomMetadataUtils,
       final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     this.applicationDAO = applicationDAO;
-    this.insightWork = insightWork;
     this.policyEvaluateService = policyEvaluateService;
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.thirdPartyPersistenceService = thirdPartyPersistenceService;
@@ -73,11 +68,7 @@ public class SbomScanEvaluator
     Application application = applicationDAO.getById(applicationId);
     Path tmpFileToScan = thirdPartyPersistenceService.getBinaryPersistentTempFilePath(sbomMetadata, thirdPartyFile);
 
-    ScanResult scanResult = sbomMetadataUtils.scanBinaryFile(
-        application,
-        tmpFileToScan.toFile(),
-        insightWork.getScanDir(applicationId)
-    );
+    ScanResult scanResult = sbomMetadataUtils.scanBinaryFile(application, tmpFileToScan.toFile());
 
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
 
@@ -93,7 +84,7 @@ public class SbomScanEvaluator
         clientScanType,
         new Stage(StageTypes.COMPLIANCE.getId()),
         scanTriggerType,
-        scanResult.getScanFile(),
+        scanResult.getScanEntity(),
         ScannerDriver.SBOM_API.getValue(),
         clientUserAgent,
         null,
@@ -119,7 +110,6 @@ public class SbomScanEvaluator
       scanResult = sbomMetadataUtils.scanSbomInputStream(
           application,
           thirdPartyPersistenceService.getSbomContentsInputStream(sbomMetadata),
-          insightWork.getScanDir(application.getId()),
           sbomFormat,
           contentType,
           ScannerDriver.SBOM_API
@@ -137,7 +127,7 @@ public class SbomScanEvaluator
         ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(StageTypes.COMPLIANCE.getId()),
         scanTriggerType,
-        scanResult.getScanFile(),
+        scanResult.getScanEntity(),
         ScannerDriver.SBOM_API.getValue(),
         clientUserAgent,
         null,

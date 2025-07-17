@@ -51,7 +51,7 @@ public class S3ApplicationReportPersistenceService
 {
   private static final Logger log = LoggerFactory.getLogger(S3ApplicationReportPersistenceService.class);
 
-  private static final String APP_WIDE_BASE_FORMAT = "sonatype-work/report/%s/";
+  private static final String APP_WIDE_BASE_FORMAT = "report/%s/";
 
   private static final String BASE_FORMAT = APP_WIDE_BASE_FORMAT + "%s/";
 

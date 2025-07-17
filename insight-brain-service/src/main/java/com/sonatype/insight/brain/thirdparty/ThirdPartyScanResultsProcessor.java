@@ -5,9 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
@@ -39,6 +36,7 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.Xpp3Util;
@@ -50,9 +48,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import com.thoughtworks.xstream.XStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.codehaus.plexus.util.xml.pull.MXParser;
@@ -120,18 +116,16 @@ public class ThirdPartyScanResultsProcessor
   }
 
   public String filterAndSaveData(
-      File scanFile,
-      File tempScanFile,
-      File scanDir,
+      ScanEntity scanEntity,
+      ScanEntity tempScanEntity,
       ThirdPartyScanContext scanContext,
       TelemetryData thirdPartyScanTelemetryData)
   {
     String scanRequestId = scanContext.getScanRequestId();
     log.info("Processing third party content with scanRequestId: {}", scanRequestId);
-    File filteredFile = FileUtils.createTempFile("tmp-", ".xml", scanDir);
 
-    try (GZIPInputStream gis = new GZIPInputStream(new FileInputStream(scanFile));
-         OutputStream out = new FileOutputStream(filteredFile)) {
+    try (GZIPInputStream gis = new GZIPInputStream(scanEntity.getInputStream());
+         OutputStream out = new GzipCompressorOutputStream(tempScanEntity.getOutputStream())) {
 
       XmlPullParser parser = new MXParser();
       parser.setInput(new XmlStreamReader(gis));
@@ -145,16 +139,12 @@ public class ThirdPartyScanResultsProcessor
       }
       writer.flush();
       writer.close();
-      compressScanFile(filteredFile, tempScanFile);
       telemetrySender.send(thirdPartyScanTelemetryData);
-      log.info("Completed processing third party content in file {}", scanFile.getName());
+      log.info("Completed processing third party content in file {}", scanEntity.getLocation());
       return scanRequestId;
     }
     catch (Exception e) {
       throw new RuntimeException("Error reading/processing third party scan content from scan file", e);
-    }
-    finally {
-      filteredFile.delete();
     }
   }
 
@@ -213,7 +203,7 @@ public class ThirdPartyScanResultsProcessor
         }
         else {
           log.error("scan file {} contained a third party scan item {} without any content",
-              scanContext.getScanFile().getName(), contentType);
+              scanContext.getScanEntity().getName(), contentType);
         }
         writer.add(EVENT_FACTORY.createEndElement(new QName(parser.getName()), null));
         writeDependencyGraph(writer, moduleDependencies);
@@ -276,13 +266,6 @@ public class ThirdPartyScanResultsProcessor
 
     scanContext.setThirdPartyScanId(thirdPartyScan.getId());
     return thirdPartyScan;
-  }
-
-  private void compressScanFile(File filteredFile, File scanFile) throws IOException {
-    try (FileInputStream inputStream = new FileInputStream(filteredFile);
-         GzipCompressorOutputStream outStream = new GzipCompressorOutputStream(new FileOutputStream(scanFile))) {
-      IOUtils.copy(inputStream, outStream);
-    }
   }
 
   private void addElementAttributes(XmlPullParser parser, XMLEventWriter writer) throws XMLStreamException {
@@ -459,7 +442,7 @@ public class ThirdPartyScanResultsProcessor
       return thirdPartyFile;
     }
     catch (IOException | CheckedIllegalArgumentException e) {
-      log.error("there was an error while trying to store sbom file {}", scanContext.getScanFile().getName(), e);
+      log.error("there was an error while trying to store sbom file {}", scanContext.getScanEntity().getName(), e);
       return null;
     }
   }

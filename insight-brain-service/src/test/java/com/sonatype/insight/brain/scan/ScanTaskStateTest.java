@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.scan;
 import java.io.File;
 import java.io.IOException;
 
-import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AbstractDataTest;
@@ -21,6 +20,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertNotifier;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanTask.State;
+import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.scan.model.ClientScanType;
@@ -69,20 +70,22 @@ public class ScanTaskStateTest
 
   private TelemetryUtils telemetryUtils = mock(TelemetryUtils.class);
 
+  private ScanPersistenceService scanPersistenceService = mock(ScanPersistenceService.class);
+
   ScanTask task;
 
   TaskStateCapturer captureState = new TaskStateCapturer();
 
   @Before
   public void init() throws Exception {
-    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, work, fileCleaner,
-        proprietaryConfigService, scanUploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils);
+    task = new ScanTask(scanner, scanPolicyEvaluator, notifier, fileCleaner, proprietaryConfigService,
+        scanUploadService, daoFactory.createPersistedScanTicketDAO(), telemetryUtils, scanPersistenceService);
 
-    File binFile = new File("any");
+    File binFile = new File("path/any");
     Application application = new Application("any", "MyApp", null);
     application.setId("appId");
     task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
-    when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(binFile, false));
+    when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(new FileScanEntity(binFile), false));
   }
 
   @Test
@@ -92,8 +95,7 @@ public class ScanTaskStateTest
 
   @Test
   public void scanning() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any(), (ProprietaryConfig) any()))
-        .then(captureState);
+    when(scanner.scan(any(), any(), any(), any())).then(captureState);
 
     task.run();
 
@@ -149,8 +151,7 @@ public class ScanTaskStateTest
 
   @Test
   public void error() throws IOException {
-    when(scanner.scan((File) any(), (String) any(), (File) any(), (ProprietaryConfig) any()))
-        .thenThrow(RuntimeException.class);
+    when(scanner.scan( any(), any(), any(), any())).thenThrow(RuntimeException.class);
 
     task.run();
 

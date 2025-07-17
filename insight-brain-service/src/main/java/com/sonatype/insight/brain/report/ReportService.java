@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.report;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -78,11 +77,12 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportType;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -176,11 +176,11 @@ public class ReportService
 
   private final ScanUploadService scanUploadService;
 
-  private final InsightWork insightWork;
-
   private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
   private final CpeMatchingConfigurationService cpeMatchingConfigurationService;
+
+  private final ScanPersistenceService scanPersistenceService;
 
   @Inject
   public ReportService(
@@ -208,9 +208,9 @@ public class ReportService
       final ProprietaryConfigService proprietaryConfigService,
       final ReportDataStore reportDataStore,
       final ScanUploadService scanUploadService,
-      final InsightWork insightWork,
       final AutomatedPullRequestCreationService automatedPullRequestCreationService,
-      final CpeMatchingConfigurationService cpeMatchingConfigurationService)
+      final CpeMatchingConfigurationService cpeMatchingConfigurationService,
+      final ScanPersistenceService scanPersistenceService)
   {
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.configuration = configuration;
@@ -236,9 +236,9 @@ public class ReportService
     this.proprietaryConfigService = proprietaryConfigService;
     this.reportDataStore = reportDataStore;
     this.scanUploadService = scanUploadService;
-    this.insightWork = insightWork;
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   @Trace
@@ -1339,13 +1339,13 @@ public class ReportService
       throw new BadRequestException("Policy evaluation for scan " + scanId + " does not exist on the server.");
     }
 
-    final File scanFile = insightWork.getScanFile(appId, scanId);
+    final ScanEntity scanEntity = scanPersistenceService.getScan(appId, scanId);
     final String stageTypeId = policyEvaluation.getStageTypeId();
     final Stage stage = new Stage(stageTypeId);
     final ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
     final ClientScanType clientScanType = policyEvaluation.getClientScanType();
 
-    ScanReceipt scanReceipt = scanUploadService.upload(scanFile, application, stage.getStageTypeId(),
+    ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, application, stage.getStageTypeId(),
         clientScanType,
         clientUserAgent,
         telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage, stageTypeId,

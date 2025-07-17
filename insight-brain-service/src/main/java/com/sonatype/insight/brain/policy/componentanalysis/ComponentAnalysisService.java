@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.*;
 import com.sonatype.insight.brain.policy.utils.EvaluationUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
@@ -38,7 +39,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -187,7 +187,7 @@ public class ComponentAnalysisService
     final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
         policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(app.getId(),
             statusId, disablePollingIntervalForTesting);
-    final File tempScanFile = scanHandler.createTempScanFile(request, app);
+    final ScanEntity tempScanEntity = scanHandler.createTempScanFile(request, app);
 
     log.debug(
         "Submitting component analysis task for app public id {}, clientScanType {}, stageTypeId {}. "
@@ -201,7 +201,7 @@ public class ComponentAnalysisService
             scanTriggerType,
             statusId,
             stage,
-            tempScanFile,
+            tempScanEntity,
             thirdPartyScanTelemetryData,
             persistedPolicyEvaluationPollingResult,
             clientUserAgent,
@@ -254,7 +254,7 @@ public class ComponentAnalysisService
 
     private final String statusId;
 
-    private final File tempScanFile;
+    private final ScanEntity tempScanEntity;
 
     private final TelemetryData thirdPartyScanTelemetryData;
 
@@ -272,7 +272,7 @@ public class ComponentAnalysisService
         final ScanTriggerType scanTriggerType,
         final String statusId,
         final Stage stage,
-        final File tempScanFile,
+        final ScanEntity tempScanEntity,
         final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent,
@@ -282,7 +282,7 @@ public class ComponentAnalysisService
       this.clientScanType = clientScanType;
       this.scanTriggerType = scanTriggerType;
       this.statusId = statusId;
-      this.tempScanFile = tempScanFile;
+      this.tempScanEntity = tempScanEntity;
       this.thirdPartyScanTelemetryData = thirdPartyScanTelemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
       this.clientUserAgent = clientUserAgent;
@@ -302,7 +302,7 @@ public class ComponentAnalysisService
 
       try {
         ScanReceipt scanReceipt =
-            scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
+            scanHandler.handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
                 clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
         scanId = scanReceipt.getScanId();
 

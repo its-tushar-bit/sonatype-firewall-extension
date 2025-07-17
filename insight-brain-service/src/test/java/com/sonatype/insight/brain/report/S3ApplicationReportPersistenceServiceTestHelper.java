@@ -54,7 +54,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
     try (var fileWalk = Files.walk(reportDir)) {
       fileWalk.filter(Files::isRegularFile).forEach(file -> {
         String name = reportDir.relativize(file).toString();
-        String key = "%ssonatype-work/report/%s/%s/report.files/%s".formatted(
+        String key = "%sreport/%s/%s/report.files/%s".formatted(
             expectedEffectivePrefix,
             APPLICATION_ID,
             SCAN_ID,
@@ -71,7 +71,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
 
   @Override
   public void saveEmptyMockReport(String scanId) {
-    String key = "%ssonatype-work/report/%s/%s/report.files/index.html".formatted(
+    String key = "%sreport/%s/%s/report.files/index.html".formatted(
         expectedEffectivePrefix,
         APPLICATION_ID,
         scanId
@@ -85,27 +85,27 @@ public class S3ApplicationReportPersistenceServiceTestHelper
 
   @Override
   public String readFromLocalFiles(String applicationId, String scanId, String name) {
-    return readKey("sonatype-work/report/%s/%s/report.cache/%s".formatted(applicationId, scanId, name));
+    return readKey("report/%s/%s/report.cache/%s".formatted(applicationId, scanId, name));
   }
 
   @Override
   public String readFromOriginalFiles(String applicationId, String scanId, String name) {
-    return readKey("sonatype-work/report/%s/%s/report.files/%s".formatted(applicationId, scanId, name));
+    return readKey("report/%s/%s/report.files/%s".formatted(applicationId, scanId, name));
   }
 
   @Override
   public String readFromAdditionalFiles(String applicationId, String scanId, String name) {
-    return readKey("sonatype-work/report/%s/%s/additional.files/%s".formatted(applicationId, scanId, name));
+    return readKey("report/%s/%s/additional.files/%s".formatted(applicationId, scanId, name));
   }
 
   @Override
   public String readPdf(String applicationId, String scanId) {
-    return readKey("sonatype-work/report/%s/%s/report.pdf".formatted(applicationId, scanId));
+    return readKey("report/%s/%s/report.pdf".formatted(applicationId, scanId));
   }
 
   @Override
   public String readVulnerabilitySignatures(String applicationId, String scanId) {
-    return readKey("sonatype-work/report/%s/%s/vulnerability-signatures.json".formatted(applicationId, scanId));
+    return readKey("report/%s/%s/vulnerability-signatures.json".formatted(applicationId, scanId));
   }
 
   @Override
@@ -115,7 +115,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
       String name,
       String content)
   {
-    String key = "sonatype-work/report/%s/%s/additional.files/%s".formatted(applicationId, scanId, name);
+    String key = "report/%s/%s/additional.files/%s".formatted(applicationId, scanId, name);
     writeKey(key, content);
   }
 
@@ -126,19 +126,19 @@ public class S3ApplicationReportPersistenceServiceTestHelper
       String name,
       String content)
   {
-    String key = "sonatype-work/report/%s/%s/report.cache/%s".formatted(applicationId, scanId, name);
+    String key = "report/%s/%s/report.cache/%s".formatted(applicationId, scanId, name);
     writeKey(key, content);
   }
 
   @Override
   public void writePdf(String applicationId, String scanId, String content) {
-    String key = "sonatype-work/report/%s/%s/report.pdf".formatted(applicationId, scanId);
+    String key = "report/%s/%s/report.pdf".formatted(applicationId, scanId);
     writeKey(key, content);
   }
 
   @Override
   public void writeVulnerabilitySignatures(String applicationId, String scanId, String content) {
-    String key = "sonatype-work/report/%s/%s/vulnerability-signatures.json".formatted(applicationId, scanId);
+    String key = "report/%s/%s/vulnerability-signatures.json".formatted(applicationId, scanId);
     writeKey(key, content);
   }
 

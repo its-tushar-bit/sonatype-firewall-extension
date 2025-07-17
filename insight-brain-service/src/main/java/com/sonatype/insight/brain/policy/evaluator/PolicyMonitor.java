@@ -5,9 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -44,8 +42,9 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -75,8 +74,6 @@ public class PolicyMonitor
   private static final int POLICY_MONITOR_THREADS_MAX = 20;
 
   private ForkJoinPool applicationMonitorForkJoinPool;
-
-  private final InsightWork work;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -110,9 +107,10 @@ public class PolicyMonitor
 
   private final ReportService reportService;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public PolicyMonitor(
-      final InsightWork work,
       final ScanPolicyEvaluator scanPolicyEvaluator,
       final PolicyAlertNotifier policyAlertNotifier,
       final ProductLicense productLicense,
@@ -128,9 +126,9 @@ public class PolicyMonitor
       final ShutdownHandler shutdownHandler,
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
-      final ReportService reportService)
+      final ReportService reportService,
+      final ScanPersistenceService scanPersistenceService)
   {
-    this.work = work;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
     this.productLicense = productLicense;
@@ -147,6 +145,7 @@ public class PolicyMonitor
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.reportService = reportService;
+    this.scanPersistenceService = scanPersistenceService;
     log.debug("Created a new PolicyMonitor for tenant {}", TenantThreadLocal.getTenant());
   }
 
@@ -285,18 +284,18 @@ public class PolicyMonitor
     // Copy the last scan file to a new scan file that will get a new scan id.
     // The tests assume that the temp file is created in the scan directory for the given app.
     // If the location of the temp files is changed, the tests need to be updated.
-    File tempScanFile = work.getScanFile(app.getId(), "tmp-" + UUID.randomUUID());
+    ScanEntity tempScanEntity = scanPersistenceService.getScan(app.getId(), "tmp-" + UUID.randomUUID());
 
     String newScanId = null;
     try {
-      cloneScanFile(tempScanFile, app, lastPrimaryPolicyEvaluation);
+      cloneScanFile(tempScanEntity, app, lastPrimaryPolicyEvaluation);
       boolean hasThirdPartyContent = hasThirdPartyScanContent(lastPrimaryPolicyEvaluation.getApplicationId(),
           lastPrimaryPolicyEvaluation.getScanId());
-      newScanId = uploadScan(tempScanFile, app, policyMonitoring.getStageTypeId(), hasThirdPartyContent);
+      newScanId = uploadScan(tempScanEntity, app, policyMonitoring.getStageTypeId(), hasThirdPartyContent);
     }
     catch (Exception e) {
       try {
-        Files.deleteIfExists(tempScanFile.toPath());
+        scanPersistenceService.deleteScan(tempScanEntity);
       }
       catch (IOException fileDeleteException) {
         log.warn(fileDeleteException.getMessage(), fileDeleteException);
@@ -339,8 +338,9 @@ public class PolicyMonitor
       return;
     }
 
-    File filteredScanFile = new File(work.getScanDir(app.getId()), latestSbomVersionScan.getFilteredScanFile());
-    if (!filteredScanFile.exists()) {
+    ScanEntity filteredScanEntity =
+        scanPersistenceService.getScanByName(app.getId(), latestSbomVersionScan.getFilteredScanFile());
+    if (!filteredScanEntity.exists()) {
       AuditData.get().setEvent(null);
       log.debug("Missing filtered scan file {} for application id {} and sbom version {}",
           latestSbomVersionScan.getFilteredScanFile(), app.getId(), sbomMetadata.getSbomVersion());
@@ -348,7 +348,7 @@ public class PolicyMonitor
     }
 
     latestSbomVersionScan.setPreviousScanId(latestSbomVersionScan.getScanId());
-    String newScanId = uploadFilteredScanForComplianceStage(filteredScanFile, app);
+    String newScanId = uploadFilteredScanForComplianceStage(filteredScanEntity, app);
 
     // Update scanId on third party scan table so we can associate the scan with the new evaluation/report
     latestSbomVersionScan.setScanId(newScanId);
@@ -379,15 +379,15 @@ public class PolicyMonitor
   }
 
   private void cloneScanFile(
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       Application app,
       PolicyEvaluation lastPrimaryPolicyEvaluation) throws IOException
   {
     String lastScanId = lastPrimaryPolicyEvaluation.getScanId();
     do {
-      File lastScanFile = work.getScanFile(app.getId(), lastScanId);
+      ScanEntity lastScanEntity = scanPersistenceService.getScan(app.getId(), lastScanId);
       try {
-        Files.copy(lastScanFile.toPath(), tempScanFile.toPath());
+        scanPersistenceService.copyScanFile(lastScanEntity, tempScanEntity);
         break;
       }
       catch (Exception e) {
@@ -407,26 +407,30 @@ public class PolicyMonitor
     while (true);
   }
 
-  private String uploadFilteredScanForComplianceStage(File filteredScanFile, Application app)
+  private String uploadFilteredScanForComplianceStage(ScanEntity filteredScanEntity, Application app)
       throws IOException, InterruptedException
   {
     ScanReceipt scanReceipt =
-        scanUploadService.upload(filteredScanFile, app, ComplianceStageType.ID, ClientScanType.SONATYPE, null, null,
+        scanUploadService.upload(filteredScanEntity, app, ComplianceStageType.ID, ClientScanType.SONATYPE, null, null,
             null);
     scanReceipt.waitForReport();
     return scanReceipt.getScanId();
   }
 
-  private String uploadScan(File tempScanFile, Application app, String stageTypeId, boolean hasThirdPartyContent)
+  private String uploadScan(
+      ScanEntity tempScanEntity,
+      Application app,
+      String stageTypeId,
+      boolean hasThirdPartyContent)
       throws IOException, InterruptedException
   {
     ClientScanType clientScanType =
         hasThirdPartyContent ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
     ScanReceipt scanReceipt =
-        scanUploadService.upload(tempScanFile, app, stageTypeId, clientScanType, null, null, null);
+        scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, null, null, null);
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
-    Files.move(tempScanFile.toPath(), work.getScanFile(app.getId(), scanId).toPath());
+    scanPersistenceService.moveTempScan(tempScanEntity, app.getId(), scanId);
 
     return scanId;
   }

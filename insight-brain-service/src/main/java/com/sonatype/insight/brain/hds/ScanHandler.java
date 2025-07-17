@@ -5,10 +5,8 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.OutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.ServletInputStream;
@@ -19,14 +17,14 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.io.IOUtils;
-import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,21 +36,21 @@ public class ScanHandler
 {
   private static final Logger log = LoggerFactory.getLogger(ScanHandler.class);
 
-  private final InsightWork work;
-
   private final ApplicationDAO appDAO;
 
   private final ScanUploadService scanUploadService;
 
+  private final ScanPersistenceService scanPersistenceService;
+
   @Inject
   public ScanHandler(
-      InsightWork work,
-      ApplicationDAO appDAO,
-      ScanUploadService scanUploadService)
+      final ApplicationDAO appDAO,
+      final ScanUploadService scanUploadService,
+      final ScanPersistenceService scanPersistenceService)
   {
-    this.work = work;
     this.appDAO = appDAO;
     this.scanUploadService = scanUploadService;
+    this.scanPersistenceService = scanPersistenceService;
   }
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
@@ -62,24 +60,24 @@ public class ScanHandler
       ClientScanType clientScanType) throws IOException
   {
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
-    File tempScanFile = createTempScanFile(httpRequest, app);
-    return handle(tempScanFile, app, clientScanType, null /* thirdPartyScanTelemetryData */, null /* stageTypeId */,
+    ScanEntity tempScanEntity = createTempScanFile(httpRequest, app);
+    return handle(tempScanEntity, app, clientScanType, null /* thirdPartyScanTelemetryData */, null /* stageTypeId */,
         HdsClient.getClientUserAgent(httpRequest));
   }
 
   public ScanReceipt handle(
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       Application app,
       ClientScanType clientScanType,
       TelemetryData thirdPartyScanTelemetryData,
       String stageTypeId,
       String clientUserAgent) throws IOException
   {
-    return handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent, null);
+    return handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent, null);
   }
 
   public ScanReceipt handle(
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       Application app,
       ClientScanType clientScanType,
       TelemetryData thirdPartyScanTelemetryData,
@@ -88,12 +86,12 @@ public class ScanHandler
       String scanRequestId)
       throws IOException
   {
-    return handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent,
+    return handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stageTypeId, clientUserAgent,
         scanRequestId, new ScanContext.Builder().isValid(true).build());
   }
 
   public ScanReceipt handle(
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       Application app,
       ClientScanType clientScanType,
       TelemetryData thirdPartyScanTelemetryData,
@@ -108,10 +106,9 @@ public class ScanHandler
 
     try {
       ScanReceipt scanReceipt =
-          scanUploadService.upload(tempScanFile, app, stageTypeId, clientScanType, clientUserAgent,
+          scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, clientUserAgent,
               thirdPartyScanTelemetryData, scanRequestId, scanContext);
-      File scanFile = work.getScanFile(app.getId(), scanReceipt.getScanId());
-      FileUtils.rename(tempScanFile, scanFile);
+      scanPersistenceService.moveTempScan(tempScanEntity, app.getId(), scanReceipt.getScanId());
 
       log.debug("Handled {} scan id {} for application public id {} in {} ms.", clientScanType, scanReceipt.getScanId(),
           app.getPublicId(), System.currentTimeMillis() - start);
@@ -120,46 +117,39 @@ public class ScanHandler
     }
     catch (Exception e) {
       try {
-        Files.deleteIfExists(tempScanFile.toPath());
+        scanPersistenceService.deleteScan(tempScanEntity);
       }
-      catch (IOException fileDeleteException) {
-        log.warn(fileDeleteException.getMessage(), fileDeleteException);
+      catch (IOException ioException) {
+        log.warn("Failure when deleting temp scan", ioException);
       }
 
       throw e;
     }
   }
 
-  public File createTempScanFile(HttpServletRequest httpRequest, Application app) throws IOException {
-    File tempScanFile = createTempScanFile(app);
+  public ScanEntity createTempScanFile(HttpServletRequest httpRequest, Application app) throws IOException {
+    ScanEntity tempScanEntity = scanPersistenceService.createTempScan(app.getId());
 
     try {
-      saveScanFromHttpRequest(httpRequest, tempScanFile);
+      saveScanFromHttpRequest(httpRequest, tempScanEntity);
     }
     catch (Exception e) {
       try {
-        Files.deleteIfExists(tempScanFile.toPath());
+        scanPersistenceService.deleteScan(tempScanEntity);
       }
-      catch (IOException fileDeleteException) {
-        log.warn(fileDeleteException.getMessage(), fileDeleteException);
+      catch (IOException ioException) {
+        log.warn("Failure when deleting temp scan", ioException);
       }
 
       throw e;
     }
 
-    return tempScanFile;
+    return tempScanEntity;
   }
 
-  private void saveScanFromHttpRequest(HttpServletRequest httpRequest, File scanFile) throws IOException {
-    try (ServletInputStream is = httpRequest.getInputStream(); FileOutputStream os = new FileOutputStream(scanFile)) {
+  private void saveScanFromHttpRequest(HttpServletRequest httpRequest, ScanEntity scanEntity) throws IOException {
+    try (ServletInputStream is = httpRequest.getInputStream(); OutputStream os = scanEntity.getOutputStream()) {
       IOUtils.copy(is, os);
     }
-  }
-
-  private File createTempScanFile(Application app) throws IOException {
-    File scanDir = work.getScanDir(app.getId());
-    Files.createDirectories(scanDir.toPath());
-
-    return FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
   }
 }

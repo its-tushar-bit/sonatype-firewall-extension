@@ -31,7 +31,6 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResult
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.Scanner;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -69,8 +68,6 @@ public class SourceControlScanService
 
   private ProprietaryConfigService proprietaryConfigService;
 
-  private final InsightWork work;
-
   private final Scanner scanner;
 
   private final AuditRecorder auditRecorder;
@@ -86,7 +83,6 @@ public class SourceControlScanService
       final ProprietaryConfigService proprietaryConfigService,
       final PolicyEvaluateService policyEvaluateService,
       final PolicyEvaluationPollingResultUtils policyEvaluationPollingResultUtils,
-      final InsightWork work,
       final Scanner scanner,
       final AuditRecorder auditRecorder,
       final SourceControlSshService sourceControlSshService)
@@ -98,7 +94,6 @@ public class SourceControlScanService
     this.proprietaryConfigService = proprietaryConfigService;
     this.policyEvaluateService = policyEvaluateService;
     this.policyEvaluationPollingResultUtils = policyEvaluationPollingResultUtils;
-    this.work = work;
     this.scanner = scanner;
     this.auditRecorder = auditRecorder;
     this.sourceControlSshService = sourceControlSshService;
@@ -187,7 +182,7 @@ public class SourceControlScanService
         RepositorySyncResult repoSyncResult = checkout(application, gitRepositoryInfo, branchName, commitHash);
         ScanResult scanResult = scan(application, null /* scanTarget */, repoSyncResult.getHeadRef());
         PolicyEvaluation policyEvaluation = policyEvaluateService.evaluateSynchronousNoAuth(application,
-            scanResult.getClientScanType(), scanResult.getScanFile(), stage,
+            scanResult.getClientScanType(), scanResult.getScanEntity(), stage,
             ScanTriggerType.SOURCE_CONTROL_INTERNAL_PULL_REQUEST, null /* clientUserAgent */);
 
         log.trace("Source control scan completed for application '{}': {}", applicationId, repoSyncResult);
@@ -260,14 +255,12 @@ public class SourceControlScanService
         absoluteScanTargets.add(new File(repositoryDirectory, scanTarget));
       }
     }
-
-    return scanner.scan(absoluteScanTargets, work.getScanDir(application.getId()), proprietaryConfig, scanConfiguration,
-        scanMetadata);
+    return scanner.scan(absoluteScanTargets, application.getId(), proprietaryConfig, scanConfiguration, scanMetadata);
   }
 
   private void evaluate(SourceControlEvent event, Application application, ScanResult scanResult) {
     policyEvaluateService.evaluateWithPolling(event.getStatusId(), application, scanResult.getClientScanType(),
-        new Stage(event.getStageTypeId()), event.getScanTriggerType(), scanResult.getScanFile(), "api",
+        new Stage(event.getStageTypeId()), event.getScanTriggerType(), scanResult.getScanEntity(), "api",
         event.getUserAgent(), null);
   }
 }

@@ -51,15 +51,25 @@ public class InsightWork
     return new File(insightConfig.getSonatypeWork(), "cache");
   }
 
+  @Deprecated
   public File getScanDir(final String appId) {
     IdValidationUtils.validate(appId);
     return new File(getScanDir(), appId);
   }
 
+  @Deprecated
   public File getScanDir() {
     return new File(insightConfig.getClusterDirectory(), "scan");
   }
 
+  /**
+   * Should no longer be used in production code,
+   * See {@link com.sonatype.insight.brain.scan.datastore.ScanPersistenceService#getScan(String, String)}
+   * @param appId
+   * @param scanId
+   * @return
+   */
+  @Deprecated
   public File getScanFile(final String appId, final String scanId) {
     IdValidationUtils.validate(appId);
     IdValidationUtils.validate(scanId);
@@ -75,21 +85,39 @@ public class InsightWork
     return new File(getAuditDir(), appId);
   }
 
+  @Deprecated
   public File getReportDir() {
     return new File(insightConfig.getClusterDirectory(), "report");
   }
 
+  @Deprecated
   public File getReportDir(final String appId) {
     IdValidationUtils.validate(appId);
     return new File(getReportDir(), appId);
   }
 
+  /**
+   * Should no longer be used in production code see
+   * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   * @param appId
+   * @param scanId
+   * @return
+   */
+  @Deprecated
   public File getReportDir(final String appId, final String scanId) {
     IdValidationUtils.validate(appId);
     IdValidationUtils.validate(scanId);
     return new File(getReportDir(appId), scanId);
   }
 
+  /**
+   * Should no longer be used in production code see
+   * com.sonatype.insight.brain.report.ApplicationReportPersistenceService#getReportEntity(String, String, String)
+   * @param appId
+   * @param scanId
+   * @return
+   */
+  @Deprecated
   public File getReportFile(final String appId, final String scanId) {
     IdValidationUtils.validate(appId);
     IdValidationUtils.validate(scanId);

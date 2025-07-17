@@ -523,6 +523,7 @@ public class PolicyMonitorTest
 
     // The scan file does not exist, which will cause an IOException in the policy monitoring.
     File scanFile = insightWork.getScanFile(app.getId(), scanId);
+    scanFile.delete();
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> policyMonitor.evaluate(app, policyMonitoring))
         .withMessageContaining(scanFile.getName());

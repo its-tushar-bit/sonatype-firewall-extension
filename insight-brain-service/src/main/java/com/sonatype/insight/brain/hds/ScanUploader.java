@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +23,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -68,7 +68,7 @@ public class ScanUploader
    * @since 1.8
    */
   ScanReceipt upload(
-      File scanFile,
+      ScanEntity scanEntity,
       Application application,
       String stageTypeId,
       String clientUserAgent,
@@ -104,7 +104,8 @@ public class ScanUploader
     }
 
     uploadMetadata.put("enableCpeDataMatching", Boolean.toString(isCpeDataMatchingEnabled));
-    ScanReceipt receipt = client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanFile, uploadMetadata);
+    ScanReceipt receipt =
+        client.put(analytics, ScanReceipt.class, clientUserAgent, HDS_PATH, scanEntity, uploadMetadata);
     augmentScanReceipt(application.getPublicId(), receipt, stageTypeId, thirdPartyScanContext);
     return receipt;
   }

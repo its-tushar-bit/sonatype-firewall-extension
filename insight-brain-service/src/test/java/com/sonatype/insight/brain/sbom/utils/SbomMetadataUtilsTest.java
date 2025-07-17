@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import java.io.File;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
@@ -13,9 +12,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
@@ -46,12 +43,6 @@ public class SbomMetadataUtilsTest
 
   @Mock
   private ProprietaryConfigService mockProprietaryConfigService;
-
-  @Mock
-  private ThirdPartyFileDAO mockThirdPartyFileDAO;
-
-  @Mock
-  private ThirdPartyScanDAO mockThirdPartyScanDAO;
 
   @Inject
   private Scanner scanner;
@@ -140,29 +131,27 @@ public class SbomMetadataUtilsTest
   @Test
   public void testScanSbomContent_Valid() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    File scanDir = tempDir.newFolder();
     try (var sbomStream = getSbomStream("valid-cyclonedx-bom.xml")) {
       ScanResult scanResult =
-          sbomMetadataUtils.scanSbomInputStream(app, sbomStream, scanDir, SbomFormat.XML,
+          sbomMetadataUtils.scanSbomInputStream(app, sbomStream, SbomFormat.XML,
               ItemContentType.SBOM,
               ScannerDriver.SBOM_API);
 
       assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
-      assertThat(scanResult.getScanFile()).isNotNull();
+      assertThat(scanResult.getScanEntity()).isNotNull();
     }
   }
 
   @Test
   public void testScanSbomContent_Invalid() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
-    File scanDir = tempDir.newFolder();
 
     // Create a stream that will cause an IOException when sbomMetadataUtils tries to read it
     var sbomStream = getSbomStream("valid-cyclonedx-bom.xml");
     sbomStream.close();
 
     assertThatExceptionOfType(UncheckedIOException.class).isThrownBy(() -> {
-      sbomMetadataUtils.scanSbomInputStream(app, sbomStream, scanDir, SbomFormat.XML, ItemContentType.SBOM,
+      sbomMetadataUtils.scanSbomInputStream(app, sbomStream, SbomFormat.XML, ItemContentType.SBOM,
           ScannerDriver.SBOM_API);
     }).withMessage("unable to read supplied sbom");
   }

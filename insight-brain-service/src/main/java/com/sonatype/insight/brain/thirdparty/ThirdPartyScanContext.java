@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.scan.model.ItemContentType;
 
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +21,7 @@ public class ThirdPartyScanContext
 
   private final SbomScanType scanType;
 
-  private File scanFile;
+  private ScanEntity scanEntity;
 
   private boolean sbomSavedForScan;
 
@@ -47,13 +47,13 @@ public class ThirdPartyScanContext
       final String scanRequestId,
       final String applicationId,
       final SbomScanType scanType,
-      final File scanFile,
+      final ScanEntity scanEntity,
       final String stageType)
   {
     this.scanRequestId = scanRequestId;
     this.applicationId = applicationId;
     this.scanType = scanType;
-    this.scanFile = scanFile;
+    this.scanEntity = scanEntity;
     this.stageType = stageType;
   }
 
@@ -65,8 +65,8 @@ public class ThirdPartyScanContext
     return applicationId;
   }
 
-  public File getScanFile() {
-    return scanFile;
+  public ScanEntity getScanEntity() {
+    return scanEntity;
   }
 
   public boolean isSbomSavedForScan() {

@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -47,11 +46,12 @@ import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -95,8 +95,6 @@ public class PolicyEvaluateService
 
   private final PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
 
-  private final InsightWork insightWork;
-
   private final TelemetryUtils telemetryUtils;
 
   private final PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics;
@@ -108,6 +106,8 @@ public class PolicyEvaluateService
   private final ProductLicense productLicense;
 
   private final FeaturesService featuresService;
+
+  private final ScanPersistenceService scanPersistenceService;
 
   public boolean disablePollingIntervalForTesting = false;
 
@@ -122,7 +122,6 @@ public class PolicyEvaluateService
       StageTypeService stageTypeService,
       PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO,
       ApplicationDAO applicationDAO,
-      InsightWork insightWork,
       TelemetryUtils telemetryUtils,
       ShutdownHandler shutdownHandler,
       PolicyEvaluateServiceMetrics policyEvaluateServiceMetrics,
@@ -130,6 +129,7 @@ public class PolicyEvaluateService
       SbomMetadataUtils sbomMetadataUtils,
       ProductLicense productLicense,
       FeaturesService featuresService,
+      ScanPersistenceService scanPersistenceService,
       OrganizationDAO organizationDAO)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
@@ -138,12 +138,12 @@ public class PolicyEvaluateService
     this.scanHandler = scanHandler;
     this.persistedPolicyEvaluationPollingResultDAO = persistedPolicyEvaluationPollingResultDAO;
     this.applicationDAO = applicationDAO;
-    this.insightWork = insightWork;
     this.telemetryUtils = telemetryUtils;
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.productLicense = productLicense;
     this.featuresService = featuresService;
+    this.scanPersistenceService = scanPersistenceService;
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
     this.sbomMetadataUtils = sbomMetadataUtils;
@@ -243,8 +243,8 @@ public class PolicyEvaluateService
         applicationPublicId, scanId, stage.getStageTypeId());
 
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
-    File scanFile = insightWork.getScanFile(app.getId(), scanId);
-    if (!scanFile.exists()) {
+    ScanEntity scanEntity = scanPersistenceService.getScan(app.getId(), scanId);
+    if (!scanEntity.exists()) {
       throw new NotFoundException("Cannot find scan with ID " + scanId);
     }
 
@@ -284,7 +284,7 @@ public class PolicyEvaluateService
     Application app = applicationDAO.getByPublicIdNotNull(applicationPublicId);
     checkEvaluationPermissions(app, stage);
 
-    File tempScanFile = scanHandler.createTempScanFile(req, app);
+    ScanEntity tempScanEntity = scanHandler.createTempScanFile(req, app);
 
     String thirdPartyScanType =
         clientScanType == ClientScanType.SONATYPE_THIRD_PARTY ? integrationType.toString() : null;
@@ -292,7 +292,7 @@ public class PolicyEvaluateService
     validateLicenseLimits(stage);
 
     evaluateWithPolling(statusId, app, clientScanType, stage,
-        EvaluationUtils.getScanTriggerType(integrationType), tempScanFile, thirdPartyScanType,
+        EvaluationUtils.getScanTriggerType(integrationType), tempScanEntity, thirdPartyScanType,
         HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), null);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
@@ -359,7 +359,7 @@ public class PolicyEvaluateService
       ClientScanType clientScanType,
       Stage stage,
       ScanTriggerType scanTriggerType,
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       String thirdPartyScanType,
       String clientUserAgent,
       String clientInstanceId)
@@ -370,7 +370,7 @@ public class PolicyEvaluateService
         clientScanType,
         stage,
         scanTriggerType,
-        tempScanFile,
+        tempScanEntity,
         thirdPartyScanType,
         clientUserAgent,
         clientInstanceId,
@@ -387,7 +387,7 @@ public class PolicyEvaluateService
    * @param clientScanType {@link ClientScanType}
    * @param stage {@link Stage}
    * @param scanTriggerType the type of trigger for the scan for this evaluation {@link ScanTriggerType}
-   * @param tempScanFile {@link File} to temporary store scanned result to
+   * @param tempScanEntity {@link ScanEntity} to temporary store scanned result to
    * @param thirdPartyScanType string value of an {@link IntegrationType} if <code>clientScanType</code>
    *          is {@link ClientScanType#SONATYPE_THIRD_PARTY} or null otherwise
    * @param clientUserAgent User agent from {@link HttpServletRequest}
@@ -400,7 +400,7 @@ public class PolicyEvaluateService
       ClientScanType clientScanType,
       Stage stage,
       ScanTriggerType scanTriggerType,
-      File tempScanFile,
+      ScanEntity tempScanEntity,
       String thirdPartyScanType,
       String clientUserAgent,
       String clientInstanceId,
@@ -422,7 +422,7 @@ public class PolicyEvaluateService
           app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
 
       AuditData.get().continueAsync(
-          new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanFile,
+          new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity,
               thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
               clientInstanceId, scanContext, null), executor::submit);
     }
@@ -599,7 +599,7 @@ public class PolicyEvaluateService
 
     private final ScanTriggerType scanTriggerType;
 
-    private final File tempScanFile;
+    private final ScanEntity tempScanEntity;
 
     private final TelemetryData thirdPartyScanTelemetryData;
 
@@ -621,7 +621,7 @@ public class PolicyEvaluateService
         final String statusId,
         final Stage stage,
         final ScanTriggerType scanTriggerType,
-        final File tempScanFile,
+        final ScanEntity tempScanEntity,
         final TelemetryData thirdPartyScanTelemetryData,
         final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
         final String clientUserAgent,
@@ -634,7 +634,7 @@ public class PolicyEvaluateService
       this.statusId = statusId;
       this.stage = stage;
       this.scanTriggerType = scanTriggerType;
-      this.tempScanFile = tempScanFile;
+      this.tempScanEntity = tempScanEntity;
       this.thirdPartyScanTelemetryData = thirdPartyScanTelemetryData;
       this.persistedPolicyEvaluationPollingResult = persistedPolicyEvaluationPollingResult;
       this.clientUserAgent = clientUserAgent;
@@ -742,7 +742,7 @@ public class PolicyEvaluateService
     ) throws IOException
     {
       ScanReceipt scanReceipt =
-          scanHandler.handle(tempScanFile, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
+          scanHandler.handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
               clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
 
       String scanId = scanReceipt.getScanId();
@@ -801,7 +801,7 @@ public class PolicyEvaluateService
   public PolicyEvaluation evaluateSynchronousNoAuth(
       Application application,
       ClientScanType clientScanType,
-      File scanFile,
+      ScanEntity scanEntity,
       Stage stage,
       ScanTriggerType scanTriggerType,
       String clientUserAgent) throws IOException
@@ -815,7 +815,7 @@ public class PolicyEvaluateService
       TelemetryData thirdPartyScanTelemetryData =
           telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
               null /* thirdPartyScanType */, scanTriggerType, clientUserAgent);
-      ScanReceipt scanReceipt = scanHandler.handle(scanFile, application, clientScanType, thirdPartyScanTelemetryData,
+      ScanReceipt scanReceipt = scanHandler.handle(scanEntity, application, clientScanType, thirdPartyScanTelemetryData,
           stage.getStageTypeId(), clientUserAgent);
       scanId = scanReceipt.getScanId();
 

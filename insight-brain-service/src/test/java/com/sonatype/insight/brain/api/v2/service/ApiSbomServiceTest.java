@@ -54,6 +54,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.InsightWork;
@@ -2226,7 +2227,7 @@ public class ApiSbomServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("SCAN-ID");
     doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
-        eq(ScanUploader.HDS_PATH), any(File.class), any());
+        eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
     doReturn("")
         .when(mockHdsClient).get(eq(String.class), eq("rest/productLicense/developer-upper-bound"));
@@ -2245,7 +2246,7 @@ public class ApiSbomServiceTest
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId("SCAN-ID");
     doReturn(scanReceipt).when(mockHdsClient).put(any(), eq(ScanReceipt.class), eq(DUMMY_USER_AGENT),
-        eq(ScanUploader.HDS_PATH), any(File.class), any());
+        eq(ScanUploader.HDS_PATH), any(ScanEntity.class), any());
 
     doThrow(new RuntimeException("Test error")).when(mockHdsClient).get(any(Retry.class), eq(InputStream.class),
         eq("rest/application/analysis/{scanId}"),

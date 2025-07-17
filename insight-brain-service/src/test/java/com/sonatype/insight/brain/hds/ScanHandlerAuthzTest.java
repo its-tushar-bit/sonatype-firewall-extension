@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.io.File;
 import java.io.IOException;
 
 import javax.inject.Inject;
@@ -13,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.scan.model.ClientScanType;
 
@@ -74,7 +74,7 @@ public class ScanHandlerAuthzTest
     HttpServletRequest servletRequest = mock(HttpServletRequest.class);
     when(servletRequest.getInputStream()).thenReturn(new ServletInputStreamImpl(scanFileContent));
     when(hdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class), eq(null), any(String.class),
-        any(File.class), anyMap())) //
+        any(ScanEntity.class), anyMap())) //
             .thenReturn(scanReceipt);
 
     scanReceipt = scanHandler.handle(servletRequest, appPublicId, ClientScanType.SONATYPE);

@@ -70,7 +70,3 @@ export default function PendoService(sanitizeUrlService) {
     flush,
   };
 }
-
-// Note: this allows pendoService to be used in angular still, but it can also be used outside of angular by
-// explicitly injecting the sanitizeUrlService dependency.
-PendoService.$inject = ['sanitizeUrlService'];

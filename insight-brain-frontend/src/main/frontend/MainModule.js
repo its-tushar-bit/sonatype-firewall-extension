@@ -22,7 +22,7 @@ import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
-import pendoModule from './pendo/module';
+import pendoService, { setUrlService } from './pendo/mainBundlePendoService';
 import utilityServicesModule from './utility/services/utility.services.module';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
@@ -71,7 +71,6 @@ export const InitModule = angular
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
-      pendoModule.name,
       utilityServicesModule.name,
       legalModule.name,
       reduxConfigModule.name,
@@ -186,7 +185,7 @@ export const InitModule = angular
     '$q',
     '$urlRouter',
     '$timeout',
-    'pendoService',
+    '$urlService',
     'LoginModalService',
     'routeStateUtilService',
     'ProductLicense',
@@ -199,13 +198,16 @@ export const InitModule = angular
       $q,
       $urlRouter,
       $timeout,
-      pendoService,
+      $urlService,
       LoginModalService,
       routeStateUtilService,
       ProductLicense,
       $ngRedux,
       $transitions
     ) {
+      // Initialize the singleton pendoService with urlService
+      setUrlService($urlService);
+
       var savedState = null,
         cancelPreLoginStateHandler,
         cancelUnlicensedStateChangeHandler;

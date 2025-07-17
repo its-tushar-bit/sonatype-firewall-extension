@@ -8,6 +8,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { waitForLogin } from 'MainRoot/user/userSession';
+import pendoService from '../pendo/mainBundlePendoService';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
@@ -21,7 +22,7 @@ export const CHANGE_PASSWORD_FAILED = 'CHANGE_PASSWORD_FAILED';
 export const CHANGE_PASSWORD_STATUS_RESET = 'CHANGE_PASSWORD_STATUS_RESET';
 export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 
-function userActions($rootScope, $q, $http, CLMLocations, telemetryService, PermissionService, pendoService, $window) {
+function userActions($rootScope, $q, $http, CLMLocations, telemetryService, PermissionService, $window) {
   function fetchUser() {
     const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
       shouldDisplayWarningPromise = PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true)
@@ -183,14 +184,5 @@ function userActions($rootScope, $q, $http, CLMLocations, telemetryService, Perm
     resetChangedPasswordStatus,
   };
 }
-userActions.$inject = [
-  '$rootScope',
-  '$q',
-  '$http',
-  'CLMLocations',
-  'telemetryService',
-  'PermissionService',
-  'pendoService',
-  '$window',
-];
+userActions.$inject = ['$rootScope', '$q', '$http', 'CLMLocations', 'telemetryService', 'PermissionService', '$window'];
 export default userActions;

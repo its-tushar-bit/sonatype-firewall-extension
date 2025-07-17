@@ -13,8 +13,8 @@ import pv from 'MainRoot/lib/protovis/protovis.min';
 import App from './components/App';
 import store from './store';
 
-import PendoService from 'MainRoot/pendo/pendoService';
-import sanitizeUrlService from '../pendo/sanitizeUrlService';
+import PendoService from 'MainRoot/pendo/PendoService';
+import SanitizeUrlService from '../pendo/SanitizeUrlService';
 
 // sets up window.Insight API
 import './externalAPI';
@@ -24,7 +24,7 @@ window.$ = $;
 window.pv = pv;
 
 // Initialize UI analytics
-new PendoService(sanitizeUrlService).start();
+new PendoService(new SanitizeUrlService()).start();
 
 // Render the app
 ReactDOM.render(

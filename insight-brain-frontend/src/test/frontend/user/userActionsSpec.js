@@ -3,9 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import pendoModule from '../../../main/frontend/pendo/module';
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 import * as userSession from 'MainRoot/user/userSession';
+import mainBundlePendoService, { setUrlService } from 'MainRoot/pendo/mainBundlePendoService';
 
 describe('userActions', function () {
   let userActions,
@@ -16,19 +16,18 @@ describe('userActions', function () {
     $httpBackend,
     $rootScope,
     loginDeferred,
-    pendoDeferred,
-    pendoServiceMock;
+    pendoDeferred;
+
+  beforeAll(function () {
+    const mockUrlService = { match: () => null };
+    setUrlService(mockUrlService);
+  });
 
   beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
 
   beforeEach(
-    angular.mock.module(pendoModule.name, function ($provide) {
-      pendoServiceMock = jasmine.createSpyObj('pendoService', ['flush']);
+    angular.mock.module(function ($provide) {
       SpecUtil.mockNgRedux($provide);
-      $provide.service;
-      $provide.service('pendoService', function () {
-        return pendoServiceMock;
-      });
     })
   );
 
@@ -46,6 +45,8 @@ describe('userActions', function () {
     spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
     spyOn($rootScope, '$broadcast').and.callThrough();
     spyOn($rootScope, '$emit').and.callThrough();
+
+    spyOn(mainBundlePendoService, 'flush');
 
     initialState = {
       user: {
@@ -621,7 +622,7 @@ describe('userActions', function () {
   describe('logout()', function () {
     it('provides the ability to log out by hitting a logout api endpoint with a delete request', function () {
       const store = SpecUtil.mockReduxStore(currentState);
-      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
@@ -633,7 +634,7 @@ describe('userActions', function () {
 
     it('still logs out if the pendo promise is rejected', function () {
       const store = SpecUtil.mockReduxStore(currentState);
-      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
@@ -645,7 +646,7 @@ describe('userActions', function () {
 
     it(`doesn't log out from the server before the pendo promise completes`, function () {
       const store = SpecUtil.mockReduxStore(currentState);
-      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
       $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
@@ -658,7 +659,7 @@ describe('userActions', function () {
 
     it(`provides the ability to log out for reverse proxy`, function () {
       const store = SpecUtil.mockReduxStore(currentState);
-      pendoServiceMock.flush.and.returnValue(pendoDeferred.promise);
+      mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
       var headers = { Location: 'http://localhost/logout' };
       $httpBackend.whenDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
       store.dispatch(userActions.logout());

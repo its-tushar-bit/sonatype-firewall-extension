@@ -5,7 +5,7 @@
  */
 import * as urlUtil from 'MainRoot/util/urlUtil';
 
-import SanitizeUrlService from 'MainRoot/version-graph/pendo/sanitizeUrlService';
+import SanitizeUrlService from 'MainRoot/version-graph/pendo/SanitizeUrlService';
 
 describe('version-graph sanitizeUrlService', function () {
   let sanitizeUrlService;

@@ -3,7 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { InitModule } from 'MainRoot/MainModule';
 import * as gettingStartedTelemetryServiceHelper from 'MainRoot/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import * as RouteProductLicenseValidator from 'MainRoot/routeProductLicenseValidator/RouteProductLicenseValidator';
 import { axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
@@ -11,7 +10,7 @@ import * as userSession from 'MainRoot/user/userSession';
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
-  let scope, pendoServiceMock, $ngRedux, productLicenseLoadDefer, axiosMock;
+  let scope, $ngRedux, productLicenseLoadDefer, axiosMock, mockPendoService, InitModule;
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
@@ -21,7 +20,27 @@ describe('mainModuleSpec', function () {
     userSession._resetForTest();
   });
 
-  beforeEach(
+  beforeEach(() => {
+    // Create fresh mock for each test
+    mockPendoService = {
+      start: jasmine.createSpy('start'),
+    };
+
+    // Use inject-loader to mock the pendoService dependency
+    const MainModuleInjector = require('inject-loader!MainRoot/MainModule');
+    const moduleExports = MainModuleInjector({
+      './pendo/mainBundlePendoService': {
+        default: mockPendoService,
+        setUrlService: jasmine.createSpy('setUrlService'),
+        // NOTE: this is a hack to get around an apparent bug in inject-loader where it ends up exporting the entire
+        // exports object as the default export
+        ...mockPendoService,
+      },
+    });
+    InitModule = moduleExports.InitModule;
+  });
+
+  beforeEach(function () {
     angular.mock.module(InitModule.name, function ($provide, $stateProvider) {
       SpecUtil.mockNgRedux($provide);
       // mock the window using anything on which events can be dispatched
@@ -30,11 +49,6 @@ describe('mainModuleSpec', function () {
         sessionExpired: jasmine.createSpy('sessionExpired'),
       };
       $provide.value('$window', mockWindow);
-
-      pendoServiceMock = jasmine.createSpyObj('pendoService', ['start']);
-      $provide.service('pendoService', function () {
-        return pendoServiceMock;
-      });
 
       $provide.service('routeStateUtilService', function () {
         function stateRequiresAuthentication() {
@@ -50,8 +64,8 @@ describe('mainModuleSpec', function () {
       $stateProvider.state('someOtherState', {
         url: '/someOtherState',
       });
-    })
-  );
+    });
+  });
 
   beforeEach(inject(function ($q, $rootScope, _$ngRedux_, _ProductLicense_) {
     scope = $rootScope.$new();
@@ -116,7 +130,7 @@ describe('mainModuleSpec', function () {
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
         expect($window.externalLinkClickHandler).not.toBeDefined();
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state after license check fails because unlicensed', async function () {
@@ -134,7 +148,7 @@ describe('mainModuleSpec', function () {
         expect($state.go).toHaveBeenCalledWith('productlicense');
         expect($rootScope.username).toBe('myname');
 
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state after logged in check error', async function () {
@@ -156,7 +170,7 @@ describe('mainModuleSpec', function () {
           return $rootScope.error;
         });
         expect($rootScope.error).toBeDefined();
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state after license check error', async function () {
@@ -179,7 +193,7 @@ describe('mainModuleSpec', function () {
           return $rootScope.error;
         });
         expect($rootScope.error).toBeDefined();
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state after license check 403 error', async function () {
@@ -238,7 +252,7 @@ describe('mainModuleSpec', function () {
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
         expect($window.externalLinkClickHandler).toBeDefined();
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state with only dashboard available', async function () {
@@ -270,7 +284,7 @@ describe('mainModuleSpec', function () {
         expect($window.externalLinkClickHandler).toBeDefined();
         expect($state.current.name).toBe('dashboard.overview.violations');
 
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state with dashboard unavailable and reports-list available', async function () {
@@ -303,7 +317,7 @@ describe('mainModuleSpec', function () {
         expect($window.externalLinkClickHandler).toBeDefined();
         expect($state.current.name).toBe('violations');
 
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state with only reports-list available', async function () {
@@ -335,7 +349,7 @@ describe('mainModuleSpec', function () {
         expect($window.externalLinkClickHandler).toBeDefined();
         expect($state.current.name).toBe('violations');
 
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state with dashboard and reports-list available', async function () {
@@ -368,7 +382,7 @@ describe('mainModuleSpec', function () {
         expect($window.externalLinkClickHandler).toBeDefined();
         expect($state.current.name).toBe('dashboard.overview.violations');
 
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state with neither dashboard nor reports-list available', async function () {
@@ -385,7 +399,7 @@ describe('mainModuleSpec', function () {
         expect($rootScope.username).toEqual('myname');
         expect($window.externalLinkClickHandler).toBeDefined();
         expect($state.current.name).toBe('gettingStarted');
-        expect(pendoServiceMock.start).toHaveBeenCalled();
+        expect(mockPendoService.start).toHaveBeenCalled();
       });
     });
 
@@ -447,10 +461,9 @@ describe('mainModuleSpec', function () {
   });
 
   describe('pendoService calls', function () {
-    let initService, pendoService, CLMLocations, $rootScope;
+    let initService, CLMLocations, $rootScope;
 
-    beforeEach(inject(function (_pendoService_, _initService_, _CLMLocations_, _$rootScope_) {
-      pendoService = _pendoService_;
+    beforeEach(inject(function (_initService_, _CLMLocations_, _$rootScope_) {
       initService = _initService_;
       CLMLocations = _CLMLocations_;
       $rootScope = _$rootScope_;
@@ -465,7 +478,7 @@ describe('mainModuleSpec', function () {
       initService.start();
 
       await userSession.waitForLogin();
-      expect(pendoService.start).toHaveBeenCalled();
+      expect(mockPendoService.start).toHaveBeenCalled();
     });
 
     it('calls pendoService a second time after login and license fetch', async function () {
@@ -476,11 +489,11 @@ describe('mainModuleSpec', function () {
 
       initService.start();
 
-      expect(pendoService.start).toHaveBeenCalledTimes(1);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
       await userSession.waitForLogin();
       $rootScope.$digest();
-      expect(pendoService.start).toHaveBeenCalledTimes(2);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(2);
     });
 
     it('calls pendoService a second time after login if the license is not installed', async function () {
@@ -491,11 +504,11 @@ describe('mainModuleSpec', function () {
 
       initService.start();
 
-      expect(pendoService.start).toHaveBeenCalledTimes(1);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
       await userSession.waitForLogin();
       $rootScope.$digest();
-      expect(pendoService.start).toHaveBeenCalledTimes(2);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(2);
     });
 
     it('does not call pendoService a second time after failed login', async function () {
@@ -506,14 +519,14 @@ describe('mainModuleSpec', function () {
 
       initService.start();
 
-      expect(pendoService.start).toHaveBeenCalledTimes(1);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
       await waitFor(() => {
         $rootScope.$digest();
         return axiosMock.history['get'].length > 0;
       });
       $rootScope.$digest();
-      expect(pendoService.start).toHaveBeenCalledTimes(1);
+      expect(mockPendoService.start).toHaveBeenCalledTimes(1);
     });
   });
 });

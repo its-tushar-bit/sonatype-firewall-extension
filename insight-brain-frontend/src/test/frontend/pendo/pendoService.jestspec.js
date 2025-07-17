@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import PendoService from 'MainRoot/pendo/pendoService';
+import PendoService from 'MainRoot/pendo/PendoService';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
 describe('PendoService', function () {

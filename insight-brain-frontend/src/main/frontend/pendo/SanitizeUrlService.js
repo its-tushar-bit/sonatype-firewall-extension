@@ -6,6 +6,7 @@
 import hash from '../util/hash';
 import { mapObjIndexed, zipWith, contains } from 'ramda';
 import { parse, stringify } from 'query-string';
+import { BASE_URL } from '../util/urlUtil';
 
 import ownerConstant from '../utility/services/owner.constant';
 
@@ -28,7 +29,7 @@ const queryParamsToShowInPlaintext = [
  * main IQ app.  Not for use within the reports or other bundles.
  * NOTE: This implementation assumes that any hash query parameters do not have dynamic values.
  */
-function sanitizeUrlService($urlService, baseUrlService) {
+function SanitizeUrlService(urlService) {
   /*
    * Recursive function to create a parameterized path from router state objects by tracing up the state
    * parent hierarchy.
@@ -93,7 +94,7 @@ function sanitizeUrlService($urlService, baseUrlService) {
 
   return {
     sanitize(url) {
-      const baseUrl = baseUrlService.get(),
+      const baseUrl = BASE_URL,
         indexOfBaseUrl = url.indexOf(baseUrl),
         isExternal = indexOfBaseUrl === -1 && url.indexOf('#') !== 0;
 
@@ -105,7 +106,7 @@ function sanitizeUrlService($urlService, baseUrlService) {
           urlAfterBaseUrl = beforeHash ? beforeHash.substring(baseUrlEndIndex) : '';
 
         if (hash) {
-          const routerMatch = $urlService.match({ path: hash }),
+          const routerMatch = urlService.match({ path: hash }),
             state = routerMatch && routerMatch.rule.state,
             parameterizedHash = state ? getParameterizedPathFromState(state, '', []) : hash,
             parameterizedHashParts = parameterizedHash.split('/'),
@@ -124,6 +125,4 @@ function sanitizeUrlService($urlService, baseUrlService) {
   };
 }
 
-sanitizeUrlService.$inject = ['$urlService', 'BaseUrl'];
-
-export default sanitizeUrlService;
+export default SanitizeUrlService;

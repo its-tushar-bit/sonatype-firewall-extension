@@ -3,23 +3,22 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import pendoModule from '../../../main/frontend/pendo/module';
+import SanitizeUrlService from 'MainRoot/pendo/SanitizeUrlService';
+import { setBaseUrl, _setBaseUrlForTesting } from '../../../main/frontend/util/urlUtil';
 import ownerManagerModule from 'MainRoot/OrgsAndPolicies/owner.manager.module';
 import dashboardModule from '../../../main/frontend/dashboard/dashboard.module';
 import labsModule from '../../../main/frontend/labs/module';
 
 describe('sanitizeUrlService', function () {
-  var sanitizeUrlService, baseUrl, consoleWarnSpy;
+  var sanitizeUrlService, baseUrl, consoleWarnSpy, $urlService;
 
   beforeEach(
     angular.mock.module(
-      pendoModule.name,
+      'ui.router',
       ownerManagerModule.name,
       dashboardModule.name,
       labsModule.name,
       function ($provide, $stateProvider) {
-        $provide.service('BaseUrl', () => ({ get: () => baseUrl }));
-
         // create a route that includes both a query parameter from a parent route and a path parameter in the child
         // route.  This is a combination that doesn't currently exist in the app, which is why we need to mock it, but
         // which could come about in the future and which, if not handled carefully, could cause information leakage
@@ -38,16 +37,23 @@ describe('sanitizeUrlService', function () {
     )
   );
 
-  beforeEach(inject(function (_sanitizeUrlService_) {
-    sanitizeUrlService = _sanitizeUrlService_;
+  beforeEach(inject(function (_$urlService_) {
+    $urlService = _$urlService_;
+    sanitizeUrlService = new SanitizeUrlService($urlService);
     baseUrl = 'http://localhost:8070';
+    _setBaseUrlForTesting(baseUrl);
     consoleWarnSpy = spyOn(console, 'warn');
   }));
+
+  afterEach(function () {
+    setBaseUrl();
+  });
 
   it('removes the baseUrl', function () {
     expect(sanitizeUrlService.sanitize('http://localhost:8070/assets/index.html')).toBe('/assets/index.html');
 
     baseUrl = 'https://foobar.com/iq';
+    _setBaseUrlForTesting(baseUrl);
 
     expect(sanitizeUrlService.sanitize('https://foobar.com/iq/assets/index.html')).toBe('/assets/index.html');
   });

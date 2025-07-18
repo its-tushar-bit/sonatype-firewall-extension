@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.TimeoutException;
@@ -100,16 +101,21 @@ public class FIPSModeDetector
     try {
       String content = Files.readString(path).trim();
       if (content.equals("1")) {
-        log.debug("FIPS mode is enabled on the Linux OS level");
+        log.debug("FIPS mode is enabled at the Linux OS level");
         return true;
       }
       if (content.equals("0")) {
+        log.debug("FIPS mode is disabled at the Linux OS level");
         return false;
       }
     }
-    catch (Exception e) {
-      log.debug("Unable to detect FIPS mode.", e);
+    catch (NoSuchFileException e) {
+      log.trace("FIPS mode detection file '{}' does not exist. FIPS mode is disabled.", path);
     }
+    catch (Exception e) {
+      log.trace("Unable to detect FIPS mode.", e);
+    }
+    log.debug("FIPS mode is disabled at the Linux OS level");
     return false;
   }
 
@@ -120,17 +126,22 @@ public class FIPSModeDetector
           .collect(Collectors.joining());
       if (output.contains(WINDOWS_REGISTRY_FIPS_KEY)) {
         if (output.contains("0x1")) {
-          log.debug("FIPS mode is enabled on the Windows OS level");
+          log.debug("FIPS mode is enabled at the Windows OS level");
           return true;
         }
         if (output.contains("0x0")) {
+          log.debug("FIPS mode is disabled at the Windows OS level");
           return false;
         }
       }
     }
-    catch (Exception e) {
-      log.debug("Unable to detect FIPS mode.", e);
+    catch (InterruptedException e) {
+      log.trace("FIPS mode detection command was interrupted.", e);
     }
+    catch (Exception e) {
+      log.trace("Unable to detect FIPS mode.", e);
+    }
+    log.debug("FIPS mode is disabled at the Windows OS level");
     return false;
   }
 }

@@ -8,11 +8,14 @@ This script automatically converts Jasmine test files to Jest with minimal chang
 - Adds SpecUtil import when SpecUtil is referenced
 - Adds MockData import when needed
 - Keeps custom matchers like toHaveActionTypesInOrder
-- Renames files from *Spec.js to *.jestspec.js
+- Renames files from *Spec.js/jsx or *.spec.js/jsx to *.jestspec.js
 - Makes other minor syntax adjustments
 
 Usage:
   python jasmine2jest.py path/to/jasmineSpec.js [output/path/optional.jestspec.js]
+  python jasmine2jest.py path/to/file.spec.js [output/path/optional.jestspec.js]
+  python jasmine2jest.py path/to/jasmineSpec.jsx [output/path/optional.jestspec.jsx]
+  python jasmine2jest.py path/to/file.spec.jsx [output/path/optional.jestspec.jsx]
   python jasmine2jest.py --dir path/to/directory
   python jasmine2jest.py path/to/jasmineSpec.js --run-tests --git-stage
   
@@ -46,6 +49,9 @@ def convert_file_content(content, add_specutil=True):
     sidebar_mockdata_used = re.search(r'\bSidebarResourceMockData\b', content) is not None
     sidebar_mockdata_imported = re.search(r"import.*SidebarResourceMockData", content) is not None
     
+    # Check if requestIdleCallback or its utility functions are used, which requires SpecUtil import for Jest
+    idle_callback_used = re.search(r'\brequestIdleCallback\b|\bSpecUtil\.requestIdleCallbackInvokeImmediate\b', content) is not None
+    
     # Handle imports
     import_statements = []
     
@@ -60,6 +66,11 @@ def convert_file_content(content, add_specutil=True):
     # Add SidebarResourceMockData import if it's used and not already imported
     if sidebar_mockdata_used and not sidebar_mockdata_imported:
         import_statements.append("// Import SidebarResourceMockData for jasmine compatibility layer\nimport 'TestRoot/mock.data/sidebar.resource.mock.data';")
+    
+    # Make sure SpecUtil is imported if requestIdleCallback is used
+    if idle_callback_used and not specutil_used:
+        # Mark specutil_used as true to ensure it's imported
+        specutil_used = True
     
     # Add the imports after any existing import statements
     if import_statements:
@@ -88,53 +99,77 @@ def convert_file_content(content, add_specutil=True):
     # Just replace jasmine.clock() with Jest timer functions directly
     # Don't try to add or modify afterEach blocks as that creates duplicates
 
-    # Replace clock functions
-    content = re.sub(r'jasmine\.clock\(\)\.install\(\);', r'jest.useFakeTimers();', content)
-    content = re.sub(r'jasmine\.clock\(\)\.uninstall\(\);', r'jest.useRealTimers();', content)
-    content = re.sub(r'jasmine\.clock\(\)\.tick\(([^\)]+)\);', r'jest.advanceTimersByTime(\1);', content)
+    # Replace clock functions - with flexible regex that doesn't require semicolons
+    content = re.sub(r'jasmine\.clock\(\)\.install\(\)(;?)', r'jest.useFakeTimers()\1', content)
+    content = re.sub(r'jasmine\.clock\(\)\.uninstall\(\)(;?)', r'jest.useRealTimers()\1', content)
+    content = re.sub(r'jasmine\.clock\(\)\.tick\(([^\)]+)\)(;?)', r'jest.advanceTimersByTime(\1)\2', content)
     
     # Handle jasmine.clock().mockDate() by replacing with Jest equivalent
-    content = re.sub(r'jasmine\.clock\(\)\.mockDate\(([^\)]+)\);', r'jest.setSystemTime(\1);', content)
-    # In case we missed some jasmine.clock() calls that should be replaced
-    content = re.sub(r'jasmine\.clock\(\)', r'jest', content)
+    content = re.sub(r'jasmine\.clock\(\)\.mockDate\(([^\)]+)\)(;?)', r'jest.setSystemTime(\1)\2', content)
     
     # Replace Jasmine-specific matchers with Jest equivalents
     # Replace toHaveSize() with toHaveLength() - Jest's built-in equivalent
     content = re.sub(r'\.toHaveSize\(', r'.toHaveLength(', content)
+    # Replace toHaveClassName() with toHaveClass() - Jest's built-in equivalent
+    content = re.sub(r'\.toHaveClassName\(', r'.toHaveClass(', content)
+    
+    # Replace requestIdleCallbackInvokeImmediate with requestIdleCallbackInvokeImmediateJest
+    content = re.sub(r'SpecUtil\.requestIdleCallbackInvokeImmediate\(\)', r'SpecUtil.requestIdleCallbackInvokeImmediateJest()', content)
     
     # Replace Jasmine spy functions with Jest equivalents - be more precise with the regex
     content = re.sub(r'spyOn\s*\(\s*([^,]+?)\s*,\s*[\'"]([^\'"]+)[\'"]\s*\)', r'jest.spyOn(\1, "\2")', content)
     
-    # Jasmine spy call tracking to Jest equivalents
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.count\(\)', r'\1.mock.calls.length', content)
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.argsFor\((\d+)\)', r'\1.mock.calls[\2]', content)
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.mostRecent\(\)', r'\1.mock.calls[\1.mock.calls.length-1]', content)
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.allArgs\(\)', r'\1.mock.calls', content)
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.all\(\)', r'\1.mock.calls', content)
-    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls\.first\(\)', r'\1.mock.calls[0]', content)
+    # Simple approach: first convert all .calls to .mock.calls
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.calls', r'\1.mock.calls', content)
+    
+    # Then convert specific Jasmine spy call tracking methods to Jest equivalents
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.count\(\)', r'\1.mock.calls.length', content)
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.argsFor\((\d+)\)', r'\1.mock.calls[\2]', content)
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.mostRecent\(\)', r'\1.mock.calls[\1.mock.calls.length-1]', content)
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.allArgs\(\)', r'\1.mock.calls', content)
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.all\(\)', r'\1.mock.calls', content)
+    content = re.sub(r'([a-zA-Z0-9_\.]+)\.mock\.calls\.first\(\)', r'\1.mock.calls[0]', content)
+    
+    # Remove any .args from .mock.calls[index].args since in Jest the mock calls array itself directly contains the arguments
+    content = re.sub(r'\.mock\.calls\[([^\]]+)\]\.args', r'.mock.calls[\1]', content)
 
     # Replace jasmine.createSpyObj with jest.fn() for each method
     def replace_spy_obj(match):
-        obj_name = match.group(1)
-        methods_str = match.group(2).strip("'\"")
+        obj_name = match.group(1)      # The variable name
+        methods_str = match.group(2).strip("'\"")  # The methods list
+        
         # Handle array of strings or comma-separated string list
         if "[" in methods_str and "]" in methods_str:
             # Extract strings from array notation
             methods_match = re.findall(r"['\"](.*?)['\"]", methods_str)
             methods = methods_match if methods_match else methods_str.split(",")
         else:
-            methods = methods_str.split("','")
-            
-        obj_creation = f"const {obj_name} = {{\n"
+            methods = methods_str.split(",")
+        
+        # Build the object with jest.fn() for each method
+        obj_creation = "{\n"
         for method in methods:
             method = method.strip("'\" ")
             if method:
+                # Use valid JavaScript property syntax
                 obj_creation += f"    {method.strip()}: jest.fn(),\n"
-        obj_creation += "  };"
-        return obj_creation
-
-    content = re.sub(r'const\s+(\w+)\s+=\s+jasmine\.createSpyObj\([\'"](?:\w+)[\'"]\s*,\s*\[(.*?)\]\);', replace_spy_obj, content)
-    content = re.sub(r'const\s+(\w+)\s+=\s+jasmine\.createSpyObj\([\'"](?:\w+)[\'"]\s*,\s*[\'"]([^\'"]*)[\'"](?:\s*,\s*{.*?})?\);', replace_spy_obj, content)
+        obj_creation += "  }"
+        
+        # Return the full assignment with the original variable name
+        result = f"{obj_name} = {obj_creation}"
+        
+        # Add semicolon if the original had one
+        if ";" in match.group(0):
+            result += ";"
+            
+        return result
+        
+    # Handle all jasmine.createSpyObj cases
+    # Just replace the entire jasmine.createSpyObj expression
+    # First case: array of strings like jasmine.createSpyObj('name', ['method1', 'method2'])
+    content = re.sub(r'(\w+)\s*=\s*jasmine\.createSpyObj\([\'"](?:\w+)[\'"]\s*,\s*\[(.*?)\]\);?', replace_spy_obj, content)
+    # Second case: comma-separated string like jasmine.createSpyObj('name', 'method1,method2')
+    content = re.sub(r'(\w+)\s*=\s*jasmine\.createSpyObj\([\'"](?:\w+)[\'"]\s*,\s*[\'"]([^\'"]*)[\'"](?:\s*,\s*{.*?})?\);?', replace_spy_obj, content)
     
     # Update any jasmine.any() and jasmine.objectContaining() calls to expect.any() and expect.objectContaining()
     content = re.sub(r'jasmine\.any\((.+?)\)', r'expect.any(\1)', content)
@@ -150,13 +185,43 @@ def convert_file_content(content, add_specutil=True):
     content = re.sub(r'jasmine\.createSpy\([\'"]([^\'"]+)[\'"]\)', r'jest.fn().mockName("\1")', content)
     content = re.sub(r'jasmine\.createSpy\(\)', r'jest.fn()', content)
     
+    # Handle all .and.* methods together
+    # In Jest, spies call through by default, so .and.callThrough() should be removed
+    content = re.sub(r'\.and\.callThrough\(\)', r'', content)
     # Make sure and.returnValue becomes mockReturnValue
     content = re.sub(r'\.and\.returnValue\(', r'.mockReturnValue(', content)
     content = re.sub(r'\.and\.callFake\(', r'.mockImplementation(', content)
     content = re.sub(r'\.and\.throwError\(', r'.mockImplementation(() => { throw ', content)
+    # Handle .and.stub() which doesn't exist in Jest - replace with mockReturnValue to prevent call-through
+    content = re.sub(r'\.and\.stub\(\)', r'.mockReturnValue(undefined)', content)
+    # Handle .and.resolveTo() which converts to mockResolvedValue in Jest
+    content = re.sub(r'\.and\.resolveTo\(', r'.mockResolvedValue(', content)
     
     # Fix the closing parenthesis for throwError conversion
     content = re.sub(r'\.mockImplementation\(\(\) => { throw (.*?)\);', r'.mockImplementation(() => { throw \1; });', content)
+    
+    # Fix Jest tests that use both async and done callback (which Jest doesn't allow)
+    # Find test functions that have both async and done, and remove the async keyword
+    # since done() is more reliable for handling callbacks that aren't Promise-based
+    content = re.sub(r'it\([\'"](.+?)[\'"]\s*,\s*async\s*\(\s*done\s*\)\s*=>\s*{', r'it("\1", (done) => {', content)
+    content = re.sub(r'it\([\'"](.+?)[\'"]\s*,\s*async\s*\(\s*done\s*\)\s*=>', r'it("\1", (done) =>', content)
+    
+    # Also handle beforeEach and afterEach with the same issue
+    content = re.sub(r'beforeEach\(\s*async\s*\(\s*done\s*\)\s*=>\s*{', r'beforeEach((done) => {', content)
+    content = re.sub(r'afterEach\(\s*async\s*\(\s*done\s*\)\s*=>\s*{', r'afterEach((done) => {', content)
+    
+    # Add a warning comment for tests that use both done and await
+    # This will help users identify places that need manual intervention after removing the async keyword
+    done_await_pattern = re.compile(r'(it\([\'"].*?[\'"]\s*,\s*\(\s*done\s*\)\s*=>\s*{.*?)await\s+([^;]+;)', re.DOTALL)
+    
+    def add_warning_for_await_with_done(match):
+        before_await = match.group(1)
+        await_code = match.group(2)
+        # Add a warning comment so users know this needs manual fixing
+        return f"{before_await}// WARNING: This test uses both 'done' callback and 'await' expressions.\n        // The async keyword was removed for Jest compatibility, but manual intervention may be required.\n        {await_code}"
+    
+    # Add warnings for any tests that use both done and await after removing async
+    content = done_await_pattern.sub(add_warning_for_await_with_done, content)
     
     # Convert Jasmine boolean matchers to Jest equivalents
     content = re.sub(r'\.toBeTrue\(\)', r'.toBe(true)', content)
@@ -177,12 +242,20 @@ def process_file(input_file, output_file=None):
                If conversion fails with an error, returns (False, "error")
     """
     if output_file is None:
-        # Generate output filename by replacing Spec.js with .jestspec.js
-        output_file = re.sub(r'Spec\.jsx?$', '.jestspec.js', input_file)
-        # If the filename doesn't match the pattern, append .jestspec.js
+        # Get the original file extension (.js or .jsx)
+        _, file_ext = os.path.splitext(input_file)
+        
+        # Handle camelCase pattern (*Spec.js/jsx)
+        output_file = re.sub(r'Spec\.(js|jsx)$', f'.jestspec{file_ext}', input_file)
+        
+        # Handle kebab-case pattern (*.spec.js/jsx)
+        if output_file == input_file:
+            output_file = re.sub(r'\.spec\.(js|jsx)$', f'.jestspec{file_ext}', input_file)
+            
+        # If neither pattern matched, append .jestspec with original extension
         if output_file == input_file:
             base, ext = os.path.splitext(input_file)
-            output_file = f"{base}.jestspec.js"
+            output_file = f"{base}.jestspec{file_ext}"
     
     print(f"Converting {input_file} to {output_file}")
     
@@ -211,34 +284,46 @@ def process_file(input_file, output_file=None):
         print(f"✗ Error converting {input_file}: {str(e)}")
         return False, "error"
 
-def process_directory(directory_path, file_pattern='*Spec.js', run_tests=False, git_stage=False):
+def process_directory(directory_path, run_tests=False, git_stage=False):
+    """
+    Process all Jasmine spec files in a directory and its subdirectories.
+    Handles both *Spec.js (camelCase) and *.spec.js (kebab-case) file patterns.
+    """
     """Process all Jasmine spec files in a directory and its subdirectories"""
     success_count = 0
     fail_count = 0
     skipped_count = 0
     converted_files = []
     
-    # Use Path.rglob to find files recursively in subdirectories
-    spec_files = list(Path(directory_path).rglob(file_pattern))
-    
-    # If no files found with exact pattern, try a more lenient search
-    if not spec_files:
-        # For file patterns like "someSpec.js", we need to be more flexible
-        if file_pattern.startswith('*'):
-            spec_files = list(Path(directory_path).rglob(file_pattern))
-        else:
-            spec_files = list(Path(directory_path).rglob(f"*{file_pattern}"))
+    # Use Path.rglob to find files recursively in subdirectories for both patterns
+    # Find all files with both naming conventions and both .js and .jsx extensions
+    camel_case_js_files = list(Path(directory_path).rglob("*Spec.js"))
+    camel_case_jsx_files = list(Path(directory_path).rglob("*Spec.jsx"))
+    kebab_case_js_files = list(Path(directory_path).rglob("*.spec.js"))
+    kebab_case_jsx_files = list(Path(directory_path).rglob("*.spec.jsx"))
+    # Combine all lists
+    spec_files = camel_case_js_files + camel_case_jsx_files + kebab_case_js_files + kebab_case_jsx_files
     
     for file_path in spec_files:
         file_path_str = str(file_path)
         # Skip already converted files
-        if '.jestspec.js' in file_path_str:
+        if '.jestspec.js' in file_path_str or '.jestspec.jsx' in file_path_str:
             continue
             
-        output_file = re.sub(r'Spec\.jsx?$', '.jestspec.js', file_path_str)
+        # Get the original file extension (.js or .jsx)
+        _, file_ext = os.path.splitext(file_path_str)
+            
+        # Handle camelCase pattern (*Spec.js/jsx)
+        output_file = re.sub(r'Spec\.(js|jsx)$', f'.jestspec{file_ext}', file_path_str)
+        
+        # Handle kebab-case pattern (*.spec.js/jsx)
+        if output_file == file_path_str:
+            output_file = re.sub(r'\.spec\.(js|jsx)$', f'.jestspec{file_ext}', file_path_str)
+            
+        # If neither pattern matched, append .jestspec with original extension
         if output_file == file_path_str:
             base, ext = os.path.splitext(file_path_str)
-            output_file = f"{base}.jestspec.js"
+            output_file = f"{base}.jestspec{file_ext}"
             
         success, actual_output_file = process_file(file_path_str, output_file)
         if success:
@@ -317,8 +402,8 @@ def run_jest_tests_batch(file_paths):
 def main():
     parser = argparse.ArgumentParser(description='Convert Jasmine specs to Jest')
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('input_file', nargs='?', help='Input Jasmine spec file')
-    group.add_argument('--dir', help='Directory containing Jasmine specs to convert')
+    group.add_argument('input_file', nargs='?', help='Input Jasmine spec file (supports both *Spec.js/jsx and *.spec.js/jsx patterns)')
+    group.add_argument('--dir', help='Directory containing Jasmine specs to convert (converts both *Spec.js/jsx and *.spec.js/jsx files)')
     parser.add_argument('output_file', nargs='?', help='Output Jest spec file (optional)')
     parser.add_argument('--run-tests', action='store_true', help='Run Jest tests on converted files')
     parser.add_argument('--git-stage', action='store_true', 

@@ -26,6 +26,11 @@ module.exports = {
   setupFilesAfterEnv: ['<rootDir>/src/test/frontend/setupJest.js'],
   moduleNameMapper: {
     '\\.s?css$': '<rootDir>/src/test/frontend/__mocks__/styleMock.js',
+    'img/nexus_auditor.svg$': '<rootDir>/src/test/frontend/__mocks__/nexus_auditor.svg',
+    'img/nexus_firewall.svg$': '<rootDir>/src/test/frontend/__mocks__/nexus_firewall.svg',
+    'img/nexus_lifecycle.svg$': '<rootDir>/src/test/frontend/__mocks__/nexus_lifecycle.svg',
+    'img/sonatype.svg$': '<rootDir>/src/test/frontend/__mocks__/sonatype.svg',
+    'sbomManager/assets/sbom-manager.svg$': '<rootDir>/src/test/frontend/__mocks__/sbom_manager.svg',
     '\\.(png|svg)$': '<rootDir>/src/test/frontend/__mocks__/imgMock.js',
     '\\.(html)$': '<rootDir>/src/test/frontend/__mocks__/htmlMock.js',
     '^MainRoot/(.*)': '<rootDir>/src/main/frontend/$1',

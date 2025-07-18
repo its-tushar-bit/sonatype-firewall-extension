@@ -106,3 +106,7 @@ New experimental features use `SystemConfigurationPropertyFeature` enum in datab
 - Checkstyle and PMD are enforced
 - License headers required (use `header.txt`)
 - Git hooks configured in `githooks/` directory
+
+### javax.inject vs jakarta.inject
+For now, use `javax.inject` for compatibility with existing code. Future migration to `jakarta.inject` is planned.
+There is evidence that mixing the two can cause problems in some cases, such as CLM-35649

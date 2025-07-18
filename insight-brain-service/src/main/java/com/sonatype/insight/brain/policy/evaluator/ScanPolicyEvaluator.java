@@ -40,7 +40,6 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -50,7 +49,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -157,10 +155,6 @@ public class ScanPolicyEvaluator
 
   private final OwnerDAO ownerDAO;
 
-  private final OrganizationDAO organizationDAO;
-
-  private final RepositoryDAO repositoryDAO;
-
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
   private final ApplicationEvaluationEventService applicationEvaluationEventService;
@@ -218,8 +212,6 @@ public class ScanPolicyEvaluator
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
       final OwnerDAO ownerDAO,
-      final OrganizationDAO organizationDAO,
-      final RepositoryDAO repositoryDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
       final LegacyViolationService legacyViolationService,
@@ -255,8 +247,6 @@ public class ScanPolicyEvaluator
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.ownerDAO = ownerDAO;
-    this.organizationDAO = organizationDAO;
-    this.repositoryDAO = repositoryDAO;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.legacyViolationService = legacyViolationService;
@@ -370,7 +360,12 @@ public class ScanPolicyEvaluator
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
         application.getId(), scanId, stage.getStageTypeId(), scanTriggerType.name(), forMonitoring);
 
-    boolean isContainerImageEval = isEvaluationForContainerImage(scanTriggerType, stage);
+    boolean isContainerImageEval = (
+        scanTriggerType.equals(ScanTriggerType.CLI) &&
+        stage.getStageTypeId().equals(Stage.ID_PROXY) &&
+        productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION) &&
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
+    );
 
     // Only validate stage type when it is not a container image evaluation
     if (!isContainerImageEval && !Stage.isValidStageTypeId(stage.getStageTypeId())) {
@@ -1434,8 +1429,7 @@ public class ScanPolicyEvaluator
         clientUserAgent, clientInstanceId);
 
     String appId = application.getId();
-    String ownerId = getPolicyOwnerIdForEvaluation(application, scanTriggerType, stage);
-    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
+    List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(appId);
     PolicyResults policyResults =
         componentPolicyEvaluator.evaluate(appId, stage, policies, reportComponentData.components,
             forMonitoring);
@@ -1462,30 +1456,6 @@ public class ScanPolicyEvaluator
     postEvents(scanPolicyEvaluatorResults, application, reportComponentData.components);
     thirdPartySbomMetadataDAO.makeSbomActiveIfExist(scanId);
     return scanPolicyEvaluatorResults;
-  }
-
-  String getPolicyOwnerIdForEvaluation(
-      final Application application,
-      final ScanTriggerType scanTriggerType,
-      final Stage stage)
-  {
-
-    boolean isContainerImageEval = isEvaluationForContainerImage(scanTriggerType, stage);
-
-    if (isContainerImageEval) {
-      return organizationDAO.getById(application.getOrganizationId()).getRelatedRepositoryId();
-    }
-
-    return application.getId();
-  }
-
-  private boolean isEvaluationForContainerImage(final ScanTriggerType scanTriggerType, final Stage stage) {
-    return (
-            scanTriggerType.equals(ScanTriggerType.CLI) &&
-            stage.getStageTypeId().equals(Stage.ID_PROXY) &&
-            productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION) &&
-            SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
-      );
   }
 
   private boolean evaluateAutoPolicyWaiver(

@@ -272,8 +272,7 @@ public class ApplicationEvaluationResourceTest
     Application app = tempEntity.newApplication(organization.getId());
     String testClientUserAgent = "testClientUserAgent";
 
-    // For container image evaluation, create policy owned by repository
-    Policy policy = tempEntity.newPolicy(repository.getId());
+    Policy policy = tempEntity.newPolicy(app);
     policy.setAction(ComplianceStageType.ID, Action.ID_FAIL);
     policyDAO.update(policy);
 

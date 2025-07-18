@@ -45,7 +45,6 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.cpematching.CpeMatchingHelper;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -55,6 +54,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.firewall.container.FirewallContainerHelper;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.git.ManualPullRequestService;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
@@ -156,7 +156,7 @@ public class ComponentInfoService
 
   private final ReportDataReader reportDataReader;
 
-  private final CpeMatchingHelper cpeMatchingHelper;
+  private final FirewallContainerHelper firewallContainerHelper;
 
   private static final String OTHER_CATEGORY_ID = "113";
 
@@ -183,7 +183,7 @@ public class ComponentInfoService
       ManualPullRequestService manualPullRequestService,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ReportDataReader reportDataReader,
-      CpeMatchingHelper cpeMatchingHelper)
+      FirewallContainerHelper firewallContainerHelper)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -204,7 +204,7 @@ public class ComponentInfoService
     this.manualPullRequestService = manualPullRequestService;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.reportDataReader = reportDataReader;
-    this.cpeMatchingHelper = cpeMatchingHelper;
+    this.firewallContainerHelper = firewallContainerHelper;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -313,18 +313,42 @@ public class ComponentInfoService
       String identificationSource) throws IOException
   {
     // Case 1: SBOM identification source with no supported formats
-    if (IdentificationSource.SBOM.getId().equals(identificationSource)
-        && cpeMatchingHelper.isFormatValidForCpeMatching(identifier.getFormat(), owner.getId())) {
+    if (IdentificationSource.SBOM.getId().equals(identificationSource) &&
+        ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat())) {
       return reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
 
-    // Case 2: Third-party identification source
+    boolean isFromFirewallForContainers =
+        firewallContainerHelper.isFormatValidForFirewallForContainerImages(identifier.getFormat(), owner.getId());
+
+    // Case 2: Vulnerability from Firewall for Containers, use report data
+    if (IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource) && isFromFirewallForContainers) {
+      return getComponentDetailsFromFirewallForContainers(identifier, owner, scanId);
+    }
+
+    // Case 3: Third-party identification source
     if (isThirdPartyIdentificationSource(identificationSource)) {
       return thirdPartyComponentDAO.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
     }
 
     // Default case: Get details from Hosted Data Services
     return getComponentDetailsFromHDS(matchState, hash, identifier, httpRequest, identificationSource);
+  }
+
+  private NamedComponentDetails getComponentDetailsFromFirewallForContainers(
+      ComponentIdentifier identifier,
+      Owner owner,
+      String scanId)
+  {
+    NamedComponentDetails namedComponentDetails =
+        reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
+
+    if (namedComponentDetails != null && namedComponentDetails.getSecurityVulnerabilities() != null) {
+      namedComponentDetails.getSecurityVulnerabilities().stream().forEach(
+          vulnerability -> vulnerability.setIdentificationSource(IdentificationSource.SONATYPE_CONTAINER.getId()));
+    }
+
+    return namedComponentDetails;
   }
 
   // Visible for testing
@@ -927,13 +951,18 @@ public class ComponentInfoService
     ComponentDetailsList componentDetailsList = null;
     RepositorySourceResponseDTO sourceResponseDTO = null;
 
+    boolean isFromSbomWithCpeMatching = IdentificationSource.SBOM.getId().equals(identificationSource)
+        && ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat());
+
+    boolean isFromFirewallForContainers = IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource)
+        && firewallContainerHelper.isFormatValidForFirewallForContainerImages(identifier.getFormat(), owner.getId());
+
     // Case 1: Terraform components (which are also 'knownFormat')
     if (isKnownFormat(identifier) && identifier.isTerraform()) {
       componentDetailsList = thirdPartyComponentDAO.getAllVersions(owner.getId(), identifier, scanId);
     }
-    // Case 2: SBOM identification source with formats not supported by HDS (CPE matches)
-    else if (IdentificationSource.SBOM.getId().equals(identificationSource)
-        && cpeMatchingHelper.isFormatValidForCpeMatching(identifier.getFormat(), owner.getId())) {
+    // Case 2: SBOM identification source with formats not supported by HDS (CPE matches) or Firewall for Containers
+    else if (isFromSbomWithCpeMatching || isFromFirewallForContainers) {
       NamedComponentDetails details =
           reportDataReader.getComponentDetailsByIdentifier(identifier, owner.getId(), scanId);
       if (details != null) {

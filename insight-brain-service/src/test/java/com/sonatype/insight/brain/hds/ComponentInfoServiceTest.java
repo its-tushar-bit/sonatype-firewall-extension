@@ -3413,7 +3413,7 @@ public class ComponentInfoServiceTest
   }
 
   @Test
-  public void testGetComponentDetailsList_CpeComponent_ContainerFromFirewallForDocker() {
+  public void testGetComponentDetailsList_ContainerFromFirewallForDocker() {
     Repository repository =
         tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
 
@@ -3424,7 +3424,7 @@ public class ComponentInfoServiceTest
     Application application = tempEntity.newApplicationWithParent(organization);
 
     String scanId = "scanId";
-    String identificationSource = IdentificationSource.SBOM.getId();
+    String identificationSource = IdentificationSource.SONATYPE_CONTAINER.getId();
 
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createContainerCoordinates("ns", "name", "v");
 
@@ -3436,7 +3436,7 @@ public class ComponentInfoServiceTest
         .thenReturn(componentDetails);
 
     ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, application,
-        IdentificationSource.SBOM.getId(), scanId, DependencyType.DIRECT, true).getLeft();
+        IdentificationSource.SONATYPE_CONTAINER.getId(), scanId, DependencyType.DIRECT, true).getLeft();
 
     assertThat(result.getList().get(0)).usingRecursiveComparison().isEqualTo(componentDetails);
   }
@@ -3458,6 +3458,35 @@ public class ComponentInfoServiceTest
 
     assertThat(result).isNotNull();
     assertGenericComponentDetails(componentDetails, GENERIC_COORDINATES);
+  }
+
+  @Test
+  public void testGetComponentDetails_firewallForContainers() throws IOException {
+    String scanId = "scanId";
+    String identificationSource = IdentificationSource.SONATYPE_CONTAINER.getId();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createContainerCoordinates("ns", "n", "v");
+    NamedComponentDetails componentDetails = newNamedComponentDetails(componentIdentifier);
+    componentDetails.setMatchState(MatchState.EXACT.getId());
+    componentDetails.setIdentificationSource(identificationSource);
+
+    Repository repository =
+        tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
+
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    when(reportDataReader.getComponentDetailsByIdentifier(componentIdentifier, application.getId(), scanId))
+        .thenReturn(componentDetails);
+
+    ComponentDetails result = componentInfoService.getComponentDetails(
+        application, componentDetails.getComponentIdentifier(), componentDetails.getMatchState(), null, false,
+        httpRequestMock, IdentificationSource.SONATYPE_CONTAINER.getId(), scanId, null);
+
+    assertThat(result).isNotNull();
+    assertGenericComponentDetails(componentDetails, componentIdentifier);
   }
 
   @Test

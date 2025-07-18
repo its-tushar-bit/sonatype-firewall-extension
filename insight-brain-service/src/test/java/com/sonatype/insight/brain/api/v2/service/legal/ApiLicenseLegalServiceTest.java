@@ -64,7 +64,6 @@ import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsServiceV2;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiLicenseDataAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
-import com.sonatype.insight.brain.cpematching.CpeMatchingHelper;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -78,11 +77,13 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.SecurityVulnerabilityOverrideDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssSeverityDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.firewall.container.FirewallContainerHelper;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
@@ -278,9 +279,6 @@ public class ApiLicenseLegalServiceTest
   @Inject
   private TelemetryUtils telemetryUtils;
 
-  @Inject
-  private CpeMatchingHelper cpeMatchingHelper;
-
   @Override
   public void configure(Binder binder) {
     binder.bind(ApiLicenseLegalHdsService.class).toInstance(mockApiLicenseLegalHdsService);
@@ -322,6 +320,7 @@ public class ApiLicenseLegalServiceTest
     VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
         daoFactory.createVulnerabilityCustomCvssSeverityDAO();
     MultiLicenseDAO multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+    RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
 
     ComponentLoaderFactory componentLoaderFactory =
         new ComponentLoaderFactory(multiLicenseDAO, licenseThreatGroupDAO, licenseThreatGroupLicenseDAO,
@@ -329,13 +328,15 @@ public class ApiLicenseLegalServiceTest
             vulnerabilityCustomRemediationDAO, vulnerabilityCustomCweDAO, vulnerabilityCustomCvssVectorDAO,
             vulnerabilityCustomCvssSeverityDAO);
 
+    FirewallContainerHelper firewallContainerHelper = new FirewallContainerHelper(repositoryDAO);
+
     ComponentInfoService componentInfoService =
         new ComponentInfoService(null, null,
             new ComponentDetailsLoaderFactory(null, configurationMock, licenseDAO, componentLoaderFactory),
             null,
             mockThirdPartyComponentDAO, repositoryQueryService, apiComponentDetailsServiceV2, multiLicenseDAO,
-            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO,
-            policyDAO, null, idUtils, null, null, null, cpeMatchingHelper);
+            applicationDAO, licenseDAO, componentCategoryDAO, licenseThreatGroupDAO, ownerDAO, policyDAO, null, idUtils,
+            null, null, null, firewallContainerHelper);
     return componentInfoService;
   }
 

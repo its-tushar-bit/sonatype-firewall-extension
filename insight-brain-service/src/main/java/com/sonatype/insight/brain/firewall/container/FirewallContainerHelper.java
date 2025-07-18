@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.cpematching;
+package com.sonatype.insight.brain.firewall.container;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,19 +14,17 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 
 @Named
 @Singleton
-public class CpeMatchingHelper
+public class FirewallContainerHelper
 {
   private final RepositoryDAO repositoryDAO;
 
   @Inject
-  public CpeMatchingHelper(RepositoryDAO repositoryDAO) {
+  public FirewallContainerHelper(RepositoryDAO repositoryDAO) {
     this.repositoryDAO = repositoryDAO;
   }
 
-  public boolean isFormatValidForCpeMatching(String format, String applicationId) {
-    if (ComponentIdentifier.isFormatValidForCpeMatching(format)) {
-      return true;
-    }
-    return repositoryDAO.getByContainerImageId(applicationId) != null;
+  public boolean isFormatValidForFirewallForContainerImages(String format, String applicationId) {
+    return ComponentIdentifier.FORMAT_CONTAINER.equals(format)
+        && repositoryDAO.getByContainerImageId(applicationId) != null;
   }
 }

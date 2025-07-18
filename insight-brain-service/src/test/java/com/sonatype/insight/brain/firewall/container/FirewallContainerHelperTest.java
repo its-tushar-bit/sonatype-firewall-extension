@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.cpematching;
+package com.sonatype.insight.brain.firewall.container;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,40 +19,37 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-public class CpeMatchingHelperTest
+public class FirewallContainerHelperTest
     extends AbstractComponentTest
 {
   @Inject
   private OrganizationDAO organizationDAO;
 
   @Inject
-  private CpeMatchingHelper cpeMatchingHelper;
+  private FirewallContainerHelper firewallContainerHelper;
 
   @Test
-  public void testIsFormatValidForCpeMatching_formatIsValid() {
-    assertThat(cpeMatchingHelper.isFormatValidForCpeMatching("redhat", null)).isTrue();
+  public void testIsFormatValidForFirewallForContainerImages_formatIsInvalid() {
+    assertThat(
+        firewallContainerHelper.isFormatValidForFirewallForContainerImages(ComponentIdentifier.FORMAT_CONTAINER, null))
+            .isFalse();
   }
 
   @Test
-  public void testIsFormatValidForCpeMatching_formatIsInvalid() {
-    assertThat(cpeMatchingHelper.isFormatValidForCpeMatching(ComponentIdentifier.FORMAT_CONTAINER, null)).isFalse();
+  public void testIsFormatValidForFirewallForContainerImages_formatIsContainerAndApplicationNotExists() {
+    assertThat(firewallContainerHelper.isFormatValidForFirewallForContainerImages(ComponentIdentifier.FORMAT_CONTAINER,
+        "fake-app-id")).isFalse();
   }
 
   @Test
-  public void testIsFormatValidForCpeMatching_formatIsContainerAndApplicationNotExists() {
-    assertThat(cpeMatchingHelper.isFormatValidForCpeMatching(ComponentIdentifier.FORMAT_CONTAINER, "fake-app-id"))
-        .isFalse();
-  }
-
-  @Test
-  public void testIsFormatValidForCpeMatching_formatIsContainerAndNotFirewallForDocker() {
+  public void testIsFormatValidForFirewallForContainerImages_formatIsContainerAndNotFirewallForDocker() {
     Application application = tempEntity.newApplicationWithParent();
-    assertThat(cpeMatchingHelper.isFormatValidForCpeMatching(ComponentIdentifier.FORMAT_CONTAINER, application.getId()))
-        .isFalse();
+    assertThat(firewallContainerHelper.isFormatValidForFirewallForContainerImages(ComponentIdentifier.FORMAT_CONTAINER,
+        application.getId())).isFalse();
   }
 
   @Test
-  public void testIsFormatValidForCpeMatching_formatIsContainerAndIsFirewallForDocker() {
+  public void testIsFormatValidForFirewallForContainerImages_formatIsContainerAndIsFirewallForDocker() {
     Repository repository =
         tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
 
@@ -62,7 +59,7 @@ public class CpeMatchingHelperTest
 
     Application application = tempEntity.newApplicationWithParent(organization);
 
-    assertThat(cpeMatchingHelper.isFormatValidForCpeMatching(ComponentIdentifier.FORMAT_CONTAINER, application.getId()))
-        .isTrue();
+    assertThat(firewallContainerHelper.isFormatValidForFirewallForContainerImages(ComponentIdentifier.FORMAT_CONTAINER,
+        application.getId())).isTrue();
   }
 }

@@ -637,12 +637,16 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_ApiPage() {
-    assertThat(service.getSystemConfigurationPropertyFeature("api-page")).isEqualTo(
-        SystemConfigurationPropertyFeature.API_PAGE);
-    assertThat(service.getSystemConfigurationPropertyFeature("API-PAGE")).isEqualTo(
-        SystemConfigurationPropertyFeature.API_PAGE);
-    assertThat(service.getSystemConfigurationPropertyFeature("Api-Page")).isEqualTo(
-        SystemConfigurationPropertyFeature.API_PAGE);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("api-page"),
+        service.getSystemConfigurationPropertyFeature("API-PAGE"),
+        service.getSystemConfigurationPropertyFeature("Api-Page")
+    );
+
+    // Assert all map to API_PAGE
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.API_PAGE));
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature("apiPage")).isInstanceOf(
         BadRequestException.class).hasMessage("Feature not supported: apiPage");
   }
@@ -957,14 +961,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_CleanUpContinuousMonitoringReport() {
-    assertThat(service.getSystemConfigurationPropertyFeature("clean-up-sbom-continuous-monitoring-report")).isEqualTo(
-        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
-    assertThat(service.getSystemConfigurationPropertyFeature("Clean-Up-Sbom-Continuous-Monitoring-Report")).isEqualTo(
-        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
-    assertThat(service.getSystemConfigurationPropertyFeature("CLEAN-UP-SBOM-CONTINUOUS-MONITORING-REPORT")).isEqualTo(
-        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
-    assertThat(service.getSystemConfigurationPropertyFeature("cleanUpSbomContinuousMonitoringReport")).isEqualTo(
-        SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("clean-up-sbom-continuous-monitoring-report"),
+        service.getSystemConfigurationPropertyFeature("Clean-Up-Sbom-Continuous-Monitoring-Report"),
+        service.getSystemConfigurationPropertyFeature("CLEAN-UP-SBOM-CONTINUOUS-MONITORING-REPORT"),
+        service.getSystemConfigurationPropertyFeature("cleanUpSbomContinuousMonitoringReport")
+    );
+
+    // Assert all map to CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.CLEAN_UP_SBOM_CONTINUOUS_MONITORING_REPORT));
   }
 
   @Test
@@ -996,14 +1003,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_SbomBinaryScanning() {
-    assertThat(service.getSystemConfigurationPropertyFeature("sbomBinaryScanning")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
-    assertThat(service.getSystemConfigurationPropertyFeature("sbom-binary-scanning")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
-    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Binary-Scanning")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
-    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-BINARY-SCANNING")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("sbomBinaryScanning"),
+        service.getSystemConfigurationPropertyFeature("sbom-binary-scanning"),
+        service.getSystemConfigurationPropertyFeature("Sbom-Binary-Scanning"),
+        service.getSystemConfigurationPropertyFeature("SBOM-BINARY-SCANNING")
+    );
+
+    // Assert all map to SBOM_BINARY_SCANNING
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING));
   }
 
   @Test
@@ -1076,14 +1086,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_SbomContinuousMonitoringUi() {
-    assertThat(service.getSystemConfigurationPropertyFeature("sbomContinuousMonitoringUi")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
-    assertThat(service.getSystemConfigurationPropertyFeature("sbom-continuous-monitoring-ui")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
-    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Continuous-Monitoring-Ui")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
-    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-CONTINUOUS-MONITORING-UI")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("sbomContinuousMonitoringUi"),
+        service.getSystemConfigurationPropertyFeature("sbom-continuous-monitoring-ui"),
+        service.getSystemConfigurationPropertyFeature("Sbom-Continuous-Monitoring-Ui"),
+        service.getSystemConfigurationPropertyFeature("SBOM-CONTINUOUS-MONITORING-UI")
+    );
+
+    // Assert all map to SBOM_CONTINUOUS_MONITORING_UI
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.SBOM_CONTINUOUS_MONITORING_UI));
   }
 
   @Test
@@ -1116,14 +1129,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_SbomPolicies() {
-    assertThat(service.getSystemConfigurationPropertyFeature("sbomPolicies")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_POLICIES);
-    assertThat(service.getSystemConfigurationPropertyFeature("sbom-policies")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_POLICIES);
-    assertThat(service.getSystemConfigurationPropertyFeature("Sbom-Policies")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_POLICIES);
-    assertThat(service.getSystemConfigurationPropertyFeature("SBOM-POLICIES")).isEqualTo(
-        SystemConfigurationPropertyFeature.SBOM_POLICIES);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("sbomPolicies"),
+        service.getSystemConfigurationPropertyFeature("sbom-policies"),
+        service.getSystemConfigurationPropertyFeature("Sbom-Policies"),
+        service.getSystemConfigurationPropertyFeature("SBOM-POLICIES")
+    );
+
+    // Assert all map to SBOM_POLICIES
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.SBOM_POLICIES));
   }
 
   @Test
@@ -1150,14 +1166,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_AutoWaivers() {
-    assertThat(service.getSystemConfigurationPropertyFeature("autoWaivers")).isEqualTo(
-        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
-    assertThat(service.getSystemConfigurationPropertyFeature("autowaivers")).isEqualTo(
-        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
-    assertThat(service.getSystemConfigurationPropertyFeature("AutoWaivers")).isEqualTo(
-        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
-    assertThat(service.getSystemConfigurationPropertyFeature("AUTOWAIVERS")).isEqualTo(
-        SystemConfigurationPropertyFeature.AUTO_WAIVERS);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("autoWaivers"),
+        service.getSystemConfigurationPropertyFeature("autowaivers"),
+        service.getSystemConfigurationPropertyFeature("AutoWaivers"),
+        service.getSystemConfigurationPropertyFeature("AUTOWAIVERS")
+    );
+
+    // Assert all map to AUTO_WAIVERS
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.AUTO_WAIVERS));
   }
 
   @Test
@@ -1267,14 +1286,17 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_ContainerImagesEvalEnabled() {
-    assertThat(service.getSystemConfigurationPropertyFeature("containerImagesEvalEnabled")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
-    assertThat(service.getSystemConfigurationPropertyFeature("container-images-eval-enabled")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
-    assertThat(service.getSystemConfigurationPropertyFeature("Container-Images-Eval-Enabled")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
-    assertThat(service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVAL-ENABLED")).isEqualTo(
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("containerImagesEvalEnabled"),
+        service.getSystemConfigurationPropertyFeature("container-images-eval-enabled"),
+        service.getSystemConfigurationPropertyFeature("Container-Images-Eval-Enabled"),
+        service.getSystemConfigurationPropertyFeature("CONTAINER-IMAGES-EVAL-ENABLED")
+    );
+
+    // Assert all map to CONTAINER_IMAGES_EVAL_ENABLED
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED));
   }
 
   @Test
@@ -1422,22 +1444,25 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("darkMode", false);
     expectedFeatureConfigMap.put("zScaler", true);
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
+    expectedFeatureConfigMap.put("userManagementPages", true);
 
     return expectedFeatureConfigMap;
   }
 
   @Test
   public void testGetSystemConfigurationPropertyFeature_DarkMode() {
-    assertThat(service.getSystemConfigurationPropertyFeature("darkMode")).isEqualTo(
-        SystemConfigurationPropertyFeature.DARK_MODE);
-    assertThat(service.getSystemConfigurationPropertyFeature("darkmode")).isEqualTo(
-        SystemConfigurationPropertyFeature.DARK_MODE);
-    assertThat(service.getSystemConfigurationPropertyFeature("Darkmode")).isEqualTo(
-        SystemConfigurationPropertyFeature.DARK_MODE);
-    assertThat(service.getSystemConfigurationPropertyFeature("DarkMode")).isEqualTo(
-        SystemConfigurationPropertyFeature.DARK_MODE);
-    assertThat(service.getSystemConfigurationPropertyFeature("DARKMODE")).isEqualTo(
-        SystemConfigurationPropertyFeature.DARK_MODE);
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("darkMode"),
+        service.getSystemConfigurationPropertyFeature("darkmode"),
+        service.getSystemConfigurationPropertyFeature("Darkmode"),
+        service.getSystemConfigurationPropertyFeature("DarkMode"),
+        service.getSystemConfigurationPropertyFeature("DARKMODE")
+    );
+
+    // Assert all map to DARK_MODE
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.DARK_MODE));
   }
 
   @Test
@@ -1476,5 +1501,49 @@ public class ApiConfigFeaturesServiceTest
         systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DARK_MODE).getValue())
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DARK_MODE)).isTrue();
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_UserManagementPages() {
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("userManagementPages"),
+        service.getSystemConfigurationPropertyFeature("user-management-pages"),
+        service.getSystemConfigurationPropertyFeature("User-Management-Pages"),
+        service.getSystemConfigurationPropertyFeature("USER-MANAGEMENT-PAGES")
+    );
+
+    // Assert all map to USER_MANAGEMENT_PAGES
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES));
+  }
+
+  @Test
+  public void testEnableFeature_UserManagementPages_AlreadyEnabled() {
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.USER_MANAGEMENT_PAGES))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_UserManagementPages() {
+    service.disableFeature(SystemConfigurationProperty.USER_MANAGEMENT_PAGES);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_MANAGEMENT_PAGES)
+        .getValue()).isEqualTo("false");
+  }
+
+  @Test
+  public void testDisableFeature_UserManagementPages_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.USER_MANAGEMENT_PAGES);
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.USER_MANAGEMENT_PAGES))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_UserManagementPages_EnabledByDefault() {
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_MANAGEMENT_PAGES))
+        .isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)).isTrue();
   }
 }

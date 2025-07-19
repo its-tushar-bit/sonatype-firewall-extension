@@ -20,7 +20,7 @@ import {
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import userActions from '../../user/userActions';
 import { actions as productFeaturesActions } from '../../productFeatures/productFeaturesSlice';
-import { selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
+import { selectIsUserManagementPagesEnabled, selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
 
 export const USER_SET_FIRST_NAME = 'USER_SET_FIRST_NAME';
 export const USER_SET_LAST_NAME = 'USER_SET_LAST_NAME';
@@ -54,10 +54,8 @@ export function loadCreateUserPage() {
     try {
       await checkPermissions(['CONFIGURE_SYSTEM']);
       await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
-
-      const tenantMode = selectTenantMode(getState()),
-        inviteMode = tenantMode === 'multi-tenant',
-        usersUrl = inviteMode ? getMultiTenantUserUrl() : getUserUrl();
+      const inviteMode = checkMtiqDefaultFlow(getState());
+      const usersUrl = inviteMode ? getMultiTenantUserUrl() : getUserUrl();
 
       await axios.get(usersUrl).then(({ data }) => {
         dispatch(loadFulfilled({ users: data, currentUsername: null, inviteMode }));
@@ -114,9 +112,9 @@ export function save() {
     const textInputs = mapObjIndexed(prop('trimmedValue'), textState);
     const passwordInputs = mapObjIndexed(prop('value'), passwordState);
 
-    const tenantMode = selectTenantMode(getState()),
-      usersUrl = tenantMode === 'multi-tenant' ? getMultiTenantUserUrl() : getUserUrl(),
-      multitenantUsername = tenantMode === 'multi-tenant' ? { username: textInputs.email } : null;
+    const isMtiqDefaultFlow = checkMtiqDefaultFlow(getState());
+    const usersUrl = isMtiqDefaultFlow ? getMultiTenantUserUrl() : getUserUrl();
+    const multitenantUsername = isMtiqDefaultFlow ? { username: textInputs.email } : null;
 
     return axios
       .post(usersUrl, { ...textInputs, ...passwordInputs, ...multitenantUsername })
@@ -196,8 +194,7 @@ export function deleteUser(userId) {
     try {
       await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
 
-      const tenantMode = selectTenantMode(getState()),
-        urlFn = tenantMode === 'multi-tenant' ? getMultiTenantUserByIdUrl : getUserByIdUrl;
+      const urlFn = checkMtiqDefaultFlow(getState()) ? getMultiTenantUserByIdUrl : getUserByIdUrl;
 
       await axios.delete(urlFn(userId));
 
@@ -253,8 +250,7 @@ export function loadListPage() {
 
       await dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded());
 
-      const tenantMode = selectTenantMode(getState()),
-        usersPromise = tenantMode === 'multi-tenant' ? fetchMtiqUsers() : fetchOnPremUsers();
+      const usersPromise = checkMtiqDefaultFlow(getState()) ? fetchMtiqUsers() : fetchOnPremUsers();
 
       const [users, { data: session }] = await Promise.all([usersPromise, axios.get(getSessionUrl())]);
 
@@ -273,4 +269,10 @@ async function fetchOnPremUsers() {
 async function fetchMtiqUsers() {
   const response = await axios.get(getMultiTenantUserUrl());
   return map((user) => ({ ...user, id: user.username }), response.data);
+}
+
+function checkMtiqDefaultFlow(state) {
+  const isMtiq = selectTenantMode(state) === 'multi-tenant';
+  const isUserManagementEnabled = selectIsUserManagementPagesEnabled(state);
+  return isMtiq && !isUserManagementEnabled;
 }

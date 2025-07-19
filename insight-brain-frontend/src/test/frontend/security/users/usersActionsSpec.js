@@ -128,6 +128,68 @@ describe('usersActions', () => {
         });
       });
 
+      it('uses on-prem user URL when multi-tenant is true but user-management-pages is enabled', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+              'user-management-pages': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({ data: [] }),
+            // should not be called in this case
+            [multiTenantUserUrl]: () => {
+              throw new Error();
+            },
+          },
+        });
+
+        store.dispatch(loadCreateUserPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_LOAD_REQUESTED },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null, inviteMode: false } },
+          ]);
+          done();
+        });
+      });
+
+      it('uses multi-tenant URL when multi-tenant is true and user-management-pages is disabled', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+              'user-management-pages': false,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            // should not be called in this case
+            [userUrl]: () => {
+              throw new Error();
+            },
+            [multiTenantUserUrl]: Promise.resolve({ data: [] }),
+          },
+        });
+
+        store.dispatch(loadCreateUserPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: CREATE_USER_LOAD_REQUESTED },
+            { type: CREATE_USER_LOAD_FULFILLED, payload: { users: [], currentUsername: null, inviteMode: true } },
+          ]);
+          done();
+        });
+      });
+
       it('fetches the product features if needed', async () => {
         const store = SpecUtil.mockReduxStore({
           productFeatures: {
@@ -215,6 +277,70 @@ describe('usersActions', () => {
           productFeatures: {
             productFeatures: {
               'multi-tenant': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            // should not be called in this case
+            [userUrl]: () => {
+              throw new Error();
+            },
+            [multiTenantUserUrl]: Promise.resolve({ data: [] }),
+            [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
+          },
+        });
+
+        store.dispatch(loadListPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: USER_LIST_LOAD_REQUESTED },
+            { type: USER_LIST_LOAD_FULFILLED, payload: { users: [], currentUsername: 'admin' } },
+          ]);
+          done();
+        });
+      });
+
+      it('calls the on-prem user URL when multi-tenant is true but user-management-pages is enabled', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+              'user-management-pages': true,
+            },
+          },
+        });
+
+        mockAxiosCalls({
+          get: {
+            [userUrl]: Promise.resolve({ data: [] }),
+            // should not be called in this case
+            [multiTenantUserUrl]: () => {
+              throw new Error();
+            },
+            [sessionUrl]: Promise.resolve({ data: { username: 'admin' } }),
+          },
+        });
+
+        store.dispatch(loadListPage()).then(() => {
+          const actions = store.getActions();
+
+          expect(actions).toHaveActionsInOrder([
+            { type: USER_LIST_LOAD_REQUESTED },
+            { type: USER_LIST_LOAD_FULFILLED, payload: { users: [], currentUsername: 'admin' } },
+          ]);
+          done();
+        });
+      });
+
+      it('calls the multi-tenant user URL when multi-tenant is true and user-management-pages is disabled', (done) => {
+        const store = SpecUtil.mockReduxStore({
+          productFeatures: {
+            productFeatures: {
+              'multi-tenant': true,
+              'user-management-pages': false,
             },
           },
         });
@@ -383,6 +509,133 @@ describe('usersActions', () => {
 
       mockAxiosCalls({
         post: {
+          [userUrl]: () => {
+            throw new Error();
+          },
+          [multiTenantUserUrl]: Promise.resolve(),
+        },
+      });
+
+      jasmine.clock().install();
+
+      store.dispatch(save()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(axios.post).toHaveBeenCalledWith(multiTenantUserUrl, {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          username: 'john@doe.com',
+        });
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionsInOrder([
+          { type: CREATE_USER_SAVE_REQUESTED },
+          { type: CREATE_USER_SAVE_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('uses on-prem URL when multi-tenant is true but user-management-pages is enabled', (done) => {
+      const state = {
+        users: [],
+        inputFields: {
+          firstName: initUserInput('John'),
+          lastName: initUserInput('Doe'),
+          email: initUserInput('john@doe.com'),
+          username: initUserInput('johnDoe'),
+          password: initUserInput('1234'),
+        },
+      };
+
+      const store = SpecUtil.mockReduxStore({
+        userConfiguration: state,
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+            'user-management-pages': true,
+          },
+        },
+      });
+
+      mockAxiosCalls({
+        post: {
+          [userUrl]: Promise.resolve(),
+          // should not be called in this case
+          [multiTenantUserUrl]: () => {
+            throw new Error();
+          },
+        },
+      });
+
+      jasmine.clock().install();
+
+      store.dispatch(save()).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(axios.post).toHaveBeenCalledWith(userUrl, {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@doe.com',
+          username: 'johnDoe',
+          password: '1234',
+        });
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(4);
+        expect(actions).toHaveActionsInOrder([
+          { type: CREATE_USER_SAVE_REQUESTED },
+          { type: CREATE_USER_SAVE_FULFILLED },
+          { type: USER_FORM_SUBMIT_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: undefined,
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('uses multi-tenant URL with email as username when multi-tenant is true and user-management-pages is disabled', (done) => {
+      const state = {
+        users: [],
+        inputFields: {
+          firstName: initUserInput('John'),
+          lastName: initUserInput('Doe'),
+          email: initUserInput('john@doe.com'),
+        },
+      };
+
+      const store = SpecUtil.mockReduxStore({
+        userConfiguration: state,
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+            'user-management-pages': false,
+          },
+        },
+      });
+
+      mockAxiosCalls({
+        post: {
+          // should not be called in this case
           [userUrl]: () => {
             throw new Error();
           },
@@ -651,6 +904,100 @@ describe('usersActions', () => {
         productFeatures: {
           productFeatures: {
             'multi-tenant': true,
+          },
+        },
+
+        // for MTIQ realism, use email as username and id
+        userConfiguration: mergeDeepRight(initialState, {
+          selectedUserServerData: {
+            id: 'john@doe.com',
+            username: 'john@doe.com',
+          },
+        }),
+      });
+
+      mockAxiosCalls({
+        del: {
+          // not called in this case
+          [getUserByIdUrl('john@doe.com')]: () => {
+            throw new Error();
+          },
+          [getMultiTenantUserByIdUrl('john@doe.com')]: Promise.resolve({ data: 'success' }),
+        },
+      });
+      jasmine.clock().install();
+
+      store.dispatch(deleteUser('john@doe.com')).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: DELETE_USER_REQUESTED },
+          { type: DELETE_USER_FULFILLED },
+          { type: USER_FORM_DELETE_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: { reload: true },
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('calls the on-prem delete URL when multi-tenant is true and user-management-pages is enabled', (done) => {
+      const store = SpecUtil.mockReduxStore({
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+            'user-management-pages': true,
+          },
+        },
+
+        userConfiguration: initialState,
+      });
+
+      mockAxiosCalls({
+        del: {
+          [getUserByIdUrl('201')]: Promise.resolve({ data: 'success' }),
+          // not called in this case
+          [getMultiTenantUserByIdUrl('201')]: () => {
+            throw new Error();
+          },
+        },
+      });
+      jasmine.clock().install();
+
+      store.dispatch(deleteUser('201')).then(() => {
+        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jasmine.clock().uninstall();
+
+        expect(store.getActions()).toHaveActionsInOrder([
+          { type: DELETE_USER_REQUESTED },
+          { type: DELETE_USER_FULFILLED },
+          { type: USER_FORM_DELETE_MASK_TIMER_DONE },
+          {
+            type: STATE_GO,
+            payload: {
+              to: 'users',
+              params: undefined,
+              options: { reload: true },
+            },
+          },
+        ]);
+        done();
+      });
+    });
+
+    it('calls the multi-tenant delete URL when multi-tenant is true and user-management-pages is disabled', (done) => {
+      const store = SpecUtil.mockReduxStore({
+        productFeatures: {
+          productFeatures: {
+            'multi-tenant': true,
+            'user-management-pages': false,
           },
         },
 

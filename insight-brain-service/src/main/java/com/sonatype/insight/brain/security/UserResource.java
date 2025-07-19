@@ -21,10 +21,11 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
@@ -94,7 +95,7 @@ public class UserResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public List<User> getAll() {
     return userService.getAll();
   }
@@ -103,7 +104,7 @@ public class UserResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.CREATE_USER)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public User addUser(User user) {
     return userService.addUser(user);
   }
@@ -112,7 +113,7 @@ public class UserResource
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_USER)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public User updateUser(User user) {
     return userService.updateUser(user);
   }
@@ -120,7 +121,7 @@ public class UserResource
   @DELETE
   @Path("{userId}")
   @Audited(AuditEvent.DELETE_USER)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public void deleteUser(@PathParam("userId") String userId) {
     userService.deleteUser(userId);
   }
@@ -129,7 +130,7 @@ public class UserResource
   @Path(MY_PASSWORD_PATH)
   @Consumes(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.UPDATE_USER_PASSWORD)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public void changeMyPassword(ChangePasswordDTO password) {
     userService.changeMyPassword(password);
   }
@@ -138,7 +139,7 @@ public class UserResource
   @Path(RESET_PASSWORD_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.RESET_USER_PASSWORD)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public ChangePasswordDTO resetPassword(@PathParam("userId") String userId) {
     return userService.resetPassword(userId);
   }
@@ -146,7 +147,7 @@ public class UserResource
   @GET
   @Path(SHOULD_DISPLAY_DEFAULT_PASSWORD_WARNING)
   @Produces(MediaType.TEXT_PLAIN)
-  @BlockIfMultiTenant
+  @HasFeature(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)
   public boolean shouldDisplayDefaultPasswordWarning() {
     return userService.shouldDisplayDefaultPasswordWarning();
   }

@@ -279,6 +279,8 @@ public class SystemConfigurationProperty
 
   public static final String THIRD_PARTY_KEV_LOOKUP = "thirdPartyKevLookup";
 
+  public static final String USER_MANAGEMENT_PAGES = "userManagementPages";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

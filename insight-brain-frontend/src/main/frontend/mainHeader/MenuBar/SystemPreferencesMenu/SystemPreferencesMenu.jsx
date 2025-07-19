@@ -12,6 +12,7 @@ import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectProductLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 import { NavLink } from '../MenuButton/MenuButton';
+import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const SystemPreferencesMenu = ({
   permissions = {},
@@ -31,7 +32,6 @@ export const SystemPreferencesMenu = ({
   isSamlConfigurationEnabled = false,
   isMonitoringSupported = false,
   isSsoIdpManagedBySonatype = false,
-  isSingleTenant = false,
   isSbomManagerOnlyLicense = false,
   isStandaloneFirewall = false,
   isOrgsAndAppsEnabled = false,
@@ -47,6 +47,7 @@ export const SystemPreferencesMenu = ({
 
   const isSbomManager = useSelector(selectIsSbomManager);
   const productLicense = useSelector(selectProductLicense);
+  const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
   const firewallPrefix = isFirewallOnlyLicense ? 'firewall' : '';
   const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
@@ -58,7 +59,7 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="users"
         id="system-configuration-users"
-        showIf={CONFIGURE_SYSTEM && (isSingleTenant || isSsoIdpManagedBySonatype) && productLicense}
+        showIf={CONFIGURE_SYSTEM && (isUserManagementEnabled || isSsoIdpManagedBySonatype) && productLicense}
         prefix={firewallPrefix}
       >
         Users
@@ -268,7 +269,6 @@ SystemPreferencesMenu.propTypes = {
   isMonitoringSupported: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,
   isSsoIdpManagedBySonatype: PropTypes.bool,
-  isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isFirewallLicense: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,

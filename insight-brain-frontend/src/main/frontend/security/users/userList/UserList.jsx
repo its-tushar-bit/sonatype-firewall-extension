@@ -9,6 +9,8 @@ import { NxButton, NxFontAwesomeIcon, NxList } from '@sonatype/react-shared-comp
 import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import LoadWrapper from '../../../react/LoadWrapper';
 import UserListItem from './UserListItem';
+import { useSelector } from 'react-redux';
+import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function UserList(props) {
   const {
@@ -24,7 +26,7 @@ export default function UserList(props) {
     tenantMode,
   } = props;
   const isMultiTenant = tenantMode === 'multi-tenant';
-
+  const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
   useEffect(() => {
     loadListPage();
   }, []);
@@ -45,7 +47,7 @@ export default function UserList(props) {
               <h2 className="nx-h2">Configure Users</h2>
             </div>
             <div className="nx-tile__actions">
-              {isMultiTenant ? (
+              {isMultiTenant && !isUserManagementEnabled ? (
                 <NxButton id="invite-user" onClick={createUser}>
                   <NxFontAwesomeIcon icon={faPlus} />
                   <span>Invite User</span>

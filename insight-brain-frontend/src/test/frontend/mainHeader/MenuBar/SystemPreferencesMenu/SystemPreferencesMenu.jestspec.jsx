@@ -24,9 +24,54 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.getByText('System Preferences')).toBeInTheDocument();
   });
 
-  it('should display the link "Users" if "CONFIGURE_SYSTEM" and "isSingleTenant" are enabled, and license is not null', () => {
+  it('should display the link "Users" if "CONFIGURE_SYSTEM" and "isUserManagementEnabled" are enabled, and license is not null', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-management-pages': true,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('Users')).toBeInTheDocument();
+  });
+
+  it('should display the link "Users" if "CONFIGURE_SYSTEM" and "isSsoIdpManagedBySonatype" are enabled, and license is not null', () => {
     const preloadedState = { productLicense: {} };
-    render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />, { preloadedState });
+    render(<SystemPreferencesMenu permissions={permissions} isSsoIdpManagedBySonatype={true} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('Users')).toBeInTheDocument();
+  });
+
+  it('should not display the link "Users" if "CONFIGURE_SYSTEM" is enabled but both "isUserManagementEnabled" and "isSsoIdpManagedBySonatype" are false', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-management-pages': false,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} isSsoIdpManagedBySonatype={false} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('Users')).toBeNull();
+  });
+
+  it('should display the link "Users" if both "isUserManagementEnabled" and "isSsoIdpManagedBySonatype" are enabled', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-management-pages': true,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} isSsoIdpManagedBySonatype={true} />, { preloadedState });
     const button = screen.getByRole('button');
     fireEvent.click(button);
     expect(screen.getByText('Users')).toBeInTheDocument();
@@ -66,7 +111,14 @@ describe('SystemPreferencesMenu', () => {
   });
 
   it('should not display the links "Users", "Roles", and "Administrators" if license is null', () => {
-    render(<SystemPreferencesMenu permissions={permissions} isSingleTenant={true} />);
+    const preloadedState = {
+      productFeatures: {
+        productFeatures: {
+          'user-management-pages': true,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
     const button = screen.getByRole('button');
     fireEvent.click(button);
     expect(screen.queryByText('Users')).toBeNull();

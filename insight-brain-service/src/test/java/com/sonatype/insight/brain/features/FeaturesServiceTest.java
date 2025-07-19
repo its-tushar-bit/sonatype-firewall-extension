@@ -213,4 +213,19 @@ public class FeaturesServiceTest
     assertThat(featuresService.getFeatures()).doesNotContain(LicensedFeature.API_PAGE,
         SystemConfigurationPropertyFeature.API_PAGE);
   }
+
+  @Test
+  public void testGetFeatures_UserManagementPagesEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    assertThat(featuresService.getFeatures())
+        .contains(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES);
+  }
+
+  @Test
+  public void testGetFeatures_UserManagementPagesDisabled() {
+    when(productLicense.isValid()).thenReturn(true);
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.USER_MANAGEMENT_PAGES, "false");
+    assertThat(featuresService.getFeatures())
+        .doesNotContain(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES);
+  }
 }

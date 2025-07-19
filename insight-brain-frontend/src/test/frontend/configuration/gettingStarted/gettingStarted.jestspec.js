@@ -215,5 +215,87 @@ describe('gettingStarted', function () {
         );
       });
     });
+
+    describe('when tenantMode is multi-tenant and user-management-pages is enabled', function () {
+      const multiTenantWithUserMgmtProps = {
+        isAuthorizedToViewSystemSetup: true,
+        tenantMode: 'multi-tenant',
+      };
+
+      const preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'user-management-pages': true,
+          },
+        },
+      };
+
+      it('renders sections for manual user flow when user-management-pages is enabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantWithUserMgmtProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE LDAP' })).toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE SAML' })).toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'MANUALLY ADD USERS' })).toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'INVITE USERS' })).not.toBeInTheDocument();
+      });
+
+      it('renders the appropriate link for manually adding users when user-management-pages is enabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantWithUserMgmtProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        // when user management is enabled in multi-tenant, the third link rendered is for manually adding users
+        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[2];
+        expect(linkToDoc).toHaveAttribute(
+          'href',
+          'https://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user'
+        );
+      });
+    });
+
+    describe('when tenantMode is multi-tenant and user-management-pages is disabled', function () {
+      const multiTenantWithoutUserMgmtProps = {
+        isAuthorizedToViewSystemSetup: true,
+        tenantMode: 'multi-tenant',
+      };
+
+      const preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'user-management-pages': false,
+          },
+        },
+      };
+
+      it('renders sections for invite user flow when user-management-pages is disabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantWithoutUserMgmtProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE LDAP' })).not.toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE SAML' })).not.toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'MANUALLY ADD USERS' })).not.toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'INVITE USERS' })).toBeInTheDocument();
+      });
+
+      it('renders the appropriate link for inviting users when user-management-pages is disabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantWithoutUserMgmtProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        // when user management is disabled in multi-tenant, the first link rendered is for inviting users
+        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[0];
+        expect(linkToDoc).toHaveAttribute(
+          'href',
+          'https://links.sonatype.com/products/nxiq/doc/firewall-saas-getting-started-on-cloud/user-management'
+        );
+      });
+    });
   });
 });

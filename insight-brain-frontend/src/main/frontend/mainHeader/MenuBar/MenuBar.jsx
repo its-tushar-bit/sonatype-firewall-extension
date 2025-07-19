@@ -89,7 +89,6 @@ export const MenuBar = ({
             isSamlConfigurationEnabled={isSamlConfigurationEnabled}
             isMonitoringSupported={isMonitoringSupported}
             isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
-            isSingleTenant={isSingleTenant}
             isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
             isStandaloneFirewall={isStandaloneFirewall}
             isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}

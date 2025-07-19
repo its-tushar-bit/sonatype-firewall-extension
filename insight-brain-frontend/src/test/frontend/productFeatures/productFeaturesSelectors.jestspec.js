@@ -33,6 +33,7 @@ import {
   selectIsScmEnabled,
   selectIsAutomaticScmConfigurationEnabled,
   selectTenantScmOptionsTypes,
+  selectIsUserManagementPagesEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 describe('productFeaturesSelectors', () => {
@@ -328,6 +329,22 @@ describe('productFeaturesSelectors', () => {
       expect(optionsIds).toContain('automated-commit-feedback');
       expect(optionsIds).toContain('manual-pull-requests');
       expect(optionsIds).toContain('inner-source-automated-updates');
+    });
+  });
+
+  describe('selectIsUserManagementPagesEnabled', () => {
+    it('returns true if user-management-pages enabled', () => {
+      mockState.productFeatures.productFeatures['user-management-pages'] = true;
+      expect(selectIsUserManagementPagesEnabled(mockState)).toBe(true);
+    });
+
+    it('returns false if user-management-pages disabled', () => {
+      mockState.productFeatures.productFeatures['user-management-pages'] = false;
+      expect(selectIsUserManagementPagesEnabled(mockState)).toBe(false);
+    });
+
+    it('returns false if user-management-pages not present', () => {
+      expect(selectIsUserManagementPagesEnabled(mockState)).toBe(false);
     });
   });
 });

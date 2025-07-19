@@ -8,6 +8,8 @@ import * as PropTypes from 'prop-types';
 import { NxStatefulForm, NxTextInput, NxFormGroup, NxFormRow } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../../../mainHeader/MenuBar/MenuBarBackButton';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { useSelector } from 'react-redux';
+import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const getValidationMessage = ({ isDirty, validationError }) => {
   if (!isDirty) {
@@ -39,9 +41,11 @@ export default function UserAdd(props) {
     tenantMode,
   } = props;
 
-  const { firstName, lastName, email, username, password, matchPassword } = inputFields,
-    isSingleTenant = tenantMode !== 'multi-tenant',
-    pageTitle = isSingleTenant ? 'Add New User' : 'Invite User';
+  const { firstName, lastName, email, username, password, matchPassword } = inputFields;
+  const isSingleTenant = tenantMode !== 'multi-tenant';
+  const isUserManagementPagesEnabled = useSelector(selectIsUserManagementPagesEnabled);
+  const isAddUserFlow = isSingleTenant || isUserManagementPagesEnabled;
+  const pageTitle = isAddUserFlow ? 'Add New User' : 'Invite User';
 
   useEffect(() => {
     loadCreateUserPage();
@@ -115,7 +119,7 @@ export default function UserAdd(props) {
                 aria-required={true}
               />
             </NxFormGroup>
-            {isSingleTenant && (
+            {isAddUserFlow && (
               <>
                 <NxFormGroup label="Username" isRequired>
                   <NxTextInput

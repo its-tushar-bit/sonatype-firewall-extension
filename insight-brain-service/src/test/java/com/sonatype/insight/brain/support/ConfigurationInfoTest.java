@@ -288,7 +288,8 @@ public class ConfigurationInfoTest
         "containerImagesEvalEnabled",
         "darkMode",
         "zScaler",
-        "thirdPartyKevLookup"
+        "thirdPartyKevLookup",
+        "userManagementPages"
     );
 
     // Properties included in the config.json in support zip

@@ -7,12 +7,15 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import GettingStartedDocLink from './GettingStartedDocLink';
+import { useSelector } from 'react-redux';
+import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function SystemSetup({ tenantMode }) {
   const isSingleTenant = tenantMode !== 'multi-tenant';
-
-  const userSectionTitle = isSingleTenant ? 'MANUALLY ADD USERS' : 'INVITE USERS',
-    userSectionLink = isSingleTenant
+  const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
+  const isManualUserFlow = isSingleTenant || isUserManagementEnabled;
+  const userSectionTitle = isManualUserFlow ? 'MANUALLY ADD USERS' : 'INVITE USERS',
+    userSectionLink = isManualUserFlow
       ? 'https://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user'
       : 'https://links.sonatype.com/products/nxiq/doc/firewall-saas-getting-started-on-cloud/user-management';
 
@@ -74,7 +77,7 @@ export default function SystemSetup({ tenantMode }) {
               </div>
               <section className="nx-grid-col__section">
                 <div className="nx-read-only__item">
-                  {isSingleTenant && (
+                  {isManualUserFlow && (
                     <>
                       <h4 className="nx-h4 nx-grid-header__title">CONFIGURE LDAP</h4>
                       <p className="nx-p">

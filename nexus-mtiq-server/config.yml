@@ -68,14 +68,14 @@ server:
 mainDatabase:
   maxConnections: 500
   maxIdleConnections: 50
-  url: ${MAIN_DATABASE_URL}
+  url: jdbc:postgresql://127.0.0.1:5432/postgres
   username: ${MAIN_DATABASE_USERNAME:-postgres}
   password: ${MAIN_DATABASE_PASSWORD}
 
 locksDatabase:
   maxConnections: 50
   maxIdleConnections: 5
-  url: ${LOCKS_DATABASE_URL}
+  url: jdbc:postgresql://127.0.0.1:5432/postgres
   username: ${LOCKS_DATABASE_USERNAME:-postgres}
   password: ${LOCKS_DATABASE_PASSWORD}
 
@@ -119,16 +119,15 @@ createSampleData: ${CREATE_SAMPLE_DATA:-true}
 
 auth0:
   domain: ${AUTH0_DOMAIN:-"local/"}
-  customDomain: {AUTH0_CUSTOM_DOMAIN:-"local/"}
 
 # If true, the built-in admin user will be deleted when creating a new tenant
-deleteBuiltInAdmin: ${DELETE_BUILT_IN_ADMIN:-true}
+deleteBuiltInAdmin: ${DELETE_BUILT_IN_ADMIN:-false}
 
 # The Global tenant encryption key name used to retrieve the key from AWS secrets manager
 globalTenantEncryptionKeyName: ${GLOBAL_TENANT_ENCRYPTION_KEY_NAME:-mtiq-dev/tenant-encryption-key-legacy}
 
 # Use the IQ DefaultEncryptionKeyStore for local development, this returns the mtiq-dev/tenant-encryption-key-legacy key
-usingDefaultEncryptionKeyStore: ${USING_DEFAULT_ENCRYPTION_KEY_STORE:-false}
+usingDefaultEncryptionKeyStore: true
 
 # Configuration for Micrometer to send custom metrics to DataDog
 #statsdMetricsConfig:

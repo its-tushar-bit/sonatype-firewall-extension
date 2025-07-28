@@ -17,7 +17,7 @@ import java.util.Objects;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 

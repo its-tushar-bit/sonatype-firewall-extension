@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.git.pullrequestcreationservice.PullRequestSubm
 import com.sonatype.insight.brain.hds.AutomatedRemediationStatusDTO;
 
 import com.codahale.metrics.annotation.Timed;
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 
 @Named
 @Timed

@@ -15,9 +15,9 @@ import com.sonatype.insight.brain.git.RemediationBranchNamePrefixGenerator;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.nexus.git.utils.VersionRemediationTitleGenerator;
 
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 @Named
 @Singleton

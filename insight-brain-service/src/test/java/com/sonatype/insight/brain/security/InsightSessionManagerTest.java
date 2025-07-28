@@ -14,7 +14,7 @@ import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
-import jakarta.inject.Inject;
+import javax.inject.Inject;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.AbstractSessionManager;

@@ -205,6 +205,11 @@ pipeline {
             // Get existing entry or create new one
             def existingEntry = existingConfig.dashboards[params.dashboardId] ?: [:]
 
+            // Set build name based on whether this is an add or update operation
+            def operation = existingEntry.isEmpty() ? "add" : "update"
+            def username = currentBuild.getBuildCauses()[0].userId ?: "unknown"
+            currentBuild.displayName = "#${currentBuild.number} : ${operation} ${params.dashboardId} -> ${params.environment} by ${username}"
+
             def entry = helper.processEntryAttributes(
               existingEntry,
               [
@@ -268,8 +273,9 @@ pipeline {
       steps {
         script {
           if (!params.saveToS3) {
-            currentBuild.result = 'ABORTED'
-            error('Skipping S3 writes – aborting job')
+            echo 'Skipping S3 writes – marking stage as unstable'
+            unstable('S3 writes skipped')
+            return // Exit the current script block without failing
           }
           else {
             echo "Saving configuration to S3"

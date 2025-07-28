@@ -12,6 +12,7 @@
 import groovy.json.JsonSlurper
 
 def configFileName = 'enterprise-reporting.json'
+def helper // will be loaded in the pipeline
 
 def s3ConfigurationByEnv = [
   staging: [
@@ -47,37 +48,131 @@ pipeline {
 
     string(
         name: 'dashboardId',
-        description: ' The primary identifier used to determine which dashboard is deleted.',
+        description: 'If provided, delete the dashboard entry associated with this dashboardId.',
+        trim: true,
+        defaultValue: ''
+    )
+
+    string(
+        name: 'groupId',
+        description: 'If provided, delete the associated entry from dashboardGroups and update dashboards to clear out any groupId references that match.',
         trim: true,
         defaultValue: ''
     )
   }
 
   stages {
-    stage('Delete Insight Data dashboard by ID') {
+    stage('Initialize') {
       steps {
         script {
+          // Load helper functions
+          helper = load 'data-insights-jenkinsfiles/helper.groovy'
+
           echo "running for environment: ${params.environment}"
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
           withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
-              validateFieldHasValue(params, 'dashboardId')
+              // Validate that at least one of dashboardId or groupId is provided
+              validateAtLeastOneField(params, ['dashboardId', 'groupId'])
 
-              def selectedDashboardId = params.dashboardId
-              def bucketName = s3Configuration.usEast2Bucket
-              def existingConfig = readExistingConfig(bucketName, configFileName)
+              // Rename the build using the format "build# : delete <dashboardId or groupId here>"
+              def displayValue = params.dashboardId
+              if (params.groupId && params.groupId.trim().length() > 0) {
+                  displayValue = params.groupId
+              }
+              def username = currentBuild.getBuildCauses()[0].userId ?: "unknown"
+              currentBuild.displayName = "#${currentBuild.number} : delete ${displayValue} -> ${params.environment} by ${username}"
+
+              // Store these variables in env so they can be accessed in other stages
+              env.bucketName = s3Configuration.usEast2Bucket
+              env.s3ConfigRole = s3Configuration.role
+              env.s3ConfigAccount = s3Configuration.account
+              env.s3ConfigCredentialsId = s3Configuration.credentialsId
+
+              // Read the existing configuration once
+              def existingConfig = readExistingConfig(env.bucketName, configFileName)
+
+              // Store the config as a JSON string to pass between stages
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Delete dashboard') {
+      when {
+        expression { return params.dashboardId && params.dashboardId.trim().length() > 0 }
+      }
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
               def existingDashboards = existingConfig.dashboards
+              def selectedDashboardId = params.dashboardId
 
               if (!existingDashboards.containsKey(selectedDashboardId)) {
                 def existingDashboardKeys = existingDashboards.keySet().toList()
-                error("'${selectedDashboardId}' does not exist, please choosed a valid identifier:\n" +
+                error("'${selectedDashboardId}' does not exist, please choose a valid identifier:\n" +
                     "${existingDashboardKeys}")
               }
 
               echo "selected dashboard '${selectedDashboardId}' will be removed"
-              
+
               // unset the key
               existingDashboards.remove(selectedDashboardId)
+
+              // Update the stored config
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Delete dashboard group') {
+      when {
+        expression { return params.groupId && params.groupId.trim().length() > 0 }
+      }
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
+              def existingDashboards = existingConfig.dashboards
+              def selectedGroupId = params.groupId
+
+              echo "groupId '${selectedGroupId}' was provided"
+
+              // Ensure dashboardGroups map exists
+              if (!existingConfig.dashboardGroups) existingConfig.dashboardGroups = [:]
+
+              // Delete the associated entry from dashboardGroups
+              if (existingConfig.dashboardGroups.containsKey(selectedGroupId)) {
+                  echo "removing dashboard group '${selectedGroupId}'"
+                  existingConfig.dashboardGroups.remove(selectedGroupId)
+              } else {
+                  echo "dashboard group '${selectedGroupId}' does not exist, nothing to remove"
+              }
+
+              // Update dashboards to clear out any groupId references that match
+              existingDashboards.each { dashboardId, dashboard ->
+                  if (dashboard.groupId == selectedGroupId) {
+                      echo "clearing groupId reference from dashboard '${dashboardId}'"
+                      dashboard.groupId = ''
+                  }
+              }
+
+              // Update the stored config
+              env.existingConfigJson = writeJSON(returnText: true, json: existingConfig)
+          }
+        }
+      }
+    }
+
+    stage('Save configuration') {
+      steps {
+        script {
+          withAwsRole(region: 'us-east-2', role: env.s3ConfigRole, roleAccount: env.s3ConfigAccount, credentialsId: env.s3ConfigCredentialsId) {
+              def existingConfig = readJSON text: env.existingConfigJson
+              def s3Configuration = s3ConfigurationByEnv[params.environment]
 
               // bump the version
               existingConfig.version = existingConfig.version + 1
@@ -85,10 +180,14 @@ pipeline {
               echo 'the updated config will be: '
               echo writeJSON(returnText: true, json: existingConfig, pretty: 2)
 
-              echo 'persisting to the us-east-2 bucket'
-              saveConfigToBucket(bucketName, configFileName, existingConfig)
+              echo 'persisting to both buckets'
+              def configJson = writeJSON(returnText: true, json: existingConfig)
 
-              copyFromEastBucketToWestBucket(s3Configuration, configFileName)
+              // Save to East bucket
+              helper.saveToBucket(s3Configuration.usEast2Bucket, configFileName, configJson)
+
+              // Save to West bucket
+              helper.saveToBucket(s3Configuration.usWest2Bucket, configFileName, configJson)
           }
         }
       }
@@ -108,27 +207,22 @@ def getFileContents(bucketName, fileName) {
   return sh(script: "aws s3 cp s3://${bucketName}/${fileName} -", returnStdout: true).trim()
 }
 
-def saveConfigToBucket(bucketName, fileName, config) {
-  def configJson = groovy.json.JsonOutput.toJson(config)
-
-  sh """
-cat <<EOF | aws s3 cp - s3://${bucketName}/${fileName}
-${configJson}
-EOF
-  """
-}
-
-def copyFromEastBucketToWestBucket(s3Configuration, fileName) {
-  def bucketForStagingEast = s3Configuration.usEast2Bucket
-  def bucketForStagingWest = s3Configuration.usWest2Bucket
-
-  echo "copying s3://${bucketForStagingEast}/${fileName} to s3://${bucketForStagingWest}/${fileName}"
-
-  sh "aws s3 cp s3://${bucketForStagingEast}/${fileName} s3://${bucketForStagingWest}/${fileName}"
-}
 
 def validateFieldHasValue(params, fieldName) {
   if (params[fieldName].length() == 0) {
     error "'${fieldName}' is a required field"
+  }
+}
+
+def validateAtLeastOneField(params, fieldNames) {
+  def hasValue = false
+  fieldNames.each { fieldName ->
+    if (params[fieldName] && params[fieldName].trim().length() > 0) {
+      hasValue = true
+    }
+  }
+
+  if (!hasValue) {
+    error "At least one of the following fields must be provided: ${fieldNames.join(', ')}"
   }
 }

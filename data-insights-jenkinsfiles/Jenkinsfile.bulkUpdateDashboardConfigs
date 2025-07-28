@@ -214,8 +214,9 @@ Example:
       steps {
         script {
           if (!params.saveToS3) {
-            currentBuild.result = 'ABORTED'
-            error('Skipping S3 writes – aborting job')
+            echo 'Skipping S3 writes – marking stage as unstable'
+            unstable('S3 writes skipped')
+            return // Exit the current script block without failing
           }
           else {
             echo "Saving configuration to S3"

@@ -14,6 +14,7 @@ import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPag
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.EnterpriseRow;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingDashboardPage.NavigationListItem;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
+import com.sonatype.insight.brain.enterprise.reporting.DashboardGroupMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
@@ -41,7 +42,7 @@ public class EnterpriseReportingDashboardPageTest
 {
   private final EnterpriseReportingDashboardPage page = new EnterpriseReportingDashboardPage();
 
-  private static final String URL_DASHBOARD_ID = createDashboardMetadata("dataInsight", 3, "").dashboardId;
+  private static final String URL_DASHBOARD_ID = createDashboardMetadata("dataInsight", 3, "", "").dashboardId;
 
   @BeforeClass
   public static void before() {
@@ -65,20 +66,30 @@ public class EnterpriseReportingDashboardPageTest
 
   @Test
   public void testNavigationBarLinks() {
-    DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion = createDashboardMetadata("enterprise", 1, "");
-    DashboardMetadataDTO dashboardMetadataEnterpriseVersion = createDashboardMetadata("enterprise", 2, "500");
-    DashboardMetadataDTO dashboardMetadataDataInsight = createDashboardMetadata("dataInsight", 3, "");
-    DashboardMetadataDTO dashboardMetadataDataInsightNoVersion = createDashboardMetadata("dataInsight", 4, "");
-    DashboardMetadataDTO dashboardMetadataDataInsightVersion = createDashboardMetadata("dataInsight", 5, "500");
-    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(List.of(
-        dashboardMetadataEnterpriseNoVersion,
-        dashboardMetadataEnterpriseVersion,
-        dashboardMetadataDataInsight,
-        dashboardMetadataDataInsightNoVersion,
-        dashboardMetadataDataInsightVersion
-    ));
+    final var noGroupId = "";
+    final var noIqVersion = "";
+    DashboardsVersionDTO version = new DashboardsVersionDTO(1);
+    DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion =
+        createDashboardMetadata("enterprise", 1, noIqVersion, noGroupId);
+    DashboardMetadataDTO dashboardMetadataEnterpriseVersion =
+        createDashboardMetadata("enterprise", 2, "500", noGroupId);
+    DashboardMetadataDTO dashboardMetadataDataInsight =
+        createDashboardMetadata("dataInsight", 3, noIqVersion, noGroupId);
+    DashboardMetadataDTO dashboardMetadataDataInsightNoVersion =
+        createDashboardMetadata("dataInsight", 4, noIqVersion, noGroupId);
+    DashboardMetadataDTO dashboardMetadataDataInsightVersion =
+        createDashboardMetadata("dataInsight", 5, "500", noGroupId);
+    DashboardGroupMetadataDTO dashboardGroupMetadata = createDashboardGroupMetadata();
+    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(version,
+        List.of(
+            dashboardMetadataEnterpriseNoVersion,
+            dashboardMetadataEnterpriseVersion,
+            dashboardMetadataDataInsight,
+            dashboardMetadataDataInsightNoVersion,
+            dashboardMetadataDataInsightVersion
+        ),
+        List.of(dashboardGroupMetadata));
 
-    int version = 1;
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
     page.navigationBar().shouldBe(visible);
@@ -125,16 +136,23 @@ public class EnterpriseReportingDashboardPageTest
 
   @Test
   public void testPageNavigation() {
-    DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion = createDashboardMetadata("enterprise", 1, "");
-    DashboardMetadataDTO dashboardMetadataEnterpriseVersion = createDashboardMetadata("enterprise", 2, "500");
-    DashboardMetadataDTO dashboardMetadataDataInsight = createDashboardMetadata("dataInsight", 3, "");
-    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(List.of(
-        dashboardMetadataEnterpriseNoVersion,
-        dashboardMetadataEnterpriseVersion,
-        dashboardMetadataDataInsight
-    ));
+    final var noGroupId = "";
+    final var noIqVersion = "";
+    DashboardsVersionDTO version = new DashboardsVersionDTO(2);
+    DashboardMetadataDTO dashboardMetadataEnterpriseNoVersion =
+        createDashboardMetadata("enterprise", 1, noIqVersion, noGroupId);
+    DashboardMetadataDTO dashboardMetadataEnterpriseVersion =
+        createDashboardMetadata("enterprise", 2, "500", noGroupId);
+    DashboardMetadataDTO dashboardMetadataDataInsight =
+        createDashboardMetadata("dataInsight", 3, noIqVersion, noGroupId);
+    DashboardGroupMetadataDTO dashboardGroupMetadata = createDashboardGroupMetadata();
+    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(version,
+        List.of(
+            dashboardMetadataEnterpriseNoVersion,
+            dashboardMetadataEnterpriseVersion,
+            dashboardMetadataDataInsight),
+        List.of(dashboardGroupMetadata));
 
-    int version = 2;
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
     SelenideElement link = page.navigationListItem(dashboardMetadataEnterpriseNoVersion.dashboardId).activeLink();
@@ -161,20 +179,30 @@ public class EnterpriseReportingDashboardPageTest
         .atUri(ENTERPRISE_REPORTING_CONFIG_PATH);
   }
 
-  private void setupTests(DashboardMetadataListDTO dashboardList, int version) {
+  private void setupTests(DashboardMetadataListDTO dashboardList, DashboardsVersionDTO version) {
     setFeatures(LicensedFeature.INTEGRATED_ENTERPRISE_REPORTING);
     mockHDSResponses();
     testCLMServer.getHdsServer()
-        .respondWith(new DashboardsVersionDTO(version))
+        .respondWith(version)
         .atUri("/rest/enterpriseReporting/currentVersion");
     testCLMServer.getHdsServer()
         .respondWith(dashboardList)
         .atUri("/rest/enterpriseReporting/dashboards");
   }
 
-  private static DashboardMetadataDTO createDashboardMetadata(String category, int order, String sinceIqVersion) {
-    return new DashboardMetadataDTO("dashboard-id-" + order, "title" + order, category, "description",
+  private static DashboardMetadataDTO createDashboardMetadata(String category,
+                                                              int order,
+                                                              String sinceIqVersion,
+                                                              String groupId) 
+  {
+    return new DashboardMetadataDTO("dashboard-id-" + order, groupId, "title" + order, category, "description",
         Arrays.asList("feature 1", "feature 2"), "button text", "rolling-recap.svg", "faBrain", order, true,
         "dashboards/rolling_recap::rolling_recap", null, null, sinceIqVersion);
+  }
+
+  private static DashboardGroupMetadataDTO createDashboardGroupMetadata() {
+    return new DashboardGroupMetadataDTO("group-id", "description",
+        Arrays.asList("group feature 1", "group feature 2"), "faShield", false,
+        null, null, "group title");
   }
 }

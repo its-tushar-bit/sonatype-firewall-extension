@@ -37,11 +37,14 @@ public class DashboardMetadataDTO
 
   public String sinceIQVersion;
 
+  public String groupId;
+
   public DashboardMetadataDTO() {
     //for jackson;
   }
 
   public DashboardMetadataDTO(final String dashboardId,
+                              final String groupId,
                               final String title,
                               final String category,
                               final String description,
@@ -56,6 +59,7 @@ public class DashboardMetadataDTO
                               final String spotlightText)
   {
     this.dashboardId = dashboardId;
+    this.groupId = groupId;
     this.title = title;
     this.category = category;
     this.description = description;
@@ -72,6 +76,7 @@ public class DashboardMetadataDTO
 
   //for testing
   public DashboardMetadataDTO(final String dashboardId,
+                              final String groupId,
                               final String title,
                               final String category,
                               final String description,
@@ -87,6 +92,7 @@ public class DashboardMetadataDTO
                               final String sinceIQVersion)
   {
     this.dashboardId = dashboardId;
+    this.groupId = groupId;
     this.title = title;
     this.category = category;
     this.description = description;

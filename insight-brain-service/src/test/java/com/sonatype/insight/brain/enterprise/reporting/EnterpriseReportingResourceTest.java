@@ -51,15 +51,28 @@ public class EnterpriseReportingResourceTest
         response.getBody(DashboardMetadataListDTO.class);
     assertThat(responseList).isNotNull();
     assertThat(responseList.dashboardMetadata.size()).isEqualTo(1);
+    assertThat(responseList.dashboardGroupMetadata.size()).isEqualTo(1);
+    assertThat(responseList.version).isNotNull();
+
     DashboardMetadataDTO dashboardMetadataDTO = responseList.dashboardMetadata.get(0);
     assertThat(dashboardMetadataDTO.dashboardId).isEqualTo("sbom-scorecard");
     assertThat(dashboardMetadataDTO.title).isEqualTo("Sbom Report Overview");
+    assertThat(dashboardMetadataDTO.category).isEqualTo("enterprise");
     assertThat(dashboardMetadataDTO.description).isEqualTo("A comprehensive view of monthly sboms");
     assertThat(dashboardMetadataDTO.features.size()).isEqualTo(2);
     assertThat(dashboardMetadataDTO.accessButtonText).isEqualTo("Open Dashboard");
     assertThat(dashboardMetadataDTO.previewImage).isEqualTo("rolling-recap.svg");
+    assertThat(dashboardMetadataDTO.previewImageIcon).isEqualTo("faCalendar");
     assertThat(dashboardMetadataDTO.priority).isEqualTo(1);
     assertThat(dashboardMetadataDTO.spotlight).isTrue();
+
+    DashboardGroupMetadataDTO dashboardGroupMetadataDTO = responseList.dashboardGroupMetadata.get(0);
+    assertThat(dashboardGroupMetadataDTO.groupId).isEqualTo("security");
+    assertThat(dashboardGroupMetadataDTO.description).isEqualTo("A group of security dashboards");
+    assertThat(dashboardGroupMetadataDTO.features.size()).isEqualTo(2);
+    assertThat(dashboardGroupMetadataDTO.previewImageIcon).isEqualTo("faShield");
+    assertThat(dashboardGroupMetadataDTO.spotlight).isFalse();
+    assertThat(dashboardGroupMetadataDTO.title).isEqualTo("Security Risk");
   }
 
   @Test
@@ -207,46 +220,68 @@ public class EnterpriseReportingResourceTest
   }
 
   private String createDashboardMetadataJsonList() {
-    return "{\n" +
-        "  \"dashboardMetadata\": [\n" +
-        "    {\n" +
-        "      \"dashboardId\": \"sbom-scorecard\",\n" +
-        "      \"title\": \"Sbom Report Overview\",\n" +
-        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
-        "      \"features\": [\n" +
-        "        \"Graphs\",\n" +
-        "        \"Tables\"\n" +
-        "      ],\n" +
-        "      \"accessButtonText\": \"Open Dashboard\",\n" +
-        "      \"previewImage\": \"rolling-recap.svg\",\n" +
-        "      \"priority\": 1,\n" +
-        "      \"spotlight\": true\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}";
+    return """
+      {
+        "version": 100,
+        "dashboardMetadata": [
+          {
+            "dashboardId": "sbom-scorecard",
+            "title": "Sbom Report Overview",
+            "category": "enterprise",
+            "description": "A comprehensive view of monthly sboms",
+            "features": [
+              "Graphs",
+              "Tables"
+            ],
+            "accessButtonText": "Open Dashboard",
+            "previewImage": "rolling-recap.svg",
+            "previewImageIcon": "faCalendar",
+            "priority": 1,
+            "spotlight": true
+          }
+        ],
+        "dashboardGroupMetadata": [
+          {
+            "groupId": "security",
+            "title": "Security Risk",
+            "description": "A group of security dashboards",
+            "features": [
+              "Trends",
+              "Breakdowns"
+            ],
+            "previewImageIcon": "faShield",
+            "spotlight": false
+          }
+        ]
+      }
+      """;
   }
 
   private String createDashboardMetadataAdditionalAttrJsonList() {
-    return "{\n" +
-        "  \"dashboardMetadata\": [\n" +
-        "    {\n" +
-        "      \"dashboardId\": \"sbom-scorecard\",\n" +
-        "      \"title\": \"Sbom Report Overview\",\n" +
-        "      \"category\": \"enterprise\",\n" +
-        "      \"description\": \"A comprehensive view of monthly sboms\",\n" +
-        "      \"features\": [\n" +
-        "        \"Graphs\",\n" +
-        "        \"Tables\"\n" +
-        "      ],\n" +
-        "      \"accessButtonText\": \"Open Dashboard\",\n" +
-        "      \"previewImage\": \"rolling-recap.svg\",\n" +
-        "      \"previewImageIcon\": \"faBrain\",\n" +
-        "      \"priority\": 1,\n" +
-        "      \"spotlight\": true,\n" +
-        "      \"unexpectedAttr\": \"what is this\"\n" +
-        "    }\n" +
-        "  ]\n" +
-        "}";
+    return """
+      {
+        "version": 101,
+        "dashboardMetadata": [
+          {
+            "dashboardId": "sbom-scorecard",
+            "title": "Sbom Report Overview",
+            "category": "enterprise",
+            "description": "A comprehensive view of monthly sboms",
+            "features": [
+              "Graphs",
+              "Tables"
+            ],
+            "accessButtonText": "Open Dashboard",
+            "previewImage": "rolling-recap.svg",
+            "previewImageIcon": "faBrain",
+            "priority": 1,
+            "spotlight": true,
+            "unexpectedAttr": "what is this"
+          }
+        ],
+        "dashboardGroupMetadata": []
+      }
+      """;
   }
 
   private byte[] getBytesFromIconsZip() throws IOException, URISyntaxException {

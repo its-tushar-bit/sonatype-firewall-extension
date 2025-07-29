@@ -9,13 +9,22 @@ import java.util.List;
 
 public class DashboardMetadataListDTO
 {
+  public DashboardsVersionDTO version;
+
   public List<DashboardMetadataDTO> dashboardMetadata;
+
+  public List<DashboardGroupMetadataDTO> dashboardGroupMetadata;
 
   public DashboardMetadataListDTO() {
     //for jackson
   }
 
-  public DashboardMetadataListDTO(List<DashboardMetadataDTO> dashboardMetadata) {
+  public DashboardMetadataListDTO(DashboardsVersionDTO version,
+                                  List<DashboardMetadataDTO> dashboardMetadata,
+                                  List<DashboardGroupMetadataDTO> dashboardGroupMetadata)
+  {
+    this.version = version;
     this.dashboardMetadata = dashboardMetadata;
+    this.dashboardGroupMetadata = dashboardGroupMetadata;
   }
 }

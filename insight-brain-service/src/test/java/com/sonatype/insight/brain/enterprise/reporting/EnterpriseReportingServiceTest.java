@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,6 +79,8 @@ public class EnterpriseReportingServiceTest
     extends AbstractComponentTest
 {
   private final String embedDomain = "http%3A%2F%2Flocalhost%3A8070";
+
+  private static final List<DashboardGroupMetadataDTO> DASHBOARD_GROUP_METADATA = Collections.emptyList();
 
   @Mock
   private HdsClient mockHdsClient;
@@ -171,6 +174,9 @@ public class EnterpriseReportingServiceTest
 
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.dashboardMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
+        .hasSameElementsAs(expected.dashboardGroupMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
 
     verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
     verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
@@ -182,6 +188,9 @@ public class EnterpriseReportingServiceTest
 
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.dashboardMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
+        .hasSameElementsAs(expected.dashboardGroupMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
 
     verify(mockHdsClient, never()).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
     verify(mockHdsClient, never()).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
@@ -196,6 +205,9 @@ public class EnterpriseReportingServiceTest
         ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(2));
     assertThat(enterpriseReportingService.getDashboardMetadata().dashboardMetadata)
         .hasSameElementsAs(expected.dashboardMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().dashboardGroupMetadata)
+        .hasSameElementsAs(expected.dashboardGroupMetadata);
+    assertThat(enterpriseReportingService.getDashboardMetadata().version).isEqualTo(expected.version);
 
     verify(mockHdsClient, times(1)).get(DashboardsVersionDTO.class, ENTERPRISE_REPORTING_CURRENT_VERSION_PATH);
     verify(mockHdsClient, times(1)).get(DashboardMetadataListDTO.class, ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH);
@@ -253,10 +265,13 @@ public class EnterpriseReportingServiceTest
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
+        new DashboardMetadataListDTO(version,
+            Collections.singletonList(firstDashboardMetadataDTO),
+            DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
@@ -274,15 +289,18 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] iconsZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icons.zip").toURI()));
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     String secondIconImageFileName = "icon-2.png";
     byte[] secondIconBytes = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
     DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO dashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO));
+        new DashboardMetadataListDTO(version,
+            Arrays.asList(firstDashboardMetadataDTO, secondDashboardMetadataDTO),
+            DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
@@ -302,11 +320,14 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
+        new DashboardMetadataListDTO(version,
+            Collections.singletonList(firstDashboardMetadataDTO),
+            DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
@@ -326,12 +347,15 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + firstIconImageFileName).toURI()));
     byte[] firstIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-1.zip").toURI()));
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataDTO firstDashboardMetadataDTO = createDashboardMetadata(firstIconImageFileName);
     DashboardMetadataListDTO firstDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Collections.singletonList(firstDashboardMetadataDTO));
+        new DashboardMetadataListDTO(version,
+            Collections.singletonList(firstDashboardMetadataDTO),
+            DASHBOARD_GROUP_METADATA);
 
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(firstDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
@@ -346,13 +370,16 @@ public class EnterpriseReportingServiceTest
         .getResource("/EnterpriseReportingServiceTest/" + secondIconImageFileName).toURI()));
     byte[] secondIconZipFile = Files.readAllBytes(Paths.get(getClass()
         .getResource("/EnterpriseReportingServiceTest/icon-2.zip").toURI()));
+    DashboardsVersionDTO secondVersion = new DashboardsVersionDTO(2);
     DashboardMetadataDTO secondDashboardMetadataDTO = createDashboardMetadata(secondIconImageFileName);
     DashboardMetadataListDTO secondDashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Collections.singletonList(secondDashboardMetadataDTO));
+        new DashboardMetadataListDTO(secondVersion,
+            Collections.singletonList(secondDashboardMetadataDTO),
+            DASHBOARD_GROUP_METADATA);
 
     enterpriseReportingService.currentDashboardsVersionSupplier.reset();
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(2));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(secondVersion);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(secondDashboardMetadataListDTO);
     when(mockHdsClient.get(InputStream.class, ENTERPRISE_REPORTING_DASHBOARD_ICONS_PATH))
@@ -369,6 +396,7 @@ public class EnterpriseReportingServiceTest
 
   private static DashboardMetadataDTO createDashboardMetadata(String iconImage) {
     final var dashboardId = generateRandomString();
+    final var groupId = generateRandomString();
     final var title = generateRandomString();
     final var category = generateRandomString();
     final var description = generateRandomString();
@@ -381,13 +409,28 @@ public class EnterpriseReportingServiceTest
     final var dashboardPath =  "dashboards/rolling_recap::rolling_recap";
     final String spotlightColor = null;
     final String spotlightText = null;
-    return new DashboardMetadataDTO(dashboardId, title, category, description, features, accessButtonText,
+    return new DashboardMetadataDTO(dashboardId, groupId, title, category, description, features, accessButtonText,
         previewImage, previewImageIcon, priority, spotlight, dashboardPath, spotlightColor, spotlightText);
   }
 
+  private static DashboardGroupMetadataDTO createDashboardGroupMetadata() {
+    final var groupId = generateRandomString();
+    final var description = generateRandomString();
+    final var features = Collections.singletonList(generateRandomString());
+    final var previewImageIcon = generateRandomString();
+    final var spotlight = false;
+    final String spotlightColor = null;
+    final String spotlightText = null;
+    final var title = generateRandomString();
+    return new DashboardGroupMetadataDTO(groupId, description, features, previewImageIcon, spotlight,
+        spotlightColor, spotlightText, title);
+  }
+
   private static DashboardMetadataListDTO mockGetLookerDashboardMetadata() {
-    return new DashboardMetadataListDTO(Arrays.asList(createDashboardMetadata("icon-1.png"),
-        createDashboardMetadata("icon-2.png"), createDashboardMetadata("icon-3.png")));
+    var version = new DashboardsVersionDTO(1);
+    return new DashboardMetadataListDTO(version, Arrays.asList(createDashboardMetadata("icon-1.png"),
+        createDashboardMetadata("icon-2.png"), createDashboardMetadata("icon-3.png")),
+        Arrays.asList(createDashboardGroupMetadata()));
   }
 
   private void assertDashboardIconImage(
@@ -405,10 +448,12 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_valid_onlyRequestedOnce() throws Exception {
     String iconName = "icon-1.png";
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataListDTO dashboardMetadataListDTO = 
-        new DashboardMetadataListDTO(Collections.singletonList(createDashboardMetadata(iconName)));
+        new DashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
+            DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()
@@ -447,11 +492,13 @@ public class EnterpriseReportingServiceTest
 
   @Test
   public void testGetIcon_notFound() {
+    final List<DashboardMetadataDTO> emptyDashboardMetadata = Collections.emptyList();
+    var version = new DashboardsVersionDTO(1);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(
-            new DashboardMetadataListDTO(Collections.emptyList()));
+            new DashboardMetadataListDTO(version, emptyDashboardMetadata, DASHBOARD_GROUP_METADATA));
 
     assertThatThrownBy(() -> enterpriseReportingService.getIcon("rolling-recap1.svg"))
         .isInstanceOf(NotFoundException.class);
@@ -460,10 +507,12 @@ public class EnterpriseReportingServiceTest
   @Test
   public void testGetIcon_badRequest() throws Exception {
     String iconName = "icon-1.png";
+    var version = new DashboardsVersionDTO(1);
     DashboardMetadataListDTO dashboardMetadataListDTO =
-        new DashboardMetadataListDTO(Collections.singletonList(createDashboardMetadata(iconName)));
+        new DashboardMetadataListDTO(version, Collections.singletonList(createDashboardMetadata(iconName)),
+            DASHBOARD_GROUP_METADATA);
     when(mockHdsClient.get(DashboardsVersionDTO.class,
-        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(new DashboardsVersionDTO(1));
+        ENTERPRISE_REPORTING_CURRENT_VERSION_PATH)).thenReturn(version);
     when(mockHdsClient.get(DashboardMetadataListDTO.class,
         ENTERPRISE_REPORTING_DASHBOARDS_METADATA_PATH)).thenReturn(dashboardMetadataListDTO);
     byte[] iconZipFile = Files.readAllBytes(Paths.get(getClass()

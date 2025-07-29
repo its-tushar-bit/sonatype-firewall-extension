@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.migration.MultiTenantDbMigrationCommand;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
+import com.sonatype.insight.brain.opensearch.MultiTenantIndexConfigProvider;
 import com.sonatype.insight.brain.product.license.DefaultProductLicense;
 import com.sonatype.insight.brain.product.license.MultiTenantProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -57,6 +58,7 @@ import com.sonatype.insight.brain.scheduler.MultiTenantTaskScheduler;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.SearchModule;
+import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.MultiTenantEncryptionKeyStore;
@@ -392,6 +394,8 @@ public class MultiTenantInsightBrainService
         bind(ProductLicense.class).to(MultiTenantProductLicense.class);
         bind(DefaultProductLicense.class).to(MultiTenantProductLicense.class);
         bind(ScmNodeProcessor.class).to(MtiqScmNodeProcessor.class);
+
+        bind(IndexConfigProvider.class).to(MultiTenantIndexConfigProvider.class);
 
         List<Class<?>> extraToBan = new ArrayList<>();
         if (((MultiTenantInsightConfig) configuration()).isUsingDefaultEncryptionKeyStore()) {

@@ -18,6 +18,7 @@ public interface SearchIndexClient
 
   String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
+  //TODO: consider renaming this method to describe its purpose: create the index and re-index the documents
   void createIndex();
 
   void updateIndex();

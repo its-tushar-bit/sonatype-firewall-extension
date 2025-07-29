@@ -1,0 +1,5 @@
+search:
+  type: http
+  uri: https://bad-host
+  username: admin
+  password: admin

@@ -13,6 +13,7 @@ import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -45,6 +46,8 @@ public class TenantProvisioningService
 
   private final UserDAO userDAO;
 
+  private final IndexService indexService;
+
   private final MultiTenantInsightConfig config;
 
   @Inject
@@ -55,6 +58,7 @@ public class TenantProvisioningService
       TenantDeregistrationJob tenantDeregistrationJob,
       DeletedTenantDAO deletedTenantDAO,
       UserDAO userDAO,
+      IndexService indexService,
       MultiTenantInsightConfig config)
   {
     this.databaseProvisioner = databaseProvisioner;
@@ -63,6 +67,7 @@ public class TenantProvisioningService
     this.tenantDeregistrationJob = tenantDeregistrationJob;
     this.deletedTenantDAO = deletedTenantDAO;
     this.userDAO = userDAO;
+    this.indexService = indexService;
     this.config = config;
   }
 
@@ -89,6 +94,11 @@ public class TenantProvisioningService
     log.info("New Tenant Provisioned: {}", tenantSlug.replaceAll("[\n\r]", "_"));
 
     adjustDefaultTenantData();
+
+    //TODO make sure the OpenSearch configuration is set up correctly
+    if (config.getSearchConfig() != null) {
+      indexService.createSearchIndex();
+    }
   }
 
   /**

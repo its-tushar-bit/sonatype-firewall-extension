@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.search;
 
+import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
+import com.sonatype.insight.brain.search.opensearch.OpenSearchTransportFactory;
 import com.sonatype.insight.brain.service.InsightConfig;
 
+import org.opensearch.client.transport.OpenSearchTransport;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 
 /**
@@ -37,6 +40,11 @@ public class SearchModule
     else {
       bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
       bind(SearchConfig.class).toInstance(searchConfig);
+
+      if (searchConfig instanceof HttpOpenSearchConfig) {
+        bind(OpenSearchTransport.class).toInstance(
+            OpenSearchTransportFactory.create((HttpOpenSearchConfig) searchConfig));
+      }
     }
   }
 }

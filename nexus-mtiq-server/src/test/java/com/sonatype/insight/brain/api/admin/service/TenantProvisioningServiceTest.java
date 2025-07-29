@@ -10,6 +10,8 @@ import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.db.DatabaseProvisioner;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tenancy.DeletedTenant;
+import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.tenancy.TenantDeregistrationJob;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -49,6 +51,9 @@ public class TenantProvisioningServiceTest
   @Mock
   private UserDAO userDAO;
 
+  @Mock
+  private IndexService indexService;
+
   private TenantUtil tenantUtil;
 
   private MultiTenantInsightConfig config;
@@ -60,7 +65,7 @@ public class TenantProvisioningServiceTest
     tenantUtil = new TenantUtil();
     config = new MultiTenantInsightConfig();
     underTest = new TenantProvisioningService(databaseProvisioner, tenantUtil,
-        tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, config);
+        tenantValidator, tenantDeregistrationJob, deletedTenantDAO, userDAO, indexService, config);
   }
 
   @Test
@@ -71,12 +76,14 @@ public class TenantProvisioningServiceTest
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
       when(userDAO.getById(any(String.class))).thenReturn(user);
       config.setDeleteBuiltInAdmin(false);
+      config.setSearchConfig(new HttpOpenSearchConfig());
 
       underTest.provisionTenant(tenant.tenantSlug);
 
       verify(databaseProvisioner).initializeDatabaseWithMigration();
       verify(userDAO).getById("ADMIN");
       verify(userDAO, never()).delete(user);
+      verify(indexService).createSearchIndex();
     });
   }
 
@@ -87,12 +94,14 @@ public class TenantProvisioningServiceTest
           "admin@local.com");
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
       when(userDAO.getById(any(String.class))).thenReturn(user);
+      config.setSearchConfig(new HttpOpenSearchConfig());
 
       underTest.provisionTenant(tenant.tenantSlug);
 
       verify(databaseProvisioner).initializeDatabaseWithMigration();
       verify(userDAO).getById("ADMIN");
       verify(userDAO).delete(user);
+      verify(indexService).createSearchIndex();
     });
   }
 
@@ -127,12 +136,14 @@ public class TenantProvisioningServiceTest
       when(tenantValidator.validateTenantExists(tenant.tenantSlug)).thenReturn(false);
       //Tenant being provisioned was marked for deletion
       when(deletedTenantDAO.getTenantBySlug(tenant.tenantSlug)).thenReturn(deletedTenant);
+      config.setSearchConfig(new HttpOpenSearchConfig());
 
       underTest.provisionTenant(tenant.tenantSlug);
 
       verify(deletedTenantDAO).delete(deletedTenant);
       //The provisioning process continues
       verify(databaseProvisioner).initializeDatabaseWithMigration();
+      verify(indexService).createSearchIndex();
     });
   }
 }

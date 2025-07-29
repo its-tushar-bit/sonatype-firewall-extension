@@ -78,8 +78,7 @@ public class IndexService
   }
 
   /**
-   * Manual re-creation of the search index - this happens via a one-time quartz task, triggered through the API, or on
-   * first time startup
+   * Manual re-creation of the search index - this happens via a one-time quartz task, triggered through the API
    */
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public void createIndexAsync() {

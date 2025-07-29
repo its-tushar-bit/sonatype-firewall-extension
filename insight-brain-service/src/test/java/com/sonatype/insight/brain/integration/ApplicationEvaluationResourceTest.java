@@ -344,6 +344,7 @@ public class ApplicationEvaluationResourceTest
   {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
     licenseManager.setFeatures();
 
     HttpResponse response =
@@ -360,7 +361,6 @@ public class ApplicationEvaluationResourceTest
   {
     Application app = tempEntity.newApplicationWithParent();
     String testClientUserAgent = "testClientUserAgent";
-    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
     licenseManager.setFeatures();
 
     HttpResponse response =

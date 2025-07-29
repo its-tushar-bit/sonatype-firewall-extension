@@ -248,7 +248,17 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  CONTAINER_IMAGES_EVAL_ENABLED(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, false),
+  CONTAINER_IMAGES_EVAL_ENABLED(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, true)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null
+          ? super.isEnabled(tx)
+          : Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
 
   DARK_MODE(SystemConfigurationProperty.DARK_MODE, false)
   {

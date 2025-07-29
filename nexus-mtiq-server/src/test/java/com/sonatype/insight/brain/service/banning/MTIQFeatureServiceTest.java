@@ -233,7 +233,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.AUTO_WAIVERS,
         SystemConfigurationPropertyFeature.API_PAGE,
         SystemConfigurationPropertyFeature.ZSCALER,
-        SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP
+        SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP,
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

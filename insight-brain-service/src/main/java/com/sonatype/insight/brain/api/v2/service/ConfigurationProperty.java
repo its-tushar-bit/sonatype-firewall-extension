@@ -257,7 +257,7 @@ public class ConfigurationProperty
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED, Boolean.class,
-          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.DARK_MODE, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),

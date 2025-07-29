@@ -71,6 +71,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
       SystemConfigurationPropertyFeature.ZSCALER.getId(),
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
       };
 
   /**
@@ -109,6 +110,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.API_PAGE.getId(),
       SystemConfigurationPropertyFeature.ZSCALER.getId(),
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
+      SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
       };
 
   /**
@@ -126,7 +128,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
-          SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.DARK_MODE.getId(),
           SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
           SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),

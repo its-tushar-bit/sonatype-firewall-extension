@@ -411,8 +411,6 @@ public class ConfigurationClientTest
 
   @Test
   public void testVerifyOrCreateApplicationForContainerImageFirewall_Exception() {
-    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
-
     RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
     Repository repository =
         tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");
@@ -435,6 +433,8 @@ public class ConfigurationClientTest
 
   @Test
   public void testVerifyOrCreateApplicationForContainerImageFirewall_FeatureFlagDisabled() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
     RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("baseUrl1");
     Repository repository =
         tempEntity.newRepository(repositoryManager, "repositoryPublicId", RepositoryType.proxy, "docker");

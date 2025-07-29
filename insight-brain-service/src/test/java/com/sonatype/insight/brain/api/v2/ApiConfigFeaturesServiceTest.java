@@ -1300,18 +1300,7 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
-  public void testEnableFeature_ContainerImagesEvalEnabled() {
-    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED);
-
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)
-            .getValue())
-        .isEqualTo("true");
-  }
-
-  @Test
   public void testEnableFeature_ContainerImagesEvalEnabled_AlreadyEnabled() {
-    service.enableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED);
     assertThatThrownBy(
         () -> service.enableFeature(
             SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
@@ -1320,6 +1309,8 @@ public class ApiConfigFeaturesServiceTest
 
   @Test
   public void testDisableFeature_ContainerImagesEvalEnabled_AlreadyDisabled() {
+    service.disableFeature(SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED);
+
     assertThatThrownBy(
         () -> service.disableFeature(
             SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED)).isInstanceOf(
@@ -1440,7 +1431,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("SYSTEM_NOTICE_CONFIGURATION", true);
     expectedFeatureConfigMap.put("vulnerabilitySource", false);
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
-    expectedFeatureConfigMap.put("containerImagesEvalEnabled", false);
+    expectedFeatureConfigMap.put("containerImagesEvalEnabled", true);
     expectedFeatureConfigMap.put("darkMode", false);
     expectedFeatureConfigMap.put("zScaler", true);
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);

@@ -289,7 +289,8 @@ public class ConfigurationInfoTest
         "darkMode",
         "zScaler",
         "thirdPartyKevLookup",
-        "userManagementPages"
+        "userManagementPages",
+        "epssDataEnabled"
     );
 
     // Properties included in the config.json in support zip

@@ -128,6 +128,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
           SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
           SystemConfigurationPropertyFeature.DARK_MODE.getId(),
+          SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
           SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
       }
   )).toArray(String[]::new);

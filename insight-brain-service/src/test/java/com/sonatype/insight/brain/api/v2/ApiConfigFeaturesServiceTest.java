@@ -1445,6 +1445,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("zScaler", true);
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
     expectedFeatureConfigMap.put("userManagementPages", true);
+    expectedFeatureConfigMap.put("epssDataEnabled", false);
 
     return expectedFeatureConfigMap;
   }
@@ -1545,5 +1546,35 @@ public class ApiConfigFeaturesServiceTest
     assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_MANAGEMENT_PAGES))
         .isNull();
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES)).isTrue();
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_EpssDataEnabled() {
+    assertThat(service.getSystemConfigurationPropertyFeature(SystemConfigurationProperty.EPSS_DATA))
+        .isEqualTo(SystemConfigurationPropertyFeature.EPSS_DATA);
+  }
+
+  @Test
+  public void testEnableFeature_EpssDataEnabled_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.EPSS_DATA);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.EPSS_DATA))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_EpssDataEnabled_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.EPSS_DATA))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_EpssDataEnabled() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.EPSS_DATA, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.EPSS_DATA).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.EPSS_DATA)).isTrue();
   }
 }

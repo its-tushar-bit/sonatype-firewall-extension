@@ -274,6 +274,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.USER_MANAGEMENT_PAGES, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.EPSS_DATA, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

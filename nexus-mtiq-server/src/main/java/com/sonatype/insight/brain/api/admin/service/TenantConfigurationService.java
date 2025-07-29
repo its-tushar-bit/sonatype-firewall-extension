@@ -63,6 +63,7 @@ public class TenantConfigurationService
       ZSCALER_UPDATE_TASK_PERIOD,
       ZSCALER,
       THIRD_PARTY_KEV_LOOKUP,
+      EPSS_DATA,
       SESSION_TIMEOUT_MINUTES
   );
 

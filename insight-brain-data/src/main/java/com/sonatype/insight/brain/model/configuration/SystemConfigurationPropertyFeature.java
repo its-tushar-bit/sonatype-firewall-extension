@@ -297,7 +297,9 @@ public enum SystemConfigurationPropertyFeature
       return systemConfigurationProperty == null ? tenantUtil.isSingleTenant() :
           Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
-  };
+  },
+
+  EPSS_DATA(SystemConfigurationProperty.EPSS_DATA, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

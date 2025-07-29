@@ -24,6 +24,11 @@ import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSumma
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoService, { setUrlService } from './pendo/mainBundlePendoService';
 import utilityServicesModule from './utility/services/utility.services.module';
+import {
+  initialize as initializeRouteStateUtilService,
+  stateRequiresAuthenticationSync,
+  stateRequiresAuthentication,
+} from './utility/services/routeStateUtilService';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
@@ -187,7 +192,6 @@ export const InitModule = angular
     '$timeout',
     '$urlService',
     'LoginModalService',
-    'routeStateUtilService',
     'ProductLicense',
     '$ngRedux',
     '$transitions',
@@ -200,13 +204,15 @@ export const InitModule = angular
       $timeout,
       $urlService,
       LoginModalService,
-      routeStateUtilService,
       ProductLicense,
       $ngRedux,
       $transitions
     ) {
       // Initialize the singleton pendoService with urlService
       setUrlService($urlService);
+
+      // Initialize the ES6 routeStateUtilService module with Angular dependencies
+      initializeRouteStateUtilService($state, $ngRedux);
 
       var savedState = null,
         cancelPreLoginStateHandler,
@@ -232,14 +238,14 @@ export const InitModule = angular
         $urlRouter.update(true);
         savedState = { state, params };
 
-        const stateRequiresAuthenticationNow = routeStateUtilService.stateRequiresAuthenticationSync(state);
+        const stateRequiresAuthenticationNow = stateRequiresAuthenticationSync(state);
 
         switch (stateRequiresAuthenticationNow) {
           // don't know if auth required yet: prevent state load and wait for async result
           case undefined:
             event.preventDefault();
-            routeStateUtilService.stateRequiresAuthentication(state).then((stateRequiresAuthentication) => {
-              if (stateRequiresAuthentication) {
+            stateRequiresAuthentication(state).then((stateRequiresAuth) => {
+              if (stateRequiresAuth) {
                 attemptLoginIfNeeded();
               } else {
                 $state.go(savedState.state, savedState.params);

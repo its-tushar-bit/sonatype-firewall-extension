@@ -33,11 +33,12 @@ import {
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { selectIsStandaloneDeveloper, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
+import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
 
-function MainHeaderController($rootScope, $scope, PermissionService, routeStateUtilService, $ngRedux) {
+function MainHeaderController($rootScope, $scope, PermissionService, $ngRedux) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
   vm.permissions = {};
@@ -59,8 +60,8 @@ function MainHeaderController($rootScope, $scope, PermissionService, routeStateU
   });
 
   function checkShowLoginButton() {
-    routeStateUtilService.stateRequiresAuthentication().then((stateRequiresAuthentication) => {
-      vm.shouldShowLoginButton = !stateRequiresAuthentication && !isLoggedIn();
+    stateRequiresAuthentication().then((stateRequiresAuth) => {
+      vm.shouldShowLoginButton = !stateRequiresAuth && !isLoggedIn();
     });
   }
 
@@ -124,7 +125,7 @@ export const mapStateToThis = (state) => ({
   isZscalerEnabled: selectIsZscalerEnabled(state),
 });
 
-MainHeaderController.$inject = ['$rootScope', '$scope', 'PermissionService', 'routeStateUtilService', '$ngRedux'];
+MainHeaderController.$inject = ['$rootScope', '$scope', 'PermissionService', '$ngRedux'];
 
 export default {
   controller: MainHeaderController,

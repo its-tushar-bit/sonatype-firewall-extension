@@ -3,16 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
+import { initialize, stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
 
 describe('routeStateUtilService', function () {
-  let mockCurrentState,
-    mockNgRedux,
-    getService = () => routeStateUtilService({ current: mockCurrentState }, mockNgRedux);
+  let mockReduxStore, mockRouteState;
 
   beforeEach(function () {
-    mockCurrentState = {};
-    mockNgRedux = {
+    mockRouteState = { current: {} };
+    mockReduxStore = {
       getState() {
         return {
           userLogin: {
@@ -24,25 +22,28 @@ describe('routeStateUtilService', function () {
         };
       },
     };
-    mockNgRedux.dispatch = jest
+    mockReduxStore.dispatch = jest
       .fn()
       .mockName('dispatch')
-      .mockImplementation(() => Promise.resolve({ payload: true }));
+      .mockReturnValue(Promise.resolve({ payload: true }));
+
+    // Initialize the ES6 module with mock dependencies
+    initialize(mockRouteState, mockReduxStore);
   });
 
   describe('stateRequiresAuthentication', function () {
     describe('when state.data is backend-configurable', function () {
       it('returns false when isUnauthenticatedPagesEnabled is true', function () {
-        getService()
-          .stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } })
-          .then((stateRequiresAuthentication) => {
+        return stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } }).then(
+          (stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(false);
-          });
+          }
+        );
       });
 
       it('returns true when isUnauthenticatedPagesEnabled is false', function () {
-        let customMockNgRedux = {
-          ...mockNgRedux,
+        let customMockReduxStore = {
+          ...mockReduxStore,
           getState() {
             return {
               userLogin: {
@@ -53,135 +54,125 @@ describe('routeStateUtilService', function () {
             };
           },
         };
-        mockNgRedux.dispatch = jest
+        customMockReduxStore.dispatch = jest
           .fn()
           .mockName('dispatch')
-          .mockImplementation(() => Promise.resolve({ payload: false }));
+          .mockReturnValue(Promise.resolve({ payload: false }));
 
-        routeStateUtilService({ current: mockCurrentState }, customMockNgRedux)
-          .stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } })
-          .then((stateRequiresAuthentication) => {
+        // Re-initialize with custom mock
+        initialize({ current: {} }, customMockReduxStore);
+
+        return stateRequiresAuthentication({ data: { authenticationRequired: 'backend-configurable' } }).then(
+          (stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(true);
-          });
+          }
+        );
       });
     });
 
     describe('when not passed a parameter', function () {
       it('returns true when the current state has no data property', function () {
-        getService()
-          .stateRequiresAuthentication()
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        return stateRequiresAuthentication().then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns true when the current state has a data property with no authenticationRequired property', function () {
-        mockCurrentState = { data: {} };
-        getService()
-          .stateRequiresAuthentication()
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        mockRouteState = { current: { data: {} } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication().then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns true when the current state has a data property with authenticationRequired set to true', function () {
-        mockCurrentState = { data: { authenticationRequired: true } };
-        getService()
-          .stateRequiresAuthentication()
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        mockRouteState = { current: { data: { authenticationRequired: true } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication().then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns false when the current state has a data property with authenticationRequired set to false', function () {
-        mockCurrentState = { data: { authenticationRequired: false } };
-        getService()
-          .stateRequiresAuthentication()
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(false);
-          });
+        mockRouteState = { current: { data: { authenticationRequired: false } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication().then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(false);
+        });
       });
     });
 
     describe('when passed a parameter', function () {
       it('returns true when the passed state has no data property', function () {
-        getService()
-          .stateRequiresAuthentication({})
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        return stateRequiresAuthentication({}).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns true when the passed state has property true and current state has no effect', function () {
         // current state has no effect
-        mockCurrentState = { data: { authenticationRequired: false } };
-        getService()
-          .stateRequiresAuthentication({ data: { authenticationRequired: true } })
-          .then((stateRequiresAuthentication) => {
+        mockRouteState = { current: { data: { authenticationRequired: false } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication({ data: { authenticationRequired: true } }).then(
+          (stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(true);
-          });
+          }
+        );
       });
 
       it('returns true when the passed state has a data property with no authenticationRequired property', function () {
-        getService()
-          .stateRequiresAuthentication({})
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        return stateRequiresAuthentication({}).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns true when the passed state has a data property true and current state has no effect', function () {
         // current state has no effect
-        mockCurrentState = { data: { authenticationRequired: false } };
-        getService()
-          .stateRequiresAuthentication({ data: { authenticationRequired: true } })
-          .then((stateRequiresAuthentication) => {
+        mockRouteState = { current: { data: { authenticationRequired: false } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication({ data: { authenticationRequired: true } }).then(
+          (stateRequiresAuthentication) => {
             expect(stateRequiresAuthentication).toBe(true);
-          });
+          }
+        );
       });
 
       it('returns true when the passed state has a data property with authenticationRequired set to true', function () {
-        getService()
-          .stateRequiresAuthentication({
-            data: { authenticationRequired: true },
-          })
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(true);
-          });
+        return stateRequiresAuthentication({
+          data: { authenticationRequired: true },
+        }).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(true);
+        });
       });
 
       it('returns false when the passed state has a data property with authenticationRequired set to false', function () {
         // current state has no effect
-        mockCurrentState = { data: { authenticationRequired: true } };
-        getService()
-          .stateRequiresAuthentication({
-            data: { authenticationRequired: false },
-          })
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(false);
-          });
+        mockRouteState = { current: { data: { authenticationRequired: true } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication({
+          data: { authenticationRequired: false },
+        }).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(false);
+        });
       });
 
       it('returns false when the passed state has a data property with authenticationRequired set to false', function () {
-        getService()
-          .stateRequiresAuthentication({
-            data: { authenticationRequired: false },
-          })
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(false);
-          });
+        return stateRequiresAuthentication({
+          data: { authenticationRequired: false },
+        }).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(false);
+        });
       });
 
       it('returns false when the passed state has a data property with authenticationRequired set to false and current state has no effect', function () {
         // current state has no effect
-        mockCurrentState = { data: { authenticationRequired: true } };
-        getService()
-          .stateRequiresAuthentication({
-            data: { authenticationRequired: false },
-          })
-          .then((stateRequiresAuthentication) => {
-            expect(stateRequiresAuthentication).toBe(false);
-          });
+        mockRouteState = { current: { data: { authenticationRequired: true } } };
+        initialize(mockRouteState, mockReduxStore);
+        return stateRequiresAuthentication({
+          data: { authenticationRequired: false },
+        }).then((stateRequiresAuthentication) => {
+          expect(stateRequiresAuthentication).toBe(false);
+        });
       });
     });
   });

@@ -7,6 +7,7 @@ import mainHeaderModule from 'MainRoot/mainHeader/module';
 import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
 import * as userSession from 'MainRoot/user/userSession';
+import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 
 describe('mainHeaderSpec', function () {
   var $scope,
@@ -40,6 +41,7 @@ describe('mainHeaderSpec', function () {
 
     spyOn(userSession, 'fetchUser');
     spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
+    spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(routeStateUtilServiceDeferred.promise);
 
     mockPermissionService = {
       getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
@@ -55,7 +57,6 @@ describe('mainHeaderSpec', function () {
       PermissionService: mockPermissionService,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       $scope: $scope,
-      routeStateUtilService: mockRouteStateUtilService,
     });
   }));
 

@@ -5,10 +5,6 @@
  */
 
 import CLMLocationModule from '../../util/CLMLocation';
-import routeStateUtilService from './routeStateUtilService';
 import ProductLicense from './ProductLicense';
 
-export default angular
-  .module('utility.services', [CLMLocationModule.name])
-  .service('routeStateUtilService', routeStateUtilService)
-  .service('ProductLicense', ProductLicense);
+export default angular.module('utility.services', [CLMLocationModule.name]).service('ProductLicense', ProductLicense);

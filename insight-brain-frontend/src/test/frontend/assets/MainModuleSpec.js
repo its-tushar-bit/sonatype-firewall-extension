@@ -7,6 +7,7 @@ import * as gettingStartedTelemetryServiceHelper from 'MainRoot/configuration/ge
 import * as RouteProductLicenseValidator from 'MainRoot/routeProductLicenseValidator/RouteProductLicenseValidator';
 import { axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import * as userSession from 'MainRoot/user/userSession';
+import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
@@ -25,6 +26,11 @@ describe('mainModuleSpec', function () {
     mockPendoService = {
       start: jasmine.createSpy('start'),
     };
+
+    // Mock the ES6 module functions
+    spyOn(routeStateUtilService, 'initialize');
+    spyOn(routeStateUtilService, 'stateRequiresAuthenticationSync').and.returnValue(true);
+    spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(Promise.resolve(true));
 
     // Use inject-loader to mock the pendoService dependency
     const MainModuleInjector = require('inject-loader!MainRoot/MainModule');
@@ -50,17 +56,6 @@ describe('mainModuleSpec', function () {
       };
       $provide.value('$window', mockWindow);
 
-      $provide.service('routeStateUtilService', function () {
-        function stateRequiresAuthentication() {
-          return Promise.resolve(true);
-        }
-
-        function stateRequiresAuthenticationSync() {
-          return true;
-        }
-
-        return { stateRequiresAuthentication, stateRequiresAuthenticationSync };
-      });
       $stateProvider.state('someOtherState', {
         url: '/someOtherState',
       });

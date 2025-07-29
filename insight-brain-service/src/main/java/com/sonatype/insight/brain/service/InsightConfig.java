@@ -1000,6 +1000,7 @@ public class InsightConfig
   @JsonIgnore
   @ValidationMethod(message = "Invalid storage configuration")
   public boolean isValidStorageConfig() {
+    StorageConfig storage = getStorage();
     try {
       if (storage != null) {
         storage.validate();

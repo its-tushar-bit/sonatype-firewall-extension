@@ -15,6 +15,7 @@ import javax.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.health.MultiTenantHealthFactory;
 import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;
+import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -56,6 +57,19 @@ public class MultiTenantInsightConfig
 
   @JsonProperty
   private Path jemallocProfileDir = Path.of(".");
+
+  @Valid
+  @JsonProperty(value = "storage")
+  private MultiTenantStorageConfig storage = new MultiTenantStorageConfig();
+
+  @Override
+  public MultiTenantStorageConfig getStorage() {
+    return storage;
+  }
+
+  public void setStorage(final MultiTenantStorageConfig storage) {
+    this.storage = storage;
+  }
 
   @Override
   public File getSonatypeWork() {

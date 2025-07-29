@@ -9,14 +9,15 @@ package com.sonatype.insight.brain.report;
 import java.util.Arrays;
 import java.util.List;
 
-import com.google.inject.Binder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.MultiTenantS3DataStoreConfig;
+import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
-import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
+import com.google.inject.Binder;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -34,7 +35,6 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
-@Ignore // until S3 impl is made tenant aware in CLM-33230
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3ApplicationReportPersistenceServiceMultiTenantTest
@@ -75,8 +75,8 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
       public void configure(InsightConfig config) {
         super.configure(config);
 
-        var storageConfig = config.getStorage();
-        var s3Config = new S3DataStoreConfig();
+        MultiTenantStorageConfig storageConfig = (MultiTenantStorageConfig) config.getStorage();
+        var s3Config = new MultiTenantS3DataStoreConfig();
         s3Config.setBucketName(BUCKET_NAME);
         s3Config.setRegion(REGION);
         s3Config.setObjectKeyPrefix(prefix);
@@ -91,7 +91,8 @@ public class S3ApplicationReportPersistenceServiceMultiTenantTest
       var s3Client = lookup(S3Client.class);
       var insightConfig = lookup(InsightConfig.class);
 
-      return new S3ApplicationReportPersistenceServiceTestHelper(insightConfig, s3Client, expectedPrefix);
+      return new S3ApplicationReportPersistenceServiceTestHelper(insightConfig, s3Client,
+          () -> expectedPrefix + TenantThreadLocal.getTenant().tenantSlug + "/");
     });
 
     lookup(S3Client.class).createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());

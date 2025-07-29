@@ -89,7 +89,7 @@ public class S3ApplicationReportPersistenceServiceTest
 
     s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
-    var helper = new S3ApplicationReportPersistenceServiceTestHelper(insightConfig, s3Client, expectedPrefix);
+    var helper = new S3ApplicationReportPersistenceServiceTestHelper(insightConfig, s3Client, () -> expectedPrefix);
     setup(helper);
 
     service = lookup(ApplicationReportPersistenceService.class);

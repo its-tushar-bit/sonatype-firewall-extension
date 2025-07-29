@@ -35,7 +35,9 @@ public class StorageConfig
   }
 
   public void validate() {
-    if (type == DataStoreType.S3) {
+    DataStoreType dataStoreType = getType();
+    S3DataStoreConfig s3Config = getS3Config();
+    if (dataStoreType == DataStoreType.S3) {
       if (s3Config == null) {
         throw new ValidationException("s3Config is required when the data store type is S3.");
       }

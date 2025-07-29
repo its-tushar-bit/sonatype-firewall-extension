@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import datadog.trace.api.Trace;
 import org.apache.commons.lang3.StringUtils;
@@ -76,9 +77,7 @@ public class S3ApplicationReportPersistenceService
 
   private final S3Client s3Client;
 
-  private final String bucketName;
-
-  private final String keyPrefix;
+  private final S3DataStoreConfig s3DataStoreConfig;
 
   private class S3ReportEntity
       implements ReportEntity
@@ -124,20 +123,21 @@ public class S3ApplicationReportPersistenceService
     @Override
     @Trace
     public OutputStream getOutputStream() {
-      return new S3OutputStream(s3Client, key.toString(), bucketName);
+      return new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName());
     }
 
     @Override
     @Trace
     public InputStream getInputStream() throws IOException {
-      GetObjectRequest getObjectRequest = GetObjectRequest.builder().bucket(bucketName).key(key.toString()).build();
+      GetObjectRequest getObjectRequest =
+          GetObjectRequest.builder().bucket(s3DataStoreConfig.getBucketName()).key(key.toString()).build();
       return wrapS3Exception(() -> s3Client.getObject(getObjectRequest));
     }
 
     protected S3Object getMetadata() throws IOException {
       return wrapS3Exception(() -> {
         HeadObjectRequest request = HeadObjectRequest.builder()
-            .bucket(bucketName)
+            .bucket(s3DataStoreConfig.getBucketName())
             .key(key.toString())
             .build();
 
@@ -172,10 +172,10 @@ public class S3ApplicationReportPersistenceService
       final S3Client s3Client,
       final InsightConfig insightConfig)
   {
-    var s3Config = insightConfig.getStorage().getS3Config();
+    this.s3DataStoreConfig = insightConfig.getStorage().getS3Config();
     this.s3Client = requireNonNull(s3Client);
-    this.bucketName = requireNonNull(s3Config.getBucketName());
-    this.keyPrefix = requireNonNull(s3Config.getObjectKeyPrefix());
+    requireNonNull(s3DataStoreConfig.getBucketName());
+    requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   @Override
@@ -278,28 +278,32 @@ public class S3ApplicationReportPersistenceService
 
   @Override
   public ReportPdfEntity getPdfEntity(final String applicationId, final String scanId) {
-    return new S3PdfEntity(new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, PDF_FILENAME, keyPrefix));
+    return new S3PdfEntity(new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, PDF_FILENAME,
+        s3DataStoreConfig.getObjectKeyPrefix()));
   }
 
   @Override
   public ReportEntity getVulnerabilitySignaturesEntity(final String applicationId, final String scanId) {
-    var key = new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, VULNERABILITY_SIGNATURE_FILENAME, keyPrefix);
+    var key =
+        new S3ObjectKey(SPECIAL_FILE_FORMAT, applicationId, scanId, VULNERABILITY_SIGNATURE_FILENAME,
+            s3DataStoreConfig.getObjectKeyPrefix());
     return new S3ReportEntity(key);
   }
 
   @Override
   public String getReportLocation(final String applicationId, final String scanId) {
-    var key = new S3ObjectKey(BASE_FORMAT, applicationId, scanId, "", keyPrefix);
+    var key = new S3ObjectKey(BASE_FORMAT, applicationId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
 
     // There appears to be no actual way in the S3 API to construct this string more safely, so we have to just use
     // string operations
-    return "s3://%s/%s".formatted(bucketName, key.toString());
+    return "s3://%s/%s".formatted(s3DataStoreConfig.getBucketName(), key.toString());
   }
 
   @Override
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
-    try (var objects = getS3Objects(keyPrefix + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
+    try (var objects = getS3Objects(
+        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
       // Do we have at least one object saved for this app and scan
       return objects.findFirst().isPresent();
     }
@@ -359,9 +363,9 @@ public class S3ApplicationReportPersistenceService
       final String name) throws IOException
   {
     var request = CopyObjectRequest.builder()
-        .sourceBucket(bucketName)
+        .sourceBucket(s3DataStoreConfig.getBucketName())
         .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
-        .destinationBucket(bucketName)
+        .destinationBucket(s3DataStoreConfig.getBucketName())
         .destinationKey(getCacheKey(applicationId, scanId, name).toString())
         .build();
 
@@ -376,21 +380,21 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void deleteByKey(S3ObjectKey key) throws IOException {
-    var request = DeleteObjectRequest.builder().bucket(bucketName).key(key.toString()).build();
+    var request = DeleteObjectRequest.builder().bucket(s3DataStoreConfig.getBucketName()).key(key.toString()).build();
     wrapS3Exception(() -> s3Client.deleteObject(request));
   }
 
   private void deleteAllWithPrefix(final String keySubPrefix) throws IOException {
     Set<ObjectIdentifier> keysToDelete;
 
-    try (Stream<S3Object> objects = getS3Objects(keyPrefix + keySubPrefix)) {
+    try (Stream<S3Object> objects = getS3Objects(s3DataStoreConfig.getObjectKeyPrefix() + keySubPrefix)) {
       keysToDelete = objects
           .map(entity -> ObjectIdentifier.builder().key(entity.key()).build())
           .collect(Collectors.toSet());
     }
 
     var request = DeleteObjectsRequest.builder()
-        .bucket(bucketName)
+        .bucket(s3DataStoreConfig.getBucketName())
         .delete(delete -> delete.objects(keysToDelete))
         .build();
 
@@ -413,18 +417,19 @@ public class S3ApplicationReportPersistenceService
   {
     deleteReport(appId, destinationScanId);
     Set<S3Object> s3Objects;
-    String sourceBasePrefix = keyPrefix + String.format(BASE_FORMAT, appId, sourceScanId);
+    String sourceBasePrefix = s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, appId, sourceScanId);
     try (var objects = getS3Objects(sourceBasePrefix)) {
       s3Objects = objects.collect(Collectors.toSet());
     }
-    String targetBasePrefix = keyPrefix + String.format(BASE_FORMAT, appId, destinationScanId);
+    String targetBasePrefix =
+        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, appId, destinationScanId);
     for (S3Object s3Object : s3Objects) {
       String sourceKey = s3Object.key();
       String targetKey = targetBasePrefix + sourceKey.substring(sourceBasePrefix.length());
       CopyObjectRequest copyRequest = CopyObjectRequest.builder()
-          .sourceBucket(bucketName)
+          .sourceBucket(s3DataStoreConfig.getBucketName())
           .sourceKey(sourceKey)
-          .destinationBucket(bucketName)
+          .destinationBucket(s3DataStoreConfig.getBucketName())
           .destinationKey(targetKey)
           .build();
       wrapS3Exception(() -> s3Client.copyObject(copyRequest));
@@ -433,7 +438,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {
-    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), bucketName)) {
+    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName())) {
       log.debug("Saving report file to S3: {}", key);
       contents.transferTo(outputStream);
     }
@@ -443,7 +448,7 @@ public class S3ApplicationReportPersistenceService
       final String applicationId,
       final String scanId) throws IOException
   {
-    String prefix = keyPrefix + ADDITIONAL_KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + ADDITIONAL_KEY_PREFIX.formatted(applicationId, scanId);
     Function<String, S3ObjectKey> keyParser =
         key -> getAdditionalObjectKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
 
@@ -457,7 +462,7 @@ public class S3ApplicationReportPersistenceService
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    String prefix = keyPrefix + CACHE_KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + CACHE_KEY_PREFIX.formatted(applicationId, scanId);
     Function<String, S3ObjectKey> keyParser =
         key -> getCacheKey(applicationId, scanId, StringUtils.removeStart(key, prefix));
 
@@ -473,12 +478,11 @@ public class S3ApplicationReportPersistenceService
       final String scanId,
       final Set<String> excludeNames) throws IOException
   {
-    String prefix = keyPrefix + KEY_PREFIX.formatted(applicationId, scanId);
+    String prefix = s3DataStoreConfig.getObjectKeyPrefix() + KEY_PREFIX.formatted(applicationId, scanId);
     return getEntities(
         prefix,
         key -> getOriginalKey(applicationId, scanId, StringUtils.removeStart(key, prefix))
-    )
-      .filter(entity -> !excludeNames.contains(entity.getName()));
+    ).filter(entity -> !excludeNames.contains(entity.getName()));
   }
 
   /**
@@ -511,7 +515,7 @@ public class S3ApplicationReportPersistenceService
    */
   private Stream<S3Object> getS3Objects(final String prefix, final Integer maxKeys) throws IOException {
     ListObjectsV2Request request = ListObjectsV2Request.builder()
-        .bucket(bucketName)
+        .bucket(s3DataStoreConfig.getBucketName())
         .prefix(prefix)
         .maxKeys(maxKeys)
         .build();
@@ -530,7 +534,7 @@ public class S3ApplicationReportPersistenceService
    * @return a key referring to the specified object within the original report files downloaded from HDS
    */
   private S3ObjectKey getOriginalKey(final String applicationId, final String scanId, final String objectName) {
-    return new S3ObjectKey(KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+    return new S3ObjectKey(KEY_FORMAT, applicationId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**
@@ -541,7 +545,7 @@ public class S3ApplicationReportPersistenceService
       final String scanId,
       final String objectName)
   {
-    return new S3ObjectKey(CACHE_KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+    return new S3ObjectKey(CACHE_KEY_FORMAT, applicationId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**
@@ -552,6 +556,7 @@ public class S3ApplicationReportPersistenceService
       final String scanId,
       final String objectName)
   {
-    return new S3ObjectKey(ADDITIONAL_KEY_FORMAT, applicationId, scanId, objectName, keyPrefix);
+    return new S3ObjectKey(ADDITIONAL_KEY_FORMAT, applicationId, scanId, objectName,
+        s3DataStoreConfig.getObjectKeyPrefix());
   }
 }

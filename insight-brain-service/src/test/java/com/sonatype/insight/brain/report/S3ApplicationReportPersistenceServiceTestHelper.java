@@ -11,6 +11,7 @@ import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -27,12 +28,12 @@ public class S3ApplicationReportPersistenceServiceTestHelper
 
   private final S3Client s3Client;
 
-  private final String expectedEffectivePrefix;
+  private final Supplier<String> expectedEffectivePrefix;
 
   public S3ApplicationReportPersistenceServiceTestHelper(
       final InsightConfig insightConfig,
       final S3Client s3Client,
-      final String expectedEffectivePrefix)
+      final Supplier<String> expectedEffectivePrefix)
   {
     this.insightConfig = insightConfig;
     this.s3Client = s3Client;
@@ -55,7 +56,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
       fileWalk.filter(Files::isRegularFile).forEach(file -> {
         String name = reportDir.relativize(file).toString();
         String key = "%sreport/%s/%s/report.files/%s".formatted(
-            expectedEffectivePrefix,
+            expectedEffectivePrefix.get(),
             APPLICATION_ID,
             SCAN_ID,
             name
@@ -72,7 +73,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
   @Override
   public void saveEmptyMockReport(String scanId) {
     String key = "%sreport/%s/%s/report.files/index.html".formatted(
-        expectedEffectivePrefix,
+        expectedEffectivePrefix.get(),
         APPLICATION_ID,
         scanId
     );
@@ -157,7 +158,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
       byte[] responseContents = s3Client.getObjectAsBytes(
           GetObjectRequest.builder()
               .bucket(getBucketName())
-              .key(expectedEffectivePrefix + key)
+              .key(expectedEffectivePrefix.get() + key)
               .build()
       ).asByteArray();
 
@@ -170,7 +171,7 @@ public class S3ApplicationReportPersistenceServiceTestHelper
 
   private void writeKey(String key, String content) {
     s3Client.putObject(
-        PutObjectRequest.builder().bucket(getBucketName()).key(expectedEffectivePrefix + key).build(),
+        PutObjectRequest.builder().bucket(getBucketName()).key(expectedEffectivePrefix.get() + key).build(),
         RequestBody.fromString(content)
     );
   }

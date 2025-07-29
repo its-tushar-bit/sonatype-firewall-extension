@@ -11,10 +11,7 @@ import com.sonatype.clm.testing.functional.BasicElement;
 public class NxBackButton
     extends BasicElement<NxBackButton>
 {
-  /**
-   * @param context the context selector, within which the back-button is located
-   */
-  public NxBackButton(String context) {
-    super(context, ".nx-back-button a");
+  public NxBackButton() {
+    super(".nx-back-button a");
   }
 }

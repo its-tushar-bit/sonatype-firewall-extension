@@ -6,6 +6,7 @@
 package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.componentdetails.DependencyTreeTile;
 import com.sonatype.clm.testing.functional.elements.componentdetails.OverviewTabContent;
 import com.sonatype.clm.testing.functional.elements.componentdetails.SecurityTabContent;
@@ -64,8 +65,8 @@ public class ContainerComponentDetailsPage
     super(ROOT);
   }
 
-  public SelenideElement backButton() {
-    return $("#menu-bar__back-button-container .nx-text-link");
+  public NxBackButton backButton() {
+    return new NxBackButton();
   }
 
   public static SelenideElement title() {
@@ -83,7 +84,7 @@ public class ContainerComponentDetailsPage
   public SelenideElement addProprietarypComponentMatchersBtn() {
     return child("#iq-component-details-add-proprietary-component-matchers-btn");
   }
-  
+
   public SelenideElement unknownComponentClaim() {
     return child("#iq-component-details-unknown-component-claim");
   }

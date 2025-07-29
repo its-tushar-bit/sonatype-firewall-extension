@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render, screen, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import AddAndRequestWaiversBackButton from 'MainRoot/waivers/AddAndRequestWaiversBackButton';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { originNamesForAddRequestPages } from 'MainRoot/util/waiverUtils';
@@ -102,11 +102,7 @@ describe('AddAndRequestWaiversBackButtonSpec', function () {
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
 
     renderComponent = (props) => render(<AddAndRequestWaiversBackButton {...props} />);
-
-    setupPortalContainer();
   });
-
-  afterEach(() => removePortalContainer());
 
   // Navigated from Violation Details Popover (via app report's Component Details)
   describe('Violation Details Popover params are present (hash, scanId, publicId)', () => {

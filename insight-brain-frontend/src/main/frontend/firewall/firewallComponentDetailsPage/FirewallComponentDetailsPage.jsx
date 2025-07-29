@@ -106,8 +106,8 @@ export default function FirewallComponentDetailsPage() {
     <>
       <FirewallPolicyViolationDetailsPopover />
       <main id="firewall-component-details-page" className="nx-viewport-sized nx-page-main">
-        <MenuBarBackButton {...backButtonParams} />
         <div className="nx-viewport-sized__scrollable nx-scrollable firewall-component-details-page__container">
+          <MenuBarBackButton {...backButtonParams} />
           <NxLoadWrapper
             loading={isLoadingComponentDetails}
             error={componentDetailsError}

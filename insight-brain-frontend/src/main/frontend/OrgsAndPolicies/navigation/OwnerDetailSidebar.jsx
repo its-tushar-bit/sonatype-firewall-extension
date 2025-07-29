@@ -211,7 +211,6 @@ export default function OwnerDetailSidebar() {
 
   return (
     <div id="owner-detail-sidebar">
-      <MenuBarStatefulBreadcrumb />
       <NxH3>{owner.name}</NxH3>
 
       {/* Categories */}

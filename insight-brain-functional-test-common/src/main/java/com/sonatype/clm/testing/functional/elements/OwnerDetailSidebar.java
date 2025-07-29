@@ -27,7 +27,7 @@ public class OwnerDetailSidebar
   }
 
   public static NxBackButton backLink() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public static OwnerDetailSidebarGroup applicationCategoryGroup() {

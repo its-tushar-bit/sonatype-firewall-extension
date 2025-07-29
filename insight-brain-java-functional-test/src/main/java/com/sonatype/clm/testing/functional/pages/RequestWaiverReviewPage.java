@@ -150,7 +150,7 @@ public class RequestWaiverReviewPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public Button approveButton() {

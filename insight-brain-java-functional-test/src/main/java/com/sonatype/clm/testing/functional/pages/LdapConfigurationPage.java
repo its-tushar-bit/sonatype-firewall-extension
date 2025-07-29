@@ -32,7 +32,7 @@ public class LdapConfigurationPage
   }
 
   public static NxBackButton backButton() {
-    return new NxBackButton("");
+    return new NxBackButton();
   }
 
   public static SelenideElement connectionTab() {

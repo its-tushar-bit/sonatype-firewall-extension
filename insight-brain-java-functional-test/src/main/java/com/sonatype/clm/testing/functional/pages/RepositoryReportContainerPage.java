@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.pages;
 
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 import com.codeborne.selenide.SelenideElement;
@@ -29,8 +30,8 @@ public class RepositoryReportContainerPage
     return $("#report-title .last-eval");
   }
 
-  public static SelenideElement backButton() {
-    return $(".nx-back-button");
+  public static NxBackButton backButton() {
+    return new NxBackButton();
   }
 
   public static class ReEvaluateModal

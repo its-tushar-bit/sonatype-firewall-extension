@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxTooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.ComponentDetailsPage;
@@ -255,7 +256,7 @@ public class DependencyTreeTest
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.footer().shouldNotBe(visible);
 
-    SelenideElement menuBarBackButton = MainHeader.backButton();
+    NxBackButton menuBarBackButton = MainHeader.backButton();
     menuBarBackButton.shouldHave(text("Back to Dependency Tree"));
     menuBarBackButton.click();
 

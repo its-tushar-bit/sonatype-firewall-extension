@@ -6,7 +6,7 @@
 import ArtifactoryRepositoryBaseConfigurations from 'MainRoot/artifactoryRepositoryConfiguration/ArtifactoryRepositoryBaseConfigurations';
 import * as artifactoryRepositoryBaseConfigurationsSelectors from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSelectors';
 import * as artifactoryRepositoryConfigurationModalSelectors from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModalSelectors';
-import { render, screen, fireEvent, within, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
 import React from 'react';
 import { getInitialState } from 'TestRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsTestData';
 import {
@@ -32,7 +32,6 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
     spySelectOwnerPublicId;
 
   beforeEach(() => {
-    setupPortalContainer();
     spySelectArtifactoryRepositoryBaseConfigurationsSlice = jest.spyOn(
       artifactoryRepositoryBaseConfigurationsSelectors,
       'selectArtifactoryRepositoryBaseConfigurationsSlice'
@@ -60,8 +59,6 @@ describe('ArtifactoryRepositoryBaseConfigurations', function () {
     spySelectOwnerPublicId = jest.spyOn(artifactoryRepositoryBaseConfigurationsSelectors, 'selectOwnerPublicId');
     renderComponent = () => render(<ArtifactoryRepositoryBaseConfigurations />);
   });
-
-  afterEach(() => removePortalContainer());
 
   describe('configuration load', function () {
     it('has the correct back link for an org', function () {

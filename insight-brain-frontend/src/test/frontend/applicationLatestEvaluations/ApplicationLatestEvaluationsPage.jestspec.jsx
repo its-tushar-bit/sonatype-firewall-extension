@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { axiosMockAdapter, render, setupPortalContainer, within } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, within } from 'TestRoot/SpecUtil';
 import React from 'react';
 import ApplicationLatestEvaluationsPage from 'MainRoot/applicationLatestEvaluations/ApplicationLatestEvaluationsPage';
 import { screen } from '@testing-library/dom';
@@ -60,8 +60,6 @@ describe('ApplicationLatestEvaluationsPage', () => {
       includes: jest.fn(),
     };
     jest.spyOn(RouterStateContextModule, 'useRouterState').mockImplementation(() => mockRouterState);
-
-    setupPortalContainer();
 
     renderComponent = (preloadedState) => render(<ApplicationLatestEvaluationsPage />, { preloadedState });
   });

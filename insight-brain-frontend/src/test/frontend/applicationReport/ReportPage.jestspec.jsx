@@ -11,15 +11,7 @@ import * as applicationReportSelectors from 'MainRoot/applicationReport/applicat
 import * as productFeaturesSelectors from 'MainRoot/productFeatures/productFeaturesSelectors';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
-import {
-  fireEvent,
-  render,
-  screen,
-  within,
-  setupPortalContainer,
-  removePortalContainer,
-  axiosMockAdapter,
-} from 'TestRoot/SpecUtil';
+import { fireEvent, render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
 import { getLatestReportInformation } from 'MainRoot/util/CLMLocation';
 import { act } from '@testing-library/react';
@@ -87,13 +79,6 @@ describe('Report Page component', () => {
       includes: jest.fn(() => false),
     };
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
-
-    // this is needed to test the back button because it is placed through the use of react portals
-    setupPortalContainer();
-  });
-
-  afterEach(() => {
-    removePortalContainer();
   });
 
   it('renders an alert and retry button if there is an issue while loading information', () => {

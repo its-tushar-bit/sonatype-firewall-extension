@@ -6,7 +6,7 @@
 
 import React from 'react';
 
-import { render, screen, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen } from 'TestRoot/SpecUtil';
 import ComponentDetailsBackButton from 'MainRoot/componentDetails/ComponentDetailsBackButton';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as RouterSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -21,8 +21,6 @@ describe('ComponentDetailsBackButton', () => {
     selectReportStageIdSpy;
 
   beforeEach(() => {
-    setupPortalContainer();
-
     renderComponent = (additionalProps, preloadedState) =>
       render(<ComponentDetailsBackButton {...minimalProps} {...additionalProps} />, { preloadedState });
 
@@ -49,8 +47,6 @@ describe('ComponentDetailsBackButton', () => {
 
     selectReportStageIdSpy = jest.spyOn(applicationReportSelectors, 'selectReportStageId').mockReturnValue('proxy');
   });
-
-  afterEach(() => removePortalContainer());
 
   describe('Back to Dependency Tree button', () => {
     it('renders if scanId and publicId props are provided', () => {

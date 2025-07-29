@@ -37,6 +37,7 @@ import { selectIsDirty as policyEditorSelectIsDirty } from 'MainRoot/OrgsAndPoli
 import AutoWaiversConfiguration from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiversConfiguration';
 import AutoWaiverDetails from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/AutoWaiverDetails';
 import PublicDataSourcesEditor from 'MainRoot/OrgsAndPolicies/publicDataSources/PublicDataSourcesEditor';
+import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 
 export default angular
   .module('owner.manager.module', [
@@ -74,6 +75,7 @@ export default angular
   .component('autoWaiversConfiguration', iqReact2Angular(AutoWaiversConfiguration, [], ['$ngRedux', '$state']))
   .component('autoWaiverDetails', iqReact2Angular(AutoWaiverDetails, [], ['$ngRedux', '$state']))
   .component('publicDataSourcesEditor', iqReact2Angular(PublicDataSourcesEditor, [], ['$ngRedux', '$state']))
+  .component('menuBarStatefulBreadcrumb', iqReact2Angular(MenuBarStatefulBreadcrumb, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

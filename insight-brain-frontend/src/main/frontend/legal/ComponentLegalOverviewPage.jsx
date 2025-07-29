@@ -141,8 +141,8 @@ export default function ComponentLegalOverviewPage(props) {
   return (
     <main className="nx-page-main nx-viewport-sized iq-component-legal-overview-page">
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-legal-overview-page__content">
+        <MenuBarBackButton href={backHref} text="Back" />
         <LoadWrapper loading={loading} error={error} retryHandler={load}>
-          <MenuBarBackButton href={backHref} text="Back" />
           {component && (
             <React.Fragment>
               <div className="nx-page-title">

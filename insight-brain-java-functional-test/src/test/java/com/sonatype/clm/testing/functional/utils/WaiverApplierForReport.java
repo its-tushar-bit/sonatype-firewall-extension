@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional.utils;
 
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationDetailPopover;
 import com.sonatype.clm.testing.functional.elements.componentdetails.PolicyViolationsTable;
 import com.sonatype.clm.testing.functional.pages.AddWaiverPage;
@@ -46,7 +47,7 @@ public class WaiverApplierForReport
 
     waiveViolationFromTable(violationsTable, 1);
 
-    SelenideElement backButton = componentDetailsPage.backButton();
+    NxBackButton backButton = componentDetailsPage.backButton();
     backButton.shouldBe(visible);
     backButton.shouldHave(text("Back to Application Report"));
     backButton.click();

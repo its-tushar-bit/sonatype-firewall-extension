@@ -493,7 +493,9 @@ public class RepositorySummaryViewTest
 
     eyesWatcher.eyesCheck("hosted repository namespace confusion protection tile sorted by enable column");
 
+    ScrollUtil.scrollIntoView(breadcrumb.getElement(), false);
     breadcrumb.listItems().get(2).click();
+
     waitUntilUrl(RepositoriesSummaryPage.repositoryManagerUrl(repoManager.getId()));
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);
 
@@ -515,6 +517,7 @@ public class RepositorySummaryViewTest
 
     eyesWatcher.eyesCheck("hosted repository manager namespace confusion protection tile sorted by enable column");
 
+    ScrollUtil.scrollIntoView(breadcrumb.getElement(), false);
     breadcrumb.listItems().get(1).click();
     waitUntilUrl(RepositoriesSummaryPage.url());
     ScrollUtil.scrollIntoView(namespaceConfusionProtectionTile.getElement(), false);

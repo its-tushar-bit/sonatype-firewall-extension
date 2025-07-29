@@ -63,6 +63,6 @@ public class FirewallContainerRepositoryResultsPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 }

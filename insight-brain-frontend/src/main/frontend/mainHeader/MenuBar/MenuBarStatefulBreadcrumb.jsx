@@ -3,8 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useRef } from 'react';
-import * as ReactDOM from 'react-dom';
+import React from 'react';
 import { NxStatefulBreadcrumb } from '@sonatype/react-shared-components';
 import { useSelector } from 'react-redux';
 
@@ -32,8 +31,6 @@ import {
 import { getOwnerInfo } from 'MainRoot/OrgsAndPolicies/ownerSideNav/utils';
 import { selectNoSbomManagerEnabledError } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { selectComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
-
-const BREAD_CRUMB_CONTAINER_ID = 'menu-bar__bread-crumb-container';
 
 const getBreadcrumb = (
   uiRouterState,
@@ -117,12 +114,8 @@ const getBreadcrumb = (
 };
 
 const MenuBarStatefulBreadcrumb = () => {
-  // Portal configuration
-  const container = document.getElementById(BREAD_CRUMB_CONTAINER_ID);
-  const containerRef = useRef(null);
-  containerRef.current = containerRef.current || container;
-
   const uiRouterState = useRouterState();
+
   const routeName = useSelector(selectCurrentRouteName);
   const ownersMap = useSelector(selectOwnersMap);
   const displayedOrganization = useSelector(selectDisplayedOrganization);
@@ -161,10 +154,7 @@ const MenuBarStatefulBreadcrumb = () => {
     sbomManagerComponentDisplayName
   );
 
-  const renderComponentInsidePortal = (componentToRender) =>
-    containerRef.current && ReactDOM.createPortal(componentToRender, containerRef.current);
-
-  return renderComponentInsidePortal(<NxStatefulBreadcrumb crumbs={breadcrumb} />);
+  return <NxStatefulBreadcrumb crumbs={breadcrumb} />;
 };
 
 export default MenuBarStatefulBreadcrumb;

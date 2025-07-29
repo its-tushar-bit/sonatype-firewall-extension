@@ -48,7 +48,6 @@ export const MenuBar = ({
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
   const backButtonPortalContainer = <div id="menu-bar__back-button-container" />;
-  const breadcrumbPortalContainer = <div id="menu-bar__bread-crumb-container" />;
 
   if (!isLoggedIn && shouldShowLoginButton) {
     return (
@@ -64,8 +63,6 @@ export const MenuBar = ({
 
   return (
     <Fragment>
-      {backButtonPortalContainer}
-      {breadcrumbPortalContainer}
       <div id="menu-bar" className="nx-global-header__actions menu-bar">
         <HelpMenu majorMinorVersion={majorMinorVersion} />
         {isShowNotificationMenuEnabled && !isStandaloneDeveloper && <NotificationsMenuContainer />}

@@ -70,7 +70,7 @@ public class ArtifactoryRepositoryBaseConfigurationsPage
     public SelenideElement edit() {
       return child(".artifactory-repository-base-configurations-edit-button");
     }
-    
+
     public SelenideElement delete() {
       return child(".artifactory-repository-base-configurations-delete-button");
     }
@@ -81,7 +81,7 @@ public class ArtifactoryRepositoryBaseConfigurationsPage
   }
 
   public NxBackButton back() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public SelenideElement alert() {

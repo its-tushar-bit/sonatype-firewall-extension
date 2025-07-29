@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import WaiverDetailsContainer from 'MainRoot/waivers/waiverDetails/WaiverDetailsContainer';
-import { screen, render, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { screen, render } from 'TestRoot/SpecUtil';
 import { set, lensPath } from 'ramda';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
@@ -20,9 +20,6 @@ describe('WaiverDetailsContainer', () => {
       currentParams: { type: 'autoWaiver' },
     },
   };
-
-  beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     routerContextMock = {

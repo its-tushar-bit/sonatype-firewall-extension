@@ -412,7 +412,6 @@ export default function OwnerSideNav() {
 
   return (
     <>
-      <MenuBarStatefulBreadcrumb />
       <NxLoadWrapper
         loading={loading || loadingOwnerSummary || !displayedOrganization}
         error={error}

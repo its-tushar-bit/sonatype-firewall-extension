@@ -69,7 +69,7 @@ public class InnerSourceRepositoryBaseConfigurationsPage
     public SelenideElement edit() {
       return child(".innersource-repository-base-configurations-edit-button");
     }
-    
+
     public SelenideElement delete() {
       return child(".innersource-repository-base-configurations-delete-button");
     }
@@ -84,7 +84,7 @@ public class InnerSourceRepositoryBaseConfigurationsPage
   }
 
   public NxBackButton back() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public SelenideElement alert() {

@@ -23,7 +23,6 @@ import LoadWrapper from 'MainRoot/react/LoadWrapper';
 import SbomVersionDropdown from 'MainRoot/sbomManager/features/sbomVersionDropdown/SbomVersionDropdown';
 import SummaryTile from 'MainRoot/sbomManager/features/billOfMaterials/summaryTile/SummaryTile';
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
-import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import InvalidSbomIndicator from '../InvalidSbomIndicator';
 import { getDownloadSbomFileUrl, getSbomDownloadPdfUrl } from 'MainRoot/util/CLMLocation';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -190,7 +189,6 @@ export default function BillOfMaterials() {
 
   return (
     <>
-      <MenuBarStatefulBreadcrumb />
       <ExportModalSubmitMask />
       <SbomAdditionalExportOptionsModal />
       <NxPageMain id="sbom-manager-bom" className="sbom-manager-bill-of-materials-page">

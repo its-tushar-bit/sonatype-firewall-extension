@@ -45,7 +45,7 @@ public class ViolationDetailsPage
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public SidebarNav sidebarNav() {

@@ -304,8 +304,8 @@ export default function ComponentDetailsPage() {
         />
       )}
       <NxPageMain id="sbom-manager-component-details" className={'sbom-component-details nx-viewport-sized'}>
-        <MenuBarStatefulBreadcrumb />
         <div className="nx-viewport-sized__scrollable nx-scrollable sbom-component-details-page__content">
+          <MenuBarStatefulBreadcrumb />
           <NxLoadWrapper
             retryHandler={load}
             loading={isProductFeaturesLoading || isLoading}

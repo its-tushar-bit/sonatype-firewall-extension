@@ -13,8 +13,8 @@ import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import RouterStateContext from 'MainRoot/react/RouterStateContext';
 import { PERMISSION } from 'MainRoot/util/authorizationUtil';
 import { fakeRouterState, verifyOwnersMenuSection } from './ownerSideNavTestingUtils';
-import { setupMenuBarBreadcrumbsPortalContainer } from '../../mainHeader/MenuBar/MenuBarStatefulBreadcrumb.jestspec';
 import { mergeDeepRight } from 'ramda';
+import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
@@ -81,7 +81,6 @@ describe('OwnerSideNav', () => {
 
   beforeAll(() => {
     mockAxiosCalls = axiosMockAdapter();
-    setupMenuBarBreadcrumbsPortalContainer();
   });
 
   beforeEach(() => {
@@ -126,6 +125,7 @@ describe('OwnerSideNav', () => {
   const renderComponent = (preloadedState = state, router = routerContext) => {
     return render(
       <RouterStateContext.Provider value={router}>
+        <MenuBarStatefulBreadcrumb />
         <OwnerSideNav />
       </RouterStateContext.Provider>,
       { preloadedState }

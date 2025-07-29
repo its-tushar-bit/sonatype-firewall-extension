@@ -235,7 +235,7 @@ public class ComponentDetailsTest
       componentDetailsPage.header().title().shouldHave(text("com.mycila : license-maven-plugin : 2.11"));
       componentDetailsPage.tabs().shouldHave(size(6));
 
-      SelenideElement backButton = MainHeader.backButton();
+      NxBackButton backButton = MainHeader.backButton();
       backButton.shouldBe(visible);
       backButton.shouldHave(text("Back to Application Report"));
       backButton.click();

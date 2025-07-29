@@ -12,15 +12,6 @@ import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockDa
 import { RouterStateProvider } from 'MainRoot/react/RouterStateContext';
 import { fireEvent } from '@testing-library/react';
 
-export const setupMenuBarBreadcrumbsPortalContainer = () => {
-  if (!global.document.getElementById('menu-bar__bread-crumb-container')) {
-    const breadCrumbContainer = global.document.createElement('div');
-    breadCrumbContainer.setAttribute('id', 'menu-bar__bread-crumb-container');
-    const body = global.document.querySelector('body');
-    body.appendChild(breadCrumbContainer);
-  }
-};
-
 describe('MenuBarStatefulBreadcrumb', () => {
   let c = 0;
   const generateFakeLink = () => {
@@ -30,11 +21,10 @@ describe('MenuBarStatefulBreadcrumb', () => {
   };
   const mockUIRouterState = { href: generateFakeLink, includes: () => false, get: () => null, children: [] };
   let mockRouter;
+
   beforeEach(() => {
     mockRouter = { ...mockUIRouterState, includes: (stateName) => stateName === 'my.state' };
   });
-
-  setupMenuBarBreadcrumbsPortalContainer();
 
   const renderComponent = (preloadedState) => {
     return render(

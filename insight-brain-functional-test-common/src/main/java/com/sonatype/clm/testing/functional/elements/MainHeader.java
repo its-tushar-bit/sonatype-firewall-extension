@@ -35,7 +35,7 @@ public class MainHeader
     return $("#header-login-button");
   }
 
-  public static SelenideElement backButton() {
-    return $("#menu-bar__back-button-container .nx-text-link");
+  public static NxBackButton backButton() {
+    return new NxBackButton();
   }
 }

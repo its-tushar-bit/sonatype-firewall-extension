@@ -44,6 +44,6 @@ public class OwnerTreeViewPage
   }
 
   public static NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 }

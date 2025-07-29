@@ -7,6 +7,7 @@ package com.sonatype.clm.testing.functional.pages;
 
 import com.sonatype.clm.testing.functional.BasicElement;
 import com.sonatype.clm.testing.functional.elements.Button;
+import com.sonatype.clm.testing.functional.elements.NxBackButton;
 import com.sonatype.clm.testing.functional.elements.NxSmallThreatCounter;
 import com.sonatype.clm.testing.functional.elements.NxTextInput;
 import com.sonatype.clm.testing.functional.elements.NxTreeViewMultiSelect;
@@ -37,12 +38,8 @@ public class RepositoryResultDetailPage extends BasicElement<RepositoryResultDet
     return $("repository-results-summary-page .nx-h1");
   }
 
-  public static SelenideElement backButton() {
-    return $(".nx-back-button");
-  }
-
-  public static SelenideElement backButtonLink() {
-    return $(".nx-back-button .nx-text-link");
+  public static NxBackButton backButton() {
+    return new NxBackButton();
   }
 
   public static SelenideElement filterPopoverButton() {

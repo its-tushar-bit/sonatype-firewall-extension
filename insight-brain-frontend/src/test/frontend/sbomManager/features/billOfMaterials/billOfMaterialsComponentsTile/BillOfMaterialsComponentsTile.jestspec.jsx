@@ -6,16 +6,7 @@
 import React from 'react';
 import { update } from 'ramda';
 
-import {
-  axiosMockAdapter,
-  fireEvent,
-  removePortalContainer,
-  render,
-  screen,
-  setupPortalContainer,
-  waitFor,
-  within,
-} from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, waitFor, within } from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
 import BillOfMaterialsComponentsTile from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/BillOfMaterialsComponentsTile';
@@ -163,9 +154,6 @@ describe('BillOfMaterialsComponentsTile', () => {
   ]);
 
   const renderComponent = (preloadedState) => render(<BillOfMaterialsComponentsTile />, { preloadedState });
-
-  beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();

@@ -72,7 +72,7 @@ public class RequestWaiverPage
   public ElementsCollection requestWaiverScopeOptions() {
     return children("#iq-request-waiver-scope option");
   }
-  
+
   public SelenideElement requestWaiverScopeSelect() {
     return child("#iq-request-waiver-scope");
   }
@@ -96,7 +96,7 @@ public class RequestWaiverPage
   public ElementsCollection requestWaiverExpiryTimeOptions() {
     return children("#waiver-expiration-select option");
   }
-  
+
   public SelenideElement waiverExpirationSelect() {
     return child("#waiver-expiration-select");
   }
@@ -120,13 +120,13 @@ public class RequestWaiverPage
   public SelenideElement requestWaiverNoteToReviewer() {
     return child(".iq-request-waiver-form__note-to-reviewer .nx-text-input textarea");
   }
-  
+
   public SelenideElement requestWaiverDateInput() {
     return child(".iq-request-waiver-form__date-input .nx-text-input__input");
   }
 
   public NxBackButton backButton() {
-    return new NxBackButton("#menu-bar__back-button-container");
+    return new NxBackButton();
   }
 
   public Button saveButton() {
@@ -140,7 +140,7 @@ public class RequestWaiverPage
   public SelenideElement submitError() {
     return child(".nx-footer .nx-alert");
   }
-  
+
   public SelenideElement rejectionErrorAlert() {
     return child(".nx-alert--error");
   }

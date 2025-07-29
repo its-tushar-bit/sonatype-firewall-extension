@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { removePortalContainer, render, screen, setupPortalContainer, within } from 'TestRoot/SpecUtil';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import ViolationPage, { MISSING_VIOLATION_ID_MESSAGE_TEXT } from 'MainRoot/violation/ViolationPage';
 import { always } from 'ramda';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
@@ -19,9 +19,6 @@ describe('ViolationPage', () => {
     loadFirewallViolationDetailsSpy,
     loadSimilarWaiversSpy,
     routerContextMock;
-
-  beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(function () {
     routerContextMock = {

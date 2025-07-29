@@ -574,18 +574,10 @@ body
     └── div#iq-content (contentRoot)
         └── div#iq-footer-container (footerRoot)
             └── main.nx-page-main (main)
-                ├── div#menu-bar__back-button-container (backButtonRoot)
-                └── div#menu-bar__bread-crumb-container (breadcrumbRoot)
  */
 export const setupPortalContainer = () => {
   const main = global.document.createElement('main');
   main.setAttribute('class', 'nx-page-main');
-
-  const backButtonRoot = global.document.createElement('div');
-  backButtonRoot.setAttribute('id', 'menu-bar__back-button-container');
-
-  const breadcrumbRoot = global.document.createElement('div');
-  breadcrumbRoot.setAttribute('id', 'menu-bar__bread-crumb-container');
 
   const pageRoot = global.document.createElement('div');
   pageRoot.setAttribute('class', 'nx-page');
@@ -601,19 +593,11 @@ export const setupPortalContainer = () => {
   pageRoot.appendChild(contentRoot);
   contentRoot.appendChild(footerRoot);
   footerRoot.appendChild(main);
-  main.appendChild(backButtonRoot);
-  main.appendChild(breadcrumbRoot);
 };
 
 export const removePortalContainer = () => {
   const main = global.document.querySelector('.nx-page-main');
   main?.remove();
-
-  const backButtonRoot = global.document.querySelector('#menu-bar__back-button-container');
-  backButtonRoot?.remove();
-
-  const breadcrumbRoot = global.document.querySelector('#menu-bar__bread-crumb-container');
-  breadcrumbRoot?.remove();
 
   const pageRoot = global.document.querySelector('.nx-page');
   pageRoot?.remove();

@@ -6,16 +6,7 @@
 import React from 'react';
 import moment from 'moment';
 
-import {
-  axiosMockAdapter,
-  screen,
-  render,
-  waitFor,
-  setupPortalContainer,
-  removePortalContainer,
-  fireEvent,
-  within,
-} from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, screen, render, waitFor, fireEvent, within } from 'TestRoot/SpecUtil';
 import userEvent from '@testing-library/user-event';
 
 import {
@@ -141,9 +132,6 @@ describe('BillOfMaterials Page', () => {
     SORT_BY_FIELDS.vulnerabilities,
     false,
   ]);
-
-  beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();

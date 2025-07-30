@@ -39,10 +39,6 @@ ui-view {
   overflow-y: revert;
 }
 
-[authorization-wrapper] > div {
-  display: contents;
-}
-
 .nx-page-main {
   // to make a positioning container for iq-popovers
   position: relative;

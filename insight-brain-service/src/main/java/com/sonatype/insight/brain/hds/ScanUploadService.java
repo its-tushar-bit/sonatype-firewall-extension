@@ -134,7 +134,7 @@ public class ScanUploadService
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanEntity, tempScanEntity, thirdPartyScanContext,
             thirdPartyScanTelemetryData);
-    ScanReceipt scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
+    ScanReceipt scanReceipt = uploader.upload(tempScanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveContainerUriPaths(stageTypeId, thirdPartyScanContext);
     saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanEntity);

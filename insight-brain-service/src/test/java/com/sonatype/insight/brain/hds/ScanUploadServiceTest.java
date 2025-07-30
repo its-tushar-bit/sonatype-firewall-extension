@@ -134,9 +134,12 @@ public class ScanUploadServiceTest
     when(scanUploader.upload(any(ScanEntity.class), eq(app), eq(stage.getStageTypeId()), eq(null), eq(mockContext)))
         .thenReturn(scanReceipt);
 
+    ArgumentCaptor<ScanEntity> scanEntityCaptor = ArgumentCaptor.forClass(ScanEntity.class);
+
     ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
     String testClientUserAgent = "client_user_agent";
-    when(scanUploader.upload(any(ScanEntity.class), eq(app), eq(stage.getStageTypeId()),
+
+    when(scanUploader.upload(scanEntityCaptor.capture(), eq(app), eq(stage.getStageTypeId()),
         clientUserAgentArgCaptor.capture(),
         eq(mockContext))).thenReturn(scanReceipt);
 
@@ -145,6 +148,8 @@ public class ScanUploadServiceTest
     verify(thirdPartyScanResultsProcessorMock, times(1))
         .filterAndSaveData(eq(scanEntity), any(ScanEntity.class), eq(mockContext), eq(null));
     verify(thirdPartyScanDAO, times(1)).updateScanIdForScanRequest(scanRequestId, scanId);
+    assertThat(scanEntityCaptor.getValue().getAppId()).isEqualTo(app.getId());
+    assertThat(scanEntityCaptor.getValue().getName()).isNotEqualTo(scanEntity.getName());
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 

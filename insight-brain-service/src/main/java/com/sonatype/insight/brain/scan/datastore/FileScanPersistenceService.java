@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.scan.datastore;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 import javax.inject.Inject;
@@ -64,8 +65,10 @@ public class FileScanPersistenceService
   public void moveTempScan(final ScanEntity tempScanEntity, final String appId, final String scanId)
       throws IOException
   {
-    Files.move(((FileScanEntity) tempScanEntity).file().toPath(), getFile(appId, scanFileName(scanId)).toPath(),
-        StandardCopyOption.REPLACE_EXISTING);
+    Path sourcePath = ((FileScanEntity) tempScanEntity).file().toPath();
+    Path destinationPath = getFile(appId, scanFileName(scanId)).toPath();
+    Files.createDirectories(destinationPath.getParent());
+    Files.move(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
   }
 
   @Override
@@ -75,8 +78,10 @@ public class FileScanPersistenceService
 
   @Override
   public void copyScanFile(final ScanEntity source, final ScanEntity destination) throws IOException {
-    Files.copy(((FileScanEntity) source).file().toPath(), ((FileScanEntity) destination).file().toPath(),
-        StandardCopyOption.REPLACE_EXISTING);
+    Path sourcePath = ((FileScanEntity) source).file().toPath();
+    Path destinationPath = ((FileScanEntity) destination).file().toPath();
+    Files.createDirectories(destinationPath.getParent());
+    Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
   }
 
   @Override

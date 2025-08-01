@@ -6,6 +6,7 @@
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 import * as userSession from 'MainRoot/user/userSession';
 import mainBundlePendoService, { setUrlService } from 'MainRoot/pendo/mainBundlePendoService';
+import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('userActions', function () {
   let userActions,
@@ -331,12 +332,6 @@ describe('userActions', function () {
   });
 
   describe('loadUser', () => {
-    let CLMContextLocations;
-
-    beforeEach(inject(function (_CLMContextLocations_) {
-      CLMContextLocations = _CLMContextLocations_;
-    }));
-
     afterEach(() => {
       $httpBackend.verifyNoOutstandingExpectation();
       $httpBackend.verifyNoOutstandingRequest();
@@ -346,7 +341,7 @@ describe('userActions', function () {
       'waits for the current user to log in, queries their permissions,  and sets shouldDisplayWarning to false if ' +
         'they do not have the CONFIGURE_SYSTEM permission',
       function () {
-        $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM']).respond([]);
+        $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond([]);
 
         const store = SpecUtil.mockReduxStore(initialState);
         const successSpy = jasmine.createSpy('successSpy');
@@ -381,9 +376,7 @@ describe('userActions', function () {
       'queries shouldDisplayDefaultPasswordWarning if the user has CONFIGURE_SYSTEM and sets shouldDisplayWarning' +
         ' accordingly',
       function () {
-        $httpBackend
-          .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-          .respond(['CONFIGURE_SYSTEM']);
+        $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
         $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
 
         const store = SpecUtil.mockReduxStore(initialState);
@@ -416,9 +409,7 @@ describe('userActions', function () {
     );
 
     it('sets shouldDisplayWarning to false if the shouldDisplayDefaultPasswordWarning endpoint returns false', function () {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('false');
 
       const store = SpecUtil.mockReduxStore(initialState);
@@ -450,9 +441,7 @@ describe('userActions', function () {
     });
 
     it('should dispatch error if the call to get the current user does not resolve', () => {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
 
@@ -481,7 +470,7 @@ describe('userActions', function () {
       $rootScope.$digest();
 
       $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
+        .expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM'])
         .respond(500, 'Some server error message');
 
       const store = SpecUtil.mockReduxStore(initialState);
@@ -510,9 +499,7 @@ describe('userActions', function () {
       loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend
         .expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
@@ -541,9 +528,7 @@ describe('userActions', function () {
     });
 
     it('should submit telemetry data when the display flag is shown', () => {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
 
@@ -565,9 +550,7 @@ describe('userActions', function () {
     });
 
     it('should not submit telemetry data when the display flag is not shown', () => {
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond(false);
 
@@ -584,7 +567,7 @@ describe('userActions', function () {
     });
 
     it('should not submit telemetry data when the permissions call fails', () => {
-      $httpBackend.expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM']).respond(500);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(500);
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -602,9 +585,7 @@ describe('userActions', function () {
       loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
-      $httpBackend
-        .expectPUT(CLMContextLocations.getPermissionTestUrl(true), ['CONFIGURE_SYSTEM'])
-        .respond(['CONFIGURE_SYSTEM']);
+      $httpBackend.expectPUT(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).respond(['CONFIGURE_SYSTEM']);
 
       $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond(500);
 

@@ -26,6 +26,7 @@ import WaivedComponentUpgradesConfiguration from './waivedComponentUpgradesConfi
 import RoiConfigurationPage from './roiConfiguration/RoiConfigurationPage';
 import EditRoiConfigurationPage from './editRoiConfiguration/EditRoiConfigurationPage';
 import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
+import { isAuthorized } from '../util/permissionService';
 
 export const GETTING_STARTED_STATE = 'gettingStarted';
 
@@ -91,12 +92,9 @@ function routes($stateProvider) {
         isDirty: ['mailConfig', 'isDirty'],
       },
       resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
       },
     })
     .state('proxyConfig', {
@@ -115,12 +113,9 @@ function routes($stateProvider) {
         isDirty: ['advancedSearchConfig', 'viewState', 'isDirty'],
       },
       resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
       },
     })
     .state('successMetricsConfiguration', {

@@ -34,11 +34,12 @@ import {
 import { selectIsStandaloneDeveloper, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
 import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
+import { getValidPermissions } from 'MainRoot/util/permissionService';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
 
-function MainHeaderController($rootScope, $scope, PermissionService, $ngRedux) {
+function MainHeaderController($rootScope, $scope, $ngRedux) {
   var vm = this;
   vm.faUserAlt = faUserAlt;
   vm.permissions = {};
@@ -75,7 +76,7 @@ function MainHeaderController($rootScope, $scope, PermissionService, $ngRedux) {
     ];
 
     waitForLogin().then(function () {
-      PermissionService.getValidPermissions(validPermissions).then(function (data) {
+      getValidPermissions(validPermissions).then(function (data) {
         const perms = {};
         angular.forEach(data, function (permission) {
           perms[permission] = true;
@@ -125,7 +126,7 @@ export const mapStateToThis = (state) => ({
   isZscalerEnabled: selectIsZscalerEnabled(state),
 });
 
-MainHeaderController.$inject = ['$rootScope', '$scope', 'PermissionService', '$ngRedux'];
+MainHeaderController.$inject = ['$rootScope', '$scope', '$ngRedux'];
 
 export default {
   controller: MainHeaderController,

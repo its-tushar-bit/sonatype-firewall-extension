@@ -8,12 +8,12 @@ import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
 import * as userSession from 'MainRoot/user/userSession';
 import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
+import * as permissionService from 'MainRoot/util/permissionService';
 
 describe('mainHeaderSpec', function () {
   var $scope,
     $rootScope,
     mockSystemConfigurationPropertyService,
-    mockPermissionService,
     mockRouteStateUtilService,
     routeStateUtilServiceDeferred,
     isSuccessMetricsEnabledDeferred,
@@ -42,10 +42,7 @@ describe('mainHeaderSpec', function () {
     spyOn(userSession, 'fetchUser');
     spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
     spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(routeStateUtilServiceDeferred.promise);
-
-    mockPermissionService = {
-      getValidPermissions: jasmine.createSpy().and.returnValue($q.resolve()),
-    };
+    spyOn(permissionService, 'getValidPermissions').and.returnValue($q.resolve());
 
     mockRouteStateUtilService = jasmine.createSpyObj('mockRouteStateUtilService', [
       'stateRequiresAuthenticationSync',
@@ -54,7 +51,6 @@ describe('mainHeaderSpec', function () {
     mockRouteStateUtilService.stateRequiresAuthentication.and.returnValue(routeStateUtilServiceDeferred.promise);
 
     vm = $componentController('mainHeader', {
-      PermissionService: mockPermissionService,
       systemConfigurationPropertyService: mockSystemConfigurationPropertyService,
       $scope: $scope,
     });
@@ -93,15 +89,15 @@ describe('mainHeaderSpec', function () {
     expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
-  it('does not load permissions or features until after login', function () {
+  fit('does not load permissions or features until after login', function () {
     vm.$onInit();
 
-    expect(mockPermissionService.getValidPermissions).not.toHaveBeenCalled();
+    expect(permissionService.getValidPermissions).not.toHaveBeenCalled();
 
     loginDeferred.resolve();
     $scope.$digest();
 
-    expect(mockPermissionService.getValidPermissions).toHaveBeenCalled();
+    expect(permissionService.getValidPermissions).toHaveBeenCalled();
   });
 
   describe('isLoggedIn()', function () {

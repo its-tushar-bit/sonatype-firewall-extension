@@ -3,11 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import permissionServiceModule from '../utilAngular/PermissionService';
-
 export const SecurityModule = angular.module(
   'SecurityModule',
-  ['ui.router', permissionServiceModule.name],
+  ['ui.router'],
   [
     '$stateProvider',
     function ($stateProvider) {

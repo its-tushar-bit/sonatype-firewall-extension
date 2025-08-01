@@ -16,6 +16,7 @@ import {
   ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
 } from 'MainRoot/utility/services/routeStateUtilService';
 import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS, ROI } from 'MainRoot/constants/states';
+import { isAuthorized, isFeatureEnabled } from 'MainRoot/util/permissionService';
 
 import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
@@ -452,12 +453,9 @@ function routes($stateProvider) {
         isDirty: ['mailConfig', 'isDirty'],
       },
       resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
       },
     })
     .state('firewall.zscalerConfig', {
@@ -469,16 +467,12 @@ function routes($stateProvider) {
       },
       resolve: {
         isAuthorized: [
-          'PermissionService',
           '$q',
-          function (PermissionService, $q) {
+          function ($q) {
             return $q
-              .all([
-                PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true),
-                PermissionService.isFeatureEnabled('zscaler'),
-              ])
-              .then(([isAuthorized, isFeatureEnabled]) => {
-                return isAuthorized && isFeatureEnabled;
+              .all([isAuthorized(['CONFIGURE_SYSTEM']), isFeatureEnabled('zscaler')])
+              .then(([isAuthorizedValue, isFeatureEnabledValue]) => {
+                return isAuthorizedValue && isFeatureEnabledValue;
               });
           },
         ],

@@ -5,8 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import utilityServicesModule from '../utility/services/utility.services.module';
-import CLMLocationModule from '../util/CLMLocation';
-import permissionServiceModule from '../utilAngular/PermissionService';
 import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
@@ -17,8 +15,6 @@ import mainHeader from './mainHeader';
 export default angular
   .module('mainHeader', [
     'ui.router',
-    CLMLocationModule.name,
-    permissionServiceModule.name,
     utilityServicesModule.name,
     telemetryServiceModule.name,
     reactComponentsModule.name,

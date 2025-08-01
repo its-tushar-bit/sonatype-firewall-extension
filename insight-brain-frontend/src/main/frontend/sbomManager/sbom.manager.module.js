@@ -19,6 +19,7 @@ import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLic
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
 import { createLegalRoutes, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
+import { isAuthorized } from 'MainRoot/util/permissionService';
 
 export default angular
   .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name, legalModule.name])
@@ -128,12 +129,9 @@ function routes($stateProvider) {
         isDirty: ['mailConfig', 'isDirty'],
       },
       resolve: {
-        isAuthorized: [
-          'PermissionService',
-          function (PermissionService) {
-            return PermissionService.isAuthorized(['CONFIGURE_SYSTEM'], true);
-          },
-        ],
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
       },
     })
     .state('sbomManager.baseUrlConfiguration', {

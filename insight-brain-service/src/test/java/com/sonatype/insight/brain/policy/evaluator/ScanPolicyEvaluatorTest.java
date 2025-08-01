@@ -120,6 +120,8 @@ import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupCond
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.SecurityVulnerabilityResearch;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.policy.notifications.WebhookNotification;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -3864,10 +3866,15 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    //We need to create an actual repository and set it in the organization
+    Repository repository = createTestRepository();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
 
     Policy policy =
         newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
     policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setOwnerId(repository.getId());
     policyDAO.update(policy);
     String scanBuildId = simulateReportIsAvailable("report");
 
@@ -3887,10 +3894,15 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    //We need to create an actual repository and set it in the organization
+    Repository repository = createTestRepository();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
 
     Policy policy =
         newPolicy(new Condition(CoordinatesConditionType.ID, "match", "maven:commons-pool:commons-pool:1.4"));
     policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setOwnerId(repository.getId());
     policyDAO.update(policy);
     String scanBuildId = simulateReportIsAvailable("report");
 
@@ -3904,6 +3916,11 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(evaluationResult.getAlerts()).hasSize(1);
     assertThat(evaluationResult.getAlerts().get(0).getActions()).isEmpty();
+  }
+
+  private Repository createTestRepository() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    return tempEntity.newRepository(repositoryManager, "test-repo-id");
   }
 
   @Test
@@ -5252,6 +5269,34 @@ public class ScanPolicyEvaluatorTest
     verify(autoPolicyWaiverTelemetryCollector)
         .addTelemetryForApplyAutoWaiver(refEq(noPFAutoWaiver), any(PolicyViolation.class),
             any(Owner.class));
+  }
+
+  @Test
+  public void testGetPolicyOwnerIdForEvaluation_ReturnsApplicationId() {
+    Stage buildStage = new Stage(Stage.ID_BUILD);
+    ScanTriggerType cliTrigger = ScanTriggerType.CLI;
+
+    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(
+        application, cliTrigger, buildStage);
+
+    assertThat(result).isEqualTo(application.getId());
+  }
+
+  @Test
+  public void testGetPolicyOwnerIdForEvaluation_ReturnsRepositoryId() {
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+
+    Stage proxyStage = new Stage(Stage.ID_PROXY);
+    ScanTriggerType cliTrigger = ScanTriggerType.CLI;
+
+    organization.setRelatedRepositoryId("test-repo-id");
+    organizationDAO.update(organization);
+
+    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(
+        application, cliTrigger, proxyStage);
+
+    assertThat(result).isEqualTo("test-repo-id");
   }
 
   private void restoreConstraintFactsToPreMigratedState() {

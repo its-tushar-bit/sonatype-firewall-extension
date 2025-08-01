@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -294,7 +293,15 @@ public class ApiPolicyViolationResourceV2
   @GET
   @Path(VIOLATIONID + SIMILAR_WAIVERS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve similar policy waivers for the given policy violation id." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements")
+  @ApiResponse(responseCode = "200",
+      description = "Successfully retrieved similar policy waivers for the given policy violation id.",
+      useReturnTypeSchema = true)
   public List<ApiPolicyWaiverDTO> getSimilarWaivers(
+      @Parameter(description = "Policy violation id to find similar waivers for.", required = true)
       @PathParam("violationId") final String violationId)
   {
     return apiPolicyWaiverService.getSimilarWaivers(violationId);

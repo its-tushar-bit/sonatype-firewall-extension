@@ -141,6 +141,10 @@ public class ApiHashComponentIdentifierResource
       "Permissions required: Claim components",
       responses = {
           @ApiResponse(
+              responseCode = "204",
+              description = "Component Claim for this hash was deleted."
+          ),
+          @ApiResponse(
               responseCode = "404",
               description = "Component Claim for this hash does not exist."
           )

@@ -27,6 +27,8 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -68,7 +70,21 @@ public class ApiSpdxResource
       "Permissions required: View IQ Elements",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The requested SBOM(s)."
+              description = "The requested SBOM(s).",
+              content = {
+                  @Content(
+                      mediaType = MediaType.APPLICATION_XML,
+                      schema = @Schema(type = "string", description = "SBOM in XML format")
+                  ),
+                  @Content(
+                      mediaType = MediaType.APPLICATION_JSON,
+                      schema = @Schema(type = "string", description = "SBOM in JSON format")
+                  ),
+                  @Content(
+                      mediaType = MediaType.APPLICATION_OCTET_STREAM,
+                      schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)")
+                  )
+              }
           )
       }
   )
@@ -100,7 +116,22 @@ public class ApiSpdxResource
       "Permissions required: View IQ Elemets",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The requested SBOM(s).")
+              description = "The requested SBOM(s).",
+              content = {
+                  @Content(
+                      mediaType = MediaType.APPLICATION_XML,
+                      schema = @Schema(type = "string", description = "SBOM in XML format")
+                  ),
+                  @Content(
+                      mediaType = MediaType.APPLICATION_JSON,
+                      schema = @Schema(type = "string", description = "SBOM in JSON format")
+                  ),
+                  @Content(
+                      mediaType = MediaType.APPLICATION_OCTET_STREAM,
+                      schema = @Schema(type = "string", format = "binary", description = "SBOM archive (tar.gz)")
+                  )
+              }
+          )
       })
   public Response getByScanId(
       @Parameter(description = "Enter the applicationId for the application you want to generate the SBOM(s).",

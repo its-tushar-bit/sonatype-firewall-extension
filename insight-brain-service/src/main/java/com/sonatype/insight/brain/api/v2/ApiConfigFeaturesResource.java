@@ -45,8 +45,7 @@ public class ApiConfigFeaturesResource
       "Permissions required: Edit System Configuration and Users")
   @ApiResponse(
       responseCode = "204",
-      description = "The specified feature has been enabled successfully.",
-      useReturnTypeSchema = true
+      description = "The specified feature has been enabled successfully."
   )
   @ApiResponse(
       responseCode = "400",

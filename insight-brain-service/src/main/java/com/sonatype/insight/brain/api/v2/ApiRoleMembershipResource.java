@@ -65,10 +65,9 @@ public class ApiRoleMembershipResource
       "\n" +
       "Permissions required: Edit access control")
   @ApiResponse(
-      responseCode = "200",
+      responseCode = "204",
       description = "The specified roleId has been has been granted to the user or user group for the requested " +
-          "context.",
-      useReturnTypeSchema = true
+          "context."
   )
   public void grantRoleMembershipApplicationOrOrganization(
       @Parameter(description = "Enter the value for the ownerType for which you want to grant the role.",
@@ -101,10 +100,9 @@ public class ApiRoleMembershipResource
       "Permissions required: Edit system configuration and users for a global context or edit access control for a " +
       "non-global context")
   @ApiResponse(
-      responseCode = "200",
+      responseCode = "204",
       description =
-          "The specified role has been granted to the users or user groups on the given context.",
-      useReturnTypeSchema = true
+          "The specified role has been granted to the users or user groups on the given context."
   )
   public void grantRoleMembershipGlobalOrRepositoryContainer(
       @Parameter(description = "Enter the value for the ownerType for which you want to grant the role.",
@@ -183,8 +181,7 @@ public class ApiRoleMembershipResource
       "Permissions required: Edit access control")
   @ApiResponse(
       responseCode = "204",
-      description = "The specified role has been revoked from the user or user group",
-      useReturnTypeSchema = true
+      description = "The specified role has been revoked from the user or user group"
   )
   public void revokeRoleMembershipApplicationOrOrganization(
       @Parameter(description = "Enter the value for the ownerType for which you want to revoke the role. Using " +
@@ -213,8 +210,7 @@ public class ApiRoleMembershipResource
       "non-global context")
   @ApiResponse(
       responseCode = "204",
-      description = "The specified role has been revoked from the user or user group.",
-      useReturnTypeSchema = true
+      description = "The specified role has been revoked from the user or user group."
   )
   public void revokeRoleMembershipGlobalOrRepositoryContainer(
       @Parameter(description = "Enter the value for ownerType. Using " +

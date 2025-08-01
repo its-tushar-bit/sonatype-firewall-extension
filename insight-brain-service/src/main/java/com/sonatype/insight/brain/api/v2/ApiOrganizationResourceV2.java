@@ -35,6 +35,8 @@ import com.sonatype.insight.brain.organization.MoveOrganizationService;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -132,7 +134,9 @@ public class ApiOrganizationResourceV2
           @ApiResponse(
               responseCode = "200",
               description = "The response contains the assigned organization id and all other organization " +
-                  "details specified.")
+                  "details specified.",
+              useReturnTypeSchema = true
+          )
       })
   public ApiOrganizationDTO addOrganization(
       @RequestBody(
@@ -164,12 +168,20 @@ public class ApiOrganizationResourceV2
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "The organization has been successfully moved under the parent organization id provided."
+              description = "The organization has been successfully moved under the parent organization id provided.",
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = MoveOrganizationResponseDTO.class)
+              )
           ),
           @ApiResponse(
               responseCode = "409",
               description = "Encountered conflicts while inheriting policy elements of the new parent organization. " +
-                  "The organization could not be moved under the new parent organization id provided."
+                  "The organization could not be moved under the new parent organization id provided.",
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = MoveOrganizationResponseDTO.class)
+              )
           )
       }
   )

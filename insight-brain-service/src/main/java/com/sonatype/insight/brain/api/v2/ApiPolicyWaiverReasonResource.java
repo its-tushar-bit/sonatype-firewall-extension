@@ -18,6 +18,8 @@ import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverReasonDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverReasonService;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.POLICY_WAIVER_REASONS_PATH;
@@ -27,7 +29,7 @@ import static com.sonatype.insight.brain.api.PublicApiPaths.POLICY_WAIVER_REASON
 @Path(POLICY_WAIVER_REASONS_PATH)
 @Tag(
     name = "Policy Waiver Reasons",
-    description = "Use this rest API to manage and fetch available waiver reasons"
+    description = "Use this rest API to fetch available policy waiver reasons"
 )
 @Produces(MediaType.APPLICATION_JSON)
 public class ApiPolicyWaiverReasonResource
@@ -43,6 +45,13 @@ public class ApiPolicyWaiverReasonResource
   }
 
   @GET
+  @Operation(description = "Use this method to retrieve all policy waiver reasons." +
+      "\n" +
+      "\n" +
+      "Permissions required: None")
+  @ApiResponse(responseCode = "200",
+      description = "Successfully retrieved all policy waiver reasons.",
+      useReturnTypeSchema = true)
   public List<ApiPolicyWaiverReasonDTO> getPolicyWaiverReasons() {
     return this.apiPolicyWaiverReasonService.getAllPolicyWaiverReasons();
   }

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.api.v2;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.DefaultValue;
@@ -21,6 +20,9 @@ import com.sonatype.insight.brain.api.v2.dto.ApiLicensedSolutionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiLicensedSolutionService;
 
 import io.micrometer.core.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 @Named
 @Timed
@@ -36,7 +38,22 @@ public class ApiLicensedSolutionsResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      description = "Retrieves a list of licensed solutions. "
+          + "The base URL must be set to get results unless relative URLs are allowed." +
+          "\n" +
+          "\n" +
+          "Permissions required: None ",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Successfully retrieved the list of licensed solutions.",
+              useReturnTypeSchema = true
+          )
+      }
+  )
   public List<ApiLicensedSolutionDTO> getLicensedSolutions(
+      @Parameter(description = "Whether or not relative URLs should be allowed.")
       @DefaultValue("false") @QueryParam("allowRelativeUrls") boolean allowRelativeUrls)
   {
     return licensedSolutionService.getLicensedSolutions(allowRelativeUrls);

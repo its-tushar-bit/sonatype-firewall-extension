@@ -165,7 +165,7 @@ public class PublicApiPaths
   public static final String SOURCE_CONTROL_EVENTS_RESOURCE_PATH =
       EXPERIMENTAL_PATH + "sourceControl/{ownerType:application|organization}/{ownerId}/events";
 
-  public static final String ENDPOINTS_RESOURCE_PATH = API_VERSION_PATH_V2 + "endpoints/{apiType: public|experimental}";
+  public static final String ENDPOINTS_RESOURCE_PATH = API_VERSION_PATH_V2 + "endpoints";
 
   public static final String SOURCE_CONTROL_PATH_EXPERIMENTAL_PATH = EXPERIMENTAL_PATH + "sourceControl";
 

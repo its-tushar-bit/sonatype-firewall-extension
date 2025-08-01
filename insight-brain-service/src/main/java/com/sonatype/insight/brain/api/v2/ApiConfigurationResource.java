@@ -93,8 +93,7 @@ public class ApiConfigurationResource
           ),
           @ApiResponse(
               responseCode = "204",
-              description = "The specified IQ server configuration property has been set successfully.",
-              useReturnTypeSchema = true
+              description = "The specified IQ server configuration property has been set successfully."
           )
       })
   public void setConfiguration(
@@ -113,13 +112,11 @@ public class ApiConfigurationResource
       responses = {
           @ApiResponse(
               responseCode = "400",
-              description = "Bad request, check for invalid property name.",
-              useReturnTypeSchema = true
+              description = "Bad request, check for invalid property name."
           ),
           @ApiResponse(
               responseCode = "204",
-              description = "The IQ Server system properties specified have been successfully disabled.",
-              useReturnTypeSchema = true
+              description = "The IQ Server system properties specified have been successfully disabled."
           )
       }
   )

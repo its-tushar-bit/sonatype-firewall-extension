@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class ApiProxyServerConfigurationDTO
 {
   public String hostname;
@@ -15,6 +17,7 @@ public class ApiProxyServerConfigurationDTO
 
   public String username;
 
+  @Schema(type = "string")
   public char[] password;
 
   public boolean passwordIsIncluded;

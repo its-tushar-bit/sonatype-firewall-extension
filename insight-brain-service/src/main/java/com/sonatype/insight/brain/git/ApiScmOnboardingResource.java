@@ -23,11 +23,18 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationRequest;
 import com.sonatype.insight.brain.git.dto.ImportScmOrganizationStatus;
+import com.sonatype.insight.brain.git.dto.ImportScmOrganizationTicket;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 
 /**
  * This resource supports bulk onboarding of Source Config Management repositories
@@ -57,9 +64,33 @@ public class ApiScmOnboardingResource
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.SOURCE_CONTROL_IMPORT)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(
+      summary = "Import repositories for SCM organization",
+      description =
+          "Initiates the process to import repositories into a source control management (SCM) organization. " +
+              "This is an asynchronous operation that returns a ticket for tracking the import progress.",
+      responses = {
+          @ApiResponse(
+              responseCode = "202",
+              description = "Import request accepted and processing started",
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = ImportScmOrganizationTicket.class)
+              )
+          ),
+      }
+  )
   public Response importRepositories(
+      @Parameter(
+          description = "Organization ID",
+          required = true
+      )
       @PathParam("organizationId") String organizationId,
-      final ImportScmOrganizationRequest importRequest)
+      @RequestBody(
+          description = "Configuration for the import",
+          required = true,
+          useParameterTypeSchema = true
+      ) final ImportScmOrganizationRequest importRequest)
   {
     return Response.status(Status.ACCEPTED)
         .entity(scmOnboardingService.importScmOrganization(organizationId, importRequest)).build();
@@ -69,10 +100,24 @@ public class ApiScmOnboardingResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @HasFeature(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED)
+  @Operation(
+      summary = "Get repository import status",
+      description = "Retrieves the current status of a repository import operation",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Import status retrieved successfully",
+              useReturnTypeSchema = true
+          ),
+          @ApiResponse(responseCode = "404", description = "Import operation not found")
+      }
+  )
   public ImportScmOrganizationStatus getImportRepositoriesStatus(
+      @Parameter(description = "Organization ID", required = true)
       @PathParam("organizationId") String organizationId,
+      @Parameter(description = "Import event ID", required = true)
       @PathParam("eventId") String eventId)
   {
-    return scmOnboardingService.getImportScmOrganizationStatus(organizationId,eventId);
+    return scmOnboardingService.getImportScmOrganizationStatus(organizationId, eventId);
   }
 }

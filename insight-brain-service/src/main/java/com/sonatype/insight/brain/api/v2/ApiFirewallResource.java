@@ -36,6 +36,7 @@ import javax.ws.rs.core.UriInfo;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantinedComponentDto;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineConfigDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallReleaseQuarantineSummaryDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
@@ -57,6 +58,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -215,6 +219,11 @@ public class ApiFirewallResource
     return apiFirewallService.getQuarantineSummary();
   }
 
+  private class ApiFirewallComponentDTOResult
+      extends ApiPageResult<ApiFirewallComponentDTO>
+  {
+  }
+
   @GET
   @Path(UNQUARANTINE_PATH)
   @Operation(description = "Use this method to retrieve the details of components that are auto-released " +
@@ -238,14 +247,23 @@ public class ApiFirewallResource
                   "<li>`quarantineDate` is the date and time when the component was quarantined.</li>" +
                   "<li>`dateCleared` is the date and time when the component was auto-released from quarantine.</li>" +
                   "<li>`quarantinePolicyViolations` will be empty for components that are auto-released.</li>" +
-                  "<li>`componentIdentifier` is the format and coordinates for the component." +
+                  "<li>`componentIdentifier` is the format and coordinates for the component.</li>" +
                   "<li>`pathname` indicates the component path in the repository.</li>" +
                   "<li>`hash` is the hash of the component.</li>" +
                   "<li>`matchState` indicates the whether the component is an `EXACT` or `SIMILAR` match to the " +
                   "known  components or is `UNKNOWN`.</li>" +
                   "<li>`repositoryId` is the ID of the repository where the component is stored.</li>" +
                   "<li>`quarantined` indicates whether the component is quarantined.</li>" +
-                  "</ul>"
+                  "</ul>",
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = ApiFirewallComponentDTOResult.class)
+              ),
+              headers = {
+                  @Header(name = "Link",
+                      description = "Pagination links (first, last, next, prev)",
+                      schema = @Schema(type = "string"))
+              }
           )
       })
   public Response getUnquarantineList(
@@ -279,6 +297,11 @@ public class ApiFirewallResource
         FirewallComponentFilterState.UNQUARANTINE_AUTO);
   }
 
+  private class ApiFirewallQuarantinedComponentDtoResult
+      extends ApiPageResult<ApiFirewallQuarantinedComponentDto>
+  {
+  }
+
   @GET
   @Path(QUARANTINED_PATH)
   @Operation(description = "Use this method to request a list of quarantined components." +
@@ -287,22 +310,37 @@ public class ApiFirewallResource
       "Permissions required: View IQ Elements",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The response contains:" +
+              description = "The response includes:" +
                   "<ul>" +
-                  "<li>`displayName` is the name and version of the component.</li>" +
-                  "<li>`repository` indicates the repository name where the component is stored.</li>" +
+                  "<li>`total` is the total number of records this request can return across all pages.</li>" +
+                  "<li>`page` is the page number specified in the request.</li>" +
+                  "<li>`pageSize` is the page size specified in the request.</li>" +
+                  "<li>`pageCount` is the total number of pages this request can return.</li>" +
+                  "</ul>" +
+                  "The `results` section contains details of each component that has been auto-released. It includes:" +
+                  "<ul>" +
+                  "<li>`threatLevel` is the threat level of the policy violation.</li>" +
+                  "<li>`policyName` is the name of the violated policy.</li>" +
+                  "<li>`quarantined` indicates whether the component is quarantined.</li>" +
                   "<li>`quarantineDate` is the date and time when the component was quarantined.</li>" +
-                  "<li>`dateCleared` is the date and time when the component was auto-released from quarantine.</li>" +
-                  "<li>`quarantinePolicyViolations` is the failing non-waived policy violations for " +
-                  "the component.</li>" +
-                  "<li>`componentIdentifier` is the format and coordinates for the component." +
+                  "<li>`componentIdentifier` is the format and coordinates for the component.</li>" +
                   "<li>`pathname` indicates the component path in the repository.</li>" +
+                  "<li>`displayName` is the name and version of the component.</li>" +
+                  "<li>`repositoryId` is the ID of the repository where the component is stored.</li>" +
+                  "<li>`repositoryName` indicates the repository name where the component is stored.</li>" +
                   "<li>`hash` is the hash of the component.</li>" +
                   "<li>`matchState` indicates the whether the component is an `EXACT` or `SIMILAR` match to " +
                   "the known components or is `UNKNOWN`.</li>" +
-                  "<li>`repositoryId` is the ID of the repository where the component is stored.</li>" +
-                  "<li>`quarantined` indicates whether the component is quarantined.</li>" +
-                  "</ul>"
+                  "</ul>",
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = ApiFirewallQuarantinedComponentDtoResult.class)
+              ),
+              headers = {
+                  @Header(name = "Link",
+                      description = "Pagination links (first, last, next, prev)",
+                      schema = @Schema(type = "string"))
+              }
           )
       })
   public Response getQuarantineList(
@@ -370,6 +408,7 @@ public class ApiFirewallResource
    */
   @GET
   @Path(QUARANTINED_COMPONENT_VIEW_CONFIG_ANONYMOUS_ACCESS)
+  @Produces(MediaType.TEXT_PLAIN)
   @Operation(description = "Use this method to determine if the quarantined component(s) details can be accessed " +
       "anonymously." +
       "\n" +
@@ -377,7 +416,11 @@ public class ApiFirewallResource
       "Permissions required: None",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The response returns `true` if anonymous access to quarantined components is enabled."
+              description = "The response returns `true` if anonymous access to quarantined components is enabled.",
+              content = @Content(
+                  mediaType = MediaType.TEXT_PLAIN,
+                  schema = @Schema(type = "boolean")
+              )
           )
       }
   )

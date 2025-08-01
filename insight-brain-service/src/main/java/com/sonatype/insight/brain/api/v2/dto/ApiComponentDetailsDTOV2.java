@@ -12,6 +12,7 @@ import com.sonatype.insight.json.store.ISODateSerializer;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * @since 1.13.0
@@ -25,12 +26,15 @@ public class ApiComponentDetailsDTOV2
   @JsonSerialize(using = ISODateSerializer.class)
   public Date catalogDate;
 
+  @Schema(nullable = true)
   public Integer relativePopularity;
 
   public ApiLicenseDataDTO licenseData;
 
+  @Schema(nullable = true)
   public String integrityRating;
 
+  @Schema(nullable = true)
   public String hygieneRating;
 
   public ApiSecurityDataDTO securityData;

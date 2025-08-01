@@ -36,6 +36,8 @@ import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -75,14 +77,14 @@ public class ApiThirdPartyScanResource
       "\n" +
       "Permissions required: Evaluate Applications",
       responses = {
-          @ApiResponse
-              (
-                  responseCode = "200",
-                  description =
-                      "The response contains a `statusUrl` containing the applicationId and statusId " +
-                          "that can be used to check the progress of the SBOM evaluation.",
-                  useReturnTypeSchema = true
+          @ApiResponse(responseCode = "202",
+              description = "The response contains a `statusUrl` containing the applicationId and statusId " +
+                  "that can be used to check the progress of the SBOM evaluation.",
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ApiThirdPartyScanTicketDTO.class)
               )
+          )
       })
   public Response scanComponents(
       @Parameter(description = "Enter the application internal id. Use the Applications REST API to retrieve the" +

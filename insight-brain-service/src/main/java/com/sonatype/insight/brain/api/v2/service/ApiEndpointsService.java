@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.lang.reflect.Method;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -34,13 +35,16 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.security.AnonymousWithFeature;
 import com.sonatype.insight.brain.version.VersionService;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.introspect.AnnotatedMethod;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.jaxrs2.Reader;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
@@ -54,6 +58,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.WordUtils;
 import org.glassfish.jersey.server.model.Resource;
@@ -65,8 +70,8 @@ import org.glassfish.jersey.server.model.Resource;
 @Singleton
 public class ApiEndpointsService
 {
-  // Cache of OpenAPI JSON by API type
-  private static final Map<ApiType, String> OPEN_API_JSON_BY_API_TYPE = new ConcurrentHashMap<>();
+  // Cache of OpenAPI JSON
+  private static volatile String openApiJson;
 
   // Cache of lambda to calculate if an operation is supported by operation ID
   private static final Map<String, BooleanSupplier> IS_SUPPORTED_BY_OPERATION_ID = new ConcurrentHashMap<>();
@@ -81,57 +86,61 @@ public class ApiEndpointsService
     this.productLicense = productLicense;
   }
 
-  public static Map<ApiType, String> getOpenApiJsonCacheCopy() {
-    return new HashMap<>(OPEN_API_JSON_BY_API_TYPE);
+  public static String getOpenApiJsonCacheCopy() {
+    return openApiJson;
   }
 
   public static void clearCaches() {
-    OPEN_API_JSON_BY_API_TYPE.clear();
+    openApiJson = null;
     IS_SUPPORTED_BY_OPERATION_ID.clear();
   }
 
   @AnonymousWithFeature
   public String getOpenAPI(final Application application, final ApiType apiType) {
-    String openAPIJson =
-        OPEN_API_JSON_BY_API_TYPE.computeIfAbsent(apiType, key -> toJson(createOpenAPI(application, apiType)));
-    OpenAPI openAPI = fromJson(openAPIJson);
-    trimIfNeeded(openAPI);
+    if (openApiJson == null) {
+      openApiJson = toJson(createOpenAPI(application));
+    }
+    OpenAPI openAPI = fromJson(openApiJson);
+    addInfo(openAPI, apiType);
+    trimByApiType(openAPI, apiType);
+    trimByProductLicenseAndFeatureFlags(openAPI);
+    removeUnusedSchemas(openAPI);
+    removeComponentsIfEmpty(openAPI);
     return toJson(openAPI);
   }
 
-  private OpenAPI createOpenAPI(final Application application, final ApiType apiType) {
-    OpenAPI openAPI = new InsightOpenAPIReader().read(getResourceHandlerClasses(application, apiType));
-    handlePathsAndOperations(openAPI, apiType);
+  private OpenAPI createOpenAPI(final Application application) {
+    OpenAPI openAPI = new InsightOpenAPIReader().read(getResourceHandlerClasses(application));
+    handlePathsAndOperations(openAPI);
     handleTags(openAPI);
-    addInfo(openAPI, apiType);
     return openAPI;
   }
 
-  private Set<Class<?>> getResourceHandlerClasses(final Application application, final ApiType apiType) {
-    return Stream.concat(
-            application.getClasses().stream(),
-            application.getSingletons().stream().map(Object::getClass)
-        )
+  private Set<Class<?>> getResourceHandlerClasses(final Application application) {
+    return Stream.concat(application.getClasses().stream(), application.getSingletons().stream().map(Object::getClass))
         .map(Resource::from)
         .filter(Objects::nonNull)
-        .filter(resource -> isResourceMatchingApiType(resource, apiType))
+        .filter(this::isResourceMatchingApiType)
         .flatMap(resource -> resource.getHandlerClasses().stream())
         .collect(Collectors.toSet());
   }
 
-  private boolean isResourceMatchingApiType(final Resource resource, final ApiType apiType) {
-    return resource.getPath().startsWith(apiType.getPathPrefix()) ||
-        resource.getPath().startsWith(apiType.getPathPrefix().substring(1));
+  private boolean isResourceMatchingApiType(final Resource resource) {
+    return Arrays.stream(ApiType.values())
+        .map(ApiType::getPathPrefix)
+        .anyMatch(pathPrefix ->
+            resource.getPath().startsWith(pathPrefix) || resource.getPath().startsWith(pathPrefix.substring(1))
+        );
   }
 
-  private void handlePathsAndOperations(final OpenAPI openAPI, final ApiType apiType) {
+  private void handlePathsAndOperations(final OpenAPI openAPI) {
     if (openAPI.getPaths() == null) {
       return;
     }
     Set<String> tags = new HashSet<>();
     openAPI.getPaths().forEach((key, pathItem) -> {
       // Create a default tag for the path
-      String tag = createTag(key, apiType.getPathPrefix());
+      String tag = createTag(key);
       pathItem.readOperations().forEach(operation -> {
         // If the operation has no tags, then we add the default tag for the path
         if (CollectionUtils.isEmpty(operation.getTags())) {
@@ -145,9 +154,20 @@ public class ApiEndpointsService
     tags.forEach(tag -> addTagIfNeeded(openAPI, tag));
   }
 
-  private String createTag(final String path, final String pathPrefix) {
+  private String createTag(final String path) {
+    String pathPrefix = getApiType(path).getPathPrefix();
     int endIndex = path.indexOf("/", pathPrefix.length());
     return camelCaseToTitleCase(path.substring(pathPrefix.length(), endIndex > -1 ? endIndex : path.length()));
+  }
+
+  private ApiType getApiType(final String path) {
+    if (path.startsWith(ApiType.PUBLIC.getPathPrefix())) {
+      return ApiType.PUBLIC;
+    }
+    else if (path.startsWith(ApiType.EXPERIMENTAL.getPathPrefix())) {
+      return ApiType.EXPERIMENTAL;
+    }
+    throw new RuntimeException("Invalid path prefix: " + path);
   }
 
   private String camelCaseToTitleCase(final String camelCase) {
@@ -193,8 +213,9 @@ public class ApiEndpointsService
   }
 
   private void addInfo(final OpenAPI openAPI, final ApiType apiType) {
+    String type = apiType == null ? "" : (apiType + " ");
     Info info = new Info();
-    info.setTitle(String.format("Sonatype Lifecycle %s REST API", StringUtils.capitalize(apiType.toString())));
+    info.setTitle(String.format("Sonatype Lifecycle %sREST API", StringUtils.capitalize(type)));
     info.setVersion(versionService.getVersion());
     openAPI.setInfo(info);
   }
@@ -208,7 +229,33 @@ public class ApiEndpointsService
     }
   }
 
-  private void trimIfNeeded(final OpenAPI openAPI) {
+  private void trimByApiType(final OpenAPI openAPI, final ApiType apiType) {
+    if (apiType == null) {
+      return;
+    }
+    if (openAPI.getPaths() == null) {
+      return;
+    }
+    Set<String> usedTags = new HashSet<>();
+    Iterator<Entry<String, PathItem>> iterator = openAPI.getPaths().entrySet().iterator();
+    while (iterator.hasNext()) {
+      Entry<String, PathItem> entry = iterator.next();
+      PathItem pathItem = entry.getValue();
+      String path = entry.getKey();
+      if (path.startsWith(apiType.getPathPrefix()) || path.startsWith(apiType.getPathPrefix().substring(1))) {
+        pathItem.readOperations().forEach(operation -> usedTags.addAll(operation.getTags()));
+      }
+      else {
+        iterator.remove();
+      }
+    }
+    if (openAPI.getTags() == null) {
+      return;
+    }
+    openAPI.getTags().removeIf(tag -> !usedTags.contains(tag.getName()));
+  }
+
+  private void trimByProductLicenseAndFeatureFlags(final OpenAPI openAPI) {
     if (openAPI.getPaths() == null) {
       return;
     }
@@ -268,9 +315,96 @@ public class ApiEndpointsService
     return isSupported.getAsBoolean();
   }
 
-  private String toJson(final OpenAPI openAPI) {
+  private void removeUnusedSchemas(final OpenAPI openAPI) {
+    Set<String> usedSchemaKeys = new HashSet<>();
+    if (openAPI.getPaths() != null) {
+      for (String schemaRef : findAllValues(JsonUtils.asTree(openAPI.getPaths()), "$ref").stream().map(JsonNode::asText)
+          .collect(Collectors.toSet())) {
+        addSchema(openAPI, schemaRef, usedSchemaKeys);
+      }
+    }
+    if (openAPI.getComponents() != null && openAPI.getComponents().getSchemas() != null) {
+      openAPI.getComponents().getSchemas().keySet().removeIf(schemaKey -> !usedSchemaKeys.contains(schemaKey));
+    }
+  }
+
+  private void addSchema(final OpenAPI openAPI, final String schemaRef, final Set<String> schemaKeys) {
+    if (schemaRef == null || !schemaRef.startsWith("#/components/schemas/")) {
+      return;
+    }
+    String schemaKey = schemaRef.substring("#/components/schemas/".length());
+    if (!schemaKeys.add(schemaKey)) {
+      return;
+    }
+    Schema<?> schema = openAPI.getComponents().getSchemas().get(schemaKey);
+    for (String s : findAllValues(JsonUtils.asTree(schema), "$ref").stream().map(JsonNode::asText)
+        .collect(Collectors.toSet())) {
+      addSchema(openAPI, s, schemaKeys);
+    }
+  }
+
+  private static List<JsonNode> findAllValues(final JsonNode node, final String key) {
+    List<JsonNode> values = new ArrayList<>();
+    findAllValues(node, key, values);
+    return values;
+  }
+
+  private static void findAllValues(final JsonNode node, final String key, final List<JsonNode> results) {
+    if (node == null) {
+      return;
+    }
+    if (node.has(key)) {
+      results.add(node.get(key));
+    }
+    for (JsonNode child : node) {
+      findAllValues(child, key, results);
+    }
+  }
+
+  private void removeComponentsIfEmpty(final OpenAPI openAPI) {
+    Components components = openAPI.getComponents();
+    if (components == null) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getCallbacks())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getExamples())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getExtensions())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getHeaders())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getLinks())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getPathItems())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getParameters())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getRequestBodies())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getResponses())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getSchemas())) {
+      return;
+    }
+    if (MapUtils.isNotEmpty(components.getSecuritySchemes())) {
+      return;
+    }
+    openAPI.setComponents(null);
+  }
+
+  private String toJson(final Object value) {
     try {
-      return Json.mapper().writeValueAsString(openAPI);
+      return Json.mapper().writeValueAsString(value);
     }
     catch (JsonProcessingException e) {
       throw new RuntimeException(e.getMessage(), e);

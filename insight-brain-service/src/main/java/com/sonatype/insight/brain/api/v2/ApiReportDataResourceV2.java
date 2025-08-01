@@ -87,7 +87,13 @@ public class ApiReportDataResourceV2
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_REPORTS)
   @Operation(
       description = "This is an older version of the endpoint. This call will now be redirected to " +
-          "/api/v2/applications/{applicationPublicId}/reports/{scanId}/raw (see below)"
+          "/api/v2/applications/{applicationPublicId}/reports/{scanId}/raw.",
+      responses = {
+          @ApiResponse(
+              responseCode = "307",
+              description = "Temporary redirect to the new endpoint."
+          )
+      }
   )
   public Response getData(
       @Parameter(description = "Enter the applicationPublicId for the evaluated application.",

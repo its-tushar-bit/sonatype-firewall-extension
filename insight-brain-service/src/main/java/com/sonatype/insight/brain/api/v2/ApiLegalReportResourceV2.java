@@ -61,7 +61,7 @@ import org.glassfish.jersey.server.ContainerRequest;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
-@Tag(name = "License Legal Metadata",
+@Tag(name = "License Legal Metadata Report",
     description = "Use this REST API to retrieve license legal metadata in raw or HTML format.")
 public class ApiLegalReportResourceV2
 {
@@ -233,7 +233,8 @@ public class ApiLegalReportResourceV2
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "The response contains license legal data in HTML format."
+              description = "The response contains license legal data in HTML format.",
+              useReturnTypeSchema = true
           )
       })
   public String getLicenseLegalApplicationHTMLReport(
@@ -260,7 +261,8 @@ public class ApiLegalReportResourceV2
       "Permissions required: Review Legal Obligations For Components Licenses",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The response contains the customized license legal report in HTML format."
+              description = "The response contains the customized license legal report in HTML format.",
+              useReturnTypeSchema = true
           )
       }
   )
@@ -304,7 +306,8 @@ public class ApiLegalReportResourceV2
       "Permissions required: Review Legal Obligations For Components Licenses",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The response contains license legal data in HTML format."
+              description = "The response contains license legal data in HTML format.",
+              useReturnTypeSchema = true
           )
       }
   )
@@ -344,7 +347,8 @@ public class ApiLegalReportResourceV2
       "Permission required: Review Legal Obligations For Components Licenses",
       responses = {
           @ApiResponse(responseCode = "200",
-              description = "The response contains license legal data in HTML format based on the specified template."
+              description = "The response contains license legal data in HTML format based on the specified template.",
+              useReturnTypeSchema = true
           )
       })
   public String getLicenseLegalMultiApplicationReportFromActiveUserFilter(

@@ -20,8 +20,8 @@ import javax.ws.rs.core.MediaType;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationDTO;
+import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService;
 import com.sonatype.insight.brain.zscaler.ApiZScalerService.ApiZScalerQuotaDTO;
 import com.sonatype.insight.brain.zscaler.ZScalerSupportedFormat;
@@ -171,6 +171,17 @@ public class ApiZScalerConfigurationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   @Path("zscalerLimits")
+  @Operation(
+      description = "Returns the current Zscaler quota." +
+          "\n" +
+          "\n" +
+          "Permissions required: None"
+  )
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successfully retrieved the Zscaler quota.",
+      useReturnTypeSchema = true
+  )
   public ApiZScalerQuotaDTO getQuota() {
     return zScalerService.getQuota();
   }

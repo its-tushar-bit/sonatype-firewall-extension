@@ -23,6 +23,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiApplicationCategoriesListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationListDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMoveApplicationResponseDTOV2;
@@ -36,6 +37,8 @@ import com.sonatype.insight.brain.organization.ApplicationMoveService;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.lang3.StringUtils;
@@ -119,9 +122,20 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
-              description = "The response contains the details of the applicationd corresponding to the " +
-                  "applicationId(s).")
+          @ApiResponse(
+              responseCode = "200",
+              description = "Returns either a list of applications or a list of applications with category tags " +
+                  "depending on the `includeCategories` parameter.",
+              content = {
+                  @Content(
+                      mediaType = MediaType.APPLICATION_JSON,
+                      schema = @Schema(oneOf = {
+                          ApiApplicationListDTO.class,
+                          ApiApplicationCategoriesListDTO.class
+                      })
+                  )
+              }
+          ),
       })
   public Response getApplications(
       @Parameter(description = "Enter the applicationId.")
@@ -241,7 +255,7 @@ public class ApiApplicationResourceV2
       "\n" +
       "Permissions required: Edit IQ Elements",
       responses = {
-          @ApiResponse(responseCode = "200",
+          @ApiResponse(responseCode = "204",
               description = "Application deleted successfully"
           )
       })
@@ -290,7 +304,7 @@ public class ApiApplicationResourceV2
           @ApiResponse(responseCode = "200", description = "Application moved successfully, with/without warnings. " +
               "Warnings, if any, will appear in the response body.", useReturnTypeSchema = true),
           @ApiResponse(responseCode = "409", description = "Moving the application failed due " +
-              "to conflicts between the organizations.", useReturnTypeSchema = true),
+              "to conflicts between the organizations."),
           @ApiResponse(responseCode = "404", description = "Moving the application failed because " +
               "either an application with the provided applicationId or the organizationId for the organization " +
               "where it is to be moved is not found."),

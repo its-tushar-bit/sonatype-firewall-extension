@@ -14,13 +14,14 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;
 import com.sonatype.insight.brain.model.successmetrics.ApiFirewallMetricsResultDTO;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
+import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -55,7 +56,8 @@ public class ApiFirewallMetricsResource
           @ApiResponse(
               responseCode = "200",
               description = "The response contains a map of malware defense metric name to value including the last " +
-                  "updated time."
+                  "updated time.",
+              useReturnTypeSchema = true
           )
       })
   @Produces(MediaType.APPLICATION_JSON)
@@ -66,7 +68,21 @@ public class ApiFirewallMetricsResource
   @GET
   @Path(ROI_FIREWALL_METRICS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  public RoiFirewallMetricsDTO getRoiFirewallMetrics(@PathParam("currencyType") String currencyType) {
+  @Operation(description = "Use this method to retrieve ROI malware defense metrics for the specified currency type." +
+      "\n" +
+      "\n" +
+      "Permissions required: Edit System Configuration and Users",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Successfully retrieved ROI malware defense metrics.",
+              useReturnTypeSchema = true
+          )
+      })
+  public RoiFirewallMetricsDTO getRoiFirewallMetrics(
+      @Parameter(description = "The currency to use for the ROI malware defense metrics.", required = true)
+      @PathParam("currencyType") String currencyType)
+  {
     return apiFirewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.fromString(currencyType));
   }
 }

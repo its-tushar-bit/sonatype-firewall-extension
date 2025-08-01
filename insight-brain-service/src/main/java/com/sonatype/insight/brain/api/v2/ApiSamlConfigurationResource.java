@@ -26,6 +26,7 @@ import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -117,38 +118,12 @@ public class ApiSamlConfigurationResource
   )
   public void insertOrUpdateSamlConfiguration(
       @Parameter(description = "Enter the SAML metadata XML of your IdP. Refer to the IdP documentation to obtain " +
-          "this metadata.")
+          "this metadata.", schema = @Schema(type = "string", format = "binary"), required = true)
       @FormDataParam("identityProviderXml") String identityProviderXml,
-      @Parameter(description = "Enter the SAML configuration" +
-          "<ul>" +
-          "<li>`identityProviderName` the name of the Identity Provider that is displayed on the login page " +
-          "when SAML is configured.</li>" +
-          "<li>`entityId` is the URI that IQ Server uses to identify itself in requests to the SSO" +
-          "service.</li>" +
-          "<li>`firstNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
-          "response of the identity provider and uses as the user's first name.</li>" +
-          "<li>`lastNameAttribute` is the SAML attribute that IQ Server extracts from the login " +
-          "response of the identity provider and uses as the user's last name.</li>" +
-          "<li>`emailAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-          "response of the identity provider to determine the user's email address.</li>" +
-          "<li>`usernameAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-          "response of the identity provider to determine the username or id.</li>" +
-          "<li>`groupAttributeName` is the SAML attribute that IQ Server extracts from the login " +
-          "response of the identity provider to determine the groups the user belongs to.</li>" +
-          "<li>`validateResponseSignature` indicates whether the SAML responses from the identity provider  " +
-          "are cryptographically signed. A `null` value indicates that this setting is derived from the SAML " +
-          "metadata from the identity provider performing signature validation if a signing key " +
-          "(`KeyDescriptor`) is included." +
-          "<li>`validateAssertionSignature` indicates whether the SAML assertions from the identity provider " +
-          " are cryptographically signed. A `null` value indicates that this setting is derived from  " +
-          "the SAML metadata from the identity provider performing signature validation if a signing key " +
-          "(`KeyDescriptor`) is included.</li>" +
-          "<li>`identityProviderMetadataXml` is the metadata of the identity provider.</li>" +
-          "</ul>")
+      @Parameter(required = true)
       @FormDataParam("samlConfiguration") ApiSamlConfigurationDTO samlConfiguration)
   {
-    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(
-        identityProviderXml, samlConfiguration);
+    apiSamlConfigurationService.insertOrUpdateSamlConfiguration(identityProviderXml, samlConfiguration);
   }
 
   @DELETE
@@ -186,7 +161,8 @@ public class ApiSamlConfigurationResource
           ),
           @ApiResponse(
               responseCode = "200",
-              description = "The IQ Server's metadata service provider descriptor in XML format."
+              description = "The IQ Server's metadata service provider descriptor in XML format.",
+              useReturnTypeSchema = true
           )
       }
   )

@@ -5,6 +5,14 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -36,16 +44,10 @@ import com.github.packageurl.MalformedPackageURLException;
 import com.github.packageurl.PackageURL;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +102,11 @@ public class ApiComponentChangeDetectionResource
               responseCode = "200",
               description = "The response contains a list of hash and package URL for each component that have " +
                   "been removed from the configuration when the maximum number of components has been exceeded.",
-              useReturnTypeSchema = true
+              content = @Content(
+                  mediaType = MediaType.APPLICATION_JSON,
+                  schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class),
+                  array = @ArraySchema(schema = @Schema(implementation = ApiMalwareComponentEvaluationRequest.class))
+              )
           )
       }
   )
@@ -178,8 +184,7 @@ public class ApiComponentChangeDetectionResource
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Events deleted successfully",
-              useReturnTypeSchema = true
+              description = "Events deleted successfully"
           )
       }
   )

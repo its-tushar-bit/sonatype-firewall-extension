@@ -32,7 +32,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SequenceWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.joda.time.DateTime;
 
@@ -72,7 +74,15 @@ public class ApiMetricsReportingResourceV2
       responses = {
           @ApiResponse(responseCode = "200",
               description = "Select the media type JSON or csv for the preferred output format.",
-              content = {@Content(mediaType = "text/csv"), @Content(mediaType = MediaType.APPLICATION_JSON)}
+              content = {
+                  @Content(
+                      mediaType = "text/csv"
+                  ),
+                  @Content(
+                      mediaType = MediaType.APPLICATION_JSON,
+                      array = @ArraySchema(schema = @Schema(implementation = ApiMetricsReportingDTOV2.class))
+                  )
+              }
           )
       }
   )

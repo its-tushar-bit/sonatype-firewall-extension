@@ -27,9 +27,7 @@ import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiver
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
-import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import io.micrometer.core.annotation.Timed;
@@ -145,12 +143,28 @@ public class ApiAutoPolicyWaiverExclusionResource
   @GET
   @Path(BY_AUTO_POLICY_WAIVER_ID_PATH)
   @Produces(MediaType.APPLICATION_JSON)
-  @Authorize(permission = Permission.READ)
+  @Operation(description = "Use this method to retrieve auto policy waiver exclusions " +
+      "for the given owner and policy waiver." +
+      "\n" +
+      "\n" +
+      "Permissions required: View IQ Elements",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Successfully retrieved the auto policy waiver exclusions.",
+              useReturnTypeSchema = true
+          )
+      })
   public List<ApiAutoPolicyWaiverExclusionResponseDTO> getAutoPolicyWaiverExclusions(
+      @Parameter(description = "Enter the owner type.", required = true)
       @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the owner id.", required = true)
       @PathParam("ownerId") String ownerId,
+      @Parameter(description = "Enter the id of the automatic policy waiver.")
       @PathParam("autoPolicyWaiverId") String autoPolicyWaiverId,
+      @Parameter(description = "Enter the page.")
       @DefaultValue("1") @QueryParam("page") int page,
+      @Parameter(description = "Enter the page size.")
       @DefaultValue("10") @QueryParam("pageSize") int pageSize)
   {
     return apiAutoPolicyWaiverExclusionService.getAutoPolicyWaiverExclusions(

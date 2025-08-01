@@ -108,8 +108,7 @@ public class ApiSourceControlConfigurationResource
       "Permissions required: Edit System Configuration and Users",
       responses = {
           @ApiResponse(responseCode = "204",
-              description = "SCM configuration successfully updated.",
-              useReturnTypeSchema = true)
+              description = "SCM configuration successfully updated.")
       })
   public void setConfiguration(
       @RequestBody(description = "Provide the settings for the SCM configuration as below: " +

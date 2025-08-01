@@ -8,16 +8,24 @@ package com.sonatype.insight.brain.api.v2.dto;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Paginated response wrapper")
 public class ApiPageResult<T>
 {
+  @Schema(description = "Total number of items")
   private long total;
 
+  @Schema(description = "Current page number")
   private int page;
 
+  @Schema(description = "Number of items per page")
   private int pageSize;
 
+  @Schema(description = "Total number of pages")
   private long pageCount;
 
+  @Schema(description = "List of items for the current page")
   private List<T> results;
 
   public ApiPageResult() {

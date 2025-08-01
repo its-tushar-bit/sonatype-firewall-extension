@@ -41,7 +41,7 @@ public class ApiEndpointsResourceTest
   @Test
   public void testGetOpenAPI_Public() throws Exception {
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH)
+        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH + "/" + ApiEndpointsResource.ENDPOINT_TYPE_RESOURCE_PATH)
         .parameter(ApiType.PUBLIC)
         .get();
 
@@ -54,7 +54,7 @@ public class ApiEndpointsResourceTest
   @Test
   public void testGetOpenAPI_Experimental() throws Exception {
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH)
+        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH + "/" + ApiEndpointsResource.ENDPOINT_TYPE_RESOURCE_PATH)
         .parameter(ApiType.EXPERIMENTAL)
         .get();
 
@@ -71,7 +71,7 @@ public class ApiEndpointsResourceTest
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(false);
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH)
+        .path(PublicApiPaths.ENDPOINTS_RESOURCE_PATH + "/" + ApiEndpointsResource.ENDPOINT_TYPE_RESOURCE_PATH)
         .parameter(ApiType.PUBLIC)
         .get();
 

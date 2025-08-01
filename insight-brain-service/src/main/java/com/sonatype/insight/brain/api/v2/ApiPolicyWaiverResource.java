@@ -91,8 +91,7 @@ public class ApiPolicyWaiverResource
       responses = {
           @ApiResponse(
               responseCode = "204",
-              description = "No content. Indicates that the waiver has been created successfully.",
-              useReturnTypeSchema = true
+              description = "No content. Indicates that the waiver has been created successfully."
           )
       }
 
@@ -197,8 +196,7 @@ public class ApiPolicyWaiverResource
       responses = {
           @ApiResponse(
               responseCode = "204",
-              description = "Waiver has been deleted successfully.",
-              useReturnTypeSchema = true
+              description = "Waiver has been deleted successfully."
           )
       })
   public void deletePolicyWaiver(

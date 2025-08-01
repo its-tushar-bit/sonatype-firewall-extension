@@ -110,8 +110,8 @@ public class ApiAdvancedSearchResourceV2
           "This is a resource intensive operation. Avoid creating indexes during peak usage hours." +
           "\n" +
           "\n" +
-          "Permissions required: System Administrator")
-  @ApiResponse(responseCode = "200", description = "Index created successfully.")
+          "Permissions required: Edit System Configuration and Users")
+  @ApiResponse(responseCode = "204", description = "Index created successfully.")
   public void createSearchIndexAsync() {
     indexService.createIndexAsync();
   }

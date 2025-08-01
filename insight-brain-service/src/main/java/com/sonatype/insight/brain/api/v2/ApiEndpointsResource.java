@@ -40,6 +40,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @HasFeature(SystemConfigurationPropertyFeature.API_PAGE)
 public class ApiEndpointsResource
 {
+  public static final String ENDPOINT_TYPE_RESOURCE_PATH = "{apiType: public|experimental}";
+
   private final ApiEndpointsService apiEndpointsService;
 
   @Inject
@@ -48,6 +50,7 @@ public class ApiEndpointsResource
   }
 
   @GET
+  @Path(ENDPOINT_TYPE_RESOURCE_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(description =
       "Use this method to retrieve the OpenAPI documentation for the specified type of IQ Server " +

@@ -266,8 +266,7 @@ public class ApiSourceControlResource
       "Permissions required: Edit IQ Elements",
       responses = {
           @ApiResponse(responseCode = "204",
-              description = "The SCM setting for the specified ownerType/ownerId has been successfully deleted.",
-              useReturnTypeSchema = true)
+              description = "The SCM setting for the specified ownerType/ownerId has been successfully deleted.")
       }
   )
   public void deleteSourceControl(
@@ -313,7 +312,7 @@ public class ApiSourceControlResource
       "\n" +
       "Permissions required: Edit access control on the application.",
       responses = {
-          @ApiResponse(responseCode = "204",
+          @ApiResponse(responseCode = "200",
               description =
                   "The 'developer' role has automatically been assigned to all contributors of the repository, who " +
                       "matched IQ Server users via the provided matching strategies." +

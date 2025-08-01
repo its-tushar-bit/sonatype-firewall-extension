@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.ComponentLocator;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO.VulnerabilityAnalysis;
+import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityDataDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityService;
@@ -57,6 +58,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -116,7 +118,6 @@ public class ApiSbomResource
           @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
           @ApiResponse(responseCode = "204", description = "Delete successful")
       })
-
   @DELETE
   @Path(SBOM_VERSION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
@@ -136,9 +137,18 @@ public class ApiSbomResource
           @ApiResponse(responseCode = "404", description = "Supplied sbom version not found"),
           @ApiResponse(responseCode = "200",
               description = "Content of the sbom",
-              content = @Content(mediaType = "application/json|application/xml"))
+              content = {
+                  @Content(
+                      mediaType = "application/json",
+                      schema = @Schema(type = "string", description = "SBOM content in JSON format")
+                  ),
+                  @Content(
+                      mediaType = "application/xml",
+                      schema = @Schema(type = "string", description = "SBOM content in XML format")
+                  )
+              }
+          )
       })
-
   @GET
   @Path(SBOM_VERSION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
@@ -274,19 +284,27 @@ public class ApiSbomResource
           @ApiResponse(responseCode = "400", description = "Invalid/Unsupported data provided for sbom import"),
           @ApiResponse(responseCode = "202",
               description = "Import successful. URL to check the status of the import returned",
-              content = @Content(mediaType = "application/json"))
+              content = @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ApiThirdPartyScanTicketDTO.class)
+              )
+          )
       })
 
   @POST
   @Path(SBOM_IMPORT_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)
   @Produces({MediaType.APPLICATION_JSON})
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Audited(AuditEvent.IMPORT_SBOM_VERSION)
   public Response importSbom(
-      @Parameter(description = "The internal id of the application", required = true)
+      @Parameter(description = "The internal id of the application.", required = true)
       @FormDataParam("applicationId") String applicationId,
+      @Parameter(required = true, schema = @Schema(type = "string", format = "binary", description = "Your SBOM."))
       @FormDataParam("file") InputStream inputStream,
+      @Parameter(hidden = true)
       @FormDataParam("file") FormDataContentDisposition fileDetail,
+      @Parameter(description = "The SBOM version.")
       @FormDataParam("applicationVersion") String applicationVersion,
       @Parameter(description = "Enable importing as a binary file.")
       @QueryParam("enableBinaryImport") @DefaultValue("false") boolean enableBinaryImport,
@@ -394,7 +412,6 @@ public class ApiSbomResource
           @ApiResponse(responseCode = "404", description = "Vulnerability analysis not found"),
           @ApiResponse(responseCode = "204", description = "Vulnerability analysis deleted")
       })
-
   @DELETE
   @Path(SBOM_VULNERABILITY_ANALYSIS_ANNOTATION_PATH)
   @ProductLicenseEnforcementPoint(LicensedFeature.SBOM_MANAGER)

@@ -6,8 +6,11 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,6 +21,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Application;
 
 import com.sonatype.insight.brain.api.v2.HasFeature;
+import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -30,6 +34,8 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
+import com.tngtech.archunit.core.domain.JavaClasses;
+import com.tngtech.archunit.core.importer.ClassFileImporter;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -42,6 +48,8 @@ import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 public class ApiEndpointsServiceTest
@@ -70,7 +78,7 @@ public class ApiEndpointsServiceTest
   @Before
   public void before() {
     ApiEndpointsService.clearCaches();
-    when(mockVersionService.getVersion()).thenReturn(MOCK_VERSION);
+    lenient().when(mockVersionService.getVersion()).thenReturn(MOCK_VERSION);
   }
 
   @After
@@ -85,7 +93,6 @@ public class ApiEndpointsServiceTest
 
     assertEndpoints(result, ApiType.PUBLIC, "/api/v2/ApiEndpointsServiceTestPublicResource",
         "Api Endpoints Service Test Public Resource");
-    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.PUBLIC);
   }
 
   @Test
@@ -95,7 +102,6 @@ public class ApiEndpointsServiceTest
 
     assertEndpoints(result, ApiType.EXPERIMENTAL, "/api/experimental/ApiEndpointsServiceTestExperimentalResource",
         "Api Endpoints Service Test Experimental Resource");
-    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.EXPERIMENTAL);
   }
 
   @Test
@@ -110,7 +116,6 @@ public class ApiEndpointsServiceTest
     assertThat(openAPI.getPaths()).hasSize(1);
     assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceWithCustomTag", "Custom Tag", HttpMethod.GET,
         HttpMethod.DELETE);
-    assertThat(ApiEndpointsService.getOpenApiJsonCacheCopy()).containsOnlyKeys(ApiType.PUBLIC);
   }
 
   @Test
@@ -390,6 +395,48 @@ public class ApiEndpointsServiceTest
         "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
   }
 
+  @Test
+  public void testNoOverlappingTags() {
+    JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
+
+    Stream<Tag> tagsFromClasses = classes.stream()
+        .filter(c -> c.isAnnotatedWith(Tag.class))
+        .map(c -> c.getAnnotationOfType(Tag.class));
+    Stream<Tag> tagsFromMethods = classes.stream()
+        .flatMap(c -> c.getMethods().stream())
+        .filter(m -> m.isAnnotatedWith(Tag.class))
+        .map(m -> m.getAnnotationOfType(Tag.class));
+    Stream<Tag> allTags = Stream.concat(tagsFromClasses, tagsFromMethods);
+
+    Map<String, List<Tag>> tagsByName = allTags.collect(Collectors.groupingBy(Tag::name));
+
+    for (List<Tag> tagsWithSameName : tagsByName.values()) {
+      if (tagsWithSameName.size() > 1) {
+        long tagsWithDescriptions =
+            tagsWithSameName.stream().filter(t -> t.description() != null && !t.description().isEmpty()).count();
+        if (tagsWithDescriptions > 1) {
+          fail("Found multiple @Tag with the same name and different descriptions for: " + tagsWithSameName);
+        }
+      }
+    }
+  }
+
+  @Test
+  public void testGetOpenApi_RemovesUnusedSchemas() throws Exception {
+    when(mockApplication.getClasses()).thenReturn(Set.of(
+        // This public resource class returns ApiComponentDTOV2 on one of its methods
+        ApiEndpointsServiceTestResourceSchema.class,
+        // This experimental resource class does not use OwnerType
+        ApiEndpointsServiceTestExperimentalResource.class
+    ));
+
+    // We're just getting experimental, so we shouldn't need the OwnerType schema
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.EXPERIMENTAL);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI.getComponents()).isNull();
+  }
+
   private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)
       throws Exception
   {
@@ -607,6 +654,15 @@ public class ApiEndpointsServiceTest
   {
     @GET
     public String get() {
+      return null;
+    }
+  }
+
+  @Path("api/v2/ApiEndpointsServiceTestResourceSchema")
+  private static class ApiEndpointsServiceTestResourceSchema
+  {
+    @GET
+    public ApiComponentDTOV2 get() {
       return null;
     }
   }

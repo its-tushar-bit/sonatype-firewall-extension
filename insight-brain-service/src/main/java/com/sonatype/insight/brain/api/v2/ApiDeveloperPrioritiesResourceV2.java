@@ -107,8 +107,7 @@ public class ApiDeveloperPrioritiesResourceV2
               description = """
                   The response is a CSV that contains all the prioritized components for the specified
                   applicationId and scanId. Each line has all relevant component information, reachability
-                  information, policy information, and the priority assigned to it.""",
-              useReturnTypeSchema = true)
+                  information, policy information, and the priority assigned to it.""")
       }
   )
   @Audited(AuditEvent.EXPORT_DEVELOPER_PRIORITIES)

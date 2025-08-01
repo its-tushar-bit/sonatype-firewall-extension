@@ -12,7 +12,6 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -50,7 +49,6 @@ public class ApiProductLicenseResource
 
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @Produces(MediaType.TEXT_PLAIN)
   @UnlicensedPath
   @Audited(AuditEvent.INSTALL_LICENSE)
   @Operation(description = "Use this method to install a product license" +
@@ -62,7 +60,8 @@ public class ApiProductLicenseResource
               description = "License installed successfully")
       })
   public Response installLicense(
-      @Parameter(schema = @Schema(type = "string", format = "binary", description = "Your product license file"))
+      @Parameter(required = true,
+          schema = @Schema(type = "string", format = "binary", description = "Your product license file"))
       @FormDataParam("file") InputStream inputStream,
       @Parameter(hidden = true)
       @FormDataParam("file") FormDataContentDisposition fileDetail)

@@ -76,8 +76,7 @@ public class ApiCrowdConfigurationResource
       "Permissions required: Edit System Configuration and Users",
       responses = {
           @ApiResponse(responseCode = "204",
-              description = "Update or create successful",
-              useReturnTypeSchema = true)
+              description = "Update or create successful")
       })
   public void insertOrUpdateCrowdConfiguration(
       @RequestBody(description = "The request JSON should include the `serverUrl`, `applicationName`, " +
@@ -100,8 +99,7 @@ public class ApiCrowdConfigurationResource
       "Permissions required: Edit System Configuration and Users",
       responses = {
           @ApiResponse(responseCode = "204",
-              description = "The Atlassian Crowd Server configuration has been deleted.",
-              useReturnTypeSchema = true)
+              description = "The Atlassian Crowd Server configuration has been deleted.")
       })
   public void deleteCrowdConfiguration() {
     checkCrowdEnabled();

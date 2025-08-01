@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 @Named
 @Timed
 @Path(PublicApiPaths.LICENSE_LEGAL_RESOURCE_PATH_V2)
-@Tag(name = "License Legal Metadata Templates",
+@Tag(name = "License Legal Metadata Template",
     description = "Use this REST API to manage and customize templates for the license legal metadata generated in " +
         "HTML format.")
 public class ApiLegalAttributionReportTemplateResourceV2

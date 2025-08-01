@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * @since 1.83
  */
@@ -16,6 +18,7 @@ public class ApiMailConfigurationDTO
 
   public String username;
 
+  @Schema(type = "string")
   public char[] password;
 
   public boolean passwordIsIncluded;

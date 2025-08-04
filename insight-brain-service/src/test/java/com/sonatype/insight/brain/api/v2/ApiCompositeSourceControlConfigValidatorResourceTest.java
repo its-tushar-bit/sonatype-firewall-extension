@@ -13,9 +13,19 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import org.apache.http.HttpHeaders;
+import org.apache.http.HttpStatus;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.api.PublicApiPaths.COMPOSITE_SOURCE_CONTROL_CONFIG_VALIDATOR_PATH_V2;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -23,20 +33,39 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiCompositeSourceControlConfigValidatorResourceTest
     extends AbstractResourceTest
 {
-  static final String VALID_URL = "https://example.com/organization/project";
+  @Rule
+  public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
   private Application app;
 
   private PasswordHandler pwHandler;
 
+  private String validUrl;
+
   @Before
   public void setup() {
+    gitService.stubFor(get(urlPathEqualTo("/api/v3/user"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{\"username\":\"foo\"}")
+            .withStatus(HttpStatus.SC_OK)));
+    gitService.stubFor(get(urlPathMatching("/api/v3/repos/.*/.*"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withBody("{ \"private\": false }")));
+    gitService.stubFor(post(urlPathEqualTo("/api/v3/repos/organization/project/pulls"))
+        .willReturn(aResponse()
+            .withHeader(HttpHeaders.CONTENT_TYPE, "application/json")
+            .withStatus(200)
+            .withBody("{}")));
+    validUrl = String.format("%s/organization/project", gitService.baseUrl());
+
     pwHandler = getCLMServer().getInstance(PasswordHandler.class);
     app = tempEntity.newApplicationWithParent();
     tempEntity
         .newSourceControl(ROOT_ORGANIZATION_ID, null, null, null, SourceControlProvider.GITHUB, null, null,
             "BASE_BRANCH", null);
-    tempEntity.newSourceControl(app.getId(), VALID_URL, null, encrypt("TOKEN"), null, null, true, null, null);
+    tempEntity.newSourceControl(app.getId(), validUrl, null, encrypt("TOKEN"), null, null, true, null, null);
   }
 
   @Override
@@ -69,7 +98,7 @@ public class ApiCompositeSourceControlConfigValidatorResourceTest
   public void testValidateSourceControlConfig_UnexpectedException() throws Exception {
     Application appWithBrokenToken = tempEntity.newApplicationWithParent();
     tempEntity
-        .newSourceControl(appWithBrokenToken.getId(), VALID_URL, null, null /* token */, null, null, true, null, null);
+        .newSourceControl(appWithBrokenToken.getId(), validUrl, null, null /* token */, null, null, true, null, null);
 
     // Retrieving the GitRepositoryInfo will throw a NullPointerException because the token is null.
     final HttpResponse response = restRequest()

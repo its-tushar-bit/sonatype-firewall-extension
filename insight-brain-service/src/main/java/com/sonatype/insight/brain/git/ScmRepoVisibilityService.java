@@ -73,7 +73,7 @@ public class ScmRepoVisibilityService
     }
     catch (Exception e) {
       throw new RuntimeException(
-          "Error when checking if repository is private" + gitRepositoryInfo.normalizedRepositoryUrl, e);
+          "Error when checking if repository is private " + gitRepositoryInfo.normalizedRepositoryUrl, e);
     }
   }
 

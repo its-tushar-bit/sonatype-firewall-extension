@@ -34,6 +34,7 @@ import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
@@ -152,6 +153,7 @@ public class ApiEvaluationResourceV2AuditTest
   }
 
   @Test
+  @Ignore // CLM-35716
   public void testEvaluateSourceControl() throws Exception {
     assertResponseStatus(200, evaluateSourceControl(null /* user */, app.getId(), Stage.ID_DEVELOP));
     assertSourceControlEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName());

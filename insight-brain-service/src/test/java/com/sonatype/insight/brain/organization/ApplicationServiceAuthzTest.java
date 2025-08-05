@@ -106,6 +106,45 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
+  public void testGetAllWithoutRelatedRepositories_Authorized() {
+    grantReadPermission(app.getId());
+    final List<Application> applications = applicationService.getAllWithoutRelatedRepositories();
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories_Unauthenticated() {
+    List<Application> applications = applicationService.getAllWithoutRelatedRepositories();
+    assertThat(applications).isEmpty();
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositories_Unauthorized() {
+    login();
+    List<Application> applications = applicationService.getAllWithoutRelatedRepositories();
+    assertThat(applications).isEmpty();
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositoriesWithReadPermission() {
+    grantReadPermission(app.getId());
+    Application newApp = tempEntity.newApplication(org.getId());
+    Organization organization = tempEntity.newOrganizationWithRepositoryManager("My Organization");
+    Application dockerApp = tempEntity.newApplication(organization.getId());
+
+    List<Application> applications = applicationService.getAllWithoutRelatedRepositories();
+
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId());
+    assertThat(applications).extracting(Application::getName).doesNotContain(dockerApp.getName());
+
+    grantReadPermission(newApp.getId());
+    grantReadPermission(dockerApp.getId());
+    applications = applicationService.getAllWithoutRelatedRepositories();
+    assertThat(applications).extracting(Application::getId).containsExactlyInAnyOrder(app.getId(), newApp.getId());
+    assertThat(applications).extracting(Application::getName).doesNotContain(dockerApp.getName());
+  }
+
+  @Test
   public void testGetApplicationsAndCheckIfAll_Authorized() {
     grantReadPermission(app.getId());
     Pair<List<Application>, Boolean> result = applicationService.getApplicationsAndCheckIfAll();

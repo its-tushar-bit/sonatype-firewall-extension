@@ -100,6 +100,10 @@ public class ApplicationManagementServiceTest
   public void testGetApplicationSummaries() {
     List<Application> apps = new ArrayList<>();
     createAlphabeticalOrgsAndApps(new ArrayList<>(), apps);
+    Organization orgExclude = tempEntity.newOrganizationWithRepositoryManager("org-exclude");
+    //should not appear
+    Application app1 = tempEntity.newApplication(orgExclude.getId());
+    Application app2 = tempEntity.newApplication(orgExclude.getId());
 
     List<ApplicationManagementSummaryDTO> applicationManagementSummaries = applicationManagementService
         .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, RESULTS_PER_PAGE);
@@ -108,6 +112,8 @@ public class ApplicationManagementServiceTest
     assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
         .containsExactlyElementsOf(apps.subList(0, RESULTS_PER_PAGE).stream().map(Application::getName)
             .collect(Collectors.toList()));
+    assertThat(applicationManagementSummaries).extracting(ApplicationManagementSummaryDTO::getName)
+            .doesNotContain(app1.getName(),app2.getName());
   }
 
   @Test

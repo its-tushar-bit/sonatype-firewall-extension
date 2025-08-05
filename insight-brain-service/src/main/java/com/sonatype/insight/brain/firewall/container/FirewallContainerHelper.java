@@ -25,6 +25,10 @@ public class FirewallContainerHelper
 
   public boolean isFormatValidForFirewallForContainerImages(String format, String applicationId) {
     return ComponentIdentifier.FORMAT_CONTAINER.equals(format)
-        && repositoryDAO.getByContainerImageId(applicationId) != null;
+        && isDockerForFirewallApplication(applicationId);
+  }
+
+  public boolean isDockerForFirewallApplication(String applicationId) {
+    return repositoryDAO.getByContainerImageId(applicationId) != null;
   }
 }

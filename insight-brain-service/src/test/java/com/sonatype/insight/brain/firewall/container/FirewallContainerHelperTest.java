@@ -62,4 +62,21 @@ public class FirewallContainerHelperTest
     assertThat(firewallContainerHelper.isFormatValidForFirewallForContainerImages(ComponentIdentifier.FORMAT_CONTAINER,
         application.getId())).isTrue();
   }
+
+  @Test
+  public void testIsDockerForFirewallApplication() {
+    Repository repository =
+            tempEntity.newRepository(tempEntity.newRepositoryManager(), "docker-repo", RepositoryType.proxy, "docker");
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    assertThat(firewallContainerHelper.isDockerForFirewallApplication(application.getId())).isTrue();
+
+    Organization organization1 = tempEntity.newOrganization();
+    Application application1 = tempEntity.newApplication(organization1.getId());
+
+    assertThat(firewallContainerHelper.isDockerForFirewallApplication(application1.getId())).isFalse();
+  }
 }

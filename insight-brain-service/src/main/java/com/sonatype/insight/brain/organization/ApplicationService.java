@@ -274,6 +274,11 @@ public class ApplicationService
     return applicationDAO.getAll();
   }
 
+  @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
+  public List<Application> getAllWithoutRelatedRepositories() {
+    return applicationDAO.getAllWithoutRelatedRepositories();
+  }
+
   /**
    * Gets a list of filtered applications where the current user has permissions on using
    * {@link #getApplications(String)} and checks if that list contains all applications. Useful to determine if a user

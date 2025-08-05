@@ -82,10 +82,9 @@ public class ApplicationManagementService
       nameFilter = null;
     }
 
-    List<Application> applications = applicationService.getApplications();
+    List<Application> applications = applicationService.getAllWithoutRelatedRepositories();
     List<ApplicationManagementSummaryDTO> applicationManagementSummaryDTOs =
         applicationAdapter.createApplicationManagementSummaries(applications, nameFilter);
-
     Comparator<ApplicationManagementSummaryDTO> comparator = getComparator(order);
     applicationManagementSummaryDTOs.sort(comparator);
 

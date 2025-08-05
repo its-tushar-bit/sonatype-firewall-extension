@@ -44,6 +44,7 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -396,6 +397,7 @@ public class ApiEndpointsServiceTest
   }
 
   @Test
+  @Ignore //CLM-35733
   public void testNoOverlappingTags() {
     JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
 

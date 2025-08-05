@@ -39,7 +39,6 @@ import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
-import com.sonatype.insight.brain.dataaccess.tag.ApplicationTagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -58,7 +57,6 @@ import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.model.tag.ApplicationTag;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -88,8 +86,6 @@ public class ApplicationDAO
   private final Provider<PolicyDAO> policyDAOProvider;
 
   private final Provider<OwnerDAO> ownerDAOProvider;
-
-  private final ApplicationTagDAO applicationTagDAO;
 
   private final Provider<ApplicationComponentDAO> applicationComponentDAOProvider;
 
@@ -124,7 +120,6 @@ public class ApplicationDAO
       final Provider<LabelDAO> labelDAOProvider,
       final Provider<PolicyDAO> policyDAOProvider,
       final Provider<OwnerDAO> ownerDAOProvider,
-      final ApplicationTagDAO applicationTagDAO,
       final Provider<ApplicationComponentDAO> applicationComponentDAOProvider,
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final MembershipMappingDAO membershipMappingDAO,
@@ -144,7 +139,6 @@ public class ApplicationDAO
     this.labelDAOProvider = labelDAOProvider;
     this.policyDAOProvider = policyDAOProvider;
     this.ownerDAOProvider = ownerDAOProvider;
-    this.applicationTagDAO = applicationTagDAO;
     this.applicationComponentDAOProvider = applicationComponentDAOProvider;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.membershipMappingDAO = membershipMappingDAO;
@@ -646,6 +640,7 @@ public class ApplicationDAO
     long start = System.currentTimeMillis();
 
     // The following entity deletions are cascaded via foreign key ON DELETE CASCADE:
+    // - ApplicationTag
     // - PolicyEvaluation
     // - PolicyViolation
     // - SourceControlDefaultBranchCommitHistory
@@ -675,12 +670,6 @@ public class ApplicationDAO
 
     // Cascade to owned entities
     ownerDAOProvider.get().cascadeDelete(tx, application);
-
-    // Cascade to applied tags
-    List<ApplicationTag> appTags = applicationTagDAO.getByApplicationId(tx, application.getId());
-    for (ApplicationTag appTag : appTags) {
-      applicationTagDAO.delete(tx, appTag);
-    }
 
     // Cascade to components
     ApplicationComponentDAO applicationComponentDAO = applicationComponentDAOProvider.get();

@@ -210,7 +210,6 @@ public class TestDAOFactory
     Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider = this::createLicenseThreatGroupDAO;
     Provider<PolicyDAO> policyDAOProvider = this::createPolicyDAO;
     Provider<ApplicationComponentDAO> applicationComponentDAOProvider = this::createApplicationComponentDAO;
-    ApplicationTagDAO applicationTagDAO = createApplicationTagDAO();
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     MembershipMappingDAO membershipMappingDAO = createMembershipMappingDAO();
     PolicyViolationAggregationDAO policyViolationAggregationDAO = createPolicyViolationAggregationDAO();
@@ -223,7 +222,7 @@ public class TestDAOFactory
     OrganizationDAO organizationDAO = createOrganizationDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
-        licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider, applicationTagDAO,
+        licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider,
         applicationComponentDAOProvider, proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,

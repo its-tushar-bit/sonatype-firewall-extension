@@ -396,7 +396,7 @@ CREATE TABLE application_tag (
   tag_id varchar(50) NOT NULL,
   CONSTRAINT application_tag_pk PRIMARY KEY (application_tag_id),
   CONSTRAINT application_tag_uk UNIQUE (application_id, tag_id),
-  CONSTRAINT application_tag_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
+  CONSTRAINT application_tag_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
   CONSTRAINT application_tag_tag_fk FOREIGN KEY (tag_id) REFERENCES tag(tag_id)
 );
 

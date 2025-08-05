@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityS
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.VulnerabilityGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityEpssScoreConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 
 /**
@@ -88,7 +89,8 @@ public class ConditionTypesTestHelper
         new DerivativeAiModelConditionType(),
         new AiModelContentConditionType(),
         new SecurityVulnerabilityDetectionConditionType(),
-        new KevStatusConditionType()
+        new KevStatusConditionType(),
+        new SecurityVulnerabilityEpssScoreConditionType()
     );
   }
 

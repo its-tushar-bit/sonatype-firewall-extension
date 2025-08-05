@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
+import com.sonatype.insight.vulnerability.model.EpssData;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -629,7 +630,7 @@ public class ThirdPartyComponentDAOTest
 
   @Test
   public void testGetVulnerabilityData_ThirdParty_WithKev() throws Exception {
-    mockHdsGetKevDataBulk();
+    mockHdsGetExploitRiskDataBulk();
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
         application.getId(), SCAN_ID);
@@ -650,13 +651,13 @@ public class ThirdPartyComponentDAOTest
     assertThat(securityJsonRootNode).hasSize(5);
 
     // The 2 additional nodes generated from third party data should contain kev data
-    assertThirdPartyDataWithKevStatus(securityJsonRootNode);
+    assertThirdPartyDataWithExploitRiskData(securityJsonRootNode);
   }
 
   @Test
   public void testGetVulnerabilityData_ThirdParty_WithKev_DisabledFeatureFlag() throws Exception {
     SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.setEnabled(false);
-    mockHdsGetKevDataBulk();
+    mockHdsGetExploitRiskDataBulk();
 
     ReportHelper.saveMockReport(insightWork, tempDir, "/ThirdPartyComponentDAOTest/kev",
         application.getId(), SCAN_ID);
@@ -678,7 +679,7 @@ public class ThirdPartyComponentDAOTest
 
     // There should still be 5 nodes but the 2 additional ones generated
     // from third party data should not contain any kev data
-    assertThirdPartyDataWithoutKevStatus(securityJsonRootNode);
+    assertThirdPartyExploitRiskData(securityJsonRootNode, false, false);
   }
 
   @Test
@@ -703,18 +704,18 @@ public class ThirdPartyComponentDAOTest
     securityJsonRootNode = securityJsonData.get("aaData");
     assertThat(securityJsonRootNode).hasSize(5);
 
-    assertThirdPartyDataWithoutKevStatus(securityJsonRootNode);
+    assertThirdPartyDataWithoutExploitRiskData(securityJsonRootNode);
   }
 
-  private void assertThirdPartyDataWithKevStatus(JsonNode securityJsonRootNode) {
-    assertThirdPartyKevData(securityJsonRootNode, true);
+  private void assertThirdPartyDataWithExploitRiskData(JsonNode securityJsonRootNode) {
+    assertThirdPartyExploitRiskData(securityJsonRootNode, true, true);
   }
 
-  private void assertThirdPartyDataWithoutKevStatus(JsonNode securityJsonRootNode) {
-    assertThirdPartyKevData(securityJsonRootNode, false);
+  private void assertThirdPartyDataWithoutExploitRiskData(JsonNode securityJsonRootNode) {
+    assertThirdPartyExploitRiskData(securityJsonRootNode, false, false);
   }
 
-  private void assertThirdPartyKevData(JsonNode securityJsonRootNode, boolean hasKevData) {
+  private void assertThirdPartyExploitRiskData(JsonNode securityJsonRootNode, boolean hasKevData, boolean hasEpssData) {
     JsonNode node = securityJsonRootNode.get(0);
     JsonNode reference = node.get("reference");
     assertThat(reference.textValue()).isEqualTo("CVE-2021-34141");
@@ -726,6 +727,8 @@ public class ThirdPartyComponentDAOTest
     assertThat(analysis).isNull();
     JsonNode kevData = node.get("kevData");
     assertThat(kevData.textValue()).isNull();
+    JsonNode epssData = node.get("epssData");
+    assertThat(epssData.textValue()).isNull();
 
     node = securityJsonRootNode.get(1);
     reference = node.get("reference");
@@ -738,6 +741,8 @@ public class ThirdPartyComponentDAOTest
     assertThat(analysis).isNull();
     kevData = node.get("kevData");
     assertThat(kevData.textValue()).isNull();
+    epssData = node.get("epssData");
+    assertThat(epssData.textValue()).isNull();
 
     node = securityJsonRootNode.get(2);
     reference = node.get("reference");
@@ -750,6 +755,8 @@ public class ThirdPartyComponentDAOTest
     assertThat(analysis).isNull();
     kevData = node.get("kevData");
     assertThat(kevData.textValue()).isNull();
+    epssData = node.get("epssData");
+    assertThat(epssData.textValue()).isNull();
 
     node = securityJsonRootNode.get(3);
     reference = node.get("reference");
@@ -767,6 +774,14 @@ public class ThirdPartyComponentDAOTest
     }
     else {
       assertThat(kevData.textValue()).isNull();
+    }
+    epssData = node.get("epssData");
+    if (hasEpssData) {
+      assertThat(epssData).isNotNull();
+      assertThat(epssData.get("currentScore").doubleValue()).isEqualTo(0.8);
+    }
+    else {
+      assertThat(epssData.textValue()).isNull();
     }
 
     node = securityJsonRootNode.get(4);
@@ -786,6 +801,8 @@ public class ThirdPartyComponentDAOTest
     else {
       assertThat(kevData.textValue()).isNull();
     }
+    epssData = node.get("epssData");
+    assertThat(epssData.textValue()).isNull();
   }
 
   private ContainerNode<?> getContainerNode(final ApplicationReport reportFile, final String name)
@@ -794,10 +811,11 @@ public class ThirdPartyComponentDAOTest
     return JsonUtils.parse(reportFile.getEntry(name).buf);
   }
 
-  private void mockHdsGetKevDataBulk() {
+  private void mockHdsGetExploitRiskDataBulk() {
     Map<String, SecurityVulnerabilityData> vulnerabilities = new HashMap<>();
     SecurityVulnerabilityData data = new SecurityVulnerabilityData();
     data.kevData = new KevData(true);
+    data.epssData = new EpssData(0.8);
 
     SecurityVulnerabilityData data1 = new SecurityVulnerabilityData();
     data1.kevData = new KevData(false);

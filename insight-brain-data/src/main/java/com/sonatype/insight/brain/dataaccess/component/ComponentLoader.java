@@ -70,6 +70,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
 import com.sonatype.insight.vulnerability.model.KevData;
+import com.sonatype.insight.vulnerability.model.EpssData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -628,6 +629,7 @@ public class ComponentLoader
           final String identificationSource =
               JsonUtils.getNullableString(securityVulnerabilityJson.get("identificationSource"));
           final JsonNode kevDataNode = securityVulnerabilityJson.path("kevData");
+          final JsonNode epssDataNode = securityVulnerabilityJson.path("epssData");
 
           Component component = componentsByHash.get(hash);
 
@@ -646,6 +648,7 @@ public class ComponentLoader
             //and a new Enum for vulnerability will be created in the future.
             securityVulnerability.setIdentificationSource(IdentificationSource.getById(identificationSource));
             securityVulnerability.setKevData(toKevData(kevDataNode));
+            securityVulnerability.setEpssData(toEpssData(epssDataNode));
             if (vulnerabilityCategories != null) {
               for (String categoryStr : vulnerabilityCategories) {
                 SecurityVulnerabilityCategory category = SecurityVulnerabilityCategory.getById(categoryStr);
@@ -921,18 +924,32 @@ public class ComponentLoader
   }
 
   /**
-   * Convert JSON representation of KevData to the concrete class.
+   * Convert JSON representation of a given type to the concrete class.
    */
-  private KevData toKevData(final JsonNode kevDataNode) {
-    if (kevDataNode == null || kevDataNode.isMissingNode() || kevDataNode.isNull() || kevDataNode.isEmpty()) {
+  private <T> T toPojo(final JsonNode jsonNode, Class<T> clazz, String errorMessage) {
+    if (jsonNode == null || jsonNode.isMissingNode() || jsonNode.isNull() || jsonNode.isEmpty()) {
       return null;
     }
 
     try {
-      return JsonUtils.asPojo(kevDataNode, KevData.class);
+      return JsonUtils.asPojo(jsonNode, clazz);
     }
     catch (IOException e) {
-      throw new UncheckedIOException("Error deserializing KevData", e);
+      throw new UncheckedIOException(errorMessage, e);
     }
+  }
+
+  /**
+   * Convert JSON representation of KevData to the concrete class.
+   */
+  private KevData toKevData(final JsonNode kevDataNode) {
+    return toPojo(kevDataNode, KevData.class, "Error deserializing KevData");
+  }
+
+  /**
+   * Convert JSON representation of EpssData to the concrete class.
+   */
+  private EpssData toEpssData(final JsonNode epssDataNode) {
+    return toPojo(epssDataNode, EpssData.class, "Error deserializing EpssData");
   }
 }

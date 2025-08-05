@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediation
 import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentChangeActionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.vulnerability.VulnerabilityExploitRiskData;
 import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -54,7 +55,6 @@ import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.scan.ThirdPartyVulnerabilityExploitabilityExchangeRowDTO;
 import com.sonatype.insight.util.MetadataRecorderUtils;
 import com.sonatype.insight.vulnerability.model.BulkSecurityVulnerabilityDataDTO;
-import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -315,7 +315,7 @@ public class ThirdPartyComponentDAO
     log.debug("Begin updating report for third party");
     int knownArtifactCount = summaryJsonData.path("knownArtifactCount").asInt();
     int exactlyMatchedComponentCount = dataJson.path("exactlyMatchedComponentCount").asInt();
-    boolean isThirdPartyKevLookupEnabled = SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled();
+    boolean isExploitRiskDataLookupEnabled = SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.isEnabled();
 
     Map<String, ThirdPartyReportComponentDTO> thirdPartyReportComponentDataByHash = null;
     ArrayNode bomArray = (ArrayNode) bomJsonData.get("aaData");
@@ -345,7 +345,7 @@ public class ThirdPartyComponentDAO
               JsonNode nodeToAdd = JsonUtils.asTree(convert(securityRowDTO));
               securityJsonArray.add(nodeToAdd);
               String ref = securityRowDTO.reference;
-              if (isThirdPartyKevLookupEnabled) {
+              if (isExploitRiskDataLookupEnabled) {
                 hashesToUpdate.add(securityRowDTO.hash);
                 unmatchedRefToNodeMap.computeIfAbsent(ref, k -> new ArrayList<>()).add(nodeToAdd);
               }
@@ -371,10 +371,10 @@ public class ThirdPartyComponentDAO
 
     long startTimeAddKev = currentTimeMillis();
     log.debug("Begin updating security.json for KEV.");
-    if (isThirdPartyKevLookupEnabled) {
-      addKevToSecurityData(hashesToUpdate, unmatchedRefToNodeMap);
+    if (isExploitRiskDataLookupEnabled) {
+      addExploitRiskDataToSecurityData(hashesToUpdate, unmatchedRefToNodeMap);
     }
-    log.debug("Finished updating security.json for KEV in: {} ms", (currentTimeMillis() - startTimeAddKev));
+    log.debug("Finished updating security.json for KEV and EPSS in: {} ms", (currentTimeMillis() - startTimeAddKev));
 
     ObjectNode dataObjectNode = (ObjectNode) dataJson;
     dataObjectNode.put("exactlyMatchedComponentCount", exactlyMatchedComponentCount);
@@ -384,29 +384,48 @@ public class ThirdPartyComponentDAO
     log.debug("Finished updating report for third party in: {} ms", (currentTimeMillis() - startTimeReport));
   }
 
-  private void addKevToSecurityData(Set<String> hashesToUpdate,
+  private void addExploitRiskDataToSecurityData(Set<String> hashesToUpdate,
                                     Map<String, List<JsonNode>> unmatchedRefToNodeMap)
   {
     if (unmatchedRefToNodeMap.isEmpty()) {
       return;
     }
 
-    Set<String> refIdsForKevDataLookup = new HashSet<>(unmatchedRefToNodeMap.keySet());
+    Set<String> refIdsForExploitRiskDataLookup = new HashSet<>(unmatchedRefToNodeMap.keySet());
 
-    Map<String, KevData> kevDataMap = processRefIdsInBatches(refIdsForKevDataLookup);
+    Map<String, VulnerabilityExploitRiskData> exploitRiskDataMap =
+        processRefIdsInBatches(refIdsForExploitRiskDataLookup);
 
-    for (Entry<String, KevData> entry : kevDataMap.entrySet()) {
-      String ref = entry.getKey();
-      KevData kevData = entry.getValue();
+    for (Map.Entry<String, List<JsonNode>> entry : unmatchedRefToNodeMap.entrySet()) {
+      String refId = entry.getKey();
+      List<JsonNode> nodes = entry.getValue();
+      VulnerabilityExploitRiskData exploitRiskData = exploitRiskDataMap.get(refId);
 
-      List<JsonNode> nodesToUpdate = unmatchedRefToNodeMap.get(ref);
-      if (nodesToUpdate != null) {
-        for (JsonNode nodeToUpdate : nodesToUpdate) {
-          if (hashesToUpdate.contains(nodeToUpdate.get("hash").textValue())) {
-            ((ObjectNode) nodeToUpdate).set("kevData", JsonUtils.asTree(kevData));
-          }
-        }
+      for (JsonNode node : nodes) {
+        enrichNodeWithExploitRiskDataIfNeeded(node, exploitRiskData, hashesToUpdate);
       }
+    }
+  }
+
+  private void enrichNodeWithExploitRiskDataIfNeeded(
+      JsonNode nodeToUpdate,
+      VulnerabilityExploitRiskData exploitRiskData,
+      Set<String> hashesToUpdate)
+  {
+    if (!hashesToUpdate.contains(nodeToUpdate.get("hash").textValue())) {
+      return;
+    }
+
+    if (exploitRiskData == null) {
+      return;
+    }
+
+    if (exploitRiskData.kevData() != null) {
+      ((ObjectNode) nodeToUpdate).set("kevData", JsonUtils.asTree(exploitRiskData.kevData()));
+    }
+
+    if (exploitRiskData.epssData() != null) {
+      ((ObjectNode) nodeToUpdate).set("epssData", JsonUtils.asTree(exploitRiskData.epssData()));
     }
   }
 
@@ -585,7 +604,7 @@ public class ThirdPartyComponentDAO
     return componentRemediationDto;
   }
 
-  private Map<String, KevData> getKevDataFromHDS(Set<String> refIds) {
+  private Map<String, VulnerabilityExploitRiskData> getExploitRiskDataFromHDS(Set<String> refIds) {
     try {
       long startTime = currentTimeMillis();
       log.debug("Begin HDS call for: {} refIds", refIds.size());
@@ -601,28 +620,29 @@ public class ThirdPartyComponentDAO
       }
 
       return dto.getVulnerabilities().entrySet().stream()
-          .filter(entry -> entry.getValue() != null && entry.getValue().kevData != null)
+          .filter(entry -> entry.getValue() != null &&
+              (entry.getValue().kevData != null || entry.getValue().epssData != null))
           .collect(Collectors.toMap(
               Map.Entry::getKey,
-              entry -> entry.getValue().kevData
+              entry -> new VulnerabilityExploitRiskData(entry.getValue().kevData, entry.getValue().epssData)
           ));
     }
     catch (Exception e) {
-      log.error("Failed to retrieve KEV data from HDS: {}", e.getMessage(), e);
+      log.error("Failed to retrieve KEV and EPSS data from HDS: {}", e.getMessage(), e);
 
       return Collections.emptyMap();
     }
   }
 
-  private Map<String, KevData> processRefIdsInBatches(Set<String> allRefIds) {
+  private Map<String, VulnerabilityExploitRiskData> processRefIdsInBatches(Set<String> allRefIds) {
     final int BATCH_SIZE = 1000;
-    Map<String, KevData> combinedResults = new HashMap<>();
+    Map<String, VulnerabilityExploitRiskData> combinedResults = new HashMap<>();
 
     long startTime = currentTimeMillis();
     log.debug("Begin HDS batch call.");
 
     Iterables.partition(allRefIds, BATCH_SIZE)
-        .forEach(refIdBatch -> combinedResults.putAll(getKevDataFromHDS(new HashSet<>(refIdBatch))));
+        .forEach(refIdBatch -> combinedResults.putAll(getExploitRiskDataFromHDS(new HashSet<>(refIdBatch))));
 
     log.debug("Finished all HDS batch calls in {} ms.", (currentTimeMillis() - startTime));
 

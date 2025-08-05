@@ -92,6 +92,8 @@ public class ConditionTypes
 
   public static KevStatusConditionType KevStatusConditionType;
 
+  public static SecurityVulnerabilityEpssScoreConditionType SecurityVulnerabilityEpssScoreConditionType;
+
   @Inject
   public static void injectConditionTypes(
       final AgeInDaysConditionType ageInDaysConditionType,
@@ -129,7 +131,8 @@ public class ConditionTypes
       final DerivativeAiModelConditionType derivativeAiModelConditionType,
       final AiModelContentConditionType aiModelContentConditionType,
       final SecurityVulnerabilityDetectionConditionType securityVulnerabilityDetectionConditionType,
-      final KevStatusConditionType kevStatusConditionType)
+      final KevStatusConditionType kevStatusConditionType,
+      final SecurityVulnerabilityEpssScoreConditionType securityVulnerabilityEpssScoreConditionType)
   {
     ConditionTypes.AgeInDaysConditionType = ageInDaysConditionType;
     ConditionTypes.CoordinatesConditionType = coordinatesConditionType;
@@ -168,6 +171,7 @@ public class ConditionTypes
     ConditionTypes.AiModelContentConditionType = aiModelContentConditionType;
     ConditionTypes.SecurityVulnerabilityDetectionConditionType = securityVulnerabilityDetectionConditionType;
     ConditionTypes.KevStatusConditionType = kevStatusConditionType;
+    ConditionTypes.SecurityVulnerabilityEpssScoreConditionType = securityVulnerabilityEpssScoreConditionType;
     allConditionTypes.clear();
 
     // Don't add DeprecatedSecurityVulnerabilityConditionType
@@ -205,6 +209,7 @@ public class ConditionTypes
     add(DerivativeAiModelConditionType);
     add(AiModelContentConditionType);
     add(KevStatusConditionType);
+    add(SecurityVulnerabilityEpssScoreConditionType);
   }
 
   public static Collection<ConditionType> getAll() {

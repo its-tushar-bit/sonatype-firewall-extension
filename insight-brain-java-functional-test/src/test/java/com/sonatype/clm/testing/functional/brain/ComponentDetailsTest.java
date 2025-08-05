@@ -1178,14 +1178,17 @@ public class ComponentDetailsTest
     SelenideElement kevContent = vulnerabilityDetailsPopover.getSectionContentByIdx(3);
     kevContent.shouldHave(text("Not listed"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    SelenideElement epssContent = vulnerabilityDetailsPopover.getSectionContentByIdx(4);
+    epssContent.shouldHave(text("0.077%"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
     weaknessContent.shouldHave(text("CWE123 (Custom)"));
     weaknessContent.shouldHave(text("Sonatype CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(5);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
     sourceContent.shouldHave(text("Sonatype Data Research"));
 
-    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(6);
+    SelenideElement categoriesContent = vulnerabilityDetailsPopover.getSectionContentByIdx(7);
     categoriesContent.shouldHave(text("Data"));
 
     SelenideElement cvssDetailsContent = vulnerabilityDetailsPopover.getSectionContentByLabel("CVSS Details");

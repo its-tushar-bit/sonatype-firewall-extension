@@ -87,6 +87,7 @@ public class ConditionValueTypes
     allConditionValueTypes.add(new SecurityVulnerabilityCustomDetailsCVSSVectorStringValueType());
     allConditionValueTypes.add(new AiModelContentValueType());
     allConditionValueTypes.add(new KevStatusValueType());
+    allConditionValueTypes.add(new DoubleValueType());
     return allConditionValueTypes;
   }
 }

@@ -73,6 +73,10 @@ public abstract class AbstractConditionType
     return "Float.valueOf( (float) " + value + " )";
   }
 
+  protected static String asDroolsDouble(String value) {
+    return "Double.valueOf( (double) " + value + " )";
+  }
+
   @Override
   public PolicyThreatCategory getThreatCategory() {
     return PolicyThreatCategory.OTHER;

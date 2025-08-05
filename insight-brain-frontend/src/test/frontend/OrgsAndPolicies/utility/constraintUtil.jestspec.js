@@ -7,6 +7,7 @@ import {
   conditionString,
   validatePatternMatchAndEmptyValue,
   getCoordinatesValue,
+  dataTypeValidatorsMap,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 
@@ -380,6 +381,71 @@ describe('constraintUtil', () => {
 
       it('returns combined coordinates value for swift', () => {
         expect(getCoordinatesValue(value)).toBe('swift:name:version');
+      });
+    });
+  });
+
+  describe('dataTypeValidatorsMap Double validator', () => {
+    let doubleValidator;
+
+    beforeEach(() => {
+      doubleValidator = dataTypeValidatorsMap.get('Double');
+    });
+
+    it('should exist in the map', () => {
+      expect(doubleValidator).toBeDefined();
+    });
+
+    describe('valid inputs', () => {
+      it('accepts valid integer within range', () => {
+        expect(doubleValidator('50')).toEqual([]);
+      });
+
+      it('accepts valid decimal within range', () => {
+        expect(doubleValidator('25.5')).toEqual([]);
+      });
+
+      it('accepts zero', () => {
+        expect(doubleValidator('0')).toEqual([]);
+      });
+
+      it('accepts maximum value 100', () => {
+        expect(doubleValidator('100')).toEqual([]);
+      });
+
+      it('accepts decimal at boundary', () => {
+        expect(doubleValidator('0.1')).toEqual([]);
+        expect(doubleValidator('99.9')).toEqual([]);
+      });
+    });
+
+    describe('invalid inputs', () => {
+      it('rejects empty value', () => {
+        expect(doubleValidator('')).toEqual(['Must be non-empty', 'Please enter a decimal number']);
+      });
+
+      it('rejects value below minimum', () => {
+        expect(doubleValidator('-1')).toEqual(['Value must be from 0 to 100', 'Please enter a decimal number']);
+      });
+
+      it('rejects value above maximum', () => {
+        expect(doubleValidator('101')).toEqual(['Value must be from 0 to 100']);
+      });
+
+      it('rejects non-numeric value', () => {
+        expect(doubleValidator('abc')).toEqual(['Please enter a decimal number']);
+      });
+
+      it('rejects value with invalid decimal format', () => {
+        expect(doubleValidator('1.2.3')).toEqual(['Please enter a decimal number']);
+      });
+
+      it('rejects value with letters mixed in', () => {
+        expect(doubleValidator('12a')).toEqual(['Please enter a decimal number']);
+      });
+
+      it('rejects negative decimal', () => {
+        expect(doubleValidator('-0.5')).toEqual(['Value must be from 0 to 100', 'Please enter a decimal number']);
       });
     });
   });

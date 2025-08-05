@@ -864,7 +864,7 @@ public class ComponentLoaderTest
     ObjectNode bom = objectMapper.createObjectNode();
     ArrayNode aaData = objectMapper.createArrayNode();
 
-    // Component 1: getIsKev = false
+    // Component 1: getIsKev = false, getEpssData = 0.1
     ObjectNode component1 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createMavenCoordinates("g", "a", "v", "c", "e");
     component1.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier1));
@@ -878,7 +878,7 @@ public class ComponentLoaderTest
     component1.put("endOfLife", END_OF_LIFE_TRUE.name());
     aaData.add(objectMapper.valueToTree(component1));
 
-    // Component 2: getIsKev = null
+    // Component 2: getIsKev = null, getEpssData = 0.00567
     ObjectNode component2 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createMavenCoordinates("g2", "a2", "v2", "c2", "e2");
     component2.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier2));
@@ -892,7 +892,7 @@ public class ComponentLoaderTest
     component2.put("endOfLife", END_OF_LIFE_TRUE.name());
     aaData.add(objectMapper.valueToTree(component2));
 
-    // Component 3: getIsKev = true
+    // Component 3: getIsKev = true, getEpssData = null
     ObjectNode component3 = objectMapper.createObjectNode();
     ComponentIdentifier componentIdentifier3 = ComponentIdentifier.createMavenCoordinates("g3", "a3", "v3", "c3", "e3");
     component3.set("componentIdentifier", objectMapper.valueToTree(componentIdentifier3));
@@ -911,24 +911,30 @@ public class ComponentLoaderTest
     ObjectNode securityData = objectMapper.createObjectNode();
     ArrayNode aaDataSecurityData = objectMapper.createArrayNode();
 
-    // Security Vulnerability 1: getIsKev = false
+    // Security Vulnerability 1: getIsKev = false, getEpssData = 0.1
     ObjectNode securityVulnerability1 = objectMapper.createObjectNode();
     ObjectNode kevDataNode1 = objectMapper.createObjectNode();
+    ObjectNode epssDataNode1 = objectMapper.createObjectNode();
     kevDataNode1.put("isKev", false);
+    epssDataNode1.put("currentScore", 0.1);
     securityVulnerability1.put("hash", hash1);
     securityVulnerability1.put("source", "test");
     securityVulnerability1.put("reference", refId1);
     securityVulnerability1.put("kevData", kevDataNode1);
+    securityVulnerability1.put("epssData", epssDataNode1);
     aaDataSecurityData.add(securityVulnerability1);
 
-    // Security Vulnerability 2: getIsKev = null
+    // Security Vulnerability 2: getIsKev = null, getEpssData = 0.00567
     ObjectNode securityVulnerability2 = objectMapper.createObjectNode();
+    ObjectNode epssDataNode2 = objectMapper.createObjectNode();
+    epssDataNode2.put("currentScore", 0.00567);
     securityVulnerability2.put("hash", hash2);
     securityVulnerability2.put("source", "test");
     securityVulnerability2.put("reference", refId2);
+    securityVulnerability2.put("epssData", epssDataNode2);
     aaDataSecurityData.add(securityVulnerability2);
 
-    // Security Vulnerability 3: getIsKev = true
+    // Security Vulnerability 3: getIsKev = true, getEpssData = null
     ObjectNode securityVulnerability3 = objectMapper.createObjectNode();
     ObjectNode kevDataNode3 = objectMapper.createObjectNode();
     kevDataNode3.put("isKev", true);
@@ -951,12 +957,16 @@ public class ComponentLoaderTest
     assertThat(securityVulnerabilityResult1.getRefId()).isEqualTo(refId1);
     assertThat(securityVulnerabilityResult1.getKevData()).isNotNull();
     assertThat(securityVulnerabilityResult1.getKevData().getIsKev()).isFalse();
+    assertThat(securityVulnerabilityResult1.getEpssData()).isNotNull();
+    assertThat(securityVulnerabilityResult1.getEpssData().getCurrentScore()).isEqualTo(0.1);
 
     // Assert Component 2
     assertThat(components.get(1).getSecurityVulnerabilities()).hasSize(1);
     SecurityVulnerability securityVulnerabilityResult2 = components.get(1).getSecurityVulnerabilities().get(0);
     assertThat(securityVulnerabilityResult2.getRefId()).isEqualTo(refId2);
     assertThat(securityVulnerabilityResult2.getKevData()).isNull();
+    assertThat(securityVulnerabilityResult2.getEpssData()).isNotNull();
+    assertThat(securityVulnerabilityResult2.getEpssData().getCurrentScore()).isEqualTo(0.00567);
 
     // Assert Component 3
     assertThat(components.get(2).getSecurityVulnerabilities()).hasSize(1);
@@ -964,6 +974,7 @@ public class ComponentLoaderTest
     assertThat(securityVulnerabilityResult3.getRefId()).isEqualTo(refId3);
     assertThat(securityVulnerabilityResult3.getKevData()).isNotNull();
     assertThat(securityVulnerabilityResult3.getKevData().getIsKev()).isTrue();
+    assertThat(securityVulnerabilityResult3.getEpssData()).isNull();
   }
 
   private void assertLicenseOverrideIsTheExpected(MatchedComponent matchedComponent, String licenseOverrideId) {

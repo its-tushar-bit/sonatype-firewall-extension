@@ -922,13 +922,16 @@ public class ComponentDetailsPageTest
     SelenideElement kevContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(3);
     kevContent.shouldHave(text("Not listed"));
 
-    SelenideElement weaknessContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement epssContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    epssContent.shouldHave(text("123,444%"));
+
+    SelenideElement weaknessContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     weaknessContent.shouldHave(text("CVE CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    SelenideElement sourceContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(6);
     sourceContent.shouldHave(text("National Vulnerability Database"));
 
-    SelenideElement categoryContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(6);
+    SelenideElement categoryContent = vulnerabilityDetails.getVulnerabilityDetailsContentByFirstColumnIdx(7);
     categoryContent.shouldHave(text("Data"));
 
     SelenideElement descriptionFromCveContent =
@@ -985,10 +988,13 @@ public class ComponentDetailsPageTest
     SelenideElement kevContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
     kevContent.shouldHave(text("Not listed"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement epssContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    epssContent.shouldHave(text("123,444%"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     weaknessContent.shouldHave(text("CVE CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(6);
     sourceContent.shouldHave(text("National Vulnerability Database"));
 
     SelenideElement explanationContent =
@@ -1024,13 +1030,16 @@ public class ComponentDetailsPageTest
     SelenideElement kevContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(3);
     kevContent.shouldHave(text("Not listed"));
 
-    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    SelenideElement epssContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(4);
+    epssContent.shouldHave(text("123,444%"));
+
+    SelenideElement weaknessContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
     weaknessContent.shouldHave(text("CVE CWE400"));
 
-    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(5);
+    SelenideElement sourceContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(6);
     sourceContent.shouldHave(text("National Vulnerability Database"));
 
-    SelenideElement categoryContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(6);
+    SelenideElement categoryContent = vulnerabilityDetailsPopover.getVulnerabilityDetailsContentByFirstColumnIdx(7);
     categoryContent.shouldHave(text("Data"));
 
     SelenideElement descriptionFromCveContent =

@@ -73,7 +73,10 @@
     "cvssVectorString" : null,
     "cvssVectorSource" : null,
     "matchState" : "exact",
-    "proprietary" : false
+    "proprietary" : false,
+    "epssData": {
+      "currentScore": 0.2101
+    }
   }, {
     "componentIdentifier" : {
       "format" : "maven",

@@ -164,6 +164,14 @@ export const dataTypeValidatorsMap = new Map([
       validatePatternMatch(/^\d+(\.\d+)?$/, 'Please enter a decimal number'),
     ]),
   ],
+  [
+    'Double',
+    combineValidators([
+      validateNonEmpty,
+      validateMinMax([0, 100], 'Value must be from 0 to 100'),
+      validatePatternMatch(/^\d+(\.\d+)?$/, 'Please enter a decimal number'),
+    ]),
+  ],
 ]);
 
 /* eslint-disable no-useless-escape */

@@ -31,7 +31,7 @@ const constraintOperatorOptions = [
   },
 ];
 
-const conditionDataType = new Set(['String', 'Integer', 'Float']);
+const conditionDataType = new Set(['String', 'Integer', 'Float', 'Double']);
 
 const fieldToWidthMap = new Map([
   ['ComponentCategoryValueType', 300],
@@ -53,6 +53,7 @@ const fieldToWidthMap = new Map([
   ['PackageUrlValueType', 300],
   ['IntegerValueType', 150],
   ['FloatValueType', 150],
+  ['DoubleValueType', 300],
   ['SecurityVulnerabilityCweValueType', 300],
 ]);
 

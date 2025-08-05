@@ -176,6 +176,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.api.v2.service.ConfigurationUtils.WITH_REPORTS;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.NON_REACHABLE;
 import static com.sonatype.insight.brain.model.policy.ReachabilityStatus.REACHABLE;
+import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.SecurityVulnerabilityEpssScoreConditionType;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.COUNT;
@@ -4199,6 +4200,7 @@ public class ScanPolicyEvaluatorTest
     Condition securityVulnerabilityCustomRemediationCondition =
         new Condition(SecurityVulnerabilityCustomRemediationConditionType.ID, "exists", null);
     Condition kevStatusCondition = new Condition(KevStatusConditionType.ID, "is", "known_to_be_exploited");
+    Condition epssPercentCondition = new Condition(SecurityVulnerabilityEpssScoreConditionType.ID, ">=", "1");
 
     List<Condition> conditions = Arrays.asList(ageCondition, coordinatesCondition, identificationSourceCondition,
         labelCondition, licenseCondition, licenseStatusCondition, licenseThreatGroupCondition,
@@ -4209,7 +4211,7 @@ public class ScanPolicyEvaluatorTest
         componentFormatCondition, vulnerabilityCategoryCondition, integrityCondition,
         securityVulnerabilitySourceCondition, securityVulnerabilityCustomCVSSVectorCondition,
         securityVulnerabilityCustomRemediationCondition, endOfLifeCondition,
-        securityVulnerabilityDetectionTypeCondition, kevStatusCondition);
+        securityVulnerabilityDetectionTypeCondition, kevStatusCondition, epssPercentCondition);
     ConditionTypes.enableConditionType(ConditionTypes.HygieneRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.IntegrityRatingConditionType);
     ConditionTypes.enableConditionType(ConditionTypes.SecurityVulnerabilitySourceConditionType);

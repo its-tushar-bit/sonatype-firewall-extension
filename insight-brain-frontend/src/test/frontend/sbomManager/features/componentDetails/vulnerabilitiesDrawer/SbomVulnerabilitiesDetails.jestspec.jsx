@@ -223,7 +223,25 @@ describe('SbomVulnerabilityDetails', function () {
       });
     });
 
-    describe('fourth nx-read-only (Weakness)', function () {
+    describe('fourth nx-read-only (EPSS Score)', function () {
+      const leftFragmentWithEPSSScore = (sourceObject) => leftSide(renderComponent(sourceObject));
+
+      const getEPSSScoreFragmentWithObject = (source) => leftFragmentWithEPSSScore(source);
+
+      const getEPSSScoreFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 2);
+
+      it('renders -- when EPSS Score is undefined', function () {
+        expect(queryByText(getEPSSScoreFragment(leftFragmentWithEPSSScore()), 'EPSS Score')).toBeInTheDocument();
+      });
+
+      it('is labelled "EPSS Score" and displays value', function () {
+        const sourceFragment = getEPSSScoreFragmentWithObject({ epssData: { currentScore: 0.0456 } });
+        expect(getByText(sourceFragment, 'EPSS Score')).toBeInTheDocument();
+        expect(getByText(sourceFragment, '4.56%')).toBeInTheDocument();
+      });
+    });
+
+    describe('fifth nx-read-only (Weakness)', function () {
       const testWeaknessObject = (extraProperties) => {
         return {
           weakness: { cweSource: 'foo', cweIds: [{ id: '1', uri: 'http://cwe/' }] },
@@ -233,7 +251,7 @@ describe('SbomVulnerabilityDetails', function () {
 
       const leftFragmentWithWeakness = (weaknessObject) => leftSide(renderComponent(weaknessObject));
 
-      const getWeaknessFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 2);
+      const getWeaknessFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 3);
 
       const getWeaknessFragmentWithObject = (weakness) => getWeaknessFragment(leftFragmentWithWeakness(weakness));
 
@@ -275,12 +293,12 @@ describe('SbomVulnerabilityDetails', function () {
       });
     });
 
-    describe('fifth nx-read-only (Source)', function () {
+    describe('sixth nx-read-only (Source)', function () {
       const leftFragmentWithSource = (sourceObject) => leftSide(renderComponent(sourceObject));
 
       const getSourceFragmentWithObject = (source) => leftFragmentWithSource(source);
 
-      const getSourceFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 2);
+      const getSourceFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 3);
 
       it('is an empty render if source is undefined', function () {
         expect(queryByText(getSourceFragmentWithObject({ source: undefined }), 'Source')).not.toBeInTheDocument();
@@ -293,10 +311,10 @@ describe('SbomVulnerabilityDetails', function () {
       });
     });
 
-    describe('sixth nx-read-only (Categories)', function () {
+    describe('seventh nx-read-only (Categories)', function () {
       const leftFragmentWithCategories = (categoriesObject) => leftSide(renderComponent(categoriesObject));
 
-      const getCategoriesFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 3);
+      const getCategoriesFragment = (leftSideFragment) => readOnlyByIndex(leftSideFragment, 4);
 
       const getCategoriesFragmentWithObject = (categories) =>
         getCategoriesFragment(leftFragmentWithCategories(categories));

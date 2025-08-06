@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
 import com.sonatype.clm.testing.functional.elements.ListWaiversTable;
@@ -34,17 +35,18 @@ import com.sonatype.clm.testing.functional.pages.ContainerComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.utils.SimilarWaiverCreator;
 import com.sonatype.clm.testing.functional.utils.TestReportEvaluator;
+import com.sonatype.insight.brain.api.v2.dto.ApiVerifyOrCreateApplicationForContainerImageFirewallDTO;
+import com.sonatype.insight.brain.integration.ApplicationForContainerImageFirewallService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.policy.PolicyExportResult;
-import com.sonatype.insight.brain.policy.PolicyImportExport;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.dependency.ComponentDependenciesDTO;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer;
 
@@ -53,7 +55,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
@@ -71,19 +72,14 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore("NEXUS-48219")
 public class FirewallContainerComponentDetailsPageTest
     extends AbstractFunctionalTest
 {
   private static final String SCAN_ID = "e16caf35769f4b3186a7e416d34c2797";
 
-  private static final String HASH = "fa78f54738ccf77379d1";
+  private static final String HASH = "dc810b3d25f9e8c930f5";
 
   private final ApplicationReportPage reportPage = new ApplicationReportPage();
-
-  private Organization parentOrg;
-
-  private Organization org;
 
   private Application app;
 
@@ -118,11 +114,6 @@ public class FirewallContainerComponentDetailsPageTest
 
     assertThat(configurationService.isALPObservedLicenseDetectionEnabled()).isTrue();
 
-    URL referencePolicyUrl = getClass().getResource("/reference-policies-v3.json");
-
-    PolicyExportResult referencePolicies = JsonUtils.parse(referencePolicyUrl.openStream(), PolicyExportResult.class);
-    PolicyImportExport policyImportExport = lookup(PolicyImportExport.class);
-
     testCLMServer.getHdsServer()
         .respondWith(IOUtils
             .toString(Objects.requireNonNull(
@@ -145,11 +136,27 @@ public class FirewallContainerComponentDetailsPageTest
         .respondWith("[]")
         .atUri("/rest/legal/source-link");
 
-    parentOrg = tempEntity.newOrganization("Parent Organization");
-    org = tempEntity.newOrganization("Test Organization", parentOrg);
-    policyImportExport.importOrganization(org, referencePolicies);
-    app = tempEntity.newApplication("ContainerReportTest", "ContainerReportTest", org.getId());
-    otherApp = tempEntity.newApplication("OtherApplicationReportTest", "OtherApplicationReportTest", org.getId());
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+    Organization organizationForRepository =
+        tempEntity.createOrganizationHierarchyForContainers(repositoryManager, repository);
+
+    app = tempEntity.newApplication("ContainerReportTest", "ContainerReportTest", organizationForRepository.getId());
+    otherApp = tempEntity.newApplication("OtherApplicationReportTest", "OtherApplicationReportTest",
+        organizationForRepository.getId());
+    tempEntity.createPolicyEvaluationForContainerEvaluation(repository);
+
+    ApplicationForContainerImageFirewallService containerService =
+        lookup(ApplicationForContainerImageFirewallService.class);
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO apiDTO =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            repositoryManager.getBaseUrl(),
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion");
+    containerService.verifyOrCreateApplicationForContainerImage(repository, apiDTO);
 
     URL zippedReport = ReportHelper.zipReport("/canned-reports/large-report", tempDir);
 
@@ -167,7 +174,7 @@ public class FirewallContainerComponentDetailsPageTest
     refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
 
     ElementsCollection violations = reportPage.resultRows();
-    SelenideElement directDependencyWithViolation = violations.get(4);
+    SelenideElement directDependencyWithViolation = violations.get(2);
     directDependencyWithViolation.click();
 
     final String directDependencyHash = "f0776db1593e215146d2";
@@ -179,12 +186,12 @@ public class FirewallContainerComponentDetailsPageTest
 
     // Not comparing exact texts due to dynamic information (organization uuid, report date)
     ElementsCollection reportInformationElements = componentDetailsPage.header().reportInformationElements();
-    reportInformationElements.shouldHave(texts("Test Organization", "ContainerReportTest", "Proxy Report "));
+    reportInformationElements.shouldHave(texts("repository-organization", "ContainerReportTest", "Proxy Report "));
 
     ElementsCollection tags = componentDetailsPage.header().tags();
     tags.shouldHave(texts("maven", "Direct Dependency"));
 
-    componentDetailsPage.footer().paginationCounter().shouldHave(text("5 of 65"));
+    componentDetailsPage.footer().paginationCounter().shouldHave(text("3 of 65"));
   }
 
   @Test
@@ -193,8 +200,8 @@ public class FirewallContainerComponentDetailsPageTest
     reportPage.reportTitle().shouldHave(text("ContainerReportTest Proxy Report"));
 
     ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
+    SelenideElement violation = violations.get(0);
+    violation.click();
 
     waitUntilUrl(ContainerComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
   }
@@ -342,9 +349,9 @@ public class FirewallContainerComponentDetailsPageTest
 
     componentCoordinatesPopover.shouldBe(visible);
     componentCoordinatesPopover.title().shouldHave(text("Component Coordinates"));
-    componentCoordinatesPopover.typeDefinition().shouldHave(text("Type maven"));
+    componentCoordinatesPopover.typeDefinition().shouldHave(text("Type a-name"));
     componentCoordinatesPopover.namingDefinitions()
-        .shouldHave(exactTexts("Group com.mycila", "Artifact license-maven-plugin", "Version 2.11"));
+        .shouldHave(exactTexts("Name angular", "Version 1.2.17"));
 
     componentCoordinatesPopover.copyToClipboard().shouldHave(text("Copy to Clipboard\nPackage URL"));
 
@@ -403,8 +410,8 @@ public class FirewallContainerComponentDetailsPageTest
     violationDetailPopover.shouldBe(visible);
     violationDetailPopover.applicableWaiversTab().shouldHave(cssClass("active"));
 
-    ElementsCollection lastRow = policyViolationsTable.getCellsByNthRow(4);
-    lastRow.get(1).shouldBe(visible).shouldHave(text("Component-Similar")).click();
+    ElementsCollection lastRow = policyViolationsTable.getCellsByNthRow(1);
+    lastRow.get(1).shouldBe(visible).shouldHave(text("Security-High")).click();
     violationDetailPopover.shouldBe(visible);
     ListWaiversTable applicableWaiversTable =
         violationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();
@@ -474,7 +481,7 @@ public class FirewallContainerComponentDetailsPageTest
     setMissingFeature(LicensedFeature.ADVANCED_LEGAL_PACK);
     // we need to refresh the browser to load the product features again
     WebDriverRunner.getWebDriver().navigate().refresh();
-    refreshOrOpen(ContainerComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
+    refreshOrOpen(ContainerComponentDetailsPage.urlToLegal(app, SCAN_ID, HASH));
     ContainerComponentDetailsPage componentDetailsPage = new ContainerComponentDetailsPage();
     componentDetailsPage.legalTabContent().shouldBe(visible);
 
@@ -593,8 +600,8 @@ public class FirewallContainerComponentDetailsPageTest
 
   private ContainerComponentDetailsPage openComponentDetailsPageForFirstViolation() {
     ElementsCollection violations = reportPage.resultRows();
-    SelenideElement firstViolation = violations.first();
-    firstViolation.click();
+    SelenideElement violation = violations.get(0);
+    violation.click();
     waitUntilUrl(ContainerComponentDetailsPage.urlToOverview(app, SCAN_ID, HASH));
     return new ContainerComponentDetailsPage();
   }

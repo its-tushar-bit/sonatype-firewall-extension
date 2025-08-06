@@ -266,6 +266,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
@@ -274,6 +275,7 @@ import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryFormat;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.repository.RepositoryMigration;
@@ -674,6 +676,8 @@ public class TemporaryEntity
   private ZScalerConfigurationDAO zScalerConfigurationDAO;
 
   private ZscalerFormatDAO zscalerFormatDAO;
+
+  private RepositoryContainerDAO repositoryContainerDAO;
 
   private Collection<String> persistedUserSessionIds;
 
@@ -6451,6 +6455,7 @@ public class TemporaryEntity
     cpeMatchingConfigurationDAO = daoFactory.createCpeMatchingConfigurationDAO();
     zScalerConfigurationDAO = daoFactory.createZScalerConfigurationDAO();
     zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
+    repositoryContainerDAO = daoFactory.createRepositoryContainerDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {
@@ -6526,5 +6531,48 @@ public class TemporaryEntity
 
   public void deleteSystemConfigurationProperty(final String name) {
     systemConfigurationPropertyDAO.set(name, null);
+  }
+
+  public Organization createOrganizationHierarchyForContainers(
+      final RepositoryManager repositoryManager,
+      final Repository repository)
+  {
+    // Create the proper 3-level hierarchy for container images
+    Organization organizationForRepoContainer = newOrganization("Firewall for Docker");
+    organizationForRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    orgDAO.update(organizationForRepoContainer);
+    repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepoContainer.getId());
+
+    Organization organizationForRepoManager = newOrganization(organizationForRepoContainer);
+    organizationForRepoManager.setName("repository-manager-organization");
+    organizationForRepoManager.setRelatedRepositoryManagerId(repositoryManager.getId());
+    orgDAO.update(organizationForRepoManager);
+    repositoryManager.setRelatedOrganizationId(organizationForRepoManager.getId());
+    repositoryManagerDAO.update(repositoryManager);
+
+    Organization organizationForRepository = newOrganization(organizationForRepoManager);
+    organizationForRepository.setName("repository-organization");
+    organizationForRepository.setRelatedRepositoryId(repository.getId());
+    orgDAO.update(organizationForRepository);
+    repository.setRelatedOrganizationId(organizationForRepository.getId());
+    repositoryDAO.update(repository);
+
+    return organizationForRepository;
+  }
+
+  public void createPolicyEvaluationForContainerEvaluation(final Repository repository) {
+    Policy testPolicy = new Policy();
+    testPolicy.setName("Security-High");
+    testPolicy.setOwnerId(repository.getId());
+    testPolicy.setThreatLevel(9);
+    Constraint constraint = new Constraint();
+    constraint.setName("High risk CVSS score");
+    Condition condition01 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7");
+    Condition condition02 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, "<", "10");
+    Condition condition03 = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is not", "NOT_APPLICABLE");
+    constraint.setConditions(Arrays.asList(condition01, condition02, condition03));
+    testPolicy.setConstraints(Collections.singletonList(constraint));
+    testPolicy.setActions(Map.of(Stage.ID_PROXY, "fail"));
+    policyDAO.insert(testPolicy);
   }
 }

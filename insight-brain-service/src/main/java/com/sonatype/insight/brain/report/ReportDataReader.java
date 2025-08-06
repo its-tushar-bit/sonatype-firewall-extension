@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -181,7 +182,7 @@ public class ReportDataReader
     return licenses != null ? licenses.stream()
         .filter(license -> !SbomCommonUtils.isUnsupportedLicenseId(license))
         .map(this::getLicense)
-        .collect(Collectors.toSet()) : Set.of();
+        .collect(Collectors.toCollection(HashSet::new)) : new HashSet<>();
   }
 
   private License getLicense(String licenseId) {

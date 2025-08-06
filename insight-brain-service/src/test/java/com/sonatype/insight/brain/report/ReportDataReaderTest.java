@@ -8,14 +8,19 @@ package com.sonatype.insight.brain.report;
 import com.sonatype.clm.dto.model.component.AnalysisSource;
 import com.sonatype.clm.dto.model.component.AnalysisType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
+
+import java.io.IOException;
+
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -55,6 +60,9 @@ public class ReportDataReaderTest
 
   @Inject
   private ReportDataReader reportDataReader;
+
+  @Inject
+  private LicenseDAO licenseDAO;
 
   private Application app;
 
@@ -154,6 +162,38 @@ public class ReportDataReaderTest
 
       mockRunnable.run();
     });
+  }
+
+  @Test
+  public void testGetComponentDetailsByIdentifier_emptyLicenses() throws IOException {
+    String scanId = "scanId";
+    final NamedComponentDetails[] componentDetails = new NamedComponentDetails[1];
+    ComponentIdentifier identifier =
+        ComponentIdentifier.createMavenCoordinates("commons-beanutils", "commons-beanutils", "1.6", "", "jar");
+
+    Application app = tempEntity.newApplicationWithParent();
+
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportDataReaderTest/report-empty-licenses", app.getId(),
+        scanId);
+    componentDetails[0] =
+        reportDataReader.getComponentDetailsByIdentifier(identifier, app.getId(), scanId);
+
+    assertThat(componentDetails[0].getDeclaredLicenseIds()).isEmpty();
+    assertThat(componentDetails[0].getObservedLicenseIds()).isEmpty();
+    assertThat(componentDetails[0].getEffectiveLicenses()).isEmpty();
+
+    com.sonatype.insight.brain.model.license.License licenseNotProvided =
+        licenseDAO.getByIdNotNull(com.sonatype.insight.brain.model.license.License.UNSPECIFIED_ID);
+    License unspecifiedLicense = new License(licenseNotProvided.getId(), licenseNotProvided.getShortDisplayName());
+
+    // Check that an empty collection of licenses can be augmented using the default Not Provided (unspecified) license
+    componentDetails[0].getDeclaredLicenses().add(unspecifiedLicense);
+    componentDetails[0].getObservedLicenses().add(unspecifiedLicense);
+    componentDetails[0].getEffectiveLicenses().add(unspecifiedLicense);
+
+    assertThat(componentDetails[0].getDeclaredLicenseIds()).containsExactly(unspecifiedLicense.getLicenseId());
+    assertThat(componentDetails[0].getObservedLicenseIds()).containsExactly(unspecifiedLicense.getLicenseId());
+    assertThat(componentDetails[0].getEffectiveLicenses()).containsExactly(unspecifiedLicense);
   }
 
   private static void assertComponentDetails(

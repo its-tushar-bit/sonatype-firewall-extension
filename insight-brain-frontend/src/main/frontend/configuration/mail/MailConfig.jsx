@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { Fragment, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
@@ -26,7 +26,9 @@ import {
   NxTextInput,
   NxTextLink,
   NxTile,
+  NxTooltip,
   NxWarningAlert,
+  NxLoadWrapper,
 } from '@sonatype/react-shared-components';
 import { reject, isNil } from 'ramda';
 import LoadError from '../../react/LoadError';
@@ -52,6 +54,7 @@ export default function MailConfig(props) {
       setShowDeleteModal,
       setTestEmail,
       sendTestEmail,
+      getFipsStatus,
     } = props,
     {
       loading,
@@ -78,12 +81,16 @@ export default function MailConfig(props) {
       testEmailSent,
       isAuthorized,
       isEmailStopped,
+      isFipsEnabled,
+      fipsStatusLoading,
+      fipsStatusError,
     } = props,
     loadError = isAuthorized ? loadErrorProp : authErrorMessage;
 
-  // Fetch Email Configuration when page is opened
+  // Fetch Email Configuration and FIPS status when page is opened
   useEffect(() => {
     load();
+    getFipsStatus();
   }, []);
 
   function warningMessage() {
@@ -109,13 +116,16 @@ export default function MailConfig(props) {
   }
 
   const sslInput = (
-    <NxCheckbox
-      id="email-config-ssl-enabled"
-      isChecked={sslEnabledState}
-      onChange={() => setSslEnabled(!sslEnabledState)}
-    >
-      SSL Enabled
-    </NxCheckbox>
+    <NxTooltip title={isFipsEnabled ? 'SSL is disabled due to FIPS compliance requirements.' : ''}>
+      <NxCheckbox
+        id="email-config-ssl-enabled"
+        isChecked={sslEnabledState}
+        onChange={() => setSslEnabled(!sslEnabledState)}
+        disabled={isFipsEnabled}
+      >
+        SSL Enabled
+      </NxCheckbox>
+    </NxTooltip>
   );
 
   const tlsInput = (
@@ -247,7 +257,13 @@ export default function MailConfig(props) {
 
             {field(systemEmailState, setSystemEmail, 'nexus@iqserver', 'email-config-systemEmail', 'System Email')}
             <NxFieldset label="Security Options">
-              {sslInput}
+              <NxLoadWrapper
+                loading={fipsStatusLoading}
+                error={fipsStatusError ? 'Unable to load FIPS status.' : null}
+                retryHandler={getFipsStatus}
+              >
+                {!fipsStatusLoading && !fipsStatusError ? sslInput : null}
+              </NxLoadWrapper>
               {tlsInput}
             </NxFieldset>
 
@@ -341,4 +357,8 @@ MailConfig.propTypes = {
   testEmailSent: PropTypes.bool,
   isAuthorized: PropTypes.bool.isRequired,
   isEmailStopped: PropTypes.bool.isRequired,
+  getFipsStatus: PropTypes.func.isRequired,
+  isFipsEnabled: PropTypes.bool.isRequired,
+  fipsStatusLoading: PropTypes.bool.isRequired,
+  fipsStatusError: LoadError.propTypes.error,
 };

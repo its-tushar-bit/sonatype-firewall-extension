@@ -29,6 +29,8 @@ function mapStateToProps(state) {
         'serverData',
         'showDeleteModal',
         'testEmailSent',
+        'fipsStatusLoading',
+        'fipsStatusError',
       ],
       mailConfig
     ),
@@ -41,6 +43,7 @@ function mapStateToProps(state) {
     systemEmailState: mailConfig.formState.systemEmail,
     testEmailState: mailConfig.formState.testEmail,
     isEmailStopped: selectIsShowEmailStoppedEnabled(state),
+    isFipsEnabled: mailConfig.isFipsEnabled,
   };
 }
 

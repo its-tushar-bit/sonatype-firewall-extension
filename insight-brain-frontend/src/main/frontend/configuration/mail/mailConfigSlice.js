@@ -18,7 +18,7 @@ import {
 } from '../../util/validationUtil';
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
-import { getMailConfigUrl, getTestMailUrl } from '../../util/CLMLocation';
+import { getMailConfigUrl, getTestMailUrl, getFipsStatusUrl } from '../../util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
@@ -58,6 +58,9 @@ const initialState = {
   showDeleteModal: false,
   mustReenterPassword: false,
   testEmailSent: false,
+  isFipsEnabled: false,
+  fipsStatusLoading: true,
+  fipsStatusError: null,
 };
 
 const textProps = ['hostname', 'port', 'username', 'password', 'systemEmail'],
@@ -168,7 +171,16 @@ function loadFulfilled(state, { payload }) {
   });
 }
 
-const resetForm = (state) => (state.serverData ? loadFulfilled(state, { payload: state.serverData }) : initialState);
+const resetForm = (state) => {
+  const resetState = state.serverData ? loadFulfilled(state, { payload: state.serverData }) : initialState;
+  // Preserve FIPS status across form resets
+  return {
+    ...resetState,
+    isFipsEnabled: state.isFipsEnabled,
+    fipsStatusLoading: state.fipsStatusLoading,
+    fipsStatusError: state.fipsStatusError,
+  };
+};
 
 function loadFailed(state, { payload }) {
   // 404 is fine, it just means there is no configuration
@@ -179,6 +191,10 @@ function loadFailed(state, { payload }) {
     loading: false,
     ...clearedErrors,
     loadError: Messages.getHttpErrorMessage(error),
+    // Preserve FIPS status on load failure
+    isFipsEnabled: state.isFipsEnabled,
+    fipsStatusLoading: state.fipsStatusLoading,
+    fipsStatusError: state.fipsStatusError,
   };
 }
 
@@ -248,8 +264,17 @@ function deleteRequested(state) {
   };
 }
 
-function deleteFulfilled() {
-  return { ...initialState, submitMaskState: true, showDeleteModal: false, ...clearedErrors };
+function deleteFulfilled(state) {
+  return {
+    ...initialState,
+    submitMaskState: true,
+    showDeleteModal: false,
+    ...clearedErrors,
+    // Preserve FIPS status after deletion
+    isFipsEnabled: state.isFipsEnabled,
+    fipsStatusLoading: state.fipsStatusLoading,
+    fipsStatusError: state.fipsStatusError,
+  };
 }
 
 function deleteFailed(state, { payload }) {
@@ -320,6 +345,36 @@ const del = createAsyncThunk(`${REDUCER_NAME}/delete`, (_, { dispatch, rejectWit
     .catch(rejectWithValue);
 });
 
+const getFipsStatus = createAsyncThunk(`${REDUCER_NAME}/getFipsStatus`, (_, { rejectWithValue }) => {
+  return axios.get(getFipsStatusUrl()).then(prop('data')).catch(rejectWithValue);
+});
+
+function getFipsStatusRequested(state) {
+  return {
+    ...state,
+    fipsStatusLoading: true,
+    fipsStatusError: null,
+  };
+}
+
+function getFipsStatusFulfilled(state, { payload }) {
+  return {
+    ...state,
+    fipsStatusLoading: false,
+    fipsStatusError: null,
+    isFipsEnabled: payload.enabled,
+  };
+}
+
+function getFipsStatusFailed(state, { payload }) {
+  return {
+    ...state,
+    fipsStatusLoading: false,
+    fipsStatusError: Messages.getHttpErrorMessage(payload),
+    isFipsEnabled: false,
+  };
+}
+
 function startSubmitMaskSuccessTimer(dispatch) {
   setTimeout(() => {
     dispatch(actions.submitMaskTimerDone());
@@ -368,6 +423,9 @@ const mailConfigSlice = createSlice({
     [sendTestEmail.pending]: sendTestEmailRequested,
     [sendTestEmail.fulfilled]: sendTestEmailFulfilled,
     [sendTestEmail.rejected]: sendTestEmailFailed,
+    [getFipsStatus.pending]: getFipsStatusRequested,
+    [getFipsStatus.fulfilled]: getFipsStatusFulfilled,
+    [getFipsStatus.rejected]: getFipsStatusFailed,
   },
 });
 
@@ -378,4 +436,5 @@ export const actions = {
   save,
   del,
   sendTestEmail,
+  getFipsStatus,
 };

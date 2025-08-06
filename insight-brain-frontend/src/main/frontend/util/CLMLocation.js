@@ -1721,6 +1721,8 @@ export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
   return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
 }
 
+export const getFipsStatusUrl = () => uriTemplate`/rest/security/fipsMode`;
+
 export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
   'BaseUrl',
   '$window',

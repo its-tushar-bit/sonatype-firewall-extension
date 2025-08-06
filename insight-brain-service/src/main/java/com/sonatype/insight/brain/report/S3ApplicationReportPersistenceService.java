@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,6 +20,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.aws.s3.S3OutputStream;
+import com.sonatype.insight.brain.aws.s3.S3Utils;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -33,15 +33,10 @@ import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
-import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
-import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
-import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
@@ -302,7 +297,7 @@ public class S3ApplicationReportPersistenceService
   @Override
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
-    try (var objects = getS3Objects(
+    try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
       // Do we have at least one object saved for this app and scan
       return objects.findFirst().isPresent();
@@ -385,20 +380,8 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void deleteAllWithPrefix(final String keySubPrefix) throws IOException {
-    Set<ObjectIdentifier> keysToDelete;
-
-    try (Stream<S3Object> objects = getS3Objects(s3DataStoreConfig.getObjectKeyPrefix() + keySubPrefix)) {
-      keysToDelete = objects
-          .map(entity -> ObjectIdentifier.builder().key(entity.key()).build())
-          .collect(Collectors.toSet());
-    }
-
-    var request = DeleteObjectsRequest.builder()
-        .bucket(s3DataStoreConfig.getBucketName())
-        .delete(delete -> delete.objects(keysToDelete))
-        .build();
-
-    wrapS3Exception(() -> s3Client.deleteObjects(request));
+    S3Utils.deleteAllWithPrefix(s3Client, s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix() + keySubPrefix);
   }
 
   private void saveOriginalReportFile(
@@ -418,7 +401,7 @@ public class S3ApplicationReportPersistenceService
     deleteReport(appId, destinationScanId);
     Set<S3Object> s3Objects;
     String sourceBasePrefix = s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, appId, sourceScanId);
-    try (var objects = getS3Objects(sourceBasePrefix)) {
+    try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(), sourceBasePrefix)) {
       s3Objects = objects.collect(Collectors.toSet());
     }
     String targetBasePrefix =
@@ -496,38 +479,10 @@ public class S3ApplicationReportPersistenceService
       final String prefix,
       final Function<String, S3ObjectKey> keyParser) throws IOException
   {
-    return getS3Objects(prefix)
+    return S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(), prefix)
         .map(s3Object -> {
           return new S3ReportEntity(keyParser.apply(s3Object.key()));
         });
-  }
-
-  /**
-   * @param prefix the FULL prefix to search for
-   */
-  private Stream<S3Object> getS3Objects(final String prefix) throws IOException {
-    return getS3Objects(prefix, null);
-  }
-
-  /**
-   * @param prefix the FULL prefix to search for
-   * @param maxKeys the maximum number of keys to fetch at one time. If null uses the AWS default (currently 1000)
-   */
-  private Stream<S3Object> getS3Objects(final String prefix, final Integer maxKeys) throws IOException {
-    ListObjectsV2Request request = ListObjectsV2Request.builder()
-        .bucket(s3DataStoreConfig.getBucketName())
-        .prefix(prefix)
-        .maxKeys(maxKeys)
-        .build();
-
-    try {
-      return s3Client.listObjectsV2Paginator(request).stream()
-          .map(ListObjectsV2Response::contents)
-          .flatMap(List::stream);
-    }
-    catch (S3Exception e) {
-      throw new IOException(e);
-    }
   }
 
   /**

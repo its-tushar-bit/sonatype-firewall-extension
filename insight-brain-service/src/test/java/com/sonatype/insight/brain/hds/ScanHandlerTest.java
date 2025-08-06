@@ -87,7 +87,7 @@ public class ScanHandlerTest
     Files.createDirectories(scanDir.toPath());
     File tempFile = FileUtils.createTempFile("temp-", ".xml.gz", scanDir);
     Files.writeString(tempFile.getAbsoluteFile().toPath(), "test scan file content");
-    ScanEntity scanEntity = new FileScanEntity(tempFile, app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempFile.toPath(), app.getId());
 
     when(scanUploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
         any(), any(), any(), eq(new Builder().isValid(true).build()))).thenReturn(mockScanReceipt);

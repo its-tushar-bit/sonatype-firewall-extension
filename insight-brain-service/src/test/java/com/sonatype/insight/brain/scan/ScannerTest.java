@@ -77,10 +77,10 @@ public class ScannerTest
 
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
     ScanResult scanResult = scanner.scan(appFile, "test-app.zip", "appId", proprietaryConfig);
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
@@ -131,10 +131,10 @@ public class ScannerTest
     File appFile = new File("src/test/resources/ScannerTest/app01.zip");
     ScanResult scanResult = scanner.scan(appFile, "test-app.zip", "appId",
         proprietaryConfig);
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
@@ -154,9 +154,9 @@ public class ScannerTest
     String scannerDriver = "thirdPartyApiTest";
     ScanResult scanResult =
         scanner.scanThirdPartyContent(sbom, "appId", ItemContentType.SBOM, "ABCD", SbomFormat.XML, null, scannerDriver);
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
     assertThat(scan.getSummary().getClientInfo()).containsEntry("insight.scannerDriver", scannerDriver);
@@ -179,9 +179,9 @@ public class ScannerTest
     ScanResult scanResult =
         scanner.scanThirdPartyContent(sbom, "appId", ItemContentType.SBOM, "ABCD", SbomFormat.JSON, null,
             scannerDriver);
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getSummary().getScannerDriver()).isEqualTo(scannerDriver);
     assertThat(scan.getSummary().getClientInfo()).containsEntry("insight.scannerDriver", scannerDriver);
@@ -199,8 +199,8 @@ public class ScannerTest
     File sbom = new File("src/test/resources/ScannerTest/cdx-v1.4-invalid-bom.xml");
 
     ScanResult scanResult = scanner.scan(sbom, "test-sbom.xml", "appId", new ProprietaryConfig());
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
@@ -214,8 +214,8 @@ public class ScannerTest
     File sbom = new File("src/test/resources/ScannerTest/cdx-v1.4-invalid-bom.xml");
 
     ScanResult scanResult = scanner.scan(sbom, "test-sbom.xml", "appId", new ProprietaryConfig());
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);
@@ -234,10 +234,10 @@ public class ScannerTest
     ScanResult scanResult =
         scanner.scan(Collections.singletonList(scanDir), "appId", proprietaryConfig, null, scanMetadata);
     // then: scan contains expected results
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getMetadata().getCommitHash()).isEqualTo(scanMetadata.getCommitHash());
 
@@ -276,10 +276,10 @@ public class ScannerTest
             null /* scanMetadata */);
 
     // then: scan contains expected results
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan.getItems()).hasSize(1);
 
     ScanItem item = scan.getItems().get(0);
@@ -294,7 +294,7 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", "appId", null);
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan.getItems()).hasSize(1);
 
     ScanItem item = scan.getItems().get(0);
@@ -310,7 +310,7 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(terraformFile, "sample-terraform.tfplan", "appId", null);
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan.getItems()).hasSize(1);
 
     ScanItem item = scan.getItems().get(0);
@@ -328,7 +328,7 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(terraformFile, "aws.large.tfplan.zip", "appId", null);
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     //noinspection unchecked
     List<ScanItem> scanItems = (List<ScanItem>) scan.getItems().get(0).getItems();
     assertThat(scanItems).hasSize(1);
@@ -341,9 +341,9 @@ public class ScannerTest
     ScanResult scanResult = scanner.scan(new File("src/test/resources/ScannerTest/app01.zip"), "test-app.zip",
         "appId", null);
 
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     assertThat(scan.getItems().get(0).getSha256()).isNull();
@@ -357,9 +357,9 @@ public class ScannerTest
       ScanResult scanResult = scanner.scan(new File("src/test/resources/ScannerTest/app01.zip"), "test-app.zip",
           "appId", null);
 
-      assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+      assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
       assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE);
-      Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+      Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
       assertThat(scan).isNotNull();
       assertThat(scan.getItems()).hasSize(1);
       assertThat(scan.getItems().get(0).getSha256()).isEqualTo(
@@ -378,10 +378,10 @@ public class ScannerTest
 
     File appFile = new File("src/test/resources/ScannerTest/" + zipFilename);
     ScanResult scanResult = scanner.scan(appFile, "test-app.zip", "appId", proprietaryConfig);
-    assertThat(((FileScanEntity) scanResult.getScanEntity()).file()).isFile();
+    assertThat(((FileScanEntity) scanResult.getScanEntity()).path()).isRegularFile();
     assertThat(scanResult.getClientScanType()).isEqualTo(ClientScanType.SONATYPE_THIRD_PARTY);
 
-    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).file());
+    Scan scan = scanReader.read(((FileScanEntity) scanResult.getScanEntity()).path().toFile());
     assertThat(scan).isNotNull();
     assertThat(scan.getItems()).hasSize(1);
     ScanItem item = scan.getItems().get(0);

@@ -229,7 +229,7 @@ public class PolicyEvaluateServiceTest
     assertThatNoException().isThrownBy(() -> policyEvaluateService.evaluateWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null, new Stage(ID_BUILD)));
 
-    FileScanEntity fileScanEntity = new FileScanEntity(new File("parent/test-file.xml"), app.getId());
+    FileScanEntity fileScanEntity = new FileScanEntity(new File("parent/test-file.xml").toPath(), app.getId());
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
         .thenReturn(fileScanEntity);
     HttpServletRequest mockedReq = mock(HttpServletRequest.class);
@@ -1107,7 +1107,7 @@ public class PolicyEvaluateServiceTest
 
     String scanId = simulateReportIsAvailable();
     ScanEntity scanEntity =
-        new FileScanEntity(ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId));
+        new FileScanEntity(ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId).toPath());
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).isEmpty();
 
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1362,7 +1362,7 @@ public class PolicyEvaluateServiceTest
   private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {
     HttpServletRequest httpRequest = mock(HttpServletRequest.class);
 
-    FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml"), app.getId());
+    FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml").toPath(), app.getId());
     doReturn(fileScanEntity)
         .when(mockScanHandler)
         .createTempScanFile(any(HttpServletRequest.class), any(Application.class));

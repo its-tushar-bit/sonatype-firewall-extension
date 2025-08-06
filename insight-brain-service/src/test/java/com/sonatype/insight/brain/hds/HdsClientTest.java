@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
 import javax.inject.Inject;
 import javax.mail.BodyPart;
 import javax.mail.MessagingException;
@@ -176,7 +175,8 @@ public class HdsClientTest
     Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
 
     client.put(null, InputStream.class, testClientUserAgent, testPath,
-        new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI())), Collections.emptyMap(),
+        new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI()).toPath()),
+        Collections.emptyMap(),
         new String[]{});
     assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
   }
@@ -272,7 +272,8 @@ public class HdsClientTest
     String testPath = "/rest/test";
 
     client.put(null, InputStream.class, "client_user_agent", testPath,
-        new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI())), Collections.emptyMap(),
+        new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI()).toPath()),
+        Collections.emptyMap(),
         new String[]{});
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
   }
@@ -493,7 +494,8 @@ public class HdsClientTest
     assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
 
-    client.put(analytics, String.class, null, testPath, new FileScanEntity(tempDir.newFile()), Collections.emptyMap(),
+    client.put(analytics, String.class, null, testPath, new FileScanEntity(tempDir.newFile().toPath()),
+        Collections.emptyMap(),
         new String[]{});
     assertThat(headers).containsEntry(HdsClient.OWNER_TYPE_HEADER, analytics.getOwnerType().toString())
         .containsEntry(HdsClient.OWNER_ID_HEADER, analytics.getOwnerId());
@@ -692,7 +694,8 @@ public class HdsClientTest
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
     assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
 
-    client.put(null, String.class, null, testPath, new FileScanEntity(tempDir.newFile()), Collections.emptyMap(),
+    client.put(null, String.class, null, testPath, new FileScanEntity(tempDir.newFile().toPath()),
+        Collections.emptyMap(),
         new String[]{});
     assertThat(headers).containsEntry(HdsClient.TELEMETRY_ID_HEADER, telemetryId.getId());
   }
@@ -716,7 +719,8 @@ public class HdsClientTest
     client.post(testPath, MultipartEntityBuilder.create().build(), "test_client_user_agent");
     assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
 
-    client.put(null, String.class, null, testPath, new FileScanEntity(tempDir.newFile()), Collections.emptyMap(),
+    client.put(null, String.class, null, testPath, new FileScanEntity(tempDir.newFile().toPath()),
+        Collections.emptyMap(),
         new String[]{});
     assertThat(headers).containsEntry(HdsClient.CLUSTER_ID_HEADER, telemetryId.getClusterId());
   }
@@ -778,20 +782,20 @@ public class HdsClientTest
     Map<String, String> testQueryParams = new HashMap<>();
     testQueryParams.put(queryParam, queryParamValue);
 
-    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile()), null);
+    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile().toPath()), null);
     assertThat(queryString[0]).isNull();
 
-    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile()),
+    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile().toPath()),
         testQueryParams);
     assertThat(queryString[0]).contains(queryParam + "=" + queryParamValue);
 
     // Null params should not cause exceptions and should not be included
     testQueryParams.put(queryParam, null);
-    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile()),
+    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile().toPath()),
         testQueryParams);
     assertThat(queryString[0]).isNull();
 
-    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile()),
+    client.put(null, String.class, "client_user_agent", testPath, new FileScanEntity(tempDir.newFile().toPath()),
         Collections.emptyMap());
     assertThat(queryString[0]).isNull();
   }
@@ -968,7 +972,8 @@ public class HdsClientTest
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> {
       client.put(null, InputStream.class, "client_user_agent", "/rest/test",
-          new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI())), Collections.emptyMap(),
+          new FileScanEntity(new File(getClass().getResource("/config-test.yml").toURI()).toPath()),
+          Collections.emptyMap(),
           new String[]{});
     }).withMessage("The product license is invalid.");
   }

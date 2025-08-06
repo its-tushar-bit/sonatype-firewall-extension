@@ -314,7 +314,7 @@ public class ScanUploadServiceTest
     catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new FileScanEntity(scanFile, app.getId());
+    return new FileScanEntity(scanFile.toPath(), app.getId());
   }
 
   private TelemetryData buildThirdPartyScanTelemetryData() {

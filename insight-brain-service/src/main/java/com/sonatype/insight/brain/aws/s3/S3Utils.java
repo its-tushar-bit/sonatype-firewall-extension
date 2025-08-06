@@ -1,0 +1,72 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+package com.sonatype.insight.brain.aws.s3;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
+import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
+
+public class S3Utils
+{
+  private static final Logger log = LoggerFactory.getLogger(S3Utils.class);
+
+  private S3Utils() {
+  }
+
+  public static void deleteAllWithPrefix(S3Client s3Client, String bucketName, String prefix) throws IOException {
+    Set<ObjectIdentifier> keysToDelete;
+    try (Stream<S3Object> objects = getS3Objects(s3Client, bucketName, prefix)) {
+      keysToDelete = objects
+          .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+          .collect(Collectors.toSet());
+    }
+
+    if (keysToDelete.isEmpty()) {
+      log.info("No objects found with prefix: {}", prefix);
+      return;
+    }
+
+    DeleteObjectsRequest request = DeleteObjectsRequest.builder()
+        .bucket(bucketName)
+        .delete(delete -> delete.objects(keysToDelete))
+        .build();
+
+    wrapS3Exception(() -> s3Client.deleteObjects(request));
+    log.info("Deleted {} objects with prefix: {}", keysToDelete.size(), prefix);
+  }
+
+  public static Stream<S3Object> getS3Objects(S3Client s3Client, String bucketName, String prefix) throws IOException {
+    return getS3Objects(s3Client, bucketName, prefix, null);
+  }
+
+  public static Stream<S3Object> getS3Objects(S3Client s3Client, String bucketName, String prefix, Integer maxKeys)
+      throws IOException
+  {
+    ListObjectsV2Request request = ListObjectsV2Request.builder()
+        .bucket(bucketName)
+        .prefix(prefix)
+        .maxKeys(maxKeys)
+        .build();
+
+    return wrapS3Exception(() -> s3Client.listObjectsV2Paginator(request).stream()
+        .map(ListObjectsV2Response::contents)
+        .flatMap(List::stream));
+  }
+}

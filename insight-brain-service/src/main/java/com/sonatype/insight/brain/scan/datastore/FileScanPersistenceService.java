@@ -13,8 +13,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
@@ -24,8 +22,6 @@ import org.codehaus.plexus.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Named
-@Singleton
 public class FileScanPersistenceService
     extends ScanPersistenceService
 {
@@ -43,7 +39,7 @@ public class FileScanPersistenceService
 
   @Override
   public ScanEntity doGetScan(final String appId, final String scanId) {
-    return new FileScanEntity(getFile(appId, scanFileName(scanId)), appId);
+    return new FileScanEntity(getFile(appId, scanFileName(scanId)).toPath(), appId);
   }
 
   private File getFile(final String appId, final String name) {
@@ -58,14 +54,14 @@ public class FileScanPersistenceService
   public ScanEntity createTempScan(final String appId) throws IOException {
     File scanDir = work.getScanDir(appId);
     Files.createDirectories(scanDir.toPath());
-    return new FileScanEntity(FileUtils.createTempFile("temp-", ".xml.gz", scanDir), appId);
+    return new FileScanEntity(FileUtils.createTempFile("temp-", ".xml.gz", scanDir).toPath(), appId);
   }
 
   @Override
   public void moveTempScan(final ScanEntity tempScanEntity, final String appId, final String scanId)
       throws IOException
   {
-    Path sourcePath = ((FileScanEntity) tempScanEntity).file().toPath();
+    Path sourcePath = ((FileScanEntity) tempScanEntity).path();
     Path destinationPath = getFile(appId, scanFileName(scanId)).toPath();
     Files.createDirectories(destinationPath.getParent());
     Files.move(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
@@ -73,13 +69,13 @@ public class FileScanPersistenceService
 
   @Override
   public ScanEntity getScanByName(final String appId, final String name) {
-    return new FileScanEntity(getFile(appId, name), appId);
+    return new FileScanEntity(getFile(appId, name).toPath(), appId);
   }
 
   @Override
   public void copyScanFile(final ScanEntity source, final ScanEntity destination) throws IOException {
-    Path sourcePath = ((FileScanEntity) source).file().toPath();
-    Path destinationPath = ((FileScanEntity) destination).file().toPath();
+    Path sourcePath = ((FileScanEntity) source).path();
+    Path destinationPath = ((FileScanEntity) destination).path();
     Files.createDirectories(destinationPath.getParent());
     Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING);
   }
@@ -104,7 +100,7 @@ public class FileScanPersistenceService
       log.info("There are no scan files for application with ID {}.", appId);
       return Stream.empty();
     }
-    return Stream.of(scanFiles).map(file -> new FileScanEntity(file, appId));
+    return Stream.of(scanFiles).map(file -> new FileScanEntity(file.toPath(), appId));
   }
 
   @Override

@@ -129,7 +129,7 @@ public class ScanUploaderTest
     when(mockHdsClient.put(analyticsArg.capture(), eq(ScanReceipt.class), eq(null), any(String.class),
         any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
@@ -147,7 +147,7 @@ public class ScanUploaderTest
         any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))) //
         .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext);
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
@@ -165,7 +165,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), metadataArgs.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
@@ -185,7 +185,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
         .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -209,7 +209,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -235,7 +235,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -262,7 +262,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -288,7 +288,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -315,7 +315,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
@@ -342,7 +342,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), queryParamsCaptor.capture(), any(String[].class))) //
             .thenReturn(receipt);
 
-    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile(), app.getId());
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
     scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();

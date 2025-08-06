@@ -108,7 +108,7 @@ public class ScanTaskTest
     scanFile = new File(scanDir, "scan-" + scanReceipt.getScanId() + ".xml.gz");
     File file = new File(scanDir, "temp.xml.gz");
     file.createNewFile();
-    tmpScanEntity = new FileScanEntity(file);
+    tmpScanEntity = new FileScanEntity(file.toPath());
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(uploadService.upload(eq(tmpScanEntity), eq(app), anyString(), any(ClientScanType.class), eq(null), any(),
         any())).thenReturn(scanReceipt);
@@ -140,12 +140,12 @@ public class ScanTaskTest
   public void savedApplicationBinaryIsScanned() throws IOException {
     task.init(app, bundleFile, bundleFilename, stage, false, null, null);
 
-    assertThat(tmpScanEntity.file()).isFile();
+    assertThat(tmpScanEntity.path()).isRegularFile();
     assertThat(scanFile).doesNotExist();
     task.run();
 
     verify(scanner).scan(eq(bundleFile), eq(bundleFilename), eq(app.getId()), eq(null));
-    assertThat(tmpScanEntity.file()).doesNotExist();
+    assertThat(tmpScanEntity.path()).doesNotExist();
     assertThat(scanFile).isFile();
   }
 
@@ -231,7 +231,7 @@ public class ScanTaskTest
   @Test
   public void testRun_processThirdPartyScanResults() throws Exception {
     File scanBinary = new File("any/path");
-    FileScanEntity scanBinaryEntity = new FileScanEntity(scanBinary);
+    FileScanEntity scanBinaryEntity = new FileScanEntity(scanBinary.toPath());
     ScanReceipt receipt = mock(ScanReceipt.class);
     when(uploadService.upload(scanBinaryEntity, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
         null, null, null)).thenReturn(scanReceipt);

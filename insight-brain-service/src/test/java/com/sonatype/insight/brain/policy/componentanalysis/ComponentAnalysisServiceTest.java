@@ -162,7 +162,7 @@ public class ComponentAnalysisServiceTest
 
   @Test
   public void testAnalyzeComponentsWithPolling_Success() throws Exception {
-    final FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml"), app.getId());
+    final FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml").toPath(), app.getId());
     doReturn(fileScanEntity)
         .when(scanHandler)
         .createTempScanFile(any(HttpServletRequest.class), any(Application.class));

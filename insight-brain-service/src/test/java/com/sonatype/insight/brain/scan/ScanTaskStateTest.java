@@ -85,7 +85,8 @@ public class ScanTaskStateTest
     Application application = new Application("any", "MyApp", null);
     application.setId("appId");
     task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
-    when(scanner.scan(any(), any(), any(), any())).thenReturn(new ScanResult(new FileScanEntity(binFile), false));
+    when(scanner.scan(any(), any(), any(), any())).thenReturn(
+        new ScanResult(new FileScanEntity(binFile.toPath()), false));
   }
 
   @Test
@@ -151,7 +152,7 @@ public class ScanTaskStateTest
 
   @Test
   public void error() throws IOException {
-    when(scanner.scan( any(), any(), any(), any())).thenThrow(RuntimeException.class);
+    when(scanner.scan(any(), any(), any(), any())).thenThrow(RuntimeException.class);
 
     task.run();
 

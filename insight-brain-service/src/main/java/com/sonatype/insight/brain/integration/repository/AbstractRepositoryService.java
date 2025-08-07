@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.container.images.ContainerImageReportService;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
@@ -125,6 +126,8 @@ public abstract class AbstractRepositoryService
 
   private final FirewallIgnorePatternService firewallIgnorePatternService;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ApplicationService applicationService;
 
   private final RepositoryService repositoryService;
@@ -153,6 +156,7 @@ public abstract class AbstractRepositoryService
           RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
           DbQuarantinedComponentAccessManager quarantinedComponentAccessManager,
           FirewallQuarantineHdsClient quarantineHdsClient,
+          ApplicationDAO applicationDAO,
           ApplicationService applicationService,
           TelemetrySender telemetrySender,
           RepositoryManagerDAO repositoryManagerDAO,
@@ -173,6 +177,7 @@ public abstract class AbstractRepositoryService
     this.quarantinedComponentAccessManager = quarantinedComponentAccessManager;
     this.quarantineHdsClient = quarantineHdsClient;
     this.telemetrySender = telemetrySender;
+    this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -799,7 +804,11 @@ public abstract class AbstractRepositoryService
 
     if (repository.getFormat() != null && repository.getFormat().equals("docker") &&
         repository.getRepositoryType().equals(RepositoryType.proxy)) {
-      Application application = applicationService.getApplicationByPublicIdNotNull(pathname);
+      Application application = applicationDAO.getByPublicId(pathname);
+      if (application == null) {
+        // do nothing, the container image was already deleted
+        return;
+      }
       String applicationOrganizationId = application.getOrganizationId();
       //do nothing if the relationship between the organization and the repository is not found
       if (!repository.getRelatedOrganizationId().equals(applicationOrganizationId)) {

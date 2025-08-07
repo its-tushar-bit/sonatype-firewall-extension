@@ -5,14 +5,13 @@
  */
 import React from 'react';
 
-import { render, screen, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
 import PortalDrawer from 'MainRoot/react/PortalDrawer';
 
 describe('PortalDrawer', () => {
   let renderComponent;
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   const minimalProps = {
     open: false,

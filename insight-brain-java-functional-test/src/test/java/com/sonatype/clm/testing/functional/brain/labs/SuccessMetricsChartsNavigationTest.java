@@ -6,7 +6,7 @@
 package com.sonatype.clm.testing.functional.brain.labs;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
-import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigationButton;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.IndexPage;
@@ -23,7 +23,7 @@ import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton.CLASS_ACTIVE;
+import static com.sonatype.clm.testing.functional.elements.SidebarNavigationButton.CLASS_ACTIVE;
 import static com.sonatype.clm.testing.functional.pages.SuccessMetricsReportPage.NO_DATA_INFO_TEXT_MONTHLY;
 
 public class SuccessMetricsChartsNavigationTest
@@ -45,7 +45,7 @@ public class SuccessMetricsChartsNavigationTest
     SuccessMetricsReportListPage successMetricsPage = new SuccessMetricsReportListPage();
     SuccessMetricsReportPage successMetricsChartsPage = new SuccessMetricsReportPage();
 
-    MainHeaderNavigationButton labsNavigationButton = SidebarNavigation.labsNavigationButton();
+    SidebarNavigationButton labsNavigationButton = SidebarNavigation.labsNavigationButton();
     labsNavigationButton.shouldBe(visible).shouldNotHave(CLASS_ACTIVE).click();
     successMetricsPage.should(appear);
     labsNavigationButton.shouldBe(visible).shouldHave(CLASS_ACTIVE);

@@ -16,7 +16,19 @@ menu-bar {
 }
 
 .menu-bar {
-  gap: var(--nx-spacing-6x);
+  .nx-icon-dropdown {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  &.nx-global-header-2 {
+    padding-left: var(--nx-spacing-3x);
+  }
+
+  .nx-btn--icon-only .nx-icon {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 #menu-bar__bread-crumb-container {

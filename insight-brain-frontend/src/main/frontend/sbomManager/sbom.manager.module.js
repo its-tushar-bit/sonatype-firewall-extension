@@ -111,6 +111,7 @@ function routes($stateProvider) {
       data: {
         title: 'Component Details',
         authenticationRequired: true,
+        hideFooter: true,
       },
     })
     .state('sbomManager.applications', {

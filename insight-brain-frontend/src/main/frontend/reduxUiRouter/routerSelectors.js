@@ -121,6 +121,7 @@ export const selectIsDependencyTreePageFromPrioritiesPage = createSelector(selec
 );
 
 export const selectIsStandaloneFirewall = createSelector(selectCurrentRouteName, nameStartsWithFirewall);
+export const selectIsStandaloneSbomManager = createSelector(selectCurrentRouteName, nameStartsWithSbomManager);
 
 // we can access to component details page from application report but also from firewall or repository results view,
 // so this is used to find out if the route is a firewall route or repository route

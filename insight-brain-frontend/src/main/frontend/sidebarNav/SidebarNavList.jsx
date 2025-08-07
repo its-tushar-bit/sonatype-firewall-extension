@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import * as ReactDOM from 'react-dom';
 import * as PropTypes from 'prop-types';
 
 import LoadWrapper from '../react/LoadWrapper';
@@ -12,8 +13,11 @@ import SidebarNavWaiversList, {
   SidebarWaiverDetailsDataType,
   SidebarWaiverFilterDataType,
 } from './SidebarNavWaiversList';
+import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
 
 export default function SidebarNavList(props) {
+  const portalContainer = document.getElementById(IQ_SIDEBAR_CONTAINER_ID);
+
   const {
     loadSidebarNav,
     loading,
@@ -69,15 +73,16 @@ export default function SidebarNavList(props) {
     }
   })(contentType);
 
-  return (
-    <aside id="sidebar-nav-list" className="nx-viewport-sized__container">
+  return ReactDOM.createPortal(
+    <aside id="sidebar-nav-list" className="nx-page-sidebar nx-viewport-sized__container">
       <LoadWrapper error={error} loading={loading} retryHandler={load}>
         <h4 className="nx-h4">{contentType}</h4>
         <div className="nx-scrollable nx-scrollable--nav-list nx-viewport-sized__scrollable">
           {sidebarDisplayComponent}
         </div>
       </LoadWrapper>
-    </aside>
+    </aside>,
+    portalContainer
   );
 }
 

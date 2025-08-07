@@ -7,3 +7,4 @@
 export const MSG_NO_CHANGES_TO_SAVE = `There are no changes to save.`;
 export const MSG_NO_CHANGES_TO_UPDATE = `There are no changes to update.`;
 export const UPDATE_DIMENSIONS_TIMEOUT = 100;
+export const IQ_SIDEBAR_CONTAINER_ID = 'iq-sidebar-container';

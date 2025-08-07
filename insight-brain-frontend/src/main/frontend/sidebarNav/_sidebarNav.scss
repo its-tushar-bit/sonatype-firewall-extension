@@ -8,7 +8,8 @@
 
 $sidebar-width: calc((1 - var(--nx-width-content-proportion)) * 100vw - var(--nx-spacing-6x));
 
-sidebar-view {
+sidebar-view,
+sidebar-nav-list {
   display: contents;
 }
 

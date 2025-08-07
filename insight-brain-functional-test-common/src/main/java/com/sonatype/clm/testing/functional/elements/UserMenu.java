@@ -13,7 +13,7 @@ public class UserMenu
     extends BasicElement<UserMenu>
 {
   public UserMenu() {
-    super("#menu-bar");
+    super("#menu-bar .nx-global-header-2__actions");
   }
 
   public SelenideElement userName() {

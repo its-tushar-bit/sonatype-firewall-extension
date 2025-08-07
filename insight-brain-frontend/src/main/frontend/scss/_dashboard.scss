@@ -8,13 +8,6 @@
 
 $iq-cell-chevron-width: 21px;
 
-#dashboard-container {
-  padding-bottom: 0;
-
-  // to allow sidebar min-width
-  flex-shrink: 1;
-}
-
 // pass down the flexing from the page skeleton all the way to the scroll box around the table
 dashboard-results-container,
 violations,

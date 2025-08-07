@@ -47,11 +47,9 @@ describe('FirewallSidebar', () => {
   it('renders correctly when user is logged in', () => {
     renderComponent();
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(3);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const repositoriesLink = sidebarLinks[2];
-    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(sidebarLinks.length).toBe(2);
+    const dashboardLink = sidebarLinks[0];
+    const repositoriesLink = sidebarLinks[1];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
@@ -60,20 +58,15 @@ describe('FirewallSidebar', () => {
 
   it('does not render the sidebar when the user is not logged in', () => {
     renderComponent({ isLoggedIn: false });
-    const sidebarLinks = screen.getAllByRole('link');
-    const mainLink = sidebarLinks[0];
-    expect(sidebarLinks.length).toBe(1);
-    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('does not render the api link when isApiPageEnabled is false', () => {
     renderComponent({ isApiPageEnabled: false });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(3);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const repositoriesLink = sidebarLinks[2];
-    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(sidebarLinks.length).toBe(2);
+    const dashboardLink = sidebarLinks[0];
+    const repositoriesLink = sidebarLinks[1];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
@@ -84,12 +77,10 @@ describe('FirewallSidebar', () => {
   it('does render the api link when isApiPageEnabled is true', () => {
     renderComponent({ isApiPageEnabled: true });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(4);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const repositoriesLink = sidebarLinks[2];
-    const apiLink = sidebarLinks[3];
-    expect(mainLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(sidebarLinks.length).toBe(3);
+    const dashboardLink = sidebarLinks[0];
+    const repositoriesLink = sidebarLinks[1];
+    const apiLink = sidebarLinks[2];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');

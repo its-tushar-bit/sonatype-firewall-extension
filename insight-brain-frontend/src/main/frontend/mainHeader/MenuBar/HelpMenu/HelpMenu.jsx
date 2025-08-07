@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import PropTypes from 'prop-types';
-import { faQuestionCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faQuestionCircle } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectIsSbomManager, selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useSelector } from 'react-redux';

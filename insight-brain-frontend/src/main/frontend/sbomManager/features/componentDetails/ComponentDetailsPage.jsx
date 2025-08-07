@@ -303,7 +303,7 @@ export default function ComponentDetailsPage() {
           onLearnMoreClick={onLearnMoreClick}
         />
       )}
-      <NxPageMain id="sbom-manager-component-details" className={'sbom-component-details nx-viewport-sized'}>
+      <NxPageMain id="sbom-manager-component-details" className={'sbom-component-details nx-viewport-sized__container'}>
         <div className="nx-viewport-sized__scrollable nx-scrollable sbom-component-details-page__content">
           <MenuBarStatefulBreadcrumb />
           <NxLoadWrapper

@@ -5,41 +5,34 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import { NxGlobalSidebar2, NxGlobalSidebar2NavigationLink, useToggle } from '@sonatype/react-shared-components';
 import {
-  NxGlobalSidebar,
-  NxGlobalSidebarNavigation,
-  NxGlobalSidebarNavigationLink,
-  useToggle,
-} from '@sonatype/react-shared-components';
-import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
-import {
-  faChartArea,
-  faFileChartLine,
-  faGavel,
-  faHome,
-  faMicroscope,
-  faSearch,
+  faHouse,
   faSitemap,
-  faChartPieAlt,
-} from '@fortawesome/pro-solid-svg-icons';
+  faChartColumn,
+  faMicroscope,
+  faMagnifyingGlass,
+  faGavel,
+  faChartPie,
+  faChartArea,
+  faArrowToLeft,
+  faStars,
+} from '@fortawesome/pro-regular-svg-icons';
 
 import { useRouterState } from '../RouterStateContext';
-import IqSidebarNavFooter from './IqSidebarNavFooter';
 
-import { getProductLogo } from '../../util/productLogoUtils';
 import { isLeftNavigationOpen, setLeftNavigationOpen } from '../../util/preferenceStore';
 import SbomManagerSidebar from 'MainRoot/sbomManager/sidebar/SbomManagerSidebar';
 import SonatypeDeveloperSidebar from 'MainRoot/development/SonatypeDeveloperSidebar';
 import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
 import FirewallSidebar from 'MainRoot/firewall/FirewallSidebar';
+import { faArrowToRight } from '@fortawesome/pro-solid-svg-icons';
 
 function IqSidebarNav(props) {
   const uiRouterState = useRouterState();
   const [isOpen, toggleOpen, setToggleOpen] = useToggle(isLeftNavigationOpen());
 
   const {
-    productEdition,
-    releaseVersion,
     isLoggedIn,
     isLicensed,
     isDashboardAvailable,
@@ -48,7 +41,6 @@ function IqSidebarNav(props) {
     isAdvancedSearchEnabled,
     isLegalEnabled,
     isApiPageEnabled,
-    isShowVersionEnabled,
     isOrgsAndAppsEnabled,
     isSbomManagerEnabled,
     isIntegratedEnterpriseReportingSupported,
@@ -61,12 +53,10 @@ function IqSidebarNav(props) {
     isFirewallOnlyLicense,
     isAlpForSbomManagerEnabled,
   } = props;
-  const logo = getProductLogo(productEdition);
 
   const apiHref = uiRouterState.href('api');
   const enterpriseReportingHref = uiRouterState.href('enterpriseReporting');
   const dashboardHref = uiRouterState.href('dashboard.overview.violations');
-  const logoHref = uiRouterState.href('home');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
   const successMetricsHref = uiRouterState.href('labs.successMetrics');
@@ -110,116 +100,113 @@ function IqSidebarNav(props) {
   const sonatypeFirewallSidebar = <FirewallSidebar isLoggedIn={isLoggedIn} isApiPageEnabled={isApiPageEnabled} />;
 
   const iqSidebar = (
-    <NxGlobalSidebar
-      isOpen={isOpen}
-      onToggleClick={toggleOpen}
-      toggleOpenIcon={faArrowToLeft}
-      toggleCloseIcon={faBars}
-      logoImg={logo}
-      logoAltText={productEdition}
-      logoLink={logoHref}
-    >
-      {isLoggedIn && !isProductsLoading && !isStandaloneFirewall && (
-        <NxGlobalSidebarNavigation id="global-sidebar-buttons">
-          {isDashboardAvailable && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('dashboard')}
-              id="dashboard-navigation-button"
-              icon={faHome}
-              text="Dashboard"
-              href={dashboardHref}
-            />
-          )}
-          {isLicensed && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('management')}
-              id="policies-navigation-button"
-              icon={faSitemap}
-              text="Orgs and Policies"
-              href={orgsPoliciesHref}
-            />
-          )}
-          {isReportsListAvailable && isOrgsAndAppsEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isReportsSelected}
-              id="reporting-navigation-button"
-              icon={faFileChartLine}
-              text="Reports"
-              href={reportsHref}
-            />
-          )}
-          {isSuccessMetricsEnabled && isOrgsAndAppsEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('labs')}
-              id="labs-navigation-button"
-              icon={faChartArea}
-              text="Success Metrics"
-              href={successMetricsHref}
-            />
-          )}
-          {isLicensed && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isVulnerabilitySearchSelected}
-              id="vulnerability-navigation-button"
-              icon={faMicroscope}
-              text="Vulnerability Lookup"
-              href={vulnSearchHref}
-            />
-          )}
-          {isLicensed && isAdvancedSearchEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('advancedSearch')}
-              id="search-navigation-button"
-              icon={faSearch}
-              text="Advanced Search"
-              href={advSearchHref}
-            />
-          )}
-          {isLicensed && isLegalEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('legal')}
-              id="advanced-legal-navigation-button"
-              icon={faGavel}
-              text="Legal"
-              href={legalHref}
-            />
-          )}
-          {isLicensed && isIntegratedEnterpriseReportingSupported && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('enterpriseReporting')}
-              id="enterprise-reporting-button"
-              className="iq-enterprise-reporting-nav-link"
-              icon={faChartPieAlt}
-              text="Enterprise Reporting"
-              href={enterpriseReportingHref}
-            />
-          )}
-          {isApiPageEnabled && (
-            <NxGlobalSidebarNavigationLink
-              isSelected={isSelected('api')}
-              id="api-navigation-button"
-              className="iq-api-nav-link"
-              icon={faStars}
-              text={
-                <>
-                  <span>API</span>
-                  <span className="iq-api-nav-link__navigation-badge">
-                    {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
-                    <span className="iq-api-nav-link__tooltip-only-text"> (</span>
-                    NEW
-                    <span className="iq-api-nav-link__tooltip-only-text">)</span>
-                  </span>
-                </>
-              }
-              href={apiHref}
-            />
-          )}
-        </NxGlobalSidebarNavigation>
-      )}
-      {productEdition && releaseVersion && (
-        <IqSidebarNavFooter releaseNumber={releaseVersion} isShowVersionEnabled={isShowVersionEnabled} />
-      )}
-    </NxGlobalSidebar>
+    <>
+      <NxGlobalSidebar2
+        isOpen={isOpen}
+        onToggleClick={toggleOpen}
+        toggleOpenIcon={faArrowToLeft}
+        toggleCloseIcon={faArrowToRight}
+        className="iq-lifecycle-sidebar"
+      >
+        {isLoggedIn && !isProductsLoading && !isStandaloneFirewall && (
+          <>
+            {isDashboardAvailable && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('dashboard')}
+                id="dashboard-navigation-button"
+                icon={faHouse}
+                text="Dashboard"
+                href={dashboardHref}
+              />
+            )}
+            {isLicensed && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('management')}
+                id="policies-navigation-button"
+                icon={faSitemap}
+                text="Orgs and Policies"
+                href={orgsPoliciesHref}
+              />
+            )}
+            {isReportsListAvailable && isOrgsAndAppsEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isReportsSelected}
+                id="reporting-navigation-button"
+                icon={faChartColumn}
+                text="Reports"
+                href={reportsHref}
+              />
+            )}
+            {isSuccessMetricsEnabled && isOrgsAndAppsEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('labs')}
+                id="labs-navigation-button"
+                icon={faChartArea}
+                text="Success Metrics"
+                href={successMetricsHref}
+              />
+            )}
+            {isLicensed && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isVulnerabilitySearchSelected}
+                id="vulnerability-navigation-button"
+                icon={faMicroscope}
+                text="Vulnerability Lookup"
+                href={vulnSearchHref}
+              />
+            )}
+            {isLicensed && isAdvancedSearchEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('advancedSearch')}
+                id="search-navigation-button"
+                icon={faMagnifyingGlass}
+                text="Advanced Search"
+                href={advSearchHref}
+              />
+            )}
+            {isLicensed && isLegalEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('legal')}
+                id="advanced-legal-navigation-button"
+                icon={faGavel}
+                text="Legal"
+                href={legalHref}
+              />
+            )}
+            {isLicensed && isIntegratedEnterpriseReportingSupported && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('enterpriseReporting')}
+                id="enterprise-reporting-button"
+                className="iq-enterprise-reporting-nav-link"
+                icon={faChartPie}
+                text="Enterprise Reporting"
+                href={enterpriseReportingHref}
+              />
+            )}
+            {isApiPageEnabled && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('api')}
+                id="api-navigation-button"
+                className="iq-api-nav-link"
+                icon={faStars}
+                text={
+                  <>
+                    <span>API</span>
+                    <span className="iq-api-nav-link__navigation-badge">
+                      {/* The space and parens should be in the tooltip but not visibly in the link text itself */}
+                      <span className="iq-api-nav-link__tooltip-only-text"> (</span>
+                      NEW
+                      <span className="iq-api-nav-link__tooltip-only-text">)</span>
+                    </span>
+                  </>
+                }
+                href={apiHref}
+              />
+            )}
+          </>
+        )}
+      </NxGlobalSidebar2>
+    </>
   );
 
   if (isProductFeaturesLoading) {

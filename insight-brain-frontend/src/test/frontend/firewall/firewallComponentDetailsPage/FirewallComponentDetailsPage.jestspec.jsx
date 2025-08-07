@@ -4,15 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import {
-  axiosMockAdapter,
-  fireEvent,
-  removePortalContainer,
-  render,
-  screen,
-  setupPortalContainer,
-  within,
-} from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, setupPortalContainer, within } from 'TestRoot/SpecUtil';
 import {
   getApplicableLabelsUrl,
   getComponentDetailsUrl,
@@ -51,8 +43,6 @@ describe('ComponentDetails', () => {
     axiosMock = axiosMockAdapter();
     setupPortalContainer();
   });
-
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     defaultPreloadedState = {

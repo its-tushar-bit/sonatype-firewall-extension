@@ -6,7 +6,7 @@
 import React, { Children } from 'react';
 import { useSelector } from 'react-redux';
 import PropTypes from 'prop-types';
-import { faCog } from '@fortawesome/pro-solid-svg-icons';
+import { faCog } from '@fortawesome/pro-regular-svg-icons';
 import { NxH4, NxNavigationDropdown, NxStatefulNavigationDropdown, NxTooltip } from '@sonatype/react-shared-components';
 import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectProductLicense } from 'MainRoot/productFeatures/productLicenseSelectors';

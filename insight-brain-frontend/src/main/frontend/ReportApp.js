@@ -17,6 +17,7 @@ export default angular
         component: 'reportsPage',
         data: {
           title: 'Reports',
+          viewportSized: true,
         },
       });
     },

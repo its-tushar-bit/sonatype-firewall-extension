@@ -77,6 +77,7 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'componentDetails',
       data: {
         title: 'Component Details',
+        hideFooter: true,
       },
       params: {
         tabId: 'overview',

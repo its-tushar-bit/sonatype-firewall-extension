@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render, screen, setupPortalContainer, removePortalContainer } from 'TestRoot/SpecUtil';
+import { render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
 import { fireEvent } from '@testing-library/react';
 import * as repositoriesResultsSummaryPageSelectors from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/repositoryResultsSummaryPageSelectors';
 import RepositoryResultsSummaryPage from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/RepositoryResultsSummaryPage';
@@ -37,7 +37,6 @@ describe('RepositoryResultsSummaryPage', () => {
   };
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     renderComponent = () => render(<RepositoryResultsSummaryPage repoId={repoId} />);

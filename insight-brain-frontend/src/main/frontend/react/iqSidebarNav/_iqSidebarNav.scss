@@ -67,6 +67,7 @@ iq-sidebar-nav {
     margin-left: var(--nx-spacing-3x);
     padding: 0 var(--nx-spacing-3x);
     vertical-align: bottom;
+    color: white;
 
     &.preview {
       background-color: var(--nx-swatch-blue-50);
@@ -88,4 +89,19 @@ iq-sidebar-nav {
   // In IQ 161 the product logos have been updated before RSC can accommodate the new larger logos.
   max-width: 155px;
   height: 43px;
+}
+
+// The iq-sidebar-container and nx-global-footer-2-container are always adjacent in the DOM.
+// The iq-sidebar-container is only used to portal into for rendering the inner sidebars, i.e. OwnerDetailSidebar, OwnerSideNav and SidebarNavList.
+// When the inner sidebar is not rendered, the iq-sidebar-container is empty and the footer container is styled to take up both the old-sidebar and content grid areas.
+// When the inner sidebar is rendered, iq-sidebar-container is not empty and the footer container is styled to only take up the content grid area.
+
+#iq-sidebar-container {
+  display: contents;
+}
+
+#iq-sidebar-container:not(:empty) {
+  + .nx-global-footer-2-container {
+    grid-area: content;
+  }
 }

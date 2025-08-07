@@ -49,13 +49,11 @@ describe('SonatypeDeveloperSidebar', () => {
   it('renders correctly when user is logged in ', () => {
     renderComponent();
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(5);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const prioritiesLink = sidebarLinks[2];
-    const searchLink = sidebarLinks[3];
-    const integrationsHelpLink = sidebarLinks[4];
-    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(sidebarLinks.length).toBe(4);
+    const dashboardLink = sidebarLinks[0];
+    const prioritiesLink = sidebarLinks[1];
+    const searchLink = sidebarLinks[2];
+    const integrationsHelpLink = sidebarLinks[3];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(prioritiesLink).toHaveTextContent('Priorities');
@@ -72,10 +70,8 @@ describe('SonatypeDeveloperSidebar', () => {
   it('does not render advanced search link when isAdvancedSearchEnabled is false', () => {
     renderComponent({ isAdvancedSearchEnabled: false });
     const sidebarLinks = screen.getAllByRole('link');
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const prioritiesLink = sidebarLinks[2];
-    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    const dashboardLink = sidebarLinks[0];
+    const prioritiesLink = sidebarLinks[1];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(prioritiesLink).toHaveTextContent('Priorities');
@@ -83,24 +79,19 @@ describe('SonatypeDeveloperSidebar', () => {
     expect(screen.queryByRole('link', { name: 'Advanced Search' })).not.toBeInTheDocument();
   });
 
-  it('does not render the sidebar when the user is not logged in', () => {
+  it('does not render any links when the user is not logged in', () => {
     renderComponent({ isLoggedIn: false });
-    const sidebarLinks = screen.getAllByRole('link');
-    const mainLink = sidebarLinks[0];
-    expect(sidebarLinks.length).toBe(1);
-    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('does not render the api link when isApiPageEnabled is false', () => {
     renderComponent({ isApiPageEnabled: false });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(5);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const prioritiesLink = sidebarLinks[2];
-    const searchLink = sidebarLinks[3];
-    const integrationsHelpLink = sidebarLinks[4];
-    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(sidebarLinks.length).toBe(4);
+    const dashboardLink = sidebarLinks[0];
+    const prioritiesLink = sidebarLinks[1];
+    const searchLink = sidebarLinks[2];
+    const integrationsHelpLink = sidebarLinks[3];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(prioritiesLink).toHaveTextContent('Priorities');
@@ -118,14 +109,12 @@ describe('SonatypeDeveloperSidebar', () => {
   it('does render the api link when isApiPageEnabled is true', () => {
     renderComponent({ isApiPageEnabled: true });
     const sidebarLinks = screen.getAllByRole('link');
-    expect(sidebarLinks.length).toBe(6);
-    const mainLink = sidebarLinks[0];
-    const dashboardLink = sidebarLinks[1];
-    const prioritiesLink = sidebarLinks[2];
-    const searchLink = sidebarLinks[3];
-    const integrationsHelpLink = sidebarLinks[4];
-    const apiLink = sidebarLinks[5];
-    expect(mainLink).toHaveAttribute('href', '#/developer/dashboard');
+    expect(sidebarLinks.length).toBe(5);
+    const dashboardLink = sidebarLinks[0];
+    const prioritiesLink = sidebarLinks[1];
+    const searchLink = sidebarLinks[2];
+    const integrationsHelpLink = sidebarLinks[3];
+    const apiLink = sidebarLinks[4];
     expect(dashboardLink).toHaveTextContent('Dashboard');
     expect(dashboardLink).toHaveAttribute('href', '#/developer/dashboard');
     expect(prioritiesLink).toHaveTextContent('Priorities');

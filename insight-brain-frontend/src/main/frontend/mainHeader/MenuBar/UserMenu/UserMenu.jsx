@@ -5,7 +5,7 @@
  */
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { faUserCircle } from '@fortawesome/pro-solid-svg-icons';
+import { faUserCircle } from '@fortawesome/pro-regular-svg-icons';
 import UserTokenModalContainer from './UserToken/UserTokenModalContainer';
 import { useStateTransition } from '../../../react/useStateTransition';
 import DisplayThemeModal from 'MainRoot/configuration/displayTheme/DisplayThemeModal';

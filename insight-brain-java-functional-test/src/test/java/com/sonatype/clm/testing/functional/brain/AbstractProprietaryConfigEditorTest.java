@@ -93,7 +93,7 @@ public abstract class AbstractProprietaryConfigEditorTest extends AbstractFuncti
     ProprietaryConfigEditorPage.addButton().shouldHave(attribute("disabled"));
 
     //take focus off of the select to prevent the select options displayed
-    SidebarNavigation.productVersion().click();
+    SidebarNavigation.container().click();
 
     assertInheritanceSection();
 

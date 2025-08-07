@@ -85,7 +85,7 @@ public class CategoryEditorTest
             .shouldHave(text("Please enter less than 255 characters"));
 
     // take focus off the input to prevent blinking cursor
-    SidebarNavigation.productVersion().click();
+    SidebarNavigation.container().click();
     eyesWatcher.eyesCheck();
 
     CategoryEditorPage.description().val("Description");

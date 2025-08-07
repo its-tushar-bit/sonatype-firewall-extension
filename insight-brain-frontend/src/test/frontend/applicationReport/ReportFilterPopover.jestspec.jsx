@@ -8,21 +8,12 @@ import userEvent from '@testing-library/user-event';
 import ReportFilterPopover from 'MainRoot/applicationReport/ReportFilterPopover';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
-import {
-  render,
-  screen,
-  fireEvent,
-  within,
-  getAllByRole,
-  setupPortalContainer,
-  removePortalContainer,
-} from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within, getAllByRole, setupPortalContainer } from 'TestRoot/SpecUtil';
 
 describe('ReportFilterPopover', () => {
   let renderComponent, selectShowFilterPopoverSpy, renderPopoverAndWaitForAnimation;
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     selectShowFilterPopoverSpy = jest

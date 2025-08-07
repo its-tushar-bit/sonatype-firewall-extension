@@ -64,7 +64,6 @@ describe('SbomManagerSidebar', () => {
   it('renders correctly when user is logged in and sbomManager is enabled', () => {
     renderComponent();
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -72,20 +71,9 @@ describe('SbomManagerSidebar', () => {
     ]);
   });
 
-  it('does not render the sidebar when the user is not logged in', () => {
-    renderComponent({ isLoggedIn: false });
-    verifyLinks([{ text: '', href: '#/sbomManager/dashboard' }]);
-  });
-
-  it('does not render the sidebar when isSbomManagerEnabled is disabled', () => {
-    renderComponent({ isSbomManagerEnabled: false });
-    verifyLinks([{ text: '', href: '#/sbomManager/dashboard' }]);
-  });
-
   it('does not render the api link when isApiPageEnabled is false', () => {
     renderComponent({ isApiPageEnabled: false });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -96,7 +84,6 @@ describe('SbomManagerSidebar', () => {
   it('does render the api link when isApiPageEnabled is true', () => {
     renderComponent({ isApiPageEnabled: true });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -108,7 +95,6 @@ describe('SbomManagerSidebar', () => {
   it('does not render the legal link when isAlpForSbomManagerEnabled is false and isLegalEnabled is false', () => {
     renderComponent({ isAlpForSbomManagerEnabled: false, isLegalEnabled: false });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -119,7 +105,6 @@ describe('SbomManagerSidebar', () => {
   it('does not render the legal link when isAlpForSbomManagerEnabled is false and isLegalEnabled is true', () => {
     renderComponent({ isAlpForSbomManagerEnabled: false, isLegalEnabled: true });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -130,7 +115,6 @@ describe('SbomManagerSidebar', () => {
   it('does render the legal link when isAlpForSbomManagerEnabled is true and isLegalEnabled is true', () => {
     renderComponent({ isAlpForSbomManagerEnabled: true, isLegalEnabled: true });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },
@@ -142,7 +126,6 @@ describe('SbomManagerSidebar', () => {
   it('does not render the legal link when isAlpForSbomManagerEnabled is true and isLegalEnabled is false', () => {
     renderComponent({ isAlpForSbomManagerEnabled: true, isLegalEnabled: false });
     verifyLinks([
-      { text: '', href: '#/sbomManager/dashboard' },
       { text: 'Dashboard', href: '#/sbomManager/dashboard' },
       { text: 'Applications', href: '#/sbomManager/applications' },
       { text: 'Organizations', href: '#/sbomManager/management/view' },

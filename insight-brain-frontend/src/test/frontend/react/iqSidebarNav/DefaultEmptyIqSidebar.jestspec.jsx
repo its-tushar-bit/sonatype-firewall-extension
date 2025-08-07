@@ -4,23 +4,18 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen, within } from 'TestRoot/SpecUtil';
 import DefaultEmptyIqSidebar from 'MainRoot/react/iqSidebarNav/DefaultEmptyIqSidebar';
 
 describe('DefaultEmptyIqSidebar', function () {
   describe('renders an DefaultEmptyIqSidebar', function () {
-    it('renders an NxGlobalSidebar with no links to pages', function () {
-      const screen = render(<DefaultEmptyIqSidebar></DefaultEmptyIqSidebar>, {});
-      const container = screen.container;
-      const divNavBar = container.querySelector('div.nx-global-sidebar');
-      expect(divNavBar).toHaveClass('nx-global-sidebar');
+    it('renders an NxGlobalSidebar2 with no links to pages', function () {
+      render(<DefaultEmptyIqSidebar />, {});
 
-      const asideElement = container.querySelector('aside');
-      expect(asideElement).not.toBeNull();
-      expect(asideElement).toHaveAttribute('aria-label', 'global sidebar');
+      const sidebar = screen.getByRole('navigation', { name: 'global sidebar' });
+      expect(sidebar).toBeInTheDocument();
 
-      const linksSideBar = container.querySelectorAll('a.nx-global-header');
-      expect(linksSideBar.length).toBe(0);
+      expect(within(sidebar).queryByRole('link')).not.toBeInTheDocument();
     });
   });
 });

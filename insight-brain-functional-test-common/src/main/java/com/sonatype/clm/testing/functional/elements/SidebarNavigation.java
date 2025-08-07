@@ -12,19 +12,19 @@ import static com.codeborne.selenide.Selenide.$;
 public class SidebarNavigation
 {
   public static SelenideElement container() {
-    return $(".nx-global-sidebar");
+    return $(".nx-global-sidebar-2");
   }
 
-  public static SelenideElement mainHeaderButtons() {
-    return $("#global-sidebar-buttons");
+  public static SelenideElement sidebarLinks() {
+    return $(".nx-global-sidebar-2__nav");
   }
 
   public static SelenideElement productVersion() {
-    return $(".nx-global-sidebar__release");
+    return $(".nx-global-footer-2");
   }
 
   public static SelenideElement productLogo() {
-    return $(".nx-global-sidebar__logo");
+    return $(".nx-global-header-2__logo");
   }
 
   public static SelenideElement productInfoLink() {
@@ -32,7 +32,7 @@ public class SidebarNavigation
   }
 
   public static SelenideElement toggleNavigationButton() {
-    return $(".nx-global-sidebar__toggle");
+    return $(".nx-global-sidebar-2__toggle");
   }
 
   public static void closeNavigationSidebar() {
@@ -53,75 +53,75 @@ public class SidebarNavigation
     sidebarToggle.click();
   }
 
-  public static MainHeaderNavigationButton dashboardNavigationButton() {
-    return new MainHeaderNavigationButton("#dashboard-navigation-button");
+  public static SidebarNavigationButton dashboardNavigationButton() {
+    return new SidebarNavigationButton("#dashboard-navigation-button");
   }
 
-  public static MainHeaderNavigationButton reportingNavigationButton() {
-    return new MainHeaderNavigationButton("#reporting-navigation-button");
+  public static SidebarNavigationButton reportingNavigationButton() {
+    return new SidebarNavigationButton("#reporting-navigation-button");
   }
 
-  public static MainHeaderNavigationButton policiesNavigationButton() {
-    return new MainHeaderNavigationButton("#policies-navigation-button");
+  public static SidebarNavigationButton policiesNavigationButton() {
+    return new SidebarNavigationButton("#policies-navigation-button");
   }
 
-  public static MainHeaderNavigationButton labsNavigationButton() {
-    return new MainHeaderNavigationButton("#labs-navigation-button");
+  public static SidebarNavigationButton labsNavigationButton() {
+    return new SidebarNavigationButton("#labs-navigation-button");
   }
 
-  public static MainHeaderNavigationButton vulnerabilityDetailsNavigationButton() {
-    return new MainHeaderNavigationButton("#vulnerability-navigation-button");
+  public static SidebarNavigationButton vulnerabilityDetailsNavigationButton() {
+    return new SidebarNavigationButton("#vulnerability-navigation-button");
   }
 
-  public static MainHeaderNavigationButton advancedSearchNavigationButton() {
-    return new MainHeaderNavigationButton("#search-navigation-button");
+  public static SidebarNavigationButton advancedSearchNavigationButton() {
+    return new SidebarNavigationButton("#search-navigation-button");
   }
 
-  public static MainHeaderNavigationButton firewallNavigationButton() {
-    return new MainHeaderNavigationButton("#firewall-navigation-button");
+  public static SidebarNavigationButton firewallNavigationButton() {
+    return new SidebarNavigationButton("#firewall-navigation-button");
   }
 
-  public static MainHeaderNavigationButton legalNavigationButton() {
-    return new MainHeaderNavigationButton("#advanced-legal-navigation-button");
+  public static SidebarNavigationButton legalNavigationButton() {
+    return new SidebarNavigationButton("#advanced-legal-navigation-button");
   }
 
-  public static MainHeaderNavigationButton developerApiNavigationButton() {
-    return new MainHeaderNavigationButton("#sonatype-developer-api-navigation-button");
+  public static SidebarNavigationButton developerApiNavigationButton() {
+    return new SidebarNavigationButton("#sonatype-developer-api-navigation-button");
   }
 
-  public static MainHeaderNavigationButton lifecycleApiNavigationButton() {
-    return new MainHeaderNavigationButton("#api-navigation-button");
+  public static SidebarNavigationButton lifecycleApiNavigationButton() {
+    return new SidebarNavigationButton("#api-navigation-button");
   }
 
-  public static MainHeaderNavigationButton firewallApiNavigationButton() {
-    return new MainHeaderNavigationButton("#sonatype-firewall-api-navigation-button");
+  public static SidebarNavigationButton firewallApiNavigationButton() {
+    return new SidebarNavigationButton("#sonatype-firewall-api-navigation-button");
   }
 
-  public static MainHeaderNavigationButton sbomManagerApiNavigationButton() {
-    return new MainHeaderNavigationButton("#sbom-manager-api-navigation-button");
+  public static SidebarNavigationButton sbomManagerApiNavigationButton() {
+    return new SidebarNavigationButton("#sbom-manager-api-navigation-button");
   }
 
-  public static MainHeaderNavigationButton enterpriseReportingNavigationButton() {
-    return new MainHeaderNavigationButton("#enterprise-reporting-button");
+  public static SidebarNavigationButton enterpriseReportingNavigationButton() {
+    return new SidebarNavigationButton("#enterprise-reporting-button");
   }
 
-  public static MainHeaderNavigationButton firewallDashboardNavigationButton() {
-    return new MainHeaderNavigationButton("#sonatype-firewall-dashboard-navigation-button");
+  public static SidebarNavigationButton firewallDashboardNavigationButton() {
+    return new SidebarNavigationButton("#sonatype-firewall-dashboard-navigation-button");
   }
 
-  public static MainHeaderNavigationButton firewallRepositoriesNavigationButton() {
-    return new MainHeaderNavigationButton("#sonatype-firewall-repositories-navigation-button");
+  public static SidebarNavigationButton firewallRepositoriesNavigationButton() {
+    return new SidebarNavigationButton("#sonatype-firewall-repositories-navigation-button");
   }
 
-  public static MainHeaderNavigationButton firewallReportsNavigationButton() {
-    return new MainHeaderNavigationButton("#sonatype-firewall-reports-navigation-button");
+  public static SidebarNavigationButton firewallReportsNavigationButton() {
+    return new SidebarNavigationButton("#sonatype-firewall-reports-navigation-button");
   }
 
-  public static MainHeaderNavigationButton sbomManagerDashboardNavigationButton() {
-    return new MainHeaderNavigationButton("#sbom-manager-dashboard-navigation-button");
+  public static SidebarNavigationButton sbomManagerDashboardNavigationButton() {
+    return new SidebarNavigationButton("#sbom-manager-dashboard-navigation-button");
   }
 
-  public static MainHeaderNavigationButton sbomManagerOrganizationsNavigationButton() {
-    return new MainHeaderNavigationButton("#sbom-manager-organizations-navigation-button");
+  public static SidebarNavigationButton sbomManagerOrganizationsNavigationButton() {
+    return new SidebarNavigationButton("#sbom-manager-organizations-navigation-button");
   }
 }

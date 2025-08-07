@@ -148,7 +148,7 @@ public abstract class AbstractFunctionalTest
 
   private static final int VIEWPORT_WIDTH = 1366;
 
-  private static final int VIEWPORT_HEIGHT = 1024;
+  private static final int VIEWPORT_HEIGHT = 1064;
 
   protected static final TestProductLicenseManager productLicenseManager;
 

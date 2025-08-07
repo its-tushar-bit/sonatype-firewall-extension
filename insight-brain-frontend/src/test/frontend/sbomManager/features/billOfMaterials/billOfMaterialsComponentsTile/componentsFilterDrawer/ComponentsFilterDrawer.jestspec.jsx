@@ -6,15 +6,7 @@
 import React from 'react';
 import { assocPath } from 'ramda';
 
-import {
-  axiosMockAdapter,
-  fireEvent,
-  removePortalContainer,
-  render,
-  screen,
-  setupPortalContainer,
-  waitFor,
-} from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, setupPortalContainer, waitFor } from 'TestRoot/SpecUtil';
 
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
 import ComponentsFilterDrawer from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/componentsFilterDrawer/ComponentsFilterDrawer';
@@ -58,7 +50,6 @@ describe('ComponentsFilterDrawer', () => {
   const renderComponent = (props, preloadedState) => render(<ComponentsFilterDrawer {...props} />, { preloadedState });
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     axiosMock = axiosMockAdapter();

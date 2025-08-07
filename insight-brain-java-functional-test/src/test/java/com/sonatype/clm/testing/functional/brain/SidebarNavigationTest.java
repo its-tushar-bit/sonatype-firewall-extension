@@ -10,7 +10,7 @@ import java.util.List;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
-import com.sonatype.clm.testing.functional.elements.MainHeaderNavigationButton;
+import com.sonatype.clm.testing.functional.elements.SidebarNavigationButton;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
 import com.sonatype.clm.testing.functional.elements.SystemConfigMenu;
 import com.sonatype.clm.testing.functional.pages.AdvancedSearchPage;
@@ -242,7 +242,7 @@ public class SidebarNavigationTest
   }
 
   private void testApiNavigationButton_HiddenIfDisabled(
-      final MainHeaderNavigationButton apiNavigationButton,
+      final SidebarNavigationButton apiNavigationButton,
       final String initialUrl)
   {
     SystemConfigurationPropertyFeature.API_PAGE.setEnabled(false);
@@ -279,7 +279,7 @@ public class SidebarNavigationTest
   }
 
   private void testApiNavigationButton_FeatureAvailableAdmin(
-      final MainHeaderNavigationButton apiNavigationButton,
+      final SidebarNavigationButton apiNavigationButton,
       final String initialUrl)
   {
     refreshOrOpen(initialUrl);
@@ -316,7 +316,7 @@ public class SidebarNavigationTest
   }
 
   private void testApiNavigationButton_FeatureAvailableNonAdmin(
-      final MainHeaderNavigationButton apiNavigationButton,
+      final SidebarNavigationButton apiNavigationButton,
       final String initialUrl)
   {
     User user = tempEntity.newUser();
@@ -355,7 +355,7 @@ public class SidebarNavigationTest
   }
 
   private void testNavigation_ToApi(
-      final MainHeaderNavigationButton apiNavigationButton,
+      final SidebarNavigationButton apiNavigationButton,
       final String initialUrl,
       final String expectedUrl)
   {

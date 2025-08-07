@@ -129,7 +129,7 @@ export default function ComponentDetails() {
   return (
     <>
       <PolicyViolationDetailsPopover />
-      <main className={`nx-viewport-sized ${getClasses()}`}>
+      <main className={`nx-viewport-sized__container ${getClasses()}`}>
         <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-details-page__content">
           <ComponentDetailsBackButton {...componentDetailsBackButtonProps} />
           <NxLoadWrapper loading={loading} error={loadError} retryHandler={loadComponentDetails}>

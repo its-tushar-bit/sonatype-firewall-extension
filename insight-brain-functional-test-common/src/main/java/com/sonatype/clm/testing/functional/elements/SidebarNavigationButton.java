@@ -12,12 +12,12 @@ import com.codeborne.selenide.WebElementCondition;
 
 import static com.codeborne.selenide.Condition.cssClass;
 
-public class MainHeaderNavigationButton
-    extends BasicElement<MainHeaderNavigationButton>
+public class SidebarNavigationButton
+    extends BasicElement<SidebarNavigationButton>
 {
   public static final WebElementCondition CLASS_ACTIVE = cssClass("selected");
 
-  public MainHeaderNavigationButton(String selector) {
-    super(".nx-global-sidebar__navigation", selector);
+  public SidebarNavigationButton(String selector) {
+    super(".nx-global-sidebar-2__nav", selector);
   }
 }

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import * as ReactDOM from 'react-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import classnames from 'classnames';
 import { isEmpty } from 'ramda';
@@ -21,7 +22,6 @@ import {
 } from '@sonatype/react-shared-components';
 import { faPlus, faFolderTree } from '@fortawesome/pro-solid-svg-icons';
 
-import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import OwnerModal from 'MainRoot/OrgsAndPolicies/ownerModal/OwnerModal';
 import { actions as ownerModalActions } from 'MainRoot/OrgsAndPolicies/ownerModal/ownerModalSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -57,6 +57,7 @@ import {
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectRepositoriesLength } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSelectors';
 import { getOwnerInfo } from './utils';
+import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
 
 const getId = (repositoryOrId) => {
   if (typeof repositoryOrId === 'string') return repositoryOrId;
@@ -65,6 +66,8 @@ const getId = (repositoryOrId) => {
 
 export default function OwnerSideNav() {
   const dispatch = useDispatch();
+
+  const portalContainer = document.getElementById(IQ_SIDEBAR_CONTAINER_ID);
 
   const {
     loading,
@@ -410,8 +413,8 @@ export default function OwnerSideNav() {
 
   const filterActive = filterQuery.value.length >= 3;
 
-  return (
-    <>
+  return ReactDOM.createPortal(
+    <div className="nx-page-sidebar nx-viewport-sized iq-orgs-and-policies-summary-sidebar">
       <NxLoadWrapper
         loading={loading || loadingOwnerSummary || !displayedOrganization}
         error={error}
@@ -475,6 +478,7 @@ export default function OwnerSideNav() {
         }}
       </NxLoadWrapper>
       <OwnerModal />
-    </>
+    </div>,
+    portalContainer
   );
 }

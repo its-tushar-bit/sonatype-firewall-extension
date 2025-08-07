@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { Fragment } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import HelpMenu from './HelpMenu/HelpMenu';
 import SystemPreferencesMenu from './SystemPreferencesMenu/SystemPreferencesMenu';
@@ -11,6 +11,8 @@ import SolutionSwitcherContainer from './SolutionSwitcherContainer/SolutionSwitc
 import UserMenu from './UserMenu/UserMenuContainer';
 import LoginButton from './LoginButton/LoginButton';
 import NotificationsMenuContainer from './NotificationsMenu/NotificationsMenuContainer';
+import GlobalHeader from './GlobalHeader';
+import { PRODUCT_NAMES } from './useProductInfo';
 
 export const MenuBar = ({
   majorMinorVersion = '',
@@ -44,59 +46,64 @@ export const MenuBar = ({
   isOrgsAndAppsEnabled,
   isFirewallOnlyLicense,
   isZscalerEnabled,
+  isStandaloneSbomManager,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
-  const backButtonPortalContainer = <div id="menu-bar__back-button-container" />;
+  const product = getProduct(
+    isStandaloneDeveloper,
+    isStandaloneFirewall,
+    isStandaloneSbomManager,
+    isFirewallOnlyLicense,
+    isSbomManagerOnlyLicense
+  );
 
   if (!isLoggedIn && shouldShowLoginButton) {
     return (
-      <div id="menu-bar" className="nx-global-header__actions menu-bar">
+      <GlobalHeader product={product}>
         <LoginButton onClick={login} />
-      </div>
+      </GlobalHeader>
     );
   }
 
   if (!isLoggedIn) {
-    return backButtonPortalContainer;
+    return <GlobalHeader product={product} />;
   }
 
   return (
-    <Fragment>
-      <div id="menu-bar" className="nx-global-header__actions menu-bar">
-        <HelpMenu majorMinorVersion={majorMinorVersion} />
-        {isShowNotificationMenuEnabled && !isStandaloneDeveloper && <NotificationsMenuContainer />}
-        {hasAnyPermissions && !isStandaloneDeveloper && (
-          <SystemPreferencesMenu
-            permissions={permissions}
-            isWebhooksSupported={isWebhooksSupported}
-            isSourceControlSupported={isSourceControlSupported}
-            isCrowdIntegrationEnabled={isCrowdIntegrationEnabled}
-            isWebhookConfigurationEnabled={isWebhookConfigurationEnabled}
-            isProductLicenseConfigurationEnabled={isProductLicenseConfigurationEnabled}
-            isLdapConfigurationEnabled={isLdapConfigurationEnabled}
-            isEmailConfigurationEnabled={isEmailConfigurationEnabled}
-            isProxyConfigurationEnabled={isProxyConfigurationEnabled}
-            isSystemNoticeConfigurationEnabled={isSystemNoticeConfigurationEnabled}
-            isSuccessMetricsConfigurationEnabled={isSuccessMetricsConfigurationEnabled}
-            isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
-            isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
-            isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
-            isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
-            isSamlConfigurationEnabled={isSamlConfigurationEnabled}
-            isMonitoringSupported={isMonitoringSupported}
-            isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
-            isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
-            isStandaloneFirewall={isStandaloneFirewall}
-            isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}
-            isFirewallOnlyLicense={isFirewallOnlyLicense}
-            isZscalerEnabled={isZscalerEnabled}
-          />
-        )}
-        <SolutionSwitcherContainer />
-        <UserMenu userActions={userActions} />
-      </div>
-    </Fragment>
+    <GlobalHeader product={product}>
+      <HelpMenu majorMinorVersion={majorMinorVersion} />
+      {isShowNotificationMenuEnabled && !isStandaloneDeveloper && <NotificationsMenuContainer />}
+      {hasAnyPermissions && !isStandaloneDeveloper && (
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isWebhooksSupported={isWebhooksSupported}
+          isSourceControlSupported={isSourceControlSupported}
+          isCrowdIntegrationEnabled={isCrowdIntegrationEnabled}
+          isWebhookConfigurationEnabled={isWebhookConfigurationEnabled}
+          isProductLicenseConfigurationEnabled={isProductLicenseConfigurationEnabled}
+          isLdapConfigurationEnabled={isLdapConfigurationEnabled}
+          isEmailConfigurationEnabled={isEmailConfigurationEnabled}
+          isProxyConfigurationEnabled={isProxyConfigurationEnabled}
+          isSystemNoticeConfigurationEnabled={isSystemNoticeConfigurationEnabled}
+          isSuccessMetricsConfigurationEnabled={isSuccessMetricsConfigurationEnabled}
+          isAutomaticApplicationConfigurationEnabled={isAutomaticApplicationConfigurationEnabled}
+          isAutomaticScmConfigurationEnabled={isAutomaticScmConfigurationEnabled}
+          isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
+          isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
+          isSamlConfigurationEnabled={isSamlConfigurationEnabled}
+          isMonitoringSupported={isMonitoringSupported}
+          isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
+          isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
+          isStandaloneFirewall={isStandaloneFirewall}
+          isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}
+          isFirewallOnlyLicense={isFirewallOnlyLicense}
+          isZscalerEnabled={isZscalerEnabled}
+        />
+      )}
+      <SolutionSwitcherContainer />
+      <UserMenu userActions={userActions} />
+    </GlobalHeader>
   );
 };
 
@@ -137,6 +144,24 @@ MenuBar.propTypes = {
   isOrgsAndAppsEnabled: PropTypes.bool,
   isFirewallOnlyLicense: PropTypes.bool,
   isZscalerEnabled: PropTypes.bool,
+  isStandaloneSbomManager: PropTypes.bool,
 };
+
+function getProduct(
+  isStandaloneDeveloper,
+  isStandaloneFirewall,
+  isStandaloneSbomManager,
+  isFirewallOnlyLicense,
+  isSbomManagerOnlyLicense
+) {
+  if (isStandaloneFirewall || isFirewallOnlyLicense) {
+    return PRODUCT_NAMES.FIREWALL;
+  } else if (isStandaloneSbomManager || isSbomManagerOnlyLicense) {
+    return PRODUCT_NAMES.SBOM_MANAGER;
+  } else if (isStandaloneDeveloper) {
+    return PRODUCT_NAMES.DEVELOPER;
+  }
+  return PRODUCT_NAMES.LIFECYCLE;
+}
 
 export default MenuBar;

@@ -100,7 +100,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.products().shouldHave(texts("Sonatype Auditor"));
 
     SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Auditor"));
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
     eyesWatcher.eyesCheck("Nexus Auditor Logo");
   }
 
@@ -150,7 +150,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Cloud", "Sonatype Developer"));
 
     SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Cloud"));
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
     eyesWatcher.eyesCheck("Nexus Lifecycle Logo");
   }
 
@@ -166,7 +166,7 @@ public class DefaultProductLicenseTest
     ProductLicensePage.products().shouldHave(texts("Sonatype Lifecycle Foundation"));
 
     SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle Foundation"));
+    SidebarNavigation.productLogo().shouldHave(attribute("alt", "Lifecycle"));
   }
 
   @Test

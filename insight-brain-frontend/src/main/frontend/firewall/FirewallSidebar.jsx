@@ -5,19 +5,10 @@
  */
 
 import React from 'react';
-import {
-  NxGlobalSidebar,
-  NxGlobalSidebarNavigation,
-  useToggle,
-  NxGlobalSidebarNavigationLink,
-} from '@sonatype/react-shared-components';
-import { faFileChartLine, faHome, faSitemap } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+import { NxGlobalSidebar2, useToggle, NxGlobalSidebar2NavigationLink } from '@sonatype/react-shared-components';
+import { faArrowToLeft, faArrowToRight, faStars, faHouse, faSitemap } from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
-import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
-
-const logoImg = require('../img/nexus_firewall.svg');
 
 export default function FirewallSidebar(props) {
   const { isLoggedIn, isApiPageEnabled } = props;
@@ -35,25 +26,23 @@ export default function FirewallSidebar(props) {
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
   return (
-    <NxGlobalSidebar
+    <NxGlobalSidebar2
       isOpen={sidebarOpen}
       toggleOpenIcon={faArrowToLeft}
-      toggleCloseIcon={faBars}
+      toggleCloseIcon={faArrowToRight}
       onToggleClick={onToggleCollapse}
-      logoImg={logoImg}
-      logoAltText="sonatype firewall"
-      logoLink={firewallHref}
+      className="iq-firewall-sidebar"
     >
       {isLoggedIn && (
-        <NxGlobalSidebarNavigation>
-          <NxGlobalSidebarNavigationLink
+        <>
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(firewallState)}
             id="sonatype-firewall-dashboard-navigation-button"
-            icon={faHome}
+            icon={faHouse}
             text="Dashboard"
             href={firewallHref}
           />
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(firewallRepositoriesState)}
             id="sonatype-firewall-repositories-navigation-button"
             icon={faSitemap}
@@ -61,7 +50,7 @@ export default function FirewallSidebar(props) {
             href={firewallRepositoriesHref}
           />
           {isApiPageEnabled && (
-            <NxGlobalSidebarNavigationLink
+            <NxGlobalSidebar2NavigationLink
               isSelected={isSelected(apiState)}
               id="sonatype-firewall-api-navigation-button"
               className="iq-api-nav-link"
@@ -80,10 +69,9 @@ export default function FirewallSidebar(props) {
               href={apiHref}
             />
           )}
-        </NxGlobalSidebarNavigation>
+        </>
       )}
-      <IqSidebarNavFooter />
-    </NxGlobalSidebar>
+    </NxGlobalSidebar2>
   );
 }
 

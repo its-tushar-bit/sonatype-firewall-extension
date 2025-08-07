@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useEffect } from 'react';
+import * as ReactDOM from 'react-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { sort } from 'ramda';
 import {
@@ -17,7 +18,6 @@ import {
   NxOverflowTooltip,
 } from '@sonatype/react-shared-components';
 import { faPlus, faPencilAlt, faTag, faUser } from '@fortawesome/free-solid-svg-icons';
-import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {
@@ -66,10 +66,13 @@ import { selectSiblings as selectApplicationCategoriesSiblings } from 'MainRoot/
 import { selectSiblings as selectPolicySiblings } from 'MainRoot/OrgsAndPolicies/policySelectors';
 import { selectLicenseThreatGroupSiblings } from 'MainRoot/OrgsAndPolicies/licenseThreatGroupSelectors';
 import { selectAreAnyCategoriesDefined } from 'MainRoot/OrgsAndPolicies/assignApplicationCategoriesSelectors';
+import { IQ_SIDEBAR_CONTAINER_ID } from 'MainRoot/util/constants';
 import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function OwnerDetailSidebar() {
   const dispatch = useDispatch();
+
+  const portalContainer = document.getElementById(IQ_SIDEBAR_CONTAINER_ID);
 
   const [categoryOpen, onCategoryCollapse, setCategoryOpenState] = useToggle(false);
   const [policiesOpen, onPoliciesCollapse, setPoliciesOpenState] = useToggle(false);
@@ -209,8 +212,8 @@ export default function OwnerDetailSidebar() {
     }
   }, [url]);
 
-  return (
-    <div id="owner-detail-sidebar">
+  return ReactDOM.createPortal(
+    <div id="owner-detail-sidebar" className="nx-page-sidebar">
       <NxH3>{owner.name}</NxH3>
 
       {/* Categories */}
@@ -462,6 +465,7 @@ export default function OwnerDetailSidebar() {
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}
-    </div>
+    </div>,
+    portalContainer
   );
 }

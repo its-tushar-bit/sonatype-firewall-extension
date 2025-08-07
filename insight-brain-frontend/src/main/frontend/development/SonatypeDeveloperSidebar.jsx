@@ -5,19 +5,18 @@
  */
 
 import React from 'react';
+import { NxGlobalSidebar2, useToggle, NxGlobalSidebar2NavigationLink } from '@sonatype/react-shared-components';
 import {
-  NxGlobalSidebar,
-  NxGlobalSidebarNavigation,
-  useToggle,
-  NxGlobalSidebarNavigationLink,
-} from '@sonatype/react-shared-components';
-import { faHome, faFileChartLine, faExternalLinkAlt } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars, faSearch, faStars } from '@fortawesome/pro-regular-svg-icons';
+  faHouse,
+  faStars,
+  faArrowToLeft,
+  faArrowToRight,
+  faListOl,
+  faPlug,
+  faMagnifyingGlass,
+} from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
-import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
-
-const logoImg = require('./assets/sonatype-developer-logo-white.svg');
 
 export default function SonatypeDeveloperSidebar(props) {
   const { isLoggedIn, isAdvancedSearchEnabled, isApiPageEnabled } = props;
@@ -37,49 +36,47 @@ export default function SonatypeDeveloperSidebar(props) {
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
   return (
-    <NxGlobalSidebar
+    <NxGlobalSidebar2
       isOpen={sidebarOpen}
       toggleOpenIcon={faArrowToLeft}
-      toggleCloseIcon={faBars}
+      toggleCloseIcon={faArrowToRight}
       onToggleClick={onToggleCollapse}
-      logoImg={logoImg}
-      logoAltText="sonatype developer"
-      logoLink={dashboardHref}
+      className="iq-developer-sidebar"
     >
       {isLoggedIn && (
-        <NxGlobalSidebarNavigation>
-          <NxGlobalSidebarNavigationLink
+        <>
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(dashboardState)}
             id="sonatype-developer-dashboard-navigation-button"
-            icon={faHome}
+            icon={faHouse}
             text="Dashboard"
             href={dashboardHref}
           />
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(prioritiesState)}
             id="sonatype-developer-reports-navigation-button"
-            icon={faFileChartLine}
+            icon={faListOl}
             text="Priorities"
             href={prioritiesHref}
           />
           {isAdvancedSearchEnabled && (
-            <NxGlobalSidebarNavigationLink
+            <NxGlobalSidebar2NavigationLink
               isSelected={isSelected(advancedSearchState)}
               id="sonatype-developer-search-navigation-button"
-              icon={faSearch}
+              icon={faMagnifyingGlass}
               text="Advanced Search"
               href={advancedSearchHref}
             />
           )}
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             id="sonatype-developer-integrations-help-navigation-button"
-            icon={faExternalLinkAlt}
+            icon={faPlug}
             text="Integrations Help"
             href="https://links.sonatype.com/products/nxiq/doc/iq-server-integrations"
             target="_blank"
           />
           {isApiPageEnabled && (
-            <NxGlobalSidebarNavigationLink
+            <NxGlobalSidebar2NavigationLink
               isSelected={isSelected(apiState)}
               id="sonatype-developer-api-navigation-button"
               className="iq-api-nav-link"
@@ -98,10 +95,9 @@ export default function SonatypeDeveloperSidebar(props) {
               href={apiHref}
             />
           )}
-        </NxGlobalSidebarNavigation>
+        </>
       )}
-      <IqSidebarNavFooter />
-    </NxGlobalSidebar>
+    </NxGlobalSidebar2>
   );
 }
 

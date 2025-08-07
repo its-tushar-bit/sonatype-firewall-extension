@@ -1251,22 +1251,12 @@
   resolved "https://repo.sonatype.com/repository/npm-all/@faker-js/faker/-/faker-7.6.0.tgz#9ea331766084288634a9247fcd8b84f16ff4ba07"
   integrity sha512-XK6BTq1NDMo9Xqw/YkYyGjSsg44fbNwYRx7QK2CuoQgyy+f1rrTDHoExVM5PsyXCtfl2vs2vVJ0MN0yN6LppRw==
 
-"@fortawesome/fontawesome-common-types@6.5.1":
-  version "6.5.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-6.5.1.tgz#fdb1ec4952b689f5f7aa0bffe46180bb35490032"
-  integrity sha512-GkWzv+L6d2bI5f/Vk6ikJ9xtl7dfXtoRu3YGE6nq0p/FFqA1ebMOAWg3XgRyb0I6LYyYkiAo+3/KrwuBp8xG7A==
-
-"@fortawesome/fontawesome-common-types@6.6.0":
-  version "6.6.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-6.6.0.tgz#31ab07ca6a06358c5de4d295d4711b675006163f"
-  integrity sha512-xyX0X9mc0kyz9plIyryrRbl7ngsA9jz77mCZJsUkLl+ZKs0KWObgaEBoSgQiYWAsSmjz/yjl0F++Got0Mdp4Rw==
-
 "@fortawesome/fontawesome-common-types@6.7.2":
   version "6.7.2"
   resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-6.7.2.tgz#7123d74b0c1e726794aed1184795dbce12186470"
   integrity sha512-Zs+YeHUC5fkt7Mg1l6XTniei3k4bwG/yo3iFUtZWd/pMx9g3fdvkSK9E0FOC+++phXOka78uJcYb8JaFkW52Xg==
 
-"@fortawesome/fontawesome-common-types@^0.2.30", "@fortawesome/fontawesome-common-types@^0.2.36":
+"@fortawesome/fontawesome-common-types@^0.2.36":
   version "0.2.36"
   resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/fontawesome-common-types/-/fontawesome-common-types-0.2.36.tgz#b44e52db3b6b20523e0c57ef8c42d315532cb903"
   integrity sha512-a/7BiSgobHAgBWeN7N0w+lAhInrGxksn13uK7231n2m8EDPE3BMCl9NZLTGrj9ZXfCmC6LM0QLqXidIizVQ6yg==
@@ -1278,12 +1268,12 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.36"
 
-"@fortawesome/free-brands-svg-icons@^5.11.2":
-  version "5.15.4"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/free-brands-svg-icons/-/free-brands-svg-icons-5.15.4.tgz#ec8a44dd383bcdd58aa7d1c96f38251e6fec9733"
-  integrity sha512-f1witbwycL9cTENJegcmcZRYyawAFbm8+c6IirLmwbbpqz46wyjbQYLuxOc7weXFXfB7QR8/Vd2u5R3q6JYD9g==
+"@fortawesome/free-brands-svg-icons@^6.7.2":
+  version "6.7.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/free-brands-svg-icons/-/free-brands-svg-icons-6.7.2.tgz#4ebee8098f31da5446dda81edc344025eb59b27e"
+  integrity sha512-zu0evbcRTgjKfrr77/2XX+bU+kuGfjm0LbajJHVIgBWNIDzrhpRxiCPNT8DW5AdmSsq7Mcf9D1bH0aSeSUSM+Q==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.2.36"
+    "@fortawesome/fontawesome-common-types" "6.7.2"
 
 "@fortawesome/free-regular-svg-icons@^5.15.4":
   version "5.15.4"
@@ -1306,19 +1296,12 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.36"
 
-"@fortawesome/pro-light-svg-icons@^6.5.1":
-  version "6.5.1"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-light-svg-icons/-/pro-light-svg-icons-6.5.1.tgz#f23233b878b3d7884b6dd658702456f315d498ad"
-  integrity sha512-qcBN5RESCPhbWRvHL5N5ovxvYzj2KbpKoSWPJ1TRce1jSsQgBx6hN4SCzzzYJkoiIO43L1/n+NjEQHb0YYtg6g==
+"@fortawesome/pro-light-svg-icons@^6.7.2":
+  version "6.7.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-light-svg-icons/-/pro-light-svg-icons-6.7.2.tgz#36f1e606dfdb28be45d19ef917483d2c0b81c50e"
+  integrity sha512-LeUnJCKlVG0oQwTW3oADJq3rkmnSDTg95RWdP46dCQ8pXOaw/8wzhN0XzZ2s/MqE48FNAX7E/XEqs0qMnrTZDA==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "6.5.1"
-
-"@fortawesome/pro-regular-svg-icons@^5.11.2":
-  version "5.14.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-regular-svg-icons/-/pro-regular-svg-icons-5.14.0.tgz"
-  integrity sha512-DYJktCkmPWds7p0eKWwBmOp2BZuvuzh0a8/oc8MMIJX3D3fX4BXiJqgpdcDRTd21t2pC91X0B5LTt589TNtBjQ==
-  dependencies:
-    "@fortawesome/fontawesome-common-types" "^0.2.30"
+    "@fortawesome/fontawesome-common-types" "6.7.2"
 
 "@fortawesome/pro-regular-svg-icons@^5.15.4":
   version "5.15.4"
@@ -1327,6 +1310,13 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.36"
 
+"@fortawesome/pro-regular-svg-icons@^6.7.2":
+  version "6.7.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-regular-svg-icons/-/pro-regular-svg-icons-6.7.2.tgz#69cc0d36b0eea09d1f7ffe96cf71d921a13da0d0"
+  integrity sha512-cJolK4K/s56mHAqOyno24SmjviHqSqG9ZfckBKCpWjJlgDexi61EfET5wWbmmEot6/BqasFjw9S6tudFQUL/PQ==
+  dependencies:
+    "@fortawesome/fontawesome-common-types" "6.7.2"
+
 "@fortawesome/pro-solid-svg-icons@^5.15.4":
   version "5.15.4"
   resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-solid-svg-icons/-/pro-solid-svg-icons-5.15.4.tgz#bf0f54b5920e8a779684bc9e69617ef5259c00c9"
@@ -1334,12 +1324,12 @@
   dependencies:
     "@fortawesome/fontawesome-common-types" "^0.2.36"
 
-"@fortawesome/pro-solid-svg-icons@^6.6.0":
-  version "6.6.0"
-  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-solid-svg-icons/-/pro-solid-svg-icons-6.6.0.tgz#e4f99d9b674288c3d1ccbec27b37e008bd190ca1"
-  integrity sha512-IwYuyO+i681arIxOjPUoqRwoHeTqeg6i2s5rY2WbZ1R7PnwavOd1+aPHCJlfU2k8l5LZ+u3hAKlVqu+emQFlZg==
+"@fortawesome/pro-solid-svg-icons@^6.7.2":
+  version "6.7.2"
+  resolved "https://repo.sonatype.com/repository/npm-all/@fortawesome/pro-solid-svg-icons/-/pro-solid-svg-icons-6.7.2.tgz#049c2e14c9fa542a36e9a3ff448cc0844d717bba"
+  integrity sha512-SY2aP8d7uBlg1rNYznA9w9SVnnQhu3x/C7CCKQYcOGOC1YtPPHgIJhxKGbSzm6RkeJs1HVEfAkORX3J0XB5K9Q==
   dependencies:
-    "@fortawesome/fontawesome-common-types" "6.6.0"
+    "@fortawesome/fontawesome-common-types" "6.7.2"
 
 "@fortawesome/react-fontawesome@^0.1.18":
   version "0.1.19"

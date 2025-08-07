@@ -5,7 +5,7 @@
  */
 import React from 'react';
 import { userEvent } from '@testing-library/user-event';
-import { render, screen, axiosMockAdapter, within, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen, axiosMockAdapter, within, waitFor, setupPortalContainer } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import { getOwnerListUrl, getPermissionContextTestUrl, getRepositoriesUrl } from 'MainRoot/util/CLMLocation';
 import { getOwnersMap } from './nLevelMockData';
@@ -81,6 +81,7 @@ describe('OwnerSideNav', () => {
 
   beforeAll(() => {
     mockAxiosCalls = axiosMockAdapter();
+    setupPortalContainer();
   });
 
   beforeEach(() => {

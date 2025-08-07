@@ -20,9 +20,9 @@ const SolutionSwitcherContainer = () => {
 
   return (
     <NxTooltip title="Sonatype Solutions">
-      <span id="iq-solution-switcher">
-        <SolutionSwitcher size="small" licensedSolutions={licensedSolutions} loading={loading} error={loadError} />
-      </span>
+      <div id="iq-solution-switcher">
+        <SolutionSwitcher licensedSolutions={licensedSolutions} loading={loading} error={loadError} />
+      </div>
     </NxTooltip>
   );
 };

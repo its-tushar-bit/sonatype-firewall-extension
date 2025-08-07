@@ -572,41 +572,22 @@ export function mockInterceptionObserver() {
 body
 └── div.nx-page (pageRoot)
     └── div#iq-content (contentRoot)
-        └── div#iq-footer-container (footerRoot)
-            └── main.nx-page-main (main)
+        └── div#iq-sidebar-container (sidebarContainerRoot)
  */
 export const setupPortalContainer = () => {
-  const main = global.document.createElement('main');
-  main.setAttribute('class', 'nx-page-main');
-
   const pageRoot = global.document.createElement('div');
   pageRoot.setAttribute('class', 'nx-page');
 
   const contentRoot = global.document.createElement('div');
   contentRoot.setAttribute('id', 'iq-content');
 
-  const footerRoot = global.document.createElement('div');
-  footerRoot.setAttribute('id', 'iq-footer-container');
+  const sidebarContainerRoot = global.document.createElement('div');
+  sidebarContainerRoot.setAttribute('id', 'iq-sidebar-container');
 
   const body = global.document.querySelector('body');
   body.appendChild(pageRoot);
   pageRoot.appendChild(contentRoot);
-  contentRoot.appendChild(footerRoot);
-  footerRoot.appendChild(main);
-};
-
-export const removePortalContainer = () => {
-  const main = global.document.querySelector('.nx-page-main');
-  main?.remove();
-
-  const pageRoot = global.document.querySelector('.nx-page');
-  pageRoot?.remove();
-
-  const contentRoot = global.document.querySelector('#iq-content');
-  contentRoot?.remove();
-
-  const footerRoot = global.document.querySelector('#iq-footer-container');
-  footerRoot?.remove();
+  contentRoot.appendChild(sidebarContainerRoot);
 };
 
 export const getSpecUtil = () => window.SpecUtil;

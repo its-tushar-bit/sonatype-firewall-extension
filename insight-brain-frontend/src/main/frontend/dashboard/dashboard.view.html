@@ -1,3 +1,3 @@
 <main id="dashboard-container" ng-if="!$state.is('dashboard.component')" class="nx-page-main" ui-view></main>
-<main ng-if="$state.is('dashboard.component')" class="nx-page-main component-container" ui-view></main>
+<div ng-if="$state.is('dashboard.component')" ui-view></div>
 <dashboard-filter></dashboard-filter>

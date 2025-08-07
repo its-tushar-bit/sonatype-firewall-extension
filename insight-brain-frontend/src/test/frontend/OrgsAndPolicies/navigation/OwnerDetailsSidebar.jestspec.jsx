@@ -6,7 +6,7 @@
 import React from 'react';
 import userEvent from '@testing-library/user-event';
 import OwnerDetailSidebar from 'MainRoot/OrgsAndPolicies/navigation/OwnerDetailSidebar';
-import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { fireEvent, render, screen, setupPortalContainer } from 'TestRoot/SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getOwnerDetailsUrl, getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import * as orgsAndPoliciesSelectors from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
@@ -195,6 +195,7 @@ describe('OwnerDetailSidebar', () => {
   let renderComponent, mock;
 
   beforeAll(() => {
+    setupPortalContainer();
     mock = axiosMockAdapter();
   });
 

@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
+import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
@@ -219,7 +220,7 @@ public class LoginTest
     refreshOrOpen(ReportListPage.url());
     loginAsAdmin();
     logout();
-    SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
+    SidebarNavigation.sidebarLinks().shouldBe(empty);
     loginModal.shouldBe(visible);
   }
 
@@ -235,7 +236,7 @@ public class LoginTest
     editUserForm.firstNameInput().val("a");
 
     logout();
-    SidebarNavigation.mainHeaderButtons().shouldBe(hidden);
+    SidebarNavigation.sidebarLinks().shouldBe(empty);
     loginModal.shouldBe(visible);
   }
 

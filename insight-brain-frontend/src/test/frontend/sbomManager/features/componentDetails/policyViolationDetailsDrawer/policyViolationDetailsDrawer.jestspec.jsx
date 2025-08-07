@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { removePortalContainer, render, screen, setupPortalContainer, waitFor } from 'TestRoot/SpecUtil';
+import { render, screen, setupPortalContainer, waitFor } from 'TestRoot/SpecUtil';
 
 import PolicyViolationDetailsDrawer from 'MainRoot/sbomManager/features/componentDetails/policyViolationDetailsDrawer/PolicyViolationDetailsDrawer';
 
@@ -34,7 +34,6 @@ describe('PolicyViolationDetailsDrawer', () => {
   });
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     initialState = Object.freeze({

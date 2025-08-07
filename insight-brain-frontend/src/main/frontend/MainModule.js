@@ -34,6 +34,7 @@ import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
 import displayThemeModule from './configuration/displayTheme/module';
 import modalContainerModule from './modalContainer/module';
+import footerModule from './react/Footer/module';
 import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
@@ -85,6 +86,7 @@ export const InitModule = angular
       routeProductLicenseValidator.name,
       displayThemeModule.name,
       modalContainerModule.name,
+      footerModule.name,
     ],
     [
       '$stateProvider',

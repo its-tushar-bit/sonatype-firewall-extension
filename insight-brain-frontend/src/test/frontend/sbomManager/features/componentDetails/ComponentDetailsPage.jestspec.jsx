@@ -7,14 +7,7 @@ import React from 'react';
 import { screen, fireEvent, queryByText } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {
-  axiosMockAdapter,
-  removePortalContainer,
-  render,
-  setupPortalContainer,
-  waitFor,
-  within,
-} from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, render, setupPortalContainer, waitFor, within } from 'TestRoot/SpecUtil';
 import {
   getApplicationSummaryUrl,
   getSbomComponentDetailsUrl,
@@ -510,7 +503,6 @@ describe('ComponentDetailsPage', () => {
   };
 
   beforeAll(() => setupPortalContainer());
-  afterAll(() => removePortalContainer());
 
   beforeEach(() => {
     const preloadedState = {

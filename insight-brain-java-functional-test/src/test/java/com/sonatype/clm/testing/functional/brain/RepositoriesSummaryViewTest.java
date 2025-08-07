@@ -18,6 +18,12 @@ import java.util.List;
 import java.util.Objects;
 import javax.imageio.ImageIO;
 
+import com.codeborne.selenide.CheckResult;
+import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Driver;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.WebDriverRunner;
+import com.codeborne.selenide.WebElementCondition;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -71,12 +77,6 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.codeborne.selenide.CheckResult;
-import com.codeborne.selenide.Condition;
-import com.codeborne.selenide.Driver;
-import com.codeborne.selenide.SelenideElement;
-import com.codeborne.selenide.WebDriverRunner;
-import com.codeborne.selenide.WebElementCondition;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -1185,7 +1185,7 @@ public class RepositoriesSummaryViewTest
     inheritedPolicies.add(tempEntity.newPolicy(parentOwner.getId(), "Policy 2 " + parentOwner.getName(), 5,
         Action.ID_WARN, Stage.ID_BUILD, null));
 
-    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1000));
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1200));
 
     refreshOrOpen(RepositoriesSummaryPage.url());
 
@@ -1241,9 +1241,11 @@ public class RepositoriesSummaryViewTest
 
   @Test
   public void testNavigationPills() {
-    RepositoriesSummaryPage.repositoriesPillConfigurationButton().shouldBe(visible).click();
+    WebDriverRunner.getWebDriver().manage().window().setSize(new Dimension(1800, 1200));
+
     RepositoriesSummaryTile repositoriesSummaryTile = RepositoriesSummaryPage.summaryTile();
     repositoriesSummaryTile.name().shouldBe(visible).shouldHave(text("Repository Managers"));
+    RepositoriesSummaryPage.repositoriesPillConfigurationButton().shouldBe(visible).click();
     RepositoryConfigurationTile configurationTile = RepositoriesSummaryPage.configTile();
     configurationTile.emptyDescriptor().shouldBe(visible).shouldHave(EMPTY_LIST_TEXT);
 

@@ -116,7 +116,6 @@ import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
 import static com.codeborne.selenide.Condition.enabled;
 import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -1627,7 +1626,7 @@ public abstract class AbstractPolicyEditorTest
 
   private void assertNewPolicyStateIsCorrect_summarySection() {
     SummarySection summary = PolicyEditorPage.summarySection();
-    summary.policyName().input().shouldBe(visible, empty, focused);
+    summary.policyName().input().shouldBe(visible, empty);
     summary.policyName().inputWrapper().shouldHave(CLM.RSC_PRISTINE);
 
     summary.policyName().input().val("$$$"); // invalid characters

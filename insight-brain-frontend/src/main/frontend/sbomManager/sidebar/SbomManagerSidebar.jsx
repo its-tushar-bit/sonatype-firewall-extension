@@ -5,19 +5,19 @@
  */
 
 import React from 'react';
+import { NxGlobalSidebar2, useToggle, NxGlobalSidebar2NavigationLink } from '@sonatype/react-shared-components';
 import {
-  NxGlobalSidebar,
-  NxGlobalSidebarNavigation,
-  useToggle,
-  NxGlobalSidebarNavigationLink,
-} from '@sonatype/react-shared-components';
-import { faHome, faSitemap, faSearch, faGrid2Plus, faGavel } from '@fortawesome/pro-solid-svg-icons';
-import { faArrowToLeft, faBars, faStars } from '@fortawesome/pro-regular-svg-icons';
+  faHome,
+  faSitemap,
+  faSearch,
+  faGrid2Plus,
+  faGavel,
+  faArrowToLeft,
+  faArrowToRight,
+  faStars,
+} from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
-import IqSidebarNavFooter from 'MainRoot/react/iqSidebarNav/IqSidebarNavFooter';
-
-const logoImg = require('../assets/sbom-manager.svg');
 
 export default function SbomManagerSidebar(props) {
   const { isLoggedIn, isSbomManagerEnabled, isApiPageEnabled, isAlpForSbomManagerEnabled, isLegalEnabled } = props;
@@ -41,39 +41,37 @@ export default function SbomManagerSidebar(props) {
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
   return (
-    <NxGlobalSidebar
+    <NxGlobalSidebar2
       isOpen={sidebarOpen}
       toggleOpenIcon={faArrowToLeft}
-      toggleCloseIcon={faBars}
+      toggleCloseIcon={faArrowToRight}
       onToggleClick={onToggleCollapse}
-      logoImg={logoImg}
-      logoAltText="sonatype sbom manager"
-      logoLink={dashboardHref}
+      className="iq-sbom-manager-sidebar"
     >
       {isLoggedIn && isSbomManagerEnabled && (
-        <NxGlobalSidebarNavigation>
-          <NxGlobalSidebarNavigationLink
+        <>
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(dashboardState)}
             id="sbom-manager-dashboard-navigation-button"
             icon={faHome}
             text="Dashboard"
             href={dashboardHref}
           />
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(applicationsState)}
             id="sbom-manager-applications-navigation-button"
             icon={faGrid2Plus}
             text="Applications"
             href={applicationsHref}
           />
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(sbomManagerOrgsState)}
             id="sbom-manager-organizations-navigation-button"
             icon={faSitemap}
             text="Organizations"
             href={sbomManagerOrgsHref}
           />
-          <NxGlobalSidebarNavigationLink
+          <NxGlobalSidebar2NavigationLink
             isSelected={isSelected(advancedSearchState)}
             id="sbom-manager-search-navigation-button"
             icon={faSearch}
@@ -81,7 +79,7 @@ export default function SbomManagerSidebar(props) {
             href={advancedSearchHref}
           />
           {isLegalEnabled && isAlpForSbomManagerEnabled && (
-            <NxGlobalSidebarNavigationLink
+            <NxGlobalSidebar2NavigationLink
               isSelected={isSelected('sbomManager.legal')}
               id="sbom-manager-legal-button"
               icon={faGavel}
@@ -90,7 +88,7 @@ export default function SbomManagerSidebar(props) {
             />
           )}
           {isApiPageEnabled && (
-            <NxGlobalSidebarNavigationLink
+            <NxGlobalSidebar2NavigationLink
               isSelected={isSelected(apiState)}
               id="sbom-manager-api-navigation-button"
               className="iq-api-nav-link"
@@ -109,10 +107,9 @@ export default function SbomManagerSidebar(props) {
               href={apiHref}
             />
           )}
-        </NxGlobalSidebarNavigation>
+        </>
       )}
-      <IqSidebarNavFooter />
-    </NxGlobalSidebar>
+    </NxGlobalSidebar2>
   );
 }
 

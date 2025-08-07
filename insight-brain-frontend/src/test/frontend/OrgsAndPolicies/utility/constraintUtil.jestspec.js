@@ -91,6 +91,100 @@ describe('constraintUtil', () => {
 
       expect(actual).toBe('Label is not Label Name');
     });
+
+    it('conditionValue is equal to Sonatype Deep Dive', () => {
+      const mockCondition = {
+        conditionIndex: 0,
+        conditionTypeId: 'SecurityVulnerabilityResearchType',
+        operator: 'is',
+        value: {
+          value: 'DEEP_DIVE',
+          trimmedValue: 'DEEP_DIVE',
+        },
+      };
+      const mockConditionTypesMap = {
+        SecurityVulnerabilityResearchType: {
+          autoUnquarantineSupported: false,
+          enabled: true,
+          id: 'SecurityVulnerabilityResearch',
+          name: 'Security Research Type',
+          supportedOperators: ['is', 'is not'],
+          threatCategory: 'QUALITY',
+          valueHint: 'Select research type',
+          valueType: {
+            id: 'SecurityVulnerabilityResearchValueType',
+            dataType: 'SecurityVulnerabilityResearch',
+            allowMultiple: false,
+            availableValues: [
+              {
+                id: 'DEEP_DIVE',
+                name: 'Sonatype Deep Dive',
+              },
+              {
+                id: 'FAST_TRACK',
+                name: 'Sonatype Fast Track',
+              },
+              {
+                id: 'PUBLIC_RESEARCH',
+                name: 'Public Research',
+              },
+              {
+                id: 'VENDOR_RESEARCH',
+                name: 'Vendor Research',
+              },
+            ],
+          },
+          valueTypeId: 'DEEP_DIVE',
+        },
+      };
+
+      const actual = conditionString(mockCondition, mockConditionTypesMap);
+
+      expect(actual).toBe('Security Research Type is Sonatype Deep Dive');
+    });
+
+    it('conditionValue is equal to Automated Detection', () => {
+      const mockCondition = {
+        conditionIndex: 0,
+        conditionTypeId: 'SecurityVulnerabilityDetectionType',
+        operator: 'is',
+        value: {
+          value: 'AUTOMATED_DETECTION',
+          trimmedValue: 'AUTOMATED_DETECTION',
+        },
+      };
+      const mockConditionTypesMap = {
+        SecurityVulnerabilityDetectionType: {
+          autoUnquarantineSupported: false,
+          enabled: true,
+          id: 'SecurityVulnerabilityDetection',
+          name: 'Security Detection Type',
+          supportedOperators: ['is', 'is not'],
+          threatCategory: 'SECURITY',
+          valueHint: 'Select detection type',
+          valueType: {
+            id: 'SecurityVulnerabilityDetectionValueType',
+            dataType: 'SecurityVulnerabilityDetection',
+            allowMultiple: false,
+            availableValues: [
+              {
+                id: 'AUTOMATED_DETECTION',
+                name: 'Automated Detection',
+              },
+              {
+                id: 'MANUAL_REVIEW',
+                name: 'Manual Review',
+              },
+            ],
+          },
+          valueTypeId: 'AUTOMATED_DETECTION',
+        },
+      };
+
+      const actual = conditionString(mockCondition, mockConditionTypesMap);
+
+      expect(actual).toBe('Security Detection Type is Automated Detection');
+    });
   });
 
   describe('validatePatternMatchAndEmptyValue', () => {

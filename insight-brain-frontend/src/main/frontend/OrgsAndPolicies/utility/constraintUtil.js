@@ -126,6 +126,8 @@ const getConditionValue = (condition, conditionTypesMap) => {
     case 'IntegrityRating':
     case 'DependencyType':
     case 'SecurityVulnerabilityCategory':
+    case 'SecurityVulnerabilityDetectionType':
+    case 'SecurityVulnerabilityResearchType':
     case 'SecurityVulnerabilitySource':
     case 'IacControlConditionType':
     case 'VulnerabilityGroup':

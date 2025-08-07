@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.sbom.utils.SbomCommonUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanResultsProcessor;
@@ -49,19 +50,23 @@ public class ScanUploadService
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public ScanUploadService(
-      ThirdPartyScanResultsProcessor scanResultsProcessor,
-      ScanUploader uploader,
+      final ThirdPartyScanResultsProcessor scanResultsProcessor,
+      final ScanUploader uploader,
       final ThirdPartyScanDAO thirdPartyScanDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      ScanPersistenceService scanPersistenceService)
+      final ScanPersistenceService scanPersistenceService,
+      final TelemetrySender telemetrySender)
   {
     this.scanResultsProcessor = scanResultsProcessor;
     this.uploader = uploader;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.scanPersistenceService = scanPersistenceService;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   public ScanReceipt upload(
@@ -114,6 +119,7 @@ public class ScanUploadService
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
         saveFilteredScanFileIfNeeded(thirdPartyScanContext, scanEntity);
+        telemetrySender.send(thirdPartyScanTelemetryData);
       }
     }
     return scanReceipt;

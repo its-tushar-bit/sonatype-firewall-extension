@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
@@ -74,6 +75,8 @@ public class ScanUploadServiceTest
 
   private TelemetryData thirdPartyScanTelemetryData;
 
+  private TelemetrySender telemetrySender;
+
   @Before
   public void before() {
     app = tempEntity.newApplicationWithParent("ScanUploadServiceTest-PublicId", "ScanUploadServiceTest-Id");
@@ -83,8 +86,9 @@ public class ScanUploadServiceTest
     thirdPartyScanResultsProcessorMock = mock(ThirdPartyScanResultsProcessor.class);
     work = lookup(InsightWork.class);
     scanPersistenceService = lookup(ScanPersistenceService.class);
+    telemetrySender = mock(TelemetrySender.class);
     service = new ScanUploadService(thirdPartyScanResultsProcessorMock, scanUploader, thirdPartyScanDAO,
-        thirdPartySbomMetadataDAO, scanPersistenceService);
+        thirdPartySbomMetadataDAO, scanPersistenceService, telemetrySender);
     thirdPartyScanTelemetryData = buildThirdPartyScanTelemetryData();
   }
 
@@ -115,6 +119,7 @@ public class ScanUploadServiceTest
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.SBOM.name());
+    verify(telemetrySender, times(1)).send(thirdPartyScanTelemetryData);
   }
 
   @Test
@@ -151,6 +156,7 @@ public class ScanUploadServiceTest
     assertThat(scanEntityCaptor.getValue().getAppId()).isEqualTo(app.getId());
     assertThat(scanEntityCaptor.getValue().getName()).isNotEqualTo(scanEntity.getName());
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
+    verify(telemetrySender, never()).send(thirdPartyScanTelemetryData);
   }
 
   @Test
@@ -229,6 +235,7 @@ public class ScanUploadServiceTest
     verify(thirdPartyScanDAO, never()).updateScanIdForScanRequest(any(), any());
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.SBOM.name());
+    verify(telemetrySender, never()).send(thirdPartyScanTelemetryData);
   }
 
   @Test
@@ -260,6 +267,7 @@ public class ScanUploadServiceTest
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.BINARY.name());
+    verify(telemetrySender, times(1)).send(thirdPartyScanTelemetryData);
   }
 
   @Test
@@ -291,6 +299,7 @@ public class ScanUploadServiceTest
     assertThat(uploadReceipt).isEqualTo(mockReceipt);
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.BINARY.name());
+    verify(telemetrySender, never()).send(thirdPartyScanTelemetryData);
   }
 
   @Test

@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -52,7 +51,7 @@ public class PolicyEvaluationDAO
         " ORDER BY entity.time DESC";
     return createQuery(sQuery, appId, scanId).forceSingleResult().get(tx);
   }
-  
+
   public PolicyEvaluation getLastByApplicationIdAndScanId(String appId, String scanId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getLastByApplicationIdAndScanId(tx, appId, scanId);
@@ -411,7 +410,9 @@ public class PolicyEvaluationDAO
         " AND entity.isForObsoleteScan = false" + //
         " ORDER BY entity.time DESC";
     Query<PolicyEvaluation> query =
-        stage != null ? new Query<>(sQuery, applicationId, stage) : new Query<>(sQuery, applicationId);
+        stage != null
+            ? new Query<PolicyEvaluation>(sQuery, applicationId, stage)
+            : new Query<PolicyEvaluation>(sQuery, applicationId);
     query.setMaxResults(maxResultsToReturn);
     return query.getList();
   }

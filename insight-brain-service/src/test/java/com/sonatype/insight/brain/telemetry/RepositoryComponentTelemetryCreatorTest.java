@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -48,6 +47,7 @@ import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryC
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 public class RepositoryComponentTelemetryCreatorTest
     extends AbstractComponentTest
@@ -97,6 +97,33 @@ public class RepositoryComponentTelemetryCreatorTest
 
     assertTelemetry(repositoryComponent, ImmutableList.of(createViolation(), createViolation()),
         "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE, (List<PolicyNotification>) null);
+  }
+
+  @Test
+  public void testSendRepositoryComponentTelemetry_WithTelemetryData() {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT);
+
+    telemetryCreator.sendRepositoryComponentTelemetry(telemetryData);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    assertThat(telemetryCaptor.getValue()).isSameAs(telemetryData);
+  }
+
+  @Test
+  public void testSendRepositoryComponentTelemetry_WithNullTelemetryData() {
+    telemetryCreator.sendRepositoryComponentTelemetry(null);
+
+    verifyNoInteractions(telemetrySenderMock);
+  }
+
+  @Test
+  public void testSendRepositoryComponentTelemetry_WithWrongPurpose() {
+    TelemetryData wrongPurposeTelemetry = new TelemetryData(TelemetryPurpose.ADMIN_PASSWORD_CHANGE);
+
+    telemetryCreator.sendRepositoryComponentTelemetry(wrongPurposeTelemetry);
+
+    verifyNoInteractions(telemetrySenderMock);
   }
 
   @Test

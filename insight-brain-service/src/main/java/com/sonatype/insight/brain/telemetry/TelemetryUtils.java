@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import javax.inject.Inject;
@@ -14,10 +15,12 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.sbom.SbomPostImportMetricsTelemetry;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -25,6 +28,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.APPLICATION_EVALUATION_COMPONENT_COUNTS;
 import static com.sonatype.insight.telemetry.model.TelemetryPurpose.COMPONENT_ANALYSIS_COMPONENT_COUNTS;
 
@@ -237,6 +242,28 @@ public final class TelemetryUtils
     continuousMonitoringMetrics.put("totalExecutionTimeInSeconds", totalExecutionTimeInSeconds);
     continuousMonitoringMetrics.put("stageIds", stageIds);
     telemetryData.put("continuous_monitoring_metrics", continuousMonitoringMetrics);
+    return telemetryData;
+  }
+
+  public TelemetryData buildRepositoryComponentTelemetryData(
+      String repositoryManagerId,
+      String repositoryId,
+      String componentFormat,
+      String componentHash,
+      RepositoryComponentTelemetryEventType eventType,
+      Long quarantineTime,
+      Long releaseQuarantineTime,
+      String releaseQuarantineType,
+      List<PolicyViolation> policyViolations)
+  {
+    RepositoryComponentTelemetry repositoryComponentTelemetry =
+        new RepositoryComponentTelemetry(repositoryManagerId, repositoryId, componentFormat, componentHash, eventType,
+            quarantineTime, releaseQuarantineTime, releaseQuarantineType);
+    List<PolicyViolationTelemetry> policyViolationsTelemetry =
+        policyViolations.stream().map(PolicyViolationTelemetry::new).toList();
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT);
+    telemetryData.put(REPOSITORY_COMPONENT_TELEMETRY, repositoryComponentTelemetry);
+    telemetryData.put(POLICY_VIOLATION_TELEMETRY, policyViolationsTelemetry);
     return telemetryData;
   }
 }

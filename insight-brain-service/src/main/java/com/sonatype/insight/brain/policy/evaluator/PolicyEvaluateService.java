@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import javax.inject.Inject;
@@ -15,6 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.policy.Action;
+import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationReceipt;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
@@ -26,6 +29,9 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
@@ -36,8 +42,10 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.StageTypeService;
 import com.sonatype.insight.brain.policy.componentanalysis.ComponentAnalysisService;
@@ -54,6 +62,8 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
@@ -111,7 +121,15 @@ public class PolicyEvaluateService
 
   public boolean disablePollingIntervalForTesting = false;
 
-  public OrganizationDAO organizationDAO;
+  public final OrganizationDAO organizationDAO;
+
+  public final RepositoryDAO repositoryDAO;
+
+  public final PolicyEvaluationDAO policyEvaluationDAO;
+
+  public final PolicyViolationDAO policyViolationDAO;
+
+  public RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
   @Inject
   public PolicyEvaluateService(
@@ -130,7 +148,11 @@ public class PolicyEvaluateService
       ProductLicense productLicense,
       FeaturesService featuresService,
       ScanPersistenceService scanPersistenceService,
-      OrganizationDAO organizationDAO)
+      OrganizationDAO organizationDAO,
+      RepositoryDAO repositoryDAO,
+      PolicyEvaluationDAO policyEvaluationDAO,
+      PolicyViolationDAO policyViolationDAO,
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -149,6 +171,10 @@ public class PolicyEvaluateService
     this.sbomMetadataUtils = sbomMetadataUtils;
     this.organizationDAO = organizationDAO;
     shutdownHandler.add(executor, ShutdownPriority.POLICY_EVALUATIONS);
+    this.repositoryDAO = repositoryDAO;
+    this.policyEvaluationDAO = policyEvaluationDAO;
+    this.policyViolationDAO = policyViolationDAO;
+    this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
   }
 
   private ExecutorService buildExecutorService() {
@@ -615,6 +641,8 @@ public class PolicyEvaluateService
 
     private final VulnerabilitySignatureAnalysisDTO analysisDTO;
 
+    private static final String DOCKER_FORMAT = "docker";
+
     CompleteEvaluationTask(
         final Application app,
         final ClientScanType clientScanType,
@@ -680,9 +708,22 @@ public class PolicyEvaluateService
 
         policyEvaluationPollingResult = failEvaluation(e, policyEvaluationPollingResult);
       }
+      finally {
+        updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
+        policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
 
-      updatePolicyEvaluationPollingResult(policyEvaluationPollingResult);
-      policyEvaluateServiceMetrics.emitEndPolicyEvaluation(sample);
+        // Send REPOSITORY_COMPONENT telemetry for container image
+        Repository containerRepository = repositoryDAO.getByContainerImageId(app.getId());
+        boolean isContainerImageApp =
+            stage.getStageTypeId().equals(Stage.ID_PROXY) &&
+                scanTriggerType.equals(ScanTriggerType.CLI) &&
+                containerRepository != null;
+        boolean isPolicyEvaluationCompleted =
+            policyEvaluationPollingResult.getStatus().equals(PolicyEvaluationStatus.COMPLETED);
+        if (isContainerImageApp && isPolicyEvaluationCompleted) {
+          sendRepositoryComponentTelemetryForContainer(policyEvaluationPollingResult, containerRepository);
+        }
+      }
     }
 
     /**
@@ -792,6 +833,68 @@ public class PolicyEvaluateService
         return policyEvaluationPollingResult.getScanReceipt().getScanId();
       }
       return null;
+    }
+
+    @VisibleForTesting
+    void sendRepositoryComponentTelemetryForContainer(
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult,
+        final Repository repository)
+    {
+      TelemetryData repositoryComponentTelemetryDataForContainer =
+          buildRepositoryComponentTelemetryDataForContainer(policyEvaluationPollingResult, repository);
+      repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(
+          repositoryComponentTelemetryDataForContainer);
+    }
+
+    @VisibleForTesting
+    TelemetryData buildRepositoryComponentTelemetryDataForContainer(
+        final PolicyEvaluationPollingResult policyEvaluationPollingResult,
+        final Repository repository)
+    {
+      boolean shouldQuarantineContainer = shouldQuarantineContainer(policyEvaluationPollingResult.getResult());
+      RepositoryComponentTelemetryEventType eventType = shouldQuarantineContainer
+          ? RepositoryComponentTelemetryEventType.QUARANTINE
+          : RepositoryComponentTelemetryEventType.AUDIT;
+      Long quarantineTime = shouldQuarantineContainer
+          ? getLastPolicyEvaluationForContainer(policyEvaluationPollingResult).getTime().getTime()
+          : null;
+      List<PolicyViolation> policyViolations = getPolicyViolationsForContainer();
+
+      return telemetryUtils.buildRepositoryComponentTelemetryData(repository.getRepositoryManagerId(),
+          repository.getId(), DOCKER_FORMAT, app.getId(), eventType, quarantineTime, null, null, policyViolations);
+    }
+
+    @VisibleForTesting
+    boolean shouldQuarantineContainer(PolicyEvaluationResult policyEvaluationResult) {
+      if (policyEvaluationResult == null) {
+        return false;
+      }
+      return hasPolicyAlertsWithFailingActions(policyEvaluationResult.getAlerts());
+    }
+
+    @VisibleForTesting
+    boolean hasPolicyAlertsWithFailingActions(List<PolicyAlert> policyAlerts) {
+      if (policyAlerts == null || policyAlerts.isEmpty()) {
+        return false;
+      }
+      return policyAlerts
+          .stream()
+          .anyMatch(policyAlert -> policyAlert.getActions()
+              .stream()
+              .anyMatch(action -> Action.ID_FAIL.equals(action.getActionTypeId())));
+    }
+
+    @VisibleForTesting
+    PolicyEvaluation getLastPolicyEvaluationForContainer(PolicyEvaluationPollingResult policyEvaluationPollingResult) {
+      return policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), getScanId(policyEvaluationPollingResult));
+    }
+
+    @VisibleForTesting
+    List<PolicyViolation> getPolicyViolationsForContainer() {
+      List<PolicyViolation> policyViolations =
+          policyViolationDAO.getActiveByApplicationIdAndStageId(app.getId(), stage.getStageTypeId());
+      policyViolationDAO.loadConstraintFacts(policyViolations);
+      return policyViolations;
     }
   }
 

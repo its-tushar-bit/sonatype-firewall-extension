@@ -80,6 +80,26 @@ public class RepositoryComponentTelemetry
     }
   }
 
+  public RepositoryComponentTelemetry(
+      final String repositoryManagerId,
+      final String repositoryId,
+      final String componentFormat,
+      final String componentHash,
+      final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
+      final Long quarantineTime,
+      final Long releaseQuarantineTime,
+      final String releaseQuarantineType)
+  {
+    this.repositoryManagerId = repositoryManagerId;
+    this.repositoryId = repositoryId;
+    this.componentFormat = componentFormat;
+    this.componentHash =  HdsClientAnalytics.obfuscate(componentHash);
+    this.eventType = repositoryComponentTelemetryEventType.getDescription();
+    this.quarantineTime = quarantineTime;
+    this.releaseQuarantineTime = releaseQuarantineTime;
+    this.releaseQuarantineType = releaseQuarantineType;
+  }
+
   public String getRepositoryManagerId() {
     return repositoryManagerId;
   }

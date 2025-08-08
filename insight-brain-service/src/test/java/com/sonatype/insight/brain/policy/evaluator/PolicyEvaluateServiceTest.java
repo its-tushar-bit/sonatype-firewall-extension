@@ -33,6 +33,7 @@ import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
@@ -45,6 +46,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
@@ -72,6 +74,7 @@ import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.organization.ApplicationContactLoader;
 import com.sonatype.insight.brain.organization.ContactDTO;
@@ -109,6 +112,7 @@ import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.internal.stubbing.answers.CallsRealMethods;
 import org.mockito.invocation.InvocationOnMock;
 
@@ -122,6 +126,8 @@ import static com.sonatype.clm.dto.model.policy.Stage.ID_PROXY;
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.hds.HdsClient.CLM_CLIENT_USER_AGENT_HEADER;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -164,6 +170,9 @@ public class PolicyEvaluateServiceTest
 
   @Inject
   private OrganizationDAO organizationDAO;
+
+  @Inject
+  private RepositoryDAO repositoryDAO;
 
   @Inject
   private PolicyEvaluationHelper policyEvaluationHelper;
@@ -222,6 +231,8 @@ public class PolicyEvaluateServiceTest
     mailConfigurationDAO.set(mailConfiguration);
 
     mockReportDownloader.setInsightWork(insightWork);
+
+    Mockito.reset(mockScanHandler);
   }
 
   @Test
@@ -1357,6 +1368,62 @@ public class PolicyEvaluateServiceTest
         .withMessage("Component analysis has not completed for public application id: " + app.getPublicId()
             + " and status ID: componentAnalysisStatusId "
             + "The current status is null and the current sub status is COMPONENT_ANALYSIS_PENDING");
+  }
+
+  @Test
+  public void test_evaluateWithPolling_SendRepositoryComponentTelemetryDataForContainer() throws Exception {
+    // Arrange
+    productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String scanId = simulateReportIsAvailable();
+    Stage stage = new Stage(Stage.ID_PROXY);
+    Repository repository = tempEntity.newRepository();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    repository.setRepositoryType(RepositoryType.proxy);
+    repository.setFormat("docker");
+    repositoryDAO.update(repository);
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication("app", organization.getId());
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+    doReturn(scanReceipt)
+        .when(mockScanHandler)
+        .handle(any(), any(), any(), any(), any(), any(), any(), any());
+    doNothing()
+        .when(mockTelemetrySender)
+        .send(telemetryDataArgumentCaptor.capture());
+
+    // Act
+    PolicyEvaluationReceipt receipt =
+        policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
+            ClientScanType.SONATYPE_THIRD_PARTY, null, stage);
+    PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    List<TelemetryData> telemetryDataValues = telemetryDataArgumentCaptor.getAllValues();
+    TelemetryData telemetryDataForContainer = telemetryDataValues.stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT))
+        .findFirst()
+        .orElse(null);
+
+    // Assert
+    verify(mockTelemetrySender, atLeastOnce()).send(any(TelemetryData.class));
+
+    assertThat(pollingResult).isNotNull();
+    assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+
+    assertThat(telemetryDataValues).isNotEmpty();
+    assertThat(telemetryDataForContainer).isNotNull();
+    assertThat(telemetryDataForContainer.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
+    assertThat(telemetryDataForContainer.getAttributes())
+        .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
+        .containsKey(POLICY_VIOLATION_TELEMETRY);
   }
 
   private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {

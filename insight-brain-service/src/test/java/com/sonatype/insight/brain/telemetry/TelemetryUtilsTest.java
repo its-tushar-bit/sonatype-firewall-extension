@@ -5,26 +5,36 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
+import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.assertj.core.api.Assertions.tuple;
@@ -362,5 +372,73 @@ public class TelemetryUtilsTest
     assertThat(telemetryData.getAttributes()).contains(
         entry("continuous_monitoring_metrics", expectedContinuousMonitoringMetricsAttributes)
     );
+  }
+
+  @Test
+  public void test_buildRepositoryComponentTelemetryData() {
+    // Arrange
+    String repositoryManagerId = "docker-p1";
+    String repositoryId = "docker-p1";
+    String componentFormat = "container";
+    String componentHash = "foo";
+    RepositoryComponentTelemetryEventType eventType = RepositoryComponentTelemetryEventType.QUARANTINE;
+    Long quarantineTime = 1234567890L;
+    Long releaseQuarantineTime = 1234567900L;
+    String releaseQuarantineType = ReleaseQuarantineType.MANUAL.getDescription();
+
+    PolicyViolation violation1 = new PolicyViolation();
+    violation1.setId("violation-1");
+    violation1.setConstraintFacts(List.of(new ConstraintFact()));
+    violation1.setThreatLevel(8);
+    violation1.setThreatCategory(PolicyThreatCategory.SECURITY);
+
+    PolicyViolation violation2 = new PolicyViolation();
+    violation2.setId("violation-2");
+    violation2.setConstraintFacts(List.of(new ConstraintFact()));
+    violation2.setThreatLevel(5);
+    violation2.setThreatCategory(PolicyThreatCategory.LICENSE);
+
+    List<PolicyViolation> policyViolations = Arrays.asList(violation1, violation2);
+
+    // Act
+    TelemetryData telemetryData = telemetryUtils.buildRepositoryComponentTelemetryData(
+        repositoryManagerId,
+        repositoryId,
+        componentFormat,
+        componentHash,
+        eventType,
+        quarantineTime,
+        releaseQuarantineTime,
+        releaseQuarantineType,
+        policyViolations
+    );
+
+    // Assert
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
+
+    RepositoryComponentTelemetry componentTelemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+    assertThat(componentTelemetry).isNotNull();
+    assertThat(componentTelemetry.getRepositoryManagerId()).isEqualTo(repositoryManagerId);
+    assertThat(componentTelemetry.getRepositoryId()).isEqualTo(repositoryId);
+    assertThat(componentTelemetry.getComponentFormat()).isEqualTo(componentFormat);
+    assertThat(componentTelemetry.getComponentHash()).isEqualTo(HdsClientAnalytics.obfuscate(componentHash));
+    assertThat(componentTelemetry.getEventType()).isEqualTo(eventType.getDescription());
+    assertThat(componentTelemetry.getQuarantineTime()).isEqualTo(quarantineTime);
+    assertThat(componentTelemetry.getReleaseQuarantineTime()).isEqualTo(releaseQuarantineTime);
+    assertThat(componentTelemetry.getReleaseQuarantineType()).isEqualTo(releaseQuarantineType);
+
+    @SuppressWarnings("unchecked")
+    List<PolicyViolationTelemetry> violationsTelemetry =
+        (List<PolicyViolationTelemetry>) telemetryData.getAttributes().get(POLICY_VIOLATION_TELEMETRY);
+    assertThat(violationsTelemetry).hasSize(2);
+
+    PolicyViolationTelemetry violationTelemetry1 = violationsTelemetry.get(0);
+    assertThat(violationTelemetry1.getThreatLevel()).isEqualTo(8);
+    assertThat(violationTelemetry1.getThreatCategory()).isEqualTo(PolicyThreatCategory.SECURITY.getName());
+
+    PolicyViolationTelemetry violationTelemetry2 = violationsTelemetry.get(1);
+    assertThat(violationTelemetry2.getThreatLevel()).isEqualTo(5);
+    assertThat(violationTelemetry2.getThreatCategory()).isEqualTo(PolicyThreatCategory.LICENSE.getName());
   }
 }

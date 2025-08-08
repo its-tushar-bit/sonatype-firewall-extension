@@ -37,10 +37,16 @@ public class ScanPersistenceServiceProviderTest
   private Provider<FileScanPersistenceService> fileScanPersistenceServiceProvider;
 
   @Mock
+  private Provider<HybridScanPersistenceService> hybridScanPersistenceServiceProvider;
+
+  @Mock
   private S3ScanPersistenceService s3ScanPersistenceService;
 
   @Mock
   private FileScanPersistenceService fileScanPersistenceService;
+
+  @Mock
+  private HybridScanPersistenceService hybridScanPersistenceService;
 
   private ScanPersistenceServiceProvider provider;
 
@@ -49,11 +55,13 @@ public class ScanPersistenceServiceProviderTest
     provider = new ScanPersistenceServiceProvider(
         insightConfig,
         s3ScanPersistenceServiceProvider,
-        fileScanPersistenceServiceProvider
+        fileScanPersistenceServiceProvider,
+        hybridScanPersistenceServiceProvider
     );
 
     when(s3ScanPersistenceServiceProvider.get()).thenReturn(s3ScanPersistenceService);
     when(fileScanPersistenceServiceProvider.get()).thenReturn(fileScanPersistenceService);
+    when(hybridScanPersistenceServiceProvider.get()).thenReturn(hybridScanPersistenceService);
   }
 
   @Test
@@ -87,6 +95,16 @@ public class ScanPersistenceServiceProviderTest
   }
 
   @Test
+  public void testGetProvider_hybridDataStoreType() {
+    when(insightConfig.getStorage()).thenReturn(storageConfig);
+    when(storageConfig.getType()).thenReturn(DataStoreType.HYBRID);
+
+    ScanPersistenceService result = provider.get();
+
+    assertThat(result).isEqualTo(hybridScanPersistenceService);
+  }
+
+  @Test
   public void testGetProvider_consistentResults() {
     when(insightConfig.getStorage()).thenReturn(storageConfig);
     when(storageConfig.getType()).thenReturn(DataStoreType.S3);
@@ -113,6 +131,11 @@ public class ScanPersistenceServiceProviderTest
     when(storageConfig.getType()).thenReturn(DataStoreType.S3);
     ScanPersistenceService s3Result = provider.get();
     assertThat(s3Result).isEqualTo(s3ScanPersistenceService);
+
+    // Third call with S3 type (simulating config change)
+    when(storageConfig.getType()).thenReturn(DataStoreType.HYBRID);
+    ScanPersistenceService hybridResult = provider.get();
+    assertThat(hybridResult).isEqualTo(hybridScanPersistenceService);
 
     // Results should be different
     assertThat(fileResult).isNotEqualTo(s3Result);

@@ -42,6 +42,7 @@ public class ApplicationReportPersistenceServiceProvider implements Provider<App
     return switch (insightConfig.getStorage().getType()) {
       case FILE -> fileApplicationReportPersistenceServiceProvider.get();
       case S3 -> s3ApplicationReportPersistenceServiceProvider.get();
+      case HYBRID -> fileApplicationReportPersistenceServiceProvider.get(); // TODO: to be done by CLM-35628
     };
   }
 }

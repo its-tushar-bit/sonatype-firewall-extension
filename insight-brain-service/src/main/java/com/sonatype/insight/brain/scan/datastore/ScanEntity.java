@@ -59,7 +59,7 @@ public interface ScanEntity
   /**
    * @return true if successfully deleted, false otherwise
    */
-  boolean delete();
+  boolean delete() throws IOException;
 
   /**
    * Get the application ID this scan belongs to.
@@ -67,4 +67,9 @@ public interface ScanEntity
    * @return application ID
    */
   String getAppId();
+
+  /**
+   * The primary {@link ScanPersistenceService} class that handles this.
+   */
+  Class<? extends ScanPersistenceService> getScanPersistenceServiceClass();
 }

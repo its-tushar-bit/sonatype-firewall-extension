@@ -43,6 +43,7 @@ public record FileScanEntity(Path path, String appId)
 
   @Override
   public OutputStream getOutputStream() throws IOException {
+    Files.createDirectories(path.getParent());
     return Files.newOutputStream(path);
   }
 
@@ -72,18 +73,18 @@ public record FileScanEntity(Path path, String appId)
   }
 
   @Override
-  public boolean delete() {
-    try {
-      return Files.deleteIfExists(path);
-    }
-    catch (IOException e) {
-      return false;
-    }
+  public boolean delete() throws IOException {
+    return Files.deleteIfExists(path);
   }
 
   @Override
   public String getAppId() {
     return appId;
+  }
+
+  @Override
+  public Class<? extends ScanPersistenceService> getScanPersistenceServiceClass() {
+    return FileScanPersistenceService.class;
   }
 
   @Override

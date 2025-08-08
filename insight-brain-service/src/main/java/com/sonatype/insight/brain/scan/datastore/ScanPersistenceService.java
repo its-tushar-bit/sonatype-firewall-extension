@@ -104,5 +104,10 @@ public abstract class ScanPersistenceService
    * @param appId the application ID
    * @param scanId the scan ID
    */
-  public abstract void deleteScan(String appId, String scanId);
+  public abstract void deleteScan(String appId, String scanId) throws IOException;
+
+  /**
+   * @return the {@link ScanEntity} class this handles.
+   */
+  public abstract Class<? extends ScanEntity> getScanEntityClass();
 }

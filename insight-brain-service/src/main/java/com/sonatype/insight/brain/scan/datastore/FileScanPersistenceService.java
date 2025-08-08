@@ -104,7 +104,12 @@ public class FileScanPersistenceService
   }
 
   @Override
-  public void deleteScan(final String appId, final String scanId) {
-    getFile(appId, scanFileName(scanId)).delete();
+  public void deleteScan(final String appId, final String scanId) throws IOException {
+    Files.deleteIfExists(getFile(appId, scanFileName(scanId)).toPath());
+  }
+
+  @Override
+  public Class<? extends ScanEntity> getScanEntityClass() {
+    return FileScanEntity.class;
   }
 }

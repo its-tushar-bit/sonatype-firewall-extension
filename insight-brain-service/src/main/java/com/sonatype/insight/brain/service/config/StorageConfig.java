@@ -7,6 +7,8 @@
 package com.sonatype.insight.brain.service.config;
 
 import java.net.URI;
+import java.util.LinkedHashSet;
+import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
@@ -17,6 +19,8 @@ public class StorageConfig
   private StorageConfig.DataStoreType type = DataStoreType.FILE;
 
   private S3DataStoreConfig s3Config;
+
+  private HybridDataStoreConfig hybridConfig;
 
   public DataStoreType getType() {
     return type;
@@ -34,20 +38,70 @@ public class StorageConfig
     this.s3Config = s3Config;
   }
 
+  public HybridDataStoreConfig getHybridConfig() {
+    return hybridConfig;
+  }
+
+  public void setHybridConfig(final HybridDataStoreConfig hybridConfig) {
+    this.hybridConfig = hybridConfig;
+  }
+
   public void validate() {
-    DataStoreType dataStoreType = getType();
-    S3DataStoreConfig s3Config = getS3Config();
-    if (dataStoreType == DataStoreType.S3) {
-      if (s3Config == null) {
-        throw new ValidationException("s3Config is required when the data store type is S3.");
+    validate(getType());
+  }
+
+  public void validate(final DataStoreType dataStoreType) {
+    switch (dataStoreType) {
+      case S3 -> {
+        S3DataStoreConfig s3Config = getS3Config();
+        if (s3Config == null) {
+          throw new ValidationException("s3Config is required when the data store type is S3.");
+        }
+        s3Config.validate();
       }
-      s3Config.validate();
+      case HYBRID -> {
+        HybridDataStoreConfig hybridDataStoreConfig = getHybridConfig();
+        if (hybridDataStoreConfig == null) {
+          throw new ValidationException("hybridConfig is required when the data store type is hybrid.");
+        }
+        hybridDataStoreConfig.validate(this::validate);
+      }
+      default -> {
+        // no-op
+      }
     }
   }
 
   public enum DataStoreType
   {
-    FILE, S3
+    FILE,
+    S3,
+    HYBRID
+  }
+
+  public static class HybridDataStoreConfig
+  {
+    private LinkedHashSet<DataStoreType> types;
+
+    public LinkedHashSet<DataStoreType> getTypes() {
+      return types;
+    }
+
+    public void setTypes(final LinkedHashSet<DataStoreType> types) {
+      this.types = types;
+    }
+ 
+    public void validate(final Consumer<DataStoreType> dataStoreTypeValidator) {
+      if (types == null || types.size() < 2) {
+        throw new ValidationException("Property 'types' must be provided and at least have 2 elements.");
+      }
+      if (types.contains(DataStoreType.HYBRID)) {
+        throw new ValidationException("Property 'types' cannot contain 'HYBRID'.");
+      }
+      for (DataStoreType dataStoreType : types) {
+        dataStoreTypeValidator.accept(dataStoreType);
+      }
+    }
   }
 
   public static class S3DataStoreConfig

@@ -8,14 +8,10 @@ package com.sonatype.insight.brain.scan.datastore;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
@@ -31,10 +27,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class FileScanPersistenceServiceTest
     extends AbstractScanPersistenceServiceTest
 {
-  private static final String OTHER_APP_ID = "otherAppId";
-
-  private static final String OTHER_SCAN_ID = "otherScanId";
-
   @Inject
   private InsightWork insightWork;
 
@@ -101,49 +93,5 @@ public class FileScanPersistenceServiceTest
     finally {
       scanFile.setWritable(true);
     }
-  }
-
-  @Test
-  @Override
-  public void testCopyScanFile() throws Exception {
-    ScanEntity source = service.createTempScan(APPLICATION_ID);
-    createScan(source);
-    ScanEntity destination = service.getScan(OTHER_APP_ID, OTHER_SCAN_ID);
-    assertThat(destination.exists()).isFalse();
-
-    service.copyScanFile(source, destination);
-
-    assertThat(readScan(source)).isEqualTo(readScan(destination));
-  }
-
-  @Test
-  @Override
-  public void testMoveTempScan() throws Exception {
-    ScanEntity source = service.createTempScan(APPLICATION_ID);
-    createScan(source);
-    ScanEntity destination = service.getScan(OTHER_APP_ID, OTHER_SCAN_ID);
-    assertThat(destination.exists()).isFalse();
-    String content = readScan(source);
-
-    service.moveTempScan(source, OTHER_APP_ID, OTHER_SCAN_ID);
-
-    assertThat(source.exists()).isFalse();
-    assertThat(readScan(destination)).isEqualTo(content);
-  }
-
-  private void createScan(final ScanEntity scanEntity) throws Exception {
-    assertThat(scanEntity.exists()).isFalse();
-    try (OutputStream outputStream = scanEntity.getOutputStream()) {
-      outputStream.write(TemporaryEntity.uuid().getBytes(StandardCharsets.UTF_8));
-    }
-    assertThat(scanEntity.exists()).isTrue();
-  }
-
-  private String readScan(final ScanEntity scanEntity) throws Exception {
-    byte[] bytes;
-    try (InputStream inputStream = scanEntity.getInputStream()) {
-      bytes = inputStream.readAllBytes();
-    }
-    return new String(bytes, StandardCharsets.UTF_8);
   }
 }

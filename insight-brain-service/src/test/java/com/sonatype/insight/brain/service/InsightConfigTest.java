@@ -7,13 +7,18 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
 import com.sonatype.insight.brain.service.InsightConfig.Feature;
+import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
@@ -21,9 +26,6 @@ import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
-import com.sonatype.insight.brain.service.config.StorageConfig;
-import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
-
 import io.dropwizard.core.Configuration;
 import io.dropwizard.util.Duration;
 import org.junit.Rule;
@@ -224,6 +226,7 @@ public class InsightConfigTest
             "sonatypeWork",
             "sourceControl",
             "storage",
+            "storage.hybridConfig",
             "storage.s3Config",
             "storage.type",
             "support",
@@ -367,6 +370,108 @@ public class InsightConfigTest
     assertThat(logOutput).atErrorLevel().contains(
         "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
             + S3DataStoreConfig.S3_KEY_PREFIX);
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_valid() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+
+    S3DataStoreConfig s3Config = new S3DataStoreConfig();
+    s3Config.setBucketName("bucket");
+    s3Config.setRegion("us-east-1");
+    s3Config.setObjectKeyPrefix("prefix/");
+    storageConfig.setS3Config(s3Config);
+
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    hybridConfig.setTypes(new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3)));
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isTrue();
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_nullHybridStorage() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("hybridConfig is required when the data store type is hybrid.");
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_nullTypes() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_emptyTypes() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    hybridConfig.setTypes(new LinkedHashSet<>());
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_onlyOneType() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    hybridConfig.setTypes(new LinkedHashSet<>(List.of(DataStoreType.FILE)));
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("Property 'types' must be provided and at least have 2 elements.");
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_containsHybridType() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    hybridConfig.setTypes(new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.HYBRID)));
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("Property 'types' cannot contain 'HYBRID'.");
+  }
+
+  @Test
+  public void testStorageConfig_hybridType_invalid_s3SetButNotConfigured() {
+    InsightConfig insightConfig = new InsightConfig();
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.HYBRID);
+
+    HybridDataStoreConfig hybridConfig = new HybridDataStoreConfig();
+    hybridConfig.setTypes(new LinkedHashSet<>(List.of(DataStoreType.FILE, DataStoreType.S3)));
+    storageConfig.setHybridConfig(hybridConfig);
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel()
+        .contains("Invalid storage configuration: s3Config is required when the data store type is S3.");
   }
 
   private void getAllFieldNames(String name, JsonNode jsonNode, Set<String> fieldNames) {

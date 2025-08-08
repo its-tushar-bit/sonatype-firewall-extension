@@ -127,9 +127,14 @@ public class S3ScanPersistenceService
   }
 
   @Override
-  public void deleteScan(String appId, String scanId) {
+  public void deleteScan(String appId, String scanId) throws IOException {
     ScanEntity scanEntity = doGetScan(appId, scanId);
     scanEntity.delete();
+  }
+
+  @Override
+  public Class<? extends ScanEntity> getScanEntityClass() {
+    return S3ScanEntity.class;
   }
 
   private String generateTempId() {

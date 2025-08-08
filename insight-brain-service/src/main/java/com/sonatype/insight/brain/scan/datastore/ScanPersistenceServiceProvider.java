@@ -12,14 +12,16 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 
 /**
  * Provider for ScanPersistenceService implementations.
- * Selects between file-based and S3-based persistence based on storage configuration.
+ * Selects between file-based, S3-based, and hyrbid persistence based on storage configuration.
  */
 @Named
 @Singleton
-public class ScanPersistenceServiceProvider implements Provider<ScanPersistenceService>
+public class ScanPersistenceServiceProvider
+    implements Provider<ScanPersistenceService>
 {
   private final InsightConfig insightConfig;
 
@@ -27,15 +29,19 @@ public class ScanPersistenceServiceProvider implements Provider<ScanPersistenceS
 
   private final Provider<FileScanPersistenceService> fileScanPersistenceServiceProvider;
 
+  private final Provider<HybridScanPersistenceService> hybridScanPersistenceServiceProvider;
+
   @Inject
   public ScanPersistenceServiceProvider(
       final InsightConfig insightConfig,
       final Provider<S3ScanPersistenceService> s3ScanPersistenceServiceProvider,
-      final Provider<FileScanPersistenceService> fileScanPersistenceServiceProvider)
+      final Provider<FileScanPersistenceService> fileScanPersistenceServiceProvider,
+      final Provider<HybridScanPersistenceService> hybridScanPersistenceServiceProvider)
   {
     this.insightConfig = insightConfig;
     this.s3ScanPersistenceServiceProvider = s3ScanPersistenceServiceProvider;
     this.fileScanPersistenceServiceProvider = fileScanPersistenceServiceProvider;
+    this.hybridScanPersistenceServiceProvider = hybridScanPersistenceServiceProvider;
   }
 
   @Override
@@ -43,10 +49,15 @@ public class ScanPersistenceServiceProvider implements Provider<ScanPersistenceS
     if (insightConfig.getStorage() == null) {
       return fileScanPersistenceServiceProvider.get();
     }
-    
-    return switch (insightConfig.getStorage().getType()) {
+
+    return get(insightConfig.getStorage().getType());
+  }
+
+  public ScanPersistenceService get(final DataStoreType dataStoreType) {
+    return switch (dataStoreType) {
       case FILE -> fileScanPersistenceServiceProvider.get();
       case S3 -> s3ScanPersistenceServiceProvider.get();
+      case HYBRID -> hybridScanPersistenceServiceProvider.get();
     };
   }
 }

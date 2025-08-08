@@ -16,6 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.zip.GZIPOutputStream;
 
+import com.sonatype.insight.brain.aws.s3.S3ExceptionUtil;
+import com.sonatype.insight.brain.aws.s3.S3OutputStream;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -23,9 +26,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
-
-import com.sonatype.insight.brain.aws.s3.S3ExceptionUtil;
-import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 
 import static java.util.Objects.requireNonNull;
 
@@ -171,6 +171,11 @@ public record S3ScanEntity(
   @Override
   public String getAppId() {
     return appId;
+  }
+
+  @Override
+  public Class<? extends ScanPersistenceService> getScanPersistenceServiceClass() {
+    return S3ScanPersistenceService.class;
   }
 
   @Override

@@ -253,6 +253,15 @@ public class ApplicationDAO
     }
   }
 
+  public List<Application> getAllWithoutRelatedRepositoriesOrderedByName() {
+    String sQuery = "SELECT entity FROM Application entity, Organization org" + //
+        " WHERE entity.organizationId = org.id" +
+        " AND org.relatedRepositoryId IS NULL" +
+        " AND org.relatedRepositoryManagerId IS NULL" +
+        " ORDER BY entity.name";
+    return getList(sQuery);
+  }
+
   public List<Application> getAllWithoutRelatedRepositories(TransactionContext tx) {
     String sQuery = "SELECT entity FROM Application entity, Organization org" + //
         " WHERE entity.organizationId = org.id" +

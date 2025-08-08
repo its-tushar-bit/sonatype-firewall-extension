@@ -212,6 +212,23 @@ public class ApplicationResourceTest
     assertThat(applicationSummary.getName()).isEqualTo(application.getName());
   }
 
+  @Test
+  public void testGetApplications_excludeFirewallForDocker() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplication(orgWithRelatedRepo.getId());
+
+    HttpResponse response = restRequest().get();
+    assertResponseStatus(200, response);
+
+    ApplicationDTO[] applications = response.getBody(ApplicationDTO[].class);
+
+    assertThat(applications).hasSize(1);
+    assertThat(applications).extracting(ApplicationDTO::getId).containsExactly(application.getId());
+  }
+
   private void assertApplicationManagementSummaryDTO(ApplicationManagementSummaryDTO actual,
                                                      Application app,
                                                      Organization org,

@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.dataaccess.InvalidApplicationException;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.eventbus.AsyncEventBus;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.webhook.WebhookEvent;
 import com.sonatype.insight.brain.model.security.MemberType;
@@ -419,6 +420,31 @@ public class ApplicationServiceTest
             "Application Z1"
         )
     );
+  }
+
+  @Test
+  public void testGetApplicationsWithoutRelatedRepositoriesOrderedByName() {
+    tempEntity.newApplicationWithParent("application-1", "Application Z1");
+    tempEntity.newApplicationWithParent("application-2", "Application A3");
+    tempEntity.newApplicationWithParent("application-3", "Application A2");
+    tempEntity.newApplicationWithParent("application-4", "Application A1");
+    tempEntity.newApplicationWithParent("application-5", "Application M1");
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplication(orgWithRelatedRepo.getId());
+
+    assertThat(applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName())
+        .extracting(Nameable::getName)
+        .containsExactly(
+            "Application 1",
+            "Application 2",
+            "Application A1",
+            "Application A2",
+            "Application A3",
+            "Application M1",
+            "Application Z1"
+        );
   }
 
   @Test

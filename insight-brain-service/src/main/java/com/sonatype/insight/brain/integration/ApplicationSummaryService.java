@@ -143,7 +143,7 @@ public class ApplicationSummaryService
     if (StringUtils.isNotEmpty(organizationId)) {
       return applicationDAO.getByOrganizationId(organizationId);
     }
-    return applicationDAO.getAll();
+    return applicationDAO.getAllWithoutRelatedRepositories();
   }
 
   private ApplicationSummaryList toApplicationSummaryList(List<Application> apps) {

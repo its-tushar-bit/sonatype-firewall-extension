@@ -64,6 +64,7 @@ import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
 import com.sonatype.insight.brain.model.NameHelperTest;
+import com.sonatype.insight.brain.model.Nameable;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
@@ -228,6 +229,30 @@ public class ApplicationDAOTest
             "Application Z1"
         )
     );
+  }
+
+  @Test
+  public void testGetAllWithoutRelatedRepositoriesOrderedByName() {
+    tempEntity.newApplicationWithParent("application-1", "Application Z1");
+    tempEntity.newApplicationWithParent("application-2", "Application A3");
+    tempEntity.newApplicationWithParent("application-3", "Application A2");
+    tempEntity.newApplicationWithParent("application-4", "Application A1");
+    tempEntity.newApplicationWithParent("application-5", "Application M1");
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplication(orgWithRelatedRepo.getId());
+
+    assertThat(applicationDAO.getAllWithoutRelatedRepositoriesOrderedByName())
+        .extracting(Nameable::getName)
+        .containsExactly(
+            "AbstractDbDAOTest-AppName",
+            "Application A1",
+            "Application A2",
+            "Application A3",
+            "Application M1",
+            "Application Z1"
+        );
   }
 
   @Test

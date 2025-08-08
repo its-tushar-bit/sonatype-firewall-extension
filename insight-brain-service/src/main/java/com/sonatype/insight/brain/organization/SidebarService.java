@@ -107,8 +107,8 @@ class SidebarService
   public OwnerHierarchyDTO getOwnerList() {
     OwnerHierarchyDTO ownerHierarchyDTO = new OwnerHierarchyDTO();
     ownerHierarchyDTO.ownersMap = new HashMap<>();
-    List<Organization> orgs = organizationService.getAll();
-    List<Application> apps = applicationService.getApplicationsOrderedByName();
+    List<Organization> orgs = organizationService.getAllWithoutRelatedRepositories();
+    List<Application> apps = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
     List<RepositoryManager> repositoryManagers = repositoryService.getRepositoryManagers();
     List<Repository> repositories = repositoryService.getRepositoriesWithReadPermission();
 

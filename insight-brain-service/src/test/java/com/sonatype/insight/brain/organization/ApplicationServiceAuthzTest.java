@@ -106,6 +106,32 @@ public class ApplicationServiceAuthzTest
   }
 
   @Test
+  public void testGetApplicationsWithoutRelatedRepositoriesOrderedByName_Authorized() {
+    grantReadPermission(app.getId());
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    Application containerApplication = tempEntity.newApplication(orgWithRelatedRepo.getId());
+    grantReadPermission(containerApplication.getId());
+
+    final List<Application> applications = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
+    assertThat(applications).extracting(Application::getId).containsExactly(app.getId());
+  }
+
+  @Test
+  public void testGetApplicationsWithoutRelatedRepositoriesOrderedByName_Unauthenticated() {
+    List<Application> applications = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
+    assertThat(applications).isEmpty();
+  }
+
+  @Test
+  public void testGetApplicationsWithoutRelatedRepositoriesOrderedByName_Unauthorized() {
+    login();
+    List<Application> applications = applicationService.getApplicationsWithoutRelatedRepositoriesOrderedByName();
+    assertThat(applications).isEmpty();
+  }
+
+  @Test
   public void testGetAllWithoutRelatedRepositories_Authorized() {
     grantReadPermission(app.getId());
     final List<Application> applications = applicationService.getAllWithoutRelatedRepositories();

@@ -171,6 +171,7 @@ public class OrganizationDAO
     String sQuery = "SELECT entity FROM Organization entity" +
         " WHERE entity.relatedRepositoryId IS NULL" +
         " AND entity.relatedRepositoryManagerId IS NULL" +
+        " AND entity.relatedRepositorContainerId IS NULL" +
         " ORDER BY entity.name";
     return getList(sQuery);
   }

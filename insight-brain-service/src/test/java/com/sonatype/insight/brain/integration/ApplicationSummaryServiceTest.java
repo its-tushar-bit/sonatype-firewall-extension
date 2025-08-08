@@ -328,6 +328,23 @@ public class ApplicationSummaryServiceTest
   }
 
   @Test
+  public void testGetApplications_excludeFirewallForDocker() {
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+
+    // Create an app with both a related repository manager and repository
+    Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    tempEntity.newApplication(orgWithRelatedRepo.getId());
+
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null);
+
+    assertThat(applicationListDTO).isNotNull();
+    assertThat(applicationListDTO.getApplicationSummaries())
+        .extracting(ApplicationSummary::getId)
+        .containsExactlyInAnyOrder(app1.getId(), app2.getId());
+  }
+
+  @Test
   public void testGetApplications_NoEnforcementFeature_FromIDE() {
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
 

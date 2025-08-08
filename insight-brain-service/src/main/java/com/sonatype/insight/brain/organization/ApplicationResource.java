@@ -114,7 +114,7 @@ public class ApplicationResource
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public List<ApplicationDTO> getApplications() {
-    List<Application> apps = applicationService.getApplications();
+    List<Application> apps = applicationService.getAllWithoutRelatedRepositories();
     final List<ApplicationDTO> applications = applicationAdapter.convert(apps);
     return applications;
   }

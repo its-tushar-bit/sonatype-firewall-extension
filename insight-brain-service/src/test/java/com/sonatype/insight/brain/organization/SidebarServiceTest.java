@@ -224,6 +224,12 @@ public class SidebarServiceTest
     Repository repositoryThree =
         tempEntity.newRepository(repositoryManagerTwo, "repository-three", RepositoryType.proxy, "nuget");
 
+    // create org and app with a related repository which should not be included in the result
+    Organization orgWithRelatedRepo = tempEntity.newOrganization("org-with-repo");
+    orgWithRelatedRepo.setRelatedRepositoryId(repositoryOne.getId());
+    organizationDAO.update(orgWithRelatedRepo);
+    tempEntity.newApplication("app-for-firewall-for-docker", orgWithRelatedRepo.getId());
+
     OwnerHierarchyDTO ownerHierarchyDTO = sidebarService.getOwnerList();
     assertThat(ownerHierarchyDTO.ownersMap).hasSize(12);
     OwnerHierarchyOrganizationDTO rootOrg = (OwnerHierarchyOrganizationDTO) ownerHierarchyDTO.ownersMap.get(

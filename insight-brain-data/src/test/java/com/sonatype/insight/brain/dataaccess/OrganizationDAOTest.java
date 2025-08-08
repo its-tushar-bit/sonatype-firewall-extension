@@ -257,6 +257,10 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
 
     tempEntity.newOrganizations(orgCount);
     tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
+    Organization organizationForRepositoryContainer =
+        tempEntity.newOrganizationWithRepositoryManager("org-for-repo-container");
+    organizationForRepositoryContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    dao.update(organizationForRepositoryContainer);
 
     List<Organization> orgs = dao.getAllWithoutRelatedRepositories();
 
@@ -265,7 +269,8 @@ public class OrganizationDAOTest extends NameableDAOTest<Organization>
     // 2. One for the root organization.
     assertThat(orgs).hasSize(orgCount + 2);
     assertThat(orgs).extracting(Organization::getName)
-        .doesNotContain("org-with-repo");
+        .doesNotContain("org-with-repo")
+        .doesNotContain(organizationForRepositoryContainer.getName());
     assertThat(orgs).extracting(Organization::getRelatedRepositoryManagerId)
         .allMatch(Objects::isNull);
     assertThat(orgs).extracting(Organization::getRelatedRepositoryId)

@@ -577,7 +577,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
         LicensedFeature.MALWARE_DEFENSE_EVALUATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.NOTIFICATIONS);
   }
 
   @Test
@@ -615,7 +616,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
         LicensedFeature.MALWARE_DEFENSE_EVALUATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.NOTIFICATIONS);
   }
 
   @Test
@@ -696,7 +698,8 @@ public class CLMLicenseManagerTest
         LicensedFeature.WAIVER_REPORTS,
         LicensedFeature.ROI_CONFIGURATION,
         LicensedFeature.MALWARE_DEFENSE_EVALUATION,
-        LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+        LicensedFeature.CONTAINER_IMAGES_EVALUATION,
+        LicensedFeature.NOTIFICATIONS);
   }
 
   @Test

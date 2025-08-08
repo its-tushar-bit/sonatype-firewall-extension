@@ -839,6 +839,7 @@ public class CLMLicenseManager
       features.add(LicensedFeature.ROI_CONFIGURATION);
       features.add(LicensedFeature.MALWARE_DEFENSE_EVALUATION);
       features.add(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+      features.add(LicensedFeature.NOTIFICATIONS);
 
       stageTypes.add(StageTypes.STAGE_RELEASE);
       stageTypes.add(StageTypes.RELEASE);

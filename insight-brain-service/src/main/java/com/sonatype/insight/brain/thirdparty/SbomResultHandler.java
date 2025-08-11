@@ -405,7 +405,6 @@ public class SbomResultHandler
           if (StringUtils.isNotBlank(sourceComponent.getBomRef())) {
             componentRefs.put(sourceComponent.getBomRef(), coordinateId);
           }
-          SbomCycloneDxUtils.addSonatypeIdentifierPropertyToComponent(resolvedComponent, coordinateId);
           targetBom.addComponent(resolvedComponent.getRight());
         }
       }

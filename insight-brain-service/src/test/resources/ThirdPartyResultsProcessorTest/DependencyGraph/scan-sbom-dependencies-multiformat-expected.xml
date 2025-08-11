@@ -50,10 +50,6 @@
         {
           "name" : "componentRef",
           "value" : "e6b505313c45b62ba66193f0af94c37cc8d79f70"
-        },
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "10ac6f2d51ad4a75936ee27e0c6c1b4d"
         }
       ]
     },
@@ -66,10 +62,6 @@
         {
           "name" : "componentRef",
           "value" : "00f74a8bd3d1a25e3412712bd730546a74d6f9fd"
-        },
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "3940a00267714a5894e19dfd9e224d2a"
         }
       ]
     },
@@ -82,10 +74,6 @@
         {
           "name" : "componentRef",
           "value" : "fd33db069c4f1e0a7a04e038cb67589489473e94"
-        },
-        {
-          "name" : "sonatypeIdentifier",
-          "value" : "44097233c1574c95beb91ab268f45676"
         }
       ]
     }

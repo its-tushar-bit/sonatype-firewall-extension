@@ -14,10 +14,6 @@
         {
           "name": "componentRef",
           "value": "6b46de02a6170f5dab5df776ed7ba3ece5836c10"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "8efb9cbeb6964a06b40655080db044bc"
         }
       ]
     },
@@ -32,10 +28,6 @@
         {
           "name": "componentRef",
           "value": "f63a440f52b30aff870c9c11810e199b73badac2"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "570d3c9973034728bb797261df6ccf3c"
         }
       ]
     },
@@ -50,10 +42,6 @@
         {
           "name": "componentRef",
           "value": "7f7d5ecc1195a98635f0549e68d5f9708031fe8b"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "3303521387804304a3db82f60e921f81"
         }
       ]
     },
@@ -68,10 +56,6 @@
         {
           "name": "componentRef",
           "value": "f31f8fe5edd12673865fcfd3d348cc3dcf3f14fe"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "f425ae291a45425f91a03d450a8dde1b"
         }
       ]
     },
@@ -85,10 +69,6 @@
         {
           "name": "componentRef",
           "value": "472bc527d6834553de748c43e0a7a1dacffbe616"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "1cb9eac9428c4e1d9958db1607bf0df1"
         }
       ]
     },
@@ -102,10 +82,6 @@
         {
           "name": "componentRef",
           "value": "4c3171e22078b114a9a87b73153185654de30bdf"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "174b7ed7de8149b3b06d1d6d7001610f"
         }
       ]
     },
@@ -119,10 +95,6 @@
         {
           "name": "componentRef",
           "value": "d11e0311ba2f43eb5971fc90b51cab0c4db14f5f"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "908e4bd9ab074b5b92bb0c4846a1334d"
         }
       ]
     },
@@ -136,10 +108,6 @@
         {
           "name": "componentRef",
           "value": "dedef910d31c55755bd92b8d90cf29e6ae875d1e"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "7510f5dc0dbf4371b5d99e4e1e67cce5"
         }
       ]
     },
@@ -154,10 +122,6 @@
         {
           "name": "componentRef",
           "value": "3568cf7cb999dea48c0e968b395c3793fb1c4e65"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "4672d6bce2e240eeab6f2b72e7cb2b8f"
         }
       ]
     },
@@ -172,10 +136,6 @@
         {
           "name": "componentRef",
           "value": "513b7904bfb1cc6da93243a820d4e4f651703f05"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "daaca781b76f42338d597a6a229415e5"
         }
       ]
     },
@@ -190,10 +150,6 @@
         {
           "name": "componentRef",
           "value": "492a2959d7cfc6a52d7589c4437b1ff5b3fcb7af"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "e4900ef0a09542e79081c7463e4a3640"
         }
       ]
     },
@@ -208,10 +164,6 @@
         {
           "name": "componentRef",
           "value": "29f40d6a1368fd9bbb86f2e63c14371e754f7b5a"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "05ff1693d7c54daeb0cac9fde567382a"
         }
       ]
     },
@@ -226,10 +178,6 @@
         {
           "name": "componentRef",
           "value": "e23948ebe779dbd5348508dfca2649181dfdf638"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "43c7b0db03144b86b0359f3ab4b011b4"
         }
       ]
     },
@@ -244,10 +192,6 @@
         {
           "name": "componentRef",
           "value": "d74319a6232e7bc6412e8643a9b212e0bc07e44c"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "ff3645cafdbe41ac8a8d31ea91e16a07"
         }
       ]
     },
@@ -262,10 +206,6 @@
         {
           "name": "componentRef",
           "value": "dc808a86323dd2d25968b7e31e2f5c2d6547065e"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "53badbc11e094367a4f0ec0efc24c18b"
         }
       ]
     },
@@ -280,10 +220,6 @@
         {
           "name": "componentRef",
           "value": "bf80868970668fc66ad811ad80a005640cb11d6f"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "d449ff9353444f3980bf7e12434f7bdf"
         }
       ]
     },
@@ -298,10 +234,6 @@
         {
           "name": "componentRef",
           "value": "9492a9e0b6400f69e1c1bc6772f1dafdc3c2f744"
-        },
-        {
-          "name": "sonatypeIdentifier",
-          "value": "c3a1281cb3ee4545b864156dc8864a58"
         }
       ]
     }

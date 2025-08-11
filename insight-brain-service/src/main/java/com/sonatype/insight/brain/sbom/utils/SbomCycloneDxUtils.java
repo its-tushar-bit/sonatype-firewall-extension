@@ -5,12 +5,6 @@
  */
 package com.sonatype.insight.brain.sbom.utils;
 
-import com.sonatype.insight.SbomTaxonomy;
-import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
-import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
-import com.sonatype.insight.brain.model.HashHelper;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
-import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -25,18 +19,22 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.SbomTaxonomy;
+import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.migration.DisplayNameForFileCoordinateAsyncDbMigration;
+import com.sonatype.insight.brain.model.HashHelper;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.Creator;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomCreationDetails.CreatorType;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.Version;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
@@ -408,16 +406,6 @@ public class SbomCycloneDxUtils
 
     return bom.getComponents().stream().filter(
         bc -> packageUrl.equals(bc.getPurl())).findFirst();
-  }
-
-  public static void addSonatypeIdentifierPropertyToComponent(
-      final Pair<ComponentIdentifier, Component> resolvedComponent,
-      final String fileCoordinateId)
-  {
-    Property prop = new Property();
-    prop.setName(PROPERTY_SONATYPE_IDENTIFIER);
-    prop.setValue(fileCoordinateId);
-    resolvedComponent.getRight().addProperty(prop);
   }
 
   public static Method resolveRatingMethod(String text) {

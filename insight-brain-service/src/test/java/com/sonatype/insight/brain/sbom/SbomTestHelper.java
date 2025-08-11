@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom;
 
 import java.io.File;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -25,6 +26,10 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.FileUtils;
+import org.cyclonedx.exception.ParseException;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.parsers.JsonParser;
+import org.cyclonedx.parsers.Parser;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -168,14 +173,9 @@ public class SbomTestHelper
     };
   }
 
-  public static Predicate<Node> ignoreSonatypeIdentifierFilter() {
-    return node -> {
-      if ("property".equals(node.getNodeName()) &&
-          node.getAttributes().getNamedItem("name").getNodeValue().equals("sonatypeIdentifier")) {
-        return false;
-      }
-      return true;
-    };
+  public static Bom parseToCycloneDxBom(String content) throws ParseException {
+    Parser parser = new JsonParser();
+    return parser.parse(new StringReader(content));
   }
 
   public static String readFileToString(Class testClass, String fileName) throws Exception {

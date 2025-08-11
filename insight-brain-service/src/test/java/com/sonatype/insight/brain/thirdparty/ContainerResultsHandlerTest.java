@@ -28,12 +28,13 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.SbomTestHelper;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
-import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -131,7 +132,7 @@ public class ContainerResultsHandlerTest
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
         .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
     assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
         .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
         .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
@@ -159,7 +160,7 @@ public class ContainerResultsHandlerTest
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
         .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
     assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
         .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
         .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
@@ -186,7 +187,7 @@ public class ContainerResultsHandlerTest
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
             .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
     assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
             .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
             .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));
@@ -203,7 +204,7 @@ public class ContainerResultsHandlerTest
     String actualFilteredContent = containerResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertThat(actualFilteredContent).isNotNull();
 
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
 
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).isNullOrEmpty();
@@ -226,7 +227,7 @@ public class ContainerResultsHandlerTest
 
     assertThat(thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId()))
         .isNotEmpty().allSatisfy(cp -> assertThat(cp.getComponentRef()).isNotBlank());
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
     assertThat(bom.getComponents()).isNotEmpty().allSatisfy(component -> assertThat(component.getProperties().stream()
         .filter(p -> SbomCycloneDxUtils.PROPERTY_COMPONENT_REF.equals(p.getName())).findFirst()).isNotEmpty()
         .satisfies(optional -> assertThat(optional.get().getValue()).isNotBlank()));

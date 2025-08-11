@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.thirdparty;
 
 import java.net.URL;
-
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -34,7 +33,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecu
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
-import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
+import com.sonatype.insight.brain.sbom.SbomTestHelper;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.telemetry.TelemetryDataObfuscator;
@@ -153,7 +152,7 @@ public class SpdxResultHandlerTest
             "pkg:generic/org.apache.logging.log4j/log4j-api@2.13.2?sbom_type=library",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 2);
+        .containsOnly(1, 1, 1, 2);
     // 1 component hash was collected
     assertThat(components.get(3).getProperties())
         .flatExtracting(Property::getValue)
@@ -184,7 +183,7 @@ public class SpdxResultHandlerTest
             "pkg:generic/apache/log4j@2.11.2?part=a&update=rc3",
             null);
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 2, 2);
+        .containsOnly(1, 1, 1, 1, 2);
     // 1 component hash was collected
     assertThat(components.get(4).getProperties())
         .flatExtracting(Property::getValue)
@@ -206,7 +205,7 @@ public class SpdxResultHandlerTest
     assertThat(components).extracting(Component::getVersion).containsOnly("9.0.14");
     assertThat(components).extracting(Component::getPurl)
         .containsExactly("pkg:generic/tomcat-catalina@9.0.14?sbom_type=application");
-    assertThat(components).extracting("properties.size").containsOnly(3);
+    assertThat(components).extracting("properties.size").containsOnly(2);
     assertThat(components.get(0).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e7b1000b94e835ffd37f");
@@ -571,7 +570,7 @@ public class SpdxResultHandlerTest
     String actualFilteredContent = spdxResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
 
     assertThat(actualFilteredContent).isNotNull();
-    Bom actualFilteredBom = ThirdPartySbomUtils.getFilteredBom(actualFilteredContent);
+    Bom actualFilteredBom = SbomTestHelper.parseToCycloneDxBom(actualFilteredContent);
 
     assertThat(actualFilteredBom).isNotNull();
     assertThat(actualFilteredBom.getComponents()).hasSize(1);
@@ -960,7 +959,7 @@ public class SpdxResultHandlerTest
       throws Exception
   {
     assertThat(content).isNotNull();
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(content);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(content);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
 
@@ -980,13 +979,6 @@ public class SpdxResultHandlerTest
       else {
         assertThat(component.getHashes()).isNull();
       }
-
-      if (component.getPurl() != null && !component.getProperties().isEmpty()) {
-        assertThat(component.getProperties().stream()
-            .filter(property -> property.getName().equals(SbomCycloneDxUtils.PROPERTY_SONATYPE_IDENTIFIER))
-            .findFirst()).isNotEmpty().satisfies(property -> assertThat(property.get().getValue()).isNotBlank());
-      }
-
       assertThat(component.getProperties().stream().filter(p -> p.getName().equals(PROPERTY_COMPONENT_REF))
           .findFirst()).isNotEmpty();
     }

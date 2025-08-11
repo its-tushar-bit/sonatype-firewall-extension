@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.sbom.SbomTestHelper;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
@@ -1098,7 +1099,7 @@ public class ThirdPartyScanResultsProcessorTest
       final ItemContentType itemContentType) throws ParseException
   {
     assertThat(contentType).isEqualTo(itemContentType.name());
-    Bom bom = ThirdPartySbomUtils.getFilteredBom(json);
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(json);
     assertThat(bom).isNotNull();
     assertThat(bom.getComponents()).hasSize(expectedComponentCount);
     assertThat(bom.getSerialNumber()).isNull();

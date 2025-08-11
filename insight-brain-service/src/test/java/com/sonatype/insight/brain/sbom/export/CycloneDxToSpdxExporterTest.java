@@ -12,7 +12,6 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -60,9 +59,6 @@ public class CycloneDxToSpdxExporterTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
 
   @Inject
-  private ThirdPartyFileDAO thirdPartyFileDAO;
-
-  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
@@ -92,7 +88,6 @@ public class CycloneDxToSpdxExporterTest
     app = tempEntity.newApplicationWithParent(APP_NAME, APP_NAME);
     thirdPartyFile = tempEntity.newThirdPartyFile(THIRD_PARTY_FILE);
     exporter = new CycloneDxToSpdxExporter(
-        mockInsightWork,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
@@ -101,7 +96,8 @@ public class CycloneDxToSpdxExporterTest
         baseUrl,
         idUtils,
         versionService,
-        thirdPartyLicenseResolver
+        thirdPartyLicenseResolver,
+        buildThirdPartyPersistenceService()
     );
   }
 

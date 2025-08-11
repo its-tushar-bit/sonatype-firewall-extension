@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.nio.file.Path;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -23,6 +22,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.ScanResult;
@@ -66,9 +66,10 @@ public class SbomScanEvaluator
   {
     var applicationId = sbomMetadata.getApplicationId();
     Application application = applicationDAO.getById(applicationId);
-    Path tmpFileToScan = thirdPartyPersistenceService.getBinaryPersistentTempFilePath(sbomMetadata, thirdPartyFile);
+    SbomEntity tmpFileToScan =
+        thirdPartyPersistenceService.getBinaryPersistentTempFilePath(sbomMetadata, thirdPartyFile);
 
-    ScanResult scanResult = sbomMetadataUtils.scanBinaryFile(application, tmpFileToScan.toFile());
+    ScanResult scanResult = sbomMetadataUtils.scanBinaryFile(application, tmpFileToScan.getPath().toFile());
 
     ApiThirdPartyScanTicketDTO scanTicketDTO = sbomMetadataUtils.createSbomImportTicket(applicationId);
 

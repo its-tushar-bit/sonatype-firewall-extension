@@ -7,8 +7,6 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -21,7 +19,7 @@ import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -35,7 +33,6 @@ public class SpdxToSpdxExporter
 {
   @Inject
   protected SpdxToSpdxExporter(
-      final InsightWork insightWork,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
@@ -44,17 +41,18 @@ public class SpdxToSpdxExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
-    super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService, thirdPartyLicenseResolver);
+        versionService, thirdPartyLicenseResolver, thirdPartyPersistenceService);
   }
 
   @Override
   public String export() {
     init();
-    try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+    try (InputStream gis = getOriginalSbomContent()) {
       SpdxDocument originalDocument = SbomSpdxUtils.parseContentStreamNoValidation(gis,
           SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat()));
       SpdxDocument newDocument = createNewDocumentFrom(originalDocument);

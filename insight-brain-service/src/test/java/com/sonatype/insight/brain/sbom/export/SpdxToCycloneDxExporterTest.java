@@ -20,8 +20,6 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -62,9 +60,6 @@ public class SpdxToCycloneDxExporterTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO vulnerabilityExploitabilityExchangeDAO;
 
   @Inject
-  ThirdPartyFileDAO thirdPartyFileDAO;
-
-  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
@@ -72,9 +67,6 @@ public class SpdxToCycloneDxExporterTest
 
   @Inject
   private ThirdPartyCoordinateLicenseDAO thirdPartyCoordinateLicenseDAO;
-
-  @Inject
-  ThirdPartyScanDAO thirdPartyScanDAO;
 
   @Inject
   ApplicationDAO applicationDAO;
@@ -98,7 +90,6 @@ public class SpdxToCycloneDxExporterTest
   @Before
   public void before() {
     spdxToCycloneDxExporter = new SpdxToCycloneDxExporter(
-        mockInsightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -112,7 +103,8 @@ public class SpdxToCycloneDxExporterTest
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        buildThirdPartyPersistenceService()
     );
     app = tempEntity.newApplicationWithParent();
   }

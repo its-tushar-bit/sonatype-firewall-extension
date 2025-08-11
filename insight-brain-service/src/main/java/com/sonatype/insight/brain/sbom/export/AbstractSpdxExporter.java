@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -81,7 +81,6 @@ public abstract class AbstractSpdxExporter
   protected boolean hasComponentRefs;
 
   protected AbstractSpdxExporter(
-      final InsightWork insightWork,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
@@ -90,11 +89,12 @@ public abstract class AbstractSpdxExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
-    super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService, thirdPartyLicenseResolver);
+        versionService, thirdPartyLicenseResolver, thirdPartyPersistenceService);
   }
 
   void init() {

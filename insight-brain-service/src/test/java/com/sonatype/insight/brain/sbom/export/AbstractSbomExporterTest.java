@@ -14,16 +14,21 @@ import java.util.zip.GZIPOutputStream;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.sbom.datastore.FileSbomPersistenceService;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportOption;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.scan.file.SbomFormat;
 
 import org.apache.commons.io.FileUtils;
@@ -41,7 +46,7 @@ abstract class AbstractSbomExporterTest
   public TemporaryFolder tmpDir = new TemporaryFolder();
 
   @Inject
-  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+  protected ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
   protected MigrationTrackerDAO migrationTrackerDAO;
@@ -51,6 +56,15 @@ abstract class AbstractSbomExporterTest
 
   @Inject
   protected TestProductLicense productLicense;
+
+  @Inject
+  protected ThirdPartyFileDAO thirdPartyFileDAO;
+
+  @Inject
+  protected ThirdPartyScanDAO thirdPartyScanDAO;
+
+  @Inject
+  private FileCleaner fileCleaner;
 
   @Mock
   protected InsightWork mockInsightWork;
@@ -99,5 +113,14 @@ abstract class AbstractSbomExporterTest
     dbRecord.setFilename(testBomFile);
     thirdPartySbomMetadataDAO.update(dbRecord);
     return dbRecord;
+  }
+
+  protected ThirdPartyPersistenceService buildThirdPartyPersistenceService() {
+    return new ThirdPartyPersistenceService(
+        thirdPartySbomMetadataDAO,
+        thirdPartyFileDAO,
+        thirdPartyScanDAO,
+        new FileSbomPersistenceService(mockInsightWork, fileCleaner)
+    );
   }
 }

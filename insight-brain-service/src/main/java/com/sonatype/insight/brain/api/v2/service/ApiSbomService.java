@@ -5,12 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -41,7 +38,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortab
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataSummaryListDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
@@ -62,6 +58,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResult
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExporterProvider;
@@ -74,13 +71,11 @@ import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SbomAction;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.CvssV3Severity;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
-import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -90,7 +85,6 @@ import com.sonatype.insight.scan.file.ThirdPartyUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cyclonedx.Version;
@@ -119,11 +113,7 @@ public class ApiSbomService
 
   private final ThirdPartySbomMetadataDAO dao;
 
-  private final ThirdPartyFileDAO thirdPartyFileDAO;
-
   private final SbomScanEvaluator sbomScanEvaluator;
-
-  private final InsightWork insightWork;
 
   private final ApplicationDAO applicationDAO;
 
@@ -154,9 +144,7 @@ public class ApiSbomService
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
-      final ThirdPartyFileDAO thirdPartyFileDAO,
       final SbomScanEvaluator sbomScanEvaluator,
-      final InsightWork insightWork,
       final ApplicationDAO applicationDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final SbomFileDetector sbomFileDetector,
@@ -171,9 +159,7 @@ public class ApiSbomService
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO, final LicenseDAO licenseDAO)
   {
     this.dao = dao;
-    this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.sbomScanEvaluator = sbomScanEvaluator;
-    this.insightWork = insightWork;
     this.applicationDAO = applicationDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.sbomFileDetector = sbomFileDetector;
@@ -198,12 +184,7 @@ public class ApiSbomService
 
     AuditData.get().setSbomVersion(thirdPartySbomMetadata, SbomAction.DELETE);
 
-    try (TransactionContext tx = thirdPartyFileDAO.createTransactionContext()) {
-      tx.begin();
-      thirdPartyFileDAO.delete(tx, thirdPartySbomMetadata.getThirdPartyFileId());
-      Files.delete(new File(insightWork.getSbomDir(applicationId), thirdPartySbomMetadata.getFilename()).toPath());
-      tx.commit();
-    }
+    thirdPartyPersistenceService.deleteSbomMetadataAndAssociatedFiles(thirdPartySbomMetadata);
   }
 
   @Authorize(permission = Permission.READ)
@@ -386,12 +367,8 @@ public class ApiSbomService
       type = MediaType.APPLICATION_XML_TYPE;
     }
 
-    File sbomDir = insightWork.getSbomDir(applicationId);
-
-    try (FileInputStream fileInputStream = new FileInputStream(
-        new File(sbomDir, thirdPartySbomMetadata.getFilename()))) {
-      GzipCompressorInputStream gzipInputStream = new GzipCompressorInputStream(fileInputStream);
-      return Response.ok(IOUtils.toByteArray(gzipInputStream), type)
+    try (InputStream sbomStream = thirdPartyPersistenceService.getSbomContentsInputStream(thirdPartySbomMetadata)) {
+      return Response.ok(IOUtils.toByteArray(sbomStream), type)
           .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(fileName))
           .build();
     }
@@ -545,13 +522,15 @@ public class ApiSbomService
       throw new BadRequestException("applicationVersion cannot be blank and must be between 1 and 200 characters.");
     }
 
-    try (var transientTempPath = thirdPartyPersistenceService.writeToTransientStorage(inputStream, fileName)) {
+    SbomEntity transientSbomEntity = null;
+    try {
+      transientSbomEntity = thirdPartyPersistenceService.writeToTransientStorage(inputStream, fileName);
       SbomDetectionResult sbomDetectionResult = sbomFileDetector.getSbomDetectionResult(
-          transientTempPath.getPath(), fileName, ignoreValidationError);
+          transientSbomEntity.getPath(), fileName, ignoreValidationError);
 
       if (isSaveableSbom(sbomDetectionResult, ignoreValidationError)) {
         ThirdPartySbomMetadata sbomMetadata = thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
-            transientTempPath,
+            transientSbomEntity,
             fileName,
             applicationId,
             applicationVersion,
@@ -565,7 +544,7 @@ public class ApiSbomService
           log.debug("Initiating binary SBOM import for application {}", applicationId);
 
           var entities = thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
-              transientTempPath,
+              transientSbomEntity,
               fileName,
               applicationId,
               applicationVersion,
@@ -584,6 +563,16 @@ public class ApiSbomService
     }
     catch (CheckedIllegalArgumentException e) {
       throw new BadRequestException(e);
+    }
+    finally {
+      try {
+        if (transientSbomEntity != null) {
+          thirdPartyPersistenceService.deleteSbomFromTransientStorage(transientSbomEntity);
+        }
+      }
+      catch (IOException e) {
+        log.warn("Failed to delete temporary SBOM file: {}", transientSbomEntity.getLocation(), e);
+      }
     }
   }
 

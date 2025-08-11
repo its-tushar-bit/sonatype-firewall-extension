@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -15,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.zip.GZIPInputStream;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -32,7 +30,7 @@ import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolut
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.ThirdPartyUtils;
@@ -149,7 +147,6 @@ public class CycloneDxToSpdxExporter
 
   @Inject
   protected CycloneDxToSpdxExporter(
-      final InsightWork insightWork,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
@@ -158,11 +155,12 @@ public class CycloneDxToSpdxExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
-    super(insightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
+    super(thirdPartyFileDAO, thirdPartyFileCoordinateDAO, thirdPartyCoordinateSecurityDAO,
         thirdPartyCoordinateLicenseDAO, thirdPartyVulnerabilityExploitabilityExchangeDAO, baseUrl, idUtils,
-        versionService, thirdPartyLicenseResolver);
+        versionService, thirdPartyLicenseResolver, thirdPartyPersistenceService);
   }
 
   @Override
@@ -170,7 +168,7 @@ public class CycloneDxToSpdxExporter
     init();
     hasComponentRefs =
         thirdPartyFileCoordinateDAO.hasNonNullComponentRefs(exportParams.sbomMetadata.getThirdPartyFileId());
-    try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+    try (InputStream gis = getOriginalSbomContent()) {
       Bom originalBom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
       checkAndGenerateComponentMetadataIfMissing(originalBom);
       SpdxDocument originalDocument = spdxDocumentFromCycloneDxBom(originalBom, multiFormatStore);

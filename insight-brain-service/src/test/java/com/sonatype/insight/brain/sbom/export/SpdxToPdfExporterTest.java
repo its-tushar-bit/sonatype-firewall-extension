@@ -35,7 +35,6 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
   public void init() throws SbomExportException {
     super.init();
     exporter = new SpdxToPdfExporter(
-        mockInsightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -49,7 +48,8 @@ public class SpdxToPdfExporterTest extends AbstractPdfExporterTest
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        buildThirdPartyPersistenceService()
     );
   }
 

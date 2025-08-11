@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -36,7 +34,7 @@ import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolut
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -82,7 +80,6 @@ public class SpdxToCycloneDxExporter
 
   @Inject
   protected SpdxToCycloneDxExporter(
-      final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -96,10 +93,10 @@ public class SpdxToCycloneDxExporter
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2,
-      final ThirdPartyComponentLicenseResolutionService licenseResolutionService)
+      final ThirdPartyComponentLicenseResolutionService licenseResolutionService,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     super(
-        insightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -113,13 +110,14 @@ public class SpdxToCycloneDxExporter
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        thirdPartyPersistenceService
     );
   }
 
   @Override
   public String export() {
-    try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+    try (InputStream gis = getOriginalSbomContent()) {
       SpdxDocument originalSpdx = SbomSpdxUtils.parseContentStreamNoValidation(gis,
           SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat()));
       Bom baseBomFromSpdx = generateCycloneDxBomFromSpdxDocument(originalSpdx);

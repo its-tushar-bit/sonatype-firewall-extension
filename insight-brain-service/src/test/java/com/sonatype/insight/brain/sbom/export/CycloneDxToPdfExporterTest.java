@@ -38,7 +38,6 @@ public class CycloneDxToPdfExporterTest
   public void init() throws SbomExportException {
     super.init();
     exporter = new CycloneDxToPdfExporter(
-        mockInsightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -52,7 +51,8 @@ public class CycloneDxToPdfExporterTest
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        buildThirdPartyPersistenceService()
     );
   }
 

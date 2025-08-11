@@ -29,6 +29,7 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
+import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomSummary;
@@ -36,7 +37,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 import com.sonatype.insight.brain.utils.ExistingFilesHelper;
 
 import com.google.inject.Binder;
@@ -258,8 +258,10 @@ public class PendingSbomMetadataCleanerTest
     sbomSummary.format = sbomDetectionResult.mimeType;
     sbomDetectionResult.summary = sbomSummary;
     ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> sbomPersistenceResult;
-    try (var tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(
-        new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)), "sbom.xml")) {
+    SbomEntity tempSbomPath = null;
+    try {
+      tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(
+        new ByteArrayInputStream("content".getBytes(StandardCharsets.UTF_8)), "sbom.xml");
       sbomPersistenceResult =
           thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
               tempSbomPath,
@@ -267,6 +269,11 @@ public class PendingSbomMetadataCleanerTest
               application.getId(),
               sbomDetectionResult
           );
+    }
+    finally {
+      if (tempSbomPath != null) {
+        thirdPartyPersistenceService.deleteSbomFromTransientStorage(tempSbomPath);
+      }
     }
     File sbom = Path.of(insightWork.getSbomDir().getAbsolutePath(), application.getId(),
         sbomPersistenceResult.getLeft().getFilename()).toFile();
@@ -277,11 +284,11 @@ public class PendingSbomMetadataCleanerTest
   }
 
   private File createTemporaryTransientSbom() throws Exception {
-    TrustedAutoDeletingTempPath trustedAutoDeletingTempPath = thirdPartyPersistenceService.writeToTransientStorage(
+    SbomEntity sbomEntity = thirdPartyPersistenceService.writeToTransientStorage(
         new ByteArrayInputStream("content".getBytes()),
         "sbom.xml"
     );
-    File tempTransientSbom = trustedAutoDeletingTempPath.getPath().toFile();
+    File tempTransientSbom = sbomEntity.getPath().toFile();
     assertThat(tempTransientSbom).exists();
     return tempTransientSbom;
   }
@@ -299,8 +306,10 @@ public class PendingSbomMetadataCleanerTest
     sbomSummary.format = sbomDetectionResult.mimeType;
     sbomDetectionResult.summary = sbomSummary;
     ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> sbomPersistenceResult;
-    try (var tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(
-        new ByteArrayInputStream("binary_content".getBytes(StandardCharsets.UTF_8)), "binary.zip")) {
+    SbomEntity tempSbomPath = null;
+    try {
+      tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(
+          new ByteArrayInputStream("binary_content".getBytes(StandardCharsets.UTF_8)), "binary.zip");
       sbomPersistenceResult =
           thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
               tempSbomPath,
@@ -309,9 +318,15 @@ public class PendingSbomMetadataCleanerTest
               sbomDetectionResult
           );
     }
+    finally {
+      if (tempSbomPath != null) {
+        thirdPartyPersistenceService.deleteSbomFromTransientStorage(tempSbomPath);
+      }
+    }
+
     return ImmutablePair.of(sbomPersistenceResult.getLeft().getId(),
         thirdPartyPersistenceService.getBinaryPersistentTempFilePath(sbomPersistenceResult.getLeft(),
-            sbomPersistenceResult.getRight()).toFile());
+            sbomPersistenceResult.getRight()).getPath().toFile());
   }
 
   private void setLastModified(final ImmutablePair<String, File> sbomData, final long time) throws IOException {

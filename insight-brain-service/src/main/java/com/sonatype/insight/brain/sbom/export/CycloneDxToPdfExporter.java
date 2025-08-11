@@ -7,13 +7,12 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Collections;
-import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -27,7 +26,6 @@ import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 
@@ -40,7 +38,6 @@ public class CycloneDxToPdfExporter
 {
   @Inject
   public CycloneDxToPdfExporter(
-      final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -54,10 +51,10 @@ public class CycloneDxToPdfExporter
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2,
-      final ThirdPartyComponentLicenseResolutionService licenseResolutionService)
+      final ThirdPartyComponentLicenseResolutionService licenseResolutionService,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     super(
-        insightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -71,7 +68,8 @@ public class CycloneDxToPdfExporter
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        thirdPartyPersistenceService
     );
   }
 
@@ -82,7 +80,7 @@ public class CycloneDxToPdfExporter
 
   @Override
   public PdfData exportPdf() {
-    try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+    try (InputStream gis = getOriginalSbomContent()) {
       Bom bom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
       // This is a version 1.1 vulnerabilities extensions
       // (https://github.com/CycloneDX/specification/blob/1.6/schema/ext/vulnerability-1.0.xsd)

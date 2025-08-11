@@ -7,12 +7,11 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.util.zip.GZIPInputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -26,7 +25,6 @@ import com.sonatype.insight.brain.report.pdf.PdfData;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomSpdxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -40,7 +38,6 @@ public class SpdxToPdfExporter
 {
   @Inject
   protected SpdxToPdfExporter(
-      final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -54,10 +51,10 @@ public class SpdxToPdfExporter
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2,
-      final ThirdPartyComponentLicenseResolutionService licenseResolutionService)
+      final ThirdPartyComponentLicenseResolutionService licenseResolutionService,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     super(
-        insightWork,
         multiLicenseDAO,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
@@ -71,7 +68,8 @@ public class SpdxToPdfExporter
         idUtils,
         versionService,
         apiReportDataServiceV2,
-        licenseResolutionService
+        licenseResolutionService,
+        thirdPartyPersistenceService
     );
   }
 
@@ -82,7 +80,7 @@ public class SpdxToPdfExporter
 
   @Override
   public PdfData exportPdf() {
-    try (InputStream gis = new GZIPInputStream(Files.newInputStream(getOriginalSbomFile().toPath()))) {
+    try (InputStream gis = getOriginalSbomContent()) {
       SpdxDocument originalSpdx = SbomSpdxUtils.parseContentStreamNoValidation(gis,
           SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat()));
       Bom baseBomFromSpdx = mergeCurrentDatabaseState(generateCycloneDxBomFromSpdxDocument(originalSpdx));

@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.thirdparty;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -54,7 +53,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityE
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.ApplicationReport;
 import com.sonatype.insight.brain.sbom.SbomResultsMerger;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -114,7 +113,7 @@ public class ThirdPartyDataService
 
   private final ProductLicense productLicense;
 
-  private final InsightWork insightWork;
+  private final SbomPersistenceService sbomPersistenceService;
 
   private final Provider<SbomResultsMerger> sbomResultsMergerProvider;
 
@@ -134,8 +133,8 @@ public class ThirdPartyDataService
       final TelemetryUtils telemetryUtils,
       final SearchIndexManager searchIndexManager,
       final ProductLicense productLicense,
-      final InsightWork insightWork,
-      final Provider<SbomResultsMerger> sbomResultsMergerProvider)
+      final Provider<SbomResultsMerger> sbomResultsMergerProvider,
+      final SbomPersistenceService sbomPersistenceService)
   {
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
@@ -151,8 +150,8 @@ public class ThirdPartyDataService
     this.telemetryUtils = telemetryUtils;
     this.searchIndexManager = searchIndexManager;
     this.productLicense = productLicense;
-    this.insightWork = insightWork;
     this.sbomResultsMergerProvider = sbomResultsMergerProvider;
+    this.sbomPersistenceService = sbomPersistenceService;
   }
 
   public ThirdPartyApplicationReportDTO getScanData(final String scanId) {
@@ -176,8 +175,7 @@ public class ThirdPartyDataService
   public void deleteByScanId(String scanId) throws IOException {
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByScanId(scanId);
     if (sbomMetadata != null) {
-      Files.deleteIfExists(
-          insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath().resolve(sbomMetadata.getFilename()));
+      sbomPersistenceService.deleteSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
     }
     thirdPartyFileDAO.deleteByScanId(scanId);
   }

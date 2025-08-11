@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
+import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetry;
 import com.sonatype.insight.brain.telemetry.OwnerMaintenanceTelemetryCreator;
@@ -45,6 +46,8 @@ public class ApplicationCleaner
 
   private final ScanPersistenceService scanPersistenceService;
 
+  private final SbomPersistenceService sbomPersistenceService;
+
   @Inject
   public ApplicationCleaner(
       final InsightWork work,
@@ -52,7 +55,8 @@ public class ApplicationCleaner
       final OwnerMaintenanceTelemetryCreator ownerMaintenanceTelemetryCreator,
       final ApplicationDAO applicationDAO,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
-      final ScanPersistenceService scanPersistenceService)
+      final ScanPersistenceService scanPersistenceService,
+      final SbomPersistenceService sbomPersistenceService)
   {
     this.work = work;
     this.fileCleaner = fileCleaner;
@@ -60,15 +64,15 @@ public class ApplicationCleaner
     this.applicationDAO = applicationDAO;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
     this.scanPersistenceService = scanPersistenceService;
+    this.sbomPersistenceService = sbomPersistenceService;
   }
 
   public void delete(final TransactionContext tx, final Application application) throws IOException {
-    fileCleaner.delete(work.getScanDir(application.getId()));
     fileCleaner.delete(work.getAuditDir(application.getId()));
     fileCleaner.delete(work.getSourceControlDir(application.getId()));
-    fileCleaner.delete(work.getSbomDir(application.getId(), false));
 
     scanPersistenceService.deleteScansFor(application.getId());
+    sbomPersistenceService.deleteSbomsFor(application.getId());
     applicationReportPersistenceService.deleteReports(application.getId());
 
     File applicationIconDirectory = new File(work.getApplicationIconDir(), application.getId());

@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -26,6 +25,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
 import com.sonatype.insight.brain.sbom.utils.SbomFileDetector;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
@@ -36,7 +36,6 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.thirdparty.SbomScanType;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
-import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService.PersistencePath.TrustedAutoDeletingTempPath;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -120,11 +119,14 @@ public class SbomImportService
 
     // A temp file that lasts only the duration of this method call, used only to avoid reading the whole
     // SBOM into memory at once
-    try (var tempSbomPath = thirdPartyPersistenceService.writeToTransientStorage(sbomStream, originalFilename)) {
-      log.debug("Saved file for detection at {}", tempSbomPath);
+    SbomEntity tempSbomEntity = null;
+    try {
+      tempSbomEntity = thirdPartyPersistenceService.writeToTransientStorage(sbomStream, originalFilename);
+      log.debug("Saved file for detection at {}", tempSbomEntity);
 
       SbomDetectionResult result =
-          sbomFileDetector.getSbomDetectionResult(tempSbomPath.getPath(), originalFilename, ignoreValidationError);
+          sbomFileDetector.getSbomDetectionResult(tempSbomEntity.getPath(), originalFilename,
+              ignoreValidationError);
 
       if (StringUtils.isNotEmpty(result.errorMessage)) {
         // telemetry for when there aren't validation errors is sent elsewhere. SBOM-1113 will consolidate this.
@@ -136,11 +138,11 @@ public class SbomImportService
         return new SbomDetectionResultDTO(SbomScanType.SBOM, result);
       }
       else if (result.isSbom) {
-        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomPath, originalFilename, applicationId, result);
+        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomEntity, originalFilename, applicationId, result);
         return new SbomDetectionResultDTO(SbomScanType.SBOM, result, savedVersion);
       }
       else if (SystemConfigurationPropertyFeature.SBOM_BINARY_SCANNING.isEnabled()) {
-        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomPath, originalFilename, applicationId, result);
+        String savedVersion = saveSbomManagerSbomOrBinary(tempSbomEntity, originalFilename, applicationId, result);
         return new SbomDetectionResultDTO(SbomScanType.BINARY, result, savedVersion);
       }
       else {
@@ -152,6 +154,16 @@ public class SbomImportService
     }
     catch (CheckedIllegalArgumentException e) {
       throw new BadRequestException(e);
+    }
+    finally {
+      try {
+        if (tempSbomEntity != null) {
+          thirdPartyPersistenceService.deleteSbomFromTransientStorage(tempSbomEntity);
+        }
+      }
+      catch (IOException e) {
+        log.warn("Failed to delete temporary SBOM file: {}", tempSbomEntity.getLocation(), e);
+      }
     }
   }
 
@@ -207,13 +219,13 @@ public class SbomImportService
    * @return The version under which the SBOM was saved in the database
    */
   private String saveSbomManagerSbomOrBinary(
-      TrustedAutoDeletingTempPath tempSbomPath,
+      SbomEntity tempSbomEntity,
       String originalFilename,
       String applicationId,
       SbomDetectionResult result) throws IOException, CheckedIllegalArgumentException
   {
     var sbomMetadata = thirdPartyPersistenceService.saveSbomManagerSbomOrBinary(
-        tempSbomPath,
+        tempSbomEntity,
         originalFilename,
         applicationId,
         result

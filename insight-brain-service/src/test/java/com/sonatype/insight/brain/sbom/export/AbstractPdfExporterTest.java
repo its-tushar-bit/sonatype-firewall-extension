@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.sbom.export;
 
 import java.io.File;
 import java.util.ArrayList;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDataDTOV2;
@@ -19,9 +18,7 @@ import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
@@ -61,9 +58,6 @@ abstract class AbstractPdfExporterTest
   protected MultiLicenseDAO multiLicenseDAO;
 
   @Inject
-  protected ThirdPartyFileDAO thirdPartyFileDAO;
-
-  @Inject
   protected ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -77,9 +71,6 @@ abstract class AbstractPdfExporterTest
 
   @Inject
   protected ThirdPartyVulnerabilityExploitabilityExchangeDAO thirdPartyVulnerabilityExploitabilityExchangeDAO;
-
-  @Inject
-  protected ThirdPartyScanDAO thirdPartyScanDAO;
 
   @Inject
   protected ApplicationDAO applicationDAO;

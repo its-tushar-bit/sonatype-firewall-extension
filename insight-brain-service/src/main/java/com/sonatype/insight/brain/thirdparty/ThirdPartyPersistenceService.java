@@ -5,22 +5,17 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.UUID;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,11 +30,11 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
+import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomDetectionResult;
-import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 import com.sonatype.insight.brain.utils.CheckedIllegalArgumentException;
 import com.sonatype.insight.brain.utils.FunctionWithException;
 import com.sonatype.insight.brain.utils.SupplierWithException;
@@ -52,11 +47,8 @@ import jakarta.persistence.EntityExistsException;
 import jakarta.persistence.RollbackException;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.filefilter.AgeFileFilter;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.codehaus.plexus.util.StringUtils;
 import org.slf4j.Logger;
@@ -88,7 +80,7 @@ public class ThirdPartyPersistenceService
 
   private final ThirdPartyScanDAO thirdPartyScanDAO;
 
-  private final InsightWork insightWork;
+  private final SbomPersistenceService sbomPersistenceService;
 
   /**
    * Paths coming into this class from outside, which get saved in various database columns and used in the construction
@@ -154,6 +146,21 @@ public class ThirdPartyPersistenceService
       public String getExtension() {
         return extension;
       }
+
+      /**
+       * Sanitize the file path by normalizing it and ensuring the result is not empty or `.` and does not contain a
+       * `..` segment
+       */
+      private static Path sanitizeUserPath(Path userFilePath) throws CheckedIllegalArgumentException {
+        var normalizedPath = userFilePath.normalize();
+
+        if (normalizedPath.toString().isEmpty() || Path.of(".").equals(normalizedPath)
+            || Streams.stream(normalizedPath.iterator()).anyMatch(Path.of("..")::equals)) {
+          throw new CheckedIllegalArgumentException("Invalid filename: %s".formatted(userFilePath));
+        }
+
+        return normalizedPath;
+      }
     }
 
     /**
@@ -174,23 +181,19 @@ public class ThirdPartyPersistenceService
       public String toString() {
         return sanitizedUserPath.toString();
       }
-    }
 
-    /**
-     * AutoDeletingTempFile instances whose paths are generated safely from sanitized user input and which can be
-     * trusted
-     */
-    public static final class TrustedAutoDeletingTempPath
-        extends AutoDeletingTempFile
-        implements ExtensionSafePath
-    {
-      private TrustedAutoDeletingTempPath(Path dir, ExtensionSafePath userPath) throws IOException {
-        this(dir, userPath.getExtension());
-      }
-
-      // This is a separate constructor just to make the expression within the super call more readable
-      private TrustedAutoDeletingTempPath(Path dir, String extension) throws IOException {
-        super(dir, extension.isBlank() ? null : extension);
+      /**
+       * @return the basename from the given path, ensuring it is not empty, `.`, or `..`
+       */
+      private static Path getSafeFilename(Path userFilePath) throws CheckedIllegalArgumentException {
+        Path filenamePath = userFilePath.getFileName();
+        if (filenamePath.equals(Path.of("")) || filenamePath.equals(Path.of(".")) ||
+            filenamePath.equals(Path.of(".."))) {
+          throw new CheckedIllegalArgumentException("Invalid filename: " + userFilePath);
+        }
+        else {
+          return filenamePath;
+        }
       }
     }
   }
@@ -200,12 +203,12 @@ public class ThirdPartyPersistenceService
       final ThirdPartySbomMetadataDAO sbomMetadataDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final InsightWork insightWork)
+      final SbomPersistenceService sbomPersistenceService)
   {
     this.sbomMetadataDAO = sbomMetadataDAO;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyScanDAO = thirdPartyScanDAO;
-    this.insightWork = insightWork;
+    this.sbomPersistenceService = sbomPersistenceService;
   }
 
   /**
@@ -222,13 +225,13 @@ public class ThirdPartyPersistenceService
    * @throws CheckedIllegalArgumentException if the basename of userFilename is empty, `.`, or `..`
    */
   public ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerSbomOrBinary(
-      PersistencePath.TrustedAutoDeletingTempPath sbomPath,
+      SbomEntity sbomEntity,
       String userFilename,
       String applicationId,
       SbomDetectionResult detectionResult) throws IOException, CheckedIllegalArgumentException
   {
     return saveSbomManagerSbomOrBinaryFromUserUpload(
-        sbomPath,
+        sbomEntity,
         new PersistencePath.SanitizedUserPath(userFilename),
         applicationId,
         null,
@@ -246,14 +249,14 @@ public class ThirdPartyPersistenceService
    * @throws CheckedIllegalArgumentException if the basename of userFilename is empty, `.`, or `..`
    */
   public ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerSbomOrBinary(
-      PersistencePath.TrustedAutoDeletingTempPath sbomPath,
+      SbomEntity sbomEntity,
       String userFilename,
       String applicationId,
       String preferredVersion,
       SbomDetectionResult detectionResult) throws IOException, CheckedIllegalArgumentException
   {
     return saveSbomManagerSbomOrBinaryFromUserUpload(
-        sbomPath,
+        sbomEntity,
         new PersistencePath.SanitizedUserPath(userFilename),
         applicationId,
         preferredVersion,
@@ -335,9 +338,9 @@ public class ThirdPartyPersistenceService
       ThirdPartySbomMetadata sbomMetadata) throws IOException, IllegalArgumentException
   {
     if (sbomMetadata.getFilename() != null) {
-      var sbomPath = getSbomPermanentStoragePath(sbomMetadata);
-      var fileInputStream = Files.newInputStream(sbomPath);
-      return new GzipCompressorInputStream(fileInputStream);
+      var sbomEntity =
+          sbomPersistenceService.getPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
+      return new GzipCompressorInputStream(sbomEntity.getInputStream());
     }
     else {
       // probably a binary upload that hasn't been processed yet
@@ -364,54 +367,57 @@ public class ThirdPartyPersistenceService
   /**
    * Write the SBOM/binary content from the input stream to a randomly-named file with the same file extension as
    * userFilename in the transient storage directory.
-   * @return an AutoDeletingTempFile representing the written file, which should be used within try-with-resources
-   * in order to delete when no longer needed
+   * @return an SbomEntity representing the written file, which should be removed when no longer needed
    */
-  public PersistencePath.TrustedAutoDeletingTempPath writeToTransientStorage(
+  public SbomEntity writeToTransientStorage(
       InputStream sbomStream,
       String userFilename) throws IOException, CheckedIllegalArgumentException
   {
     var sanitizedPath = new PersistencePath.SanitizedUserPath(userFilename);
-    var tempFile = new PersistencePath.TrustedAutoDeletingTempPath(
-        insightWork.getSbomTransientDir().toPath(),
-        sanitizedPath
-    );
 
-    try (var outputStream = Files.newOutputStream(tempFile.getPath())) {
+    SbomEntity transientSbom = sbomPersistenceService.createTransientSbom(sanitizedPath.toString());
+    try (var outputStream = transientSbom.getOutputStream()) {
       IOUtils.copy(sbomStream, outputStream);
     }
     catch (IOException e) {
-      try {
-        tempFile.close();
-      }
-      catch (IOException e2) {
-        e.addSuppressed(e2);
-      }
-
+      deleteSbomDueToException(transientSbom, e);
       throw e;
     }
 
-    log.debug("Uploaded SBOM or binary saved to transient storage at {}", tempFile.getPath());
+    log.debug("Uploaded SBOM or binary saved to transient storage at {}", transientSbom.getLocation());
 
-    return tempFile;
+    return transientSbom;
   }
 
   /**
-   * @return the path to the persistent temporary binary file associated with the given sbomMetadata and thirdPartyFile.
+   * Deletes the given SBOM entity from transient storage.
+   */
+  public void deleteSbomFromTransientStorage(SbomEntity sbomEntity) throws IOException {
+    if (sbomEntity != null) {
+      sbomPersistenceService.deleteSbom(sbomEntity);
+    }
+  }
+
+  /**
+   * @return the persistent temporary binary file associated with the given sbomMetadata and thirdPartyFile as an
+   * SBOM entity.
    *
    * External callers should only read the file at this path and not modify or delete it.  The actual directory
    * structure of the path should also be treated as an implementation detail of this class and not inspected by
    * external callers.
    *
    * Implementation notes:
-   * Persistent temp files for binaries are stored in a directory named using the ThirdPartySbomMetadata id, with a
+   * Persistent temp files for binaries are stored in a directory/path named using the ThirdPartySbomMetadata id, with a
    * filename matching their original filename as recorded in the ThirdPartyFile. Using the original name for the file
    * is important for enabling the insight-scanner code to process it correctly.
    *
    * @throws IllegalArgumentException if the thirdPartyFile does not match the sbomMetadata or does not contain
    * a sanitizable filename
    */
-  public Path getBinaryPersistentTempFilePath(ThirdPartySbomMetadata sbomMetadata, ThirdPartyFile thirdPartyFile) {
+  public SbomEntity getBinaryPersistentTempFilePath(
+      ThirdPartySbomMetadata sbomMetadata,
+      ThirdPartyFile thirdPartyFile)
+  {
     if (!sbomMetadata.getThirdPartyFileId().equals(thirdPartyFile.getId())) {
       throw new IllegalArgumentException(
           "ThirdPartyFile does not match ThirdPartySbomMetadata: %s vs %s"
@@ -425,10 +431,10 @@ public class ThirdPartyPersistenceService
     }
     catch (CheckedIllegalArgumentException e) {
       throw new IllegalArgumentException(
-          "Peristent temp file path cannot be constructed for unsafe path " + thirdPartyFile.getFilename(), e);
+          "Persistent temp file path cannot be constructed for unsafe path " + thirdPartyFile.getFilename(), e);
     }
 
-    return getBinaryPersistentTempFilePath(sbomMetadata, sanitizedPath);
+    return sbomPersistenceService.getTemporarySbom(sanitizedPath.toString(), sbomMetadata.getId());
   }
 
   /**
@@ -438,14 +444,11 @@ public class ThirdPartyPersistenceService
       ThirdPartySbomMetadata sbomMetadata,
       ThirdPartyFile thirdPartyFile) throws IOException
   {
-    var filePath = getBinaryPersistentTempFilePath(sbomMetadata, thirdPartyFile);
+    SbomEntity persistentTempFile = getBinaryPersistentTempFilePath(sbomMetadata, thirdPartyFile);
+    sbomPersistenceService.deleteSbom(persistentTempFile);
 
-    Files.deleteIfExists(filePath);
-
-    // directory is unique to this sbomMetadata and should contain no other files
-    Files.deleteIfExists(filePath.getParent());
     log.debug("Deleted persistent temporary binary file and directory for SBOM {} at {}",
-        sbomMetadata.getId(), filePath);
+        sbomMetadata.getId(), persistentTempFile.getLocation());
   }
 
   /**
@@ -489,7 +492,7 @@ public class ThirdPartyPersistenceService
     var compressedBinaryFileName =
         "%s.%s.json.gz".formatted(binaryFilenameWithoutExtension, sbomMetadata.getSbomVersion());
 
-    Path compressedSbomPath = null;
+    SbomEntity compressedSbomPath = null;
     try (var tx = sbomMetadataDAO.createTransactionContext()) {
       tx.begin();
 
@@ -497,9 +500,10 @@ public class ThirdPartyPersistenceService
       sbomMetadata.setFilename(compressedBinaryFileName);
       sbomMetadataDAO.update(tx, sbomMetadata);
 
-      compressedSbomPath = getSbomPermanentStoragePath(sbomMetadata);
+      compressedSbomPath =
+          sbomPersistenceService.createPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
 
-      try (var fileStream = Files.newOutputStream(compressedSbomPath, StandardOpenOption.CREATE_NEW);
+      try (var fileStream = compressedSbomPath.getOutputStream();
           var outputStream = new GzipCompressorOutputStream(fileStream)) {
         IOUtils.copy(sbomStream, outputStream);
       }
@@ -507,7 +511,7 @@ public class ThirdPartyPersistenceService
       tx.commit();
     }
     catch (Exception e) {
-      deleteFileDueToException(compressedSbomPath, e);
+      deleteSbomDueToException(compressedSbomPath, e);
       throw e;
     }
   }
@@ -554,18 +558,16 @@ public class ThirdPartyPersistenceService
   }
 
   /**
-   * Attempts to delete all SBOM temporary transient files that are older than the given date. 
+   * Attempts to delete all SBOM temporary transient files that are older than the given date.
    * If it fails to delete one file, it will still attempt to delete the other files.
    * Any failures are logged but IOExceptions are not thrown by this method.
    */
   public void tryDeleteSbomTemporaryTransientFilesOlderThan(Date date) {
-    Collection<File> files = FileUtils.listFiles(
-        insightWork.getSbomTransientDir(),
-        new AgeFileFilter(date),
-        TrueFileFilter.INSTANCE
-    );
-    for (File file : files) {
-      tryDeleteFileIfExists(file.toPath());
+    try {
+      sbomPersistenceService.deleteTransientSbomsOlderThan(date.toInstant());
+    }
+    catch (IOException e) {
+      log.error("Failed to delete SBOM temporary transient files older than {}: {}", date, e.getMessage(), e);
     }
   }
 
@@ -574,7 +576,7 @@ public class ThirdPartyPersistenceService
    * binary files are saved to a persistent temporary location where they can be retrieved later for scanning.
    */
   private ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerSbomOrBinaryFromUserUpload(
-      PersistencePath.TrustedAutoDeletingTempPath sbomPath,
+      SbomEntity sbomEntity,
       PersistencePath.SanitizedUserPath userPath,
       String applicationId,
       String preferredVersion,
@@ -582,7 +584,7 @@ public class ThirdPartyPersistenceService
   {
     if (detectionResult.isSbom) {
       return saveSbomManagerSbom(
-          () -> Files.newInputStream(sbomPath.getPath()),
+          sbomEntity::getInputStream,
           userPath,
           applicationId,
           preferredVersion,
@@ -591,7 +593,7 @@ public class ThirdPartyPersistenceService
     }
     else {
       return saveSbomManagerBinaryFromUserUpload(
-          sbomPath,
+          sbomEntity,
           userPath,
           applicationId,
           preferredVersion,
@@ -610,15 +612,13 @@ public class ThirdPartyPersistenceService
       String userPreferredVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
-    return trySaveInLoop(userPreferredVersion, detectionResult, (versionToSave) -> {
-      return saveSbomWithVersion(
-          sbomContentStreamSupplier,
-          userPath,
-          applicationId,
-          versionToSave,
-          detectionResult
-      );
-    });
+    return trySaveInLoop(userPreferredVersion, detectionResult, (versionToSave) -> saveSbomWithVersion(
+        sbomContentStreamSupplier,
+        userPath,
+        applicationId,
+        versionToSave,
+        detectionResult
+    ));
   }
 
   /**
@@ -631,15 +631,13 @@ public class ThirdPartyPersistenceService
       String userPreferredVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
-    return trySaveInLoop(userPreferredVersion, detectionResult, (versionToSave) -> {
-      return saveSbomWithVersion(
-          sbomContentStreamSupplier,
-          userPath,
-          applicationId,
-          versionToSave,
-          detectionResult
-      );
-    });
+    return trySaveInLoop(userPreferredVersion, detectionResult, (versionToSave) -> saveSbomWithVersion(
+        sbomContentStreamSupplier,
+        userPath,
+        applicationId,
+        versionToSave,
+        detectionResult
+    ));
   }
 
   /**
@@ -647,14 +645,14 @@ public class ThirdPartyPersistenceService
    * to a persistent temp file.
    */
   private ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomManagerBinaryFromUserUpload(
-      PersistencePath.TrustedAutoDeletingTempPath binaryPath,
+      SbomEntity sbomEntity,
       PersistencePath.SanitizedUserPath userPath,
       String applicationId,
       String userPreferredVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
     return trySaveInLoop(userPreferredVersion, detectionResult, (versionToSave) -> saveBinaryWithVersion(
-        binaryPath,
+        sbomEntity,
         userPath,
         applicationId,
         versionToSave,
@@ -736,17 +734,17 @@ public class ThirdPartyPersistenceService
       String applicationVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
-    Path sbomPath = null;
+    SbomEntity sbomEntity1 = null;
     try (var tx = sbomMetadataDAO.createTransactionContext()) {
       tx.begin();
 
-      sbomPath = writeSbomToPermanentStorage(sbomContentStreamSupplier, applicationId, userPath);
+      sbomEntity1 = writeSbomToPermanentStorage(sbomContentStreamSupplier, applicationId, userPath);
 
       var retval =
           saveSbomMetadataToDB(
               tx,
               userPath,
-              sbomPath.getFileName(),
+              sbomEntity1.getName(),
               applicationId,
               applicationVersion,
               SbomScanType.SBOM,
@@ -757,7 +755,7 @@ public class ThirdPartyPersistenceService
       return retval;
     }
     catch (Exception e) {
-      deleteFileDueToException(sbomPath, e);
+      deleteSbomDueToException(sbomEntity1, e);
       throw e;
     }
   }
@@ -767,13 +765,13 @@ public class ThirdPartyPersistenceService
    * the binary itself to disk in persistent temp storage.
    */
   private ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveBinaryWithVersion(
-      PersistencePath.TrustedAutoDeletingTempPath binaryPath,
+      SbomEntity sbomEntity,
       PersistencePath.SanitizedUserPath userPath,
       String applicationId,
       String applicationVersion,
       SbomDetectionResult detectionResult) throws IOException
   {
-    Path persistentTempStoragePath = null;
+    SbomEntity persistentTempSbom = null;
     try (var tx = sbomMetadataDAO.createTransactionContext()) {
       tx.begin();
 
@@ -786,8 +784,8 @@ public class ThirdPartyPersistenceService
       );
       var sbomMetadata = retval.getLeft();
 
-      persistentTempStoragePath = writeBinaryToPersistentTempStorage(
-          binaryPath,
+      persistentTempSbom = writeBinaryToPersistentTempStorage(
+          sbomEntity,
           sbomMetadata,
           userPath
       );
@@ -796,10 +794,7 @@ public class ThirdPartyPersistenceService
       return retval;
     }
     catch (Exception e) {
-      deleteFileDueToException(persistentTempStoragePath, e);
-      if (persistentTempStoragePath != null) {
-        deleteFileDueToException(persistentTempStoragePath.getParent(), e);
-      }
+      deleteSbomDueToException(persistentTempSbom, e);
       throw e;
     }
   }
@@ -860,31 +855,29 @@ public class ThirdPartyPersistenceService
   /**
    * Save the SBOM contents to disk, gzipped, in the permanent storage directory
    */
-  private Path writeSbomToPermanentStorage(
+  private SbomEntity writeSbomToPermanentStorage(
       SupplierWithException<InputStream, IOException> sbomContentStreamSupplier,
       String applicationId,
       PersistencePath.ExtensionSafePath userPath) throws IOException
   {
-    Path sbomPath = null;
+    SbomEntity permanentSbom = null;
     try {
-      File sbomDir = insightWork.getSbomDir(applicationId);
-      Files.createDirectories(sbomDir.toPath().normalize());
-
       String randomUUID = UUID.randomUUID().toString().replace("-", "");
       String extension = userPath.getExtension();
-      String basename = randomUUID + (extension == null ? "" : "." + extension) + ".gz";
-      sbomPath = sbomDir.toPath().normalize().resolve(basename);
+      String fileName = randomUUID + (extension == null ? "" : "." + extension) + ".gz";
+
+      permanentSbom = sbomPersistenceService.createPermanentSbom(applicationId, fileName);
 
       try (InputStream sbomStream = sbomContentStreamSupplier.get();
-          OutputStream fileOutputStream = Files.newOutputStream(sbomPath);
-          GzipCompressorOutputStream outputStream = new GzipCompressorOutputStream(fileOutputStream)) {
-        IOUtils.copy(sbomStream, outputStream);
+          OutputStream outputStream = permanentSbom.getOutputStream();
+          GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
+        IOUtils.copy(sbomStream, compressorOutputStream);
       }
 
-      return sbomPath;
+      return permanentSbom;
     }
     catch (IOException e) {
-      deleteFileDueToException(sbomPath, e);
+      deleteSbomDueToException(permanentSbom, e);
       throw e;
     }
   }
@@ -892,41 +885,22 @@ public class ThirdPartyPersistenceService
   /**
    * Save the SBOM contents to disk, raw, in the persistent temp storage directory
    */
-  private Path writeBinaryToPersistentTempStorage(
-      PersistencePath.TrustedAutoDeletingTempPath binaryTransientPath,
+  private SbomEntity writeBinaryToPersistentTempStorage(
+      SbomEntity sbomEntity, // binaryTransientPath
       ThirdPartySbomMetadata sbomMetadata,
       PersistencePath.SanitizedUserPath userPath) throws IOException
   {
-    Path dest = getBinaryPersistentTempFilePath(sbomMetadata, userPath);
-    Path binaryPath = binaryTransientPath.getPath();
-
+    SbomEntity persistentTempSbom = null;
     try {
-      Files.createDirectories(dest.getParent());
-
-      // For efficiency, try to make a hard link first, and fall back to copying if that fails.
-      // Hard links are generally only supported on UNIX (Windows can also do them but requires admin privileges)
-      boolean hardLinked = false;
-      try {
-        Files.createLink(dest, binaryPath);
-        hardLinked = true;
-      }
-      catch (Exception e) {
-        log.trace("Failed to create hard link from {} to {}", binaryPath, dest, e);
-        // fall through to copy
-      }
-
-      if (!hardLinked) {
-        Files.copy(binaryPath, dest);
-      }
-
-      log.debug("Saved binary file for SBOM {} to {}", sbomMetadata.getId(), dest);
+      persistentTempSbom =
+          sbomPersistenceService.saveTemporarySbom(sbomEntity, userPath.toString(), sbomMetadata.getId());
     }
     catch (IOException e) {
-      deleteFileDueToException(dest, e);
+      deleteSbomDueToException(persistentTempSbom, e);
       throw e;
     }
 
-    return dest;
+    return persistentTempSbom;
   }
 
   /**
@@ -935,7 +909,7 @@ public class ThirdPartyPersistenceService
   private ImmutablePair<ThirdPartySbomMetadata, ThirdPartyFile> saveSbomMetadataToDB(
       TransactionContext tx,
       PersistencePath userPath,
-      Path serverFilePath,
+      String serverFilePath,
       String applicationId,
       String applicationVersion,
       SbomScanType scanType,
@@ -948,7 +922,7 @@ public class ThirdPartyPersistenceService
 
     sbomMetadata.setApplicationId(applicationId);
     sbomMetadata.setThirdPartyFileId(thirdPartyFile.getId());
-    sbomMetadata.setFilename(serverFilePath == null ? null : serverFilePath.toString());
+    sbomMetadata.setFilename(serverFilePath);
     sbomMetadata.setSbomVersion(applicationVersion);
     sbomMetadata.setIsValid(detectionResult.isValid);
     sbomMetadata.setCreatedAt(new Date());
@@ -984,10 +958,10 @@ public class ThirdPartyPersistenceService
     return thirdPartyFile;
   }
 
-  private void deleteFileDueToException(Path path, Exception e) {
-    if (path != null) {
+  private void deleteSbomDueToException(SbomEntity sbomEntity, Exception e) {
+    if (sbomEntity != null) {
       try {
-        Files.deleteIfExists(path);
+        sbomPersistenceService.deleteSbom(sbomEntity);
       }
       catch (IOException ioe) {
         e.addSuppressed(ioe);
@@ -1027,59 +1001,9 @@ public class ThirdPartyPersistenceService
     return versionJoiner.toString();
   }
 
-  /**
-   * @return the basename from the given path, ensuring it is not empty, `.`, or `..`
-   */
-  private static Path getSafeFilename(Path userFilePath) throws CheckedIllegalArgumentException {
-    Path filenamePath = userFilePath.getFileName();
-    if (filenamePath.equals(Path.of("")) || filenamePath.equals(Path.of(".")) || filenamePath.equals(Path.of(".."))) {
-      throw new CheckedIllegalArgumentException("Invalid filename: " + userFilePath);
-    }
-    else {
-      return filenamePath;
-    }
-  }
-
-  /**
-   * Sanitize the file path by normalizing it and ensuring the result is not empty or `.` and does not contain a `..`
-   * segment
-   */
-  private static Path sanitizeUserPath(Path userFilePath) throws CheckedIllegalArgumentException {
-    var normalizedPath = userFilePath.normalize();
-
-    if (normalizedPath.toString().isEmpty() || Path.of(".").equals(normalizedPath)
-        || Streams.stream(normalizedPath.iterator()).anyMatch(Path.of("..")::equals)) {
-      throw new CheckedIllegalArgumentException("Invalid filename: %s".formatted(userFilePath));
-    }
-
-    return normalizedPath;
-  }
-
-  private Path getSbomPermanentStoragePath(ThirdPartySbomMetadata sbomMetadata) {
-    return insightWork.getSbomDir(sbomMetadata.getApplicationId()).toPath().resolve(sbomMetadata.getFilename());
-  }
-
-  private Path getBinaryPersistentTempFilePath(
-      ThirdPartySbomMetadata sbomMetadata,
-      PersistencePath.SanitizedUserPath userPath)
-  {
-    return insightWork.getSbomPersistentTempDir().toPath()
-        .resolve(sbomMetadata.getId())
-        .resolve(userPath.toString());
-  }
-
   private void deleteSbomFile(ThirdPartySbomMetadata sbomMetadata) throws IOException {
     if (sbomMetadata.getFilename() != null) {
-      Files.deleteIfExists(getSbomPermanentStoragePath(sbomMetadata));
-    }
-  }
-
-  private void tryDeleteFileIfExists(Path path) {
-    try {
-      Files.deleteIfExists(path);
-    }
-    catch (IOException e) {
-      log.error("Failed to delete file {}.", path, e);
+      sbomPersistenceService.deleteSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
     }
   }
 }

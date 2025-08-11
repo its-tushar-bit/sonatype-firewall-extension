@@ -6,7 +6,8 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatterBuilder;
 import java.util.Optional;
@@ -21,7 +22,7 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -42,8 +43,6 @@ public abstract class AbstractSbomExporter
 {
   protected final Logger log = LoggerFactory.getLogger(getClass());
 
-  private final InsightWork insightWork;
-
   protected final ThirdPartyFileDAO thirdPartyFileDAO;
 
   protected final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
@@ -62,6 +61,8 @@ public abstract class AbstractSbomExporter
 
   protected final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver;
 
+  protected final ThirdPartyPersistenceService thirdPartyPersistenceService;
+
   protected SbomExportParams exportParams;
 
   protected static final DateTimeFormatterBuilder DATE_TIME_FORMATTER = new DateTimeFormatterBuilder()
@@ -71,7 +72,6 @@ public abstract class AbstractSbomExporter
       .appendLiteral('Z');
 
   protected AbstractSbomExporter(
-      final InsightWork insightWork,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
       final ThirdPartyCoordinateSecurityDAO thirdPartyCoordinateSecurityDAO,
@@ -80,9 +80,9 @@ public abstract class AbstractSbomExporter
       final BaseUrl baseUrl,
       final IdUtils idUtils,
       final VersionService versionService,
-      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
-    this.insightWork = insightWork;
     this.thirdPartyFileDAO = thirdPartyFileDAO;
     this.thirdPartyFileCoordinateDAO = thirdPartyFileCoordinateDAO;
     this.thirdPartyCoordinateSecurityDAO = thirdPartyCoordinateSecurityDAO;
@@ -92,11 +92,11 @@ public abstract class AbstractSbomExporter
     this.idUtils = idUtils;
     this.versionService = versionService;
     this.thirdPartyLicenseResolver = thirdPartyLicenseResolver;
+    this.thirdPartyPersistenceService = thirdPartyPersistenceService;
   }
 
-  protected File getOriginalSbomFile() {
-    File sbomDir = insightWork.getSbomDir(exportParams.sbomMetadata.getApplicationId());
-    return new File(sbomDir, exportParams.sbomMetadata.getFilename());
+  protected InputStream getOriginalSbomContent() throws IOException {
+    return thirdPartyPersistenceService.getSbomContentsInputStream(exportParams.sbomMetadata);
   }
 
   void setExportParams(final SbomExportParams exportParams) {

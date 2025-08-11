@@ -54,8 +54,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.thirdparty.SpdxLicenseExpressionUtil;
+import com.sonatype.insight.brain.thirdparty.ThirdPartyPersistenceService;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -111,7 +111,6 @@ public abstract class AbstractCycloneDxExporter
       IdentificationSource.SONATYPE_CONTAINER.getName();
 
   protected AbstractCycloneDxExporter(
-      final InsightWork insightWork,
       final MultiLicenseDAO multiLicenseDAO,
       final ThirdPartyFileDAO thirdPartyFileDAO,
       final ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO,
@@ -125,10 +124,10 @@ public abstract class AbstractCycloneDxExporter
       final IdUtils idUtils,
       final VersionService versionService,
       final ApiReportDataServiceV2 apiReportDataServiceV2,
-      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver)
+      final ThirdPartyComponentLicenseResolutionService thirdPartyLicenseResolver,
+      final ThirdPartyPersistenceService thirdPartyPersistenceService)
   {
     super(
-        insightWork,
         thirdPartyFileDAO,
         thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO,
@@ -137,7 +136,8 @@ public abstract class AbstractCycloneDxExporter
         baseUrl,
         idUtils,
         versionService,
-        thirdPartyLicenseResolver
+        thirdPartyLicenseResolver,
+        thirdPartyPersistenceService
     );
     this.multiLicenseDAO = multiLicenseDAO;
     this.spdxLicenseExpressionUtil = new SpdxLicenseExpressionUtil(multiLicenseDAO);

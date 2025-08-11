@@ -18,7 +18,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
-import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
@@ -60,9 +59,6 @@ public class SpdxToSpdxExporterTest
   private ThirdPartyVulnerabilityExploitabilityExchangeDAO vulnerabilityExploitabilityExchangeDAO;
 
   @Inject
-  private ThirdPartyFileDAO thirdPartyFileDAO;
-
-  @Inject
   private ThirdPartyFileCoordinateDAO thirdPartyFileCoordinateDAO;
 
   @Inject
@@ -89,9 +85,9 @@ public class SpdxToSpdxExporterTest
 
   @Before
   public void before() {
-    spdxExporter = new SpdxToSpdxExporter(mockInsightWork, thirdPartyFileDAO, thirdPartyFileCoordinateDAO,
+    spdxExporter = new SpdxToSpdxExporter(thirdPartyFileDAO, thirdPartyFileCoordinateDAO,
         thirdPartyCoordinateSecurityDAO, thirdPartyCoordinateLicenseDAO, vulnerabilityExploitabilityExchangeDAO,
-        baseUrl, idUtils, versionService, thirdPartyLicenseResolver);
+        baseUrl, idUtils, versionService, thirdPartyLicenseResolver, buildThirdPartyPersistenceService());
     when(baseUrl.get()).thenReturn("http://localhost:8070/");
     app = tempEntity.newApplicationWithParent();
   }

@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
@@ -143,6 +144,8 @@ public class ScanPolicyEvaluator
 
   private final AggregateFileDAO aggregateFileDAO;
 
+  private final ApplicationDAO applicationDAO;
+
   private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
 
   private final ApplicationComponentDAO applicationComponentDAO;
@@ -212,6 +215,7 @@ public class ScanPolicyEvaluator
       final PolicyViolationDAO policyViolationDAO,
       final AggregateFileDAO aggregateFileDAO,
       final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
+      final ApplicationDAO applicationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
@@ -249,6 +253,7 @@ public class ScanPolicyEvaluator
     this.policyViolationDAO = policyViolationDAO;
     this.aggregateFileDAO = aggregateFileDAO;
     this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
+    this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -1155,7 +1160,21 @@ public class ScanPolicyEvaluator
       List<PolicyViolation> policyViolations,
       boolean createAlerts)
   {
-    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
+    try {
+      Application application = applicationDAO.getByIdNotNull(policyEvaluation.getApplicationId());
+      ReportComponentData reportComponentData =
+          reportComponentService.fetchReportAndComponents(application,
+              policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
+
+      List<Component> components = reportComponentData != null ?
+          reportComponentData.components : Collections.emptyList();
+
+      return createPolicyEvaluationResult(policyEvaluation, components, policyViolations, createAlerts);
+    }
+    catch (Exception e) {
+      log.warn("Failed to fetch components for policy evaluation", e);
+      return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
+    }
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(

@@ -89,7 +89,7 @@ describe('mainHeaderSpec', function () {
     expect(unsubscribeSpy).toHaveBeenCalled();
   });
 
-  fit('does not load permissions or features until after login', function () {
+  it('does not load permissions or features until after login', function () {
     vm.$onInit();
 
     expect(permissionService.getValidPermissions).not.toHaveBeenCalled();

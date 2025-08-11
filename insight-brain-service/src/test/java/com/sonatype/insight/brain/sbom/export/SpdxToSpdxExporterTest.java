@@ -166,7 +166,6 @@ public class SpdxToSpdxExporterTest
     spdxExporter.setExportParams(exportParams);
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, format);
-
     assertThatJson(export)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
         .isEqualTo(readFileToString("outputs/output_spdx-v2_3_from_v2_2.json"));

@@ -2,12 +2,12 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.2",
   "creationInfo" : {
-    "created" : "2025-07-02T09:33:56Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT" ]
+    "created" : "2025-08-01T21:30:36Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.194.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-733fbb1a81d7463abe1cf09a5f30995a",
+  "name" : "DUMMY-PUBLIC-ID-180497a80c494d99b36cd86c344dd0d0",
   "dataLicense" : "CC0-1.0",
-  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-733fbb1a81d7463abe1cf09a5f30995a/bom/1.0.1",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-180497a80c494d99b36cd86c344dd0d0/bom/1.0.1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
     "copyrightText" : "NOASSERTION",
@@ -118,13 +118,13 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
-      "referenceType" : "purl"
-    }, {
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
       "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
+      "referenceType" : "purl"
     } ],
     "filesAnalyzed" : true,
     "licenseConcluded" : "NOASSERTION",
@@ -151,10 +151,10 @@
   }, {
     "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
+    "relatedSpdxElement" : "SPDXRef-maven-org.yaml-snakeyaml-1.29"
   }, {
     "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-maven-org.yaml-snakeyaml-1.29"
+    "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
   } ]
 }

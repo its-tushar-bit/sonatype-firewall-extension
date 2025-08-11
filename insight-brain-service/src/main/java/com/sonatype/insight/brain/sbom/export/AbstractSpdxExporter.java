@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.SbomIdentityUtils;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateLicenseDAO;
@@ -44,6 +45,7 @@ import org.spdx.library.InvalidSPDXAnalysisException;
 import org.spdx.library.ModelCopyManager;
 import org.spdx.library.SpdxConstants;
 import org.spdx.library.model.ExternalRef;
+import org.spdx.library.model.ModelObject;
 import org.spdx.library.model.ReferenceType;
 import org.spdx.library.model.Relationship;
 import org.spdx.library.model.SpdxCreatorInformation;
@@ -163,7 +165,6 @@ public abstract class AbstractSpdxExporter
       final SpdxDocument newDocument)
       throws InvalidSPDXAnalysisException
   {
-    SpdxPackage originalRootPkg = SbomSpdxUtils.getRootPackage(originalDocument);
     List<SpdxPackage> originalDocPackages = SbomSpdxUtils.getAllPackages(originalDocument);
 
     for (SpdxPackage pkg : originalDocPackages) {
@@ -221,9 +222,6 @@ public abstract class AbstractSpdxExporter
         if (Objects.nonNull(licenseSetForSpdxPackage)) {
           newPkg.getAttributionText().add("Evidence license text for: " + licenseSetForSpdxPackage);
         }
-      }
-      if (originalRootPkg != null && StringUtils.equals(originalRootPkg.getId(), pkg.getId())) {
-        newDocument.getDocumentDescribes().add(newPkg);
       }
     }
     copyDependencyRelationships(originalDocument, newDocument);
@@ -342,6 +340,9 @@ public abstract class AbstractSpdxExporter
       final SpdxDocument newDocument)
       throws InvalidSPDXAnalysisException
   {
+    Set<String> documentDescribes =
+        originalDocument.getDocumentDescribes().stream().filter(spdxElement -> spdxElement instanceof SpdxPackage)
+            .map(ModelObject::getId).collect(Collectors.toSet());
     for (SpdxPackage pkg : SbomSpdxUtils.getAllPackages(originalDocument)) {
       SpdxPackage newPackage = SbomSpdxUtils.getPackageById(newDocument, pkg.getId());
       if (newPackage != null) {
@@ -355,6 +356,9 @@ public abstract class AbstractSpdxExporter
               newPackage.addRelationship(newDocumentRelationship);
             }
           }
+        }
+        if (documentDescribes.contains(newPackage.getId())) {
+          newDocument.getDocumentDescribes().add(newPackage);
         }
       }
     }

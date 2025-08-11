@@ -170,7 +170,7 @@ public final class SbomSpdxUtils
       if (!describes.isEmpty()) {
         Optional<SpdxPackage> documentDescribesPackage = describes.stream().filter(Objects::nonNull)
             .filter(spdxElement -> spdxElement instanceof SpdxPackage).map(spdxElement -> (SpdxPackage) spdxElement)
-            .findAny();
+            .findFirst();
         if (documentDescribesPackage.isPresent()) {
           return documentDescribesPackage.get();
         }

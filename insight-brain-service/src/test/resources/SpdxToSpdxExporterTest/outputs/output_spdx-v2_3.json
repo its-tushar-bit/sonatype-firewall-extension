@@ -2,12 +2,12 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2025-07-02T09:37:21Z",
-    "creators" : [ "Tool: Sonatype SBOM Manager - 1.193.0-SNAPSHOT" ]
+    "created" : "2025-08-01T21:23:06Z",
+    "creators" : [ "Tool: Sonatype SBOM Manager - 1.194.0-SNAPSHOT" ]
   },
-  "name" : "DUMMY-PUBLIC-ID-5802fa26634c43fabb293c4535852b08",
+  "name" : "DUMMY-PUBLIC-ID-5e8b398c50314100b051b46e4d07bfd3",
   "dataLicense" : "CC0-1.0",
-  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-5802fa26634c43fabb293c4535852b08/bom/1.0.1",
+  "documentNamespace" : "http://localhost:8070/ui/links/sbomManager/management/view/application/DUMMY-PUBLIC-ID-5e8b398c50314100b051b46e4d07bfd3/bom/1.0.1",
   "packages" : [ {
     "SPDXID" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2",
     "copyrightText" : "",
@@ -123,14 +123,14 @@
     "copyrightText" : "NOASSERTION",
     "downloadLocation" : "NOASSERTION",
     "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
-      "referenceType" : "purl"
-    }, {
       "comment" : "source: SONATYPE",
       "referenceCategory" : "SECURITY",
       "referenceLocator" : "http://localhost:8070/ui/links/vln/sonatype-2018-0863",
       "referenceType" : "advisory"
+    }, {
+      "referenceCategory" : "PACKAGE-MANAGER",
+      "referenceLocator" : "pkg:maven/com.h2database/h2@2.3.232?type=jar",
+      "referenceType" : "purl"
     } ],
     "filesAnalyzed" : true,
     "licenseConcluded" : "NOASSERTION",
@@ -142,17 +142,17 @@
   "files" : [ {
     "SPDXID" : "SPDXRef-997583b27e554729b7e310678f0b5690-file",
     "checksums" : [ {
-      "algorithm" : "MD5",
-      "checksumValue" : "486929f2b29510c678dc3c31a9f34271"
-    }, {
       "algorithm" : "SHA1",
       "checksumValue" : "1915a4f74b1f1243ebe1d5e23e915f8a264e9e66"
     }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37"
+      "algorithm" : "MD5",
+      "checksumValue" : "486929f2b29510c678dc3c31a9f34271"
     }, {
       "algorithm" : "SHA512",
       "checksumValue" : "790bbdde3eee17522cc51f2cd96af908815de0b0965ee30280d198b76195e38a75fdc8b65fe63e3568e48d42fce72d3afbff80b9dd258c6271e2fcca97f0ffda"
+    }, {
+      "algorithm" : "SHA256",
+      "checksumValue" : "4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37"
     } ],
     "copyrightText" : "NOASSERTION",
     "fileName" : "h2.jar",
@@ -160,6 +160,10 @@
     "licenseInfoInFiles" : [ "NOASSERTION" ]
   } ],
   "relationships" : [ {
+    "spdxElementId" : "SPDXRef-DOCUMENT",
+    "relationshipType" : "DESCRIBES",
+    "relatedSpdxElement" : "SPDXRef-997583b27e554729b7e310678f0b5690"
+  }, {
     "spdxElementId" : "SPDXRef-DOCUMENT",
     "relationshipType" : "DESCRIBES",
     "relatedSpdxElement" : "SPDXRef-generic-sonatype-iq-application-SCM-Test"
@@ -174,15 +178,15 @@
   }, {
     "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
     "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-maven-junit-junit-4.12"
+  }, {
+    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
+    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-maven-org.yaml-snakeyaml-1.29"
   }, {
     "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-maven-org.apache.logging.log4j-log4j-core-2.13.2"
-  }, {
-    "spdxElementId" : "SPDXRef-generic-sonatype-iq-application-SCM-Test",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-maven-junit-junit-4.12"
   }, {
     "spdxElementId" : "SPDXRef-997583b27e554729b7e310678f0b5690",
     "relationshipType" : "CONTAINS",

@@ -46,10 +46,19 @@ pipeline {
   }
 
   stages {
+    stage('Initialize') {
+      steps {
+        script {
+          currentBuild.displayName = "#${currentBuild.number} : ${params.environment}"
+        }
+      }
+    }
+
     stage('Get IER Dashboard Configurations') {
       steps {
         script {
           echo "running for environment: ${params.environment}"
+
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
           withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
@@ -78,7 +87,7 @@ pipeline {
           echo "running for environment: ${params.environment}"
           def s3Configuration = s3ConfigurationByEnv[params.environment]
 
-          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, , credentialsId: s3Configuration.credentialsId) {
+          withAwsRole(region: 'us-east-2', role: s3Configuration.role, roleAccount: s3Configuration.account, credentialsId: s3Configuration.credentialsId) {
             def bucket = s3Configuration.usEast2Bucket
 
             def iconsZipContents = readIconZipContents(bucket, iconsFileName)

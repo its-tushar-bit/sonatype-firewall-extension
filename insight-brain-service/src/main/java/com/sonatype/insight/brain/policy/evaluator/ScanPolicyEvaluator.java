@@ -1160,21 +1160,7 @@ public class ScanPolicyEvaluator
       List<PolicyViolation> policyViolations,
       boolean createAlerts)
   {
-    try {
-      Application application = applicationDAO.getByIdNotNull(policyEvaluation.getApplicationId());
-      ReportComponentData reportComponentData =
-          reportComponentService.fetchReportAndComponents(application,
-              policyEvaluation.getScanId(), policyEvaluation.getStageTypeId());
-
-      List<Component> components = reportComponentData != null ?
-          reportComponentData.components : Collections.emptyList();
-
-      return createPolicyEvaluationResult(policyEvaluation, components, policyViolations, createAlerts);
-    }
-    catch (Exception e) {
-      log.warn("Failed to fetch components for policy evaluation", e);
-      return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
-    }
+    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(

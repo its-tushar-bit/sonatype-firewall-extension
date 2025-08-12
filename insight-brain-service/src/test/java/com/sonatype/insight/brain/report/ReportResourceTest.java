@@ -1280,7 +1280,7 @@ public class ReportResourceTest
     assertThat(data.get("effectiveLicenseCounts").toString()).isEqualTo("[11,0,1,0,0,11,2,0,0,4,0]");
 
     assertThat(data.get("insecureArtifactCount").asInt()).isEqualTo(8);
-    assertThat(data.get("securityCounts").toString()).isEqualTo("[0,8,0,0,4,26,30,4,0,2]");
+    assertThat(data.get("securityCounts").toString()).isEqualTo("[0,4,0,0,2,13,15,2,0,1]");
 
     assertThat(data.get("policyCounts").toString()).isEqualTo("[2,0,0,0,0,0,0,0,0,0,0]");
     assertThat(data.get("policyComponentCount").asInt()).isEqualTo(0);

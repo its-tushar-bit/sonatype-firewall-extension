@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.api.v2.dto.remediation.actions.ApiComponentCha
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiSuggestedVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
@@ -93,6 +94,9 @@ public class ManualPullRequestCreationServiceTest
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
+
+  @Inject
+  private PolicyDAO policyDAO;
 
   @Rule
   public LogOutput logOutput = new LogOutput(ManualPullRequestCreationService.class);
@@ -423,6 +427,42 @@ public class ManualPullRequestCreationServiceTest
     assertThat(logOutput).atDebugLevel().contains(
         "InnerSource component detected, skipping policy violations for component"
     );
+  }
+
+  @Test
+  public void testCreateManualRemediationPullRequest_policyDeleted_success() throws Exception {
+    ComponentIdentifier mavenComponentIdentifier = ComponentIdentifier.createMavenCoordinates(
+        "group", "artifact", DEFAULT_VERSION);
+    String branchName = branchNameGenerator.getBranchName(application, mavenComponent, DEFAULT_REMEDIATION_VERSION);
+    PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), stage.getStageTypeId(), DEFAULT_SCAN_ID);
+    Policy policy = tempEntity.newPolicy(application);
+    tempEntity.newPolicyViolation(evaluation, policy, mavenComponent, "abcd");
+    when(mockComponentInfoService.getComponentVersionInfoNoAuth(OwnerType.APPLICATION, application.getPublicId(),
+        mavenComponentIdentifier, "build", "Sonatype", DEFAULT_SCAN_ID, DependencyType.DIRECT,
+        SourceEndpoint.MANUAL_PULL_REQUEST,
+        true)).thenReturn(setupComponentVersionInfoDTO());
+    policyDAO.delete(policy);
+
+    PullRequestSubmissionResultDTO result = manualPrService.createManualRemediationPullRequest(
+        application.getId(),
+        DEFAULT_SCAN_ID,
+        mavenComponent,
+        DEFAULT_REMEDIATION_VERSION,
+        "Sonatype",
+        true
+    );
+
+    assertThat(result.id()).isNotEmpty();
+    SourceControlEvent sourceControlEvent = sourceControlEventDAO.getById(result.id());
+    assertThat(sourceControlEvent.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(sourceControlEvent.getApplicationId()).isEqualTo(application.getId());
+    assertThat(sourceControlEvent.getScanId()).isEqualTo(DEFAULT_SCAN_ID);
+    assertThat(sourceControlEvent.getComponentIdentifier()).isEqualTo(mavenComponent);
+    assertThat(sourceControlEvent.getBranchName()).isEqualTo(branchName);
+    assertThat(sourceControlEvent.getRemediationVersion()).isEqualTo(DEFAULT_REMEDIATION_VERSION);
+    assertThat(sourceControlEvent.getStageTypeId()).isEqualTo(stage.getStageTypeId());
+    assertThat(sourceControlEvent.getInitiator()).isEqualTo("manual request");
   }
 
   private void setupPolicyEvaluationAndViolation() {

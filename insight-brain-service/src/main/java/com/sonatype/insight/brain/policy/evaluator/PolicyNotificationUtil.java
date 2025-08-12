@@ -59,9 +59,16 @@ public class PolicyNotificationUtil
         policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(), policyViolation.getThreatLevel());
         policyFactsByPolicyId.put(policyId, policyFact);
 
-        Policy policy = policyDAO.getByIdNotNull(policyId);
-        Notifications notifications =
-            policy.getEffectiveNotifications(ownerIds).getApplicable(stageTypeId, forMonitoring);
+        Policy policy = policyDAO.getById(policyId);
+        Notifications notifications;
+        if (policy == null) {
+          // The policy has since been deleted, so there are no configured notifications to consider sending
+          notifications = new Notifications();
+        }
+        else {
+          notifications =
+              policy.getEffectiveNotifications(ownerIds).getApplicable(stageTypeId, forMonitoring);
+        }
         PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
         result.add(policyNotification);
       }

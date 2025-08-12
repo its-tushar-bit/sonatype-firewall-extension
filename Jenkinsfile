@@ -18,7 +18,7 @@ make(
     javaVersion: 'OpenJDK 17',
     mavenVersion: 'Maven 3.9.x',
     mavenOptions: "-D skip-functional-test -D build.number=${env.BUILD_NUMBER} --threads 4",
-    retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.DEFAULT : RetentionPolicy.SHORT_TERM,
+    retentionPolicy: currentBuild.fullProjectName.endsWith('/main') ? RetentionPolicy.HUNDRED_BUILDS : RetentionPolicy.SHORT_TERM,
     snapshotBuildAndTest: { Map<String, ?> mavenCommon, String keystoreCredId, boolean deployToRepo, boolean useInstall4J ->
       echo "Using mavenVersion='${mavenCommon.get('mavenVersion')}'"
 

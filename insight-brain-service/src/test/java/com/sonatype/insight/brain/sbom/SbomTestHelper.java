@@ -54,7 +54,7 @@ public class SbomTestHelper
       "creationInfo.created", "creationInfo.creators[0]", "documentNamespace",
       "vulnerabilities[*].analysis.lastUpdated", "vulnerabilities[*].analysis.firstIssued",
       "vulnerabilities[*].bom-ref", "components[*].licenses[*].license.bom-ref",
-      "components[*].properties[*].value", "name", "packages[*].name"
+      "components[*].properties[*].value", "name", "packages[*].name", "dependencies[0].ref"
   };
 
   public static Predicate<Node> spdxDxIgnoreNodesFilter() {
@@ -122,17 +122,24 @@ public class SbomTestHelper
       if ("bom-ref".equals(attr.getName()) && "license".equals(attr.getOwnerElement().getNodeName())) {
         return false;
       }
-      if ("ref".equals(attr.getName()) && "dependency".equals(attr.getOwnerElement().getNodeName())) {
-        NodeList elementsWithTagNameComponent = attr.getOwnerDocument().getElementsByTagName("component");
-        Node bomComponent = null;
-        for (int i = 0; i < elementsWithTagNameComponent.getLength(); i++) {
-          if (elementsWithTagNameComponent.item(i).getParentNode().getNodeName().equals("metadata")) {
-            bomComponent = elementsWithTagNameComponent.item(i);
+      // for bom/dependencies element we always generate a new parent bom-ref (UUID) attribute during exports
+      // so we need to ignore the ref attribute in the first dependency element during comparison
+      // there are other dependencies elements in the bom that are not ignored
+      if ("ref".equals(attr.getName()) && attr.getValue() != null &&
+          "dependency".equals(attr.getOwnerElement().getNodeName())) {
+        //make sure this is the bom/dependencies element
+        if (attr.getOwnerElement().getParentNode().getNodeName().equals("dependencies") &&
+            attr.getOwnerElement().getParentNode().getParentNode().getNodeName().equals("bom")) {
+          NodeList dependencies = attr.getOwnerDocument().getElementsByTagName("dependencies");
+          if (dependencies.getLength() > 0) {
+            Node firstChild = dependencies.item(0).getFirstChild();
+            if (firstChild != null && firstChild.getAttributes().getLength() > 0) {
+              Node ref = firstChild.getAttributes().getNamedItem("ref");
+              if (ref != null && attr.getNodeValue().equals(ref.getNodeValue())) {
+                return false;
+              }
+            }
           }
-        }
-        if (bomComponent != null &&
-            attr.getValue().equals(bomComponent.getAttributes().getNamedItem("bom-ref").getNodeValue())) {
-          return false;
         }
       }
       return true;

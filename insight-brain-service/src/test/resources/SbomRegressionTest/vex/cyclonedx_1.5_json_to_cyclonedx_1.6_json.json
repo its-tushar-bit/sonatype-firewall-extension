@@ -1,0 +1,18 @@
+{
+  "aaData": [
+    {
+      "refId": "CVE-2022-40155",
+      "vex": {
+        "componentLocator": {
+          "packageUrl": "pkg:npm/acme/component@1.0.0"
+        },
+        "vulnerabilityAnalysis": {
+          "state": "exploitable",
+          "justification": "code_not_present",
+          "response": "can_not_fix",
+          "detail": ""
+        }
+      }
+    }
+  ]
+}

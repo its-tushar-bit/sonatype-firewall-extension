@@ -173,6 +173,14 @@ public class SbomRegressionTest
         {"cyclonedx", "1.4", "json", "spdx", "2.2", "json", ""},
         {"cyclonedx", "1.4", "json", "spdx", "2.3", "xml", ""},
         {"cyclonedx", "1.4", "json", "spdx", "2.3", "json", ""},
+        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "xml", ""},
+        {"cyclonedx", "1.5", "xml", "cyclonedx", "1.6", "json", ""},
+        {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "xml", ""},
+        {"cyclonedx", "1.5", "json", "cyclonedx", "1.6", "json", ""},
+        {"cyclonedx", "1.5", "xml", "spdx", "2.3", "xml", ""},
+        {"cyclonedx", "1.5", "xml", "spdx", "2.3", "json", ""},
+        {"cyclonedx", "1.5", "json", "spdx", "2.3", "xml", ""},
+        {"cyclonedx", "1.5", "json", "spdx", "2.3", "json", ""},
         };
     return Arrays.asList(data);
   }

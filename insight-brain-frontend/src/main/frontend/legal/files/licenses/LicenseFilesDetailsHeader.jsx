@@ -48,6 +48,7 @@ export default function LicenseFilesDetailsHeader(props) {
           stageTypeId,
           hash,
           componentIdentifier,
+          null, // scanId
           isSbomManager
         )}
         text="Back to Component Obligations"

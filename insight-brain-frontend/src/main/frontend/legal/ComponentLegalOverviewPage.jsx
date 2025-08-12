@@ -121,15 +121,31 @@ export default function ComponentLegalOverviewPage(props) {
   const isComponentEcosystemSupported = () =>
     SUPPORTED_COMPONENTS_ECOSYSTEM.find((supportedEcosystem) => supportedEcosystem === ecosystem);
 
-  const getDefaultBackButtonUrl = () =>
-    applicationPublicId && stageTypeId
+  const escapeRegExp = function (str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  };
+
+  const getDefaultBackButtonUrl = () => {
+    const currentPath = $state.href($state.getCurrentPath());
+    // This is just to check if previous route state in memory is a nested component page (license, copyright, etc.)
+    // Prev state here should only be used when coming from component or application dashboard.
+    // otherwise it will create loop and not really redirect back to the page previously visited before the Legal
+    // overview page.
+    const prevStatePath = prevState && prevState.name ? $state.href($state.get(prevState.name)) : '';
+    const regexpChildrenPage = new RegExp(`^(${escapeRegExp(currentPath || '')})(/.*)?$`);
+    const previousStateIsChildrenPage = regexpChildrenPage.test(prevStatePath);
+
+    return applicationPublicId && stageTypeId
       ? $state.href($state.get(`${prefix}.applicationDetails`), {
           applicationPublicId: applicationPublicId,
           stageTypeId: stageTypeId,
         })
+      : !previousStateIsChildrenPage
+      ? $state.href(`${prefix}.componentsDashboard`)
       : $state.href($state.get(prevState.name), { ...prevParams });
+  };
 
-  const backHref =
+  const backHref = () =>
     tabId === 'legal' && scanId
       ? $state.href('applicationReport.componentDetails.legal', {
           publicId: applicationPublicId,
@@ -137,11 +153,10 @@ export default function ComponentLegalOverviewPage(props) {
           hash,
         })
       : getDefaultBackButtonUrl();
-
   return (
     <main className="nx-page-main nx-viewport-sized iq-component-legal-overview-page">
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-legal-overview-page__content">
-        <MenuBarBackButton href={backHref} text="Back" />
+        <MenuBarBackButton href={backHref()} text="Back" />
         <LoadWrapper loading={loading} error={error} retryHandler={load}>
           {component && (
             <React.Fragment>

@@ -67,7 +67,7 @@ export function backToComponentOverviewUrl(
   stageTypeId,
   hash,
   componentIdentifier,
-  scanId = null,
+  scanId,
   isSbomManager
 ) {
   let state = '';
@@ -92,7 +92,6 @@ export function backToComponentOverviewUrl(
   }
 
   state = `${isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE}.${state}`;
-
   return $state.href($state.get(state), params);
 }
 

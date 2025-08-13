@@ -375,7 +375,7 @@ public class ThirdPartyPersistenceService
   {
     var sanitizedPath = new PersistencePath.SanitizedUserPath(userFilename);
 
-    SbomEntity transientSbom = sbomPersistenceService.createTransientSbom(sanitizedPath.toString());
+    SbomEntity transientSbom = sbomPersistenceService.getTransientSbom(sanitizedPath.toString());
     try (var outputStream = transientSbom.getOutputStream()) {
       IOUtils.copy(sbomStream, outputStream);
     }
@@ -501,10 +501,13 @@ public class ThirdPartyPersistenceService
       sbomMetadataDAO.update(tx, sbomMetadata);
 
       compressedSbomPath =
-          sbomPersistenceService.createPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
+          sbomPersistenceService.doGetSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
+      if (compressedSbomPath.exists()) {
+        throw new IOException("SBOM already exists: " + compressedSbomPath.getLocation());
+      }
 
       try (var fileStream = compressedSbomPath.getOutputStream();
-          var outputStream = new GzipCompressorOutputStream(fileStream)) {
+           var outputStream = new GzipCompressorOutputStream(fileStream)) {
         IOUtils.copy(sbomStream, outputStream);
       }
 
@@ -866,11 +869,14 @@ public class ThirdPartyPersistenceService
       String extension = userPath.getExtension();
       String fileName = randomUUID + (extension == null ? "" : "." + extension) + ".gz";
 
-      permanentSbom = sbomPersistenceService.createPermanentSbom(applicationId, fileName);
+      permanentSbom = sbomPersistenceService.doGetSbom(applicationId, fileName);
+      if (permanentSbom.exists()) {
+        throw new IOException("SBOM already exists: " + permanentSbom.getLocation());
+      }
 
       try (InputStream sbomStream = sbomContentStreamSupplier.get();
-          OutputStream outputStream = permanentSbom.getOutputStream();
-          GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
+           OutputStream outputStream = permanentSbom.getOutputStream();
+           GzipCompressorOutputStream compressorOutputStream = new GzipCompressorOutputStream(outputStream)) {
         IOUtils.copy(sbomStream, compressorOutputStream);
       }
 

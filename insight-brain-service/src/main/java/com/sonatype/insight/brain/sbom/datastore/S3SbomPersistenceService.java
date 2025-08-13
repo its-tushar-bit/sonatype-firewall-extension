@@ -1,0 +1,213 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+package com.sonatype.insight.brain.sbom.datastore;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.time.Instant;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.aws.s3.S3OutputStream;
+import com.sonatype.insight.brain.aws.s3.S3Utils;
+import com.sonatype.insight.brain.report.S3ObjectKey;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+
+import datadog.trace.api.Trace;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Object;
+
+import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
+import static java.util.Objects.requireNonNull;
+
+public class S3SbomPersistenceService
+    extends SbomPersistenceService
+{
+  private static final Logger log = LoggerFactory.getLogger(S3SbomPersistenceService.class);
+
+  private static final String PERMANENT_SBOM_FORMAT = "sboms/%s/%s%s";
+
+  private static final String TEMPORARY_SBOM_FORMAT = "sboms/temp/persistent/%s%s%s";
+
+  private static final String TRANSIENT_SBOM_FORMAT = "sboms/temp/transient/%s%s";
+
+  private final S3Client s3Client;
+
+  private final S3DataStoreConfig s3DataStoreConfig;
+
+  @Inject
+  public S3SbomPersistenceService(final S3Client s3Client, final InsightConfig insightConfig) {
+    this.s3Client = requireNonNull(s3Client);
+    this.s3DataStoreConfig = insightConfig.getStorage().getS3Config();
+    requireNonNull(s3DataStoreConfig.getBucketName());
+    requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
+  }
+
+  @Override
+  @Trace
+  public SbomEntity doGetSbom(final String appId, final String fileName) {
+    S3ObjectKey key = getPermanentSbomKey(appId, fileName);
+    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, appId, fileName);
+  }
+
+  @Override
+  @Trace
+  public SbomEntity getTemporarySbom(final String fileName, final String prefix) {
+    S3ObjectKey key = getTemporarySbomKey(fileName, prefix);
+    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, null, fileName);
+  }
+
+  @Override
+  @Trace
+  public SbomEntity getTransientSbom(final String fileName) {
+    String uniqueFileName = generateTempFileName(fileName);
+    S3ObjectKey key = getTransientSbomKey(uniqueFileName);
+
+    log.debug("Created transient SBOM entity in S3: {}", key);
+    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, null, uniqueFileName);
+  }
+
+  @Override
+  @Trace
+  public SbomEntity saveTemporarySbom(
+      final SbomEntity sbomEntity,
+      final String fileName,
+      @Nullable final String prefix) throws IOException
+  {
+    S3ObjectKey targetKey = getTemporarySbomKey(fileName, prefix);
+
+    try (InputStream inputStream = sbomEntity.getInputStream();
+         OutputStream outputStream = new S3OutputStream(s3Client, targetKey.toString(),
+             s3DataStoreConfig.getBucketName())) {
+      inputStream.transferTo(outputStream);
+    }
+
+    log.debug("Saved temporary SBOM from {} to {}", sbomEntity.getLocation(), targetKey);
+    return new S3SbomEntity(targetKey, s3Client, s3DataStoreConfig, sbomEntity.getAppId(), fileName);
+  }
+
+  @Override
+  @Trace
+  public void deleteSbom(final SbomEntity sbomEntity) throws IOException {
+    if (sbomEntity instanceof S3SbomEntity s3SbomEntity) {
+      deleteByKey(s3SbomEntity.key());
+    }
+    else {
+      throw new IllegalArgumentException("Cannot delete non-S3 SBOM entity with S3 service: " + sbomEntity.getClass());
+    }
+  }
+
+  @Override
+  @Trace
+  public void deleteSbom(final String appId, final String fileName) throws IOException {
+    S3ObjectKey key = getPermanentSbomKey(appId, fileName);
+    deleteByKey(key);
+  }
+
+  @Override
+  @Trace
+  public void deleteSbomsFor(final String appId) throws IOException {
+    log.debug("Deleting all SBOMs in S3 for applicationId '{}'", appId);
+    String keyPrefix = String.format(PERMANENT_SBOM_FORMAT, appId, "", "");
+    S3Utils.deleteAllWithPrefix(s3Client, s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix() + keyPrefix);
+  }
+
+  @Override
+  @Trace
+  public void deleteTransientSbomsOlderThan(final Instant instant) throws IOException {
+    log.debug("Deleting transient SBOMs older than {}", instant);
+    String keyPrefix = s3DataStoreConfig.getObjectKeyPrefix() + "sboms/temp/transient/";
+
+    try (Stream<S3Object> objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(), keyPrefix)) {
+      Set<ObjectIdentifier> keysToDelete = objects
+          .filter(s3Object -> s3Object.lastModified().compareTo(instant) <= 0)
+          .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
+          .collect(Collectors.toSet());
+
+      if (!keysToDelete.isEmpty()) {
+        DeleteObjectsRequest request = DeleteObjectsRequest.builder()
+            .bucket(s3DataStoreConfig.getBucketName())
+            .delete(delete -> delete.objects(keysToDelete))
+            .build();
+
+        wrapS3Exception(() -> s3Client.deleteObjects(request));
+        log.debug("Deleted {} transient SBOMs older than {}", keysToDelete.size(), instant);
+      }
+    }
+  }
+
+  private String generateTempFileName(final String fileName) {
+    String extension = StringUtils.substringAfterLast(fileName, ".");
+
+    long timestamp = System.currentTimeMillis();
+    int random = (int) (Math.random() * 1000000);
+    String uniquePart = timestamp + "-" + random;
+
+    if (StringUtils.isBlank(extension) || extension.equals(fileName)) {
+      return "sbom-" + uniquePart;
+    }
+    else {
+      return "sbom-" + uniquePart + "." + extension;
+    }
+  }
+
+  /**
+   * permanent SBOM: sboms/{appId}/{fileName}
+   */
+  private S3ObjectKey getPermanentSbomKey(final String appId, final String fileName) {
+    return new S3ObjectKey(PERMANENT_SBOM_FORMAT, appId, "", fileName, s3DataStoreConfig.getObjectKeyPrefix());
+  }
+
+  /**
+   * temporary SBOM: sboms/temp/persistent/{prefix}/{fileName}
+   */
+  private S3ObjectKey getTemporarySbomKey(final String fileName, final String prefix) {
+    String pathPrefix = prefix != null ? prefix + "/" : "";
+    return new S3ObjectKey(TEMPORARY_SBOM_FORMAT, pathPrefix, "", fileName,
+        s3DataStoreConfig.getObjectKeyPrefix());
+  }
+
+  /**
+   * transient SBOM: sboms/temp/transient/{fileName}
+   */
+  private S3ObjectKey getTransientSbomKey(final String fileName) {
+    return new S3ObjectKey(TRANSIENT_SBOM_FORMAT, "", "", fileName, s3DataStoreConfig.getObjectKeyPrefix());
+  }
+
+  private void deleteByKey(final S3ObjectKey key) throws IOException {
+    DeleteObjectRequest request = DeleteObjectRequest.builder()
+        .bucket(s3DataStoreConfig.getBucketName())
+        .key(key.toString())
+        .build();
+
+    try {
+      wrapS3Exception(() -> s3Client.deleteObject(request));
+      log.debug("Deleted SBOM at S3 key '{}'", key);
+    }
+    catch (IOException e) {
+      if (e.getCause() instanceof NoSuchKeyException) {
+        log.debug("SBOM not found for deletion at S3 key '{}'", key);
+      }
+      else {
+        throw e;
+      }
+    }
+  }
+}

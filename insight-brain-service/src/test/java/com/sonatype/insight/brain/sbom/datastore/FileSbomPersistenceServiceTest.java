@@ -9,7 +9,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -150,7 +149,7 @@ public class FileSbomPersistenceServiceTest
   @Test
   public void testCreatePermanentSbom() throws Exception {
     // Test createPermanentSbom method
-    SbomEntity entity = service.createPermanentSbom(APP_ID, FILE_NAME);
+    SbomEntity entity = service.doGetSbom(APP_ID, FILE_NAME);
 
     Path expectedPath = insightWork.getSbomDir(APP_ID).toPath().resolve(FILE_NAME);
 
@@ -161,15 +160,14 @@ public class FileSbomPersistenceServiceTest
     assertThat(entity.getPath()).isNotNull();
     assertThat(entity.getPath()).isEqualTo(expectedPath);
 
-    // Verify no file is created
-    assertThat(Files.exists(expectedPath)).isTrue();
+    assertThat(entity.exists()).isFalse();
+    assertThat(Files.exists(expectedPath)).isFalse();
     
-    // Write content to the entity
     try (OutputStream os = entity.getOutputStream()) {
       os.write(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     }
     
-    // Verify the content was written
+    assertThat(entity.exists()).isTrue();
     assertThat(Files.readAllBytes(expectedPath)).isEqualTo(SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
   }
 
@@ -183,15 +181,13 @@ public class FileSbomPersistenceServiceTest
     Path sbomPath = sbomDir.resolve(FILE_NAME);
     Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
     
-    // Verify that creating a file that already exists throws an exception
-    assertThatThrownBy(() -> service.createPermanentSbom(APP_ID, FILE_NAME))
-        .isInstanceOf(FileAlreadyExistsException.class);
+    SbomEntity entity = service.doGetSbom(APP_ID, FILE_NAME);
+    assertThat(entity.exists()).isTrue();
   }
 
   @Test
   public void testCreateTransientSbom() throws Exception {
-    // Test createTransientSbom method
-    SbomEntity entity = service.createTransientSbom(FILE_NAME);
+    SbomEntity entity = service.getTransientSbom(FILE_NAME);
     
     // Verify the entity properties
     assertThat(entity).isInstanceOf(FileSbomEntity.class);
@@ -224,8 +220,8 @@ public class FileSbomPersistenceServiceTest
     Files.createDirectories(sbomDir);
     
     // Create two transient SBOMs - this should work fine since they get unique names
-    SbomEntity entity1 = service.createTransientSbom(FILE_NAME);
-    SbomEntity entity2 = service.createTransientSbom(FILE_NAME);
+    SbomEntity entity1 = service.getTransientSbom(FILE_NAME);
+    SbomEntity entity2 = service.getTransientSbom(FILE_NAME);
     
     // Verify they have different names but the same extension
     assertThat(entity1.getName()).isNotEqualTo(entity2.getName());

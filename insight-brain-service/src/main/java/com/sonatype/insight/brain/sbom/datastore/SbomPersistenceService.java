@@ -59,24 +59,14 @@ public abstract class SbomPersistenceService
   public abstract SbomEntity getTemporarySbom(String fileName, @Nullable String prefix);
 
   /**
-   * Create a permanent SBOM entity for the given application.
-   *
-   * @param appId    the application ID
-   * @param fileName the file name
-   * @return the permanent SBOM entity
-   * @throws IOException if an I/O error occurs
-   */
-  public abstract SbomEntity createPermanentSbom(String appId, String fileName) throws IOException;
-
-  /**
-   * Create a transient SBOM entity for the given file name. The entity created using this method is aimed to be used
+   * Get a transient SBOM entity for the given file name. The entity returned by this method is aimed to be used
    * for a short period of time, such as during a scan or analysis, and it is expected to be deleted after use.
    *
    * @param fileName the file name
    * @return the transient SBOM entity
    * @throws IOException if an I/O error occurs
    */
-  public abstract SbomEntity createTransientSbom(String fileName) throws IOException;
+  public abstract SbomEntity getTransientSbom(String fileName) throws IOException;
 
   /**
    * Save a SBOM entity to a persistent temporary location.

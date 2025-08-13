@@ -50,4 +50,11 @@ public interface SbomEntity
    * @return location string
    */
   String getLocation();
+
+  /**
+   * Check if the SBOM entity exists.
+   *
+   * @return true if the entity exists, false otherwise
+   */
+  boolean exists();
 }

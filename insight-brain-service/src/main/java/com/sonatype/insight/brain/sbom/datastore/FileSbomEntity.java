@@ -47,6 +47,11 @@ public record FileSbomEntity(Path path, @Nullable String appId, String fileName)
   }
 
   @Override
+  public boolean exists() {
+    return Files.exists(path);
+  }
+
+  @Override
   public String toString() {
     return getLocation();
   }

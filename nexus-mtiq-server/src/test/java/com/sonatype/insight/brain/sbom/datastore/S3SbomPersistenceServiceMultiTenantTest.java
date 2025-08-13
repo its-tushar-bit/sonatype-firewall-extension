@@ -1,0 +1,118 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+
+package com.sonatype.insight.brain.sbom.datastore;
+
+import java.util.Arrays;
+import java.util.List;
+
+import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.MultiTenantS3DataStoreConfig;
+import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+
+import com.google.inject.Binder;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.utility.DockerImageName;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
+
+@Category(SlowTest.class)
+@RunWith(Parameterized.class)
+public class S3SbomPersistenceServiceMultiTenantTest
+    extends AbstractMultiTenantBaseIntegrationTest
+{
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+
+  private static final String BUCKET_NAME = "test-sbom-bucket";
+
+  private static final String REGION = "us-east-2";
+
+  @Rule
+  public LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(S3);
+
+  protected S3SbomPersistenceService service;
+
+  private final String prefix;
+
+  @Parameters
+  public static List<String> prefixes() {
+    return Arrays.asList(
+        null,
+        "",
+        "valid-prefix/with/path/",
+        "valid-prefix/with/path/ends-with-slash/"
+    );
+  }
+
+  public S3SbomPersistenceServiceMultiTenantTest(String configuredPrefix) {
+    this.prefix = configuredPrefix;
+  }
+
+  @Before
+  public void setup() throws Exception {
+    var configurator = new MtiqDatabaseConfigurator()
+    {
+      @Override
+      public void configure(InsightConfig config) {
+        super.configure(config);
+
+        MultiTenantStorageConfig storageConfig = (MultiTenantStorageConfig) config.getStorage();
+        var s3Config = new MultiTenantS3DataStoreConfig();
+        s3Config.setBucketName(BUCKET_NAME);
+        s3Config.setRegion(REGION);
+        s3Config.setObjectKeyPrefix(prefix);
+        s3Config.setEndpoint(localstack.getEndpoint());
+
+        storageConfig.setS3Config(s3Config);
+        storageConfig.setType(DataStoreType.S3);
+      }
+    };
+
+    startIqTestServer(configurator);
+
+    this.service = lookup(S3SbomPersistenceService.class);
+
+    lookup(S3Client.class).createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+  }
+
+  @Override
+  public void configure(Binder binder) {
+    super.configure(binder);
+
+    var s3Client = S3Client.builder()
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+
+    binder.bind(S3Client.class).toInstance(s3Client);
+  }
+
+  @Test
+  public void testCorrectImplClass() {
+    assertThat(service).isInstanceOf(S3SbomPersistenceService.class);
+  }
+}

@@ -60,15 +60,7 @@ public class FileSbomPersistenceService
   }
 
   @Override
-  public SbomEntity createPermanentSbom(final String appId, String fileName) throws IOException {
-    Path sbomDir = insightWork.getSbomDir(appId).toPath();
-
-    Path sbomPath = Files.createFile(sbomDir.resolve(fileName));
-    return new FileSbomEntity(sbomPath, appId, fileName);
-  }
-
-  @Override
-  public SbomEntity createTransientSbom(String fileName) throws IOException {
+  public SbomEntity getTransientSbom(String fileName) throws IOException {
     Path sbomDir = insightWork.getSbomTransientDir().toPath();
 
     String extension = FilenameUtils.getExtension(fileName);

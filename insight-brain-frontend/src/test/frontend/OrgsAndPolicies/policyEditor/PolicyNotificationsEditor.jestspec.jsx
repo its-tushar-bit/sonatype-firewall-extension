@@ -20,6 +20,8 @@ import { pathSet } from 'MainRoot/util/jsUtil';
 // Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';
 
+import * as productLicenseSelectors from 'MainRoot/productFeatures/productLicenseSelectors';
+
 const actionStages = [
   { stageTypeId: 'proxy', shortName: 'PROXY' },
   { stageTypeId: 'develop', shortName: 'DEVELOP' },
@@ -866,6 +868,46 @@ describe('PolicyNotificationsEditor', () => {
         const alert = screen.getByText('Only Proxy Notifications are supported with your Firewall product license.');
 
         expect(alert).toBeVisible();
+      });
+    });
+  });
+
+  describe('when isFirewallOnlyLicense changes', () => {
+    beforeEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('renders only proxy notifications enabled when isFirewallOnlyLicense is true', async () => {
+      jest.spyOn(productLicenseSelectors, 'selectIsFirewallOnlyLicense').mockReturnValue(true);
+      state.orgsAndPolicies.policy.currentPolicy.notifications = {
+        userNotifications: [{ emailAddress: 'user@email.com', stageIds: ['proxy'] }],
+      };
+
+      renderComponent(state);
+      await waitFor(() => screen.getByRole('table'));
+
+      actionStages.forEach((stage) => {
+        const checkbox = screen.getByRole('checkbox', { name: `notify user@email.com for ${stage.stageTypeId}` });
+        if (stage.stageTypeId === 'proxy') {
+          expect(checkbox).toBeEnabled();
+        } else {
+          expect(checkbox).toBeDisabled();
+        }
+      });
+    });
+
+    it('renders all notification stages enabled when isFirewallOnlyLicense is false', async () => {
+      jest.spyOn(productLicenseSelectors, 'selectIsFirewallOnlyLicense').mockReturnValue(false);
+      state.orgsAndPolicies.policy.currentPolicy.notifications = {
+        userNotifications: [{ emailAddress: 'user@email.com', stageIds: actionStages.map((s) => s.stageTypeId) }],
+      };
+
+      renderComponent(state);
+      await waitFor(() => screen.getByRole('table'));
+
+      actionStages.forEach((stage) => {
+        const checkbox = screen.getByRole('checkbox', { name: `notify user@email.com for ${stage.stageTypeId}` });
+        expect(checkbox).toBeEnabled();
       });
     });
   });

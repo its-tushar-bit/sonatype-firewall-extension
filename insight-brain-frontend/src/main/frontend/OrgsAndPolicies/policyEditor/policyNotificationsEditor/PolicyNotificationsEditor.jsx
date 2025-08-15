@@ -53,6 +53,7 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { validateEmailPatternMatch, hasValidationErrors } from 'MainRoot/util/validationUtil';
 import { selectSelectedOwnerId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsFirewallOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 const isValidEmail = (email) => !hasValidationErrors(validateEmailPatternMatch('Invalid email format', email));
 
@@ -95,6 +96,7 @@ export default function PolicyNotificationsEditor() {
   const availableJiraProjects = useSelector(selectAvailableJiraProjects);
   const selectedJiraProject = useSelector(selectSelectedJiraProject);
   const isRepositoriesRelated = useSelector(selectIsRepositoriesRelated);
+  const isFirewallOnlyLicense = useSelector(selectIsFirewallOnlyLicense);
 
   const recipientType = formState?.recipientType?.value;
   const recipientEmail = formState?.recipientEmail?.value;
@@ -114,7 +116,7 @@ export default function PolicyNotificationsEditor() {
   const hasStage = (notification, stageId) => (notification.stageIds ?? []).includes(stageId);
 
   const isNotificationsSupportedForStage = (stageId) =>
-    isRepositoriesRelated
+    isRepositoriesRelated || isFirewallOnlyLicense
       ? stageId === 'proxy' && isNotificationsSupported
       : (isFirewallSupported && stageId === 'proxy') || isNotificationsSupported;
 
@@ -141,7 +143,7 @@ export default function PolicyNotificationsEditor() {
   };
 
   const getCheckboxTooltipMessage = (recipient, stage) => {
-    if (isRepositoriesRelated && stage.stageTypeId !== 'proxy') {
+    if ((isRepositoriesRelated || isFirewallOnlyLicense) && stage.stageTypeId !== 'proxy') {
       return 'Notifications are only supported at Proxy stage';
     }
 

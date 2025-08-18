@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { filter, propEq } from 'ramda';
 import { axiosMockAdapter, render, waitFor, within } from 'TestRoot/SpecUtil';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
 import {
@@ -14,51 +15,16 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { screen } from '@testing-library/dom';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
+import { mockData } from './enterpriseReportingMockData';
+import { initialState } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 
 describe('EnterpriseReportingLandingPage', () => {
   let axiosMock, renderPage;
 
-  const mockDashboardsData = {
-    dashboardMetadata: [
-      {
-        dashboardId: 'rolling-recap',
-        title: 'Rolling Recap Dashboard',
-        category: 'dataInsight',
-        description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
-        features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
-        accessButtonText: 'View Rolling Recap',
-        previewImage: '',
-        previewImageIcon: 'faThumbsUp',
-        priority: 1,
-        spotlight: false,
-      },
-      {
-        dashboardId: 'success-metrics',
-        category: 'enterprise',
-        title: 'Success Metrics',
-        description: 'Review your applications and vulnerabilities in this foundational dashboard',
-        features: ['Discover high-level trends', 'Explore team performance', 'See your risk ratio'],
-        accessButtonText: 'View Success Metrics',
-        previewImage: '',
-        previewImageIcon: 'faThumbsUp',
-        priorityOrder: 1,
-        priority: 2,
-        spotlight: true,
-      },
-      {
-        dashboardId: 'component-eol',
-        category: 'dataInsight',
-        title: 'Component EOL: Retiring Old Code',
-        description: 'Learn the specifics about the components that have the status of End of Life (EOL)',
-        features: ['Note ratings by version', 'Notice apps using versions', 'Sort cumulative lists by type'],
-        accessButtonText: 'View Component EOL',
-        previewImage: '',
-        previewImageIcon: 'faThumbsUp',
-        priority: 3,
-        spotlight: false,
-      },
-    ],
+  const preloadedState = {
+    enterpriseReportingLandingPage: initialState,
   };
+
   const iqVersionResponse = {
     version: '1.188.0-SNAPSHOT',
   };
@@ -76,11 +42,11 @@ describe('EnterpriseReportingLandingPage', () => {
   });
 
   beforeEach(() => {
-    axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockDashboardsData);
+    axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockData);
     axiosMock.onGet(getIqVersion()).reply(200, iqVersionResponse);
     axiosMock.onGet(getProductFeaturesUrl()).reply(200, ['integrated-enterprise-reporting']);
     axiosMock.onGet(getTelemetryStatusUrl()).reply(200, telemetryData);
-    renderPage = () => render(<EnterpriseReportingLandingPage />);
+    renderPage = () => render(<EnterpriseReportingLandingPage />, { preloadedState });
   });
 
   it('shows loading before dashboards data is loaded', async () => {
@@ -111,16 +77,44 @@ describe('EnterpriseReportingLandingPage', () => {
       expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
 
-    mockDashboardsData.dashboardMetadata.forEach((dashboard) => {
-      expect(screen.getByRole('heading', { name: dashboard.title })).toBeInTheDocument();
-      expect(screen.queryByText(dashboard.description)).toBeInTheDocument();
-      dashboard.features.forEach((feature) => {
-        expect(screen.queryByText(feature)).toBeInTheDocument();
-      });
-      expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
-      if (dashboard.spotlight) {
-        expect(screen.queryByText('NEW')).toBeInTheDocument();
+    const dashboardGroupIds = mockData.dashboardGroupMetadata.map((dash) => dash.groupId);
+    mockData.dashboardMetadata.forEach((dashboard) => {
+      if (dashboardGroupIds.includes(dashboard.groupId)) {
+        expect(screen.queryByRole('heading', { name: dashboard.title })).not.toBeInTheDocument();
+        expect(screen.queryByText(dashboard.description)).not.toBeInTheDocument();
+      } else {
+        expect(screen.getByRole('heading', { name: dashboard.title })).toBeInTheDocument();
+        expect(screen.queryByText(dashboard.description)).toBeInTheDocument();
+        dashboard.features.forEach((feature) => {
+          expect(screen.queryByText(feature)).toBeInTheDocument();
+        });
+        expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
+        if (dashboard.spotlight) {
+          expect(screen.queryByText('NEW')).toBeInTheDocument();
+        }
       }
+    });
+  });
+
+  it('renders the group dashboard cards', async () => {
+    renderPage();
+    await waitFor(() => {
+      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
+    });
+    mockData.dashboardGroupMetadata.forEach((dash) => {
+      expect(screen.getByRole('heading', { name: dash.title })).toBeInTheDocument();
+      expect(screen.queryByText(dash.description)).toBeInTheDocument();
+      dash.features.forEach((feature) => {
+        //bolded words are surrounded by *, so these need to be removed from the string first
+        const cleanedFeature = feature.replace(/\*/g, '').toString();
+        const listElement = screen.getByText(
+          (_, element) => element.tagName.toLowerCase() === 'span' && element.textContent === cleanedFeature
+        );
+        expect(listElement).toBeInTheDocument();
+      });
+
+      const getGroupedDashboards = filter(propEq('groupId', dash.groupId), mockData.dashboardMetadata);
+      expect(screen.getByRole('button', { name: getGroupedDashboards[0].accessButtonText })).toBeInTheDocument();
     });
   });
 
@@ -129,13 +123,13 @@ describe('EnterpriseReportingLandingPage', () => {
     await waitFor(() => {
       expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
-    const enterpriseDashboards = screen.getByRole('heading', { name: 'Enterprise Dashboards' }).nextElementSibling;
-    const enterpriseChildren = within(enterpriseDashboards).getAllByRole('enterprise-reporting-dashboard-card');
-    expect(enterpriseChildren.length).toBe(1);
+    const enterpriseDashboardGroup = screen.getByRole('heading', { name: 'Enterprise Dashboards' }).nextElementSibling;
+    const enterpriseDashboards = within(enterpriseDashboardGroup).getAllByRole('enterprise-reporting-dashboard-card');
+    expect(enterpriseDashboards.length).toBe(2);
 
-    const dataInsights = screen.getByRole('heading', { name: 'Data Insights' }).nextElementSibling;
-    const insightsChildren = within(dataInsights).getAllByRole('enterprise-reporting-dashboard-card');
-    expect(insightsChildren.length).toBe(2);
+    const dataInsightsGroup = screen.getByRole('heading', { name: 'Data Insights' }).nextElementSibling;
+    const insightsDashboards = within(dataInsightsGroup).getAllByRole('enterprise-reporting-dashboard-card');
+    expect(insightsDashboards.length).toBe(3);
   });
 
   it('shows error when there are API errors', async () => {

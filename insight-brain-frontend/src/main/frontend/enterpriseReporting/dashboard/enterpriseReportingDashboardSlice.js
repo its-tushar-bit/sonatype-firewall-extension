@@ -5,11 +5,14 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { always, path, prop, compose, nth, applySpec } from 'ramda';
+import { always, applySpec, compose, find, findIndex, nth, prop, propEq } from 'ramda';
 
 import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectCombinedDashboards } from './enterpriseReportingDashboardSelectors';
 
 const REDUCER_NAME = 'enterpriseReportingDashboard';
 
@@ -19,6 +22,9 @@ export const initialState = {
   baseUrl: null,
   selectedDashboard: null,
   dashboardsData: null,
+  dashboardTabs: [],
+  activeDashboardTab: 0,
+  pendingDashboardToView: null,
 };
 
 const loadRequested = (state) => {
@@ -49,7 +55,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dis
   return Promise.all(promises)
     .then(
       applySpec({
-        dashboards: compose(path(['data', 'dashboardMetadata']), nth(1)),
+        dashboards: compose(prop('data'), nth(1)),
         baseUrl: compose(prop('data'), nth(2)),
       })
     )
@@ -63,12 +69,81 @@ const setSelectedDashboard = (state, { payload }) => {
   };
 };
 
+const resetSelectedDashboard = (state) => {
+  state.selectedDashboard = null;
+};
+
+const setActiveDashboardTab = (state, { payload }) => {
+  state.activeDashboardTab = payload;
+};
+
+const setDashboardTabs = (state, { payload }) => {
+  state.dashboardTabs = payload;
+};
+
+const updateDashboardPage = (id, groupId, isDashboardDisabled) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const routerState = selectRouterState(state);
+    const combinedDashboards = selectCombinedDashboards(state);
+
+    const dashboardFromUrl = find(propEq('dashboardId', id), combinedDashboards);
+    const dashboardGroupFromUrl = find(propEq('groupId', groupId), combinedDashboards);
+
+    // If navigating to a standard dashboardPage, clear dashboardTabs to ensure no tabs render and set
+    // selected dashboard
+    if (dashboardFromUrl) {
+      dispatch(actions.setDashboardTabs([]));
+      dispatch(actions.setSelectedDashboard(dashboardFromUrl));
+
+      // If navigating to a "Group" page, update dashboardTabs and trigger activeTab & selectedDashboard
+      // (and default to first enabled tab if selectedDashboard doesn't exist)
+    } else if (dashboardGroupFromUrl) {
+      const { groupedDashboards } = dashboardGroupFromUrl;
+      dispatch(actions.setDashboardTabs(groupedDashboards));
+
+      const selectedDashboard = find(propEq('dashboardId', id), groupedDashboards);
+      if (selectedDashboard) {
+        const selectedIndex = groupedDashboards.indexOf(selectedDashboard);
+        const isDisabled = isDashboardDisabled(selectedDashboard);
+        dispatch(actions.activateTabAndSelectDashboard(selectedIndex, selectedDashboard, isDisabled));
+      } else {
+        const firstEnabledIdx = findIndex((dash) => !isDashboardDisabled(dash), groupedDashboards);
+        const isDisabled = firstEnabledIdx === -1;
+        const idx = !isDisabled ? firstEnabledIdx : 0;
+        dispatch(actions.activateTabAndSelectDashboard(idx, groupedDashboards[idx]), isDisabled);
+      }
+      // Used to navigate to Landing Page if there is no matching Looker dashboard / dashboardGroup. Router
+      // required to prevent navigation to Landing Page if user attempts to navigate elsewhere in Lifecycle
+    } else if (
+      routerState.name === 'enterpriseReportingDashboard' ||
+      routerState.name === 'enterpriseReportingDashboardGroup'
+    ) {
+      dispatch(stateGo('enterpriseReporting'));
+    }
+  };
+};
+
+const activateTabAndSelectDashboard = (tabIndex, dashboard, disabled) => {
+  return (dispatch) => {
+    dispatch(actions.setActiveDashboardTab(tabIndex));
+    if (!disabled) {
+      dispatch(actions.setSelectedDashboard(dashboard));
+    } else {
+      dispatch(actions.resetSelectedDashboard());
+    }
+  };
+};
+
 const enterpriseReportingDashboardSlice = createSlice({
   name: REDUCER_NAME,
   initialState,
   reducers: {
     setSelectedDashboard,
+    resetSelectedDashboard,
     reset: always(initialState),
+    setActiveDashboardTab,
+    setDashboardTabs,
   },
   extraReducers: {
     [load.pending]: loadRequested,
@@ -81,4 +156,6 @@ export default enterpriseReportingDashboardSlice.reducer;
 export const actions = {
   ...enterpriseReportingDashboardSlice.actions,
   load,
+  activateTabAndSelectDashboard,
+  updateDashboardPage,
 };

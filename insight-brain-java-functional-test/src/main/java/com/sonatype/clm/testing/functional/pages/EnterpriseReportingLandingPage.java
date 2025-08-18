@@ -112,6 +112,18 @@ public class EnterpriseReportingLandingPage
     public SelenideElement dashboardButton() {
       return child(".iq-enterprise-reporting-card__button");
     }
+
+    public SelenideElement dashboardGroupButton() {
+      return child(".nx-segmented-btn .nx-segmented-btn__main-btn");
+    }
+
+    public SelenideElement dashboardOpenDropdownButton() {
+      return child(".nx-segmented-btn .nx-segmented-btn__dropdown-btn");
+    }
+
+    public SelenideElement dashboardDropdownItemButton() {
+      return child(".nx-dropdown-menu .nx-dropdown-button", nthChild(1));
+    }
   }
 
   public static class ContactCard

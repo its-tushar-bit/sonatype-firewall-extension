@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { applySpec, path, compose, nth } from 'ramda';
+import { applySpec, path, prop, compose, nth } from 'ramda';
 
 import { getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
@@ -46,7 +46,7 @@ function loadFailed(state, { payload }) {
   };
 }
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dispatch }) => {
+const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { dispatch, rejectWithValue }) => {
   const promises = [
     dispatch(productFeaturesActions.fetchProductFeaturesIfNeeded()),
     axios.get(getEnterpriseReportingDashboardsUrl()),
@@ -56,7 +56,7 @@ const load = createAsyncThunk(`${REDUCER_NAME}/load`, (_, { rejectWithValue, dis
   return Promise.all(promises)
     .then(
       applySpec({
-        dashboardsData: compose(path(['data', 'dashboardMetadata']), nth(1)),
+        dashboardsData: compose(prop('data'), nth(1)),
         iqVersion: compose(path(['data', 'version']), nth(2)),
       })
     )

@@ -15,16 +15,21 @@ import {
   NxFontAwesomeIcon,
   NxTooltip,
   NxCard,
+  NxStatefulSegmentedButton,
 } from '@sonatype/react-shared-components';
+import { tail } from 'ramda';
 import { fas } from '@fortawesome/free-solid-svg-icons';
 import { fas as fasPro } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch } from 'react-redux';
+
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { smallTagColors, getUpgradeVersion, isElementDisabled } from '../utils';
 import './_enterpriseReportCard.scss';
 
 export default function EnterpriseReportCard(props) {
-  const { dashboard: dashboard, iqVersion } = props;
+  const { dashboard, iqVersion } = props;
   const isEnterprise = dashboard.category === 'enterprise';
+  const isGroupCard = !!dashboard.groupedDashboards;
 
   const dispatch = useDispatch();
 
@@ -33,30 +38,27 @@ export default function EnterpriseReportCard(props) {
     retiring: retiringRegex.test(dashboard.spotlightText),
   });
 
-  const iconContainerClassName = classNames('iq-enterprise-reporting-card__icon', {
-    enterprise: isEnterprise,
-  });
-  const iconPositioningAdjustment = ['success-metrics', 'ai-consumption', 'rolling-recap', 'dependency-scorecard'];
-  const iconClassName = iconPositioningAdjustment.includes(dashboard.dashboardId) && 'custom-positioning';
   const icon = fas[dashboard.previewImageIcon] ? fas[dashboard.previewImageIcon] : fasPro[dashboard.previewImageIcon];
 
   const cleanedIqVersion = parseInt(iqVersion.split('.')[1]);
-  const disabled = dashboard.sinceIQVersion && cleanedIqVersion < parseInt(dashboard.sinceIQVersion);
+  const isDashboardDisabled = (dashboard) => cleanedIqVersion < parseInt(dashboard.sinceIQVersion);
+  const buttonDisabled = isElementDisabled(dashboard, isDashboardDisabled);
 
-  const spotlightText = dashboard.spotlightText ? dashboard.spotlightText : 'NEW';
-  const smallTagColors = ['blue', 'green', 'indigo', 'orange', 'pink', 'purple', 'red', 'teal', 'turquoise'];
+  const spotlightText = dashboard.spotlightText || 'NEW';
+  const spotlightColor = smallTagColors.includes(dashboard.spotlightColor)
+    ? dashboard.spotlightColor
+    : isEnterprise
+    ? 'teal'
+    : 'purple';
 
-  const spotlightColor =
-    dashboard.spotlightColor && smallTagColors.includes(dashboard.spotlightColor)
-      ? dashboard.spotlightColor
-      : isEnterprise
-      ? 'teal'
-      : 'purple';
+  const onButtonClick = (dashId) => {
+    dispatch(stateGo('enterpriseReportingDashboardGroup', { id: dashId, groupId: dashboard.groupId }));
+  };
 
   return (
     <div>
       <NxCard
-        id={`enterprise-reporting-dashboard-${dashboard.dashboardId}`}
+        id={`enterprise-reporting-dashboard-${dashboard.dashboardId || dashboard.groupId}`}
         className={cardClassNames}
         role="enterprise-reporting-dashboard-card"
       >
@@ -74,8 +76,8 @@ export default function EnterpriseReportCard(props) {
         </NxCard.Header>
 
         <NxCard.Content>
-          <NxCard.CallOut className={iconContainerClassName}>
-            <NxFontAwesomeIcon icon={icon} className={iconClassName} />
+          <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
+            <NxFontAwesomeIcon icon={icon} />
           </NxCard.CallOut>
           <NxCard.Text>{dashboard.description}</NxCard.Text>
           <NxList bulleted className="iq-enterprise-reporting-card__features">
@@ -88,16 +90,38 @@ export default function EnterpriseReportCard(props) {
           </NxList>
         </NxCard.Content>
         <NxCard.Footer className="iq-enterprise-reporting-card__footer">
-          <NxTooltip title={disabled && `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight`}>
+          <NxTooltip
+            title={buttonDisabled && `Upgrade to IQ version ${getUpgradeVersion(dashboard)} to access this insight`}
+          >
             <span>
-              <NxButton
-                variant="tertiary"
-                className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
-                disabled={disabled}
-                onClick={() => dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }))}
-              >
-                {dashboard.accessButtonText}
-              </NxButton>
+              {isGroupCard ? (
+                <NxStatefulSegmentedButton
+                  buttonContent={dashboard.groupedDashboards[0]?.accessButtonText}
+                  variant="tertiary"
+                  onClick={() => onButtonClick(dashboard.groupedDashboards[0]?.dashboardId)}
+                  disabled={buttonDisabled}
+                  className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.groupedDashboards[0].dashboardId}`}
+                >
+                  {tail(dashboard.groupedDashboards).map((dash) => (
+                    <button
+                      key={dash.dashboardId}
+                      className={`nx-dropdown-button dashboard-id-btn-${dash.dashboardId}`}
+                      onClick={() => onButtonClick(dash.dashboardId)}
+                    >
+                      {dash.accessButtonText}
+                    </button>
+                  ))}
+                </NxStatefulSegmentedButton>
+              ) : (
+                <NxButton
+                  variant="tertiary"
+                  className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
+                  disabled={buttonDisabled}
+                  onClick={() => dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }))}
+                >
+                  {dashboard.accessButtonText}
+                </NxButton>
+              )}
             </span>
           </NxTooltip>
         </NxCard.Footer>
@@ -108,18 +132,20 @@ export default function EnterpriseReportCard(props) {
 
 EnterpriseReportCard.propTypes = {
   dashboard: PropTypes.shape({
-    dashboardId: PropTypes.string.isRequired,
-    title: PropTypes.string.isRequired,
+    dashboardId: PropTypes.string,
+    title: PropTypes.string,
     category: PropTypes.string,
+    groupId: PropTypes.string,
     spotlight: PropTypes.bool,
     spotlightColor: PropTypes.string,
     spotlightText: PropTypes.string,
     previewImage: PropTypes.string,
     previewImageIcon: PropTypes.string,
     description: PropTypes.string,
-    features: PropTypes.arrayOf(PropTypes.string),
+    features: PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.array])),
     accessButtonText: PropTypes.string,
     sinceIQVersion: PropTypes.string,
+    groupedDashboards: PropTypes.arrayOf(PropTypes.object),
   }).isRequired,
   iqVersion: PropTypes.string.isRequired,
 };

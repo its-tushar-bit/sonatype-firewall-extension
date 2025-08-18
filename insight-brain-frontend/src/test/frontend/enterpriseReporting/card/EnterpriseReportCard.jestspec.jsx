@@ -4,9 +4,9 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { screen } from '@testing-library/dom';
 import { render } from 'TestRoot/SpecUtil';
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
-import { screen } from '@testing-library/dom';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import userEvent from '@testing-library/user-event';
 
@@ -21,6 +21,7 @@ describe('EnterpriseReportCard', () => {
       description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
       features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
       accessButtonText: 'View Rolling Recap',
+      gropuId: 'parent',
       previewImage: '',
       previewImageIcon: 'faBrain',
       priority: 1,
@@ -76,6 +77,88 @@ describe('EnterpriseReportCard', () => {
     const button = screen.getByRole('button', { name: dashboard.accessButtonText });
     expect(button).toBeInTheDocument();
     expect(button).toBeDisabled();
+  });
+
+  describe('group card', () => {
+    const dashboard = {
+      category: 'enterprise',
+      groupId: 'parent',
+      features: ['feature1', 'feature2', 'feature3'],
+      title: 'Parent Card',
+      sinceIQVersion: '188',
+      previewImageIcon: 'faBrain',
+      groupedDashboards: [
+        {
+          category: 'enterprise',
+          groupId: 'parent',
+          dashboardId: 'dashboard1',
+          sinceIQVersion: '188',
+          accessButtonText: 'View Dashboard1',
+        },
+        {
+          category: 'enterprise',
+          groupId: 'parent',
+          dashboardId: 'dashboard2',
+          sinceIQVersion: '190',
+          accessButtonText: 'View Dashboard2',
+        },
+      ],
+    };
+
+    it('does not disable the button if at least one child dashboard is not disabled', () => {
+      renderComponent({ dashboard });
+      const button = screen.getByRole('button', { name: dashboard.groupedDashboards[0].accessButtonText });
+      expect(button).not.toBeDisabled();
+    });
+
+    it('disables the button if all children are disabled', () => {
+      const disabledDashboard = {
+        ...dashboard,
+        groupedDashboards: [
+          {
+            ...dashboard.groupedDashboards[0],
+            sinceIQVersion: '200',
+          },
+          dashboard.groupedDashboards[1],
+        ],
+      };
+      renderComponent({ dashboard: disabledDashboard });
+      const button = screen.getByRole('button', { name: dashboard.groupedDashboards[0].accessButtonText });
+      expect(button).toBeDisabled();
+    });
+
+    it('calls stateGo with dashboardId & groupId on button click', async () => {
+      stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+      const user = userEvent.setup();
+      renderComponent({ dashboard });
+
+      const button = screen.getByRole('button', { name: dashboard.groupedDashboards[0].accessButtonText });
+      expect(button).toBeInTheDocument();
+      await user.click(button);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('enterpriseReportingDashboardGroup', {
+        id: dashboard.groupedDashboards[0].dashboardId,
+        groupId: dashboard.groupId,
+      });
+    });
+
+    it('calls stateGo with dashboardId & groupId on dropdown button click', async () => {
+      stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+      const user = userEvent.setup();
+      renderComponent({ dashboard });
+
+      const dropdownBtn = screen.getByRole('button', { name: 'more options' });
+      await user.click(dropdownBtn);
+
+      const dropdownOption = screen.getByRole('button', { name: dashboard.groupedDashboards[1].accessButtonText });
+      expect(dropdownOption).toBeVisible();
+      await user.click(dropdownOption);
+
+      expect(stateGoSpy).toHaveBeenCalledWith('enterpriseReportingDashboardGroup', {
+        id: dashboard.groupedDashboards[1].dashboardId,
+        groupId: dashboard.groupId,
+      });
+    });
   });
 
   describe('spotlight', () => {

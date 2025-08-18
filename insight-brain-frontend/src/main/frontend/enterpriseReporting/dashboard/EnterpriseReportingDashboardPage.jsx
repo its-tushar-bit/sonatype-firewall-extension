@@ -5,62 +5,84 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxLoadWrapper, NxPageMain, NxTextLink, NxH3, NxTooltip } from '@sonatype/react-shared-components';
-import { filter, propEq } from 'ramda';
-
+import {
+  NxLoadWrapper,
+  NxPageMain,
+  NxTextLink,
+  NxH1,
+  NxH3,
+  NxTooltip,
+  NxTabs,
+  NxTabList,
+  NxTab,
+  NxTabPanel,
+  NxErrorAlert,
+} from '@sonatype/react-shared-components';
+import { find, includes, replace, pluck, propEq, test, when } from 'ramda';
 import { useDispatch, useSelector } from 'react-redux';
 
 import EnterpriseReportingSupportInfo from '../supportInfo/EnterpiseReportingSupportInfo';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
-import { selectEnterpriseReportingDashboard } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
-import { selectRouterCurrentParams, selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectEnterpriseReportingDashboard,
+  selectCombinedDashboards,
+  selectEnterpriseDashboards,
+  selectDataInsightsDashboards,
+} from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
+import { selectRouterCurrentParams, selectRouterPrevState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
   selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { getUpgradeVersion, isElementDisabled } from '../utils';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
 
 export default function EnterpriseReportingDashboardPage() {
   const dispatch = useDispatch();
+
   const loadingFeatures = useSelector(selectLoadingFeatures);
   const licenseError = useSelector(selectEnterpriseReportingLicenseError);
-  const { loading, loadError, dashboardsData } = useSelector(selectEnterpriseReportingDashboard);
-  const { id } = useSelector(selectRouterCurrentParams); //need to pull the dashboard's id from the URL to query Looker
-  const routerState = useSelector(selectRouterState);
-  const load = () => dispatch(actions.load());
-  const setSelectedDashboard = (value) => dispatch(actions.setSelectedDashboard(value));
+  const { id, groupId } = useSelector(selectRouterCurrentParams); //need to pull the dashboard's id from the URL to query Looker
+  const routerPrevState = useSelector(selectRouterPrevState);
+  const { loading, loadError, dashboardTabs, activeDashboardTab } = useSelector(selectEnterpriseReportingDashboard);
+  const combinedDashboards = useSelector(selectCombinedDashboards);
+  const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
+  const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
 
   const { loadingDashboard, iframeError } = useLookerDashboard();
 
-  const isLoading = loading || loadingFeatures || loadingDashboard;
+  const clmVersion = parseInt(window.clmServerVersion.split('.')[1]);
+  const isDashboardDisabled = (dashboard) => clmVersion < parseInt(dashboard.sinceIQVersion);
 
-  const enterpriseDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'enterprise');
-  const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'dataInsight');
-
-  useEffect(() => {
-    load();
-  }, []);
+  const isLoading = loadingFeatures || loadingDashboard;
+  const combinedError = licenseError || iframeError;
 
   useEffect(() => {
-    if (dashboardsData) {
-      const dashboardFromUrl = filter(propEq('dashboardId', id), dashboardsData)[0];
-      if (dashboardFromUrl) {
-        setSelectedDashboard(dashboardFromUrl);
-      } else if (routerState.name === 'enterpriseReportingDashboard') {
-        dispatch(stateGo('enterpriseReporting'));
-      }
+    if (!['enterpriseReportingDashboardGroup', 'enterpriseReportingDashboard'].includes(routerPrevState.name)) {
+      dispatch(actions.load());
     }
-  }, [id, dashboardsData]);
+  }, [dispatch, routerPrevState.name]);
 
-  const combinedError = licenseError || loadError || iframeError;
-  return (
-    <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
-      <nav className="enterprise-reporting-dashboard__navigation-bar">
-        <NavigationBarRow activeDashboard={id} dashboards={enterpriseDashboards} title="Enterprise Dashboards" />
-        <NavigationBarRow activeDashboard={id} dashboards={dataInsightsDashboards} title="Data Insights" />
-      </nav>
+  useEffect(() => {
+    if (combinedDashboards) {
+      dispatch(actions.updateDashboardPage(id, groupId, isDashboardDisabled));
+    }
+  }, [dispatch, combinedDashboards, id, groupId]);
+
+  const onTabSelect = (index, groupId) => {
+    dispatch(
+      stateGo(
+        'enterpriseReportingDashboardGroup',
+        { groupId, id: dashboardTabs[index].dashboardId },
+        { notify: false, location: 'replace' }
+      )
+    );
+  };
+
+  const iframeContainerHtml = (
+    <>
       <NxLoadWrapper
         loading={isLoading}
         retryHandler={() => dispatch(stateGo('enterpriseReporting'))}
@@ -74,22 +96,71 @@ export default function EnterpriseReportingDashboardPage() {
           role="enterprise-reporting-dashboard"
         />
       )}
+    </>
+  );
+
+  const calculateTabTitle = when(test(/^view\s+/i), replace(/^view\s+/i, ''));
+
+  return (
+    <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
+      <nav className="enterprise-reporting-dashboard__navigation-bar">
+        <NavigationBarRow
+          activeDashboard={id}
+          dashboards={enterpriseDashboards}
+          title="Enterprise Dashboards"
+          isDashboardDisabled={isDashboardDisabled}
+        />
+        <NavigationBarRow
+          activeDashboard={id}
+          dashboards={dataInsightsDashboards}
+          title="Data Insights"
+          isDashboardDisabled={isDashboardDisabled}
+        />
+      </nav>
+      <NxLoadWrapper loading={loading} retryHandler={() => dispatch(stateGo('enterpriseReporting'))} error={loadError}>
+        {dashboardTabs.length ? (
+          <>
+            {groupId && <NxH1>{find(propEq('groupId', groupId), combinedDashboards)?.title}</NxH1>}
+            <NxTabs activeTab={activeDashboardTab} onTabSelect={(tabIndex) => onTabSelect(tabIndex, groupId)}>
+              <NxTabList>
+                {dashboardTabs.map((dashboard) => (
+                  <NxTab
+                    key={dashboard.dashboardId}
+                    className={`enterprise-reporting-dashboard-${dashboard.dashboardId}`}
+                  >
+                    {calculateTabTitle(dashboard.accessButtonText)}
+                  </NxTab>
+                ))}
+              </NxTabList>
+              {dashboardTabs.map((dashboard) => (
+                <NxTabPanel key={dashboard.dashboardId} id={dashboard.dashboardId}>
+                  {isDashboardDisabled(dashboard) ? (
+                    <NxErrorAlert className="dashboard-disabled">
+                      You&apos;re using a version of Lifecycle that does not support this dashboard. To unlock this
+                      feature,{' '}
+                      <NxTextLink external href="https://links.sonatype.com/products/clm/download">
+                        update to version {dashboard.sinceIQVersion} or later
+                      </NxTextLink>
+                    </NxErrorAlert>
+                  ) : (
+                    iframeContainerHtml
+                  )}
+                </NxTabPanel>
+              ))}
+            </NxTabs>
+          </>
+        ) : (
+          iframeContainerHtml
+        )}
+      </NxLoadWrapper>
       <EnterpriseReportingSupportInfo />
     </NxPageMain>
   );
 }
 
-function NavigationBarRow({ dashboards, title, activeDashboard }) {
+function NavigationBarRow({ dashboards, title, activeDashboard, isDashboardDisabled }) {
   const DASHBOARD_SELECTOR = '.enterprise-reporting-dashboard__container iframe';
-  const clmVersion = window.clmServerVersion.split('.')[1];
-
   const uiRouterState = useRouterState();
-  const cleanTitle = (title) => {
-    const cleanedTitle = title.includes('Dashboard:') ? title.split(':')[1] : title;
-    return cleanedTitle;
-  };
-  const disableLink = (dashboard) =>
-    !!dashboard.sinceIQVersion && !!clmVersion && parseInt(clmVersion) < parseInt(dashboard.sinceIQVersion);
 
   // This is to override a bug from MUI Tooltips causing iframes to resize on tooltip render:
   // https://github.com/mui/material-ui/issues/23266
@@ -128,33 +199,61 @@ function NavigationBarRow({ dashboards, title, activeDashboard }) {
     return () => window.removeEventListener('resize', handleWindowResize);
   }, []);
 
+  const calculateFirstEnabledDashboard = (dashboards) => {
+    const firstEnabledChild = find((el) => !isDashboardDisabled(el), dashboards);
+    return firstEnabledChild || dashboards[0];
+  };
+
+  const calculateHref = (dashboard) => {
+    if (dashboard.groupedDashboards) {
+      return uiRouterState.href('enterpriseReportingDashboardGroup', {
+        groupId: dashboard.groupId,
+        id: calculateFirstEnabledDashboard(dashboard.groupedDashboards).dashboardId,
+      });
+    } else {
+      return uiRouterState.href('enterpriseReportingDashboard', {
+        id: dashboard.dashboardId,
+      });
+    }
+  };
+
+  const isDashboardActive = (dashboard) => {
+    if (dashboard.groupedDashboards) {
+      return includes(activeDashboard, pluck('dashboardId', dashboard.groupedDashboards));
+    } else {
+      return dashboard.dashboardId === activeDashboard;
+    }
+  };
+
   return (
     <div className="enterprise-reporting-dashboard__navigation-links">
       <NxH3 className="enterprise-reporting-dashboard__type">{title}:</NxH3>
       <ul className="enterprise-reporting-dashboard__link-list">
         {dashboards?.length &&
-          dashboards.map((dashboard) => (
+          dashboards.map((dashboard, idx) => (
             <li
-              className={`enterprise-reporting-dashboard__link-item item--${dashboard.dashboardId}`}
-              key={dashboard.dashboardId}
+              className={`enterprise-reporting-dashboard__link-item item--${
+                dashboard.dashboardId || dashboard.groupId
+              }`}
+              key={idx}
             >
-              {dashboard.dashboardId === activeDashboard ? (
-                <span>{cleanTitle(dashboard.title)}</span>
+              {isDashboardActive(dashboard) ? (
+                <span>{dashboard.title}</span>
               ) : (
                 <NxTooltip
                   onOpen={handleIframeSizing}
                   title={
-                    disableLink(dashboard)
-                      ? `Upgrade to IQ version ${dashboard.sinceIQVersion} to access this insight`
+                    isElementDisabled(dashboard, isDashboardDisabled)
+                      ? `Upgrade to IQ version ${getUpgradeVersion(dashboard)} to access this insight`
                       : null
                   }
                 >
                   <NxTextLink
                     className="enterprise-reporting-dashboard__text-link"
-                    href={uiRouterState.href('enterpriseReportingDashboard', { id: dashboard.dashboardId })}
-                    disabled={disableLink(dashboard)}
+                    href={calculateHref(dashboard)}
+                    disabled={!!isElementDisabled(dashboard, isDashboardDisabled)}
                   >
-                    {cleanTitle(dashboard.title)}
+                    {dashboard.title}
                   </NxTextLink>
                 </NxTooltip>
               )}
@@ -167,11 +266,13 @@ function NavigationBarRow({ dashboards, title, activeDashboard }) {
 
 const dashboardPropType = PropTypes.shape({
   title: PropTypes.string.isRequired,
-  dashboardId: PropTypes.string.isRequired,
+  dashboardId: PropTypes.string,
+  groupId: PropTypes.string,
 });
 
 NavigationBarRow.propTypes = {
   dashboards: PropTypes.arrayOf(dashboardPropType),
   title: PropTypes.string.isRequired,
   activeDashboard: PropTypes.string,
+  isDashboardDisabled: PropTypes.func,
 };

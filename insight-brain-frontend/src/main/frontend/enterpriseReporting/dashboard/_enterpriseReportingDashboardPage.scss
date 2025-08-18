@@ -5,11 +5,43 @@
  */
 
 enterprise-reporting-dashboard-page {
+  --looker-iframe-margin: 60px;
+
   display: contents;
 
   iframe {
     height: 100%;
     width: 100%;
+  }
+
+  .nx-h1 {
+    margin-left: var(--looker-iframe-margin);
+  }
+
+  .nx-tabs {
+    margin-top: 0;
+  }
+  .nx-tab-list {
+    margin-bottom: 0;
+    margin-left: var(--looker-iframe-margin);
+  }
+
+  .nx-tabs {
+    height: calc(100% + 56px);
+    margin-bottom: 0;
+    .enterprise-reporting-dashboard__container {
+      height: calc(100% - 56px);
+    }
+  }
+  .nx-tab-panel {
+    display: contents;
+    .dashboard-disabled {
+      margin-top: var(--nx-spacing-6x);
+    }
+  }
+
+  .nx-alert--error {
+    margin-left: var(--looker-iframe-margin);
   }
 }
 
@@ -20,7 +52,8 @@ enterprise-reporting-dashboard-page {
 
   &__navigation-bar {
     font-size: 12px;
-    margin-left: 60px;
+    margin-left: var(--looker-iframe-margin);
+    margin-bottom: var(--nx-spacing-4x);
   }
 
   &__navigation-links {
@@ -54,9 +87,9 @@ enterprise-reporting-dashboard-page {
   }
 }
 
-//Matching the Looker Dashboard marign, which shrinks at 1500px
-@media (max-width: 1500px) {
-  .enterprise-reporting-dashboard__navigation-bar {
-    margin-left: 20px;
+//Matching the Looker Dashboard marign, which shrinks at 1512px
+@media (max-width: 1512px) {
+  enterprise-reporting-dashboard-page {
+    --looker-iframe-margin: 20px;
   }
 }

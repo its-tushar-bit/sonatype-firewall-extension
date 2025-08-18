@@ -26,6 +26,10 @@ public class EnterpriseReportingDashboardPage
     return BaseUrl.resolvePageUrl("/enterpriseReportingDashboard/{id}", id);
   }
 
+  public static String groupUrl(String groupId, String id) {
+    return BaseUrl.resolvePageUrl("/enterpriseReportingDashboard/{groupId}/{id}", groupId, id);
+  }
+
   public SelenideElement enterpriseReportingNotEnabledAlert() {
     return child(".nx-alert--error");
   }
@@ -36,6 +40,14 @@ public class EnterpriseReportingDashboardPage
 
   public SelenideElement copySuccessMessage() {
     return child(".iq-enterprise-reporting-support-info__message");
+  }
+
+  public SelenideElement groupTitle() {
+    return child(".nx-h1");
+  }
+
+  public ElementsCollection groupTabs() {
+    return children(".nx-tab");
   }
 
   public SelenideElement navigationBar() {
@@ -101,7 +113,7 @@ public class EnterpriseReportingDashboardPage
       return child(".nx-text-link");
     }
 
-    public SelenideElement disabledLink() {
+    public SelenideElement currentPageLink() {
       return child("span");
     }
   }

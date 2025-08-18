@@ -11,33 +11,12 @@ import {
   getEnterpriseReportingDashboardsUrl,
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
+import { mockData } from '../enterpriseReportingMockData';
 
 describe('enterpriseReportingDashboardSliceAction', () => {
   let store, state, axiosMock;
 
   const baseUrl = 'http://sonatypeinstance.looker.com';
-  const dashboardMetadata = [
-    {
-      dashboardId: 'rolling-recap',
-      title: 'Rolling Recap Dashboard: Past 365 Days',
-      description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
-      features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
-      accessButtonText: 'View Rolling Recap',
-      previewImage: '',
-      priority: 1,
-      spotlight: false,
-    },
-    {
-      dashboardId: 'ai-consumption',
-      title: 'ML/AI: Apps Using Machine Learning',
-      description: 'Observe Machine Learning (ML) components and integrations within your software.',
-      features: ['Sort components by AI type', 'Monitor AI within your apps', 'Isolate exact locations of AI'],
-      accessButtonText: 'View ML/AI',
-      previewImage: '',
-      priority: 2,
-      spotlight: true,
-    },
-  ];
 
   beforeEach(() => {
     state = { enterpriseReportingDashboard: initialState };
@@ -48,7 +27,7 @@ describe('enterpriseReportingDashboardSliceAction', () => {
 
   describe('load', () => {
     it('immediately dispatches a enterpriseReportingDashboard/load/pending', (done) => {
-      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, { dashboardMetadata: dashboardMetadata });
+      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockData);
       axiosMock.onGet(getEnterpriseReportingBaseUrl()).reply(200, baseUrl);
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions();
@@ -61,7 +40,7 @@ describe('enterpriseReportingDashboardSliceAction', () => {
 
     it('dispatches enterpriseReportingDashboard/load/rejected on loading error', (done) => {
       const errorMessage = 'error on load';
-      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, { dashboardMetadata: dashboardMetadata });
+      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockData);
       axiosMock.onGet(getEnterpriseReportingBaseUrl()).reply(409, errorMessage);
 
       store.dispatch(actions.load()).then(() => {
@@ -77,7 +56,7 @@ describe('enterpriseReportingDashboardSliceAction', () => {
 
     it('dispatches enterpriseReportingDashboard/load/fulfilled', (done) => {
       axiosMock.onGet(getEnterpriseReportingBaseUrl()).reply(200, baseUrl);
-      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, { dashboardMetadata: dashboardMetadata });
+      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, mockData);
 
       store.dispatch(actions.load()).then(() => {
         const actions = store.getActions().map((action) => omit(['meta', 'error'], action));
@@ -87,7 +66,7 @@ describe('enterpriseReportingDashboardSliceAction', () => {
         expect(actions[3].type).toBe('enterpriseReportingDashboard/load/fulfilled');
         expect(actions[3]).toEqual({
           type: 'enterpriseReportingDashboard/load/fulfilled',
-          payload: { baseUrl: baseUrl, dashboards: dashboardMetadata },
+          payload: { baseUrl: baseUrl, dashboards: mockData },
         });
         done();
       });

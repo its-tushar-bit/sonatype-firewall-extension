@@ -50,7 +50,6 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
       });
   const embedDashboard = async () => {
     try {
-      setIframeError(false);
       setLoadingDashboard(true);
       await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
         .appendTo(iframeContainerId)
@@ -72,6 +71,7 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
 
   useEffect(() => {
     if (baseUrl && selectedDashboard) {
+      setIframeError(false);
       runLookerQuery();
     }
   }, [baseUrl, selectedDashboard]);

@@ -93,12 +93,32 @@
   }
 
   &__button,
-  .iq-enterprise-reporting__support-btn {
+  .iq-enterprise-reporting__support-btn,
+  .nx-segmented-btn {
     &.nx-btn.nx-btn--tertiary {
       @include enterpriseReportingLandingPage.landing-page-tertiary-btn;
+      margin: 0;
       &:not([disabled]) {
         color: var(--nx-color-text-stark);
       }
+    }
+  }
+
+  .nx-segmented-btn {
+    margin: 0;
+  }
+
+  .nx-segmented-btn__main-btn,
+  .nx-segmented-btn__dropdown-btn {
+    &.nx-btn.nx-btn--tertiary {
+      @include enterpriseReportingLandingPage.landing-page-tertiary-btn;
+    }
+  }
+
+  .nx-dropdown-menu {
+    width: 100%;
+    .nx-dropdown-button {
+      font-size: var(--nx-font-size-s);
     }
   }
 

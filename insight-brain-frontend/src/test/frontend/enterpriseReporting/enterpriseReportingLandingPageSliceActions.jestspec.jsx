@@ -46,21 +46,24 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
     });
 
     it('dispatches enterpriseReportingLandingPage/load/fulfilled', (done) => {
-      const response = [
-        {
-          dashboardId: 'rolling-recap',
-          title: 'Rolling Recap Dashboard: Past 365 Days',
-          description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
-          features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
-          accessButtonText: 'View Rolling Recap',
-          previewImage: '',
-          priority: 1,
-          spotlight: false,
-        },
-      ];
-      const iqVersionResponse = '1.188.0-SNAPSHOT';
+      const dashboardResponse = {
+        dashboardMetadata: [
+          {
+            dashboardId: 'rolling-recap',
+            title: 'Rolling Recap Dashboard: Past 365 Days',
+            description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
+            features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
+            accessButtonText: 'View Rolling Recap',
+            previewImage: '',
+            priority: 1,
+            spotlight: false,
+          },
+        ],
+        dashboardGroupMetadata: [],
+      };
+      const iqVersionResponse = { version: '1.188.0-SNAPSHOT' };
 
-      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, response);
+      axiosMock.onGet(getEnterpriseReportingDashboardsUrl()).reply(200, dashboardResponse);
       axiosMock.onGet(getIqVersion()).reply(200, iqVersionResponse);
 
       store.dispatch(actions.load()).then(() => {
@@ -71,8 +74,8 @@ describe('enterpriseReportingLandingPageSliceAction', () => {
         expect(actions[3]).toEqual({
           type: 'enterpriseReportingLandingPage/load/fulfilled',
           payload: {
-            dashboardsData: response.data,
-            iqVersion: iqVersionResponse.data,
+            dashboardsData: dashboardResponse,
+            iqVersion: iqVersionResponse.version,
           },
         });
         done();

@@ -4,43 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reducer from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
+import { mockData } from './enterpriseReportingMockData';
 
 describe('EnterpriseReportingReducer', () => {
   let initialState;
 
   const fakeData = {
-    dashboardMetadata: [
-      {
-        dashboardId: 'rolling-recap',
-        title: 'Rolling Recap Dashboard: Past 365 Days',
-        description: 'Unlock trends by comparing your usage with the rest of the industry, over the past year.',
-        features: ['Analyze app performance', 'Compare initial & latest scans', 'View security experts’ rating'],
-        accessButtonText: 'View Rolling Recap',
-        previewImage: '',
-        priority: 1,
-        spotlight: false,
-      },
-      {
-        dashboardId: 'ai-consumption',
-        title: 'ML/AI: Apps Using Machine Learning',
-        description: 'Observe Machine Learning (ML) components and integrations within your software.',
-        features: ['Sort components by AI type', 'Monitor AI within your apps', 'Isolate exact locations of AI'],
-        accessButtonText: 'View ML/AI',
-        previewImage: '',
-        priority: 2,
-        spotlight: true,
-      },
-      {
-        dashboardId: 'component-eol',
-        title: 'Component EOL: Retiring Old Code',
-        description: 'Learn the specifics about the components that have the status of End of Life (EOL) ',
-        features: ['Note ratings by version', 'Notice apps using versions', 'Sort cumulative lists by type'],
-        accessButtonText: 'View Component EOL',
-        previewImage: '',
-        priority: 3,
-        spotlight: false,
-      },
-    ],
+    dashboardsData: mockData,
     iqVersion: '1.188.0-SNAPSHOT',
   };
 

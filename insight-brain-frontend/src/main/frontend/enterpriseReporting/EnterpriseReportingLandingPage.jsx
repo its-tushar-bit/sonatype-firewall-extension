@@ -28,7 +28,11 @@ import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseRe
 import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
 import EnterpriseReportingSupportInfo from 'MainRoot/enterpriseReporting/supportInfo/EnterpiseReportingSupportInfo';
 import { selectEnterpriseReportingSupportInfo } from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSelectors';
-import { selectEnterpriseReportingLandingPage } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
+import {
+  selectEnterpriseReportingLandingPage,
+  selectEnterpriseDashboards,
+  selectDataInsightsDashboards,
+} from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import {
@@ -38,7 +42,9 @@ import {
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
-  const { dashboardsData, iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
+  const { iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
+  const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
+  const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
   const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
     selectEnterpriseReportingSupportInfo
   );
@@ -56,9 +62,6 @@ export default function EnterpriseReportingLandingPage() {
     load();
   }, []);
 
-  const enterpriseDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'enterprise');
-  const dataInsightsDashboards = dashboardsData?.filter((dashboard) => dashboard.category === 'dataInsight');
-
   const enterpriseTooltipText = `Enterprise Reports are product features offering a holistic view of OSS usage, risks, and policy
     compliance using Sonatype solutions.`;
 
@@ -69,6 +72,13 @@ export default function EnterpriseReportingLandingPage() {
   const statusIndicatorClassNames = classnames('nx-status-indicator', {
     'nx-status-indicator--positive': telemetryStatus.advancedReportingEnabled,
   });
+
+  const boldFeatureText = (feature) =>
+    feature
+      .split(/(\*[^*]+\*)/g)
+      .map((part, i) =>
+        part.startsWith('*') && part.endsWith('*') ? <strong key={i}>{part.slice(1, -1)}</strong> : part
+      );
 
   return (
     <NxPageMain id="enterprise-reporting-landing-page">
@@ -125,11 +135,17 @@ export default function EnterpriseReportingLandingPage() {
           className="iq-enterprise-reporting-card__container"
           id="enterprise-reporting-dashboards--enterprise"
         >
-          {dashboardsData
-            ? enterpriseDashboards.map((dashboard, idx) => (
-                <EnterpriseReportCard dashboard={dashboard} key={idx} iqVersion={iqVersion} />
-              ))
-            : ''}
+          {enterpriseDashboards.map((dashboard, idx) => (
+            <EnterpriseReportCard
+              dashboard={
+                dashboard.groupedDashboards
+                  ? { ...dashboard, features: dashboard.features.map((f) => boldFeatureText(f)) }
+                  : dashboard
+              }
+              key={idx}
+              iqVersion={iqVersion}
+            />
+          ))}
         </NxCard.Container>
       </NxLoadWrapper>
 
@@ -144,11 +160,17 @@ export default function EnterpriseReportingLandingPage() {
           className="iq-enterprise-reporting-card__container"
           id="enterprise-reporting-dashboards--insights"
         >
-          {dashboardsData
-            ? dataInsightsDashboards.map((dashboard, idx) => (
-                <EnterpriseReportCard dashboard={dashboard} key={idx} iqVersion={iqVersion} />
-              ))
-            : ''}
+          {dataInsightsDashboards.map((dashboard, idx) => (
+            <EnterpriseReportCard
+              dashboard={
+                dashboard.groupedDashboards
+                  ? { ...dashboard, features: dashboard.features.map((f) => boldFeatureText(f)) }
+                  : dashboard
+              }
+              key={idx}
+              iqVersion={iqVersion}
+            />
+          ))}
         </NxCard.Container>
       </NxLoadWrapper>
 

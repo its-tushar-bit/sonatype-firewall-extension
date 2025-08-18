@@ -12,7 +12,7 @@
 
   &__btn.nx-btn.nx-btn--tertiary {
     @include enterpriseReportingLandingPage.landing-page-tertiary-btn;
-    margin-bottom: var(--nx-spacing-2x);
+    margin: 0 0 var(--nx-spacing-2x) 0;
     .nx-icon {
       margin-right: var(--nx-spacing-base);
       &.copied {

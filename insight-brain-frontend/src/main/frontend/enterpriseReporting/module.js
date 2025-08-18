@@ -30,6 +30,14 @@ function routes($stateProvider) {
         authenticationRequired: true,
       },
     })
+    .state('enterpriseReportingDashboardGroup', {
+      url: '/enterpriseReportingDashboard/{groupId}/{id}',
+      component: 'enterpriseReportingDashboardPage',
+      data: {
+        title: 'Enterprise Reporting Dashboard',
+        authenticationRequired: true,
+      },
+    })
     .state('enterpriseReportingDashboard', {
       url: '/enterpriseReportingDashboard/{id}',
       component: 'enterpriseReportingDashboardPage',

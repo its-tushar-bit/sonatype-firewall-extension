@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.search.index;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
 /**
@@ -19,7 +21,7 @@ public interface SearchIndexClient
   String SEARCH_INDEX_DURATION_SECONDS = "search_index_duration_seconds";
 
   //TODO: consider renaming this method to describe its purpose: create the index and re-index the documents
-  void createIndex();
+  void populateIndex();
 
   void updateIndex();
 
@@ -32,5 +34,6 @@ public interface SearchIndexClient
       int pageSize,
       int page,
       boolean allComponents,
-      boolean isSbomManagerMode);
+      boolean isSbomManagerMode,
+      List<String> searchAfter);
 }

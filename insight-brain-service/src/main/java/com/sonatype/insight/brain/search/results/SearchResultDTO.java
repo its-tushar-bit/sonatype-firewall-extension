@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.search.results;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
 /**
  * @since 1.88
  */
@@ -19,9 +22,20 @@ public class SearchResultDTO
 
   public int pageSize;
 
-  public int totalNumberOfHits;
+  public long totalNumberOfHits;
 
   public boolean isExactTotalNumberOfHits;
 
   public List<GroupingByDTO> groupingByDTOS = new ArrayList<>();
+
+  public int countSearchResults() {
+    int resultRecordCount = 0;
+    for (GroupingByDTO groupingByDTO : groupingByDTOS) {
+      resultRecordCount += groupingByDTO.searchResultItemDTOS.size();
+    }
+    return resultRecordCount;
+  }
+
+  @JsonInclude(Include.NON_NULL)
+  public List<String> searchAfter;
 }

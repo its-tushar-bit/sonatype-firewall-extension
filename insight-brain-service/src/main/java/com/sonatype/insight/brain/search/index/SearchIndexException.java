@@ -5,16 +5,14 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import java.io.IOException;
-
 public class SearchIndexException
     extends RuntimeException
 {
-  public SearchIndexException(final IOException e) {
+  public SearchIndexException(final Exception e) {
     super(e);
   }
 
-  public SearchIndexException(final String message, final IOException e) {
+  public SearchIndexException(final String message, final Exception e) {
     super(message, e);
   }
 }

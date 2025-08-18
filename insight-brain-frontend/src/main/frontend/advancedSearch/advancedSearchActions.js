@@ -52,16 +52,20 @@ export const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED'
 export const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
 export const ADVANCED_SEARCH_QUERY_FAILED = 'ADVANCED_SEARCH_QUERY_FAILED';
 export const ADVANCED_SEARCH_RESET_QUERY = 'ADVANCED_SEARCH_RESET_QUERY';
+export const ADVANCED_SEARCH_RESET_SEARCH_AFTERS = 'ADVANCED_SEARCH_RESET_SEARCH_AFTERS';
 
 const queryRequested = noPayloadActionCreator(ADVANCED_SEARCH_QUERY_REQUESTED);
 const queryFulfilled = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_FULFILLED);
 const queryFailed = payloadParamActionCreator(ADVANCED_SEARCH_QUERY_FAILED);
 const resetSearchQuery = noPayloadActionCreator(ADVANCED_SEARCH_RESET_QUERY);
+const resetSearchAfters = noPayloadActionCreator(ADVANCED_SEARCH_RESET_SEARCH_AFTERS);
 
 export function searchFormSubmit(pageIncrement) {
   return function (dispatch, getState) {
     if (pageIncrement) {
       dispatch(resetSearchQuery());
+    } else {
+      dispatch(resetSearchAfters());
     }
 
     const state = getState();
@@ -69,12 +73,13 @@ export function searchFormSubmit(pageIncrement) {
     // If next or previous is not requested, request page 0. Requesting page 0 means, firing initial search.
     const page = pageIncrement ? formState.searchResult.page + pageIncrement : 0;
     const showAllComponents = formState.isToggleComponentResultsEnabled && formState.isShowingAllComponentResults;
+    const searchAfter = formState.searchAfters[page];
     const isSbomManager = selectIsSbomManager(state);
 
     dispatch(queryRequested());
 
     return axios
-      .get(getAdvancedSearchUrl(formState.currentQuery, page, showAllComponents, isSbomManager))
+      .get(getAdvancedSearchUrl(formState.currentQuery, page, showAllComponents, isSbomManager, searchAfter))
       .then(({ data }) => {
         dispatch(queryFulfilled(data));
       })

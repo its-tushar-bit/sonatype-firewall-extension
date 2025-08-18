@@ -15,6 +15,7 @@ import javax.inject.Inject;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -29,12 +30,12 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
+import com.sonatype.insight.brain.search.ConversionHelper;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexCreationScheduler;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
-import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient.IndexingContext;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -69,6 +70,9 @@ public class LuceneSearchIndexClientTest
   private LuceneSearchIndexClient luceneSearchIndexClient;
 
   @Inject
+  private DocumentBuilderHelper documentBuilderHelper;
+
+  @Inject
   private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Inject
@@ -76,6 +80,9 @@ public class LuceneSearchIndexClientTest
 
   @Inject
   private OrganizationDAO organizationDAO;
+
+  @Inject
+  private OwnerDAO ownerDAO;
 
   @Mock
   private VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
@@ -90,6 +97,9 @@ public class LuceneSearchIndexClientTest
   private IndexWriter indexWriterMock;
 
   @Mock
+  private ConversionHelper conversionHelperMock;
+
+  @Mock
   private IndexCreationScheduler mockIndexCreationScheduler;
 
   @Override
@@ -101,8 +111,8 @@ public class LuceneSearchIndexClientTest
     super.configure(binder);
   }
 
-  private IndexingContext newIndexingContext() {
-    return luceneSearchIndexClient.new IndexingContext(indexWriterMock);
+  private LuceneIndexingContext newIndexingContext() {
+    return new LuceneIndexingContext(ownerDAO, indexWriterMock, conversionHelperMock);
   }
 
   private Object fieldValue(IndexableField field) {
@@ -136,7 +146,7 @@ public class LuceneSearchIndexClientTest
   @Test
   public void testBuildDocument_Organization() {
     Organization org = tempEntity.newOrganization();
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), org),
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), org),
         field(FieldIdentifier.ITEM_TYPE, ItemType.ORGANIZATION.name(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_ID, org.getId(), TextField.class, true),
         field(FieldIdentifier.ORGANIZATION_NAME, org.getName(), TextField.class, true),
@@ -148,7 +158,7 @@ public class LuceneSearchIndexClientTest
   public void testBuildDocument_Application() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), app),
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), app),
         field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION.name(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_ID, app.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_PUBLIC_ID, app.getPublicId(), TextField.class, true),
@@ -163,7 +173,7 @@ public class LuceneSearchIndexClientTest
   public void testBuildDocument_SbomMetadata() {
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    IndexingContext indexingContext = newIndexingContext();
+    LuceneIndexingContext indexingContext = newIndexingContext();
     indexingContext.addOwners(Arrays.asList(org, app));
 
     ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "bom.xml");
@@ -171,7 +181,7 @@ public class LuceneSearchIndexClientTest
     sbomMetadata.setSpec("CycloneDx");
     thirdPartySbomMetadataDAO.update(sbomMetadata);
 
-    Document document = luceneSearchIndexClient.buildDocument(indexingContext, sbomMetadata);
+    Document document = documentBuilderHelper.buildDocument(indexingContext, sbomMetadata);
 
     assertFields(document,
         field(FieldIdentifier.ITEM_TYPE, ItemType.SBOM_METADATA.name(), TextField.class, true),
@@ -191,7 +201,7 @@ public class LuceneSearchIndexClientTest
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    IndexingContext indexingContext = newIndexingContext();
+    LuceneIndexingContext indexingContext = newIndexingContext();
     indexingContext.addOwners(Arrays.asList(org, app));
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -207,7 +217,7 @@ public class LuceneSearchIndexClientTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity = tempEntity.newThirdPartyCoordinateSecurity(
         thirdPartyFileCoord, "CVE-111-1111", "vulnDesc", "http://link", 9.0f, "severityDesc", "");
 
-    Document document = luceneSearchIndexClient.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
+    Document document = documentBuilderHelper.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
         thirdPartyCoordinateSecurity, Arrays.asList(org, rootOrg));
 
     assertFields(document,
@@ -239,7 +249,7 @@ public class LuceneSearchIndexClientTest
     Organization rootOrg = organizationDAO.getById(Organization.ROOT_ORGANIZATION_ID);
     Organization org = tempEntity.newOrganization();
     Application app = tempEntity.newApplication(org.getId());
-    IndexingContext indexingContext = newIndexingContext();
+    LuceneIndexingContext indexingContext = newIndexingContext();
     indexingContext.addOwners(Arrays.asList(org, app));
 
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
@@ -252,7 +262,7 @@ public class LuceneSearchIndexClientTest
     ThirdPartyFileCoordinate thirdPartyFileCoord = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile, "asdf",
         "npm", "jquery", "1.1.1", "deadbeef", "pkg:npm/jquery@1.1.1");
 
-    Document document = luceneSearchIndexClient.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
+    Document document = documentBuilderHelper.buildDocument(org, app, sbomMetadata, thirdPartyFileCoord,
         Arrays.asList(org, rootOrg));
 
     assertFields(document,
@@ -279,7 +289,7 @@ public class LuceneSearchIndexClientTest
   public void testBuildDocument_Policy() {
     Application app = tempEntity.newApplicationWithParent();
     Policy policy = tempEntity.newPolicy(app);
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), policy),
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), policy),
         field(FieldIdentifier.ITEM_TYPE, ItemType.POLICY.name(), TextField.class, true),
         field(FieldIdentifier.POLICY_ID, policy.getId(), TextField.class, true),
         field(FieldIdentifier.POLICY_NAME, policy.getName(), TextField.class, true),
@@ -295,7 +305,7 @@ public class LuceneSearchIndexClientTest
   public void testBuildDocument_Tag() {
     Organization org = tempEntity.newOrganization();
     Tag tag = tempEntity.newTag(org.getId());
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), tag),
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), tag),
         field(FieldIdentifier.ITEM_TYPE, ItemType.APPLICATION_CATEGORY.name(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_CATEGORY_ID, tag.getId(), TextField.class, true),
         field(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName(), TextField.class, true),
@@ -311,7 +321,7 @@ public class LuceneSearchIndexClientTest
   public void testBuildDocument_Label() {
     Application app = tempEntity.newApplicationWithParent();
     Label label = tempEntity.newLabel(app.getId());
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), label),
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), label),
         field(FieldIdentifier.ITEM_TYPE, ItemType.COMPONENT_LABEL.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_LABEL_ID, label.getId(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_LABEL_NAME, label.getLabel(), TextField.class, true),
@@ -333,7 +343,7 @@ public class LuceneSearchIndexClientTest
     SecurityVulnerability vuln = new SecurityVulnerability("cve", "CVE-4321-1234", 7.5f);
     String vulnDescription = "This is a bad vulnerability, stay clear!";
     when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(vuln.getRefId())).thenReturn(vulnDescription);
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
             vuln, Arrays.asList(organization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
@@ -376,7 +386,7 @@ public class LuceneSearchIndexClientTest
     String vulnDescription = "FG-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
     Document document =
-        luceneSearchIndexClient.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
+        documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
             Arrays.asList(org));
     assertFields(document,
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
@@ -421,7 +431,7 @@ public class LuceneSearchIndexClientTest
     SecurityVulnerability vuln = new SecurityVulnerability(sonatypeContainer, refId, severity);
     String vulnDescription = "Container-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
-    assertFields(luceneSearchIndexClient.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
+    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
             vuln, Arrays.asList(org)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
@@ -460,7 +470,7 @@ public class LuceneSearchIndexClientTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", null);
 
-    assertFields(luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+    assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
@@ -490,7 +500,7 @@ public class LuceneSearchIndexClientTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "invalid");
 
-    assertFields(luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+    assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
@@ -520,7 +530,7 @@ public class LuceneSearchIndexClientTest
     ThirdPartyFileCoordinate thirdPartyFileCoordinate = tempEntity.newThirdPartyFileCoordinate(thirdPartyFile,
         "someSource", "someFormat", "someName", "someVersion", "someHash", "pkg:maven/g/a@v?type=jar");
 
-    assertFields(luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+    assertFields(documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.NON_VULNERABLE_COMPONENT.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "maven", TextField.class, true),
@@ -557,7 +567,7 @@ public class LuceneSearchIndexClientTest
             "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(
-        luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+        documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate, thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, "someformat", TextField.class, true),
@@ -596,7 +606,7 @@ public class LuceneSearchIndexClientTest
             "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(
-        luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+        documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
@@ -636,7 +646,7 @@ public class LuceneSearchIndexClientTest
             "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(
-        luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+        documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
@@ -675,10 +685,10 @@ public class LuceneSearchIndexClientTest
     ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity =
         tempEntity.newThirdPartyCoordinateSecurity(thirdPartyFileCoordinate, "someRefId", null, "someLink",
             5.5f, "someFixedBy", "someVulSource", "someCvssVectorString", "someSevDesc", "someCwes", "aRMethod",
-            "someRecommendations", "someAdvisories","SBOM");
+            "someRecommendations", "someAdvisories", "SBOM");
 
     assertFields(
-        luceneSearchIndexClient.buildDocument(organization, application, thirdPartySbomMetadata,
+        documentBuilderHelper.buildDocument(organization, application, thirdPartySbomMetadata,
             thirdPartyFileCoordinate,
             thirdPartyCoordinateSecurity, Collections.singletonList(rootOrganization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
@@ -704,9 +714,9 @@ public class LuceneSearchIndexClientTest
   }
 
   @Test
-  public void testCreateIndex_Telemetry() throws Exception {
+  public void testPopulateIndex_Telemetry() throws Exception {
     long start = System.currentTimeMillis();
-    luceneSearchIndexClient.createIndex();
+    luceneSearchIndexClient.populateIndex();
     long duration = (System.currentTimeMillis() - start) / 1000;
     long size;
     try (Stream<Path> files = Files.walk(work.getSearchIndexDir().toPath().getParent())) {

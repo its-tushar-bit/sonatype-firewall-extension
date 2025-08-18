@@ -8,12 +8,14 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -95,9 +97,11 @@ public class ApiAdvancedSearchResourceV2
       @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
       @Parameter(description = "Set to `true` to retrieve results that include components with no violations")
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
-      @QueryParam("mode") ProductMode mode) throws IOException
+      @QueryParam("mode") ProductMode mode,
+      @Parameter(hidden = true)
+      @QueryParam("searchAfter") String searchAfter)
   {
-    return searchService.searchIndex(searchQuery, pageSize, page, allComponents, mode);
+    return searchService.searchIndex(searchQuery, pageSize, page, allComponents, mode, searchAfter);
   }
 
   /**
@@ -135,8 +139,12 @@ public class ApiAdvancedSearchResourceV2
       @Parameter(description = "Enter the page no. for the page containing results") @QueryParam("page") int page,
       @Parameter(description = "Set to `true` to retrieve results that include components with no violations.")
       @DefaultValue("false") @QueryParam("allComponents") boolean allComponents,
-      @QueryParam("mode") ProductMode mode)
+      @QueryParam("mode") ProductMode mode,
+      @Parameter(hidden = true)
+      @QueryParam("searchAfter") String searchAfter,
+      @Context HttpServletResponse httpServletResponse)
   {
-    return searchService.exportSearch(searchQuery, pageSize, page, allComponents, mode);
+    return searchService.exportSearch(searchQuery, pageSize, page, allComponents, mode, searchAfter,
+        httpServletResponse);
   }
 }

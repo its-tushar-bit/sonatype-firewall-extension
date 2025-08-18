@@ -16,20 +16,17 @@ import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
-import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.export.SearchRowFactory;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.results.GroupingByDTO;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,30 +35,19 @@ import static com.sonatype.insight.brain.search.export.SearchRowFactory.Header.*
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-public class ApiAdvancedSearchResourceV2Test
+public abstract class AbstractApiAdvancedSearchResourceV2Test
     extends AbstractResourceTest
 {
   private IndexService indexService;
 
   @Before
   public void before() throws Exception {
-    cleanSearchIndexDir();
     TaskScheduler taskScheduler = getCLMServer().getInstance(TaskScheduler.class);
     taskScheduler.disableForTesting = false;
     taskScheduler.start();
     indexService = getCLMServer().getInstance(IndexService.class);
     indexService.disableForTesting = false;
     indexService.register();
-  }
-
-  @After
-  public void after() throws Exception {
-    cleanSearchIndexDir();
-  }
-
-  private void cleanSearchIndexDir() throws Exception {
-    InsightWork insightWork = getCLMServer().getInstance(InsightWork.class);
-    FileUtils.deleteDirectory(insightWork.getSearchIndexDir());
   }
 
   @Test
@@ -192,7 +178,8 @@ public class ApiAdvancedSearchResourceV2Test
     restRequest().path(ApiAdvancedSearchResourceV2.INDEX_PATH).post();
     awaitIndexCompletion();
 
-    HttpResponse response = restRequest().path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH).get();
+    HttpResponse response =
+        restRequest().path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH).query("query", "*").get();
     assertResponseStatus(200, response);
     String[] csvExportSearchHeaders =
         Arrays.stream(response.getBodyText().split(",")).map(String::trim).toArray(String[]::new);
@@ -263,6 +250,7 @@ public class ApiAdvancedSearchResourceV2Test
     HttpResponse response = restRequest()
         .path(ApiAdvancedSearchResourceV2.EXPORT_CSV_REPORT_PATH)
         .query("mode", "sbomManager")
+        .query("query", "*")
         .get();
     assertResponseStatus(200, response);
     String[] csvExportSearchHeaders =
@@ -279,7 +267,7 @@ public class ApiAdvancedSearchResourceV2Test
     return super.restRequest().path(PublicApiPaths.ADVANCED_SEARCH_RESOURCE_PATH_V2);
   }
 
-  private void awaitIndexCompletion() {
+  protected void awaitIndexCompletion() {
     await().atMost(10, TimeUnit.SECONDS)
         .until(() -> !indexService.isFullIndexTriggered());
   }

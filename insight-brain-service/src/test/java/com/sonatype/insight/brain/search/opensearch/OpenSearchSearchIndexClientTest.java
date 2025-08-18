@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.search.opensearch;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
@@ -21,6 +23,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexResponse;
+import org.opensearch.client.opensearch.indices.IndexState;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -51,8 +54,8 @@ public class OpenSearchSearchIndexClientTest
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex() throws Exception {
-    openSearchSearchIndexClient.createIndex();
+  public void testPopulateIndex() throws Exception {
+    openSearchSearchIndexClient.populateIndex();
 
     GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
         .index(indexConfig.getIndexName())
@@ -61,29 +64,31 @@ public class OpenSearchSearchIndexClientTest
         .indices()
         .get(getIndexRequest);
 
-    assertThat(getIndexResponse.result()).containsKey(indexConfig.getIndexName());
+    Map<String, IndexState> result = getIndexResponse.result();
+    assertThat(result).hasSize(1);
+    Entry<String, IndexState> entry = result.entrySet().iterator().next();
+    assertThat(entry.getKey()).startsWith(indexConfig.getIndexName());
     String expectedMappingsJson = JsonUtils.writeUnformatted(indexConfig.getIndexMapping().getMappings());
-    String actualMappingsJson = JsonUtils.writeUnformatted(
-        getIndexResponse.result().get(indexConfig.getIndexName()).mappings().properties());
+    String actualMappingsJson = JsonUtils.writeUnformatted(entry.getValue().mappings().properties());
     assertThatJson(actualMappingsJson).isEqualTo(expectedMappingsJson);
   }
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex_IndexAlreadyExists() throws IOException {
+  public void testPopulateIndex_IndexAlreadyExists() throws IOException {
     // This call to get the client will internally create the index itself.
     OpenSearchClient openSearchClient = spy(openSearchSearchIndexClient.getClient());
     OpenSearchIndicesClient openSearchIndicesClient = spy(openSearchClient.indices());
 
     // This call to create the index should then be a no-op
-    openSearchSearchIndexClient.createIndex();
+    openSearchSearchIndexClient.populateIndex();
 
     verify(openSearchIndicesClient, never()).create(any(CreateIndexRequest.class));
   }
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex_BadOpenSearchConfiguration() throws Exception {
+  public void testPopulateIndex_BadOpenSearchConfiguration() throws Exception {
     startIqTestServer(new Configurator()
     {
       @Override
@@ -103,7 +108,7 @@ public class OpenSearchSearchIndexClientTest
     indexConfig = indexConfigProvider.getIndexConfig();
 
     assertThrows("Error creating OpenSearch index: " + indexConfig.getIndexName(), RuntimeException.class, () -> {
-      openSearchSearchIndexClient.createIndex();
+      openSearchSearchIndexClient.populateIndex();
     });
   }
 }

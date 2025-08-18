@@ -89,7 +89,7 @@ import static org.mockito.Mockito.when;
 /**
  * End-to-end tests of indexing and searching to check queries return the desired results.
  */
-public class IndexSearchingTest
+public abstract class AbstractIndexSearchingTest
     extends AbstractComponentTest
 {
   @Inject
@@ -159,11 +159,11 @@ public class IndexSearchingTest
     setHdsUrl();
   }
 
-  private void index() throws Exception {
+  private void index() {
     indexService.createSearchIndex();
   }
 
-  private void indexChanges() throws Exception {
+  private void indexChanges() {
     searchIndexClient.updateIndex();
   }
 
@@ -174,7 +174,7 @@ public class IndexSearchingTest
   }
 
   private List<SearchResultItemDTO> search(String query, boolean allComponents) throws Exception {
-    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, null).groupingByDTOS.stream()
+    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, null, null).groupingByDTOS.stream()
         .map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream).collect(toList());
   }
 
@@ -193,9 +193,9 @@ public class IndexSearchingTest
   }
 
   private List<SearchResultItemDTO> sbomManagerSearch(String query, boolean allComponents) throws Exception {
-    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents,
-            ProductMode.SBOM_MANAGER).groupingByDTOS.stream().map(groupDTO -> groupDTO.searchResultItemDTOS)
-        .flatMap(List::stream).collect(toList());
+    return searchService.searchIndex(query, Integer.MAX_VALUE, 1, allComponents, ProductMode.SBOM_MANAGER,
+            null).groupingByDTOS.stream().map(groupDTO -> groupDTO.searchResultItemDTOS).flatMap(List::stream)
+        .collect(toList());
   }
 
   private List<SearchResultItemDTO> sbomManagerSearch(
@@ -530,7 +530,7 @@ public class IndexSearchingTest
   }
 
   @Test
-  public void testSearchByField_UnknownField() throws Exception {
+  public void testSearchByField_UnknownField() {
     index();
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> search("unknownField:foobar"))
         .withMessage("The search query contains invalid field names: [unknownField]");
@@ -630,7 +630,7 @@ public class IndexSearchingTest
         PENDING);
     index();
 
-    assertThat(sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).satisfiesExactly(
+    assertThat(sbomManagerSearch(FieldIdentifier.APPLICATION_VERSION, "1.2.3")).satisfiesExactlyInAnyOrder(
         result1 -> {
           assertThat(result1.itemType).isEqualTo("SBOM_METADATA");
           assertThat(result1.applicationName).isEqualTo("App Name 1");
@@ -657,7 +657,7 @@ public class IndexSearchingTest
         PENDING);
     index();
 
-    assertThat(sbomManagerSearch(FieldIdentifier.SBOM_SPECIFICATION, "spdx")).satisfiesExactly(
+    assertThat(sbomManagerSearch(FieldIdentifier.SBOM_SPECIFICATION, "spdx")).satisfiesExactlyInAnyOrder(
         result1 -> {
           assertThat(result1.itemType).isEqualTo("SBOM_METADATA");
           assertThat(result1.applicationName).isEqualTo("App Name 1");

@@ -16,6 +16,7 @@ import {
   ADVANCED_SEARCH_QUERY_FAILED,
   ADVANCED_SEARCH_RESET_QUERY,
   ADVANCED_SEARCH_TOGGLE_HELP,
+  ADVANCED_SEARCH_RESET_SEARCH_AFTERS,
 } from './advancedSearchActions';
 import { pathSet } from '../util/jsUtil';
 
@@ -42,6 +43,7 @@ const initialState = {
     queryError: null,
     isShowingAllComponentResults: false,
     isToggleComponentResultsEnabled: false,
+    searchAfters: [],
   },
 };
 
@@ -133,6 +135,16 @@ function resetQuery(payload, state) {
   };
 }
 
+function resetSearchAfters(payload, state) {
+  return {
+    ...state,
+    formState: {
+      ...state.formState,
+      searchAfters: [],
+    },
+  };
+}
+
 function queryFulfilled(payload, state) {
   return {
     ...state,
@@ -143,6 +155,9 @@ function queryFulfilled(payload, state) {
       searchedQuery: state.formState.currentQuery,
       searchIncludedAllComponents:
         state.formState.isToggleComponentResultsEnabled && state.formState.isShowingAllComponentResults,
+      searchAfters: Object.assign([], state.formState.searchAfters, {
+        [payload.page + 1]: payload.searchAfter,
+      }),
     },
     viewState: {
       ...state.viewState,
@@ -185,6 +200,7 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_QUERY_FULFILLED]: queryFulfilled,
   [ADVANCED_SEARCH_QUERY_FAILED]: queryFailed,
   [ADVANCED_SEARCH_RESET_QUERY]: resetQuery,
+  [ADVANCED_SEARCH_RESET_SEARCH_AFTERS]: resetSearchAfters,
   [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp,
 };
 

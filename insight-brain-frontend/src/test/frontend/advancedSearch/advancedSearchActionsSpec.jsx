@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { searchFormSubmit } from 'MainRoot/advancedSearch/advancedSearchActions';
+import { ADVANCED_SEARCH_RESET_SEARCH_AFTERS, searchFormSubmit } from 'MainRoot/advancedSearch/advancedSearchActions';
 
 const ADVANCED_SEARCH_QUERY_REQUESTED = 'ADVANCED_SEARCH_QUERY_REQUESTED';
 const ADVANCED_SEARCH_QUERY_FULFILLED = 'ADVANCED_SEARCH_QUERY_FULFILLED';
@@ -26,6 +26,7 @@ describe('advancedSearchActions', () => {
           isShowingAllComponentResults: false,
           isToggleComponentResultsEnabled: false,
           searchIncludedAllComponents: false,
+          searchAfters: [],
         },
       },
     };
@@ -37,7 +38,9 @@ describe('advancedSearchActions', () => {
     it('dispatches ADVANCED_SEARCH_QUERY_REQUESTED', () => {
       store.dispatch(searchFormSubmit());
 
-      expect(store.getActions()[0].type).toBe(ADVANCED_SEARCH_QUERY_REQUESTED);
+      expect(store.getActions()).toHaveSize(2);
+      expect(store.getActions()[0].type).toBe(ADVANCED_SEARCH_RESET_SEARCH_AFTERS);
+      expect(store.getActions()[1].type).toBe(ADVANCED_SEARCH_QUERY_REQUESTED);
     });
 
     it('sends a GET request to the appropriate url and dispatches ADVANCED_SEARCH_QUERY_FULFILLED on successful response', (done) => {
@@ -66,7 +69,7 @@ describe('advancedSearchActions', () => {
 
       store.dispatch(searchFormSubmit()).then(() => {
         const actions = store.getActions();
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(store.getActions()).toHaveAction({
           type: ADVANCED_SEARCH_QUERY_FAILED,
           payload: 'error',
@@ -85,6 +88,7 @@ describe('advancedSearchActions', () => {
             isShowingAllComponentResults: true,
             isToggleComponentResultsEnabled: false,
             searchIncludedAllComponents: false,
+            searchAfters: [],
           },
         },
       };
@@ -114,6 +118,7 @@ describe('advancedSearchActions', () => {
             isShowingAllComponentResults: true,
             isToggleComponentResultsEnabled: true,
             searchIncludedAllComponents: false,
+            searchAfters: [],
           },
         },
       };
@@ -148,6 +153,7 @@ describe('advancedSearchActions', () => {
             isShowingAllComponentResults: false,
             isToggleComponentResultsEnabled: false,
             searchIncludedAllComponents: false,
+            searchAfters: [],
           },
         },
       };
@@ -165,6 +171,104 @@ describe('advancedSearchActions', () => {
 
       store.dispatch(searchFormSubmit()).then(() => {
         expect(axios.get).toHaveBeenCalledWith(defaultSearchUrlWithSbomManagerMode);
+        done();
+      });
+    });
+
+    it('sets searchAfter to the correct value if requesting the next page', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: false,
+            isToggleComponentResultsEnabled: false,
+            searchIncludedAllComponents: false,
+            searchResult: { page: 1 },
+            searchAfters: [undefined, undefined, ['1.0', 'YbqImJgBqQdzRfhlOQzg']],
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const expectedSearchUrl =
+        '/api/v2/search/advanced?query=testQuery&page=2&allComponents=false&searchAfter=1.0%2CYbqImJgBqQdzRfhlOQzg';
+
+      mockAxiosCalls({
+        get: {
+          [expectedSearchUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit(1)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(expectedSearchUrl);
+        done();
+      });
+    });
+
+    it('sets searchAfter to the correct value if requesting the previous page', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: false,
+            isToggleComponentResultsEnabled: false,
+            searchIncludedAllComponents: false,
+            searchResult: { page: 3 },
+            searchAfters: [undefined, undefined, ['1.0', 'YbqImJgBqQdzRfhlOQzg']],
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const expectedSearchUrl =
+        '/api/v2/search/advanced?query=testQuery&page=2&allComponents=false&searchAfter=1.0%2CYbqImJgBqQdzRfhlOQzg';
+
+      mockAxiosCalls({
+        get: {
+          [expectedSearchUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit(-1)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(expectedSearchUrl);
+        done();
+      });
+    });
+
+    it('sets searchAfter to the correct value if requesting the first page', (done) => {
+      const mockResponse = { data: { searchQuery: 'testQuery' } };
+
+      mockState = {
+        advancedSearch: {
+          formState: {
+            currentQuery: 'testQuery',
+            isShowingAllComponentResults: false,
+            isToggleComponentResultsEnabled: false,
+            searchIncludedAllComponents: false,
+            searchResult: { page: 2 },
+            searchAfters: [undefined, undefined, ['1.0', 'YbqImJgBqQdzRfhlOQzg']],
+          },
+        },
+      };
+
+      store = SpecUtil.mockReduxStore(mockState);
+
+      const expectedSearchUrl = '/api/v2/search/advanced?query=testQuery&page=1&allComponents=false';
+
+      mockAxiosCalls({
+        get: {
+          [expectedSearchUrl]: Promise.resolve(mockResponse),
+        },
+      });
+
+      store.dispatch(searchFormSubmit(-1)).then(() => {
+        expect(axios.get).toHaveBeenCalledWith(expectedSearchUrl);
         done();
       });
     });

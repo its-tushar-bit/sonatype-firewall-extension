@@ -8,13 +8,16 @@ package com.sonatype.insight.brain.search.query;
 import java.io.BufferedWriter;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
@@ -33,6 +36,7 @@ import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -44,6 +48,8 @@ import static com.sonatype.insight.brain.search.export.SearchPaths.EXPORT_FILE_N
 public class SearchService
 {
   public static final int MAX_PAGE_SIZE = 10000;
+
+  public static final String SEARCH_AFTER_HEADER = "Search-After";
 
   private final SearchIndexClient searchIndexClient;
 
@@ -78,10 +84,23 @@ public class SearchService
       int pageSize,
       int page,
       boolean allComponents,
-      ProductMode mode)
+      ProductMode mode,
+      String searchAfter)
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
-    return searchIndexClient.searchIndex(searchQuery, pageSize, page, allComponents, isSbomManagerMode(mode));
+    return searchIndexClient.searchIndex(searchQuery, pageSize, page, allComponents, isSbomManagerMode(mode),
+        parseSearchAfter(searchAfter));
+  }
+
+  private List<String> parseSearchAfter(final String searchAfter) {
+    if (searchAfter == null) {
+      return null;
+    }
+    List<String> split = Arrays.asList(searchAfter.split(","));
+    if (split.isEmpty() || split.size() % 2 != 0) {
+      throw new BadRequestException("Invalid searchAfter " + searchAfter + ".");
+    }
+    return split;
   }
 
   /**
@@ -92,15 +111,21 @@ public class SearchService
       Integer pageSize,
       int page,
       boolean allComponents,
-      ProductMode mode)
+      ProductMode mode,
+      String searchAfter,
+      HttpServletResponse httpServletResponse)
   {
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     boolean isSbomManagerMode = isSbomManagerMode(mode);
+    List<String> parsedSearchAfter = parseSearchAfter(searchAfter);
+    AtomicReference<List<String>> searchAfterRef = new AtomicReference<>();
     Iterator<List<SearchResultItemDTO>> iterator = new Iterator<>()
     {
       private int currentPage = Math.max(1, page);
 
       private Integer lastResultsSize = null;
+
+      private List<String> searchAfter = parsedSearchAfter;
 
       @Override
       public boolean hasNext() {
@@ -110,10 +135,20 @@ public class SearchService
       @Override
       public List<SearchResultItemDTO> next() {
         try {
-          List<SearchResultItemDTO> results = searchIndexClient.searchIndex(searchQuery,
-                  Math.min(pageSize == null ? MAX_PAGE_SIZE : pageSize, MAX_PAGE_SIZE), currentPage++, allComponents,
-                  isSbomManagerMode).groupingByDTOS.stream().flatMap(g -> g.searchResultItemDTOS.stream())
-              .collect(Collectors.toList());
+          int finalPageSize = Math.min(pageSize == null ? MAX_PAGE_SIZE : pageSize, MAX_PAGE_SIZE);
+          SearchResultDTO searchResultDTO = searchIndexClient.searchIndex(
+              searchQuery,
+              finalPageSize,
+              currentPage++,
+              allComponents,
+              isSbomManagerMode,
+              searchAfter
+          );
+          searchAfter = searchResultDTO.searchAfter;
+          searchAfterRef.set(searchAfter);
+          List<SearchResultItemDTO> results = searchResultDTO.groupingByDTOS.stream()
+              .flatMap(g -> g.searchResultItemDTOS.stream())
+              .toList();
           lastResultsSize = results.size();
           return results;
         }
@@ -122,6 +157,8 @@ public class SearchService
         }
       }
     };
+    httpServletResponse.setTrailerFields(() ->
+        searchAfterRef.get() == null ? Map.of() : Map.of(SEARCH_AFTER_HEADER, String.join(",", searchAfterRef.get())));
     ResponseBuilder responseBuilder = Response.ok(createAdvancedSearchCSV(iterator, pageSize, isSbomManagerMode))
         .type("application/csv; charset=UTF-8").encoding("UTF-8")
         .header(HttpHeaders.CONTENT_DISPOSITION, HttpHeaderUtils.buildContentDispositionHeaderValue(EXPORT_FILE_NAME));

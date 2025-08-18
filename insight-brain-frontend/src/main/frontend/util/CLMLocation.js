@@ -300,12 +300,13 @@ export function getAdvancedSearchIndexUrl() {
   return uriTemplate`/api/v2/search/advanced/index`;
 }
 
-export function getAdvancedSearchUrl(query, page, isShowAllComponents, isSbomManager) {
+export function getAdvancedSearchUrl(query, page, isShowAllComponents, isSbomManager, searchAfter) {
   const params = toURIParams({
     query,
     page,
     allComponents: isShowAllComponents,
     mode: isSbomManager ? 'sbomManager' : null,
+    searchAfter: searchAfter?.join(),
   });
   return uriTemplate`/api/v2/search/advanced?` + params;
 }

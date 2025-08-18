@@ -126,7 +126,7 @@ public class IndexService
    * Initial create of the search index and (re-)index ALL data
    */
   public void createSearchIndex() {
-    searchIndexClient.createIndex();
+    searchIndexClient.populateIndex();
   }
 
   /**

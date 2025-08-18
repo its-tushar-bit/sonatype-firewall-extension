@@ -8,6 +8,11 @@ package com.sonatype.insight.brain.search.opensearch;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.search.index.FieldIdentifier;
+import com.sonatype.insight.brain.search.index.ItemType;
+
+import org.apache.commons.lang.StringUtils;
 import org.opensearch.client.opensearch._types.mapping.Property;
 
 /**
@@ -15,21 +20,17 @@ import org.opensearch.client.opensearch._types.mapping.Property;
  * <p>
  * This class is used to define the structure of documents within an index.
  * <p>
- * For IQ, we have seven document types:
- * <ul>
- *   <li>ORGANIZATION</li>
- *   <li>APPLICATION</li>
- *   <li>APPLICATION_CATEGORY</li>
- *   <li>COMPONENT</li>
- *   <li>COMPONENT_LABEL</li>
- *   <li>POLICY</li>
- *   <li>VULNERABILITY</li>
- * </ul>
+ * For IQ, we have several document types defined in {@link ItemType} with fields defined in {@link FieldIdentifier}.
+ * <p>
  * We will mash all the documents fields together into a single mapping. Keep in mind that each document should have a
  * document type field to distinguish between them.
+ * <p>
+ * We will also add a field in epoch format to help determine last index time.
  */
 public class IndexMapping
 {
+  public static final String CREATED_AT_EPOCH_MS = "createdAtEpochMs";
+
   private Map<String, Property> mappings = buildDefaultPropertyMappings();
 
   public Map<String, Property> getMappings() {
@@ -43,55 +44,67 @@ public class IndexMapping
   private static Map<String, Property> buildDefaultPropertyMappings() {
     Map<String, Property> propertyMappings = new HashMap<>();
 
-    // Common mappings for all document types
-    propertyMappings.put("documentType", createProperty("keyword"));
-    propertyMappings.put("id", createProperty("keyword"));
-    propertyMappings.put("name", createProperty("text"));
+    propertyMappings.put(FieldIdentifier.ITEM_TYPE.label, createProperty("keyword"));
 
-    // Specific mappings for APPLICATION document type
-    propertyMappings.put("applicationPublicId", createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.ORGANIZATION_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.ORGANIZATION_NAME.label, createProperty("keyword"));
 
-    // Specific mappings for APPLICATION_CATEGORY document type
-    propertyMappings.put("applicationCategoryColor", createProperty("keyword"));
-    propertyMappings.put("applicationCategoryDescription", createProperty("text"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_PUBLIC_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_VERSION.label, createProperty("keyword"));
 
-    // Specific mappings for COMPONENT document type
-    propertyMappings.put("componentHash", createProperty("keyword"));
-    propertyMappings.put("componentFormat", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateGroupId", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateArtifactId", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateVersion", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateClassifier", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateExtension", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateName", createProperty("text"));
-    propertyMappings.put("componentCoordinateQualifier", createProperty("keyword"));
-    propertyMappings.put("componentCoordinatePackageld", createProperty("keyword"));
-    propertyMappings.put("componentCoordinateArchitecture", createProperty("keyword"));
-    propertyMappings.put("componentCoordinatePlatform", createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_EVALUATION_STAGE.label, createProperty("keyword"));
 
-    // Specific mappings for COMPONENT_LABEL document type
-    propertyMappings.put("componentLabelColor", createProperty("text"));
-    propertyMappings.put("componentLabelDescription", createProperty("text"));
+    propertyMappings.put(FieldIdentifier.REPORT_ID.label, createProperty("keyword"));
 
-    // Specific mappings for POLICY document type
-    propertyMappings.put("policyThreatCategory", createProperty("text"));
-    propertyMappings.put("policyThreatLevel", createProperty("integer"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_HASH.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_FORMAT.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_NAME.label, createProperty("keyword"));
+    for (String format : ComponentIdentifier.getAllFormats()) {
+      for (String coordinateName : ComponentIdentifier.getAllCoordinateNames(format)) {
+        propertyMappings.put(FieldIdentifier.COMPONENT_COORDINATE.label + StringUtils.capitalize(coordinateName),
+            createProperty("keyword"));
+      }
+    }
 
-    // Specific mappings for VULNERABILITY document type
-    propertyMappings.put("reportId", createProperty("keyword"));
-    propertyMappings.put("policyEvaluationStage", createProperty("text"));
-    propertyMappings.put("vulnerabilityStatus", createProperty("keyword"));
-    propertyMappings.put("vulnerabilitySeverity", createProperty("text"));
-    propertyMappings.put("vulnerabilityDescription", createProperty("text"));
+    propertyMappings.put(FieldIdentifier.VULNERABILITY_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.VULNERABILITY_SEVERITY.label, createProperty("float"));
+    propertyMappings.put(FieldIdentifier.VULNERABILITY_STATUS.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.VULNERABILITY_DESCRIPTION.label, createProperty("text"));
+
+    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_COLOR.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION.label, createProperty("text"));
+
+    propertyMappings.put(FieldIdentifier.COMPONENT_LABEL_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_LABEL_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_LABEL_COLOR.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.COMPONENT_LABEL_DESCRIPTION.label, createProperty("text"));
+
+    propertyMappings.put(FieldIdentifier.POLICY_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_NAME.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_THREAT_CATEGORY.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.POLICY_THREAT_LEVEL.label, createProperty("integer"));
+
+    propertyMappings.put(FieldIdentifier.PARENT_ORGANIZATION_ID.label, createProperty("keyword"));
+    propertyMappings.put(FieldIdentifier.PARENT_ORGANIZATION_NAME.label, createProperty("keyword"));
+
+    propertyMappings.put(FieldIdentifier.SBOM_SPECIFICATION.label, createProperty("keyword"));
+
+    propertyMappings.put(CREATED_AT_EPOCH_MS, createProperty("long"));
 
     return propertyMappings;
   }
 
   private static Property createProperty(String type) {
     return switch (type) {
-      case "keyword" -> new Property.Builder().keyword(k -> k).build();
-      case "text" -> new Property.Builder().text(t -> t).build();
+      case "keyword" -> new Property.Builder().keyword(k -> k.normalizer("lowercase")).build();
+      case "text" -> new Property.Builder().text(t -> t.analyzer("standard")).build();
       case "integer" -> new Property.Builder().integer(i -> i).build();
+      case "float" -> new Property.Builder().float_(i -> i).build();
+      case "long" -> new Property.Builder().long_(i -> i).build();
       default -> throw new IllegalArgumentException("Unsupported index property type: " + type);
     };
   }

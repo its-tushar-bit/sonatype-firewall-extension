@@ -27,7 +27,7 @@ public class OpenSearchHttpSearchIndexFixture
 
   // Note: This is the OpenSearch *SERVER* version.
   // In the root pom.xml is the client `opensearch-client.version` which doesn't exactly match
-  private static final DockerImageName OPENSEARCH_IMAGE = DockerImageName.parse("opensearchproject/opensearch:2.19.2");
+  public static final DockerImageName OPENSEARCH_IMAGE = DockerImageName.parse("opensearchproject/opensearch:2.19.2");
 
   protected final OpensearchContainer container;
 

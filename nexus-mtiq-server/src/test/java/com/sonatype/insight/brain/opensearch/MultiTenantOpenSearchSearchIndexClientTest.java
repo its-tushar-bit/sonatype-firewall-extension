@@ -6,6 +6,8 @@
 package com.sonatype.insight.brain.opensearch;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -23,6 +25,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexResponse;
+import org.opensearch.client.opensearch.indices.IndexState;
 import org.opensearch.client.opensearch.indices.OpenSearchIndicesClient;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
@@ -58,7 +61,7 @@ public class MultiTenantOpenSearchSearchIndexClientTest
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex_onTenantProvisioning() throws Exception {
+  public void testPopulateIndex_onTenantProvisioning() throws Exception {
     //Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
     GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
         .index(indexConfig.getIndexName())
@@ -67,40 +70,45 @@ public class MultiTenantOpenSearchSearchIndexClientTest
         .indices()
         .get(getIndexRequest);
 
-    assertThat(getIndexResponse.result()).containsKey(indexConfig.getIndexName());
+    Map<String, IndexState> result = getIndexResponse.result();
+    assertThat(result).hasSize(1);
+    Entry<String, IndexState> entry = result.entrySet().iterator().next();
+    assertThat(entry.getKey()).startsWith(indexConfig.getIndexName());
     String expectedMappingsJson = JsonUtils.writeUnformatted(indexConfig.getIndexMapping().getMappings());
-    String actualMappingsJson = JsonUtils.writeUnformatted(
-        getIndexResponse.result().get(indexConfig.getIndexName()).mappings().properties());
+    String actualMappingsJson = JsonUtils.writeUnformatted(entry.getValue().mappings().properties());
     assertThatJson(actualMappingsJson).isEqualTo(expectedMappingsJson);
   }
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex_onSecondTenantProvisioning() throws Exception {
+  public void testPopulateIndex_onSecondTenantProvisioning() throws Exception {
     provisionTenant("second-tenant");
+    String indexName = "second-tenant-mtiq-index";
 
     GetIndexRequest getIndexRequest = new GetIndexRequest.Builder()
-        .index("second-tenant-mtiq-index")
+        .index(indexName)
         .build();
     GetIndexResponse getIndexResponse = openSearchSearchIndexClient.getClient()
         .indices()
         .get(getIndexRequest);
 
-    assertThat(getIndexResponse.result()).containsKey("second-tenant-mtiq-index");
+    Map<String, IndexState> result = getIndexResponse.result();
+    assertThat(result).hasSize(1);
+    Entry<String, IndexState> entry = result.entrySet().iterator().next();
+    assertThat(entry.getKey()).startsWith(indexName);
     String expectedMappingsJson = JsonUtils.writeUnformatted(indexConfig.getIndexMapping().getMappings());
-    String actualMappingsJson = JsonUtils.writeUnformatted(
-        getIndexResponse.result().get("second-tenant-mtiq-index").mappings().properties());
+    String actualMappingsJson = JsonUtils.writeUnformatted(entry.getValue().mappings().properties());
     assertThatJson(actualMappingsJson).isEqualTo(expectedMappingsJson);
   }
 
   @Test
   @ManualIqServerInit
-  public void testCreateIndex_IndexAlreadyExists() throws IOException {
+  public void testPopulateIndex_IndexAlreadyExists() throws IOException {
     //Tenant is already provisioned by the AbstractMultiTenantBaseIntegrationTest, including the index creation
     OpenSearchClient openSearchClient = spy(openSearchSearchIndexClient.getClient());
     OpenSearchIndicesClient openSearchIndicesClient = spy(openSearchClient.indices());
 
-    openSearchSearchIndexClient.createIndex();
+    openSearchSearchIndexClient.populateIndex();
 
     verify(openSearchIndicesClient, never()).create(any(CreateIndexRequest.class));
   }

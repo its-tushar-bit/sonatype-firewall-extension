@@ -1554,6 +1554,16 @@ describe('CLMLocation.js', function () {
 
       expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, true, true)).toEqual(expectedUrl);
     });
+
+    it('returns the url with the query, page, allComponents true, mode sbomManager, and searchAfter', () => {
+      const expectedUrl =
+        '/api/v2/search/advanced?query=some%26Query&page=0&allComponents=true&mode=sbomManager' +
+        '&searchAfter=1.0%2CYbqImJgBqQdzRfhlOQzg';
+
+      expect(clmLocation.getAdvancedSearchUrl('some&Query', 0, true, true, ['1.0', 'YbqImJgBqQdzRfhlOQzg'])).toEqual(
+        expectedUrl
+      );
+    });
   });
 
   describe('getSbomsByApplicationUrl', () => {

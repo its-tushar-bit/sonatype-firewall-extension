@@ -11,7 +11,10 @@ logging:
     "com.sonatype.nexus.git.utils.api.NativeGitUtils": INFO
     "eu.medsea.mimeutil.MimeUtil2": INFO
     "org.apache.http": INFO
+    "org.apache.hc.client5.http": INFO
     "org.apache.http.wire": ERROR
+    "org.apache.hc.client5.http.wire": ERROR
+    "org.apache.hc.core5.reactor": INFO
     "org.apache.commons.beanutils.converters": INFO
     "org.apache.shiro": INFO
     "org.eclipse.birt.report.engine.layout.pdf.font.FontConfigReader": WARN

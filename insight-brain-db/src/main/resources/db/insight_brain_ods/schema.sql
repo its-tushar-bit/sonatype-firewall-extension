@@ -838,6 +838,7 @@ CREATE TABLE search_index_change (
   change_data varchar(2000) NOT NULL,
   CONSTRAINT search_index_change_pk PRIMARY KEY (search_index_change_id)
 );
+INSERT INTO search_index_change (search_index_change_id, change_type, change_data) VALUES ('2cb96c0b02724c38a6e0bdedeec45d8f', 'ORGANIZATION', 'ROOT_ORGANIZATION_ID');
 
 -- Since 1.72.0
 CREATE TABLE saml_configuration (

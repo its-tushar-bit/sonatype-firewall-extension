@@ -76,7 +76,7 @@ public class SpdxToCycloneDxExporter
 
   private Map<String, String> spdxPackageIdsToCdxBomRefs;
 
-  private Map<String, Component> componentRefToComponent = new HashMap<>();
+  protected Map<String, Component> componentRefToComponent = new HashMap<>();
 
   @Inject
   protected SpdxToCycloneDxExporter(

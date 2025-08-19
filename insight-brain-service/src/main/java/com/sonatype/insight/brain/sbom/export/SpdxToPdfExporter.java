@@ -83,7 +83,8 @@ public class SpdxToPdfExporter
     try (InputStream gis = getOriginalSbomContent()) {
       SpdxDocument originalSpdx = SbomSpdxUtils.parseContentStreamNoValidation(gis,
           SbomFormat.forString(exportParams.sbomMetadata.getSpecFormat()));
-      Bom baseBomFromSpdx = mergeCurrentDatabaseState(generateCycloneDxBomFromSpdxDocument(originalSpdx));
+      Bom baseBomFromSpdx = mergeCurrentDatabaseState(generateCycloneDxBomFromSpdxDocument(originalSpdx),
+          componentRefToComponent);
       return convertToPdfData(baseBomFromSpdx);
     }
     catch (IOException e) {

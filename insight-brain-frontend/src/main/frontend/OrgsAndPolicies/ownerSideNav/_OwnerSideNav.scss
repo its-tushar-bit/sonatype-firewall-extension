@@ -5,6 +5,7 @@
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 @use '../../scss/variables' as *;
 
 owner-side-nav.nx-viewport-sized__container {
@@ -18,7 +19,7 @@ owner-side-nav.nx-viewport-sized__container {
   $sidebar-left-spacing: var(--nx-spacing-6x);
   $sidebar-border-radius: var(--nx-border-radius) 0 0 var(--nx-border-radius);
   $active-item-focused-color: var(--nx-swatch-indigo-80);
-  $sidebar-border: 1px solid var(--nx-swatch-indigo-90);
+  $sidebar-border: 1px solid var(--nx-color-global-sidebar-2-border);
   $sidebar-outline: var(--nx-focus-outline-width) solid var(--nx-swatch-white);
 
   background-color: var(--nx-swatch-indigo-30);
@@ -26,6 +27,13 @@ owner-side-nav.nx-viewport-sized__container {
   height: 100%;
   color: var(--nx-swatch-white);
   padding: var(--nx-spacing-6x) 0 0 $sidebar-left-spacing;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    color: var(--nx-swatch-indigo-80);
+    background-color: var(--nx-swatch-indigo-20);
+    $sidebar-outline: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-80);
+    $sidebar-border-focus: 1px solid var(--nx-swatch-indigo-60);
+  }
 
   .iq-orgs-and-policies-summary-sidebar {
     &__filtered-header {
@@ -59,11 +67,18 @@ owner-side-nav.nx-viewport-sized__container {
   @mixin clickable {
     &:hover {
       background-color: var(--nx-swatch-indigo-50);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-15);
+        color: var(--nx-swatch-white);
+      }
     }
 
     &.active {
       &:hover {
         background-color: var(--nx-swatch-indigo-97);
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-indigo-35);
+        }
       }
     }
   }
@@ -74,9 +89,19 @@ owner-side-nav.nx-viewport-sized__container {
       background-color: var(--nx-swatch-indigo-97);
       color: var(--nx-swatch-grey-30);
 
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-35);
+        color: var(--nx-swatch-indigo-95);
+      }
+
       &:focus {
         outline: var(--nx-focus-outline-width) solid var(--nx-color-interactive-border-focus);
         outline-offset: calc(0px - 1px - var(--nx-focus-outline-offset) - var(--nx-focus-outline-width));
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-indigo-30);
+          outline: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-80);
+        }
       }
     }
   }
@@ -194,6 +219,11 @@ owner-side-nav.nx-viewport-sized__container {
       .nx-icon-dropdown__toggle.open {
         background-color: var(--nx-swatch-indigo-20);
         outline: none;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-swatch-purple-40);
+          border-color: var(--nx-swatch-purple-80);
+        }
       }
 
       .nx-dropdown-menu {
@@ -222,9 +252,18 @@ owner-side-nav.nx-viewport-sized__container {
     padding-left: calc(var(--nx-spacing-2x) - 1px);
     border-radius: $sidebar-border-radius;
 
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-90);
+    }
+
     &:hover {
       &:not([disabled]) {
         background-color: var(--nx-swatch-indigo-20);
+
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-white);
+          background-color: var(--nx-swatch-indigo-15);
+        }
       }
     }
 
@@ -250,6 +289,10 @@ owner-side-nav.nx-viewport-sized__container {
     padding-top: calc(var(--nx-spacing-base) - 1px);
     padding-bottom: calc(var(--nx-spacing-base) - 1px);
     padding-left: calc(var(--nx-spacing-2x) + var(--nx-spacing-6x) + var(--nx-spacing-3x) - 1px);
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-80);
+    }
   }
 
   .iq-owner-name {
@@ -278,16 +321,31 @@ owner-side-nav.nx-viewport-sized__container {
     &:focus {
       background-color: var(--nx-swatch-indigo-20);
       outline-color: var(--nx-swatch-indigo-97);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        outline-color: var(--nx-swatch-indigo-60);
+      }
     }
 
     &:hover {
       color: var(--nx-color-text-dark);
       background-color: var(--nx-swatch-indigo-80);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        color: var(--nx-swatch-indigo-80);
+        background-color: var(--nx-swatch-indigo-15);
+      }
     }
 
     &:active {
       color: var(--nx-color-text-dark);
       background-color: var(--nx-swatch-indigo-97);
+
+      @include nx-dark-mode-helpers.dark-mode {
+        color: var(--nx-swatch-indigo-80);
+        border: var(--nx-focus-outline-width) solid var(--nx-swatch-indigo-90);
+        background-color: var(--nx-swatch-indigo-20);
+      }
     }
   }
 }

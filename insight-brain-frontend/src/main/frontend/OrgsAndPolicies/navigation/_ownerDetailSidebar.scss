@@ -5,12 +5,19 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 owner-detail-sidebar {
   display: contents;
 }
 
 #owner-detail-sidebar {
+  background-color: var(--nx-swatch-indigo-90);
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-indigo-20);
+  }
+
   .nx-h3 {
     @include nx-text-helpers.truncate-ellipsis;
     padding-right: var(--nx-spacing-6x);
@@ -25,6 +32,9 @@ owner-detail-sidebar {
     border-radius: 6px 0px 0px 6px;
     &.active {
       background-color: var(--nx-swatch-indigo-97);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-30);
+      }
     }
   }
 
@@ -95,6 +105,22 @@ owner-detail-sidebar {
 
   a.nx-text-link.nx-collapsible-items__child:not(.selected):hover {
     background-color: white;
+    @include nx-dark-mode-helpers.dark-mode {
+      color: white;
+      background-color: var(--nx-swatch-indigo-15);
+    }
+  }
+
+  a.nx-text-link.nx-collapsible-items__child.selected {
+    @include nx-dark-mode-helpers.dark-mode {
+      background-color: var(--nx-swatch-purple-30);
+    }
+  }
+
+  a.nx-text-link.nx-collapsible-items__child:focus {
+    @include nx-dark-mode-helpers.dark-mode {
+      outline-color: var(--nx-swatch-indigo-80);
+    }
   }
 
   a.nx-text-link.nx-collapsible-items__child.disabled:hover {

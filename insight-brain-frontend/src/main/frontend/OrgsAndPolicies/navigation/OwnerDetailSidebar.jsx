@@ -166,15 +166,6 @@ export default function OwnerDetailSidebar() {
   ]);
 
   useEffect(() => {
-    // remove this useEffect, when main sideBar will be same background-color as edit sideBar
-    const sidebar = document.querySelector('.nx-page-sidebar');
-    if (!sidebar) {
-      return;
-    }
-    sidebar.style.backgroundColor = 'var(--nx-swatch-indigo-90)';
-  }, []);
-
-  useEffect(() => {
     if (isCategory) {
       setCategoryOpenState(true);
       setPoliciesOpenState(false);

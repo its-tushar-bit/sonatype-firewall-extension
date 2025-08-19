@@ -51,9 +51,7 @@ function CollapsibleRow({
           onClick={() => isClickable && toggleOpen()}
         >
           <span>
-            {isClickable && (
-              <NxFontAwesomeIcon icon={iconCollapse} className="iq-collapsible-row__header-icon" color="black" />
-            )}
+            {isClickable && <NxFontAwesomeIcon icon={iconCollapse} className="iq-collapsible-row__header-icon" />}
             <NxH3 className={`iq-collapsible-row__header-title ${textEllipsis ? 'iq-truncate-ellipsis' : ''}`}>
               {headerTitle}
             </NxH3>

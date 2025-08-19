@@ -14,11 +14,12 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.Files;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -234,5 +235,20 @@ public class ReportHelper
     URI zipUri = URI.create("jar:" + zipPath.toUri());
     Map<String, String> env = Map.of("create", Boolean.toString(create));
     return FileSystems.newFileSystem(zipUri, env);
+  }
+
+  public static void createEmptyZip(final Path zipPath) throws Exception {
+    Files.createDirectories(zipPath.getParent());
+    try (FileSystem fileSystem = createZipFileSystem(zipPath, true)) {
+      // no-op
+    }
+  }
+
+  public static void addToZip(final Path zipPath, final Path entryPath, final String content) throws Exception {
+    try (FileSystem fileSystem = createZipFileSystem(zipPath, false)) {
+      Path relative = zipPath.relativize(entryPath);
+      Path zipFile = fileSystem.getPath(relative.toString());
+      Files.writeString(zipFile, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    }
   }
 }

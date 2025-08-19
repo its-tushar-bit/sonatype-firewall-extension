@@ -129,6 +129,11 @@ public class S3ApplicationReportPersistenceService
       return wrapS3Exception(() -> s3Client.getObject(getObjectRequest));
     }
 
+    @Override
+    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
+      return S3ApplicationReportPersistenceService.class;
+    }
+
     protected S3Object getMetadata() throws IOException {
       return wrapS3Exception(() -> {
         HeadObjectRequest request = HeadObjectRequest.builder()
@@ -316,6 +321,11 @@ public class S3ApplicationReportPersistenceService
   public void deleteReports(final String applicationId) throws IOException {
     log.debug("Deleting ALL report files in S3 for applicationId '{}'", applicationId);
     deleteAllWithPrefix(String.format(APP_WIDE_BASE_FORMAT, applicationId));
+  }
+
+  @Override
+  public Class<? extends ReportEntity> getReportEntityClass() {
+    return S3ReportEntity.class;
   }
 
   private ReportEntity getOrCreateCacheReportEntity(

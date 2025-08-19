@@ -78,6 +78,11 @@ public class ReportBundleUpdaterTest
     }
 
     @Override
+    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
     public OutputStream getOutputStream() {
       return null;
     }

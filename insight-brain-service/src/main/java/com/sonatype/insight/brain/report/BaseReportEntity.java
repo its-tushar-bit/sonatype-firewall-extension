@@ -46,4 +46,9 @@ public interface BaseReportEntity
    * thrown.
    */
   InputStream getInputStream() throws IOException;
+  
+  /**
+   * The primary {@link ApplicationReportPersistenceService} class that handles this.
+   */
+  Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass();
 }

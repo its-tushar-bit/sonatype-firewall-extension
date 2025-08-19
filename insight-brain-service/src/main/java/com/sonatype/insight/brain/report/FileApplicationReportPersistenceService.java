@@ -109,6 +109,11 @@ public class FileApplicationReportPersistenceService
       return Files.newInputStream(entityPath);
     }
 
+    @Override
+    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
+      return FileApplicationReportPersistenceService.class;
+    }
+
     private void validate() {
       if (!entityPath.startsWith(reportBaseDir)) {
         throw new IllegalArgumentException("Path " + entityPath + " is not within " + reportBaseDir);
@@ -169,6 +174,11 @@ public class FileApplicationReportPersistenceService
     @Trace
     public InputStream getInputStream() throws IOException {
       return zipFile.getInputStream(entry);
+    }
+
+    @Override
+    public Class<? extends ApplicationReportPersistenceService> getApplicationReportPersistenceServiceClass() {
+      return FileApplicationReportPersistenceService.class;
     }
   }
 
@@ -539,5 +549,10 @@ public class FileApplicationReportPersistenceService
   @Override
   public boolean supportsTrash() {
     return true;
+  }
+
+  @Override
+  public Class<? extends ReportEntity> getReportEntityClass() {
+    return FileReportEntity.class;
   }
 }

@@ -161,4 +161,9 @@ public abstract class ApplicationReportPersistenceService
   public boolean supportsTrash() {
     return false;
   }
+
+  /**
+   * @return the {@link ReportEntity} class this handles.
+   */
+  public abstract Class<? extends ReportEntity> getReportEntityClass();
 }

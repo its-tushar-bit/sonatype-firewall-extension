@@ -24,7 +24,6 @@
   tbody {
     .nx-cell:first-of-type:not(.nx-cell--meta-info) {
       @include nx-text-helpers.semi-bold;
-      color: var(--nx-swatch-grey-30);
       text-align: right;
     }
     .nx-cell:nth-child(2),

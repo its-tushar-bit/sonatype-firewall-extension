@@ -5,6 +5,7 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 @use '../../scss/variables' as *;
 
@@ -25,8 +26,8 @@
 //End positioning and layout styles
 
 .iq-popover {
-  background-color: var(--nx-swatch-white);
-  border-left: 1px var(--nx-swatch-indigo-80) solid;
+  background-color: var(--nx-color-component-background);
+  border-left: 1px var(--nx-color-global-sidebar-2-border) solid;
   box-sizing: border-box;
 }
 
@@ -63,6 +64,10 @@
   border: 0 none;
   box-shadow: none;
   border-top: 1px $iq-grey-4 solid;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    border-top: 1px var(--nx-swatch-indigo-40) solid;
+  }
 }
 
 .iq-popover__header,

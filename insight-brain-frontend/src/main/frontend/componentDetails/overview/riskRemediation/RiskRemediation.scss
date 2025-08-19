@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 @use './CompareVersions.scss';
 @use './RecommendedRemediation';
 @use './RecommendedVersions.scss';
@@ -45,6 +47,10 @@
       .iq-golden-version-text {
         color: var(--nx-swatch-yellow-30);
         font-weight: 600;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-yellow-60);
+        }
       }
     }
 
@@ -77,7 +83,7 @@
 
   .iq-version-item {
     .nx-list__text {
-      color: var(--nx-swatch-grey-05);
+      color: var(--nx-color-text-stark);
     }
   }
 }

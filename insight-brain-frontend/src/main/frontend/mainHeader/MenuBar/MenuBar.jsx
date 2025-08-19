@@ -47,6 +47,9 @@ export const MenuBar = ({
   isFirewallOnlyLicense,
   isZscalerEnabled,
   isStandaloneSbomManager,
+  hasLifecycleLicense,
+  hasRoutesResolved,
+  hasAuditorLicense,
 }) => {
   const hasAnyPermissions = Object.values(permissions).filter(Boolean).length > 0;
 
@@ -55,7 +58,10 @@ export const MenuBar = ({
     isStandaloneFirewall,
     isStandaloneSbomManager,
     isFirewallOnlyLicense,
-    isSbomManagerOnlyLicense
+    isSbomManagerOnlyLicense,
+    hasLifecycleLicense,
+    hasRoutesResolved,
+    hasAuditorLicense
   );
 
   if (!isLoggedIn && shouldShowLoginButton) {
@@ -145,6 +151,9 @@ MenuBar.propTypes = {
   isFirewallOnlyLicense: PropTypes.bool,
   isZscalerEnabled: PropTypes.bool,
   isStandaloneSbomManager: PropTypes.bool,
+  hasLifecycleLicense: PropTypes.bool,
+  hasRoutesResolved: PropTypes.bool,
+  hasAuditorLicense: PropTypes.bool,
 };
 
 function getProduct(
@@ -152,16 +161,34 @@ function getProduct(
   isStandaloneFirewall,
   isStandaloneSbomManager,
   isFirewallOnlyLicense,
-  isSbomManagerOnlyLicense
+  isSbomManagerOnlyLicense,
+  hasLifecycleLicense,
+  hasRoutesResolved,
+  hasAuditorLicense
 ) {
+  // Return default during loading phase to prevent flashing lifecycle logo
+  // (hasLifecycleLicense resolves before route/license selectors)
+  if (!hasRoutesResolved) {
+    return PRODUCT_NAMES.SONATYPE;
+  }
+
   if (isStandaloneFirewall || isFirewallOnlyLicense) {
     return PRODUCT_NAMES.FIREWALL;
-  } else if (isStandaloneSbomManager || isSbomManagerOnlyLicense) {
+  }
+
+  if (isStandaloneSbomManager || isSbomManagerOnlyLicense) {
     return PRODUCT_NAMES.SBOM_MANAGER;
-  } else if (isStandaloneDeveloper) {
+  }
+
+  if (isStandaloneDeveloper) {
     return PRODUCT_NAMES.DEVELOPER;
   }
-  return PRODUCT_NAMES.LIFECYCLE;
+
+  if (hasLifecycleLicense || hasAuditorLicense) {
+    return PRODUCT_NAMES.LIFECYCLE;
+  }
+
+  return PRODUCT_NAMES.SONATYPE_UNLICENSED;
 }
 
 export default MenuBar;

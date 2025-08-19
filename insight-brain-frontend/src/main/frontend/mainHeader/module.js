@@ -59,6 +59,9 @@ export default angular
         'isFirewallOnlyLicense',
         'isZscalerEnabled',
         'isStandaloneSbomManager',
+        'hasLifecycleLicense',
+        'hasRoutesResolved',
+        'hasAuditorLicense',
       ],
       ['$ngRedux', 'userActions', '$state']
     )

@@ -109,8 +109,18 @@ describe('MenuBar', () => {
   });
 
   describe('product logo and homeHref', () => {
-    it('renders correct logo and homeHref for developer', () => {
-      renderComponent({ isStandaloneDeveloper: true });
+    it('renders blank logo and homeHref for sonatype if hasRoutesResolved is false', () => {
+      renderComponent({ hasRoutesResolved: false });
+
+      const link = screen.getByRole('link');
+      expect(link).toHaveProperty('href', 'http://localhost/dashboard.overview.violations');
+      const logo = within(link).getAllByRole('img')[0];
+      expect(logo).toHaveAttribute('alt', '');
+      expect(logo).toHaveAttribute('src', '');
+    });
+
+    it('renders correct logo and homeHref for developer if hasRoutesResolved is true', () => {
+      renderComponent({ isStandaloneDeveloper: true, hasRoutesResolved: true });
 
       const link = screen.getByRole('link');
       expect(link).toHaveProperty('href', 'http://localhost/developer.dashboard');
@@ -118,36 +128,51 @@ describe('MenuBar', () => {
       // There are 2 images, one for light and one for dark mode. Pick the first one.
       const logo = within(link).getAllByRole('img')[0];
       expect(logo).toHaveAttribute('alt', 'sonatype developer');
+      expect(logo).toHaveAttribute('src', 'test-image-stub');
     });
 
-    it('renders correct logo and homeHref for firewall', () => {
-      renderComponent({ isStandaloneFirewall: true });
+    it('renders correct logo and homeHref for firewall if hasRoutesResolved is true', () => {
+      renderComponent({ isStandaloneFirewall: true, hasRoutesResolved: true });
 
       const link = screen.getByRole('link');
       expect(link).toHaveProperty('href', 'http://localhost/firewall.firewallPage');
 
       const logo = within(link).getAllByRole('img')[0];
       expect(logo).toHaveAttribute('alt', 'sonatype firewall');
+      expect(logo).toHaveAttribute('src', 'test-image-stub');
     });
 
-    it('renders correct logo and homeHref for sbomManager', () => {
-      renderComponent({ isStandaloneSbomManager: true });
+    it('renders correct logo and homeHref for sbomManager if hasRoutesResolved is true', () => {
+      renderComponent({ isStandaloneSbomManager: true, hasRoutesResolved: true });
 
       const link = screen.getByRole('link');
       expect(link).toHaveProperty('href', 'http://localhost/sbomManager.dashboard');
 
       const logo = within(link).getAllByRole('img')[0];
       expect(logo).toHaveAttribute('alt', 'sonatype sbom manager');
+      expect(logo).toHaveAttribute('src', 'test-image-stub');
     });
 
-    it('renders correct logo and homeHref for lifecycle (default)', () => {
-      renderComponent();
+    it('renders correct logo and homeHref for lifecycle if hasRoutesResolved is true', () => {
+      renderComponent({ hasLifecycleLicense: true, hasRoutesResolved: true });
 
       const link = screen.getByRole('link');
       expect(link).toHaveProperty('href', 'http://localhost/dashboard.overview.violations');
 
       const logo = within(link).getAllByRole('img')[0];
       expect(logo).toHaveAttribute('alt', 'Lifecycle');
+      expect(logo).toHaveAttribute('src', 'test-image-stub');
+    });
+
+    it('renders sonatype logo and homeHref for unlicensed if hasRoutesResolved is true', () => {
+      renderComponent({ hasLifecycleLicense: false, hasRoutesResolved: true });
+
+      const link = screen.getByRole('link');
+      expect(link).toHaveProperty('href', 'http://localhost/dashboard.overview.violations');
+
+      const logo = within(link).getAllByRole('img')[0];
+      expect(logo).toHaveAttribute('alt', 'Sonatype');
+      expect(logo).toHaveAttribute('src', 'test-image-stub');
     });
   });
 });

@@ -30,15 +30,19 @@ import {
 import {
   selectIsSbomManagerOnlyLicense,
   selectIsFirewallOnlyLicense,
+  selectHasLifecycleLicense,
+  selectHasAuditorLicense,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import {
   selectIsStandaloneDeveloper,
   selectIsStandaloneFirewall,
   selectIsStandaloneSbomManager,
+  selectCurrentRouteName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
 import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
 import { getValidPermissions } from 'MainRoot/util/permissionService';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 /* global clmServerVersion */
 const globalMajorMinorVersion = (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.');
@@ -129,6 +133,9 @@ export const mapStateToThis = (state) => ({
   isFirewallOnlyLicense: selectIsFirewallOnlyLicense(state),
   isZscalerEnabled: selectIsZscalerEnabled(state),
   isStandaloneSbomManager: selectIsStandaloneSbomManager(state),
+  hasLifecycleLicense: selectHasLifecycleLicense(state),
+  hasRoutesResolved: !isNilOrEmpty(selectCurrentRouteName(state)),
+  hasAuditorLicense: selectHasAuditorLicense(state),
 });
 
 MainHeaderController.$inject = ['$rootScope', '$scope', '$ngRedux'];

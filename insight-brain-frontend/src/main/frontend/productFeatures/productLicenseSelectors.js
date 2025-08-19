@@ -22,13 +22,13 @@ export const PRODUCT_LICENSES = Object.freeze({
     'Sonatype Lifecycle Firewall Cloud',
   ],
   sbomManager: ['Sonatype SBOM Manager', 'Sonatype SBOM Manager SaaS'],
+  auditor: ['Sonatype Auditor'],
 });
 
 export const selectProductLicenseSlice = R.prop('productLicense');
 export const selectLoadingProducts = createSelector(selectProductLicenseSlice, R.prop('loading'));
 export const selectProductLicense = createSelector(selectProductLicenseSlice, R.prop('license'));
 export const selectProducts = createSelector(selectProductLicense, R.propOr([], 'products'));
-
 export const selectIsSbomManagerOnlyLicense = createSelector(selectProducts, isSbomManagerOnlyLicenseProduct);
 
 export const isFirewallOnlyLicenseProduct = (products) =>
@@ -52,4 +52,9 @@ export const selectHasFirewallLicense = createSelector(
 export const selectHasSbomManagerLicense = createSelector(
   selectProducts,
   R.any(R.includes(R.__, PRODUCT_LICENSES.sbomManager))
+);
+
+export const selectHasAuditorLicense = createSelector(
+  selectProducts,
+  R.any(R.includes(R.__, PRODUCT_LICENSES.auditor))
 );

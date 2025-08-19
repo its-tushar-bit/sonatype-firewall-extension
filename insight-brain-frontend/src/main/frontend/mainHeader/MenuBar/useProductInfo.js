@@ -9,12 +9,16 @@ const DEVELOPER = 'developer';
 const FIREWALL = 'firewall';
 const SBOM_MANAGER = 'sbomManager';
 const LIFECYCLE = 'lifecycle';
+const SONATYPE = 'sonatype';
+const SONATYPE_UNLICENSED = 'sonatypeUnlicensed';
 
 export const PRODUCT_NAMES = {
   DEVELOPER,
   FIREWALL,
   SBOM_MANAGER,
   LIFECYCLE,
+  SONATYPE,
+  SONATYPE_UNLICENSED,
 };
 
 const PRODUCT_ICONS = {
@@ -38,6 +42,16 @@ const PRODUCT_ICONS = {
     darkPath: require('MainRoot/productIcons/sonatype-lifecycle-logo-nav-dark.svg'),
     altText: 'Lifecycle',
   },
+  SONATYPE: {
+    lightPath: '',
+    darkPath: '',
+    altText: '',
+  },
+  SONATYPE_UNLICENSED: {
+    lightPath: require('@sonatype/react-shared-components/assets/img/sonatype-header.svg'),
+    darkPath: require('@sonatype/react-shared-components/assets/img/sonatype-header-dark-mode.svg'),
+    altText: 'Sonatype',
+  },
 };
 
 export function useProductInfo(product) {
@@ -59,9 +73,18 @@ export function useProductInfo(product) {
         href: uiRouterState.href('sbomManager.dashboard'),
       };
     case LIFECYCLE:
-    default:
       return {
         ...PRODUCT_ICONS.LIFECYCLE,
+        href: uiRouterState.href('dashboard.overview.violations'),
+      };
+    case SONATYPE_UNLICENSED:
+      return {
+        ...PRODUCT_ICONS.SONATYPE_UNLICENSED,
+        href: uiRouterState.href('dashboard.overview.violations'),
+      };
+    default:
+      return {
+        ...PRODUCT_ICONS.SONATYPE,
         href: uiRouterState.href('dashboard.overview.violations'),
       };
   }

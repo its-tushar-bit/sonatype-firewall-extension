@@ -1626,7 +1626,7 @@ CREATE TABLE sast_remediation
     sast_finding_id                varchar(50) NOT NULL,
     content                        text NOT NULL,
     CONSTRAINT sast_remediation_pk PRIMARY KEY (sast_remediation_id),
-    CONSTRAINT sast_remediation_sast_finding_fk FOREIGN KEY (sast_finding_id) REFERENCES sast_finding(sast_finding_id)
+    CONSTRAINT sast_remediation_sast_finding_fk FOREIGN KEY (sast_finding_id) REFERENCES sast_finding(sast_finding_id) ON DELETE CASCADE
 );
 
 -- since 1.170

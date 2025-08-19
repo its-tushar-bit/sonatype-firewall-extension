@@ -24,15 +24,9 @@ import static java.lang.String.format;
 @Singleton
 public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
 {
-  private final SastRemediationDAO sastRemediationDAO;
-
   @Inject
-  public SastFindingDAO(
-      final OperationalDataStore operationalDataStore,
-      final SastRemediationDAO sastRemediationDAO)
-  {
+  public SastFindingDAO(final OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
-    this.sastRemediationDAO = sastRemediationDAO;
   }
 
   @Override
@@ -45,26 +39,6 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
   @Override
   public void update(final TransactionContext tx, final SastFinding entity) {
     throw new UnsupportedOperationException("The SastFinding table does not support update operations");
-  }
-
-  @Override
-  public void delete(final TransactionContext tx, final SastFinding entity) {
-    /*
-     * Do not use this method for deleting SastFinding entities since it does not cascade to SastRemediations.
-     * Instead, use the deleteBySastScanId method to delete all SastFindings and SastRemediations for a SastScan.
-     * For now, there is no usecase to delete some SastFindings from a SastScan
-     */
-    super.delete(tx, entity);
-  }
-
-  @Override
-  public void delete(final SastFinding entity) {
-    /*
-     * Do not use this method for deleting SastFinding entities since it does not cascade to SastRemediations.
-     * Instead, use the deleteBySastScanId method to delete all SastFindings and SastRemediations for a SastScan.
-     * For now, there is no usecase to delete some SastFindings from a SastScan
-     */
-    super.delete(entity);
   }
 
   public List<SastFinding> getBySastScanIdOrderBySeverityDesc(final String sastScanId) {
@@ -88,11 +62,6 @@ public class SastFindingDAO extends AbstractOperationalSqlDAO<SastFinding>
   }
 
   public void deleteBySastScanId(final TransactionContext tx, final String sastScanId) {
-    getBySastScanIdOrderBySeverityDesc(tx, sastScanId)
-        .stream()
-        .map(SastFinding::getId)
-        .forEach(sastFindingId -> sastRemediationDAO.deleteBySastFindingId(tx, sastFindingId));
-
     final String sQuery = "DELETE FROM SastFinding entity WHERE entity.sastScanId=?1";
     createQuery(sQuery, sastScanId).executeUpdate(tx);
   }

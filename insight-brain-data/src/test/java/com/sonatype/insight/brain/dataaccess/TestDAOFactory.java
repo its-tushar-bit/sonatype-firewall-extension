@@ -245,8 +245,7 @@ public class TestDAOFactory
 
   @Override
   public SastFindingDAO createSastFindingDAO() {
-    SastRemediationDAO sastRemediationDAO = createSastRemediationDAO();
-    return new SastFindingDAO(dataStoreProvider.getOperationalDataStore(), sastRemediationDAO);
+    return new SastFindingDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

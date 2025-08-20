@@ -57,4 +57,11 @@ public interface SbomEntity
    * @return true if the entity exists, false otherwise
    */
   boolean exists();
+
+  /**
+   * Get the class of the persistence service that handles this SBOM entity.
+   *
+   * @return the class of the persistence service
+   */
+  Class<? extends SbomPersistenceService> getScanPersistenceServiceClass();
 }

@@ -12,6 +12,7 @@ import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +29,19 @@ public class SbomPersistenceServiceProvider implements Provider<SbomPersistenceS
 
   private final Provider<FileSbomPersistenceService> fileSbomPersistenceServiceProvider;
 
+  private final Provider<HybridSbomPersistenceService> hybridSbomPersistenceServiceProvider;
+
   @Inject
   public SbomPersistenceServiceProvider(
       final InsightConfig insightConfig,
       final Provider<S3SbomPersistenceService> s3SbomPersistenceServiceProvider,
-      final Provider<FileSbomPersistenceService> fileSbomPersistenceServiceProvider)
+      final Provider<FileSbomPersistenceService> fileSbomPersistenceServiceProvider,
+      final Provider<HybridSbomPersistenceService> hybridSbomPersistenceServiceProvider)
   {
     this.insightConfig = insightConfig;
     this.s3SbomPersistenceServiceProvider = s3SbomPersistenceServiceProvider;
     this.fileSbomPersistenceServiceProvider = fileSbomPersistenceServiceProvider;
+    this.hybridSbomPersistenceServiceProvider = hybridSbomPersistenceServiceProvider;
   }
 
   @Override
@@ -45,14 +50,22 @@ public class SbomPersistenceServiceProvider implements Provider<SbomPersistenceS
       log.info("No storage config found, using FileSbomPersistenceService");
       return fileSbomPersistenceServiceProvider.get();
     }
-    return switch (insightConfig.getStorage().getType()) {
-      case FILE, HYBRID -> {
+    return get(insightConfig.getStorage().getType());
+  }
+
+  public SbomPersistenceService get(DataStoreType dataStoreType) {
+    return switch (dataStoreType) {
+      case FILE -> {
         log.info("Using FileSbomPersistenceService");
         yield fileSbomPersistenceServiceProvider.get();
       }
       case S3 -> {
         log.info("Using S3SbomPersistenceService");
         yield s3SbomPersistenceServiceProvider.get();
+      }
+      case HYBRID -> {
+        log.info("Using HybridSbomPersistenceService");
+        yield hybridSbomPersistenceServiceProvider.get();
       }
     };
   }

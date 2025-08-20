@@ -108,6 +108,11 @@ public record S3SbomEntity(
   }
 
   @Override
+  public Class<? extends SbomPersistenceService> getScanPersistenceServiceClass() {
+    return S3SbomPersistenceService.class;
+  }
+
+  @Override
   public String toString() {
     return getLocation();
   }

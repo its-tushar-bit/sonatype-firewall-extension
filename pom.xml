@@ -47,8 +47,7 @@
      keycloak 24.x has breaking changes.
      keycloak 25.x has major breaking changes. -->
     <keycloak.version>23.0.7</keycloak.version>
-    <bouncycastle.version>1.80</bouncycastle.version>
-    <bc-fips.version>2.1.0</bc-fips.version>
+    <bc-fips.version>2.1.1</bc-fips.version>
     <bc-fips-util.version>2.1.4</bc-fips-util.version>
     <bcpkix-fips.version>2.1.9</bcpkix-fips.version>
     <bctls-fips.version>2.1.20</bctls-fips.version>

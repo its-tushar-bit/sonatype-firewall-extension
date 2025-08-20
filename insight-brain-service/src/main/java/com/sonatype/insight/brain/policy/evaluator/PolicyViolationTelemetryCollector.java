@@ -287,10 +287,8 @@ public class PolicyViolationTelemetryCollector
   private void addDependencyInfo(TelemetryData telemetryData, Component component) {
     if (component != null) {
       telemetryData.put(INNERSOURCE_DEPENDENCY, component.getInnerSourceData() != null);
-
-      if (component.getDirectDependency() != null) {
-        telemetryData.put(DIRECT_DEPENDENCY, component.getDirectDependency());
-      }
+      // direct dependency value can be true / false / null (null means we don't know)
+      telemetryData.put(DIRECT_DEPENDENCY, component.getDirectDependency());
     }
   }
 

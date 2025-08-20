@@ -871,7 +871,7 @@ public class PolicyViolationTelemetryCollectorTest
 
     void validateDependencyInfo(Map<String, Object> attributes) {
       if (null != component) {
-        validateMatchesOrNotExists(attributes, DIRECT_DEPENDENCY, component.getDirectDependency());
+        assertThat(attributes).containsEntry(DIRECT_DEPENDENCY, component.getDirectDependency());
         assertThat(attributes).containsEntry(INNERSOURCE_DEPENDENCY, component.getInnerSourceData() != null);
       }
     }

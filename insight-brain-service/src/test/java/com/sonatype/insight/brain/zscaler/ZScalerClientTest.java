@@ -6,9 +6,11 @@
 package com.sonatype.insight.brain.zscaler;
 
 import java.net.http.HttpClient;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Map;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 
@@ -24,6 +26,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,6 +39,12 @@ public class ZScalerClientTest
   @Mock
   private HttpResponse<String> mockHttpResponse;
 
+  @Mock
+  private HttpResponse<String> mockAdminResponse;
+
+  @Mock
+  private  HttpResponse<String> mockRoleResponse;
+
   private ZScalerClient underTest;
 
   @Before
@@ -44,13 +53,57 @@ public class ZScalerClientTest
   }
 
   @Test
-  public void shouldAuthenticateSuccessfullyWithValidCredentials() throws Exception {
-    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class))).thenReturn(mockHttpResponse);
+  public void shouldAuthenticateSuccessfullyWithValidCredentialsAndPermissions() throws Exception {
+    HttpHeaders mockHeaders = HttpHeaders.of(
+        Map.of("Set-Cookie", List.of("JSESSIONID=abc123; Path=/; HttpOnly")),
+        (key, value) -> true
+    );
+
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockHttpResponse, mockAdminResponse, mockRoleResponse);
+
     when(mockHttpResponse.statusCode()).thenReturn(200);
+    when(mockHttpResponse.headers()).thenReturn(mockHeaders);
+
+    when(mockAdminResponse.statusCode()).thenReturn(200);
+    when(mockAdminResponse.body()).thenReturn("{\"role\":{\"id\":\"23456\"}}");
+
+    when(mockRoleResponse.statusCode()).thenReturn(200);
+    when(mockRoleResponse.body()).thenReturn(
+        "{\"featurePermissions\":{\"OVERRIDE_EXISTING_CAT\":\"READ_WRITE\",\"CUSTOM_URL_CAT\":\"READ_WRITE\"}}"
+    );
 
     underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp");
 
-    verify(mockHttpClient).send(any(), any());
+    verify(mockHttpClient, times(3)).send(any(), any());
+  }
+
+  @Test
+  public void shouldThrowBadRequestExceptionWithValidCredentialsWhenNoPermissions() throws Exception {
+    HttpHeaders mockHeaders = HttpHeaders.of(
+        Map.of("Set-Cookie", List.of("JSESSIONID=abc123; Path=/; HttpOnly")),
+        (key, value) -> true
+    );
+
+    when(mockHttpClient.send(any(HttpRequest.class), any(HttpResponse.BodyHandler.class)))
+        .thenReturn(mockHttpResponse, mockAdminResponse, mockRoleResponse);
+
+    when(mockHttpResponse.statusCode()).thenReturn(200);
+    when(mockHttpResponse.headers()).thenReturn(mockHeaders);
+
+    when(mockAdminResponse.statusCode()).thenReturn(200);
+    when(mockAdminResponse.body()).thenReturn("{\"role\":{\"id\":\"23456\"}}");
+
+    when(mockRoleResponse.statusCode()).thenReturn(200);
+    when(mockRoleResponse.body()).thenReturn(
+        "{\"featurePermissions\":{\"AUDIT_LOGS\":\"READ_WRITE\",\"HOSTED_PAC_FILES\":\"READ_WRITE\"}}"
+    );
+
+    BadRequestException exception = assertThrows(BadRequestException.class, () ->
+        underTest.authenticate("http://example.com", "user", "pass", "apiKey", "timestamp")
+    );
+
+    assertEquals("Insufficient permissions: OVERRIDE_EXISTING_CAT is missing", exception.getMessage());
   }
 
   @Test

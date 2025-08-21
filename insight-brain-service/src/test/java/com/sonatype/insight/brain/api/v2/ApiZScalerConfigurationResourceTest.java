@@ -169,6 +169,47 @@ public class ApiZScalerConfigurationResourceTest
   }
 
   @Test
+  public void testTestZScalerConfiguration() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("username");
+    request.setPassword(passwordHandler.encryptPassword("password"));
+    request.setHostname(zScalerMockServer.getBaseUrl());
+    request.setApiKey("cajgffdcgkej");
+
+    zScalerMockServer.mockAuthenticationWithRolesAndPermissions(
+        200, "{\"token\":\"mock-token\"}",
+        200, "{\"role\":{\"id\":\"mock-role-id\"}}",
+        200, "{\"featurePermissions\":" +
+            "{\"OVERRIDE_EXISTING_CAT\":\"READ_WRITE\",\"CUSTOM_URL_CAT\":\"READ_WRITE\"}}"
+    );
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
+    assertResponseStatus(204, response);
+  }
+
+  @Test
+  public void testTestZScalerConfiguration_NoPermissions() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("username");
+    request.setPassword(passwordHandler.encryptPassword("password"));
+    request.setHostname(zScalerMockServer.getBaseUrl());
+    request.setApiKey("cajgffdcgkej");
+
+    zScalerMockServer.mockAuthenticationWithRolesAndPermissions(
+        200, "{\"token\":\"mock-token\"}",
+        200, "{\"role\":{\"id\":\"mock-role-id\"}}",
+        200, "{\"featurePermissions\":" +
+            "{\"FTP_CONTROL\":\"READ_WRITE\",\"SSL_POLICY\":\"READ_WRITE\"}}"
+    );
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .isEqualTo("Insufficient permissions: OVERRIDE_EXISTING_CAT is missing");
+  }
+
+  @Test
   public void testDeleteZScalerConfiguration() throws Exception {
     tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, true, true, true);
 

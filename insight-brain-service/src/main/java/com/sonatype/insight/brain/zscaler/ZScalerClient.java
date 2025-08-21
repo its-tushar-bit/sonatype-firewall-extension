@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -44,6 +45,10 @@ public class ZScalerClient
   private static final String ACTIVATE = V1_URL + "status/activate";
 
   private static final String AUTHENTICATED_SESSION = V1_URL + "authenticatedSession";
+
+  private static final String ADMIN_USERS_ME = V1_URL + "adminUsers/me";
+
+  private static final String ADMIN_ROLES = V1_URL + "adminRoles/";
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -87,12 +92,96 @@ public class ZScalerClient
         log.warn("Authentication failed: {}", response.body());
         throw new BadRequestException("Authentication failed: " + response.body());
       }
-      log.info("Authenticated successfully");
+
+      fetchAdminDetails(baseUrl, response);
     }
     catch (Exception e) {
       log.warn("Exception during authentication: {}", e.getMessage());
       throw new BadRequestException(e.getMessage());
     }
+  }
+
+  private void fetchAdminDetails(String baseUrl, HttpResponse<String> authResponse) throws Exception {
+    Optional<String> jsessionIdCookie = authResponse.headers()
+        .allValues("Set-Cookie")
+        .stream()
+        .filter(cookie -> cookie.startsWith("JSESSIONID"))
+        .findFirst();
+
+    if (jsessionIdCookie.isEmpty()) {
+      throw new IllegalStateException("JSESSIONID cookie not found in auth response");
+    }
+
+    String jsessionId = jsessionIdCookie.get().split(";", 2)[0];
+
+    HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(baseUrl + ADMIN_USERS_ME))
+            .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+            .header("Cookie", jsessionId)
+            .GET()
+            .build();
+
+    HttpResponse<String> adminResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    if (adminResponse.statusCode() == 200) {
+      log.debug("Admin details: {}", adminResponse.body());
+
+      String roleId = extractRoleId(adminResponse.body());
+      fetchAdminRoleDetails(baseUrl, jsessionId, roleId);
+    }
+    else {
+      log.warn("Failed to get admin: {}", adminResponse.body());
+      throw new BadRequestException("Failed to get admin: " + adminResponse.body());
+    }
+  }
+
+  private String extractRoleId(String responseBody) throws Exception {
+    Map<String, Object> responseMap = objectMapper.readValue(responseBody, new TypeReference<>() {});
+    Map<String, Object> role = objectMapper.convertValue(
+        responseMap.get("role"),
+        new TypeReference<Map<String, Object>>() {}
+    );
+    return role.get("id").toString();
+  }
+
+  private void fetchAdminRoleDetails(String baseUrl, String jsessionId, String roleId) throws Exception {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(baseUrl + ADMIN_ROLES + roleId))
+        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+        .header("Cookie", jsessionId)
+        .GET()
+        .build();
+
+    HttpResponse<String> roleResponse = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+    if (roleResponse.statusCode() == 200) {
+      log.debug("Admin role details: {}", roleResponse.body());
+
+      Map<String, Object> roleDetails = objectMapper.readValue(roleResponse.body(), new TypeReference<>() {});
+      Map<String, String> featurePermissions = objectMapper.convertValue(
+          roleDetails.get("featurePermissions"),
+          new TypeReference<Map<String, String>>() {}
+      );
+      verifyFeaturePermissions(featurePermissions);
+    }
+    else {
+      log.warn("Failed to get admin role details: {}", roleResponse.body());
+      throw new BadRequestException("Failed to get admin role details: " + roleResponse.body());
+    }
+  }
+
+  private void verifyFeaturePermissions(Map<String, String> featurePermissions) {
+    List<String> requiredPermissions = List.of("OVERRIDE_EXISTING_CAT", "CUSTOM_URL_CAT");
+    for (String permission : requiredPermissions) {
+      if (!featurePermissions.containsKey(permission)) {
+        throw new BadRequestException("Insufficient permissions: " + permission + " is missing");
+      }
+      String value = featurePermissions.get(permission);
+      if (!"READ_WRITE".equals(value)) {
+        throw new BadRequestException("Permission " + permission + " does not have READ and WRITE access");
+      }
+    }
+    log.info("Authenticated successfully with required permissions");
   }
 
   List<ZScalerCategory> getCustomUrlCategories(String baseUrl) {

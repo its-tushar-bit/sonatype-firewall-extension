@@ -441,7 +441,7 @@ public class ScanPolicyEvaluator
           + "license does not support enforcement.", applicationId, scanId, stageTypeId);
     }
     return policyAlertUtil.createPolicyAlerts(components, violations, stageTypeId, applicationId, forMonitoring,
-        enableActions);
+        enableActions, scanId);
   }
 
   private void updateReportFiles(

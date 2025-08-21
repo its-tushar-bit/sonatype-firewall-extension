@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.util.List;
+
 import com.sonatype.insight.brain.dataaccess.component.ComponentLoaderFactory;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
@@ -22,6 +25,7 @@ import com.google.inject.Inject;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
@@ -86,5 +90,19 @@ public class ReportComponentServiceTest
 
   private String simulateReportIsAvailable(String reportResourceName) {
     return mockReportDownloader.mockDownloadReport("/" + getClass().getSimpleName() + "/" + reportResourceName);
+  }
+
+  @Test
+  public void testGetReportComponents() throws Exception {
+    Organization organization = tempEntity.newOrganization("my-org");
+    Application application = tempEntity.newApplication("my-app", "my-app", organization.getId());
+    String scanId = simulateReportIsAvailable("report");
+    reportComponentService.fetchReportAndComponents(application, scanId, StageTypes.STAGE_RELEASE.getId());
+
+    List<Component> components = reportComponentService.getReportComponents(scanId, application);
+
+    assertNotNull(components);
+    assertFalse(components.isEmpty());
+    assertEquals(components.size(), 28);
   }
 }

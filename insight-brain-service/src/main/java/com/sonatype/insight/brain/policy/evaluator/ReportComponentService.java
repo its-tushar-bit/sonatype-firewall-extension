@@ -71,4 +71,18 @@ public class ReportComponentService
 
     return new ReportComponentData(applicationReport, components);
   }
+
+  public List<Component> getReportComponents(String scanId, Application owner) throws IOException {
+    ApplicationReport applicationReport = reportService.getReport(owner.getId(), scanId);
+    ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
+    ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
+    ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
+    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+    List<Component> components = componentLoaderFactory.createComponentLoader(owner)
+        .getAll((licenseReportEntry == null) ? null : licenseReportEntry.buf,
+            (securityReportEntry == null) ? null : securityReportEntry.buf,
+            (bomReportEntry == null) ? null : bomReportEntry.buf,
+            (dependenciesReportEntry == null) ? null : dependenciesReportEntry.buf);
+    return components;
+  }
 }

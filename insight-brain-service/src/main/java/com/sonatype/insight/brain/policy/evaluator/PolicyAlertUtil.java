@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -29,12 +30,16 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
@@ -49,15 +54,21 @@ public class PolicyAlertUtil
 
   private final PolicyViolationDAO policyViolationDAO;
 
+  private final ReportComponentService reportComponentService;
+
+  private static final Logger log = LoggerFactory.getLogger(PolicyAlertUtil.class);
+
   @Inject
   public PolicyAlertUtil(
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
-      final PolicyViolationDAO policyViolationDAO)
+      final PolicyViolationDAO policyViolationDAO,
+      final ReportComponentService reportComponentService)
   {
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
+    this.reportComponentService = reportComponentService;
   }
 
   public List<PolicyAlert> createPolicyAlerts(
@@ -68,7 +79,7 @@ public class PolicyAlertUtil
       boolean enableActions)
   {
     return createPolicyAlerts(Collections.emptyList(), policyViolations, stageTypeId, applicationId, forMonitoring,
-        enableActions);
+        enableActions, null);
   }
 
   public List<PolicyAlert> createPolicyAlerts(
@@ -79,6 +90,19 @@ public class PolicyAlertUtil
       boolean forMonitoring,
       boolean enableActions)
   {
+    return createPolicyAlerts(components, policyViolations, stageTypeId, applicationId, forMonitoring,
+        enableActions, null);
+  }
+
+  public List<PolicyAlert> createPolicyAlerts(
+      List<Component> components,
+      List<PolicyViolation> policyViolations,
+      String stageTypeId,
+      String applicationId,
+      boolean forMonitoring,
+      boolean enableActions,
+      String scanId)
+  {
     Owner owner = ownerDAO.getById(applicationId);
     List<String> ownerIds = ownerDAO.getOwnerIds(owner);
     Map<String, Policy> policiesById =
@@ -87,6 +111,9 @@ public class PolicyAlertUtil
     List<PolicyAlert> result = new ArrayList<>();
 
     policyViolationDAO.loadConstraintFacts(policyViolations);
+
+    components = getEffectiveComponents(components, scanId, owner);
+
     for (PolicyViolation policyViolation : policyViolations) {
       String policyId = policyViolation.getPolicyId();
       PolicyFact policyFact = new PolicyFact(policyId, policyViolation.getPolicyName(),
@@ -207,6 +234,29 @@ public class PolicyAlertUtil
 
   private static boolean isActive(List<PolicyThreats.PolicyViolation> activeViolations, String policyViolationId) {
     return activeViolations.stream().anyMatch(v -> v.policyViolationId.equals(policyViolationId));
+  }
+
+  // Refreshes the components from the scan report
+  private List<Component> getEffectiveComponents(List<Component> components, String scanId, Owner owner) {
+    if (scanId == null) {
+      return components;
+    }
+
+    if (components != null && !components.isEmpty()) {
+      return components;
+    }
+
+    try {
+      List<Component> reportComponents = reportComponentService.getReportComponents(scanId, (Application) owner);
+      if (reportComponents != null && !reportComponents.isEmpty()) {
+        return reportComponents;
+      }
+    }
+    catch (IOException e) {
+      log.debug("Could not read components from the report file.", e);
+    }
+
+    return components;
   }
 }
 

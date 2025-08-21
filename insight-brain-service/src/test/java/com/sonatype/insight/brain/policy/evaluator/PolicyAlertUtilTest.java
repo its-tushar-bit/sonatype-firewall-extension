@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -45,12 +48,15 @@ public class PolicyAlertUtilTest
 
   private PolicyAlertUtil policyAlertUtil;
 
+  private ReportComponentService reportComponentService;
+
   @Before
   public void setUp() {
+    reportComponentService = Mockito.mock(ReportComponentService.class);
     OwnerDAO ownerDAO = daoFactory.createOwnerDAO();
     policyDAO = daoFactory.createPolicyDAO();
     policyViolationDAO = daoFactory.createPolicyViolationDAO();
-    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO, policyViolationDAO);
+    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO, policyViolationDAO, reportComponentService);
   }
 
   @Test
@@ -70,7 +76,7 @@ public class PolicyAlertUtilTest
   }
 
   @Test
-  public void testCreatePolicyAlerts_NoUnnecessaryData() {
+  public void testCreatePolicyAlerts_NoUnnecessaryData() throws IOException {
     Application app = tempEntity.newApplicationWithParent("app-id");
     Policy policy = tempEntity.newPolicy(app);
     PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "some-scan");
@@ -86,14 +92,23 @@ public class PolicyAlertUtilTest
     constraintFact.addConditionFact(conditionFact1);
     policyViolation.setConstraintFacts(Collections.singletonList(constraintFact));
 
-    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
-        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
+    Component component = new Component();
+    component.setHash("hash");
+    component.addPathname("a.jar");
+    component.addPathname("path/b.jar");
+    Mockito.when(reportComponentService.getReportComponents(Mockito.eq("scanId"), Mockito.any()))
+        .thenReturn(Arrays.asList(component));
+
+    List<PolicyAlert> alerts =
+        policyAlertUtil.createPolicyAlerts(new ArrayList<>(), Collections.singletonList(policyViolation),
+            policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true, "scanId");
 
     assertThat(alerts).hasSize(1);
 
     PolicyAlert alert = alerts.get(0);
     List<ComponentFact> componentFacts = alert.getTrigger().getComponentFacts();
     assertThat(componentFacts).hasSize(1);
+    assertThat(componentFacts.get(0).getPathnames()).containsExactlyInAnyOrder("a.jar", "path/b.jar");
 
     List<ConstraintFact> constraintFacts = componentFacts.get(0).getConstraintFacts();
     assertThat(constraintFacts).hasSize(1);

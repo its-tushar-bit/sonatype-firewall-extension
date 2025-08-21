@@ -16,7 +16,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -339,6 +341,48 @@ public class SourceControlEventDAO
         """;
 
     return getList(sQuery, List.of(PR_STATE_UPDATE_EVENT, BATCH_PR_STATE_UPDATE_EVENT), applicationId);
+  }
+
+  /**
+   * Gets completed REMEDIATION_PULL_REQUEST events for a given application and component identifier
+   * that were completed before a given time.
+   *
+   * @param applicationId The ID of the application
+   * @param componentIdentifier The component identifier to check
+   * @param pullRequestCreationMaxCutoffTime The cutoff time - events must be completed before this time
+   * @return A list of matching events
+   */
+  public List<SourceControlEvent> getCompletedRemediationPullRequestEventsForAppComponent(
+      String applicationId,
+      ComponentIdentifier componentIdentifier,
+      Date pullRequestCreationMinCutoffTime,
+      Date pullRequestCreationMaxCutoffTime)
+  {
+    // Convert the component identifier to its database representation
+    String format = componentIdentifier.getFormat();
+    String coordinatesJson = ComponentIdentifierAdapter.toJson(componentIdentifier.getCoordinates());
+
+    String sQuery = SELECT_ENTITY + """
+        WHERE entity.applicationId = :appId 
+        AND entity.eventType = :eventType 
+        AND entity.eventStatus = :eventStatus 
+        AND entity.componentIdFormat = :format 
+        AND entity.componentIdCoordinatesJson = :coordinates 
+        AND entity.completeTime >= :pullRequestCreationMinCutoffTime
+        AND entity.completeTime <= :pullRequestCreationMaxCutoffTime""";
+
+    try (TransactionContext tx = createTransactionContext()) {
+      jakarta.persistence.Query query = tx.createQuery(sQuery);
+      query.setParameter("appId", applicationId);
+      query.setParameter("eventType", REMEDIATION_PULL_REQUEST_EVENT);
+      query.setParameter("eventStatus", EVENT_STATUS_COMPLETE);
+      query.setParameter("format", format);
+      query.setParameter("coordinates", coordinatesJson);
+      query.setParameter("pullRequestCreationMinCutoffTime", pullRequestCreationMinCutoffTime);
+      query.setParameter("pullRequestCreationMaxCutoffTime", pullRequestCreationMaxCutoffTime);
+
+      return query.getResultList();
+    }
   }
 
   public boolean hasRemediationEventForBranch(String applicationId, String branchName) {

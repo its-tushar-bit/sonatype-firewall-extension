@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -31,16 +32,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUSES;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_COMPLETE;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_ERROR;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_IN_PROGRESS;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_NEW;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.EVENT_STATUS_PARTIALLY_COMPLETE;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT;
-import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.UPDATED_PULL_REQUEST_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.*;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -1377,6 +1369,95 @@ public class SourceControlEventDAOTest
 
     // then: result should be empty
     assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testGetCompletedRemediationPullRequestEventsForAppComponent() {
+    // given: a set of events with different properties
+    var componentId = ComponentIdentifier.createMavenCoordinates("com.example", "test-component", "1.0.0");
+    var differentComponentId = ComponentIdentifier.createMavenCoordinates("com.example", "other-component", "2.0.0");
+
+    Date now = new Date();
+    Date veryPastDate = new Date(now.getTime() - 20000); // 20 seconds ago
+    Date pastDate = new Date(now.getTime() - 10000); // 10 seconds ago
+    Date futureDate = new Date(now.getTime() + 10000); // 10 seconds in the future
+
+    // Create completed remediation events for app with the target component
+    SourceControlEvent completedEvent1 = createRemediationEvent(app.getId(), componentId, EVENT_STATUS_COMPLETE);
+    completedEvent1.setCompleteTime(pastDate);
+    sourceControlEventDAO.update(completedEvent1);
+
+    SourceControlEvent completedEvent2 = createRemediationEvent(app.getId(), componentId, EVENT_STATUS_COMPLETE);
+    completedEvent2.setCompleteTime(pastDate);
+    sourceControlEventDAO.update(completedEvent2);
+
+    // Create a completed remediation event for app with the target component but completed too early
+    SourceControlEvent tooEarlyEvent = createRemediationEvent(app.getId(), componentId, EVENT_STATUS_COMPLETE);
+    tooEarlyEvent.setCompleteTime(veryPastDate);
+    sourceControlEventDAO.update(tooEarlyEvent);
+
+    // Create a completed remediation event for app with a different component
+    var differentComponentEvent = createRemediationEvent(app.getId(), differentComponentId, EVENT_STATUS_COMPLETE);
+    differentComponentEvent.setCompleteTime(pastDate);
+    sourceControlEventDAO.update(differentComponentEvent);
+
+    // Create a completed remediation event for app2 with the target component
+    SourceControlEvent differentAppEvent = createRemediationEvent(app2.getId(), componentId, EVENT_STATUS_COMPLETE);
+    differentAppEvent.setCompleteTime(pastDate);
+    sourceControlEventDAO.update(differentAppEvent);
+
+    // Create a non-completed remediation event for app with the target component
+    createRemediationEvent(app.getId(), componentId, EVENT_STATUS_IN_PROGRESS);
+
+    // Create a completed remediation event for app with the target component but completed in the future
+    SourceControlEvent futureCompletedEvent = createRemediationEvent(app.getId(), componentId, EVENT_STATUS_COMPLETE);
+    futureCompletedEvent.setCompleteTime(futureDate);
+    sourceControlEventDAO.update(futureCompletedEvent);
+
+    // when: get completed remediation events for app and componentId between veryPastDate and now
+    List<SourceControlEvent> events = sourceControlEventDAO.getCompletedRemediationPullRequestEventsForAppComponent(
+        app.getId(), componentId, veryPastDate, now);
+
+    // then: only completed events for app with the target component completed between veryPastDate and now
+    // should be returned
+    assertThat(events).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
+        completedEvent1.getId(),
+        completedEvent2.getId(),
+        tooEarlyEvent.getId()
+    );
+
+    // Test with a narrower time range that excludes the very past event
+    var eventsInNarrowerRange = sourceControlEventDAO.getCompletedRemediationPullRequestEventsForAppComponent(
+        app.getId(), componentId, pastDate, now);
+
+    // Only events completed between pastDate and now should be returned
+    assertThat(eventsInNarrowerRange).extracting(SourceControlEvent::getId).containsExactlyInAnyOrder(
+        completedEvent1.getId(),
+        completedEvent2.getId()
+    );
+
+    // verify all retrieved events have the correct properties
+    assertThat(eventsInNarrowerRange).allSatisfy(event -> {
+      assertThat(event.getApplicationId()).isEqualTo(app.getId());
+      assertThat(event.getEventStatus()).isEqualTo(EVENT_STATUS_COMPLETE);
+      assertThat(event.getComponentIdentifier()).isEqualTo(componentId);
+      assertThat(event.getCompleteTime()).isAfterOrEqualTo(pastDate);
+      assertThat(event.getCompleteTime()).isBeforeOrEqualTo(now);
+      assertThat(event.getEventType()).isEqualTo(REMEDIATION_PULL_REQUEST_EVENT);
+    });
+  }
+
+  private SourceControlEvent createRemediationEvent(String appId, ComponentIdentifier componentId, String eventStatus) {
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(appId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setEventStatus(eventStatus)
+        .setCreateTime(testStartTime);
+
+    event.setComponentIdentifier(componentId);
+
+    sourceControlEventDAO.insert(event);
+    return event;
   }
 
   private SourceControlEvent createPrStateUpdateEvent(String appId, String eventStatus) {

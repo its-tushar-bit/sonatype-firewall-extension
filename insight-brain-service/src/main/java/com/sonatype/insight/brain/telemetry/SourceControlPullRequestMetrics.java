@@ -13,19 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.clm.dto.model.component.ComponentIdentifier;
-import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
@@ -43,16 +40,20 @@ public class SourceControlPullRequestMetrics
 {
   private static final Logger log = LoggerFactory.getLogger(SourceControlPullRequestMetrics.class);
 
-  private final SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
+  private SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
 
-  private final PullRequestCommentingRemediationService remediationService;
+  private PullRequestCommentingRemediationService remediationService;
+
+  private ComponentHelper componentHelper;
 
   @Inject
   public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
-                                         final PullRequestCommentingRemediationService remediationService)
+                                         PullRequestCommentingRemediationService remediationService,
+                                         ComponentHelper componentHelper)
   {
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
     this.remediationService = remediationService;
+    this.componentHelper = componentHelper;
   }
 
   public void addResult(String applicationId, EnhancedPullRequestResult pullRequestResult) {
@@ -107,7 +108,7 @@ public class SourceControlPullRequestMetrics
           .count();
 
       List<EnhancedPullRequestResult> allGoldenResults = result.stream()
-          .filter(pr -> isGolden(pr.getTarget(), entry.getKey()))
+          .filter(pr -> componentHelper.isGoldenVersion(pr.getTarget(), entry.getKey()))
           .toList();
 
       long successfulGoldenPRs = allGoldenResults.stream()
@@ -126,19 +127,6 @@ public class SourceControlPullRequestMetrics
               successfulGoldenPRs, possibleGoldenPRs));
     }
     return new AggregatedPRStats(applicationPRStats);
-  }
-
-  private boolean isGolden(ComponentIdentifier toVersion, final String appId) {
-    Optional<RemediationVersionDTO> remediationVersion =
-        remediationService.getRemediationVersion(toVersion, appId);
-    boolean isGolden = remediationVersion
-        .map(RemediationVersionDTO::getRemediationType)
-        .map(ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES::equals)
-        .orElse(false);
-    if (isGolden) {
-      log.debug("Golden PR created for application {} with target {}", appId, toVersion);
-    }
-    return isGolden;
   }
 
   private EnhancedPullRequestResult convert(SourceControlPullRequestResult sourceControlPullRequestResult) {

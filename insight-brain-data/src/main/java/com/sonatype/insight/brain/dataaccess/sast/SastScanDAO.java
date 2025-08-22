@@ -24,8 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 @Singleton
 public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
 {
-  private final SastFindingDAO sastFindingDAO;
-
   private final SastScmScanContextDAO sastScmScanContextDAO;
 
   private final SastPullRequestCommentDAO sastPullRequestCommentDAO;
@@ -33,12 +31,10 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
   @Inject
   public SastScanDAO(
       final OperationalDataStore operationalDataStore,
-      final SastFindingDAO sastFindingDAO,
       final SastScmScanContextDAO sastScmScanContextDAO,
       final SastPullRequestCommentDAO sastPullRequestCommentDAO)
   {
     super(operationalDataStore);
-    this.sastFindingDAO = sastFindingDAO;
     this.sastScmScanContextDAO = sastScmScanContextDAO;
     this.sastPullRequestCommentDAO = sastPullRequestCommentDAO;
   }
@@ -50,7 +46,6 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
 
   @Override
   public void delete(final TransactionContext tx, final SastScan entity) {
-    sastFindingDAO.deleteBySastScanId(tx, entity.getId());
     final SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(tx, entity.getSastScmScanContextId());
     sastScmScanContextDAO.delete(tx, sastScmScanContext);
     SastPullRequestComment sastPullRequestComment = sastPullRequestCommentDAO.getBySastScanId(tx, entity.getId());

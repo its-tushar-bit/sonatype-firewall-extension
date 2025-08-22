@@ -1617,7 +1617,7 @@ CREATE TABLE sast_finding
     rule_name                      varchar(200) NOT NULL,
     description                    text NOT NULL,
     CONSTRAINT sast_finding_pk PRIMARY KEY (sast_finding_id),
-    CONSTRAINT sast_finding_sast_scan_fk FOREIGN KEY (sast_scan_id) REFERENCES sast_scan(sast_scan_id)
+    CONSTRAINT sast_finding_sast_scan_fk FOREIGN KEY (sast_scan_id) REFERENCES sast_scan(sast_scan_id) ON DELETE CASCADE
 );
 
 CREATE TABLE sast_remediation

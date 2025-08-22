@@ -313,8 +313,12 @@ public class OpenSearchSearchIndexClient
       while (true) {
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
             .index(indexConfigProvider.getIndexConfig().getIndexName())
-            .q(finalQuery)
-            .df(FieldIdentifier.VULNERABILITY_ID.label)
+            .query(q -> q
+                .queryString(qs -> qs
+                    .query(finalQuery)
+                    .defaultField(FieldIdentifier.VULNERABILITY_ID.label)
+                )
+            )
             .size(newPageSize)
             .trackTotalHits(new TrackHits.Builder().enabled(true).build())
             .sort(List.of(

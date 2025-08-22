@@ -10,7 +10,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 
+import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
+import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.brain.security.CurrentUser;
+import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -19,6 +23,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import com.google.inject.Binder;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexRequest;
@@ -33,6 +38,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.mock;
 
 @OpenSearchHttpTest
 public class OpenSearchSearchIndexClientTest
@@ -43,6 +50,15 @@ public class OpenSearchSearchIndexClientTest
   private IndexConfigProvider indexConfigProvider;
 
   private IndexConfig indexConfig;
+
+  private CurrentUser currentUser;
+
+  @Override
+  public void configure(Binder binder) {
+    currentUser = mock(CurrentUser.class);
+    binder.bind(CurrentUser.class).toInstance(currentUser);
+    super.configure(binder);
+  }
 
   @Before
   public void setUp() throws Exception {
@@ -110,5 +126,33 @@ public class OpenSearchSearchIndexClientTest
     assertThrows("Error creating OpenSearch index: " + indexConfig.getIndexName(), RuntimeException.class, () -> {
       openSearchSearchIndexClient.populateIndex();
     });
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchIndex_HandlesVeryLongQuery() {
+    openSearchSearchIndexClient.populateIndex();
+
+    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", InternalRealm.ID);
+    when(currentUser.getUserPrincipal()).thenReturn(userPrincipal);
+
+    StringBuilder longQueryBuilder = new StringBuilder();
+    longQueryBuilder.append("applicationName:(");
+    // Create a very long application name that would exceed 4096 bytes when URL encoded
+    for (int i = 0; i < 1000; i++) {
+      longQueryBuilder.append("VeryLongApplicationNameThatWouldExceedHttpLineLimitsWhenPutInTheUrlAsAQueryParameter");
+      if (i < 999) {
+        longQueryBuilder.append(" OR ");
+      }
+    }
+    longQueryBuilder.append(")");
+    String longQuery = longQueryBuilder.toString();
+
+    assertThat(longQuery.length()).isGreaterThan(4096);
+
+    SearchResultDTO result = openSearchSearchIndexClient.searchIndex(longQuery, 10, 1, false, false, null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.searchQuery).isEqualTo(longQuery);
   }
 }

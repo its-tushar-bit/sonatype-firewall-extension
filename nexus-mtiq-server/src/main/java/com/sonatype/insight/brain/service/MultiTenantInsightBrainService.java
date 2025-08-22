@@ -96,6 +96,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import com.google.inject.Singleton;
 import com.google.inject.name.Names;
+import com.google.inject.servlet.ServletModule;
 import com.google.inject.util.Providers;
 import io.dropwizard.core.cli.Command;
 import io.dropwizard.core.setup.Bootstrap;
@@ -293,6 +294,16 @@ public class MultiTenantInsightBrainService
   @Override
   protected List<Module> modules() {
     List<Module> modules = new ArrayList<>();
+
+    // Ensure URL rewriting filter is registered before other modules' filters, so they will act on the rewritten URLs
+    modules.add(new ServletModule()
+    {
+      @Override
+      protected void configureServlets() {
+        bind(PlatformContextFilter.class).in(Singleton.class);
+        filter(List.of(PlatformContextFilter.URL_PATTERNS)).through(PlatformContextFilter.class);
+      }
+    });
 
     modules.add(new AbstractModule()
     {

@@ -125,4 +125,9 @@ public class PackageUrlConditionType
       throw new InvalidConditionException(condition, "invalid package URL");
     }
   }
+
+  @Override
+  protected boolean isApplicable(Component component) {
+    return super.isApplicable(component) || component.getComponentIdentifier() != null;
+  }
 }

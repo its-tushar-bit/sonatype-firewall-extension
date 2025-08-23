@@ -15,7 +15,6 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -66,6 +65,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyViolationDigester;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
+import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
@@ -115,6 +115,8 @@ public class RepositoryPolicyEvaluator
 
   private final ApiFirewallMetricsService firewallMetricsService;
 
+  private final RepositoryPathnameParser repositoryPathnameParser;
+
   @Inject
   public RepositoryPolicyEvaluator(
       ComponentPolicyEvaluator componentPolicyEvaluator,
@@ -131,7 +133,8 @@ public class RepositoryPolicyEvaluator
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       final ClusterLockManager clusterLockManager,
       AsyncEventBus eventBus,
-      ApiFirewallMetricsService firewallMetricsService
+      ApiFirewallMetricsService firewallMetricsService,
+      RepositoryPathnameParser repositoryPathnameParser
   )
   {
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -149,6 +152,7 @@ public class RepositoryPolicyEvaluator
     this.clusterLockManager = clusterLockManager;
     this.eventBus = eventBus;
     this.firewallMetricsService = firewallMetricsService;
+    this.repositoryPathnameParser = repositoryPathnameParser;
   }
 
   public RepositoryComponentEvaluationDataList evaluateForMonitoring(
@@ -245,6 +249,10 @@ public class RepositoryPolicyEvaluator
         Component component = componentDetailsLoader.augmentComponentDetails(componentDetails);
         component.addPathname(componentEvaluationRequest.pathname);
         component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
+        if (component.getComponentIdentifier() == null) {
+          component.setComponentIdentifier(
+              repositoryPathnameParser.parse(componentEvaluationRequest.pathname, componentEvaluationRequest.format));
+        }
         components.add(component);
       }
     }

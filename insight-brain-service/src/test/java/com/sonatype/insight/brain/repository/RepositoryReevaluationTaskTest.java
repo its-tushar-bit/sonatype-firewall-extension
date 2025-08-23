@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.CoordinatesConditionType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.policy.evaluator.ComponentPolicyEvaluator;
 import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -108,6 +109,9 @@ public class RepositoryReevaluationTaskTest
   @Inject
   private ApiFirewallMetricsService firewallMetricsService;
 
+  @Inject
+  private RepositoryPathnameParser repositoryPathnameParser;
+
   @Mock
   private FirewallAuditHdsClient auditHdsClient;
 
@@ -169,7 +173,8 @@ public class RepositoryReevaluationTaskTest
         new RepositoryPolicyEvaluator(componentPolicyEvaluator, repositoryComponentDAO, repositoryPolicyViolationDAO,
             policyDAO, auditHdsClient, null, policyViolationLoggerFactory, firewallIgnorePatternService,
             componentDetailsLoaderFactory, repositoryComponentDeleteService, repositoryPolicyAlertEmailer,
-            repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService),
+            repositoryComponentTelemetryCreator, clusterLockManager, mockEventBus, firewallMetricsService,
+            repositoryPathnameParser),
         spyExecutorService, 10, repositoryComponentDAO, clusterLockManager);
     createHdsResponse();
   }

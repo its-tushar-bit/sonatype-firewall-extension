@@ -60,7 +60,7 @@
     <sisu-inject.version>0.9.0.M3</sisu-inject.version>
     <clm.dto.model.version>2.1.3-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
-    <jetty.version>10.0.25</jetty.version>
+    <jetty.version>10.0.26</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
     <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
     <dropwizard.version>3.0.14</dropwizard.version>

@@ -13,7 +13,6 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
-import com.sonatype.insight.brain.model.sast.SastPullRequestComment;
 import com.sonatype.insight.brain.model.sast.SastScan;
 import com.sonatype.insight.brain.model.sast.SastScmScanContext;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -26,17 +25,13 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
 {
   private final SastScmScanContextDAO sastScmScanContextDAO;
 
-  private final SastPullRequestCommentDAO sastPullRequestCommentDAO;
-
   @Inject
   public SastScanDAO(
       final OperationalDataStore operationalDataStore,
-      final SastScmScanContextDAO sastScmScanContextDAO,
-      final SastPullRequestCommentDAO sastPullRequestCommentDAO)
+      final SastScmScanContextDAO sastScmScanContextDAO)
   {
     super(operationalDataStore);
     this.sastScmScanContextDAO = sastScmScanContextDAO;
-    this.sastPullRequestCommentDAO = sastPullRequestCommentDAO;
   }
 
   @Override
@@ -48,8 +43,6 @@ public class SastScanDAO extends AbstractOperationalSqlDAO<SastScan>
   public void delete(final TransactionContext tx, final SastScan entity) {
     final SastScmScanContext sastScmScanContext = sastScmScanContextDAO.getById(tx, entity.getSastScmScanContextId());
     sastScmScanContextDAO.delete(tx, sastScmScanContext);
-    SastPullRequestComment sastPullRequestComment = sastPullRequestCommentDAO.getBySastScanId(tx, entity.getId());
-    sastPullRequestCommentDAO.delete(tx, sastPullRequestComment);
     super.delete(tx, entity);
   }
 

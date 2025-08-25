@@ -237,9 +237,7 @@ public class TestDAOFactory
   @Override
   public SastScanDAO createSastScanDAO() {
     SastScmScanContextDAO sastScmScanContextDAO = createSastScmScanContextDAO();
-    SastPullRequestCommentDAO sastPullRequestCommentDAO = createSastPullRequestCommentDAO();
-    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastScmScanContextDAO,
-        sastPullRequestCommentDAO);
+    return new SastScanDAO(dataStoreProvider.getOperationalDataStore(), sastScmScanContextDAO);
   }
 
   @Override

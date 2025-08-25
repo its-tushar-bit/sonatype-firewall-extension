@@ -1679,7 +1679,7 @@ CREATE TABLE sast_pull_request_comment
   pull_request_comment_version                int DEFAULT 0 NOT NULL,
 
   CONSTRAINT sast_pull_request_comment_pk PRIMARY KEY (sast_pull_request_comment_id),
-  CONSTRAINT sast_pull_request_comment_fk FOREIGN KEY (sast_scan_id) REFERENCES sast_scan(sast_scan_id),
+  CONSTRAINT sast_pull_request_comment_fk FOREIGN KEY (sast_scan_id) REFERENCES sast_scan(sast_scan_id) ON DELETE CASCADE,
   CONSTRAINT sast_pull_request_comment_sast_scan_id_uk UNIQUE (sast_scan_id),
   CONSTRAINT sast_pull_request_comment_pull_request_url_uk UNIQUE (pull_request_url)
 );

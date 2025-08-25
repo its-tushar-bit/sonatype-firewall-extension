@@ -309,13 +309,32 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  EPSS_DATA(SystemConfigurationProperty.EPSS_DATA, false);
+  EPSS_DATA(SystemConfigurationProperty.EPSS_DATA, false),
+
+  ENABLE_FEDRAMP_AUDIT(SystemConfigurationProperty.ENABLE_FEDRAMP_AUDIT, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR);
+      return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
+    public void setEnabled(TransactionContext tx, boolean enabled) {
+      String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR);
+      if (valueInEnvVar == null) {
+        super.setEnabled(tx, enabled);
+      }
+    }
+  };
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 
   public static final String NXIQ_ENABLE_SSO_ONLY_ENV_VAR = "NXIQ_ENABLE_SSO_ONLY";
 
   public static final String NXIQ_ADVANCED_SEARCH_CONFIGURATION_ENV_VAR = "NXIQ_ADVANCED_SEARCH_CONFIGURATION";
+
+  public static final String NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR = "NXIQ_ENABLE_FEDRAMP_AUDIT";
 
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 

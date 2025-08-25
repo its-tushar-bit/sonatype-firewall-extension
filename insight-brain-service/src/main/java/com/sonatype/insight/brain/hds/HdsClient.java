@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthentication
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.Retry;
@@ -78,6 +79,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.common.config.ConfigUtil.getBooleanConfig;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT;
+import static com.sonatype.insight.brain.security.CurrentUser.ANONYMOUS;
 
 /**
  * HTTP client for accessing Sonatype Data Services.
@@ -106,6 +109,8 @@ public class HdsClient
 
   private final Configuration configuration;
 
+  private final CurrentUser currentUser;
+
   private final Function<String, Retry> retryCreator;
 
   private static volatile String version;
@@ -128,6 +133,8 @@ public class HdsClient
 
   static final String CLUSTER_ID_HEADER = "X-CLM-Cluster-Id";
 
+  static final String USERNAME_HEADER = "X-CLM-Username";
+
   static final String DISABLE_TELEMETRY_CONFIG_KEY = "com.sonatype.insight.disableOutboundTelemetryRequests";
 
   static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats","user-telemetry");
@@ -143,9 +150,10 @@ public class HdsClient
       ProductLicense productLicense,
       Configuration configuration,
       VersionService versionService,
-      TelemetryId telemetryId)
+      TelemetryId telemetryId,
+      CurrentUser currentUser)
   {
-    this(proxy, productLicense, configuration, versionService, telemetryId, 20);
+    this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, 20);
   }
 
   protected HdsClient(
@@ -154,9 +162,11 @@ public class HdsClient
       Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId,
+      CurrentUser currentUser,
       int poolSize)
   {
-    this(proxy, productLicense, configuration, versionService, telemetryId, poolSize, DEFAULT_RETRY_CREATOR);
+    this(proxy, productLicense, configuration, versionService, telemetryId, currentUser, poolSize,
+        DEFAULT_RETRY_CREATOR);
   }
 
   protected HdsClient(
@@ -165,6 +175,7 @@ public class HdsClient
       Configuration configuration,
       VersionService versionService,
       TelemetryId telemetryId,
+      CurrentUser currentUser,
       int poolSize,
       Function<String, Retry> retryCreator)
   {
@@ -174,6 +185,7 @@ public class HdsClient
     this.versionService = versionService;
     this.configuration = configuration;
     this.telemetryId = telemetryId;
+    this.currentUser = currentUser;
     this.retryCreator = retryCreator;
     updateClient();
     // TODO Need to determine if there is additional information we should be sending to the HDS
@@ -653,7 +665,7 @@ public class HdsClient
 
   /**
    * Validates the product license if needed - i.e. for HDS requests that require a product license.
-   * 
+   *
    * The requests that do require a product license, pass it to HDS via the "X-CLM-Token" http header.
    * This method assumes that the above header was already set on the request param.
    */
@@ -794,6 +806,8 @@ public class HdsClient
     req.setHeader("X-Brain-Version", version);
     req.setHeader("X-CLM-Token", productLicense.getFingerprint());
 
+    maybeAddUsernameHeader(req);
+
     populateUserAgents(orig, req);
   }
 
@@ -865,6 +879,22 @@ public class HdsClient
     }
 
     version = versionService.getVersion("Unknown");
+  }
+
+  private void maybeAddUsernameHeader(final HttpUriRequest req) {
+    if (currentUser == null || !ENABLE_FEDRAMP_AUDIT.isEnabled()) {
+      return;
+    }
+
+    try {
+      // CLM-35793 - Add user header for FedRAMP audit logging
+      req.setHeader(USERNAME_HEADER, currentUser.isAnonymous() ? ANONYMOUS : currentUser.getUsername());
+    }
+    // catch any trouble with setting header/getting the username, which should not prevent a request from succeeding
+    // this is purely for doing our best to Audit for FedRamp, but should not block requests.
+    catch (Exception e) {
+      log.debug("Could not set header {}", USERNAME_HEADER, e);
+    }
   }
 
   public static class RelayResponse<T>

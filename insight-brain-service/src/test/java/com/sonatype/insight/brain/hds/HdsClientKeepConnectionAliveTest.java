@@ -136,7 +136,7 @@ public class HdsClientKeepConnectionAliveTest
   @Test
   public void testConnectTimeoutMustNotAffectRequestConfigSocketTimeout() throws InterruptedException {
     HdsClient client = new HdsClient(insightProxy, mockProductLicense, configuration, new DefaultVersionService(),
-        telemetryId, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
+        telemetryId, null, 20, name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
 
     stallingServerThread.start();
 

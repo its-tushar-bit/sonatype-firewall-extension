@@ -47,7 +47,7 @@ public class PingHdsClientTest
   protected void initClient() {
     ProductLicense productLicense = mock(ProductLicense.class);
     client = new PingHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
-        new DefaultVersionService(), telemetryId);
+        new DefaultVersionService(), telemetryId, null);
   }
 
   @Test

@@ -1437,6 +1437,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
     expectedFeatureConfigMap.put("userManagementPages", true);
     expectedFeatureConfigMap.put("epssDataEnabled", false);
+    expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
 
     return expectedFeatureConfigMap;
   }

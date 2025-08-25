@@ -131,6 +131,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.DARK_MODE.getId(),
           SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
           SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
+          SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),
       }
   )).toArray(String[]::new);
 

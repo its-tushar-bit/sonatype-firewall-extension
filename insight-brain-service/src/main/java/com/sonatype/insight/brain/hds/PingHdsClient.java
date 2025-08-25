@@ -10,6 +10,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.version.VersionService;
@@ -35,9 +36,10 @@ public class PingHdsClient
       ProductLicense productLicense,
       Configuration configuration,
       VersionService versionService,
-      TelemetryId telemetryId)
+      TelemetryId telemetryId,
+      CurrentUser currentUser)
   {
-    super(proxy, productLicense, configuration, versionService, telemetryId);
+    super(proxy, productLicense, configuration, versionService, telemetryId, currentUser);
   }
 
   @Override

@@ -26,6 +26,8 @@ public class CurrentUser
 {
   public static String SYSTEM = "system";
 
+  public static String ANONYMOUS = "anonymous";
+
   static final String XFF_HEADER = "X-Forwarded-For";
 
   /**
@@ -34,7 +36,7 @@ public class CurrentUser
   public String getUsername() {
     UserPrincipal principal = getUserPrincipal();
     if (principal == null) {
-      return "anonymous";
+      return ANONYMOUS;
     }
     return principal.getUsername();
   }
@@ -91,7 +93,7 @@ public class CurrentUser
     }
     UserPrincipal userPrincipal = getUserPrincipal();
     if (userPrincipal == null) {
-      return "anonymous";
+      return ANONYMOUS;
     }
     if (StringUtils.isNotBlank(userPrincipal.getDisplayName())) {
       return userPrincipal.getDisplayName();

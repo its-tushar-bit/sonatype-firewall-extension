@@ -283,6 +283,8 @@ public class SystemConfigurationProperty
 
   public static final String EPSS_DATA = "epssDataEnabled";
 
+  public static final String ENABLE_FEDRAMP_AUDIT = "enableFedRAMPAudit";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

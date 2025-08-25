@@ -36,9 +36,11 @@ import javax.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
+import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.utils.Retry;
@@ -85,15 +87,20 @@ public class HdsClientTest
 
   private ProductLicense mockProductLicense;
 
+  private CurrentUser mockCurrentUser;
+
   @Override
   protected void initClient() {
     mockProductLicense = mock(ProductLicense.class);
     when(mockProductLicense.isValid()).thenReturn(true);
     when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
+    mockCurrentUser = mock(CurrentUser.class);
+    when(mockCurrentUser.isAnonymous()).thenReturn(false);
+    when(mockCurrentUser.getUsername()).thenReturn("testuser");
     spyInsightProxy = spy(new InsightProxy(configuration, passwordHandler));
     client =
         new HdsClient(spyInsightProxy, mockProductLicense, configuration, new DefaultVersionService(), telemetryId,
-            20,
+            mockCurrentUser, 20,
             name -> new Retry(name, 0, null, e -> false, i -> Duration.ZERO));
   }
 
@@ -226,6 +233,188 @@ public class HdsClientTest
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
     client.get(InputStream.class, testPath);
     assertThat(headers.get(HttpHeaders.USER_AGENT)).isEqualTo(expectedUserAgent);
+  }
+
+  @Test
+  public void testGet_FedRAMPAuditHeaderWhenFeatureEnabledWithAuthenticatedUser() {
+    // Given: Feature enabled and authenticated user
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(false);
+      when(mockCurrentUser.getUsername()).thenReturn("testuser");
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making request
+      client.get(InputStream.class, testPath, null, new String[]{});
+
+      // Then: User header is present with username
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isEqualTo("testuser");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testGet_FedRAMPAuditHeaderWhenFeatureEnabledWithAnonymousUser() {
+    // Given: Feature enabled and anonymous user
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(true);
+      // Note: getUsername() is not stubbed because it's not called when isAnonymous() returns true
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making request
+      client.get(InputStream.class, testPath, null, new String[]{});
+
+      // Then: User header is present with "anonymous"
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isEqualTo("anonymous");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testGet_NoFedRAMPAuditHeaderWhenFeatureDisabled() {
+    // Given: Feature disabled
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(false);
+      // Note: No currentUser stubbing needed because feature is disabled and currentUser methods won't be called
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making request
+      client.get(InputStream.class, testPath, null, new String[]{});
+
+      // Then: User header is not present
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testPost_FedRAMPAuditHeaderWhenFeatureEnabled() {
+    // Given: Feature enabled
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(false);
+      when(mockCurrentUser.getUsername()).thenReturn("postuser");
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making POST request
+      client.post(String.class, testPath, "testData");
+
+      // Then: User header is present
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isEqualTo("postuser");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testPost_FedRAMPAuditHeaderWhenFeatureEnabledWithAnonymousUser() {
+    // Given: Feature enabled and anonymous user
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(true);
+      // Note: getUsername() is not stubbed because it's not called when isAnonymous() returns true
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making POST request
+      client.post(String.class, testPath, "testData");
+
+      // Then: User header is present with "anonymous"
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isEqualTo("anonymous");
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testPost_NoFedRAMPAuditHeaderWhenFeatureDisabled() {
+    // Given: Feature disabled
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(false);
+      // Note: No currentUser stubbing needed because feature is disabled and currentUser methods won't be called
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making POST request
+      client.post(String.class, testPath, "testData");
+
+      // Then: User header is not present
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testGet_NoFedRAMPAuditHeaderWhenCurrentUserThrowsException() {
+    // Given: Feature enabled but currentUser throws exception when getUsername() is called
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(false);
+      when(mockCurrentUser.getUsername()).thenThrow(new RuntimeException("Username retrieval failed"));
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making request (should not fail despite exception in username retrieval)
+      client.get(InputStream.class, testPath, null, new String[]{});
+
+      // Then: User header is not present due to exception, but request succeeded
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
+  }
+
+  @Test
+  public void testPost_NoFedRAMPAuditHeaderWhenCurrentUserThrowsException() {
+    // Given: Feature enabled but currentUser throws exception when getUsername() is called
+    boolean originalState = SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.isEnabled();
+    try {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(true);
+      when(mockCurrentUser.isAnonymous()).thenReturn(false);
+      when(mockCurrentUser.getUsername()).thenThrow(new RuntimeException("Username retrieval failed"));
+
+      String testPath = "/rest/test";
+      Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+      // When: Making POST request (should not fail despite exception in username retrieval)
+      client.post(String.class, testPath, "testData");
+
+      // Then: User header is not present due to exception, but request succeeded
+      assertThat(headers.get(HdsClient.USERNAME_HEADER)).isNull();
+    }
+    finally {
+      SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.setEnabled(originalState);
+    }
   }
 
   @Test

@@ -99,7 +99,7 @@ public class MultiTenantTelemetrySenderLicenseFingerprintTest
 
     testProductLicenseManager = new TestProductLicenseManager();
     productLicense = new MultiTenantProductLicense(mock(DeveloperEnablementService.class));
-    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId);
+    HdsClient hdsClient = new HdsClient(proxy, productLicense, configuration, versionService, telemetryId,  null);
     telemetrySender =
         new TelemetrySender(hdsClient, versionService, telemetryId, tenantUtil, mockTelemetryReceiptService);
 

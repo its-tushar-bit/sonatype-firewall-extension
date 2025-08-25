@@ -115,7 +115,7 @@ public class FeaturePropertiesInfoTest
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(57);
+    assertThat(featureConfigNode.size()).isEqualTo(58);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -140,6 +140,7 @@ public class FeaturePropertiesInfoTest
               "developerSummaryTable": true,
               "developmentDashboardMetricCollection": true,
               "EMAIL_CONFIGURATION": true,
+              "enableFedRAMPAudit": false,
               "enableSsoOnly": false,
               "enableUnauthenticatedPages": true,
               "expireWaiverWhenRemediationAvailable": false,
@@ -190,7 +191,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(57);
+    assertThat(featureConfigNode.size()).isEqualTo(58);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -215,6 +216,7 @@ public class FeaturePropertiesInfoTest
               "developerSummaryTable": true,
               "developmentDashboardMetricCollection": true,
               "EMAIL_CONFIGURATION": false,
+              "enableFedRAMPAudit": false,
               "enableSsoOnly": false,
               "enableUnauthenticatedPages": true,
               "expireWaiverWhenRemediationAvailable": false,
@@ -271,7 +273,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(47)
+        .hasSize(48)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

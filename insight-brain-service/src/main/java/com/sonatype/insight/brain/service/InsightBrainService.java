@@ -112,12 +112,12 @@ import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
-import org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
+
+import static com.sonatype.insight.brain.security.FIPSProviderFactory.createFipsProvider;
 
 public class InsightBrainService
     extends SisuApplication<InsightConfig>
@@ -662,20 +662,6 @@ public class InsightBrainService
     catch (Exception e) {
       log.error(e.getMessage(), e);
       return null;
-    }
-  }
-
-  private static Provider createFipsProvider() {
-    try {
-      URL fipsJarUrl = BouncyCastleFipsProvider.class.getProtectionDomain().getCodeSource().getLocation();
-      URLClassLoader fipsClassLoader = new URLClassLoader(new URL[]{fipsJarUrl}, null);
-
-      Class<?> providerClass = fipsClassLoader.loadClass(
-          "org.bouncycastle.jcajce.provider.BouncyCastleFipsProvider");
-      return (Provider) providerClass.getConstructor().newInstance();
-    }
-    catch (Exception e) {
-      throw new IllegalStateException("Failed to create FIPS provider", e);
     }
   }
 

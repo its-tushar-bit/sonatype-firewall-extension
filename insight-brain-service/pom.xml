@@ -821,6 +821,41 @@
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-fips-jars</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>copy</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bc-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bc-fips.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bcpkix-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bcpkix-fips.jar</destFileName>
+                </artifactItem>
+                <artifactItem>
+                  <groupId>org.bouncycastle</groupId>
+                  <artifactId>bctls-fips</artifactId>
+                  <outputDirectory>${project.build.directory}/fips-lib</outputDirectory>
+                  <destFileName>bctls-fips.jar</destFileName>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <executions>
           <execution>
@@ -832,6 +867,13 @@
               <createDependencyReducedPom>false</createDependencyReducedPom>
               <shadedArtifactAttached>true</shadedArtifactAttached>
               <shadedClassifierName>server</shadedClassifierName>
+              <artifactSet>
+                <excludes>
+                  <exclude>org.bouncycastle:bc-fips</exclude>
+                  <exclude>org.bouncycastle:bcpkix-fips</exclude>
+                  <exclude>org.bouncycastle:bctls-fips</exclude>
+                </excludes>
+              </artifactSet>
               <filters>
                 <filter>
                   <artifact>*:*</artifact>
@@ -894,6 +936,19 @@
                 </transformer>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
                   <resource>META-INF/kie.conf</resource>
+                </transformer>
+                <!-- Include FIPS JARs as embedded resources -->
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bc-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bc-fips.jar</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bcpkix-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bcpkix-fips.jar</file>
+                </transformer>
+                <transformer implementation="org.apache.maven.plugins.shade.resource.IncludeResourceTransformer">
+                  <resource>lib/bctls-fips.jar</resource>
+                  <file>${project.build.directory}/fips-lib/bctls-fips.jar</file>
                 </transformer>
               </transformers>
             </configuration>

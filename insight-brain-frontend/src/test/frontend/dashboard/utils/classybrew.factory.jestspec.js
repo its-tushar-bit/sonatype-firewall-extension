@@ -57,7 +57,7 @@ describe('classybrew.factory.spec', function () {
   });
 
   it('returns fixed color code for 0', function () {
-    expect(brew.getColor(0)).toBe('rgb(247,251,255)');
+    expect(brew.getColor(0)).toBe('var(--iq-sonatype-blue-1)');
     expect(brew.getColorInRange).not.toHaveBeenCalled();
 
     brew.getColorInRange.mockReturnValue('color');

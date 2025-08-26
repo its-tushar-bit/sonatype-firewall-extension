@@ -6,6 +6,7 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 @use '../../../scss/variables' as *;
 
@@ -26,6 +27,9 @@ $-cell-heatmap-border-color: rgb(247, 251, 255);
       @include nx-text-helpers.semi-bold;
 
       border-left: 1px solid $-cell-heatmap-border-color;
+      @include nx-dark-mode-helpers.dark-mode {
+        border-left-color: var(--nx-color-border-secondary);
+      }
 
       &.white-text {
         color: $iq-off-white;
@@ -34,6 +38,15 @@ $-cell-heatmap-border-color: rgb(247, 251, 255);
       &.grey-text {
         color: $iq-grey-4;
         border-left-color: transparent;
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
+      }
+
+      &.default-text {
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
       }
     }
 
@@ -63,11 +76,17 @@ $-cell-heatmap-border-color: rgb(247, 251, 255);
       .nx-cell {
         border-bottom: none;
         border-top: $iq-border-row;
+        @include nx-dark-mode-helpers.dark-mode {
+          border-top-color: var(--nx-color-border-secondary);
+        }
       }
 
       .iq-dashboard-application-risk-row--separator-border {
         .nx-cell {
           border-bottom: 3px solid var(--nx-swatch-indigo-95);
+          @include nx-dark-mode-helpers.dark-mode {
+            border-bottom: 3px solid var(--nx-color-border-secondary);
+          }
         }
       }
     }

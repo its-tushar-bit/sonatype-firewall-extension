@@ -6,6 +6,7 @@
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 @use '../../../scss/variables' as *;
 
@@ -20,14 +21,38 @@ $-cell-heatmap-border-color: rgb(247, 251, 255);
       @include nx-text-helpers.semi-bold;
 
       border-left: 1px solid $-cell-heatmap-border-color;
+      @include nx-dark-mode-helpers.dark-mode {
+        border-left-color: var(--nx-color-border-secondary);
+      }
 
       &.white-text {
         color: $iq-off-white;
+        > .nx-cell__row-btn {
+          color: $iq-off-white;
+        }
       }
 
       &.grey-text {
         color: $iq-grey-4;
         border-left-color: transparent;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
+      }
+
+      &.default-text {
+        @include nx-dark-mode-helpers.dark-mode {
+          color: var(--nx-swatch-indigo-05);
+        }
+
+        > .nx-cell__row-btn {
+          color: var(--nx-swatch-indigo-05);
+        }
+      }
+
+      &.nx-cell--row-btn {
+        border-left: none;
       }
     }
 
@@ -72,17 +97,26 @@ $-cell-heatmap-border-color: rgb(247, 251, 255);
       .nx-cell {
         border-bottom: none;
         border-top: $iq-border-row;
+        @include nx-dark-mode-helpers.dark-mode {
+          border-top-color: var(--nx-color-border-secondary);
+        }
       }
 
       .nx-table-row {
         &:hover {
           .nx-cell {
             border-top: $iq-border-row-hover;
+            @include nx-dark-mode-helpers.dark-mode {
+              border-top: 1px solid var(--nx-color-border-secondary);
+            }
           }
 
           + .nx-table-row {
             .nx-cell {
               border-top: $iq-border-row-hover;
+              @include nx-dark-mode-helpers.dark-mode {
+                border-top: 1px solid var(--nx-color-border-secondary);
+              }
             }
           }
         }

@@ -17,16 +17,18 @@ export default function DashboardHeatMapCell(props) {
     ? 'grey-text'
     : colorStyler && colorStyler.isWhiteText(score)
     ? 'white-text'
-    : '';
+    : 'default-text';
 
   const backgroundColor = colorStyler ? colorStyler.getColor(score) : '';
 
+  const textClass = `nx-cell--num iq-cell--heatmap ${textColorClass}`;
+  const chevronCellClass = `nx-cell--num iq-cell--heatmap ${
+    colorStyler.isWhiteText(score) ? 'white-text' : 'default-text'
+  }`;
+  const cellClass = chevron ? chevronCellClass : textClass;
+
   return (
-    <NxTableCell
-      className={`nx-cell--num iq-cell--heatmap ${textColorClass}`}
-      style={{ backgroundColor: backgroundColor }}
-      chevron={chevron}
-    >
+    <NxTableCell className={cellClass} style={{ backgroundColor: backgroundColor }} chevron={chevron}>
       {chevron ? null : score}
     </NxTableCell>
   );

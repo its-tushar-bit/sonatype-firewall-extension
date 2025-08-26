@@ -6,6 +6,7 @@
 /*
   #Colors
 */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 // Old boostrap variables
 
@@ -16,6 +17,57 @@ $bootstrap-error-background: #f2dede;
 // Sonatype brand colours
 $iq-sonatype-blue: #336699;
 $iq-sonatype-orange: #f89100;
+
+// Sonatype Blue CSS custom properties - ordered from lightest to darkest intensity
+:root {
+  --iq-sonatype-blue-1: rgb(247, 251, 255); /* Lightest (used for score 0) */
+  --iq-sonatype-blue-2: rgb(222, 233, 242);
+  --iq-sonatype-blue-3: rgb(218, 231, 241);
+  --iq-sonatype-blue-4: rgb(211, 226, 238);
+  --iq-sonatype-blue-5: rgb(203, 220, 234);
+  --iq-sonatype-blue-6: rgb(190, 212, 228);
+  --iq-sonatype-blue-7: rgb(181, 205, 223);
+  --iq-sonatype-blue-8: rgb(168, 197, 219);
+  --iq-sonatype-blue-9: rgb(157, 189, 214);
+  --iq-sonatype-blue-10: rgb(150, 185, 212);
+  --iq-sonatype-blue-11: rgb(142, 179, 208);
+  --iq-sonatype-blue-12: rgb(121, 165, 198);
+  --iq-sonatype-blue-13: rgb(100, 151, 190);
+  --iq-sonatype-blue-14: rgb(91, 145, 187);
+  --iq-sonatype-blue-15: rgb(83, 139, 183);
+  --iq-sonatype-blue-16: rgb(74, 129, 170);
+  --iq-sonatype-blue-17: rgb(67, 117, 155);
+  --iq-sonatype-blue-18: rgb(63, 108, 143);
+  --iq-sonatype-blue-19: rgb(54, 93, 123);
+  --iq-sonatype-blue-20: rgb(47, 82, 109);
+  --iq-sonatype-blue-21: rgb(43, 74, 98);
+  --iq-sonatype-blue-22: rgb(40, 69, 91); /* Darkest */
+
+  @include nx-dark-mode-helpers.dark-mode {
+    --iq-sonatype-blue-1: var(--nx-swatch-purple-97); /* Lightest (used for score 0) */
+    --iq-sonatype-blue-2: var(--nx-swatch-purple-95);
+    --iq-sonatype-blue-3: var(--nx-swatch-purple-95);
+    --iq-sonatype-blue-4: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-5: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-6: var(--nx-swatch-purple-90);
+    --iq-sonatype-blue-7: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-8: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-9: var(--nx-swatch-purple-80);
+    --iq-sonatype-blue-10: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-11: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-12: var(--nx-swatch-purple-70);
+    --iq-sonatype-blue-13: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-14: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-15: var(--nx-swatch-purple-60);
+    --iq-sonatype-blue-16: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-17: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-18: var(--nx-swatch-purple-50);
+    --iq-sonatype-blue-19: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-20: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-21: var(--nx-swatch-purple-30);
+    --iq-sonatype-blue-22: var(--nx-swatch-purple-30); /* Darkest */
+  }
+}
 
 $iq-blue: #3d4e90;
 $iq-blue-xlight: #edeff7;

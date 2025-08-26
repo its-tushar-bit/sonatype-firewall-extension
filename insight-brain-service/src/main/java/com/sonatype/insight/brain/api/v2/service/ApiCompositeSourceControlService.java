@@ -273,6 +273,27 @@ public class ApiCompositeSourceControlService
         ancestorsSourceControl,
         SourceControl::getInnerSourceAutomatedUpdatesEnabled
     );
+
+    dto.closePrOnFailedChecksEnabled = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getClosePrOnFailedChecksEnabled
+    );
+
+    dto.closePrAfterDaysOpenEnabled = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getClosePrAfterDaysOpenEnabled
+    );
+
+    dto.closePrAfterDays = collateCompositeDTO(
+        sourceControl,
+        ancestorsNameHierarchy,
+        ancestorsSourceControl,
+        SourceControl::getClosePrAfterDays
+    );
   }
 
   private <T> ApiCompositeValueDTO<T> collateCompositeDTO(

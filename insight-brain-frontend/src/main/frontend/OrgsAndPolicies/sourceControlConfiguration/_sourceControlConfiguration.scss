@@ -80,3 +80,24 @@
     }
   }
 }
+
+#source-control-remediation-pull-requests.iq-source-control-toggle {
+  margin-bottom: 0;
+}
+
+.git-advanced-options {
+  margin-left: 53px;
+
+  h4 {
+    text-transform: none;
+  }
+
+  .nx-text-input {
+    margin-left: 25px;
+    width: 160px;
+  }
+
+  .close-pr-after-days {
+    margin-left: 6px;
+  }
+}

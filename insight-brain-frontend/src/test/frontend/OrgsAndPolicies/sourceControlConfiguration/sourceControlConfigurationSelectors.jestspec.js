@@ -84,6 +84,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isPristine: false,
                 },
               },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
+                },
+              },
             },
           },
         },
@@ -126,6 +137,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   trimmedValue: 'main',
                   validationErrors: null,
                   isPristine: false,
+                },
+              },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
                 },
               },
             },
@@ -172,6 +194,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isPristine: false,
                 },
               },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
+                },
+              },
             },
           },
         },
@@ -214,6 +247,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   trimmedValue: 'main',
                   validationErrors: null,
                   isPristine: false,
+                },
+              },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
                 },
               },
             },
@@ -260,6 +304,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isPristine: false,
                 },
               },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
+                },
+              },
             },
           },
         },
@@ -304,6 +359,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   isPristine: false,
                 },
               },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
+                },
+              },
             },
           },
         },
@@ -346,6 +412,17 @@ describe('selectSourceControlConfigurationSelectors', () => {
                   trimmedValue: '',
                   validationErrors: ['Must be non-empty'],
                   isPristine: false,
+                },
+              },
+              closePrOnFailedChecksEnabled: {
+                value: null,
+              },
+              closePrAfterDaysOpenEnabled: {
+                value: null,
+              },
+              closePrAfterDays: {
+                rscValue: {
+                  value: null,
                 },
               },
             },

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.APPLICATION_EVALUATION_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.BATCH_PR_STATE_UPDATE_EVENT;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.CLOSE_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.DISCOVERED_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.PR_STATE_UPDATE_EVENT;
@@ -54,14 +55,15 @@ public class EventCostSelectionRule
    */
   private static final ImmutableMap<String, Integer> EVENT_COST_POINTS = ImmutableMap.<String, Integer>builder()
       .put(APPLICATION_EVALUATION_EVENT, 8)
+      .put(BATCH_PR_STATE_UPDATE_EVENT, 2)
+      .put(CLOSE_PULL_REQUEST_EVENT, 2)
       .put(DISCOVERED_PULL_REQUEST_EVENT, 12)
       .put(MANUAL_REMEDIATION_PULL_REQUEST_EVENT, 4)
+      .put(PR_STATE_UPDATE_EVENT, 1)
       .put(REMEDIATION_PULL_REQUEST_EVENT, 4)
       .put(REPOSITORY_URL_UPDATED_EVENT, 0)
       .put(SOURCE_CONTROL_EVALUATION_EVENT, 2)
       .put(STATUS_UPDATE_EVENT, 1)
-      .put(BATCH_PR_STATE_UPDATE_EVENT, 2)
-      .put(PR_STATE_UPDATE_EVENT, 1)
       .put(UPDATED_PULL_REQUEST_EVENT, 12)
       .build();
 

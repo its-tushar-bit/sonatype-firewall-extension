@@ -252,6 +252,10 @@ public class SourceControlEventProcessor
           pullRequestStateEventHandler.handle(event);
           break;
 
+        case SourceControlEvent.CLOSE_PULL_REQUEST_EVENT:
+          pullRequestRemediationService.onRemediatePullRequestClosing(event);
+          break;
+
         default:
           log.warn("Invalid source control event type '{}' for event '{}'", event.getEventType(), event.getId());
           success = false;

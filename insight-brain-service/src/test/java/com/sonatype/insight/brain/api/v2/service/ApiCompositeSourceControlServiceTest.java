@@ -94,6 +94,9 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setSshEnabled(true);
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
+    rootOrgSourcecontrol.setClosePrOnFailedChecksEnabled(true);
+    rootOrgSourcecontrol.setClosePrAfterDaysOpenEnabled(true);
+    rootOrgSourcecontrol.setClosePrAfterDays(7);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -113,6 +116,9 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.sshEnabled.value = true;
     actualDTO.commitStatusEnabled.value = false;
     actualDTO.manualPullRequestsEnabled.value = false;
+    actualDTO.closePrOnFailedChecksEnabled.value = true;
+    actualDTO.closePrAfterDaysOpenEnabled.value = true;
+    actualDTO.closePrAfterDays.value = 7;
 
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
@@ -236,6 +242,9 @@ public class ApiCompositeSourceControlServiceTest
     rootOrgSourcecontrol.setCommitStatusEnabled(false);
     rootOrgSourcecontrol.setManualPullRequestsEnabled(false);
     rootOrgSourcecontrol.setInnerSourceAutomatedUpdatesEnabled(false);
+    rootOrgSourcecontrol.setClosePrOnFailedChecksEnabled(true);
+    rootOrgSourcecontrol.setClosePrAfterDaysOpenEnabled(true);
+    rootOrgSourcecontrol.setClosePrAfterDays(7);
     sourceControlDAO.update(rootOrgSourcecontrol);
 
     final ApiCompositeSourceControlDTO resultDTO = apiCompositeSourceControlService
@@ -267,6 +276,12 @@ public class ApiCompositeSourceControlServiceTest
     actualDTO.manualPullRequestsEnabled.parentValue = false;
     actualDTO.innerSourceAutomatedUpdatesEnabled.parentName = rootOrganization.getName();
     actualDTO.innerSourceAutomatedUpdatesEnabled.parentValue = false;
+    actualDTO.closePrOnFailedChecksEnabled.parentName = rootOrganization.getName();
+    actualDTO.closePrOnFailedChecksEnabled.parentValue = true;
+    actualDTO.closePrAfterDaysOpenEnabled.parentName = rootOrganization.getName();
+    actualDTO.closePrAfterDaysOpenEnabled.parentValue = true;
+    actualDTO.closePrAfterDays.parentName = rootOrganization.getName();
+    actualDTO.closePrAfterDays.parentValue = 7;
     validateCompositeSourceControlDTO(OwnerType.ORGANIZATION, resultDTO, actualDTO);
   }
 
@@ -1199,6 +1214,9 @@ public class ApiCompositeSourceControlServiceTest
     assertField(result.commitStatusEnabled, expected.commitStatusEnabled);
     assertField(result.manualPullRequestsEnabled, expected.manualPullRequestsEnabled);
     assertField(result.innerSourceAutomatedUpdatesEnabled, expected.innerSourceAutomatedUpdatesEnabled);
+    assertField(result.closePrOnFailedChecksEnabled, expected.closePrOnFailedChecksEnabled);
+    assertField(result.closePrAfterDaysOpenEnabled, expected.closePrAfterDaysOpenEnabled);
+    assertField(result.closePrAfterDays, expected.closePrAfterDays);
   }
 
   private <T> void assertField(ApiCompositeValueDTO<T> actualField, ApiCompositeValueDTO<T> expectedField) {

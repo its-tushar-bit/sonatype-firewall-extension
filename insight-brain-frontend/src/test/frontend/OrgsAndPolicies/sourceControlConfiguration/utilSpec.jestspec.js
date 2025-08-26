@@ -626,6 +626,9 @@ describe('sourceControlConfiguration util', () => {
           sshEnabled: { value: null, parentValue: null, parentName: null },
           manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
           innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
+          closePrOnFailedChecksEnabled: { value: null, parentValue: null, parentName: null },
+          closePrAfterDaysOpenEnabled: { value: null, parentValue: null, parentName: null },
+          closePrAfterDays: { value: null, parentValue: null, parentName: null },
         };
         isRootOrg = true;
       });
@@ -670,6 +673,24 @@ describe('sourceControlConfiguration util', () => {
             isInherited: false,
             parentName: null,
             parentValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          },
+          closePrOnFailedChecksEnabled: { parentValue: null, parentName: null, isInherited: false, value: false },
+          closePrAfterDaysOpenEnabled: { parentValue: null, parentName: null, isInherited: false, value: false },
+          closePrAfterDays: {
+            isInherited: false,
+            parentName: null,
+            parentValue: {
+              isPristine: true,
+              trimmedValue: '',
+              validationErrors: null,
+              value: '',
+            },
+            rscValue: {
+              isPristine: true,
+              trimmedValue: '',
+              validationErrors: null,
+              value: '',
+            },
           },
         };
         expect(compositeSourceControlToModel(configResponse, isRootOrg)).toEqual(resultDataForForm);
@@ -721,6 +742,9 @@ describe('sourceControlConfiguration util', () => {
           sourceControlScanTarget: { value: null, parentValue: null, parentName: null },
           sshEnabled: { value: null, parentValue: null, parentName: null },
           innerSourceAutomatedUpdatesEnabled: { value: true, parentValue: null, parentName: null },
+          closePrOnFailedChecksEnabled: { value: false, parentValue: null, parentName: null },
+          closePrAfterDaysOpenEnabled: { value: false, parentValue: null, parentName: null },
+          closePrAfterDays: { value: null, parentValue: null, parentName: null },
         };
         isRootOrg = true;
       });
@@ -775,6 +799,34 @@ describe('sourceControlConfiguration util', () => {
             isInherited: false,
             parentName: null,
             parentValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
+          },
+          closePrOnFailedChecksEnabled: {
+            parentValue: null,
+            parentName: null,
+            isInherited: false,
+            value: false,
+          },
+          closePrAfterDaysOpenEnabled: {
+            parentValue: null,
+            parentName: null,
+            isInherited: false,
+            value: false,
+          },
+          closePrAfterDays: {
+            isInherited: false,
+            parentName: null,
+            parentValue: {
+              isPristine: true,
+              trimmedValue: '',
+              validationErrors: null,
+              value: '',
+            },
+            rscValue: {
+              isPristine: true,
+              trimmedValue: '',
+              validationErrors: null,
+              value: '',
+            },
           },
         };
         expect(compositeSourceControlToModel(existConfigResponse, isRootOrg)).toEqual(resultDataForRorm);

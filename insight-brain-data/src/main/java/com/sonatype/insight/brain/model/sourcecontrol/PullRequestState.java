@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.model.sourcecontrol;
 // to ensure that the db does not directly depend on an enum that may evolve separately
 public enum PullRequestState
 {
+  AUTO_CLOSED, // set when an auto PR is closed by IQ instead of a user
   CLOSED,
   LOCKED,
   MERGED,

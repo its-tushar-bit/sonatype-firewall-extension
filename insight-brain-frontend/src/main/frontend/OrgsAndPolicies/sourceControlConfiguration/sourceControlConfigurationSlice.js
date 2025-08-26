@@ -129,8 +129,20 @@ const setBaseBranch = (state, { payload }) => {
   state.isDirty = setIsDirty(state);
 };
 
+const setClosePrAfterDaysOpen = (state, { payload }) => {
+  state.sourceControl.closePrAfterDays.rscValue = userInput(() => daysValidator(payload), payload);
+  state.isDirty = setIsDirty(state);
+};
+
+const daysValidator = (val) => (val > 0 && val < 3650 ? null : 'Must be a number between 0 and 3650');
+
 const toggleValue = (state, { payload: property }) => {
   state.sourceControl[property].value = !state.sourceControl[property].value;
+
+  if (property === 'closePrAfterDaysOpenEnabled' && !state.sourceControl.closePrAfterDays.value) {
+    state.sourceControl.closePrAfterDays.rscValue = userInput(() => daysValidator(''), '');
+  }
+
   state.isDirty = setIsDirty(state);
 };
 
@@ -375,6 +387,7 @@ const sourceControl = createSlice({
     setUsername,
     setToken,
     setBaseBranch,
+    setClosePrAfterDaysOpen,
     toggleValue,
     setValue,
     setIsInherited,

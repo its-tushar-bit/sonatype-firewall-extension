@@ -39,6 +39,9 @@ public class ApiSourceControlAdapter
     apiSourceControlDTO.token = sourceControl.getToken();
     apiSourceControlDTO.provider = sourceControl.getProvider() == null ? null : sourceControl.getProvider().toString();
     apiSourceControlDTO.baseBranch = sourceControl.getBaseBranch();
+    apiSourceControlDTO.closePrOnFailedChecksEnabled = sourceControl.getClosePrOnFailedChecksEnabled();
+    apiSourceControlDTO.closePrAfterDaysOpenEnabled = sourceControl.getClosePrAfterDaysOpenEnabled();
+    apiSourceControlDTO.closePrAfterDays = sourceControl.getClosePrAfterDays();
     apiSourceControlDTO.remediationPullRequestsEnabled = sourceControl.getRemediationPullRequestsEnabled();
     apiSourceControlDTO.enablePullRequests = apiSourceControlDTO.remediationPullRequestsEnabled;
     apiSourceControlDTO.statusChecksEnabled = sourceControl.getStatusChecksEnabled();
@@ -125,6 +128,9 @@ public class ApiSourceControlAdapter
         )
         .setStatusChecksEnabled(dto.statusChecksEnabled != null ? dto.statusChecksEnabled : dto.enableStatusChecks)
         .setBaseBranch(dto.baseBranch)
+        .setClosePrOnFailedChecksEnabled(dto.closePrOnFailedChecksEnabled)
+        .setClosePrAfterDaysOpenEnabled(dto.closePrAfterDaysOpenEnabled)
+        .setClosePrAfterDays(dto.closePrAfterDays)
         .setPullRequestCommentingEnabled(dto.pullRequestCommentingEnabled)
         .setSourceControlEvaluationsEnabled(dto.sourceControlEvaluationsEnabled)
         .setSourceControlScanTarget(dto.sourceControlScanTarget)

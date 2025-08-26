@@ -196,6 +196,23 @@ public class PullRequestPollingService
         applicationId, pullRequest.getNumber(), pullRequest.getHeadCommitHash());
   }
 
+  public void createAndSendPullRequestClosingEvent(
+      String applicationId,
+      SourceControlPullRequest pullRequest,
+      String pullRequestContents)
+  {
+    SourceControlEvent event = new SourceControlEvent()
+        .forRemediationPullRequestClosing()
+        .setBranchName(pullRequest.getBranchName())
+        .setApplicationId(applicationId)
+        .setPullRequestNumber(pullRequest.getPullRequestId())
+        .setPullRequestContents(pullRequestContents)
+        .setInitiator(POLLING);
+    sourceControlEventPublisher.publishEvent(event);
+    log.info("Sent pull request closing event for application '{}' with PR# '{}'",
+        applicationId, pullRequest.getPullRequestId());
+  }
+
   /**
    * cycles thru the source control applications in order of pull request poll times and queries the SCM provider for
    * pull requests for the org and api key associated with the given source control entry.

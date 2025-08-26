@@ -37,6 +37,9 @@ public class ApiSourceControlAdapterTest
     sourceControl.setCommitStatusEnabled(false);
     sourceControl.setManualPullRequestsEnabled(false);
     sourceControl.setInnerSourceAutomatedUpdatesEnabled(false);
+    sourceControl.setClosePrOnFailedChecksEnabled(true);
+    sourceControl.setClosePrAfterDaysOpenEnabled(true);
+    sourceControl.setClosePrAfterDays(7);
 
     ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
 
@@ -58,6 +61,9 @@ public class ApiSourceControlAdapterTest
     assertThat(dto.commitStatusEnabled).isFalse();
     assertThat(dto.manualPullRequestsEnabled).isFalse();
     assertThat(dto.innerSourceAutomatedUpdatesEnabled).isFalse();
+    assertThat(dto.closePrOnFailedChecksEnabled).isTrue();
+    assertThat(dto.closePrAfterDaysOpenEnabled).isTrue();
+    assertThat(dto.closePrAfterDays).isEqualTo(7);
   }
 
   @Test
@@ -79,6 +85,9 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.commitStatusEnabled = false;
     apiSourceControlDTO.manualPullRequestsEnabled = false;
     apiSourceControlDTO.innerSourceAutomatedUpdatesEnabled = false;
+    apiSourceControlDTO.closePrOnFailedChecksEnabled = true;
+    apiSourceControlDTO.closePrAfterDaysOpenEnabled = true;
+    apiSourceControlDTO.closePrAfterDays = 7;
 
     SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
@@ -98,6 +107,9 @@ public class ApiSourceControlAdapterTest
     assertThat(sourceControl.getCommitStatusEnabled()).isFalse();
     assertThat(sourceControl.getManualPullRequestsEnabled()).isFalse();
     assertThat(sourceControl.getInnerSourceAutomatedUpdatesEnabled()).isFalse();
+    assertThat(sourceControl.getClosePrOnFailedChecksEnabled()).isTrue();
+    assertThat(sourceControl.getClosePrAfterDaysOpenEnabled()).isTrue();
+    assertThat(sourceControl.getClosePrAfterDays()).isEqualTo(7);
   }
 
   @SuppressWarnings("deprecation")

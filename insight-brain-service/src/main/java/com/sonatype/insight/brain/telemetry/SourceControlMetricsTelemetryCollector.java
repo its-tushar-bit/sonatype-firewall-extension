@@ -36,6 +36,7 @@ import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.A
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.AUTOMATIC_INNER_SOURCE;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.MANUAL;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource.MANUAL_INNER_SOURCE;
+import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.AUTO_CLOSED;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.CLOSED;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MERGED;
 import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MISSING;
@@ -66,6 +67,9 @@ public class SourceControlMetricsTelemetryCollector
   public static final String TOTAL_SC_AUTOMATIC_PRS_CLOSED =
       "total_daily_source_control_automatic_pull_requests_closed";
 
+  public static final String TOTAL_SC_AUTOMATIC_PRS_AUTO_CLOSED =
+      "total_daily_source_control_automatic_pull_requests_auto_closed";
+
   public static final String TOTAL_SC_MANUAL_PRS_MERGED = "total_daily_source_control_manual_pull_requests_merged";
 
   public static final String TOTAL_SC_AUTOMATIC_PRS_MERGED =
@@ -87,6 +91,9 @@ public class SourceControlMetricsTelemetryCollector
 
   public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED =
       "total_daily_source_control_innersource_automatic_pull_requests_closed";
+
+  public static final String TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED =
+      "total_daily_source_control_innersource_automatic_pull_requests_auto_closed";
 
   public static final String TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED =
       "total_daily_source_control_innersource_manual_pull_requests_merged";
@@ -208,7 +215,7 @@ public class SourceControlMetricsTelemetryCollector
     // non-open PRs all get deleted at the end of metrics collection, so these are implicitly only the ones since
     // last time
     var nonOpenPRs = sourceControlPullRequestDAO.getByStatesAndSources(
-        EnumSet.of(CLOSED, MERGED, MISSING),
+        EnumSet.of(AUTO_CLOSED, CLOSED, MERGED, MISSING),
         EnumSet.of(AUTOMATIC, AUTOMATIC_INNER_SOURCE, MANUAL, MANUAL_INNER_SOURCE)
     );
 
@@ -242,6 +249,8 @@ public class SourceControlMetricsTelemetryCollector
         getCount.apply(MANUAL, OPEN) + getCount.apply(MANUAL_INNER_SOURCE, OPEN));
     attributes.put(TOTAL_SC_AUTOMATIC_PRS_CLOSED,
         getCount.apply(AUTOMATIC, CLOSED) + getCount.apply(AUTOMATIC_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_AUTOMATIC_PRS_AUTO_CLOSED,
+        getCount.apply(AUTOMATIC, AUTO_CLOSED) + getCount.apply(AUTOMATIC_INNER_SOURCE, AUTO_CLOSED));
     attributes.put(TOTAL_SC_MANUAL_PRS_CLOSED,
         getCount.apply(MANUAL, CLOSED) + getCount.apply(MANUAL_INNER_SOURCE, CLOSED));
     attributes.put(TOTAL_SC_AUTOMATIC_PRS_MERGED,
@@ -256,6 +265,8 @@ public class SourceControlMetricsTelemetryCollector
     attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, getCount.apply(AUTOMATIC_INNER_SOURCE, OPEN));
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, getCount.apply(MANUAL_INNER_SOURCE, OPEN));
     attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, getCount.apply(AUTOMATIC_INNER_SOURCE, CLOSED));
+    attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED,
+        getCount.apply(AUTOMATIC_INNER_SOURCE, AUTO_CLOSED));
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, getCount.apply(MANUAL_INNER_SOURCE, CLOSED));
     attributes.put(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, getCount.apply(AUTOMATIC_INNER_SOURCE, MERGED));
     attributes.put(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, getCount.apply(MANUAL_INNER_SOURCE, MERGED));

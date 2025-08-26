@@ -107,6 +107,9 @@ export const compositeSourceControlToModel = (
     sshEnabled,
     manualPullRequestsEnabled,
     innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
   },
   isRootOrg
 ) => {
@@ -176,6 +179,28 @@ export const compositeSourceControlToModel = (
         innerSourceAutomatedUpdatesEnabled?.parentValue ?? null,
         true
       ),
+    },
+    closePrOnFailedChecksEnabled: {
+      ...closePrOnFailedChecksEnabled,
+      isInherited: closePrOnFailedChecksEnabled?.value === null && !isRootOrg,
+      value: setDefaultIfNull(closePrOnFailedChecksEnabled?.value, closePrOnFailedChecksEnabled?.parentValue, false),
+    },
+    closePrAfterDaysOpenEnabled: {
+      ...closePrAfterDaysOpenEnabled,
+      isInherited: closePrAfterDaysOpenEnabled?.value === null && !isRootOrg,
+      value: setDefaultIfNull(closePrAfterDaysOpenEnabled?.value, closePrAfterDaysOpenEnabled?.parentValue, false),
+    },
+    closePrAfterDays: {
+      parentName: closePrAfterDays?.parentName,
+      isInherited: closePrAfterDays?.value === null && !isRootOrg,
+      parentValue: rscInitialState(closePrAfterDays?.value?.toString() ?? '', (val) => {
+        const numVal = parseInt(val, 10);
+        return !val || (numVal > 0 && numVal <= 365) ? null : 'Must be a number between 1 and 365';
+      }),
+      rscValue: rscInitialState(closePrAfterDays?.value?.toString() ?? '', (val) => {
+        const numVal = parseInt(val, 10);
+        return !val || (numVal > 0 && numVal <= 365) ? null : 'Must be a number between 1 and 365';
+      }),
     },
   };
   //set username and token
@@ -273,6 +298,11 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
     statusChecksEnabled: true,
     repositoryUrl: isApp ? sourceControl.repositoryUrl.trimmedValue : null,
     sshEnabled: sshEnabled.value,
+    closePrOnFailedChecksEnabled: sourceControl.closePrOnFailedChecksEnabled.value ?? false,
+    closePrAfterDaysOpenEnabled: sourceControl.closePrAfterDaysOpenEnabled.value ?? false,
+    closePrAfterDays: isNaN(parseInt(sourceControl.closePrAfterDays?.rscValue?.trimmedValue, 10))
+      ? null
+      : parseInt(sourceControl.closePrAfterDays?.rscValue?.trimmedValue, 10),
     username: null,
     token: null,
     provider: null,
@@ -462,6 +492,9 @@ export const getDataFromSourceControl = (
     manualPullRequestsEnabled,
     repositoryUrl,
     innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
   }
 ) => {
   const data = {
@@ -477,6 +510,9 @@ export const getDataFromSourceControl = (
     sshEnabled,
     manualPullRequestsEnabled,
     innerSourceAutomatedUpdatesEnabled,
+    closePrOnFailedChecksEnabled,
+    closePrAfterDaysOpenEnabled,
+    closePrAfterDays,
   };
   if (ownerType === 'application') {
     data.repositoryUrl = repositoryUrl;
@@ -509,6 +545,9 @@ export const setIsDirty = (state) => {
     'sshEnabled',
     'repositoryUrl',
     'innerSourceAutomatedUpdatesEnabled',
+    'closePrOnFailedChecksEnabled',
+    'closePrAfterDaysOpenEnabled',
+    'closePrAfterDays',
   ];
   return formFields.some((property) => {
     if (property === 'provider')

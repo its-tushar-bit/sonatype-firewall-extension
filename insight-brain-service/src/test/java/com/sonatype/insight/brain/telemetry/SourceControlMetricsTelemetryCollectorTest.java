@@ -74,7 +74,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(31)
+        .hasSize(33)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "0"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "0"),
             entry(TOTAL_APPLICATIONS, "0"),
@@ -93,6 +93,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 0),
             entry(TOTAL_SC_MANUAL_PRS_CREATED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_AUTOMATIC_PRS_AUTO_CLOSED, 0),
             entry(TOTAL_SC_MANUAL_PRS_CLOSED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_MANUAL_PRS_MERGED, 0),
@@ -101,6 +102,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
@@ -136,7 +138,7 @@ public class SourceControlMetricsTelemetryCollectorTest
 
     assertThat(collector.collectData(mockContext).getAttributes())
         .isNotEmpty()
-        .hasSize(31)
+        .hasSize(33)
         .containsOnly(entry(TOTAL_SC_WITH_REMEDIATION_PRS_ENABLED, "2"),
             entry(TOTAL_APPLICATION_SC_ENTRIES, "3"),
             entry(TOTAL_APPLICATIONS, "4"),
@@ -155,6 +157,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 0),
             entry(TOTAL_SC_MANUAL_PRS_CREATED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_AUTOMATIC_PRS_AUTO_CLOSED, 0),
             entry(TOTAL_SC_MANUAL_PRS_CLOSED, 0),
             entry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_MANUAL_PRS_MERGED, 0),
@@ -163,6 +166,7 @@ public class SourceControlMetricsTelemetryCollectorTest
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 0),
+            entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 0),
             entry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 0),
             entry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 0),
@@ -201,18 +205,20 @@ public class SourceControlMetricsTelemetryCollectorTest
     assertThat(result.getAttributes())
 
         // Note: includes merged and closed PRs that have createTimes since the previous fire time
-        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 12)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CREATED, 14)
         .containsEntry(TOTAL_SC_MANUAL_PRS_CREATED, 8)
         .containsEntry(TOTAL_SC_AUTOMATIC_PRS_CLOSED, 2)
+        .containsEntry(TOTAL_SC_AUTOMATIC_PRS_AUTO_CLOSED, 2)
         .containsEntry(TOTAL_SC_MANUAL_PRS_CLOSED, 4)
         .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MERGED, 4)
         .containsEntry(TOTAL_SC_MANUAL_PRS_MERGED, 2)
         .containsEntry(TOTAL_SC_AUTOMATIC_PRS_MISSING, 2)
         .containsEntry(TOTAL_SC_MANUAL_PRS_MISSING, 0)
 
-        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 6)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CREATED, 7)
         .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CREATED, 4)
         .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_CLOSED, 1)
+        .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_AUTO_CLOSED, 1)
         .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_CLOSED, 2)
         .containsEntry(TOTAL_SC_INNER_SOURCE_AUTOMATIC_PRS_MERGED, 2)
         .containsEntry(TOTAL_SC_INNER_SOURCE_MANUAL_PRS_MERGED, 1)
@@ -289,8 +295,14 @@ public class SourceControlMetricsTelemetryCollectorTest
     // 1 AUTOMATIC CLOSED PR
     createSourceControlPullRequest(7, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC, now);
     
+    // 1 AUTOMATIC AUTO CLOSED PR
+    createSourceControlPullRequest(27, PullRequestState.AUTO_CLOSED, PullRequestSource.AUTOMATIC, now);
+
     // 1 AUTOMATIC_INNER_SOURCE CLOSED PR
     createSourceControlPullRequest(8, PullRequestState.CLOSED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
+
+    // 1 AUTOMATIC_INNER_SOURCE AUTO CLOSED PR
+    createSourceControlPullRequest(28, PullRequestState.AUTO_CLOSED, PullRequestSource.AUTOMATIC_INNER_SOURCE, now);
 
     // 2 MANUAL CLOSED PRs
     createSourceControlPullRequest(9, PullRequestState.CLOSED, PullRequestSource.MANUAL, now);

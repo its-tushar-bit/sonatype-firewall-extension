@@ -36,6 +36,9 @@ export const selectValidationError = createSelector(
       (!sourceControl.username.isInherited || !sourceControl.provider.isInherited) && sourceControl.username.rscValue,
       (!sourceControl.token.isInherited || !sourceControl.provider.isInherited) && sourceControl.token.rscValue,
       !sourceControl.baseBranch.isInherited && sourceControl.baseBranch.rscValue,
+      !sourceControl.closePrAfterDays.isInherited &&
+        sourceControl?.closePrAfterDaysOpenEnabled.value &&
+        sourceControl.closePrAfterDays.rscValue,
     ];
     if (isApp) validatableFields.push(sourceControl.repositoryUrl);
     const isValidationError = validatableFields.some((property) => property?.validationErrors?.length >= 1);

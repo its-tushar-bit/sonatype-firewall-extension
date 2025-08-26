@@ -848,7 +848,7 @@ public class PullRequestPollingServiceTest
       currentMockRepo.sourceControl =
           new SourceControl(applicationId, currentMockRepo.repositoryUrl, null, username, "token",
               currentMockRepo.sourceControlProvider, true, true, defaultBranch, false, false, null, false, true, false,
-              false);
+              false, null, false, null);
       tempEntity.newSourceControl(currentMockRepo.sourceControl);
       currentMockRepo.gitRepositoryInfo = new GitRepositoryInfo(currentMockRepo.repositoryUrl, null, username, "token",
           currentMockRepo.sourceControlProvider, defaultBranch, true, true,true, true, prCommentingEnabled, true, false,

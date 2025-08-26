@@ -6,6 +6,7 @@
 import React from 'react';
 import {
   NxButton,
+  NxCheckbox,
   NxForm,
   NxFormGroup,
   NxFormRow,
@@ -56,6 +57,90 @@ const RootSourceControlConfiguration = () => {
   const onChangeToken = (val) => dispatch(actions.setToken(val));
   const onChangeBranch = (val) => dispatch(actions.setBaseBranch(val));
   const toggleValue = (property) => dispatch(actions.toggleValue(property));
+  const onChangeClosePrAfterDaysOpen = (val) => dispatch(actions.setClosePrAfterDaysOpen(val));
+
+  const mapSourceControlOptionToToggle = (id, title, description, optionName) => {
+    if (
+      id === 'source-control-remediation-pull-requests' &&
+      sourceControl?.provider?.rscValue?.value === 'github' &&
+      sourceControl?.ownerId === 'ROOT_ORGANIZATION_ID'
+    ) {
+      return (
+        <NxTooltip
+          key={id}
+          title={
+            !isAutomationSupported && optionName !== 'sshEnabled' ? 'This feature is not supported by your license' : ''
+          }
+        >
+          <div>
+            <NxToggle
+              key={id}
+              id={id}
+              className="iq-source-control-toggle"
+              onChange={() => toggleValue(optionName)}
+              isChecked={sourceControl?.[optionName].value ?? false}
+              disabled={
+                !sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName !== 'sshEnabled')
+              }
+            >
+              <span className="iq-source-control-toggle__title">{title}</span>
+              <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
+            </NxToggle>
+            <div className="git-advanced-options">
+              <h5>Advanced Github Options</h5>
+              <NxCheckbox
+                name="failed-checks-advanced-option"
+                onChange={() => toggleValue('closePrOnFailedChecksEnabled')}
+                isChecked={sourceControl?.closePrOnFailedChecksEnabled?.value}
+                disabled={!sourceControl?.remediationPullRequestsEnabled?.value}
+              >
+                Close AutoPRs when one or more required checks fail
+              </NxCheckbox>
+              <NxCheckbox
+                name="after-days-open-advanced-option"
+                onChange={() => toggleValue('closePrAfterDaysOpenEnabled')}
+                isChecked={sourceControl?.closePrAfterDaysOpenEnabled?.value}
+                disabled={!sourceControl?.remediationPullRequestsEnabled.value}
+              >
+                Close AutoPRs that have not been merged or closed after:
+              </NxCheckbox>
+              <NxTextInput
+                {...sourceControl?.closePrAfterDays.rscValue}
+                onChange={onChangeClosePrAfterDaysOpen}
+                validatable
+                disabled={
+                  !sourceControl?.closePrAfterDaysOpenEnabled.value ||
+                  !sourceControl?.remediationPullRequestsEnabled.value
+                }
+                placeholder="Ex. 7"
+              />
+              <span className="close-pr-after-days">Days</span>
+            </div>
+          </div>
+        </NxTooltip>
+      );
+    }
+    return (
+      <NxTooltip
+        key={id}
+        title={
+          !isAutomationSupported && optionName !== 'sshEnabled' ? 'This feature is not supported by your license' : ''
+        }
+      >
+        <NxToggle
+          key={id}
+          id={id}
+          className="iq-source-control-toggle"
+          onChange={() => toggleValue(optionName)}
+          isChecked={sourceControl?.[optionName].value ?? false}
+          disabled={!sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName !== 'sshEnabled')}
+        >
+          <span className="iq-source-control-toggle__title">{title}</span>
+          <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
+        </NxToggle>
+      </NxTooltip>
+    );
+  };
 
   const additionalFooterBtns = (
     <NxButton
@@ -101,7 +186,7 @@ const RootSourceControlConfiguration = () => {
               {...sourceControl?.username.rscValue}
               disabled={!sourceControl?.provider.rscValue.value}
               validatable
-              autocomplete="off"
+              autoComplete="off"
             />
           </NxFormGroup>
         )}
@@ -112,7 +197,7 @@ const RootSourceControlConfiguration = () => {
             {...sourceControl?.token.rscValue}
             disabled={!sourceControl?.provider.rscValue.value}
             type="password"
-            autocomplete="new-password"
+            autoComplete="new-password"
             validatable
           />
         </NxFormGroup>
@@ -135,32 +220,9 @@ const RootSourceControlConfiguration = () => {
         </NxFormGroup>
       </NxTooltip>
 
-      {sourceControlOptions.map(({ id, title, description, optionName }) => {
-        return (
-          <NxTooltip
-            key={id}
-            title={
-              !isAutomationSupported && optionName !== 'sshEnabled'
-                ? 'This feature is not supported by your license'
-                : ''
-            }
-          >
-            <NxToggle
-              key={id}
-              id={id}
-              className="iq-source-control-toggle"
-              onChange={() => toggleValue(optionName)}
-              isChecked={sourceControl?.[optionName].value}
-              disabled={
-                !sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName !== 'sshEnabled')
-              }
-            >
-              <span className="iq-source-control-toggle__title">{title}</span>
-              <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
-            </NxToggle>
-          </NxTooltip>
-        );
-      })}
+      {sourceControlOptions.map(({ id, title, description, optionName }) =>
+        mapSourceControlOptionToToggle(id, title, description, optionName)
+      )}
     </NxStatefulForm>
   );
 };

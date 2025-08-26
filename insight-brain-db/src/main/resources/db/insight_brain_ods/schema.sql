@@ -780,6 +780,9 @@ CREATE TABLE source_control (
   commit_status_enabled boolean,
   manual_pull_requests_enabled boolean,
   inner_source_automated_updates_enabled boolean,
+  close_pr_on_failed_checks_enabled boolean,
+  close_pr_after_days_open_enabled boolean,
+  close_pr_after_days INTEGER NULL,
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
   CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
 );

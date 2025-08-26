@@ -66,6 +66,15 @@ public class SourceControl
   @Column(name = "base_branch")
   private String baseBranch;
 
+  @Column(name = "close_pr_on_failed_checks_enabled")
+  private Boolean closePrOnFailedChecksEnabled;
+
+  @Column(name = "close_pr_after_days_open_enabled")
+  private Boolean closePrAfterDaysOpenEnabled;
+
+  @Column(name = "close_pr_after_days")
+  private Integer closePrAfterDays;
+
   @Column(name = "remediation_pull_requests_enabled")
   private Boolean remediationPullRequestsEnabled;
 
@@ -118,7 +127,10 @@ public class SourceControl
       final Boolean sshEnabled,
       final Boolean commitStatusEnabled,
       final Boolean manualPullRequestsEnabled,
-      final Boolean innerSourceAutomatedUpdatesEnabled)
+      final Boolean innerSourceAutomatedUpdatesEnabled,
+      final Boolean closePrOnFailedChecksEnabled,
+      final Boolean closePrAfterDaysOpenEnabled,
+      final Integer closePrAfterDays)
   {
     this.ownerId = ownerId;
     setRepositoryUrl(repositoryUrl);
@@ -136,6 +148,9 @@ public class SourceControl
     this.commitStatusEnabled = commitStatusEnabled;
     this.manualPullRequestsEnabled = manualPullRequestsEnabled;
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
+    this.closePrOnFailedChecksEnabled = closePrOnFailedChecksEnabled;
+    this.closePrAfterDaysOpenEnabled = closePrAfterDaysOpenEnabled;
+    this.closePrAfterDays = closePrAfterDays;
   }
 
   @Override
@@ -203,6 +218,30 @@ public class SourceControl
 
   public void setBaseBranch(final String baseBranch) {
     this.baseBranch = baseBranch;
+  }
+
+  public Boolean getClosePrOnFailedChecksEnabled() {
+    return closePrOnFailedChecksEnabled;
+  }
+
+  public void setClosePrOnFailedChecksEnabled(final Boolean closePrOnFailedChecksEnabled) {
+    this.closePrOnFailedChecksEnabled = closePrOnFailedChecksEnabled;
+  }
+
+  public Boolean getClosePrAfterDaysOpenEnabled() {
+    return closePrAfterDaysOpenEnabled;
+  }
+
+  public void setClosePrAfterDaysOpenEnabled(Boolean closePrAfterDaysOpenEnabled) {
+    this.closePrAfterDaysOpenEnabled = closePrAfterDaysOpenEnabled;
+  }
+
+  public Integer getClosePrAfterDays() {
+    return closePrAfterDays;
+  }
+
+  public void setClosePrAfterDays(final Integer closePrAfterDays) {
+    this.closePrAfterDays = closePrAfterDays;
   }
 
   public Boolean getRemediationPullRequestsEnabled() {
@@ -321,6 +360,12 @@ public class SourceControl
 
     private String baseBranch;
 
+    private Boolean closePrOnFailedChecksEnabled;
+
+    private Boolean closePrAfterDaysOpenEnabled;
+
+    private Integer closePrAfterDays;
+
     private Date pullRequestPollTime;
 
     private Boolean pullRequestCommentingEnabled;
@@ -382,6 +427,21 @@ public class SourceControl
       return this;
     }
 
+    public Builder setClosePrOnFailedChecksEnabled(final Boolean closePrOnFailedChecksEnabled) {
+      this.closePrOnFailedChecksEnabled = closePrOnFailedChecksEnabled;
+      return this;
+    }
+
+    public Builder setClosePrAfterDaysOpenEnabled(final Boolean closePrAfterDaysOpenEnabled) {
+      this.closePrAfterDaysOpenEnabled = closePrAfterDaysOpenEnabled;
+      return this;
+    }
+
+    public Builder setClosePrAfterDays(final Integer closePrAfterDays) {
+      this.closePrAfterDays = closePrAfterDays;
+      return this;
+    }
+
     public Builder setPullRequestPollTime(final Date pullRequestPollTime) {
       this.pullRequestPollTime = pullRequestPollTime;
       return this;
@@ -427,7 +487,8 @@ public class SourceControl
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
               remediationPullRequestsEnabled, statusChecksEnabled, baseBranch, pullRequestCommentingEnabled,
               sourceControlEvaluationsEnabled, sourceControlScanTarget, sshEnabled, commitStatusEnabled,
-              manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled);
+              manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled, closePrOnFailedChecksEnabled,
+              closePrAfterDaysOpenEnabled, closePrAfterDays);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
       return sourceControl;
     }

@@ -23,6 +23,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
+import com.sonatype.nexus.scm.api.GitApiClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -126,6 +127,28 @@ public class PullRequestRemediationService
         }
         sourceControlEventDAO.update(event);
       }
+    }
+  }
+
+  public void onRemediatePullRequestClosing(SourceControlEvent event) throws IOException {
+    GitRepositoryInfo gitRepositoryInfo =
+        sourceControlUtils.getGitRepositoryInfoForApplication(event.getApplicationId());
+    if (isBranchOnServer(gitRepositoryInfo, event.getBranchName())) {
+      GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
+      Integer prNumber = event.getPullRequestNumber();
+      try {
+        gitApiClient.createPullRequestComment(prNumber, event.getPullRequestContents());
+        gitApiClient.closePullRequest(prNumber);
+      }
+      catch (Exception e) {
+        log.error("Failed to close pull request {} for branch {}: {}", prNumber, event.getBranchName(), e.getMessage());
+      }
+    }
+    else {
+      log.info("Branch {} does not exist on remote server for remediation closing.", event.getBranchName());
+      throw new SourceControlException(
+          "Branch does not exist on remote server for remediation closing: " + event.getBranchName()
+      );
     }
   }
 

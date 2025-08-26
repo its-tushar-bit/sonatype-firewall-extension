@@ -7,20 +7,40 @@ package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
+import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
+import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.CLOSE_PULL_REQUEST_EVENT;
+import static org.mockito.Mockito.mock;
+
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
+import com.sonatype.nexus.scm.api.model.PullRequestLifecycleInfo;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CheckRun;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CheckRuns;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CheckSuiteNode;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CheckSuites;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.Commit;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CommitNode;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.PullRequestCommits;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.PullRequestsByIdData.PullRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import org.apache.commons.io.IOUtils;
@@ -54,6 +74,9 @@ public class PullRequestStateEventHandlerTest
 
   @Inject
   private SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
+  @Inject
+  private SourceControlDAO sourceControlDAO;
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;
@@ -1013,5 +1036,201 @@ public class PullRequestStateEventHandlerTest
 
     // Verify event is deleted
     assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_ManualPullRequest_DoesNotClose() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControl sourceControl = tempEntity.newSourceControl(
+        githubApp.getId(),
+        "https://github.com/test-org/test-repo.git",
+        passwordHandler.encryptPassword(TOKEN),
+        SourceControlProvider.GITHUB
+    );
+    sourceControl.setClosePrOnFailedChecksEnabled(true);
+    sourceControlDAO.update(sourceControl);
+
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        "https://github.com/test-org/test-repo.git",
+        124,
+        "abc124",
+        "def457",
+        "manual-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.MANUAL);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    PullRequestLifecycleInfo prLifecycleInfo = mock(PullRequestLifecycleInfo.class);
+
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_FeatureDisabled_DoesNotClose() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        "https://github.com/test-org/test-repo.git",
+        125,
+        "abc125",
+        "def458",
+        "auto-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    PullRequestLifecycleInfo prLifecycleInfo = mock(PullRequestLifecycleInfo.class);
+
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_oldPR() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, false, true, 5);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(false);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isNotEmpty();
+    SourceControlEvent firstEvent = events.get(0);
+    assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
+    assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
+    assertThat(firstEvent.getPullRequestContents()).isEqualTo(
+        "Automatically closing pull request due to being open for more than 5 days");
+
+    // and when:
+    handler.updateSourceControlPullRequest(pullRequest, prLifecycleInfo, true);
+
+    // then:
+    SourceControlPullRequest updatedPullRequest =
+        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(githubApp.getId(), 1);
+    assertThat(updatedPullRequest.getState()).isEqualTo(PullRequestState.AUTO_CLOSED);
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_failedChecks() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, true, false, 0);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(true);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isNotEmpty();
+    SourceControlEvent firstEvent = events.get(0);
+    assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
+    assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
+    assertThat(firstEvent.getPullRequestContents()).isEqualTo(
+        "Automatically closing pull request due to failed status checks");
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_NoAutoClose_noFailedChecks() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, true, false, 0);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(false);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isEmpty();
+  }
+
+  private SourceControlPullRequest setupSourceControlAndPullRequestForAutoPrClosing(
+      Application app,
+      boolean closePrOnFailedChecks,
+      boolean closePrAfterDaysOpen,
+      int closePrAfterDays
+  )
+  {
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        "https://github.com/test-org/test-repo.git",
+        1,
+        "deadbeef1",
+        "deadbeef2",
+        "auto-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    Instant tenDaysAgo = LocalDate.now().minusDays(10).atStartOfDay(ZoneId.systemDefault()).toInstant();
+    pullRequest.setCreateTime(Date.from(tenDaysAgo));
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    SourceControl rootOrgSourceControl =
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+    rootOrgSourceControl.setClosePrOnFailedChecksEnabled(closePrOnFailedChecks);
+    rootOrgSourceControl.setClosePrAfterDaysOpenEnabled(closePrAfterDaysOpen);
+    rootOrgSourceControl.setClosePrAfterDays(closePrAfterDays);
+    sourceControlDAO.update(rootOrgSourceControl);
+
+    tempEntity.newSourceControl(
+        app.getId(),
+        "https://github.com/test-org/test-repo.git",
+        passwordHandler.encryptPassword(TOKEN),
+        SourceControlProvider.GITHUB
+    );
+    return pullRequest;
+  }
+
+  private PullRequestLifecycleInfo createGithubPullRequestLifecycleInfo(boolean failedRequiredChecks) {
+    PullRequest prLifecycleInfo = new PullRequest();
+    prLifecycleInfo.setState(PullRequestState.OPEN.name());
+    prLifecycleInfo.setHeadCommitHash("head-commit");
+    prLifecycleInfo.setBaseCommitHash("base-commit");
+    prLifecycleInfo.setBranchName("branch-name");
+    prLifecycleInfo.setBaseBranchName("base-branch-name");
+
+    CheckRun checkRun = new CheckRun();
+    checkRun.name = "check-run-name";
+    checkRun.status = "FAILURE";
+    checkRun.isRequired = failedRequiredChecks;
+
+    CheckRun[] checkRunNodes = {checkRun};
+    CheckRuns checkRuns = new CheckRuns();
+    checkRuns.nodes = checkRunNodes;
+
+    CheckSuiteNode checkSuiteNode = new CheckSuiteNode();
+    checkSuiteNode.checkRuns = checkRuns;
+    CheckSuiteNode[] checkSuitesNodes = {checkSuiteNode};
+    CheckSuites checkSuites = new CheckSuites();
+    checkSuites.nodes = checkSuitesNodes;
+
+    Commit commit = new Commit();
+    commit.commitHash = "a-commit";
+    commit.checkSuites = checkSuites;
+    CommitNode commitNode = new CommitNode();
+    commitNode.commit = commit;
+    CommitNode[] nodes = {commitNode};
+    PullRequestCommits commits = new PullRequestCommits();
+    commits.nodes = nodes;
+    prLifecycleInfo.setCommits(commits);
+
+    return prLifecycleInfo;
   }
 }

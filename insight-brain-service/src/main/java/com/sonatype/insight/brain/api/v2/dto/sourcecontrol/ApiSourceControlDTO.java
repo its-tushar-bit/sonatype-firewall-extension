@@ -21,6 +21,12 @@ public class ApiSourceControlDTO
 
   public String baseBranch;
 
+  public Boolean closePrOnFailedChecksEnabled;
+
+  public Boolean closePrAfterDaysOpenEnabled;
+
+  public Integer closePrAfterDays;
+
   /**
    * @deprecated Deprecated in 1.124. Can be removed in March 2022.
    *             Use remediationPullRequestsEnabled instead.

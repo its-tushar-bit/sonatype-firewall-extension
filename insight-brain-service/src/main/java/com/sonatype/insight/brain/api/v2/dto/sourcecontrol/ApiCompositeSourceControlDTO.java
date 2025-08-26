@@ -38,4 +38,10 @@ public class ApiCompositeSourceControlDTO
   public ApiCompositeValueDTO<Boolean> manualPullRequestsEnabled = new ApiCompositeValueDTO<>();
 
   public ApiCompositeValueDTO<Boolean> innerSourceAutomatedUpdatesEnabled = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<Boolean> closePrOnFailedChecksEnabled = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<Boolean> closePrAfterDaysOpenEnabled = new ApiCompositeValueDTO<>();
+
+  public ApiCompositeValueDTO<Integer> closePrAfterDays = new ApiCompositeValueDTO<>();
 }

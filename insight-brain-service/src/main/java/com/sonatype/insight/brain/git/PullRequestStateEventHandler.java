@@ -6,6 +6,9 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
@@ -14,21 +17,31 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.BatchPullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
 import com.sonatype.nexus.scm.api.NoSuchPullRequestException;
 import com.sonatype.nexus.scm.api.PullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.model.PullRequestLifecycleInfo;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CheckSuiteNode;
+import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.CommitNode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.AUTO_CLOSED;
+import static com.sonatype.insight.brain.model.sourcecontrol.PullRequestState.MISSING;
 
 /**
  * Processor class to handle SourceControlEvents which signal that the status or one or several PRs should
@@ -45,21 +58,29 @@ public class PullRequestStateEventHandler
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final SourceControlDAO sourceControlDAO;
+
   private final SourceControlEventDAO sourceControlEventDAO;
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
+
+  private final PullRequestPollingService pullRequestPollingService;
 
   @Inject
   public PullRequestStateEventHandler(
       final GitClientFactory gitClientFactory,
       final SourceControlUtils sourceControlUtils,
+      final SourceControlDAO sourceControlDAO,
       final SourceControlEventDAO sourceControlEventDAO,
-      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO,
+      final PullRequestPollingService pullRequestPollingService)
   {
     this.gitClientFactory = gitClientFactory;
     this.sourceControlUtils = sourceControlUtils;
+    this.sourceControlDAO = sourceControlDAO;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+    this.pullRequestPollingService = pullRequestPollingService;
   }
 
   public void handle(final SourceControlEvent event) {
@@ -180,25 +201,32 @@ public class PullRequestStateEventHandler
       log.warn("Pull request {} not found in database, cannot update state", prNumber);
     }
     else {
-      updateSourceControlPullRequest(pullRequest, prLifecycleInfo);
+      boolean autoCloseTriggered = closeAutoPullRequestIfEnabled(applicationId, pullRequest, prLifecycleInfo);
+      updateSourceControlPullRequest(pullRequest, prLifecycleInfo, autoCloseTriggered);
     }
   }
 
-  private void updateSourceControlPullRequest(
+  // Visible for testing
+  void updateSourceControlPullRequest(
       final SourceControlPullRequest pullRequest,
-      final PullRequestLifecycleInfo prLifecycleInfo)
+      final PullRequestLifecycleInfo prLifecycleInfo,
+      final boolean autoCloseTriggered)
   {
     pullRequest.setLastCheckTime(new Date());
 
     if (prLifecycleInfo == null) {
-      pullRequest.setState(PullRequestState.MISSING);
+      pullRequest.setState(MISSING);
       pullRequest.setLastDetectedUpdateTime(new Date());
     }
     else {
       PullRequestState newState = PullRequestState.fromSCMState(prLifecycleInfo.getState());
       boolean hasChanges = false;
 
-      if (pullRequest.getState() != newState) {
+      if (autoCloseTriggered) {
+        pullRequest.setState(AUTO_CLOSED);
+        hasChanges = true;
+      }
+      else if (pullRequest.getState() != newState) {
         pullRequest.setState(newState);
         hasChanges = true;
       }
@@ -231,5 +259,71 @@ public class PullRequestStateEventHandler
     }
 
     sourceControlPullRequestDAO.update(pullRequest);
+  }
+
+  // Visible for testing
+  boolean closeAutoPullRequestIfEnabled(
+      final String applicationId,
+      final SourceControlPullRequest pullRequest,
+      final PullRequestLifecycleInfo prLifecycleInfo)
+  {
+    boolean autoCloseTriggered = false;
+    SourceControl sourceControl = sourceControlDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
+
+    if (sourceControl == null || sourceControl.getProvider() != SourceControlProvider.GITHUB
+        || !isAutomaticPullRequest(pullRequest)) {
+      return false;
+    }
+    String closeReason = null;
+
+    if (sourceControl.getClosePrOnFailedChecksEnabled() != null && sourceControl.getClosePrOnFailedChecksEnabled()) {
+      if (hasPrFailedChecks(prLifecycleInfo)) {
+        closeReason = "Automatically closing pull request due to failed status checks";
+      }
+    }
+    if (sourceControl.getClosePrAfterDaysOpenEnabled() != null && sourceControl.getClosePrAfterDaysOpenEnabled()) {
+      if (isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays())) {
+        closeReason = "Automatically closing pull request due to being open for more than "
+            + sourceControl.getClosePrAfterDays() + " days";
+      }
+    }
+    if (closeReason != null) {
+      pullRequestPollingService.createAndSendPullRequestClosingEvent(applicationId,
+          pullRequest, closeReason);
+      autoCloseTriggered = true;
+    }
+    return autoCloseTriggered;
+  }
+
+  private boolean isAutomaticPullRequest(SourceControlPullRequest pullRequest) {
+    return pullRequest.getSource() == PullRequestSource.AUTOMATIC ||
+        pullRequest.getSource() == PullRequestSource.AUTOMATIC_INNER_SOURCE;
+  }
+
+  private boolean hasPrFailedChecks(
+      final PullRequestLifecycleInfo prLifecycleInfo)
+  {
+    if (prLifecycleInfo.getCommits() == null || prLifecycleInfo.getCommits().nodes.length == 0) {
+      return false;
+    }
+    CommitNode node = prLifecycleInfo.getCommits().nodes[0];
+    if (node.commit == null || node.commit.checkSuites == null || node.commit.checkSuites.nodes == null) {
+      return false;
+    }
+    CheckSuiteNode[] checkSuiteNodes = node.commit.checkSuites.nodes;
+    if (checkSuiteNodes.length == 0) {
+      return false;
+    }
+    return Arrays.stream(checkSuiteNodes)
+        .flatMap(checkSuiteNode -> Arrays.stream(checkSuiteNode.checkRuns.nodes))
+        .anyMatch(checkRun -> checkRun.isRequired);
+  }
+
+  private boolean isPrOlderThanDays(
+        final SourceControlPullRequest pullRequest,
+        final int openLimitDays)
+  {
+    long daysOpen = ChronoUnit.DAYS.between(pullRequest.getCreateTime().toInstant(), Instant.now());
+    return daysOpen > openLimitDays;
   }
 }

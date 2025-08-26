@@ -277,6 +277,46 @@ public class PullRequestRemediationServiceTest
     verify(mockSourceControlEventDAO, times(0)).update(event);
   }
 
+  @Test
+  public void testOnRemediatePullRequestClosing_branchExists_closesPullRequestSuccessfully() throws Exception {
+    final String branchName = "existing/branch";
+    final String appId = "app-123-abc";
+    final int prNumber = 42;
+    final String pullRequestContents = "Closing pull request due to PR being older than 20 days.";
+
+    SourceControlEvent event = new SourceControlEvent()
+        .setBranchName(branchName)
+        .setApplicationId(appId)
+        .setPullRequestNumber(prNumber)
+        .setPullRequestContents(pullRequestContents);
+
+    setupBranchExistence(branchName, true);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockGitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockGitApiClient);
+
+    pullRequestRemediationService.onRemediatePullRequestClosing(event);
+
+    verify(mockGitApiClient).createPullRequestComment(prNumber, pullRequestContents);
+    verify(mockGitApiClient).closePullRequest(prNumber);
+  }
+
+  @Test
+  public void testOnRemediatePullRequestClosing_branchDoesNotExist() throws Exception {
+    final String branchName = "nonexistent/branch";
+    SourceControlEvent event = new SourceControlEvent().setBranchName(branchName);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(event.getApplicationId());
+
+    assertThatThrownBy(() -> pullRequestRemediationService.onRemediatePullRequestClosing(event))
+        .isInstanceOf(SourceControlException.class)
+        .hasMessage("Branch does not exist on remote server for remediation closing: nonexistent/branch");
+
+    assertThatLogMessagesEqual(
+        info("Branch nonexistent/branch does not exist on remote server for remediation closing.")
+    );
+  }
+
   private void setupBranchExistence(String branchName, boolean exists) throws IOException {
     when(mockGitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isBranchOnServer(branchName)).thenReturn(exists);

@@ -305,6 +305,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: true,
           innerSourceAutomatedUpdatesEnabled: true,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         renderComponent();
@@ -334,6 +337,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingRootOrgConfigResponse);
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
@@ -396,6 +402,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingRootOrgConfigResponse);
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
@@ -739,6 +748,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           manualPullRequestsEnabled: null,
           innerSourceAutomatedUpdatesEnabled: null,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedOrgConfigResponse);
@@ -768,6 +780,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingOrgConfigResponse);
@@ -825,6 +840,9 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingOrgConfigResponse);
@@ -1209,6 +1227,9 @@ describe('sourceControlConfiguration', () => {
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: null,
           innerSourceAutomatedUpdatesEnabled: null,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPost(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, inheritedAppConfigResponse);
@@ -1249,6 +1270,9 @@ describe('sourceControlConfiguration', () => {
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(200);
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingAppConfigResponse);
@@ -1321,6 +1345,9 @@ describe('sourceControlConfiguration', () => {
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
+          closePrOnFailedChecksEnabled: false,
+          closePrAfterDaysOpenEnabled: false,
+          closePrAfterDays: null,
         };
         axiosMock.onPut(getSourceControlUrl(ownerType, ownerId), submitData).reply(500, 'Saving Error');
         axiosMock.onGet(getCompositeSourceControlUrl(ownerType, ownerId)).reply(200, existingAppConfigResponse);

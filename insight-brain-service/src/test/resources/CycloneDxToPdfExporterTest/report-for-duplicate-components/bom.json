@@ -1,0 +1,62 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "packageUrl" : "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "filenames" : [ "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0" ],
+    "pathnames" : [ "dependency:/SBOM-bom.json/pkg:nuget\\Microsoft.Extensions.ApiDescription.Server@3.0.0" ],
+    "aggregateFiles" : [ ],
+    "matchState" : "exact",
+    "scanError" : false,
+    "proprietary" : false,
+    "hash" : "85e25187b46727232561",
+    "relativePopularity" : null,
+    "createTime" : 1569248281655,
+    "lastModifiedTime" : null,
+    "lastModifiedEntryTime" : null,
+    "website" : null,
+    "identificationSource" : "Sonatype",
+    "componentCategories" : [ {
+      "componentCategoryId" : 113,
+      "path" : "Other"
+    } ],
+    "hygieneRating" : null,
+    "analyzerFeatures" : {
+      "analysisSource" : "SDS",
+      "analysisType" : "COORDINATE",
+      "scanClient" : "sbomApi",
+      "hasLicense" : true,
+      "hasIdentity" : true,
+      "hasSecurity" : true,
+      "manifestContentType" : "SBOM"
+    },
+    "integrityRating" : {
+      "id" : 3,
+      "label" : "Not Applicable"
+    },
+    "componentRef" : "dbd7142d170edd7036079e5852c7002c61014a46",
+    "endOfLife" : "END_OF_LIFE_FALSE",
+    "componentRefs" : [ "dbd7142d170edd7036079e5852c7002c61014a46" ],
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.ApiDescription.Server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.ApiDescription.Server"
+    }
+  } ],
+  "dependencyDataIncluded" : false
+}

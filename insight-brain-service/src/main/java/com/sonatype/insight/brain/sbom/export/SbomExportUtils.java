@@ -16,10 +16,10 @@ import java.util.stream.Collectors;
 
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.SbomTaxonomy;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateLicense;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchange;
-import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.util.SbomUtils;
@@ -57,6 +57,12 @@ public class SbomExportUtils
     vulnerability.setBomRef(String.format("%s-%s", sonatypeVulnerability.getRefId(), uuid()));
     vulnerability.setId(sonatypeVulnerability.getRefId());
     vulnerability.setDescription(sonatypeVulnerability.getDescription());
+    Affect newAffect = newAffectLinkingComponent(bomComponent);
+    vulnerability.setAffects(newArrayList(newAffect));
+    return updateCycloneDxVulnerabilityFromDbData(vulnerability, sonatypeVulnerability, sonatypeVexInformation);
+  }
+
+  public static Affect newAffectLinkingComponent(final Component bomComponent) {
     Affect newAffect = new Affect();
     String bomRef = bomComponent.getBomRef();
     if (StringUtils.isNotBlank(bomRef)) {
@@ -67,8 +73,7 @@ public class SbomExportUtils
       bomComponent.setBomRef(bomRef);
       newAffect.setRef(bomRef);
     }
-    vulnerability.setAffects(newArrayList(newAffect));
-    return updateCycloneDxVulnerabilityFromDbData(vulnerability, sonatypeVulnerability, sonatypeVexInformation);
+    return newAffect;
   }
 
   public static Vulnerability updateCycloneDxVulnerabilityFromDbData(

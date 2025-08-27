@@ -37,6 +37,7 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentInformation;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -232,7 +233,9 @@ public class PdfGenerator
   }
 
   private void generate() throws IOException {
-    try (PDDocument pdDocument = new PDDocument()) {
+    long freeMemory = Runtime.getRuntime().freeMemory();
+    long maxUseMemory = (freeMemory * 50) / 100; // use up to 50% of available memory
+    try (PDDocument pdDocument = new PDDocument(MemoryUsageSetting.setupMixed(maxUseMemory))) {
       doGenerate(pdDocument);
     }
   }

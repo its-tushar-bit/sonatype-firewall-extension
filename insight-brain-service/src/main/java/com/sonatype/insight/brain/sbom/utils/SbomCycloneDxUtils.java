@@ -395,9 +395,9 @@ public class SbomCycloneDxUtils
   }
 
   /*
-  * Currently used for backward compatibility SBOMs with a null componentRef 
-  * @deprecated search for a component by component-ref instead.
-  * */
+   * Currently used for backward compatibility SBOMs with a null componentRef
+   * @deprecated search for a component by component-ref instead.
+   * */
   @Deprecated
   public static Optional<Component> findComponentByPackageUrl(String packageUrl, Bom bom) {
     if (packageUrl == null) {
@@ -452,5 +452,14 @@ public class SbomCycloneDxUtils
     property.setName(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     property.setValue(StringUtils.truncate(sha1, 0, HashHelper.MAX_LENGTH));
     component.addProperty(property);
+  }
+
+  public static String getSonatypeTruncatedSha1(Component component) {
+    if (component != null && CollectionUtils.isNotEmpty(component.getProperties())) {
+      return component.getProperties().stream()
+          .filter(p -> SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME.equals(p.getName()))
+          .findFirst().map(Property::getValue).orElse(null);
+    }
+    return null;
   }
 }

@@ -1,0 +1,134 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "85e25187b46727232561",
+    "url" : "https://www.cve.org/CVERecord?id=CVE-2024-21907",
+    "reference" : "CVE-2024-21907",
+    "source" : "cve",
+    "score" : 7.5,
+    "cwe" : "755",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "cve_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "CVE-2024-21907" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "SECONDARY",
+    "kevData" : {
+      "isKev" : false
+    },
+    "epssData" : {
+      "currentScore" : 0.01942
+    },
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.ApiDescription.Server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.ApiDescription.Server"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "85e25187b46727232561",
+    "url" : null,
+    "reference" : "sonatype-2021-0713",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "400",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2021-0713" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "SECONDARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "epssData" : null,
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.ApiDescription.Server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.ApiDescription.Server"
+    }
+  }, {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "85e25187b46727232561",
+    "url" : null,
+    "reference" : "sonatype-2022-5998",
+    "source" : "sonatype",
+    "score" : 7.5,
+    "cwe" : "755",
+    "cvssVectorString" : "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+    "cvssVectorSource" : "sonatype_cvss_3",
+    "matchState" : "exact",
+    "proprietary" : false,
+    "vulnerabilityCategories" : [ "data", "functional" ],
+    "aliases" : [ ],
+    "vulnIds" : [ "sonatype-2022-5998" ],
+    "researchType" : "DEEP_DIVE",
+    "detectionType" : "SECONDARY",
+    "kevData" : {
+      "isKev" : null
+    },
+    "epssData" : null,
+    "identificationSource" : "Sonatype",
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.ApiDescription.Server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.ApiDescription.Server"
+    }
+  } ]
+}

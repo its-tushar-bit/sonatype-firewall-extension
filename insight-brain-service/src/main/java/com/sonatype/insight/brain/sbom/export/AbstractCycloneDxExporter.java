@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.sbom.export;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -39,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyScanDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -50,7 +52,6 @@ import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentLi
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentPolicyViolation;
 import com.sonatype.insight.brain.report.pdf.PdfData.PdfComponent.PdfComponentSecurityIssue;
 import com.sonatype.insight.brain.sbom.components.BomPageMetadataDTO;
-import com.sonatype.insight.brain.model.thirdpartyscans.ResolvedLicenseDTO;
 import com.sonatype.insight.brain.sbom.license.ThirdPartyComponentLicenseResolutionService;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.BaseUrl;
@@ -317,8 +318,7 @@ public abstract class AbstractCycloneDxExporter
       for (Vulnerability vulnerability : newBomVulnerabilities.get(sonatypeVulnerability.getRefId())) {
         if (vulnerability.getAnalysis() == null) {
           //if there's no vex in either (bom, db) we can combine this
-          Affect affect = new Affect();
-          affect.setRef(bomComponent.getBomRef());
+          Affect affect = SbomExportUtils.newAffectLinkingComponent(bomComponent);
           vulnerability.getAffects().add(affect);
           return;
         }
@@ -489,19 +489,38 @@ public abstract class AbstractCycloneDxExporter
     Map<String, List<ApiLicenseThreatDTOV2>> effectiveLicenseThreatsByPurl = mapEffectiveLicenseThreatsByPurl();
 
     pdfData.components = new ArrayList<>();
+    MultiValuedMap<String, Vulnerability> vulnerabilitiesByBomRefs = getVulnerabilitiesMappedPerAffect(bom);
+
     if (bom.getComponents() != null) {
       for (Component component : bom.getComponents()) {
-        PdfData.PdfComponent pdfComponent = new PdfData.PdfComponent();
-        pdfComponent.displayName = getComponentDisplayName(component);
-        pdfComponent.matchState = getComponentMatchState(component);
-        pdfComponent.policyViolations = getPdfComponentPolicyViolations(component, policyViolationsByPurlAndHash);
-        pdfComponent.securityIssues = getSecurityIssuesData(bom, component);
-        pdfComponent.effectiveLicenses = getLicensesData(component);
-        pdfComponent.effectiveLicenseThreats = getEffectiveLicenseThreats(component, effectiveLicenseThreatsByPurl);
-        pdfData.components.add(pdfComponent);
+        // Although unlikely, it is possible to have duplicate components in an original SBOM with no bom-refs.
+        // (see SBOM-1553)
+        // In such cases SBOM Manager only keeps track of only 1 component for a given unique identity (purl/hash/etc)
+        // and we should make sure only to use that component for PDF export. (the one with the sonatype truncated sha1)
+        if (StringUtils.isNotBlank(SbomCycloneDxUtils.getSonatypeTruncatedSha1(component))) {
+          PdfData.PdfComponent pdfComponent = new PdfData.PdfComponent();
+          pdfComponent.displayName = getComponentDisplayName(component);
+          pdfComponent.matchState = getComponentMatchState(component);
+          pdfComponent.policyViolations = getPdfComponentPolicyViolations(component, policyViolationsByPurlAndHash);
+          pdfComponent.securityIssues = getSecurityIssuesData(component, vulnerabilitiesByBomRefs);
+          pdfComponent.effectiveLicenses = getLicensesData(component);
+          pdfComponent.effectiveLicenseThreats = getEffectiveLicenseThreats(component, effectiveLicenseThreatsByPurl);
+          pdfData.components.add(pdfComponent);
+        }
       }
     }
     return pdfData;
+  }
+
+  private static MultiValuedMap<String, Vulnerability> getVulnerabilitiesMappedPerAffect(final Bom bom) {
+    MultiValuedMap<String, Vulnerability> vulnerabilitiesPerAffect = new ArrayListValuedHashMap<>();
+    List<Vulnerability> vulnerabilities = Optional.ofNullable(bom.getVulnerabilities()).orElse(Collections.emptyList());
+    for (Vulnerability vulnerability : vulnerabilities) {
+      for (Affect affect : vulnerability.getAffects()) {
+        vulnerabilitiesPerAffect.put(affect.getRef(), vulnerability);
+      }
+    }
+    return vulnerabilitiesPerAffect;
   }
 
   private Map<String, List<ApiLicenseThreatDTOV2>> mapEffectiveLicenseThreatsByPurl() {
@@ -632,26 +651,31 @@ public abstract class AbstractCycloneDxExporter
     }
   }
 
-  private List<PdfComponentSecurityIssue> getSecurityIssuesData(final Bom bom, final Component component) {
-    List<PdfComponentSecurityIssue> pdfVulns = new ArrayList<>();
-    List<Vulnerability> vulnerabilities = Optional.ofNullable(bom.getVulnerabilities()).orElse(Collections.emptyList());
+  private List<PdfComponentSecurityIssue> getSecurityIssuesData(
+      final Component component,
+      final MultiValuedMap<String, Vulnerability> vulnerabilitiesByBomRefs)
+  {
+    if (StringUtils.isEmpty(component.getBomRef())) {
+      return Collections.emptyList();
+    }
 
-    for (Vulnerability vulnerability : vulnerabilities) {
-      List<Affect> affects = Optional.ofNullable(vulnerability.getAffects()).orElse(Collections.emptyList());
-      for (Affect affect : affects) {
-        if (StringUtils.equals(affect.getRef(), component.getBomRef())) {
-          Optional.ofNullable(vulnerability.getRatings()).orElse(Collections.emptyList()).stream()
-              .filter(rating -> rating.getScore() != null)
-              .findFirst()
-              .ifPresent(rating -> {
-                PdfComponentSecurityIssue issue = new PdfComponentSecurityIssue();
-                issue.reference = vulnerability.getId();
-                issue.severity = rating.getScore().floatValue();
-                issue.analysisState = getAnalysisState(vulnerability);
-                pdfVulns.add(issue);
-              });
-        }
-      }
+    Collection<Vulnerability> vulns = vulnerabilitiesByBomRefs.get(component.getBomRef());
+    if (CollectionUtils.isEmpty(vulns)) {
+      return Collections.emptyList();
+    }
+
+    List<PdfComponentSecurityIssue> pdfVulns = new ArrayList<>();
+    for (Vulnerability vulnerability : vulns) {
+      Optional.ofNullable(vulnerability.getRatings()).orElse(Collections.emptyList()).stream()
+          .filter(rating -> rating.getScore() != null)
+          .findFirst()
+          .ifPresent(rating -> {
+            PdfComponentSecurityIssue issue = new PdfComponentSecurityIssue();
+            issue.reference = vulnerability.getId();
+            issue.severity = rating.getScore().floatValue();
+            issue.analysisState = getAnalysisState(vulnerability);
+            pdfVulns.add(issue);
+          });
     }
     return pdfVulns;
   }

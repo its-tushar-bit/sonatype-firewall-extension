@@ -1,0 +1,42 @@
+{
+  "aaData" : [ {
+    "componentIdentifier" : {
+      "format" : "nuget",
+      "coordinates" : {
+        "packageId" : "Microsoft.Extensions.ApiDescription.Server",
+        "version" : "3.0.0"
+      }
+    },
+    "groupId" : null,
+    "artifactId" : null,
+    "version" : null,
+    "hash" : "85e25187b46727232561",
+    "declaredLicenses" : [ "Apache-2.0" ],
+    "observedLicenses" : [ "Not Supported" ],
+    "effectiveLicenses" : [ "Apache-2.0" ],
+    "securityCounters" : {
+      "Critical" : 3,
+      "Severe" : 0,
+      "Moderate" : 0
+    },
+    "effectiveLicenseThreat" : 0,
+    "matchState" : "exact",
+    "proprietary" : false,
+    "matchedByCoordinates" : true,
+    "securityThreatLevel" : 7.5,
+    "catalogDate" : 1569248281655,
+    "displayName" : {
+      "parts" : [ {
+        "field" : "ID",
+        "value" : "Microsoft.Extensions.ApiDescription.Server"
+      }, {
+        "value" : " "
+      }, {
+        "field" : "Version",
+        "value" : "3.0.0"
+      } ],
+      "name" : "Microsoft.Extensions.ApiDescription.Server"
+    },
+    "hiddenObservedLicenses" : false
+  } ]
+}

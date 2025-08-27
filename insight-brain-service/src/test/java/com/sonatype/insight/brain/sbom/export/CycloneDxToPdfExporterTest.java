@@ -26,6 +26,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.CYCLONEDX_15;
+import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.CYCLONEDX_16;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class CycloneDxToPdfExporterTest
@@ -61,7 +62,7 @@ public class CycloneDxToPdfExporterTest
     //Given
     File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.COMPLIANCE.getId(), SCAN_ID, new Date());
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ReportHelper.saveMockReport(
@@ -88,11 +89,70 @@ public class CycloneDxToPdfExporterTest
   }
 
   @Test
+  public void testExportPdf_withDuplicateComponentsInOriginalSbom() throws Exception {
+    //Given
+    File testBomFile = mockOriginalSbomFile("duplicate-components-bom.json");
+    ThirdPartySbomMetadata sbomMetadata =
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_16, SbomFormat.JSON);
+    tempEntity.newPolicyEvaluation(app.getId(), StageTypes.COMPLIANCE.getId(), SCAN_ID, new Date());
+    tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
+    ReportHelper.saveMockReport(
+        insightWork,
+        tempDir,
+        "/CycloneDxToPdfExporterTest/report-for-duplicate-components",
+        app.getId(),
+        SCAN_ID
+    );
+    setupTestComponentsForDuplicateComponentsTest();
+
+    ApiReportRawDataDTOV2 rawData = new ApiReportRawDataDTOV2();
+    rawData.components = new ArrayList<>();
+    rawData.components.add(setupReportRawDataLTG("pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0", 5));
+    rawData.components.add(
+        setupReportRawDataLTG("pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0", 10));
+
+    //When
+    SbomExportParams exportParams = withExportParams(sbomMetadata, CYCLONEDX_16, SbomFormat.JSON);
+    exportParams.withReportRawData(rawData);
+    exporter.setExportParams(exportParams);
+    PdfData pdfData = exporter.exportPdf();
+
+    assertThat(pdfData.title).isEqualTo(app.getName() + REPORT_NAME);
+    assertThat(pdfData.createdDate).isNotNull();
+    assertThat(pdfData.analyzedDate).isNotNull();
+    assertThat(pdfData.productVersion).isNotNull();
+    assertThat(pdfData.components).hasSize(1);
+    assertThat(pdfData.sbomMetadata.author).hasSize(1).contains("John Doe");
+    assertThat(pdfData.sbomMetadata.specification).isEqualTo(CYCLONEDX_16.getSpecification().name());
+    assertThat(pdfData.sbomMetadata.specVersion).isEqualTo(CYCLONEDX_16.getVersion());
+    assertThat(pdfData.sbomMetadata.fileFormat).isEqualTo("json");
+    assertThat(pdfData.sbomMetadata.createdAt).isNotNull();
+    assertThat(pdfData.sbomMetadata.scanId).isEqualTo("sid1");
+
+    PdfComponent c1 = pdfData.components.stream()
+        .filter(c -> c.displayName.contains("Microsoft.Extensions.ApiDescription.Server 3.0.0")).findFirst().get();
+    assertThat(c1.displayName).isEqualTo("Microsoft.Extensions.ApiDescription.Server 3.0.0");
+    assertThat(c1.matchState).isEqualTo("exact");
+    assertThat(c1.policyViolations).hasSize(4);
+    assertThat(c1.policyViolations).filteredOn(v -> v.policyName.equals("Security-High")).hasSize(3);
+    assertThat(c1.policyViolations).filteredOn(v -> v.policyName.equals("Architecture-Quality")).hasSize(1);
+    assertThat(c1.effectiveLicenses).hasSize(2);
+    assertThat(c1.effectiveLicenses.stream().map(c -> c.name)).containsExactlyInAnyOrder("MIT License", "Apache-2.0");
+    assertThat(c1.securityIssues).hasSize(3);
+    assertThat(c1.securityIssues.stream().map(s -> s.reference)).containsExactlyInAnyOrder("sonatype-2021-0713",
+        "sonatype-2022-5998", "CVE-2024-21907");
+
+    //LTGs
+    assertThat(c1.effectiveLicenseThreats).hasSize(1);
+    assertThat(c1.effectiveLicenseThreats.get(0).licenseThreatGroupLevel).isEqualTo(10);
+  }
+
+  @Test
   public void testExportPdf_withMissingReportData() throws Exception {
     //Given
     File testBomFile = mockOriginalSbomFile("test-1-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
@@ -165,7 +225,7 @@ public class CycloneDxToPdfExporterTest
     String purl1 = "pkg:maven/log4j/log4j@1.2.8?type=jar";
     String purl2 = "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar";
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
@@ -204,7 +264,7 @@ public class CycloneDxToPdfExporterTest
     //Given
     File testBomFile = mockOriginalSbomFile("test-empty-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, CYCLONEDX_15, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, CYCLONEDX_15, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     setupTestComponents();

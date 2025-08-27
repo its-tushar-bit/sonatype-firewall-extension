@@ -68,7 +68,7 @@ public class SpdxToPdfExporterTest
   private void assertPdfExportData(String fileName, ExportSpecification spec) throws Exception {
     File testBomFile = mockOriginalSbomFile(fileName);
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, spec);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, spec, SbomFormat.XML);
     tempEntity.newPolicyEvaluation(app.getId(), StageTypes.COMPLIANCE.getId(), SCAN_ID, new Date());
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ReportHelper.saveMockReport(insightWork, tempDir, "/SpdxToPdfExporterTest/report-for-test", app.getId(), SCAN_ID);
@@ -85,7 +85,7 @@ public class SpdxToPdfExporterTest
     exportParams.withReportRawData(rawData);
     exporter.setExportParams(exportParams);
     PdfData pdfData = exporter.exportPdf();
-    assertPdfData(pdfData, spec, 3);
+    assertPdfData(pdfData, spec, 2);
   }
 
   @Test
@@ -93,7 +93,7 @@ public class SpdxToPdfExporterTest
     //Given
     File testBomFile = mockOriginalSbomFile("spdx2.3-bom.xml");
     ThirdPartySbomMetadata sbomMetadata =
-        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23);
+        createMetadataEntity(testBomFile.getName(), app.getId(), SBOM_VERSION, SPDX_23, SbomFormat.XML);
     exporter.setExportParams(withExportParams(sbomMetadata, SPDX_23, SbomFormat.JSON));
     tempEntity.newThirdPartyScan("srid1", SCAN_ID, thirdPartyFile);
     ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("log4j", "1.2.8", "3640dd71069d7986c9a1",
@@ -114,7 +114,7 @@ public class SpdxToPdfExporterTest
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
     assertThat(pdfData.productVersion).isNotNull();
-    assertThat(pdfData.components).hasSize(3);
+    assertThat(pdfData.components).hasSize(2);
     assertThat(pdfData.sbomMetadata.author).hasSize(1).contains("John Doe");
     assertThat(pdfData.sbomMetadata.specification).isEqualTo("SPDX");
     assertThat(pdfData.sbomMetadata.specVersion).isEqualTo("2.3");
@@ -165,7 +165,7 @@ public class SpdxToPdfExporterTest
     assertThat(pdfData.createdDate).isNotNull();
     assertThat(pdfData.analyzedDate).isNotNull();
     assertThat(pdfData.productVersion).isNotNull();
-    assertThat(pdfData.components).hasSize(3);
+    assertThat(pdfData.components).hasSize(2);
     assertThat(pdfData.sbomMetadata.author).hasSize(1).contains("John Doe");
     assertThat(pdfData.sbomMetadata.specification).isEqualTo("SPDX");
     assertThat(pdfData.sbomMetadata.specVersion).isEqualTo("2.3");

@@ -152,6 +152,20 @@ abstract class AbstractPdfExporterTest
     tempEntity.newThirdPartyCoordinateLicense(fc2, "Apache-2.0", null, null, "Sonatype");
   }
 
+  protected void setupTestComponentsForDuplicateComponentsTest() {
+    ThirdPartyFileCoordinate fc1 = setupFileCoordinateEntity("Microsoft.Extensions.ApiDescription.Server", "3.0.0",
+        "85e25187b46727232561", "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0",
+        "pkg:nuget/Microsoft.Extensions.ApiDescription.Server@3.0.0"
+    );
+    setupCoordinateSecurityEntity(fc1, "sonatype-2021-0713", "link=sonatype-2021-0713", "HIGH", "400", "OTHER",
+        "SONATYPE", 7.5d, null);
+    setupCoordinateSecurityEntity(fc1, "sonatype-2022-5998", null, "HIGH", "755", "OTHER", "SONATYPE",
+        7.5d, null);
+    setupCoordinateSecurityEntity(fc1, "CVE-2024-21907", "link=CVE-2024-21907", "CRITICAL", "755", "CVSSV3",
+        "NVD", 7.5d, null);
+    tempEntity.newThirdPartyCoordinateLicense(fc1, "Apache-2.0", "Apache-2.0", null, "Sonatype");
+  }
+
   protected void setupCoordinateSecurityEntity(
       ThirdPartyFileCoordinate fc1, String refId, String link,
       String severityDesc, String cwes,
@@ -178,13 +192,14 @@ abstract class AbstractPdfExporterTest
       String filename,
       String applicationId,
       String version,
-      SbomExportParams.ExportSpecification spec)
+      SbomExportParams.ExportSpecification spec,
+      SbomFormat sbomFormat)
   {
     ThirdPartySbomMetadata entity = tempEntity.createSbomMetadata(applicationId, version,
         thirdPartyFile, ACTIVE);
     entity.setFilename(filename);
     entity.setSpec(spec.getSpecification().name());
-    entity.setSpecFormat(SbomFormat.XML.toString());
+    entity.setSpecFormat(sbomFormat.toString());
     entity.setSpecVersion(spec.getVersion());
     entity.setScanType("SBOM");
     entity.setMetadataJson("{\"type\":\"application\",\"created\":\"2024-02-29T23:41:22Z\",\"creators\":[{\"type\":" +

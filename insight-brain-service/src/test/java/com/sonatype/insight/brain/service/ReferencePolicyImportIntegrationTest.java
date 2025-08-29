@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupLicenseDA
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.PolicyTagDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
+import com.sonatype.insight.brain.hds.DefaultLicenseDataUpdater;
 import com.sonatype.insight.brain.hds.ReferencePolicyFetcher;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.Policy;
@@ -26,7 +27,6 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -38,7 +38,6 @@ import static org.assertj.core.api.Assertions.assertThat;
  * hard-coded assumptions about the policy file contents.  Mainly, that the number of entities in the JSON matches the
  * number of entities in the database tables after the import.
  */
-@Category(ReferencePolicyImportIntegrationTest.class)
 public class ReferencePolicyImportIntegrationTest
     extends AbstractBrainServiceIntegrationTest
 {
@@ -70,16 +69,6 @@ public class ReferencePolicyImportIntegrationTest
     // noop - do not set up test LTGs for this test
   }
 
-  /*
-   * Every now and then, when hds version is bumped, this test will fail. An example for what must be done can be found
-   * in: https://github.com/sonatype/insight-brain/pull/8781
-   * To automate this we added ReferenceLicenseUpdater. Run the main method within that class and it will refresh the
-   * required sql files. Run the test again with the refreshed files and the test should be passing. Do not forget to
-   * commit and push the new sql files generated.
-   *
-   * This is currently configured to only run on main with the @Category annotation. There is an option in parameter
-   * to the Jenkins builds that will allow this test to run for PRs that have changed the test
-   */
   @Test
   @ManualIqServerInit
   public void testImportCurrentReferencePolicies() throws Exception {
@@ -92,12 +81,17 @@ public class ReferencePolicyImportIntegrationTest
     assertThat(policyTagDAO.getByOrganizationId(Organization.ROOT_ORGANIZATION_ID)).isEmpty();
 
     try (CloseableHttpClient httpClient = HttpClientBuilder.create().build()) {
-      HttpGet request = new HttpGet("https://clm-staging.sonatype.com/"
+      HttpGet policyRequest = new HttpGet("https://clm-staging.sonatype.com/"
           + ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
-      String responseBody = EntityUtils.toString(httpClient.execute(request).getEntity());
-      PolicyExportResult policyExportResult = JsonUtils.parse(responseBody, PolicyExportResult.class);
-
+      String policyResponse = EntityUtils.toString(httpClient.execute(policyRequest).getEntity());
+      PolicyExportResult policyExportResult = JsonUtils.parse(policyResponse, PolicyExportResult.class);
       hdsRespondWith(policyExportResult).atUri(ReferencePolicyFetcher.REFERENCE_POLICY_PATH);
+
+      HttpGet licenseRequest = new HttpGet("https://clm-staging.sonatype.com/" +
+          DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
+      String licenseResponse = EntityUtils.toString(httpClient.execute(licenseRequest).getEntity());
+      hdsRespondWith(licenseResponse).atUri(DefaultLicenseDataUpdater.HDS_LICENSE_PATH);
+
       startIqTestServer();
 
       int policyCount = policyExportResult.policies.size();

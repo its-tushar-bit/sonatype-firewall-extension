@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -41,17 +42,30 @@ import com.sonatype.insight.brain.policy.PolicyResource.ApplicablePolicies;
 import com.sonatype.insight.brain.policy.PolicyResource.PoliciesByOwner;
 import com.sonatype.insight.brain.policy.PolicyResource.ProprietaryNameConflictAndSecurityVulnerabilityCategoryMaliciousCodePolicies;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.google.inject.Binder;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static com.sonatype.insight.brain.policy.PolicyResource.NOTIFICATIONS_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PolicyResourceTest
     extends AbstractResourceTest
@@ -60,10 +74,29 @@ public class PolicyResourceTest
 
   private OrganizationDAO organizationDAO;
 
+  private TelemetrySender telemetrySender;
+
+  private TelemetryUtils telemetryUtils;
+
+  @Override
+  public void configure(Binder binder) {
+    telemetrySender = mock(TelemetrySender.class);
+    telemetryUtils = mock(TelemetryUtils.class);
+    binder.bind(TelemetrySender.class).toInstance(telemetrySender);
+    binder.bind(TelemetryUtils.class).toInstance(telemetryUtils);
+    super.configure(binder);
+  }
+
   @Before
   public void setUp() {
     policyDAO = lookup(PolicyDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
+    telemetrySender = lookup(TelemetrySender.class);
+    telemetryUtils = lookup(TelemetryUtils.class);
+    reset(telemetrySender, telemetryUtils);
+
+    when(telemetryUtils.obfuscate(anyString())).thenAnswer(invocation ->
+        "obfuscated-" + invocation.getArgument(0));
   }
 
   private HttpRequest restRequest(OwnerType ownerType, String ownerId) {
@@ -132,6 +165,9 @@ public class PolicyResourceTest
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -148,6 +184,9 @@ public class PolicyResourceTest
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + otherOrg.getId());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -162,6 +201,9 @@ public class PolicyResourceTest
     assertResponseStatus(404, response);
     assertThat(response.getBodyText())
         .isEqualTo("Cannot find a policy with id " + policy.getId() + " for owner id " + ownerOrg.getId());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -200,6 +242,10 @@ public class PolicyResourceTest
     assertThat(result.isPolicyActionsOverrideAllowed()).isEqualTo(policy.isPolicyActionsOverrideAllowed());
     assertThat(result.getPolicyNotificationsOverrides()).isEqualTo(policy.getPolicyNotificationsOverrides());
     assertThat(result.getNotifications()).isEqualTo(policy.getNotifications());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerOrg.getId(), result);
   }
 
   private void testCRUD(OwnerType ownerType, String ownerId) throws Exception {
@@ -245,11 +291,45 @@ public class PolicyResourceTest
     response = restRequest(ownerType, ownerId).path(policy.getId()).delete();
     assertResponseStatus(204, response);
 
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(3)).send(telemetryCaptor.capture());
+    List<TelemetryData> capturedTelemetry = telemetryCaptor.getAllValues();
+    assertTelemetry(capturedTelemetry.get(0), "CREATE", ownerId, policy1);
+    assertTelemetry(capturedTelemetry.get(1), "UPDATE", ownerId, policy2);
+    assertTelemetry(capturedTelemetry.get(2), "DELETE", ownerId, policy);
+
     // Get all policies
     response = restRequest(ownerType, ownerId).get();
     assertResponseStatus(200, response);
     policies = response.getBody(Policy[].class);
     assertThat(policies).isEmpty();
+  }
+
+  private void assertTelemetry(TelemetryData sentTelemetry, String action, String ownerId, Policy policy) {
+    assertThat(sentTelemetry.getPurpose()).isEqualTo(TelemetryPurpose.POLICY_MAINTENANCE);
+    Map<String, Object> attributes = sentTelemetry.getAttributes();
+    assertThat(attributes.get("owner_id")).isEqualTo("obfuscated-" + ownerId);
+    assertThat(attributes.get("event_action")).isEqualTo(action);
+    assertThat(attributes.get("policy_name")).isEqualTo(policy.getName());
+    assertThat(attributes.get("threat_level")).isEqualTo(policy.getThreatLevel());
+    assertThat(attributes.get("policy_constraints")).usingRecursiveComparison().isEqualTo(policy.getConstraints());
+    assertThat(attributes.get("policy_actions"))
+        .usingRecursiveComparison()
+        .isEqualTo(PolicyMaintenanceTelemetry.getActionsList(Collections.singletonList(policy.getActions())));
+    assertThat(attributes.get("policy_actions_overrides"))
+        .usingRecursiveComparison()
+        .isEqualTo(policy.getPolicyActionsOverrides() != null ?
+            PolicyMaintenanceTelemetry.getActionsList(policy.getPolicyActionsOverrides().values()) : List.of());
+    assertThat(attributes.get("policy_notifications"))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            PolicyMaintenanceTelemetry.getNotificationTypes(Collections.singletonList(policy.getNotifications())));
+    assertThat(attributes.get("policy_notifications_overrides"))
+        .usingRecursiveComparison()
+        .isEqualTo(
+            policy.getPolicyNotificationsOverrides() != null ?
+                PolicyMaintenanceTelemetry.getNotificationTypes(
+                    policy.getPolicyNotificationsOverrides().values()) : Set.of());
   }
 
   @Test
@@ -274,6 +354,8 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(ownerType, ownerId).body(policy).post();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("The policy name is required.");
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -338,6 +420,10 @@ public class PolicyResourceTest
     assertThat(savedActionsOverride.get("stage-release")).isEqualTo("fail");
     assertThat(savedActionsOverride.get("release")).isEqualTo("fail");
     assertThat(savedActionsOverride.get("build")).isEqualTo("warn");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   @Test
@@ -383,6 +469,10 @@ public class PolicyResourceTest
     Policy updatedPolicy = response.getBody(Policy.class);
     Notifications savedNotificationsOverride = updatedPolicy.getPolicyNotificationsOverrides().get(owner.getId());
     assertThat(notificationsOverride).usingRecursiveComparison().isEqualTo(savedNotificationsOverride);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   @Test
@@ -404,6 +494,9 @@ public class PolicyResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
         .isEqualTo("Actions override is not allowed for policy with id " + policy.getId());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -421,6 +514,9 @@ public class PolicyResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         "Notifications override is not allowed for policy with id " + policy.getId());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -434,6 +530,9 @@ public class PolicyResourceTest
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).isEqualTo("PolicyInternal with ID 123 does not exist.");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -448,6 +547,9 @@ public class PolicyResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("A policy overrides configuration must be specified.");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -462,6 +564,9 @@ public class PolicyResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("A policy overrides configuration must be specified.");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   @Test
@@ -479,6 +584,9 @@ public class PolicyResourceTest
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(
         "The given JSON cannot be deserialized into a policy overrides configuration.");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   private JsonNode createDeleteBody(boolean deleteActionsOverride, boolean deleteNotificationsOverride) {
@@ -551,6 +659,10 @@ public class PolicyResourceTest
     assertThat(policyOnDB.getPolicyActionsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   @Test
@@ -609,6 +721,10 @@ public class PolicyResourceTest
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   @Test
@@ -664,6 +780,10 @@ public class PolicyResourceTest
     assertThat(policyOnDB.getPolicyActionsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerActionsOverrides);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   @Test
@@ -718,6 +838,10 @@ public class PolicyResourceTest
     assertThat(policyOnDB.getPolicyNotificationsOverrides())
         .hasSize(1)
         .containsEntry(owner.getParentOwnerId(), parentOwnerNotificationsOverride);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, times(1)).send(telemetryCaptor.capture());
+    assertTelemetry(telemetryCaptor.getValue(), "UPDATE", ownerId, updatedPolicy);
   }
 
   private void testUpdatePolicy_InvalidPolicy(OwnerType ownerType, String ownerId, String publicOwnerid)
@@ -738,6 +862,9 @@ public class PolicyResourceTest
     HttpResponse response = restRequest(ownerType, publicOwnerid).body(policy).put();
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("The policy name is required.");
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySender, never()).send(telemetryCaptor.capture());
   }
 
   private void assertPoliciesByOwner(String ownerId,

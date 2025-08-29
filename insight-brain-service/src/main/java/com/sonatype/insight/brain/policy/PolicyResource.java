@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -62,6 +61,8 @@ import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.brain.utils.NgUploadResponseGenerator;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
@@ -80,6 +81,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.repository.RepositoryType.proxy;
+import static com.sonatype.insight.brain.policy.PolicyMaintenanceTelemetry.Action.CREATE;
+import static com.sonatype.insight.brain.policy.PolicyMaintenanceTelemetry.Action.DELETE;
+import static com.sonatype.insight.brain.policy.PolicyMaintenanceTelemetry.Action.UPDATE;
 import static com.sonatype.insight.brain.webhook.EventAction.CREATED;
 import static com.sonatype.insight.brain.webhook.EventAction.DELETED;
 import static com.sonatype.insight.brain.webhook.EventAction.UPDATED;
@@ -106,6 +110,10 @@ public class PolicyResource
 
   private final ManagementEventService managementEventService;
 
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
+
   private final OwnerDAO ownerDAO;
 
   private final PolicyTagDAO policyTagDAO;
@@ -127,6 +135,8 @@ public class PolicyResource
       PolicyImportExport policyImportExport,
       NgUploadResponseGenerator ngUploadResponseGenerator,
       final ManagementEventService managementEventService,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils,
       final OwnerDAO ownerDAO,
       final PolicyTagDAO policyTagDAO,
       final PolicyDAO policyDAO,
@@ -139,6 +149,8 @@ public class PolicyResource
     this.policyImportExport = policyImportExport;
     this.ngUploadResponseGenerator = ngUploadResponseGenerator;
     this.managementEventService = managementEventService;
+    this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
     this.ownerDAO = ownerDAO;
     this.policyTagDAO = policyTagDAO;
     this.policyDAO = policyDAO;
@@ -296,7 +308,7 @@ public class PolicyResource
     policyDAO.insert(policy);
     AuditData.get().setPolicyWithDetails(policy);
     managementEventService.postEvent(CREATED, policy);
-
+    telemetrySender.send(PolicyMaintenanceTelemetry.getTelemetry(CREATE, telemetryUtils.obfuscate(ownerId), policy));
     return policy;
   }
 
@@ -322,7 +334,7 @@ public class PolicyResource
     AuditData.get().setPolicyWithDetails(policy);
 
     managementEventService.postEvent(UPDATED, policy);
-
+    telemetrySender.send(PolicyMaintenanceTelemetry.getTelemetry(UPDATE, telemetryUtils.obfuscate(ownerId), policy));
     return policy;
   }
 
@@ -356,7 +368,8 @@ public class PolicyResource
     AuditData.get().setPolicyWithDetails(originalPolicy);
 
     managementEventService.postEvent(UPDATED, originalPolicy);
-
+    telemetrySender.send(
+        PolicyMaintenanceTelemetry.getTelemetry(UPDATE, telemetryUtils.obfuscate(ownerId), originalPolicy));
     return originalPolicy;
   }
 
@@ -430,8 +443,8 @@ public class PolicyResource
     }
 
     policyDAO.update(policy);
-
     managementEventService.postEvent(UPDATED, policy);
+    telemetrySender.send(PolicyMaintenanceTelemetry.getTelemetry(UPDATE, telemetryUtils.obfuscate(ownerId), policy));
 
     return policy;
   }
@@ -456,6 +469,7 @@ public class PolicyResource
     policyDAO.delete(policy);
     AuditData.get().setPolicyWithDetails(policy);
     managementEventService.postEvent(DELETED, policy);
+    telemetrySender.send(PolicyMaintenanceTelemetry.getTelemetry(DELETE, telemetryUtils.obfuscate(ownerId), policy));
   }
 
   @GET

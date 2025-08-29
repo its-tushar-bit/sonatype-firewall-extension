@@ -3,10 +3,102 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 api-page {
   display: contents;
 
   .information-container {
     display: none;
+  }
+
+  @include nx-dark-mode-helpers.dark-mode {
+    background: var(--nx-color-component-background);
+
+    svg {
+      fill: var(--nx-color-text);
+    }
+
+    .swagger-ui {
+      color: white;
+
+      .opblock-tag {
+        border-bottom: 1px solid var(--nx-color-border-secondary);
+      }
+
+      .info {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        .title {
+          color: var(--nx-color-text-stark);
+        }
+        li,
+        p,
+        table,
+        .base-url {
+          color: var(--nx-color-text);
+        }
+      }
+
+      a,
+      .opblock-tag small,
+      table thead tr td,
+      table thead tr th {
+        color: var(--nx-color-text);
+      }
+
+      .opblock {
+        .model-box {
+          .model-title,
+          .model,
+          .model .model-toggle {
+            color: var(--nx-color-text);
+          }
+        }
+
+        .markdown p,
+        .markdown pre,
+        .renderedMarkdown p,
+        .renderedMarkdown pre {
+          color: var(--nx-color-text);
+        }
+
+        .opblock-summary-operation-id,
+        .opblock-summary-path,
+        .opblock-summary-path__deprecated,
+        .opblock-summary-description,
+        .description-wrapper,
+        .opblock-external-docs-wrapper,
+        .opblock-title_normal,
+        .parameter__name:not(.opblock-title),
+        .parameter__type,
+        .parameter__in,
+        .response-col_status,
+        p,
+        td,
+        .tablinks,
+        li {
+          color: var(--nx-color-text);
+        }
+
+        button.opblock-summary-control:focus {
+          color: white;
+        }
+
+        .responses-inner {
+          h4,
+          h5 {
+            color: var(--nx-color-text);
+          }
+        }
+      }
+
+      // .opblock-section h4 {
+      //   color: var(--nx-color-text);
+      // }
+    }
   }
 }

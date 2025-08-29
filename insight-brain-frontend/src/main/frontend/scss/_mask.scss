@@ -6,11 +6,14 @@
 /*
   #Mask elements
 */
-
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 @use './variables' as *;
 
 .form-mask {
   background-color: rgba($iq-off-white, 0.9);
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: HSL(from var(--nx-swatch-indigo-70) h s l / 0.9);
+  }
   position: absolute;
 
   top: 0;

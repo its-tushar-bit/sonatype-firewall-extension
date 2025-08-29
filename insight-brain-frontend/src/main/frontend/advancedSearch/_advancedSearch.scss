@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 advanced-search {
   display: contents;
 }
@@ -20,7 +22,7 @@ advanced-search {
 }
 
 .nx-icon--advanced-search-bulb {
-  color: var(--nx-swatch-grey-50);
+  color: var(--nx-color-text);
 }
 
 .iq-adv-search-help__explanation {
@@ -30,30 +32,42 @@ advanced-search {
 
 .iq-adv-search-help__note {
   color: var(--nx-swatch-grey-50);
+  @include nx-dark-mode-helpers.dark-mode {
+    color: var(--nx-swatch-indigo-70);
+  }
   margin-left: var(--nx-spacing-4x);
 }
 
 .iq-adv-search-help__example {
-  background-color: var(--nx-swatch-white);
+  background-color: var(--nx-color-component-background);
   border: 1px solid var(--nx-swatch-grey-50);
   cursor: pointer;
   display: inline-block;
   margin-left: var(--nx-spacing-4x);
   padding: var(--nx-spacing-2x);
   user-select: all;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    border: 1px solid var(--nx-swatch-indigo-50);
+  }
 }
 
 .iq-adv-search__query-builder {
-  background: var(--nx-swatch-white);
+  background: var(--nx-color-component-background);
   border: 1px solid #c1c1c1;
   box-shadow: 0 2px 5px 0 var(--nx-swatch-grey-50);
-  color: #575757;
+  color: var(--nx-color-text-stark);
   margin-top: var(--nx-spacing-2x);
   margin-bottom: var(--nx-spacing-4x);
   padding: var(--nx-spacing-4x);
   position: absolute;
   width: 1000px;
   text-align: initial;
+
+  @include nx-dark-mode-helpers.dark-mode {
+    border: 1px solid var(--nx-swatch-indigo-50);
+    box-shadow: 0 2px 5px 0 var(--nx-swatch-indigo-50);
+  }
 
   // cancel out the bottom margin on the form row
   transform: translateY(calc(0px - var(--nx-spacing-8x)));

@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .sbom-manager-vulnerabilities-by-threat-level-tile {
   grid-area: vulnerabilities-by-threat-level;
@@ -68,6 +69,9 @@
 
   th {
     color: var(--nx-swatch-grey-40);
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-70);
+    }
     font-size: var(--nx-font-size-xs);
     text-transform: uppercase;
   }
@@ -90,6 +94,9 @@
 
   tr {
     border-bottom: 1px solid #dbdef0;
+    @include nx-dark-mode-helpers.dark-mode {
+      border-bottom: 1px solid var(--nx-color-border-secondary);
+    }
     padding: var(--nx-spacing-2x) 0;
   }
 }

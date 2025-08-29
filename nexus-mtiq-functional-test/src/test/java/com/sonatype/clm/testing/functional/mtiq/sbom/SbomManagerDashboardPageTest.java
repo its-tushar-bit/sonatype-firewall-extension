@@ -204,7 +204,7 @@ public class SbomManagerDashboardPageTest
     refreshOrOpen(SbomManagerDashboardPage.url());
     ApplicationsHistoryTile applicationsHistoryTile = SbomManagerDashboardPage.applicationsHistoryTile();
     applicationsHistoryTile.header().shouldHave(text("Applications History"));
-    applicationsHistoryTile.applicationsList().listLabel(0).shouldHave(text("Total scanned appplications (all time)"));
+    applicationsHistoryTile.applicationsList().listLabel(0).shouldHave(text("Total scanned applications (all time)"));
     applicationsHistoryTile.applicationsList().listValue(0).shouldHave(text("5"));
     applicationsHistoryTile.applicationsList().listLabel(1).shouldHave(text("Applications updated last year"));
     applicationsHistoryTile.applicationsList().listValue(1).shouldHave(text("5"));

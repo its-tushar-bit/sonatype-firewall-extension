@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 @use '../../../scss/variables' as *;
 
@@ -34,11 +35,21 @@
 
       &.iq-manage-filters-dropdown__option--selected {
         background-color: $iq-blue-light;
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-color-dropdown-menu-background-active);
+          color: var(--nx-color-text-stark);
+        }
       }
 
       &:hover,
       &:focus {
         background-color: var(--nx-swatch-grey-95);
+
+        @include nx-dark-mode-helpers.dark-mode {
+          background-color: var(--nx-color-dropdown-menu-background-hover);
+          color: var(--nx-color-text-stark);
+        }
       }
 
       .nx-dropdown-button {

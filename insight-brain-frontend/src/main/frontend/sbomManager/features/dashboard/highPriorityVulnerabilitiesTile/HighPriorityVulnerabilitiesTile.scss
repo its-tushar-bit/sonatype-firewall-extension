@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .sbom-manager-high-priority-vulnerabilities-tile {
   grid-area: high-priority-vulnerabilities;
@@ -34,6 +35,9 @@
   gap: var(--nx-spacing-6x);
   padding: var(--nx-spacing-2x) 0;
   border-bottom: 1px solid var(--nx-swatch-indigo-90);
+  @include nx-dark-mode-helpers.dark-mode {
+    border-bottom: 1px solid var(--nx-color-border-secondary);
+  }
   font-size: var(--nx-font-size);
 
   &__score {

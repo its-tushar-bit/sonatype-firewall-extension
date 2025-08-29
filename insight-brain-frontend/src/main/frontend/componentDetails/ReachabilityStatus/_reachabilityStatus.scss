@@ -3,14 +3,15 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .iq-policy-violation-row__reachability {
-  color: var(--nx-swatch-grey-50);
+  color: var(--nx-color-text);
   font-size: 14px;
   padding: var(--nx-spacing-2x) 0;
 
   &--reachable {
-    color: var(--nx-swatch-black-90);
+    color: var(--nx-color-text-stark);
     font-weight: bold;
   }
 

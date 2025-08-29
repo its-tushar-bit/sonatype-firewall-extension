@@ -3,6 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 .sbom-manager-applications-history-tile {
   grid-area: applications-history;
@@ -34,6 +35,9 @@
 
   dt {
     color: var(--nx-swatch-grey-30);
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-80);
+    }
     font-size: var(--nx-font-size-s);
     font-weight: 400;
   }

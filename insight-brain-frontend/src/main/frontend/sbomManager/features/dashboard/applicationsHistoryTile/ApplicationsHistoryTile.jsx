@@ -51,7 +51,7 @@ export default function ApplicationsHistoryTile() {
         <LoadWrapper retryHandler={() => load()} loading={loading} error={loadError}>
           <dl className="sbom-manager-applications-history-tile-list">
             <dt className="sbom-manager-applications-history-tile-list__label">
-              Total scanned appplications (all time)
+              Total scanned applications (all time)
             </dt>
             <dd
               id="applications-history-tile-total-scanned-applications"

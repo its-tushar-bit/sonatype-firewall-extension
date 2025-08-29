@@ -5,6 +5,7 @@
  */
 @use '~@sonatype/react-shared-components/scss-shared/nx-container-helpers';
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 #iq-policy-violations-table {
   margin-bottom: 0;
@@ -98,6 +99,9 @@
 
     .iq-policy-violation-row--remediated {
       background-color: var(--nx-swatch-grey-95);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-10);
+      }
     }
 
     .iq-policy-violation-row__policy-name-and-reachability {

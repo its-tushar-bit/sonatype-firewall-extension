@@ -41,7 +41,7 @@ describe('ApplicationsHistoryTile', () => {
     expect(await screen.findByRole('heading', { name: /Applications History/i })).toBeVisible();
     await waitFor(() => expect(screen.queryByText('Loading…')).toBeNull());
 
-    expect(screen.getByText('Total scanned appplications (all time)')).toBeVisible();
+    expect(screen.getByText('Total scanned applications (all time)')).toBeVisible();
     expect(screen.getByText('Applications updated last year')).toBeVisible();
     expect(screen.getByText('Applications updated last month')).toBeVisible();
     expect(screen.getByText('Applications updated last week')).toBeVisible();

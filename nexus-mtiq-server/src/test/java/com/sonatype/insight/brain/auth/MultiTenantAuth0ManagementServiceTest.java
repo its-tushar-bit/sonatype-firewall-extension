@@ -264,13 +264,13 @@ public class MultiTenantAuth0ManagementServiceTest
   }
 
   @Test
-  public void test_deleteTenant_WhenOrganizationIdIsSent() throws Exception {
+  public void test_deleteTenant_ShouldNotDeleteAuth0ResourcesWhenOrganizationIdIsSent() throws Exception {
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
 
     assertThat(underTest.deleteTenant(APPLICATION_ID, CONNECTION_ID, ORGANIZATION_ID)).isTrue();
 
-    verify(managementApi).deleteOrganization(ORGANIZATION_ID);
+    verify(managementApi, never()).deleteOrganization(ORGANIZATION_ID);
     verify(managementApi, never()).clients();
     verify(managementApi, never()).connections();
   }

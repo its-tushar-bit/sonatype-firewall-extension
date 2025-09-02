@@ -140,12 +140,7 @@ public class MultiTenantAuth0ManagementService
     refreshManagementApiToken();
 
     try {
-      if (StringUtils.isNotBlank(organizationId)) {
-        // This is the logic to delete tenants using OIDC as SSO
-        log.debug("Deleting Auth0 organization with ID: {}", organizationId);
-        auth0ManagementAPI.deleteOrganization(organizationId);
-      }
-      else {
+      if (StringUtils.isBlank(organizationId)) {
         // This is the logic to delete tenants using SAML as SSO
         log.debug("Deleting Auth0 client with ID: {}", applicationId);
         auth0ManagementAPI.clients().delete(applicationId).execute();

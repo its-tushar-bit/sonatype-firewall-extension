@@ -271,8 +271,6 @@ public class SystemConfigurationProperty
 
   public static final String CONTAINER_IMAGES_EVAL_ENABLED = "containerImagesEvalEnabled";
 
-  public static final String DARK_MODE = "darkMode";
-
   public static final String ZSCALER_UPDATE_TASK_PERIOD = "zScalerUpdateTaskPeriod";
 
   public static final String ZSCALER = "zScaler";

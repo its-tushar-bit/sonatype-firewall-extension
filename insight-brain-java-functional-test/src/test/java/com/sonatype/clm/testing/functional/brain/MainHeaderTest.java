@@ -17,8 +17,6 @@ import com.sonatype.clm.testing.functional.elements.UserMenu;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.ReportListPage;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -64,20 +62,12 @@ public class MainHeaderTest
   }
 
   @Test
-  public void testUserMenuDisplayThemeLink_DarkModeFeatureFlagOn() {
-    SystemConfigurationPropertyFeature.DARK_MODE.setEnabled(true);
+  public void testUserMenuDisplayThemeLink() {
     refresh();
 
     UserMenu userMenu = MainHeader.userMenu();
     userMenu.dropdownToggle().shouldBe(visible).click();
     userMenu.displayTheme().shouldBe(visible);
-  }
-
-  @Test
-  public void testUserMenuDisplayThemeLink_DarkModeFeatureFlagOff() {
-    UserMenu userMenu = MainHeader.userMenu();
-    userMenu.dropdownToggle().shouldBe(visible).click();
-    userMenu.displayTheme().shouldNotBe(visible);
   }
 
   @Test

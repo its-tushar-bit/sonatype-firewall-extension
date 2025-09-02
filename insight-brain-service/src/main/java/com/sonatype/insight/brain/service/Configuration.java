@@ -212,7 +212,6 @@ public class Configuration
         SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER,
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API,
         SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED,
-        SystemConfigurationProperty.DARK_MODE,
         SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
         SystemConfigurationProperty.ZSCALER,
         SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP,

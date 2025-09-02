@@ -286,7 +286,6 @@ public class ConfigurationInfoTest
         "alpForSbomManager",
         "componentChangeDetectionApi",
         "containerImagesEvalEnabled",
-        "darkMode",
         "zScaler",
         "thirdPartyKevLookup",
         "userManagementPages",

@@ -5,6 +5,7 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 component-license-details {
   display: contents;
@@ -34,6 +35,7 @@ component-license-details {
 }
 
 .license-full-details__obligation-text {
+  color: var(--nx-swatch-grey-30);
   background-color: var(--nx-selectable-color-light);
   padding-right: var(--nx-spacing-4x);
   cursor: pointer;

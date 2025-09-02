@@ -18,8 +18,6 @@ import {
 } from '@sonatype/react-shared-components';
 import ChangePasswordModal from './ChangePasswordModal';
 import UserDetailsModal from './UserDetailsModal';
-import { useSelector } from 'react-redux';
-import { selectIsDarkModeFeatureFlagEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 const UserMenu = ({
   user,
@@ -38,8 +36,6 @@ const UserMenu = ({
   const [isChangePasswordModalVisible, setIsChangePasswordModalVisible] = useState(false);
   const [isUserDetailsModalVisible, setIsUserDetailsModalVisible] = useState(false);
   const [isDisplayThemeModalVisible, setIsDisplayThemeModalVisible] = useState(false);
-
-  const isDarkModeFeatureFlagEnabled = useSelector(selectIsDarkModeFeatureFlagEnabled);
 
   // used to close the modal after a successful password change
   useStateTransition(changePasswordStatus, 'success', 'idle', () => {
@@ -72,16 +68,16 @@ const UserMenu = ({
         <NxTextLink id="user-details" onClick={() => setIsUserDetailsModalVisible(true)} className="nx-dropdown-button">
           Details
         </NxTextLink>
-        {isDarkModeFeatureFlagEnabled && (
-          <button
-            id="display-theme"
-            tabIndex="0"
-            onClick={() => setIsDisplayThemeModalVisible(true)}
-            className="nx-dropdown-button"
-          >
-            Display Theme
-          </button>
-        )}
+
+        <button
+          id="display-theme"
+          tabIndex="0"
+          onClick={() => setIsDisplayThemeModalVisible(true)}
+          className="nx-dropdown-button"
+        >
+          Display Theme
+        </button>
+
         <button id="logout" onClick={onLogout} className="nx-dropdown-button">
           Logout
         </button>

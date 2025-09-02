@@ -128,7 +128,6 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE.getId(),
           SystemConfigurationPropertyFeature.ALP_FOR_SBOM_MANAGER.getId(),
           SystemConfigurationPropertyFeature.COMPONENT_CHANGE_DETECTION_API.getId(),
-          SystemConfigurationPropertyFeature.DARK_MODE.getId(),
           SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
           SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
           SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),

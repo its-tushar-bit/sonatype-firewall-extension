@@ -10,7 +10,6 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.*;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,8 +35,6 @@ public class DisplayThemeTest
 
   @Test
   public void testDisplayTheme() {
-    SystemConfigurationPropertyFeature.DARK_MODE.setEnabled(true);
-
     refresh();
 
     UserMenu userMenu = MainHeader.userMenu();

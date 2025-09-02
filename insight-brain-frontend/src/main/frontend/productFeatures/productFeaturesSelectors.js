@@ -281,8 +281,6 @@ export const selectIsExpireWhenRemediationAvailableWaiversEnabled = createSelect
   propOr(false, 'expire-waiver-when-remediation-available')
 );
 
-export const selectIsDarkModeFeatureFlagEnabled = createSelector(selectProductFeatures, propOr(false, 'dark-mode'));
-
 export const selectIsContainerImagesEvaluationEnabled = createSelector(
   selectProductFeatures,
   both(propOr(false, 'container-images-evaluation'), propOr(false, 'container-images-eval-enabled'))

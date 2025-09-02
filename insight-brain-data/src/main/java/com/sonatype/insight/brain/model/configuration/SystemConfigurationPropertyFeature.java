@@ -260,19 +260,6 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  DARK_MODE(SystemConfigurationProperty.DARK_MODE, false)
-  {
-    // A feature flag with enabledWhenAbsent = true and an entry in the db with a value of true is not
-    // treated as enabled.
-    @Override
-    public boolean isEnabled(TransactionContext tx) {
-      final SystemConfigurationProperty systemConfigurationProperty =
-          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? super.isEnabled(tx) :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
-    }
-  },
-
   ZSCALER(SystemConfigurationProperty.ZSCALER, true)
   {
     @Override

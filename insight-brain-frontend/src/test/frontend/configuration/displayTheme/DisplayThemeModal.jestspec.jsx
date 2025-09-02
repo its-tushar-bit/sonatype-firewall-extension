@@ -49,20 +49,6 @@ describe('DisplayThemeModal', () => {
     localStorage.clear();
   });
 
-  it('should show error message if dark mode is not enabled', () => {
-    const preloadedState = {
-      productFeatures: {
-        productFeatures: {
-          'dark-mode': false,
-        },
-      },
-    };
-    renderComponent(preloadedState);
-
-    const errorMessage = screen.getByText('Display themes are not enabled.');
-    expect(errorMessage).toBeInTheDocument();
-  });
-
   it('should have correct contents', () => {
     renderComponent();
 

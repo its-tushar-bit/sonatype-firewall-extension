@@ -1432,7 +1432,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("vulnerabilitySource", false);
     expectedFeatureConfigMap.put("WEBHOOK_CONFIGURATION", true);
     expectedFeatureConfigMap.put("containerImagesEvalEnabled", true);
-    expectedFeatureConfigMap.put("darkMode", false);
     expectedFeatureConfigMap.put("zScaler", true);
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
     expectedFeatureConfigMap.put("userManagementPages", true);
@@ -1440,60 +1439,6 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
 
     return expectedFeatureConfigMap;
-  }
-
-  @Test
-  public void testGetSystemConfigurationPropertyFeature_DarkMode() {
-    // All input variants for the feature
-    List<SystemConfigurationPropertyFeature> actual = List.of(
-        service.getSystemConfigurationPropertyFeature("darkMode"),
-        service.getSystemConfigurationPropertyFeature("darkmode"),
-        service.getSystemConfigurationPropertyFeature("Darkmode"),
-        service.getSystemConfigurationPropertyFeature("DarkMode"),
-        service.getSystemConfigurationPropertyFeature("DARKMODE")
-    );
-
-    // Assert all map to DARK_MODE
-    assertThat(actual).allMatch(feature ->
-        feature.equals(SystemConfigurationPropertyFeature.DARK_MODE));
-  }
-
-  @Test
-  public void testEnableFeature_DarkMode() {
-    service.enableFeature(DARK_MODE);
-
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(DARK_MODE)
-            .getValue())
-        .isEqualTo("true");
-  }
-
-  @Test
-  public void testEnableFeature_DarkMode_AlreadyEnabled() {
-    service.enableFeature(DARK_MODE);
-    assertThatThrownBy(
-        () -> service.enableFeature(
-            DARK_MODE)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already enabled.");
-  }
-
-  @Test
-  public void testDisableFeature_DarkMode_AlreadyDisabled() {
-    assertThatThrownBy(
-        () -> service.disableFeature(
-            DARK_MODE)).isInstanceOf(
-        BadRequestException.class).hasMessage("Feature is already disabled.");
-  }
-
-  @Test
-  public void testIsEnabled_DarkMode() {
-    final SystemConfigurationProperty systemConfigurationProperty =
-        new SystemConfigurationProperty(DARK_MODE, "true");
-    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
-    assertThat(
-        systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.DARK_MODE).getValue())
-        .isEqualTo("true");
-    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.DARK_MODE)).isTrue();
   }
 
   @Test

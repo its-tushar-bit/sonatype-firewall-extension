@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(28);
+    assertThat(sysConfigNode.size()).isEqualTo(27);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -58,7 +58,6 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_BINARY_SCANNING).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.DARK_MODE).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();
@@ -76,7 +75,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(28);
+    assertThat(sysConfigNode.size()).isEqualTo(27);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -104,7 +103,6 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SBOM_BINARY_SCANNING).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API).asBoolean()).isFalse();
-    assertThat(sysConfigNode.get(SystemConfigurationProperty.DARK_MODE).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.ZSCALER).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();
@@ -115,7 +113,7 @@ public class FeaturePropertiesInfoTest
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(58);
+    assertThat(featureConfigNode.size()).isEqualTo(57);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -172,7 +170,6 @@ public class FeaturePropertiesInfoTest
               "vulnerabilitySource": false,
               "WEBHOOK_CONFIGURATION": true,
               "containerImagesEvalEnabled": true,
-              "darkMode": false,
               "zScaler": true,
               "thirdPartyKevLookup": true,
               "userManagementPages": true,
@@ -191,7 +188,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(58);
+    assertThat(featureConfigNode.size()).isEqualTo(57);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -248,7 +245,6 @@ public class FeaturePropertiesInfoTest
               "vulnerabilitySource": false,
               "WEBHOOK_CONFIGURATION": true,
               "containerImagesEvalEnabled": true,
-              "darkMode": false,
               "zScaler": true,
               "thirdPartyKevLookup": true,
               "userManagementPages": true,
@@ -273,7 +269,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(48)
+        .hasSize(47)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

@@ -55,23 +55,6 @@ describe('UserMenu', () => {
     expect(screen.getByText('Display Theme')).toBeInTheDocument();
   });
 
-  it('should not render a link for Display Theme if dark-mode FF is turned off', async () => {
-    const user = userEvent.setup();
-
-    const preloadedState = {
-      productFeatures: {
-        productFeatures: {
-          'dark-mode': false,
-        },
-      },
-    };
-
-    renderComponent(preloadedState);
-    const button = screen.getByRole('button');
-    await user.click(button);
-    expect(screen.queryByText('Display Theme')).not.toBeInTheDocument();
-  });
-
   it('should open a modal when Display Theme is clicked', async () => {
     const user = userEvent.setup();
     renderComponent();

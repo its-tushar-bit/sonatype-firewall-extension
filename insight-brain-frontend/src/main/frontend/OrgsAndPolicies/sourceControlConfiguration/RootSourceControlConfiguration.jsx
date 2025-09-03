@@ -59,10 +59,23 @@ const RootSourceControlConfiguration = () => {
   const toggleValue = (property) => dispatch(actions.toggleValue(property));
   const onChangeClosePrAfterDaysOpen = (val) => dispatch(actions.setClosePrAfterDaysOpen(val));
 
+  const getSCMProvider = () => {
+    switch (sourceControl?.provider?.rscValue?.value) {
+      case 'github':
+        return 'Github';
+      case 'gitlab':
+        return 'Gitlab';
+      default:
+        return 'Git';
+    }
+  };
+
   const mapSourceControlOptionToToggle = (id, title, description, optionName) => {
+    const isGitlabOrGithub =
+      sourceControl?.provider?.rscValue?.value === 'github' || sourceControl?.provider?.rscValue?.value === 'gitlab';
     if (
       id === 'source-control-remediation-pull-requests' &&
-      sourceControl?.provider?.rscValue?.value === 'github' &&
+      isGitlabOrGithub &&
       sourceControl?.ownerId === 'ROOT_ORGANIZATION_ID'
     ) {
       return (
@@ -87,7 +100,7 @@ const RootSourceControlConfiguration = () => {
               <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
             </NxToggle>
             <div className="git-advanced-options">
-              <h5>Advanced Github Options</h5>
+              <h5>Advanced {getSCMProvider()} Options</h5>
               <NxCheckbox
                 name="failed-checks-advanced-option"
                 onChange={() => toggleValue('closePrOnFailedChecksEnabled')}

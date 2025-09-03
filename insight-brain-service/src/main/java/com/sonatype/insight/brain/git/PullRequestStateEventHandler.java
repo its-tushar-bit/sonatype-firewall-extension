@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -270,29 +271,53 @@ public class PullRequestStateEventHandler
     boolean autoCloseTriggered = false;
     SourceControl sourceControl = sourceControlDAO.getByOwnerId(Organization.ROOT_ORGANIZATION_ID);
 
-    if (sourceControl == null || sourceControl.getProvider() != SourceControlProvider.GITHUB
-        || !isAutomaticPullRequest(pullRequest)) {
+    if (!isProviderAllowedForAutoClosing(sourceControl) || !isAutomaticPullRequest(pullRequest)) {
       return false;
     }
     String closeReason = null;
 
-    if (sourceControl.getClosePrOnFailedChecksEnabled() != null && sourceControl.getClosePrOnFailedChecksEnabled()) {
-      if (hasPrFailedChecks(prLifecycleInfo)) {
-        closeReason = "Automatically closing pull request due to failed status checks";
-      }
+    boolean isClosePrOnFailedChecksEnabled = Optional.ofNullable(sourceControl.getClosePrOnFailedChecksEnabled())
+        .orElse(false);
+
+    if (isClosePrOnFailedChecksEnabled
+        && sourceControl.getProvider() == SourceControlProvider.GITHUB
+        && hasPrFailedChecks(prLifecycleInfo)) {
+      closeReason = "Automatically closing pull request due to failed status checks";
     }
-    if (sourceControl.getClosePrAfterDaysOpenEnabled() != null && sourceControl.getClosePrAfterDaysOpenEnabled()) {
-      if (isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays())) {
-        closeReason = "Automatically closing pull request due to being open for more than "
-            + sourceControl.getClosePrAfterDays() + " days";
-      }
+
+    if (isClosePrOnFailedChecksEnabled
+        && sourceControl.getProvider() == SourceControlProvider.GITLAB
+        && isMrCloseable(prLifecycleInfo)) {
+      closeReason = "Automatically closing merge request due to failed CI build status";
     }
+
+    boolean isClosePrAfterDaysOpenEnabled = Optional.ofNullable(sourceControl.getClosePrAfterDaysOpenEnabled())
+        .orElse(false);
+
+    if (isClosePrAfterDaysOpenEnabled
+        && isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays())) {
+      String codeRequest = sourceControl.getProvider() == SourceControlProvider.GITHUB
+          ? "pull request"
+          : "merge request";
+      closeReason = "Automatically closing " + codeRequest + " due to being open for more than "
+          + sourceControl.getClosePrAfterDays() + " days";
+    }
+
     if (closeReason != null) {
-      pullRequestPollingService.createAndSendPullRequestClosingEvent(applicationId,
-          pullRequest, closeReason);
+      pullRequestPollingService.createAndSendPullRequestClosingEvent(applicationId, pullRequest, closeReason);
       autoCloseTriggered = true;
     }
     return autoCloseTriggered;
+  }
+
+  private boolean isProviderAllowedForAutoClosing(SourceControl sourceControl) {
+    if (sourceControl == null) {
+      return false;
+    }
+    return switch (sourceControl.getProvider()) {
+      case GITHUB, GITLAB -> true;
+      default -> false;
+    };
   }
 
   private boolean isAutomaticPullRequest(SourceControlPullRequest pullRequest) {
@@ -317,6 +342,10 @@ public class PullRequestStateEventHandler
     return Arrays.stream(checkSuiteNodes)
         .flatMap(checkSuiteNode -> Arrays.stream(checkSuiteNode.checkRuns.nodes))
         .anyMatch(checkRun -> checkRun.isRequired);
+  }
+
+  private boolean isMrCloseable(PullRequestLifecycleInfo prLifecycleInfo) {
+    return "ci_must_pass".equals(prLifecycleInfo.getDetailedMergeStatus());
   }
 
   private boolean isPrOlderThanDays(

@@ -43,6 +43,9 @@ export const defaultRootOrgConfigResponse = {
   sshEnabled: { value: null, parentValue: null, parentName: null },
   manualPullRequestsEnabled: { value: null, parentValue: null, parentName: null },
   innerSourceAutomatedUpdatesEnabled: { value: null, parentValue: null, parentName: null },
+  closePrOnFailedChecksEnabled: { value: null, parentValue: null, parentName: null },
+  closePrAfterDaysOpenEnabled: { value: null, parentValue: null, parentName: null },
+  closePrAfterDays: { value: null, parentValue: null, parentName: null },
 };
 
 export const existingRootOrgConfigResponse = {

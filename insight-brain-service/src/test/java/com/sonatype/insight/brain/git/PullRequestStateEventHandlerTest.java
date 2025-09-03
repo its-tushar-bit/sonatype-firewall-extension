@@ -18,6 +18,8 @@ import javax.inject.Inject;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.CLOSE_PULL_REQUEST_EVENT;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
+import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.mockito.Mockito.mock;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -43,6 +45,7 @@ import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.PullRequestCo
 import com.sonatype.nexus.scm.github.graphql.dto.pullrequests.data.PullRequestsByIdData.PullRequest;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.sonatype.nexus.scm.gitlab.dto.GitlabMergeRequestResponse;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
@@ -1046,7 +1049,7 @@ public class PullRequestStateEventHandlerTest
         githubApp.getId(),
         "https://github.com/test-org/test-repo.git",
         passwordHandler.encryptPassword(TOKEN),
-        SourceControlProvider.GITHUB
+        GITHUB
     );
     sourceControl.setClosePrOnFailedChecksEnabled(true);
     sourceControlDAO.update(sourceControl);
@@ -1099,7 +1102,8 @@ public class PullRequestStateEventHandlerTest
   public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_oldPR() {
     Application githubApp = tempEntity.newApplicationWithParent();
 
-    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, false, true, 5);
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITHUB, false, true, 5);
 
     PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(false);
 
@@ -1128,7 +1132,8 @@ public class PullRequestStateEventHandlerTest
   public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_failedChecks() {
     Application githubApp = tempEntity.newApplicationWithParent();
 
-    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, true, false, 0);
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITHUB, true, false, 0);
 
     PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(true);
 
@@ -1149,7 +1154,8 @@ public class PullRequestStateEventHandlerTest
   public void testCloseAutoPullRequestIfEnabled_NoAutoClose_noFailedChecks() {
     Application githubApp = tempEntity.newApplicationWithParent();
 
-    SourceControlPullRequest pullRequest = setupSourceControlAndPullRequestForAutoPrClosing(githubApp, true, false, 0);
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITHUB, true, false, 0);
 
     PullRequestLifecycleInfo prLifecycleInfo = createGithubPullRequestLifecycleInfo(false);
 
@@ -1161,15 +1167,88 @@ public class PullRequestStateEventHandlerTest
     assertThat(events).isEmpty();
   }
 
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_oldPR_Gitlab() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITLAB, false, true, 5);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGitlabPullRequestLifecycleInfo(false);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isNotEmpty();
+    SourceControlEvent firstEvent = events.get(0);
+    assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
+    assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
+    assertThat(firstEvent.getPullRequestContents()).isEqualTo(
+        "Automatically closing merge request due to being open for more than 5 days");
+
+    // and when:
+    handler.updateSourceControlPullRequest(pullRequest, prLifecycleInfo, true);
+
+    // then:
+    SourceControlPullRequest updatedPullRequest =
+        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(githubApp.getId(), 1);
+    assertThat(updatedPullRequest.getState()).isEqualTo(PullRequestState.AUTO_CLOSED);
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_failedChecks_Gitlab() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITLAB, true, false, 0);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGitlabPullRequestLifecycleInfo(true);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isNotEmpty();
+    SourceControlEvent firstEvent = events.get(0);
+    assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
+    assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
+    assertThat(firstEvent.getPullRequestContents()).isEqualTo(
+        "Automatically closing merge request due to failed CI build status");
+  }
+
+  @Test
+  public void testCloseAutoPullRequestIfEnabled_NoAutoClose_noFailedChecks_Gitlab() {
+    Application githubApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(githubApp, GITLAB, true, false, 0);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGitlabPullRequestLifecycleInfo(false);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(githubApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
+    assertThat(events).isEmpty();
+  }
+
   private SourceControlPullRequest setupSourceControlAndPullRequestForAutoPrClosing(
       Application app,
+      SourceControlProvider provider,
       boolean closePrOnFailedChecks,
       boolean closePrAfterDaysOpen,
       int closePrAfterDays
   )
   {
+    String repoUrl = provider == GITHUB ?
+        "https://github.com/test-org/test-repo.git"
+        : "https://gitlab.com/test-org/test-repo.git";
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
-        "https://github.com/test-org/test-repo.git",
+        repoUrl,
         1,
         "deadbeef1",
         "deadbeef2",
@@ -1183,7 +1262,7 @@ public class PullRequestStateEventHandlerTest
     sourceControlPullRequestDAO.update(pullRequest);
 
     SourceControl rootOrgSourceControl =
-        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
+        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, provider);
     rootOrgSourceControl.setClosePrOnFailedChecksEnabled(closePrOnFailedChecks);
     rootOrgSourceControl.setClosePrAfterDaysOpenEnabled(closePrAfterDaysOpen);
     rootOrgSourceControl.setClosePrAfterDays(closePrAfterDays);
@@ -1191,9 +1270,9 @@ public class PullRequestStateEventHandlerTest
 
     tempEntity.newSourceControl(
         app.getId(),
-        "https://github.com/test-org/test-repo.git",
+        repoUrl,
         passwordHandler.encryptPassword(TOKEN),
-        SourceControlProvider.GITHUB
+        provider
     );
     return pullRequest;
   }
@@ -1230,6 +1309,22 @@ public class PullRequestStateEventHandlerTest
     PullRequestCommits commits = new PullRequestCommits();
     commits.nodes = nodes;
     prLifecycleInfo.setCommits(commits);
+
+    return prLifecycleInfo;
+  }
+
+  private PullRequestLifecycleInfo createGitlabPullRequestLifecycleInfo(boolean failedRequiredChecks) {
+    GitlabMergeRequestResponse prLifecycleInfo = new GitlabMergeRequestResponse();
+    prLifecycleInfo.setHeadCommitHash("head-commit");
+    prLifecycleInfo.setBaseCommitHash("base-commit");
+    prLifecycleInfo.setHead("branch-name");
+    prLifecycleInfo.setBase("base-branch-name");
+    if (failedRequiredChecks) {
+      prLifecycleInfo.setDetailedMergeStatus("ci_must_pass");
+    }
+    else {
+      prLifecycleInfo.setDetailedMergeStatus("mergeable");
+    }
 
     return prLifecycleInfo;
   }

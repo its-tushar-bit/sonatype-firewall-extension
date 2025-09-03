@@ -512,6 +512,97 @@ describe('sourceControlConfiguration', () => {
         expect(tokenInput).toBeRequired();
       });
     });
+
+    describe('Advanced options visibility', () => {
+      const selectProvider = async (provider) => {
+        const providerSelector = await screen.findByRole('combobox');
+        fireEvent.change(providerSelector, { target: { value: provider } });
+      };
+
+      it('shows advanced options for GitHub', async () => {
+        renderComponent();
+        await selectProvider('github');
+
+        const advancedOptionsSection = screen.queryByText(/Advanced Github Options/);
+        const failedChecksCheckbox = screen.queryByText('Close AutoPRs when one or more required checks fail');
+        const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
+        const daysInput = screen.queryByPlaceholderText('Ex. 7');
+
+        expect(advancedOptionsSection).toBeInTheDocument();
+        expect(failedChecksCheckbox).toBeInTheDocument();
+        expect(afterDaysCheckbox).toBeInTheDocument();
+        expect(daysInput).toBeInTheDocument();
+      });
+
+      it('shows advanced options for GitLab', async () => {
+        renderComponent();
+        await selectProvider('gitlab');
+
+        const advancedOptionsSection = screen.queryByText(/Advanced Gitlab Options/);
+        const failedChecksCheckbox = screen.queryByText('Close AutoPRs when one or more required checks fail');
+        const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
+        const daysInput = screen.queryByPlaceholderText('Ex. 7');
+
+        expect(advancedOptionsSection).toBeInTheDocument();
+        expect(failedChecksCheckbox).toBeInTheDocument();
+        expect(afterDaysCheckbox).toBeInTheDocument();
+        expect(daysInput).toBeInTheDocument();
+      });
+
+      it('hides advanced options for Azure', async () => {
+        renderComponent();
+        await selectProvider('azure');
+
+        const advancedOptionsSection = screen.queryByText(/Advanced .* Options/);
+        const failedChecksCheckbox = screen.queryByText('Close AutoPRs when one or more required checks fail');
+        const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
+        const daysInput = screen.queryByPlaceholderText('Ex. 7');
+
+        expect(advancedOptionsSection).not.toBeInTheDocument();
+        expect(failedChecksCheckbox).not.toBeInTheDocument();
+        expect(afterDaysCheckbox).not.toBeInTheDocument();
+        expect(daysInput).not.toBeInTheDocument();
+      });
+
+      it('hides advanced options for Bitbucket', async () => {
+        renderComponent();
+        await selectProvider('bitbucket');
+
+        const advancedOptionsSection = screen.queryByText(/Advanced .* Options/);
+        const failedChecksCheckbox = screen.queryByText('Close AutoPRs when one or more required checks fail');
+        const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
+        const daysInput = screen.queryByPlaceholderText('Ex. 7');
+
+        expect(advancedOptionsSection).not.toBeInTheDocument();
+        expect(failedChecksCheckbox).not.toBeInTheDocument();
+        expect(afterDaysCheckbox).not.toBeInTheDocument();
+        expect(daysInput).not.toBeInTheDocument();
+      });
+    });
+
+    describe('Advanced options state management', () => {
+      it('Advanced git options is enabled when remediationPullRequestsEnabled is enabled', async () => {
+        renderComponent();
+
+        const providerSelector = await screen.findByRole('combobox');
+        fireEvent.change(providerSelector, { target: { value: 'github' } });
+
+        let advancedOptionsSection = screen.queryByText(/Advanced Github Options/);
+        expect(advancedOptionsSection).toBeInTheDocument();
+
+        const failedChecksCheckbox = screen.getByRole('checkbox', {
+          name: 'Close AutoPRs when one or more required checks fail',
+        });
+        const afterDaysCheckbox = screen.getByRole('checkbox', {
+          name: /Close AutoPRs that have not been merged or closed after:/,
+        });
+        const daysInput = screen.getByPlaceholderText('Ex. 7');
+
+        expect(failedChecksCheckbox).toBeDisabled();
+        expect(afterDaysCheckbox).toBeDisabled();
+        expect(daysInput).toBeDisabled();
+      });
+    });
   });
 
   describe('Organization', () => {

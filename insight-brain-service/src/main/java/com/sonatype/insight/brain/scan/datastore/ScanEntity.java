@@ -69,6 +69,17 @@ public interface ScanEntity
   String getAppId();
 
   /**
+   * Get the scan ID for this scan.
+   *
+   * @return scan ID
+   */
+  default String getScanId() {
+    String scanId = getName();
+    scanId = scanId.substring(scanId.indexOf('-') + 1, scanId.indexOf('.'));
+    return scanId;
+  }
+
+  /**
    * The primary {@link ScanPersistenceService} class that handles this.
    */
   Class<? extends ScanPersistenceService> getScanPersistenceServiceClass();

@@ -9,16 +9,16 @@ package com.sonatype.insight.brain.sbom.datastore;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.stream.Stream;
-
-import com.sonatype.insight.brain.common.io.FileCleaner;
-import com.sonatype.insight.brain.service.InsightWork;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.service.InsightWork;
 
 import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
@@ -143,6 +143,14 @@ public class FileSbomPersistenceService
             }
           });
     }
+  }
+
+  @Override
+  public void moveSbomEntity(final SbomEntity from, final SbomEntity to) throws IOException {
+    FileSbomEntity fromFile = (FileSbomEntity) from;
+    FileSbomEntity toFile = (FileSbomEntity) to;
+    Files.createDirectories(toFile.getPath().getParent());
+    Files.move(fromFile.path(), toFile.path(), StandardCopyOption.REPLACE_EXISTING);
   }
 
   private boolean isOlderThan(final Path path, final Instant instant) {

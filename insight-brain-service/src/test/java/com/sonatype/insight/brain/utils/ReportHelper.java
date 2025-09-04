@@ -5,10 +5,12 @@
  */
 package com.sonatype.insight.brain.utils;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -23,6 +25,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
@@ -250,5 +254,24 @@ public class ReportHelper
       Path zipFile = fileSystem.getPath(relative.toString());
       Files.writeString(zipFile, content, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
+  }
+
+  public static String readFromZipStream(final InputStream inputStream, final String entryPath) throws Exception {
+    StringBuilder content = new StringBuilder();
+    try (ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
+      ZipEntry entry;
+      while ((entry = zipInputStream.getNextEntry()) != null) {
+        if (entry.getName().equals(entryPath)) {
+          BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream));
+          String line;
+          while ((line = reader.readLine()) != null) {
+            content.append(line);
+          }
+          break;
+        }
+      }
+      zipInputStream.closeEntry();
+    }
+    return content.toString();
   }
 }

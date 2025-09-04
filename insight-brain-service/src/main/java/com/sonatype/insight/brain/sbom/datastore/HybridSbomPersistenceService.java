@@ -165,6 +165,11 @@ public class HybridSbomPersistenceService
     }
   }
 
+  @Override
+  public void moveSbomEntity(final SbomEntity from, final SbomEntity to) {
+    throw new UnsupportedOperationException();
+  }
+
   private void copy(final SbomEntity source, final SbomEntity target) throws IOException {
     try (InputStream inputStream = source.getInputStream(); OutputStream outputStream = target.getOutputStream()) {
       inputStream.transferTo(outputStream);

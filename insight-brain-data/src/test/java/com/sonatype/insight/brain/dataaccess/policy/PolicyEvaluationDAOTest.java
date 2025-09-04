@@ -1393,6 +1393,43 @@ public class PolicyEvaluationDAOTest
         .isEqualTo(expectedPolicyEvaluation.getId());
   }
 
+  @Test
+  public void testGetByApplicationId() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThat(dao.getByApplicationId(app.getId(), 1, 2)).isEmpty();
+    assertThat(dao.getByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, "scanId1");
+    Thread.sleep(50);
+
+    assertThat(dao.getByApplicationId(app.getId(), 1, 2))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactly(eval1.getId());
+    assertThat(dao.getByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_STAGE_RELEASE, "scanId2");
+    Thread.sleep(50);
+
+    assertThat(dao.getByApplicationId(app.getId(), 1, 2))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactly(eval1.getId(), eval2.getId());
+    assertThat(dao.getByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_RELEASE, "scanId3");
+
+    assertThat(dao.getByApplicationId(app.getId(), 1, 2))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactly(eval1.getId(), eval2.getId());
+    assertThat(dao.getByApplicationId(app.getId(), 2, 2))
+        .extracting(PolicyEvaluation::getId)
+        .containsExactly(eval3.getId());
+    assertThat(dao.getByApplicationId(app.getId(), 3, 2)).isEmpty();
+  }
+
   @FunctionalInterface
   interface PolicyEvaluationChooser
   {

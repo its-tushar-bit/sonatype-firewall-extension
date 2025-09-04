@@ -269,6 +269,33 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  public void testGetOriginalReportEntities() throws Exception {
+    helper.saveMockReport();
+    helper.writeAdditionalFile("foo.txt", "foobar");
+    helper.writeLocalFile("new-file.txt", "new file contents");
+    helper.writeLocalFile("bom.json", "overwritten file contents");
+
+    try (var stream = service.getOriginalReportEntities(APPLICATION_ID, SCAN_ID)) {
+      // Note: can't use assertThat(stream) because it closes the stream before the assertions are run
+      var entities = stream.toArray(ReportEntity[]::new);
+
+      assertThat(entities).allMatch(wrapException(ReportEntity::exists)).satisfiesExactlyInAnyOrder(
+          wrapException(entity -> {
+            // original bom.json should be present
+            assertThat(entity.getName()).isEqualTo("bom.json");
+            helper.assertEntityContents(entity, "{}\n");
+          }),
+          wrapException(entity -> {
+            // original index.html should be present since it's not overwritten (note index.html is created by
+            // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
+            assertThat(entity.getName()).isEqualTo("index.html");
+            helper.assertEntityContents(entity, "<html></html>");
+          })
+      );
+    }
+  }
+
+  @Test
   public void testSaveOriginalReport() throws Exception {
     try (var zipStream = getClass().getResourceAsStream("/ApplicationReportPersistenceServiceTest/report.zip")) {
       service.saveOriginalReport(APPLICATION_ID, SCAN_ID, zipStream);
@@ -733,5 +760,17 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     assertThat(helper.readFromLocalFiles("bom.json")).isNull();
     assertThat(helper.readFromOriginalFiles("bom.json")).isNull();
     assertThat(helper.readFromAdditionalFiles("bom.json")).isEqualTo("foobar");
+  }
+
+  @Test
+  public void testDeleteReportEntity() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("some_unknown_file", "foobar");
+    ReportEntity reportEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "some_unknown_file");
+    assertThat(reportEntity.exists()).isTrue();
+
+    service.deleteReportEntity(reportEntity);
+
+    assertThat(reportEntity.exists()).isFalse();
   }
 }

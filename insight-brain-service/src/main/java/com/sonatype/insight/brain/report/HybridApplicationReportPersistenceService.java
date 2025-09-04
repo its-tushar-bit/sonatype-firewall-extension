@@ -81,6 +81,11 @@ public class HybridApplicationReportPersistenceService
     return hybridGetAllReportEntities(applicationId, scanId);
   }
 
+  @Override
+  public Stream<ReportEntity> getOriginalReportEntities(final String applicationId, final String scanId) {
+    throw new UnsupportedOperationException();
+  }
+
   private Stream<ReportEntity> hybridGetAllReportEntities(final String applicationId, final String scanId)
       throws IOException
   {
@@ -234,6 +239,11 @@ public class HybridApplicationReportPersistenceService
         applicationReportPersistenceServices) {
       applicationReportPersistenceService.deleteReports(applicationId);
     }
+  }
+
+  @Override
+  public void deleteReportEntity(final ReportEntity reportEntity) {
+    throw new UnsupportedOperationException();
   }
 
   @Override

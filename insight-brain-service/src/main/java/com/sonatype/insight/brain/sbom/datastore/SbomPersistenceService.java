@@ -114,4 +114,6 @@ public abstract class SbomPersistenceService
    * @throws IOException if an I/O error occurs
    */
   public abstract void deleteTransientSbomsOlderThan(Instant instant) throws IOException;
+
+  public abstract void moveSbomEntity(final SbomEntity from, final SbomEntity to) throws IOException;
 }

@@ -367,4 +367,24 @@ public class FileSbomPersistenceServiceTest
     assertThat(Files.exists(oldSbomPath)).isFalse();
     assertThat(Files.exists(newSbomPath)).isTrue();
   }
+
+  @Test
+  public void testMoveSbomEntity() throws Exception {
+    Path sbomDir = insightWork.getSbomDir(APP_ID).toPath();
+    Files.createDirectories(sbomDir);
+    Path sbomPath = sbomDir.resolve(FILE_NAME);
+    Files.write(sbomPath, SBOM_CONTENT.getBytes(StandardCharsets.UTF_8));
+    SbomEntity from = service.getPermanentSbom(APP_ID, FILE_NAME);
+    SbomEntity to = service.getPermanentSbom(APP_ID + "2", FILE_NAME);
+    assertThat(from.exists()).isTrue();
+    assertThat(to.exists()).isFalse();
+
+    service.moveSbomEntity(from, to);
+
+    assertThat(from.exists()).isFalse();
+    assertThat(to.exists()).isTrue();
+    try (InputStream inputStream = to.getInputStream()) {
+      assertThat(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8)).isEqualTo(SBOM_CONTENT);
+    }
+  }
 }

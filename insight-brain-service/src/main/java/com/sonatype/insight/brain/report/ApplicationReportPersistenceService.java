@@ -46,6 +46,10 @@ public abstract class ApplicationReportPersistenceService
   public abstract Stream<ReportEntity> getAllReportEntities(
       final String applicationId,
       final String scanId) throws IOException;
+  
+  public abstract Stream<ReportEntity> getOriginalReportEntities(
+      final String applicationId,
+      final String scanId) throws IOException;
 
   /**
    * Saves the zip file for the original report from HDS
@@ -130,6 +134,8 @@ public abstract class ApplicationReportPersistenceService
    * Delete all reports for the given application
    */
   public abstract void deleteReports(final String applicationId) throws IOException;
+
+  public abstract void deleteReportEntity(final ReportEntity reportEntity) throws IOException;
 
   /**
    * Validates that the name is a relative path and does not contain any ".." or "." segments.

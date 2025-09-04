@@ -129,6 +129,9 @@ public class JobClassNameTest
     insightJobClassNameToExpectedJobName.put(
         "com.sonatype.insight.brain.git.PullRequestStateUpdateJob",
         "PullRequestStateUpdateJob");
+    insightJobClassNameToExpectedJobName.put(
+        "com.sonatype.insight.brain.service.CopyStorageTask",
+        "CopyStorageTask");
   }
 
   @Inject

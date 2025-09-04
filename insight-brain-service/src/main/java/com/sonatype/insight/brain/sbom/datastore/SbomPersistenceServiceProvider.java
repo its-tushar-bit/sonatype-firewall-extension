@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
-public class SbomPersistenceServiceProvider implements Provider<SbomPersistenceService>
+public class SbomPersistenceServiceProvider
+    implements Provider<SbomPersistenceService>
 {
   private static final Logger log = LoggerFactory.getLogger(SbomPersistenceServiceProvider.class);
   
@@ -53,7 +54,7 @@ public class SbomPersistenceServiceProvider implements Provider<SbomPersistenceS
     return get(insightConfig.getStorage().getType());
   }
 
-  public SbomPersistenceService get(DataStoreType dataStoreType) {
+  public SbomPersistenceService get(final DataStoreType dataStoreType) {
     return switch (dataStoreType) {
       case FILE -> {
         log.info("Using FileSbomPersistenceService");

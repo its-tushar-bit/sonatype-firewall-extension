@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -328,6 +329,13 @@ public class S3ApplicationReportPersistenceService
     return S3ReportEntity.class;
   }
 
+  @Override
+  @Trace
+  public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
+    S3ReportEntity s3ReportEntity = (S3ReportEntity) reportEntity;
+    deleteByKey(s3ReportEntity.key);
+  }
+
   private ReportEntity getOrCreateCacheReportEntity(
       final String applicationId,
       final String scanId,
@@ -464,6 +472,16 @@ public class S3ApplicationReportPersistenceService
           .filter(entity -> !excludeNames.contains(entity.getName()))
           .collect(Collectors.toSet());
     }
+  }
+
+  @Override
+  @Trace
+  public Stream<ReportEntity> getOriginalReportEntities(
+      final String applicationId,
+      final String scanId) throws IOException
+  {
+    Stream<S3ReportEntity> originalEntities = getOriginalEntities(applicationId, scanId, Collections.emptySet());
+    return originalEntities.map(Function.identity());
   }
 
   private Stream<S3ReportEntity> getOriginalEntities(

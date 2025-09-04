@@ -273,4 +273,11 @@ public abstract class AbstractScanPersistenceServiceTest
    */
   @Test
   public abstract void testExceptionHandlingAndCleanup() throws Exception;
+
+  @Test
+  public void testGetScanId() {
+    ScanEntity scanEntity = service.getScan(APPLICATION_ID, SCAN_ID);
+
+    assertThat(scanEntity.getScanId()).isEqualTo(SCAN_ID);
+  }
 }

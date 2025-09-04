@@ -7,6 +7,9 @@
 package com.sonatype.insight.brain.sbom.datastore;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -297,5 +300,25 @@ public class S3SbomPersistenceServiceTest
     // Verify they are deleted
     assertThatThrownBy(() -> oldEntity1.getInputStream()).isInstanceOf(IOException.class);
     assertThatThrownBy(() -> oldEntity2.getInputStream()).isInstanceOf(IOException.class);
+  }
+
+  @Test
+  public void testMoveSbomEntity() throws Exception {
+    String content = "some content";
+    SbomEntity from = service.getPermanentSbom(APP_ID, FILE_NAME);
+    try (OutputStream outputStream = from.getOutputStream()) {
+      outputStream.write(content.getBytes(StandardCharsets.UTF_8));
+    }
+    SbomEntity to = service.getPermanentSbom(APP_ID + "2", FILE_NAME);
+    assertThat(from.exists()).isTrue();
+    assertThat(to.exists()).isFalse();
+
+    service.moveSbomEntity(from, to);
+
+    assertThat(from.exists()).isFalse();
+    assertThat(to.exists()).isTrue();
+    try (InputStream inputStream = to.getInputStream()) {
+      assertThat(new String(inputStream.readAllBytes(), StandardCharsets.UTF_8)).isEqualTo(content);
+    }
   }
 }

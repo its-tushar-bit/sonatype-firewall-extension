@@ -1265,6 +1265,56 @@ public class ThirdPartySbomMetadataDAOTest
     assertThat(dto.getIsValid()).isEqualTo(true);
   }
 
+  @Test
+  public void testGetActiveByApplicationId_Paged() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+
+    assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2)).isEmpty();
+    assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    ThirdPartySbomMetadata sbom1 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName1");
+    Thread.sleep(50);
+
+    assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom1.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    ThirdPartySbomMetadata sbom2 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName2");
+    Thread.sleep(50);
+
+    assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom1.getId(), sbom2.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2)).isEmpty();
+    assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    ThirdPartySbomMetadata sbom3 = tempEntity.newThirdPartySbomMetadata(app.getId(), ACTIVE, "fileName3");
+    Thread.sleep(50);
+
+    assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom1.getId(), sbom2.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom3.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+
+    tempEntity.newThirdPartySbomMetadata(app.getId(), UPLOADED, "fileName4");
+    Thread.sleep(50);
+    tempEntity.newThirdPartySbomMetadata(app.getId(), PENDING, "fileName5");
+
+    assertThat(dao.getActiveByApplicationId(app.getId(), 1, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom1.getId(), sbom2.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 2, 2))
+        .extracting(ThirdPartySbomMetadata::getId)
+        .containsExactly(sbom3.getId());
+    assertThat(dao.getActiveByApplicationId(app.getId(), 3, 2)).isEmpty();
+  }
+
   private void insertVEXToThirdPartyCoordinateSecurity(ThirdPartyCoordinateSecurity coordinateSecurity) {
     tempEntity.newThirdPartyVulnerabilityExploitabilityExchange(coordinateSecurity, coordinateSecurity.getRefId(),
         "state", "justification", "response", "detail");

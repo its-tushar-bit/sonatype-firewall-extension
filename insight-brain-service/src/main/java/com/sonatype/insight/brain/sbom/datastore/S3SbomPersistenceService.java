@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
@@ -151,6 +152,23 @@ public class S3SbomPersistenceService
         log.debug("Deleted {} transient SBOMs older than {}", keysToDelete.size(), instant);
       }
     }
+  }
+
+  @Override
+  public void moveSbomEntity(final SbomEntity from, final SbomEntity to) throws IOException {
+    S3SbomEntity fromS3 = (S3SbomEntity) from;
+    S3SbomEntity toS3 = (S3SbomEntity) to;
+
+    CopyObjectRequest copyRequest = CopyObjectRequest.builder()
+        .sourceBucket(s3DataStoreConfig.getBucketName())
+        .sourceKey(fromS3.key().toString())
+        .destinationBucket(s3DataStoreConfig.getBucketName())
+        .destinationKey(toS3.key().toString())
+        .build();
+
+    wrapS3Exception(() -> s3Client.copyObject(copyRequest));
+
+    deleteByKey(fromS3.key());
   }
 
   private String generateTempFileName(final String fileName) {

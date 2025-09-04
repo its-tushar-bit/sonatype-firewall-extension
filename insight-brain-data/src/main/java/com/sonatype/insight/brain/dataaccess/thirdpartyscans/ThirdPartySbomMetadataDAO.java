@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -122,6 +121,33 @@ public class ThirdPartySbomMetadataDAO
         " WHERE entity.applicationId=?1" + //
         " AND entity.status=?2";
     return getList(sQuery, applicationId, ACTIVE);
+  }
+
+  public List<ThirdPartySbomMetadata> getActiveByApplicationId(
+      final String applicationId,
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getActiveByApplicationId(tx, applicationId, page, pageSize);
+    }
+  }
+
+  public List<ThirdPartySbomMetadata> getActiveByApplicationId(
+      final TransactionContext tx,
+      final String applicationId,
+      final int page,
+      final int pageSize)
+  {
+    String sQuery = "SELECT entity FROM ThirdPartySbomMetadata entity " +
+        " WHERE entity.applicationId=?1" +
+        " AND entity.status=?2" +
+        " ORDER BY entity.createdAt, entity.id";
+    int offset = (page - 1) * pageSize;
+    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, applicationId);
+    paginationQuery.setParameter(2, ACTIVE);
+    return paginationQuery.getResultList();
   }
 
   public ThirdPartySbomMetadata getLatestActiveByApplicationId(String applicationId) {

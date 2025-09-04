@@ -417,6 +417,32 @@ public class PolicyEvaluationDAO
     return query.getList();
   }
 
+  public List<PolicyEvaluation> getByApplicationId(
+      final String applicationId,
+      final int page,
+      final int pageSize)
+  {
+    try (TransactionContext tx = createTransactionContext()) {
+      return getByApplicationId(tx, applicationId, page, pageSize);
+    }
+  }
+
+  public List<PolicyEvaluation> getByApplicationId(
+      final TransactionContext tx,
+      final String applicationId,
+      final int page,
+      final int pageSize)
+  {
+    String sQuery = "SELECT entity FROM PolicyEvaluation entity" +
+        " WHERE entity.applicationId = ?1 " +
+        " AND entity.isForObsoleteScan = false" +
+        " ORDER BY entity.time, entity.id";
+    int offset = (page - 1) * pageSize;
+    jakarta.persistence.Query paginationQuery = createPaginationQuery(tx, sQuery, offset, pageSize);
+    paginationQuery.setParameter(1, applicationId);
+    return paginationQuery.getResultList();
+  }
+
   /**
    * Fetches the latest policy evaluation for the given application, commit hash and stage, if any.
    * It returns {@code null} if no matches are found, or if commit hash is blank/missing.

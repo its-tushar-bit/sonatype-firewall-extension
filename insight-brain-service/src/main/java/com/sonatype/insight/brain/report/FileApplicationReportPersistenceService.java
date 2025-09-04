@@ -13,6 +13,7 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -249,6 +250,14 @@ public class FileApplicationReportPersistenceService
 
   @Override
   @Trace
+  public Stream<ReportEntity> getOriginalReportEntities(final String applicationId, final String scanId)
+      throws IOException
+  {
+    return getOriginalEntities(applicationId, scanId, Collections.emptySet());
+  }
+
+  @Override
+  @Trace
   public void saveOriginalReport(
       final String applicationId,
       final String scanId,
@@ -357,6 +366,13 @@ public class FileApplicationReportPersistenceService
   @Trace
   public void deleteReports(final String applicationId) throws IOException {
     fileCleaner.delete(getReportsForApplicationPath(applicationId).toFile());
+  }
+
+  @Override
+  @Trace
+  public void deleteReportEntity(final ReportEntity reportEntity) throws IOException {
+    FileReportEntity fileReportEntity = (FileReportEntity) reportEntity;
+    Files.deleteIfExists(fileReportEntity.entityPath);
   }
 
   private ReportEntity getAdditionalReportEntity(

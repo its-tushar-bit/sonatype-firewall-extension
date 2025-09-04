@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.successmetrics.FirewallMetricsName;
 import com.sonatype.insight.brain.roi.dto.RoiFirewallMetricsDTO;
 
 import com.codahale.metrics.annotation.Timed;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -68,6 +69,7 @@ public class ApiFirewallMetricsResource
   @GET
   @Path(ROI_FIREWALL_METRICS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
+  @Hidden
   @Operation(description = "Use this method to retrieve ROI malware defense metrics for the specified currency type." +
       "\n" +
       "\n" +

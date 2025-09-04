@@ -34,6 +34,8 @@ public class PolicyMonitorScheduler
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
 
+  private static final int CONTINUOUS_MONITORING_TIME_WINDOW = 120;
+
   private final Configuration configuration;
 
   private final ProductLicense productLicense;
@@ -71,7 +73,10 @@ public class PolicyMonitorScheduler
     }
     log.info("Policy Monitor is licensed");
     // randomize minute to avoid coordinated load spike for HDS scan processing
-    LocalTime startTime = LocalTime.of(configuration.getPolicyMonitoringHour(), new Random().nextInt(15));
+    LocalTime policyMonitoringStartHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
+    LocalTime startTime = policyMonitoringStartHour
+            .plusMinutes(new Random().nextInt(CONTINUOUS_MONITORING_TIME_WINDOW));
+
     // The policyMonitoringTask instance used here is used only for scheduling.
     // When the task is actually run, quartz creates a new PolicyMonitoringTask instance, which for MTIQ means one
     // PolicyMonitoringTask instance per tenant.

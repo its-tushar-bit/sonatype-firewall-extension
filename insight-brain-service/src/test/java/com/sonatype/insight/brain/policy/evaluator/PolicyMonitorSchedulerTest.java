@@ -76,8 +76,10 @@ public class PolicyMonitorSchedulerTest
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
     verify(taskSchedulerMock).scheduleDailyTask(any(PolicyMonitoringTask.class),
         startTimeCaptor.capture());
+
+    LocalTime policyMonitoringHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
-        LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
+            policyMonitoringHour.plusMinutes(120));
   }
 
   @Test
@@ -93,8 +95,10 @@ public class PolicyMonitorSchedulerTest
     ArgumentCaptor<LocalTime> startTimeCaptor = ArgumentCaptor.forClass(LocalTime.class);
     verify(taskSchedulerMock).scheduleDailyTask(any(PolicyMonitoringTask.class),
         startTimeCaptor.capture());
+
+    LocalTime policyMonitoringHour = LocalTime.of(configuration.getPolicyMonitoringHour(), 0);
     assertThat(startTimeCaptor.getValue()).isBetween(LocalTime.of(configuration.getPolicyMonitoringHour(), 0),
-        LocalTime.of(configuration.getPolicyMonitoringHour(), 15));
+            policyMonitoringHour.plusMinutes(120));
   }
 
   @Test

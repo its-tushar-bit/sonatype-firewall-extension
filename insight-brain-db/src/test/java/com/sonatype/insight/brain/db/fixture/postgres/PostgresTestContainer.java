@@ -13,7 +13,6 @@ import com.github.dockerjava.api.command.CreateContainerCmd;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.containers.wait.strategy.Wait;
 
 /**
  * Custom extension of the testcontainers.org {@link PostgreSQLContainer} which retains our legacy database name,
@@ -37,7 +36,6 @@ class PostgresTestContainer
     withDatabaseName(DEFAULT_NAME);
     withUsername(DEFAULT_USERNAME);
     withPassword(DEFAULT_PASSWORD);
-    waitingFor(Wait.forListeningPort());
 
     // assign a static container name for easier access from the console
     withCreateContainerCmdModifier((Consumer<CreateContainerCmd>) PostgresTestContainer::assignContainerName);

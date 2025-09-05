@@ -965,6 +965,7 @@ CREATE TABLE source_control_event (
   status_id varchar(50),
   user_agent varchar(255),
   scan_trigger_type varchar(50),
+  is_golden_pull_request boolean,
   CONSTRAINT source_control_event_pk PRIMARY KEY (source_control_event_id),
   CONSTRAINT source_control_event_application_fk FOREIGN KEY (application_id)
     REFERENCES application (application_id) ON DELETE CASCADE,

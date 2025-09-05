@@ -62,7 +62,7 @@ public abstract class BasePullRequestCreationService
    * Create source control event for PR creation (both automated and manual)
    */
   protected SourceControlEvent createPullRequestEvent(
-      final PullRequestRemediationDetails prDetails, boolean isManual)
+      final PullRequestRemediationDetails prDetails, boolean isManual, boolean isGolden)
   {
     SourceControlEvent event = new SourceControlEvent()
         .withComponentIdentifier(prDetails.getToBeRemediated())
@@ -72,7 +72,8 @@ public abstract class BasePullRequestCreationService
         .setStageTypeId(prDetails.getStage())
         .setBranchName(prDetails.getPullRequestBranchName())
         .setPullRequestContents(prDetails.getContents())
-        .setInitiator(isManual ? MANUAL_REQUEST : POLICY_ALERT);
+        .setInitiator(isManual ? MANUAL_REQUEST : POLICY_ALERT)
+        .setIsGoldenPullRequest(isGolden);
 
     return isManual ? event.forManualRemediationPullRequest() : event.forRemediationPullRequest();
   }

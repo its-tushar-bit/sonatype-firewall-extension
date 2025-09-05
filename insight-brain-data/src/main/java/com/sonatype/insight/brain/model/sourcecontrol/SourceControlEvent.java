@@ -205,6 +205,9 @@ public class  SourceControlEvent
   @Enumerated(EnumType.STRING)
   private ScanTriggerType scanTriggerType;
 
+  @Column(name = "is_golden_pull_request")
+  private Boolean goldenPullRequest;
+
   public SourceControlEvent() {
     eventStatus = EVENT_STATUS_NEW;
     createTime = new Date();
@@ -544,6 +547,15 @@ public class  SourceControlEvent
     return this;
   }
 
+  public Boolean isGoldenPullRequest() {
+    return goldenPullRequest;
+  }
+
+  public SourceControlEvent setIsGoldenPullRequest(Boolean goldenPullRequest) {
+    this.goldenPullRequest = goldenPullRequest;
+    return this;
+  }
+
   public SourceControlEvent copyAsNew() {
     SourceControlEvent event = new SourceControlEvent()
         .setApplicationId(applicationId)
@@ -570,6 +582,7 @@ public class  SourceControlEvent
         .setSevereComponentCount(severeComponentCount)
         .setStageTypeId(stageTypeId)
         .setStatusId(statusId)
+        .setIsGoldenPullRequest(goldenPullRequest)
         .setUserAgent(userAgent);
     event.setComponentIdentifier(getComponentIdentifier());
     return event;

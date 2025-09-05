@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.sourcecontrol;
 
+import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -219,5 +220,9 @@ public class SourceControlUtils
     gitRepositoryInfo.manualPullRequestsEnabled = sourceControl.getManualPullRequestsEnabled();
 
     return gitRepositoryInfo;
+  }
+
+  public static boolean isGolden(ApiVersionChangeOptionType remediationType) {
+    return ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES.equals(remediationType);
   }
 }

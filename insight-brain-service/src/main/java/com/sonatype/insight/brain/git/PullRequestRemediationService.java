@@ -5,6 +5,11 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import java.io.IOException;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -46,6 +51,8 @@ public class PullRequestRemediationService
 
   private final SourceControlUtils sourceControlUtils;
 
+  private final TelemetryUtils telemetryUtils;
+
   private final Provider<PullRequestTask> pullRequestTaskProvider;
 
   private final SourceControlSshService sourceControlSshService;
@@ -56,6 +63,8 @@ public class PullRequestRemediationService
   
   private final InnerSourceApplicationDAO innerSourceApplicationDAO;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public PullRequestRemediationService(
       PullRequestExecutor pullRequestExecutor,
@@ -63,22 +72,26 @@ public class PullRequestRemediationService
       ApplicationDAO applicationDAO,
       OrganizationDAO organizationDAO,
       SourceControlUtils sourceControlUtils,
+      TelemetryUtils telemetryUtils,
       Provider<PullRequestTask> pullRequestTaskProvider,
       SourceControlSshService sourceControlSshService,
       SourceControlEventDAO sourceControlEventDAO,
       ScmReducedSecurityService scmReducedSecurityService,
-      InnerSourceApplicationDAO innerSourceApplicationDAO)
+      InnerSourceApplicationDAO innerSourceApplicationDAO,
+      TelemetrySender telemetrySender)
   {
     this.pullRequestExecutor = pullRequestExecutor;
     this.gitClientFactory = gitClientFactory;
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.sourceControlUtils = sourceControlUtils;
+    this.telemetryUtils = telemetryUtils;
     this.pullRequestTaskProvider = pullRequestTaskProvider;
     this.sourceControlSshService = sourceControlSshService;
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.scmReducedSecurityService = scmReducedSecurityService;
     this.innerSourceApplicationDAO = innerSourceApplicationDAO;
+    this.telemetrySender = telemetrySender;
   }
 
   /**
@@ -124,6 +137,8 @@ public class PullRequestRemediationService
         Integer pullRequestNumber = extractPullRequestNumber(pullRequestResult.getPullRequestUrl());
         if (pullRequestNumber != null) {
           event.setPullRequestNumber(pullRequestNumber);
+          // Record telemetry for all remediation PRs
+          collectAndSendPullRequestTelemetry(event, pullRequestRemediationDetails);
         }
         sourceControlEventDAO.update(event);
       }
@@ -187,5 +202,25 @@ public class PullRequestRemediationService
       log.warn("Failed to extract pull request number from URL: {}", url, e);
       return null;
     }
+  }
+
+  private void collectAndSendPullRequestTelemetry(
+      SourceControlEvent event,
+      PullRequestRemediationDetails pullRequestRemediationDetails)
+  {
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+
+    telemetryData.put("application_id", telemetryUtils.obfuscate(event.getApplicationId()));
+    telemetryData.put("date_created", event.getCreateTime());
+    telemetryData.put("pull_request_type",
+        pullRequestRemediationDetails.isManualPullRequest()
+            ? PullRequestSource.MANUAL.name()
+            : PullRequestSource.AUTOMATIC.name());
+    telemetryData.put("pull_request_number", event.getPullRequestNumber());
+    telemetryData.put("is_golden", event.isGoldenPullRequest());
+    telemetryData.put("component_package_url",
+        PackageUrlIdentifier.fromComponentIdentifier(event.getComponentIdentifier()).getPackageUrl());
+
+    telemetrySender.send(telemetryData);
   }
 }

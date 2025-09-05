@@ -5,6 +5,12 @@
  */
 package com.sonatype.insight.brain.git;
 
+import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import java.io.IOException;
 import javax.inject.Provider;
 
@@ -74,6 +80,12 @@ public class PullRequestRemediationServiceTest
   @Mock
   private ScmReducedSecurityService mockScmReducedSecurityService;
 
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+
+  @Mock
+  private TelemetryUtils mockTelemetryUtils;
+
   // subject
   private PullRequestRemediationService pullRequestRemediationService;
 
@@ -90,9 +102,9 @@ public class PullRequestRemediationServiceTest
     super.setup();
     organizationDAO = daoFactory.createOrganizationDAO();
     pullRequestRemediationService = new PullRequestRemediationService(mockPullRequestExecutor, mockGitClientFactory,
-        mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockPullRequestTaskProvider,
+        mockApplicationDAO, organizationDAO, mockSourceControlUtils, mockTelemetryUtils, mockPullRequestTaskProvider,
         mockSourceControlSshService, mockSourceControlEventDAO, mockScmReducedSecurityService,
-        mockInnerSourceApplicationDAO);
+        mockInnerSourceApplicationDAO, mockTelemetrySender);
   }
 
   private Application setupApplication(String appId) {
@@ -320,6 +332,234 @@ public class PullRequestRemediationServiceTest
   private void setupBranchExistence(String branchName, boolean exists) throws IOException {
     when(mockGitClientFactory.createApiClient(any(GitRepositoryInfo.class))).thenReturn(mockGitApiClient);
     when(mockGitApiClient.isBranchOnServer(branchName)).thenReturn(exists);
+  }
+
+  @Test
+  public void testOnRemediateComponent_telemetryIsSent() throws Exception {
+    // expect:
+    final String branchName = "telemetry/test/branch";
+    final String appId = "app-123-telemetry";
+    final String toVersion = "2.1.0";
+    final String scanId = "scan-telemetry-123";
+    final String stage = Stage.ID_BUILD;
+    final String prContents = "telemetry test PR contents";
+    final ComponentIdentifier componentId =
+        ComponentIdentifier.createMavenCoordinates("com.test", "test-artifact", "1.0.0");
+    final String purl = PackageUrlIdentifier.fromComponentIdentifier(componentId).getPackageUrl();
+    final String prUrl = "https://github.com/sonatype/test/pull/123";
+
+    // given: successful PR creation scenario
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+    when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+
+    // create automatic remediation event (manual = false by default)
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(componentId)
+        .setApplicationId(application.getId())
+        .setRemediationVersion(toVersion)
+        .setScanId(scanId)
+        .setStageTypeId(stage)
+        .setPullRequestContents(prContents)
+        .setBranchName(branchName)
+        .setIsGoldenPullRequest(true); // set as golden PR
+
+    // when: remediate component successfully
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    // then: verify telemetry was sent with correct data
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
+    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.AUTOMATIC.name());
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(123);
+    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
+
+    // also verify the event was updated with PR details
+    verify(mockSourceControlEventDAO).update(event);
+    assertThat(event.getEventStatusDetails()).isEqualTo(prUrl);
+    assertThat(event.getPullRequestNumber()).isEqualTo(123);
+  }
+
+  @Test
+  public void testOnRemediateComponent_manualPR_telemetryIsSentWithCorrectType() throws Exception {
+    // expect:
+    final String branchName = "manual/telemetry/branch";
+    final String appId = "app-456-manual";
+    final String toVersion = "3.0.0";
+    final String scanId = "scan-manual-456";
+    final String stage = Stage.ID_BUILD;
+    final String prContents = "manual PR telemetry test";
+    final ComponentIdentifier componentId = ComponentIdentifier.createNpmCoordinates("test-package", "2.0.0");
+    final String purl = PackageUrlIdentifier.fromComponentIdentifier(componentId).getPackageUrl();
+    final String prUrl = "https://gitlab.com/sonatype/test/-/merge_requests/456";
+
+    // given: successful manual PR creation scenario
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+    when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+
+    // create manual remediation event
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(componentId)
+        .setApplicationId(application.getId())
+        .setRemediationVersion(toVersion)
+        .setScanId(scanId)
+        .setStageTypeId(stage)
+        .setPullRequestContents(prContents)
+        .setBranchName(branchName)
+        .setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT)
+        .setIsGoldenPullRequest(false); // non-golden manual PR
+
+    // when: remediate component successfully
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    // then: verify telemetry was sent with correct manual PR type
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
+    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.MANUAL.name());
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(456);
+    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
+
+    // also verify the event was updated
+    verify(mockSourceControlEventDAO).update(event);
+    assertThat(event.getEventStatusDetails()).isEqualTo(prUrl);
+    assertThat(event.getPullRequestNumber()).isEqualTo(456);
+  }
+
+  @Test
+  public void testOnRemediateComponent_manualGoldenPR_telemetryIsSentWithCorrectFlags() throws Exception {
+    // expect:
+    final String branchName = "manual-golden/telemetry/branch";
+    final String appId = "app-789-manual-golden";
+    final String toVersion = "4.0.0";
+    final String scanId = "scan-manual-golden-789";
+    final String stage = Stage.ID_BUILD;
+    final String prContents = "manual golden PR telemetry test";
+    final ComponentIdentifier componentId =
+        ComponentIdentifier.createMavenCoordinates("com.example", "golden-artifact", "3.0.0");
+    final String purl = PackageUrlIdentifier.fromComponentIdentifier(componentId).getPackageUrl();
+    final String prUrl = "https://github.com/sonatype/test/pull/789";
+
+    // given: successful manual golden PR creation scenario
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+    when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+
+    // create manual golden remediation event
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(componentId)
+        .setApplicationId(application.getId())
+        .setRemediationVersion(toVersion)
+        .setScanId(scanId)
+        .setStageTypeId(stage)
+        .setPullRequestContents(prContents)
+        .setBranchName(branchName)
+        .setEventType(SourceControlEvent.MANUAL_REMEDIATION_PULL_REQUEST_EVENT)
+        .setIsGoldenPullRequest(true); // golden manual PR
+
+    // when: remediate component successfully
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    // then: verify telemetry was sent with correct manual golden flags
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
+    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.MANUAL.name());
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(789);
+    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
+
+    // also verify the event was updated
+    verify(mockSourceControlEventDAO).update(event);
+    assertThat(event.getEventStatusDetails()).isEqualTo(prUrl);
+    assertThat(event.getPullRequestNumber()).isEqualTo(789);
+  }
+
+  @Test
+  public void testOnRemediateComponent_autoNonGoldenPR_telemetryIsSentWithCorrectFlags() throws Exception {
+    // expect:
+    final String branchName = "auto-non-golden/telemetry/branch";
+    final String appId = "app-101-auto-non-golden";
+    final String toVersion = "5.0.0";
+    final String scanId = "scan-auto-non-golden-101";
+    final String stage = Stage.ID_BUILD;
+    final String prContents = "automatic non-golden PR telemetry test";
+    final ComponentIdentifier componentId = ComponentIdentifier.createNpmCoordinates("auto-package", "4.0.0");
+    final String purl = PackageUrlIdentifier.fromComponentIdentifier(componentId).getPackageUrl();
+    final String prUrl = "https://bitbucket.org/sonatype/test/pull-requests/101";
+
+    // given: successful automatic non-golden PR creation scenario
+    Application application = setupApplication(appId);
+    setupBranchExistence(branchName, false);
+    setupGitRepositoryInfoForApp(appId);
+
+    when(mockPullRequestTaskProvider.get()).thenReturn(mockPullRequestTask);
+    PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
+    when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
+    when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+
+    // create automatic non-golden remediation event (automatic is default)
+    SourceControlEvent event = new SourceControlEvent()
+        .withComponentIdentifier(componentId)
+        .setApplicationId(application.getId())
+        .setRemediationVersion(toVersion)
+        .setScanId(scanId)
+        .setStageTypeId(stage)
+        .setPullRequestContents(prContents)
+        .setBranchName(branchName)
+        .setIsGoldenPullRequest(false); // non-golden automatic PR
+
+    // when: remediate component successfully
+    pullRequestRemediationService.onRemediateComponent(event);
+
+    // then: verify telemetry was sent with correct automatic non-golden flags
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
+    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.AUTOMATIC.name());
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(101);
+    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
+
+    // also verify the event was updated
+    verify(mockSourceControlEventDAO).update(event);
+    assertThat(event.getEventStatusDetails()).isEqualTo(prUrl);
+    assertThat(event.getPullRequestNumber()).isEqualTo(101);
   }
 
   private void verifySshServiceInvoked(String appId) {

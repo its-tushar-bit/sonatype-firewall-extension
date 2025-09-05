@@ -234,8 +234,10 @@ public class ManualPullRequestCreationService
         reducedSecurityData,
         isInnerSourceComponent);
 
-    SourceControlEvent event = createPullRequestEvent(prDetails, true);
+    SourceControlEvent event = createPullRequestEvent(prDetails, true,
+        SourceControlUtils.isGolden(applicableVersionChange.get().getRemediationType()));
     eventPublisher.publishEvent(event);
+
     log.info("Sent manual pull request event for application '{}' component '{}'",
         app.getId(), ComponentDisplayNameUtil.fromIdentifier(componentIdentifier));
 

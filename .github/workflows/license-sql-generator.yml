@@ -1,0 +1,41 @@
+name: Generate and Commit License SQL
+
+on:
+  workflow_dispatch:
+
+# needed so the action can push a branch and open a PR
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  generate-sql:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo (base = main)
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run script to generate SQL files
+        working-directory: ./scripts
+        run: node generate-licenses.js
+
+      - name: Create PR with generated SQL
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          title: "chore: update license SQL files"
+          body: |
+            Automated update of generated license SQL files.
+            Created by GitHub Actions run ${{ github.run_id }}.
+          commit-message: "chore: update license SQL files"
+          base: main
+          branch: "auto/license-sql"
+          branch-suffix: "random"

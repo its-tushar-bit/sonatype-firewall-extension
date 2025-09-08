@@ -30,8 +30,9 @@ public class AsyncEventBusImpl
     ThreadFactory threadFactory = new ThreadFactoryBuilder().setDaemon(true).setNameFormat("AsyncEventBusThread-%d")
         .build();
 
-    threadPoolExecutor = new TenantThreadPoolExecutor(0, maxPoolSize, 60L, TimeUnit.SECONDS,
-        new SynchronousQueue<>(), threadFactory, new AsyncEventBusDiscardPolicy());
+    threadPoolExecutor =
+        new TenantThreadPoolExecutor(0, maxPoolSize, 60L, TimeUnit.SECONDS, new SynchronousQueue<>(), threadFactory,
+            new AsyncEventBusDiscardPolicy(), "async_event_bus", "AsyncEventBusImpl");
 
     delegate = new TenantAwareEventBus(threadPoolExecutor, new AsyncEventBusExceptionHandler());
   }

@@ -27,7 +27,8 @@ public class SourceControlImportThreadPoolExecutor
 
   public SourceControlImportThreadPoolExecutor(int threadPoolSize) {
     super(threadPoolSize, threadPoolSize, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setNameFormat("SourceControlImportService-%d").build());
+        new ThreadFactoryBuilder().setNameFormat("SourceControlImportService-%d").build(), new AbortPolicy(),
+        "source_control_import", "ScmOnboardingService");
   }
 
   @Override

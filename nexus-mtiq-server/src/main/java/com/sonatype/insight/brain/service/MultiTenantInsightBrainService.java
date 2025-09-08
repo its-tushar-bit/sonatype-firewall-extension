@@ -75,6 +75,7 @@ import com.sonatype.insight.brain.telemetry.MultiTenantTelemetryCollectorsProvid
 import com.sonatype.insight.brain.telemetry.TelemetryCollectorsProvider;
 import com.sonatype.insight.brain.tenancy.AdminTasksTenantFilter;
 import com.sonatype.insight.brain.tenancy.AdminTenantFilter;
+import com.sonatype.insight.brain.tenancy.MeteredThreadPoolExecutor;
 import com.sonatype.insight.brain.tenancy.MultiTenantExecutorThreadPools;
 import com.sonatype.insight.brain.tenancy.MultiTenantTenantManagedInitializer;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
@@ -366,6 +367,7 @@ public class MultiTenantInsightBrainService
         requestStaticInjection(ConfigurationUtils.class);
         requestStaticInjection(ComponentDetailsLoader.class);
         requestStaticInjection(SystemConfigurationPropertyFeature.class);
+        requestStaticInjection(MeteredThreadPoolExecutor.class);
 
         bind(TenantManagedInitializer.class).to(MultiTenantTenantManagedInitializer.class).in(Singleton.class);
 

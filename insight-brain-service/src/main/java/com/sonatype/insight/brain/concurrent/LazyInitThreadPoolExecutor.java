@@ -120,7 +120,8 @@ public class LazyInitThreadPoolExecutor
         BlockingQueue<Runnable> workQueue,
         ThreadFactory threadFactory)
     {
-      super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
+      super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, new AbortPolicy(),
+          "source_control_events", "SourceControlEventProcessor");
       this.shouldClearShiroThreadContextBeforeThreadStart = shouldClearShiroThreadContextBeforeThreadStart;
     }
 

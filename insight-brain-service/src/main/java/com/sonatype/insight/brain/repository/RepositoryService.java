@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -254,9 +255,10 @@ public class RepositoryService
   }
 
   private static ThreadPoolExecutor createReevaluationExecutor() {
-    ThreadPoolExecutor executor = new TenantThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true)
-        .setNameFormat("ReevaluateRepository-%s").build());
+    ThreadPoolExecutor executor =
+        new TenantThreadPoolExecutor(20, 20, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+            new ThreadFactoryBuilder().setDaemon(true).setNameFormat("ReevaluateRepository-%s").build(),
+            new AbortPolicy(), "reevaluate_repository", "RepositoryService");
     executor.allowCoreThreadTimeOut(true);
     return executor;
   }

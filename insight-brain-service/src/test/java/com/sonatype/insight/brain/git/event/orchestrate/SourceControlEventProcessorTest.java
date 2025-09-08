@@ -6,9 +6,12 @@
 package com.sonatype.insight.brain.git.event.orchestrate;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.concurrent.LazyInitThreadPoolExecutor;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
@@ -24,9 +27,15 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.tenancy.MeteredThreadPoolExecutor;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.nexus.git.utils.api.GitException;
 
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.groups.Tuple;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -382,6 +391,59 @@ public class SourceControlEventProcessorTest
     // And both events should complete successfully
     verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(statusUpdateEvent));
     verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(repoScanEvent));
+  }
+
+  @Test
+  public void testProcessEvent_Meters() throws Exception {
+    Field field = MeteredThreadPoolExecutor.class.getDeclaredField("injectedMeterRegistry");
+    try {
+      MeterRegistry meterRegistry = new SimpleMeterRegistry();
+      field.setAccessible(true);
+      field.set(null, meterRegistry);
+
+      Map<String, String> expectedThreadPoolTags = Map.of(
+          "kind", "source_control_events",
+          "name", "SourceControlEventProcessor"
+      );
+
+      for (String eventType : SourceControlEvent.EVENT_TYPES) {
+        SourceControlEvent event = createEvent();
+        event.setEventType(eventType);
+
+        processEventAndWaitForCompletion(event);
+
+        verifyEventStarted(event);
+        verifyEventCompleted(event);
+
+        Map<String, String> expectedRunnableTags = Map.of(
+            "kind", "source_control_events",
+            "name", "SourceControlEventProcessor",
+            "source_control_event_type", eventType.replaceAll(" ", "_")
+        );
+        Assertions.assertThat(meterRegistry.getMeters())
+            .extracting(meter -> Tuple.tuple(
+                meter.getId().getName(),
+                meter.getId().getTags().stream()
+                    .collect(Collectors.toMap(Tag::getKey, Tag::getValue))
+            ))
+            .contains(
+                Tuple.tuple("executor.active", expectedThreadPoolTags),
+                Tuple.tuple("executor.queued", expectedThreadPoolTags),
+                Tuple.tuple("executor.queue.remaining", expectedThreadPoolTags),
+                Tuple.tuple("executor.pool.size", expectedThreadPoolTags),
+                Tuple.tuple("executor.pool.core", expectedThreadPoolTags),
+                Tuple.tuple("executor.pool.max", expectedThreadPoolTags),
+                Tuple.tuple("executor.idle", expectedRunnableTags),
+                Tuple.tuple("executor", expectedRunnableTags),
+                Tuple.tuple("executor.failed", expectedRunnableTags),
+                Tuple.tuple("executor.completed", expectedRunnableTags)
+            );
+      }
+    }
+    finally {
+      field.set(null, null);
+      field.setAccessible(false);
+    }
   }
 
   private CountDownLatch createOnEventFinishedLatch(SourceControlEvent event) {

@@ -22,9 +22,9 @@ public class PolicyEvaluationThreadPoolExecutor
   // Visible for tests
   static final int THREAD_POOL_SIZE = 200;
 
-  public PolicyEvaluationThreadPoolExecutor(String serviceName) {
+  public PolicyEvaluationThreadPoolExecutor(String kind, String name) {
     super(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setNameFormat(serviceName + "-%d").build());
+        new ThreadFactoryBuilder().setNameFormat(name + "-%d").build(), new AbortPolicy(), kind, name);
 
     allowCoreThreadTimeOut(true);
   }

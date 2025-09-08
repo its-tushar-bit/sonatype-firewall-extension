@@ -178,12 +178,7 @@ public class PolicyEvaluateService
   }
 
   private ExecutorService buildExecutorService() {
-    policyEvaluateServiceMetrics
-        .registerGaugePolicyEvaluationThreadUtilization(PolicyEvaluationThreadPoolExecutor.THREAD_POOL_SIZE);
-
-    return policyEvaluateServiceMetrics
-        .registerAndGetTimedPolicyEvaluationExecutor(
-            new PolicyEvaluationThreadPoolExecutor(PolicyEvaluateService.class.getName()));
+    return new PolicyEvaluationThreadPoolExecutor("policy_evaluation", PolicyEvaluateService.class.getName());
   }
 
   // Visible for testing

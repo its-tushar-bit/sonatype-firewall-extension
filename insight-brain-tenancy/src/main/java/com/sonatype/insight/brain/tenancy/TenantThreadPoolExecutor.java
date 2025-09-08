@@ -12,14 +12,14 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import io.micrometer.core.instrument.Tags;
 import org.jetbrains.annotations.NotNull;
 
 public class TenantThreadPoolExecutor
-    extends ThreadPoolExecutor
+    extends MeteredThreadPoolExecutor
 {
   public TenantThreadPoolExecutor(
       int corePoolSize,
@@ -27,20 +27,13 @@ public class TenantThreadPoolExecutor
       long keepAliveTime,
       TimeUnit unit,
       BlockingQueue<Runnable> workQueue,
-      ThreadFactory threadFactory)
+      ThreadFactory threadFactory,
+      RejectedExecutionHandler handler,
+      String kind,
+      String name)
   {
-    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
-  }
-
-  public TenantThreadPoolExecutor(int corePoolSize,
-                            int maximumPoolSize,
-                            long keepAliveTime,
-                            TimeUnit unit,
-                            BlockingQueue<Runnable> workQueue,
-                            ThreadFactory threadFactory,
-                            RejectedExecutionHandler handler)
-  {
-    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler);
+    super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory, handler,
+        Tags.of(KIND_TAG, kind, NAME_TAG, name));
   }
 
   @Override

@@ -101,11 +101,7 @@ public class ComponentAnalysisService
   }
 
   private ExecutorService buildExecutorService() {
-    /**
-     * TODO: Add metrics to the executor service similar to what is done on the policy evaluation executor
-     */
-
-    return new PolicyEvaluationThreadPoolExecutor(ComponentAnalysisService.class.getName());
+    return new PolicyEvaluationThreadPoolExecutor("component_analysis", ComponentAnalysisService.class.getName());
   }
 
   @VisibleForTesting

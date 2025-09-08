@@ -6,8 +6,6 @@
 package com.sonatype.insight.brain.metrics;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,7 +15,6 @@ import io.micrometer.core.instrument.LongTaskTimer;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
-import io.micrometer.core.instrument.binder.jvm.ExecutorServiceMetrics;
 
 @Named
 @Singleton
@@ -27,8 +24,6 @@ public class PolicyEvaluateServiceMetrics
 
   private static final String METRIC_KIND = "policy_evaluation";
 
-  public static final String THREAD_UTILIZATION = "thread_utilization";
-
   private static final String EVALUATION_LONG_TASK_TIME = "evaluation.in_flight";
 
   private static final String EVALUATION_COMPLETED_NAME = "evaluation_completed";
@@ -37,41 +32,15 @@ public class PolicyEvaluateServiceMetrics
 
   private final MeterRegistry meterRegistry;
 
-  private final AtomicInteger activeEvaluationTask = new AtomicInteger();
-
   @Inject
   public PolicyEvaluateServiceMetrics(@Nullable final MeterRegistry meterRegistry) {
     this.meterRegistry = meterRegistry;
-  }
-
-  public ExecutorService registerAndGetTimedPolicyEvaluationExecutor(final ExecutorService executor) {
-    if (meterRegistry == null) {
-      return executor;
-    }
-
-    return ExecutorServiceMetrics.monitor(meterRegistry,
-        executor,
-        "PolicyEvaluateService",
-        Tags.of(KIND_TAG, METRIC_KIND));
-  }
-
-  public void registerGaugePolicyEvaluationThreadUtilization(final int corePoolSize) {
-    if (meterRegistry == null) {
-      return;
-    }
-
-    meterRegistry.gauge(THREAD_UTILIZATION,
-        Tags.of(KIND_TAG, METRIC_KIND),
-        this,
-        object -> object.activeEvaluationTask.get() * 100 / corePoolSize);
   }
 
   public Sample emitStartPolicyEvaluation() {
     if (meterRegistry == null) {
       return null;
     }
-
-    activeEvaluationTask.incrementAndGet();
 
     return LongTaskTimer.builder(EVALUATION_LONG_TASK_TIME)
         .tag(KIND_TAG, METRIC_KIND)
@@ -83,8 +52,6 @@ public class PolicyEvaluateServiceMetrics
     if (meterRegistry == null) {
       return;
     }
-
-    activeEvaluationTask.decrementAndGet();
 
     long analysisDurationNanos = sample.stop();
     long analysisDurationMs = Duration.ofNanos(analysisDurationNanos).toMillis();

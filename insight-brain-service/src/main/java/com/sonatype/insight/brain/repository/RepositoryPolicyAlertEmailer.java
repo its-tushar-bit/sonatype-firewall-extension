@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -63,7 +64,8 @@ public class RepositoryPolicyAlertEmailer
     this.auditRecorder = auditRecorder;
 
     executor = new TenantThreadPoolExecutor(1000, 1000, 1L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setNameFormat("RepositoryPolicyAlertEmailNotifier-%d").build());
+        new ThreadFactoryBuilder().setNameFormat("RepositoryPolicyAlertEmailNotifier-%d").build(), new AbortPolicy(),
+        "repository_policy_alert_emailer", "RepositoryPolicyAlertEmailer");
     executor.allowCoreThreadTimeOut(true);
     shutdownHandler.add(executor, ShutdownPriority.NOTIFICATIONS);
   }

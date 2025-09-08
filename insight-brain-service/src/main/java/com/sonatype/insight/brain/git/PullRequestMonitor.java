@@ -19,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
@@ -144,8 +145,10 @@ public class PullRequestMonitor
     if (executorService == null) {
       ThreadFactory threadFactory =
           new ThreadFactoryBuilder().setDaemon(true).setNameFormat("PullRequestMonitor-%s").build();
-      ThreadPoolExecutor threadPoolExecutor = new TenantThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L,
-          TimeUnit.MINUTES, new LinkedBlockingQueue<>(), threadFactory);
+      ThreadPoolExecutor threadPoolExecutor =
+          new TenantThreadPoolExecutor(THREAD_POOL_SIZE, THREAD_POOL_SIZE, 5L, TimeUnit.MINUTES,
+              new LinkedBlockingQueue<>(), threadFactory, new AbortPolicy(), "pull_request_monitor",
+              "PullRequestMonitor");
       threadPoolExecutor.allowCoreThreadTimeOut(true);
       executorService = threadPoolExecutor;
       shutdownHandler.add(executorService);

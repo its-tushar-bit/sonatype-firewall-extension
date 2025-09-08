@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -95,7 +96,10 @@ public class ScanService
           SCAN_THREAD_KEEP_ALIVE_TIME_SECONDS,
           TimeUnit.SECONDS,
           new LinkedBlockingQueue<>(),
-          threadFactory
+          threadFactory,
+          new AbortPolicy(),
+          "scan",
+          "ScanService"
       );
       tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
       shutdownHandler.add(tenantThreadPoolExecutor);

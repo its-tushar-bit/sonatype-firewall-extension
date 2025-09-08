@@ -6,17 +6,13 @@
 package com.sonatype.insight.brain.metrics;
 
 import java.time.Duration;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.LongTaskTimer.Sample;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.Timer;
-import io.micrometer.core.instrument.internal.TimedExecutorService;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.AbstractDoubleAssert;
 import org.assertj.core.api.AbstractLongAssert;
@@ -41,56 +37,10 @@ public class PolicyEvaluateServiceMetricsTest
   }
 
   @Test
-  public void testRegisterAndGetTimedPolicyEvaluationExecutor() {
-    ExecutorService executorService = policyEvaluateServiceMetrics
-        .registerAndGetTimedPolicyEvaluationExecutor(Executors.newFixedThreadPool(2));
-
-    assertThat(executorService).isInstanceOf(TimedExecutorService.class);
-  }
-
-  @Test
-  public void testRegisterAndGetTimedPolicyEvaluationExecutor_MeterRegistryIsNull() {
-    policyEvaluateServiceMetrics = new PolicyEvaluateServiceMetrics(null);
-    ExecutorService executorService = Executors.newFixedThreadPool(2);
-
-    ExecutorService result = policyEvaluateServiceMetrics.registerAndGetTimedPolicyEvaluationExecutor(executorService);
-
-    assertThat(result).isEqualTo(executorService);
-    assertThat(executorService).isNotInstanceOf(TimedExecutorService.class);
-  }
-
-  @Test
-  public void testRegisterGaugePolicyEvaluationThreadUtilization() {
-    Gauge gauge = meterRegistry.find("thread_utilization").tag("kind", "policy_evaluation").gauge();
-    assertThat(gauge).isNull();
-
-    policyEvaluateServiceMetrics.registerGaugePolicyEvaluationThreadUtilization(4);
-
-    gauge = meterRegistry.find("thread_utilization").tag("kind", "policy_evaluation").gauge();
-    assertThat(gauge).isNotNull();
-    assertThat(gauge.value()).isZero();
-  }
-
-  @Test
-  public void testRegisterGaugePolicyEvaluationThreadUtilization_MeterRegistryIsNull() {
-    policyEvaluateServiceMetrics = new PolicyEvaluateServiceMetrics(null);
-
-    policyEvaluateServiceMetrics.registerGaugePolicyEvaluationThreadUtilization(4);
-
-    Gauge gauge = meterRegistry.find("thread_utilization").tag("kind", "policy_evaluation").gauge();
-    assertThat(gauge).isNull();
-  }
-
-  @Test
   public void testEmitStartPolicyEvaluation() {
-    policyEvaluateServiceMetrics.registerGaugePolicyEvaluationThreadUtilization(4);
-
     Sample sample = policyEvaluateServiceMetrics.emitStartPolicyEvaluation();
-    Gauge gauge = meterRegistry.find("thread_utilization").tag("kind", "policy_evaluation").gauge();
 
     assertThat(sample).isNotNull();
-    assertThat(gauge).isNotNull();
-    assertThat(gauge.value()).isEqualTo(25);
   }
 
   @Test

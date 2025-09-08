@@ -22,10 +22,12 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TaggedRunnable;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
+import io.micrometer.core.instrument.Tags;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -107,8 +109,10 @@ public class SourceControlEventProcessor
   }
 
   public void processEvent(SourceControlEvent event, SourceControlEventStatusListener statusListener) {
-    lazyInitThreadPoolExecutor.getThreadPoolExecutor()
-        .execute(() -> handleSourceControlEventAndExitOnError(event, statusListener));
+    lazyInitThreadPoolExecutor.getThreadPoolExecutor().execute(new TaggedRunnable(
+        () -> handleSourceControlEventAndExitOnError(event, statusListener),
+        Tags.of("source_control_event_type", event.getEventType().replaceAll(" ", "_"))
+    ));
   }
 
   private void handleSourceControlEventAndExitOnError(

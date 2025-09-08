@@ -7,10 +7,12 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.function.Supplier;
 
+import io.micrometer.core.instrument.Tags;
+
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.cloneTenant;
 
 public class TenantAwareOneTimeRunnable
-    implements Runnable
+    implements Runnable, HasTags
 {
   private final Runnable wrapped;
 
@@ -49,5 +51,13 @@ public class TenantAwareOneTimeRunnable
         TenantThreadLocal.invalidateTenant();
       }
     });
+  }
+
+  @Override
+  public Tags getTags() {
+    if (wrapped instanceof HasTags hasTags) {
+      return hasTags.getTags();
+    }
+    return Tags.empty();
   }
 }

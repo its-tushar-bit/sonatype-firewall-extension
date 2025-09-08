@@ -7,10 +7,13 @@ package com.sonatype.insight.brain.tenancy;
 
 import java.util.concurrent.Callable;
 
+import io.micrometer.core.instrument.Tags;
+
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.cloneTenant;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.invalidateTenant;
 
-public class TenantAwareOneTimeCallable<T> implements Callable<T>
+public class TenantAwareOneTimeCallable<T>
+    implements Callable<T>, HasTags
 {
   private final Callable<T> wrapped;
 
@@ -52,5 +55,13 @@ public class TenantAwareOneTimeCallable<T> implements Callable<T>
     });
 
     return result;
+  }
+
+  @Override
+  public Tags getTags() {
+    if (wrapped instanceof HasTags hasTags) {
+      return hasTags.getTags();
+    }
+    return Tags.empty();
   }
 }

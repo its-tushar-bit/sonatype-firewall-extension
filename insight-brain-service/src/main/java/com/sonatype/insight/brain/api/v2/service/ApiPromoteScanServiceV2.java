@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.UUID;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -78,8 +79,9 @@ public class ApiPromoteScanServiceV2
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.scanPersistenceService = scanPersistenceService;
 
-    executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS,
-        new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build());
+    executor = new TenantThreadPoolExecutor(100, 100, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat("ApiPromoteScanServiceV2-%d").build(), new AbortPolicy(),
+        "scan_promotion", "ApiPromoteScanServiceV2");
     executor.allowCoreThreadTimeOut(true);
     shutdownHandler.add(executor);
   }

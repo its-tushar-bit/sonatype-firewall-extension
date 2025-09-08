@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -70,8 +71,10 @@ public class FirewallMigrationService
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
-  private final ThreadPoolExecutor executor = new TenantThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS,
-      new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build());
+  private final ThreadPoolExecutor executor =
+      new TenantThreadPoolExecutor(1, 1, 3, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
+          new ThreadFactoryBuilder().setNameFormat("FirewallMigration-%d").build(), new AbortPolicy(),
+          "firewall_migration", "FirewallMigrationService");
 
   private final VersionService versionService;
 

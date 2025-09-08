@@ -20,7 +20,6 @@
     <freemarker.version>2.3.32</freemarker.version>
     <truezipVersion>7.8.0-01</truezipVersion>
     <lucene.version>9.12.0</lucene.version>
-    <micrometer.version>1.14.9</micrometer.version>
   </properties>
 
   <dependencies>
@@ -143,12 +142,10 @@
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-core</artifactId>
-      <version>${micrometer.version}</version>
     </dependency>
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-statsd</artifactId>
-      <version>${micrometer.version}</version>
     </dependency>
 
     <dependency>

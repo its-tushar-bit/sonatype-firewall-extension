@@ -229,6 +229,7 @@ const createNewOwner = createAsyncThunk(
             })
           );
         }
+        dispatch(ownerSideNavActions.forceReload());
       });
     } catch (err) {
       return rejectWithValue(err);
@@ -287,7 +288,10 @@ const editCurrentOwner = createAsyncThunk(
         await axios.post(iconUrl, formData);
       }
 
-      startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => dispatch(stateReload()));
+      startSaveMaskSuccessTimer(dispatch, actions.closeModal).then(() => {
+        dispatch(ownerSideNavActions.forceReload());
+        dispatch(stateReload());
+      });
     } catch (err) {
       return rejectWithValue(err);
     }

@@ -138,7 +138,7 @@ const moveApplication = createAsyncThunk(
         startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
           dispatch(ownerSummaryActions.loadOwnerSummary());
           dispatch(actions.showSuccessModal());
-          dispatch(ownerSideNavActions.load());
+          dispatch(ownerSideNavActions.forceReload());
         });
         return response?.data?.warnings;
       })
@@ -166,7 +166,7 @@ const moveOrganization = createAsyncThunk(
         startSaveMaskSuccessTimer(dispatch, actions.closeMoveOwnerModal).then(() => {
           dispatch(ownerSummaryActions.loadOwnerSummary());
           dispatch(actions.showSuccessModal());
-          dispatch(ownerSideNavActions.load());
+          dispatch(ownerSideNavActions.forceReload());
           dispatch(policyMonitoringActions.loadContinuousMonitoringSummaryTileInformation());
         });
         return response?.data?.warnings;

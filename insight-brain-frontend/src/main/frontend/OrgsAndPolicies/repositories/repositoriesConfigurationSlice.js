@@ -25,6 +25,7 @@ import { actions as namespaceConfusionProtectionTileSliceActions } from 'MainRoo
 import { actions as ownerSideNavSliceActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { ascend, descend, path, pathOr, prop, sortWith, toLower } from 'ramda';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
+import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 
 const REDUCER_NAME = 'repositories';
 
@@ -180,12 +181,22 @@ const editRepositoryManagerNameFailed = (state, { payload }) => {
   state.editRepositoryManagerNameError = Messages.getHttpErrorMessage(payload);
 };
 
-const loadRepositories = createAsyncThunk(`${REDUCER_NAME}/loadRepositories`, (_, { rejectWithValue }) => {
-  return axios
-    .get(getRepositoriesUrl())
-    .then(path(['data', 'repositories']))
-    .catch(rejectWithValue);
-});
+const loadRepositories = createAsyncThunk(
+  `${REDUCER_NAME}/loadRepositories`,
+  (forceReload = false, { getState, rejectWithValue }) => {
+    const state = getState();
+    const originalRepositories = selectOriginalRepositories(state);
+
+    if (!isNilOrEmpty(originalRepositories) && !forceReload) {
+      return originalRepositories;
+    }
+
+    return axios
+      .get(getRepositoriesUrl())
+      .then(path(['data', 'repositories']))
+      .catch(rejectWithValue);
+  }
+);
 
 const deleteRepository = createAsyncThunk(
   `${REDUCER_NAME}/deleteRepository`,
@@ -208,7 +219,7 @@ const deleteRepository = createAsyncThunk(
               dispatch(ownerSideNavSliceActions.loadOwnerList());
             }
           } else {
-            dispatch(loadRepositories());
+            dispatch(loadRepositories(true));
           }
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
@@ -232,9 +243,9 @@ const editRepositoryManagerName = createAsyncThunk(
         setTimeout(() => {
           dispatch(actions.resetSubmitMaskState());
           dispatch(actions.setShowEditRepositoryManagerNameModal(false));
-          dispatch(loadRepositories());
+          dispatch(loadRepositories(true));
           dispatch(namespaceConfusionProtectionTileSliceActions.getComponentNamePatterns());
-          dispatch(ownerSideNavSliceActions.loadIfNeeded(true));
+          dispatch(ownerSideNavSliceActions.forceReload());
         }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
       })
       .catch(rejectWithValue);

@@ -21,7 +21,7 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { toggleBooleanProp } from 'MainRoot/util/reduxUtil';
 import { validateMinLength } from 'MainRoot/util/validationUtil';
-import { selectOwnersMap } from './ownerSideNavSelectors';
+import { selectOwnersMap, selectTopParentOrganizationId } from './ownerSideNavSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 
@@ -53,18 +53,28 @@ export const initialState = {
 
 const loadOwnerList = createAsyncThunk(
   `${REDUCER_NAME}/loadOwnerList`,
-  (_, { rejectWithValue, dispatch, getState }) => {
+  (forceReload = false, { rejectWithValue, dispatch, getState }) => {
     const state = getState();
     const routerParams = selectRouterCurrentParams(state);
-    return axios
-      .get(getOwnerListUrl())
-      .then(({ data }) => {
-        const { ownersMap, topParentOrganizationId } = data || {};
-        const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
-        dispatch(actions.setDisplayedOrganization(displayedOrganization));
-        return { ownersMap, topParentOrganizationId };
-      })
-      .catch(rejectWithValue);
+    const ownersMap = selectOwnersMap(state);
+    const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
+
+    if (forceReload || !ownersMapExistInMemory) {
+      return axios
+        .get(getOwnerListUrl())
+        .then(({ data }) => {
+          const { ownersMap, topParentOrganizationId } = data || {};
+          const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+          dispatch(actions.setDisplayedOrganization(displayedOrganization));
+          return { ownersMap, topParentOrganizationId };
+        })
+        .catch(rejectWithValue);
+    }
+
+    const topParentOrganizationId = selectTopParentOrganizationId(state);
+    const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+    dispatch(actions.setDisplayedOrganization(displayedOrganization));
+    return { ownersMap, topParentOrganizationId };
   }
 );
 
@@ -75,53 +85,46 @@ const loadOwnerListFulfilled = (state, { payload = {} }) => {
   state.topParentOrganizationId = topParentOrganizationId;
 };
 
-const loadIfNeeded = (forceReload) => (dispatch, getState) => {
-  const state = getState();
-  const ownersMap = selectOwnersMap(state);
-  const ownersMapExistInMemory = !isNilOrEmpty(ownersMap);
-  if (forceReload || !ownersMapExistInMemory) {
-    return dispatch(load());
+const load = createAsyncThunk(
+  `${REDUCER_NAME}/load`,
+  async (forceReload = false, { getState, dispatch, rejectWithValue }) => {
+    const state = getState();
+    const promises = [dispatch(loadOwnerList(forceReload)), dispatch(repositoriesActions.loadRepositories())];
+    return Promise.all(promises)
+      .then((results) => {
+        const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
+        const routerParams = selectRouterCurrentParams(state);
+        const isSbomManager = selectIsSbomManager(state);
+
+        const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
+
+        // for the case when user does not have access to root organization we want them to be
+        // redirected to the closest available organization summary page down into n-level hierarchy
+        // when the user has no permission to view any organization then redirect to ROOT_ORGANIZATION_ID
+        const isManagementViewRoute = selectIsManagementViewRouterState(state);
+        if (isManagementViewRoute) {
+          dispatch(
+            stateGo(
+              `${isSbomManager ? 'sbomManager.' : ''}management.view.organization`,
+              { organizationId: displayedOrganization.id ?? 'ROOT_ORGANIZATION_ID' },
+              { location: 'replace' }
+            )
+          );
+        }
+
+        // if isManagementViewRoute and there is at least one organization with permission
+        // keep loading while redirecting to the closest available organization
+        return {
+          loading: isManagementViewRoute,
+          displayedOrganization,
+          flattenEntries: flatEntries(ownersMap),
+        };
+      })
+      .catch(rejectWithValue);
   }
-  return Promise.resolve({});
-};
+);
 
-const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { getState, dispatch, rejectWithValue }) => {
-  const state = getState();
-  const promises = [dispatch(loadOwnerList()), dispatch(repositoriesActions.loadRepositories())];
-  return Promise.all(promises)
-    .then((results) => {
-      const { ownersMap, topParentOrganizationId } = unwrapResult(results[0]) || {};
-      const routerParams = selectRouterCurrentParams(state);
-      const isSbomManager = selectIsSbomManager(state);
-
-      const displayedOrganization = getDisplayedOrganization(ownersMap, topParentOrganizationId, routerParams);
-
-      // for the case when user does not have access to root organization we want them to be
-      // redirected to the closest available organization summary page down into n-level hierarchy
-      // when the user has no permission to view any organization then redirect to ROOT_ORGANIZATION_ID
-      const isManagementViewRoute = selectIsManagementViewRouterState(state);
-      if (isManagementViewRoute) {
-        dispatch(
-          stateGo(
-            `${isSbomManager ? 'sbomManager.' : ''}management.view.organization`,
-            { organizationId: displayedOrganization.id ?? 'ROOT_ORGANIZATION_ID' },
-            { location: 'replace' }
-          )
-        );
-      }
-
-      const flattenEntries = flatEntries(ownersMap);
-
-      // if isManagementViewRoute and there is at least one organization with permission
-      // keep loading while redirecting to the closest available organization
-      return {
-        loading: isManagementViewRoute,
-        displayedOrganization,
-        flattenEntries,
-      };
-    })
-    .catch(rejectWithValue);
-});
+const forceReload = () => (dispatch) => dispatch(load(true));
 
 const sortOwnerIdListByOwnerName = (ownerIds = [], owners) => {
   const getFromOwnersMap = (ownerId) => owners[ownerId];
@@ -434,8 +437,8 @@ const ownerSideNavSlice = createSlice({
 export const actions = {
   ...ownerSideNavSlice.actions,
   load,
+  forceReload,
   loadOwnerList,
-  loadIfNeeded,
   filterSidebarEntries,
 };
 

@@ -29,7 +29,7 @@ import {
 
 export default function OwnersTreePage() {
   const dispatch = useDispatch();
-  const load = () => dispatch(actions.loadIfNeeded());
+  const load = () => dispatch(actions.load());
   const toogleTreeNode = (payload) => dispatch(ownersTreeActions.toogleTreeNode(payload));
 
   const loading = useSelector(selectLoading);

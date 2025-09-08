@@ -156,12 +156,18 @@ public class SourceControlEventProcessor
 
       managedEvent.onEventStarted();
 
-      if (!acquireRepoAccess(managedEvent.getApplicationId())) {
+      if (!acquireResourceLock(managedEvent.getSourceControlEvent())) {
         throw new RuntimeException(REPO_ACCESS_LOCK_ERROR);
       }
       try {
-        log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'", managedEvent.getId(),
-            managedEvent.getEventType(), managedEvent.getApplicationId());
+        String eventType = managedEvent.getEventType();
+        if (SourceControlEvent.STATUS_UPDATE_EVENT.equals(eventType)) {
+          log.trace("Processing STATUS_UPDATE_EVENT '{}' without locking", managedEvent.getId());
+        }
+        else {
+          log.trace("Acquired repo access for event '{}' of type '{}' for application '{}'",
+              managedEvent.getId(), eventType, managedEvent.getApplicationId());
+        }
 
         if (executeSourceControlEvent(managedEvent)) {
           log.debug("Processed event '{}' of type '{}' for application '{}'", managedEvent.getId(),
@@ -174,9 +180,7 @@ public class SourceControlEventProcessor
             managedEvent.getId(), managedEvent.getEventType(), managedEvent.getApplicationId(), e.getMessage(), e);
       }
       finally {
-        releaseRepoAccess(managedEvent.getApplicationId());
-        log.trace("Released repo access for event '{}' of type '{}' for application '{}'", managedEvent.getId(),
-            managedEvent.getEventType(), managedEvent.getApplicationId());
+        releaseResourceLock(managedEvent.getSourceControlEvent());
       }
     }
     finally {
@@ -188,6 +192,27 @@ public class SourceControlEventProcessor
   void notifyFinishedProcessingEvent(@SuppressWarnings("unused") SourceControlEvent event) {
     // tests will 'spy' on this method to know when the processing of this event is finished and the test can start
     // its validations (since this work occurs in a separate thread)
+  }
+
+  private boolean acquireResourceLock(SourceControlEvent event) {
+    if (SourceControlEvent.STATUS_UPDATE_EVENT.equals(event.getEventType())) {
+      log.trace("No lock required for STATUS_UPDATE_EVENT '{}'", event.getId());
+      return true;
+    }
+    
+    // All other events use existing application-level locking for safety
+    return acquireRepoAccess(event.getApplicationId());
+  }
+
+  private void releaseResourceLock(SourceControlEvent event) {
+    if (SourceControlEvent.STATUS_UPDATE_EVENT.equals(event.getEventType())) {
+      log.trace("No lock to release for STATUS_UPDATE_EVENT '{}'", event.getId());
+      return;
+    }
+    
+    log.trace("Released repo access for event '{}' of type '{}' for application '{}'", 
+              event.getId(), event.getEventType(), event.getApplicationId());
+    releaseRepoAccess(event.getApplicationId());
   }
 
   private boolean acquireRepoAccess(String applicationId) {

@@ -112,6 +112,7 @@ public class SourceControlEventProcessorTest
         configuration,
         mockShutdownHandler
     ));
+    sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
   }
 
   @Test
@@ -220,7 +221,6 @@ public class SourceControlEventProcessorTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     event.setId("event-1");
 
-    sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).acquire(eq(event.getApplicationId()));
 
     // when:
@@ -241,7 +241,6 @@ public class SourceControlEventProcessorTest
         .setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
     event.setId("hij789");
 
-    sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
     doThrow(new InterruptedException("simulated")).when(mockRepoAccessController).release(eq(event.getApplicationId()));
 
     // when:
@@ -316,6 +315,73 @@ public class SourceControlEventProcessorTest
     verify(mockPullRequestStateEventHandler, times(1)).handle(eq(event));
     verifyEventStarted(event);
     verifyEventError(event, "Test error");
+  }
+
+  @Test
+  public void testProcessEvent_StatusUpdateProcessesWithoutLocking() throws InterruptedException {
+    // Given: a STATUS_UPDATE_EVENT
+    SourceControlEvent statusUpdateEvent = createEvent();
+    statusUpdateEvent.setEventType(SourceControlEvent.STATUS_UPDATE_EVENT);
+
+    // When: the event is processed
+    processEventAndWaitForCompletion(statusUpdateEvent);
+
+    // Then: the event should be processed successfully without acquiring any locks
+    verify(mockRepoAccessController, never()).acquire(any(String.class));
+    verify(mockRepoAccessController, never()).release(any(String.class));
+    verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(statusUpdateEvent));
+    verifyEventStarted(statusUpdateEvent);
+    verifyEventCompleted(statusUpdateEvent);
+  }
+
+  @Test
+  public void testProcessEvent_ApplicationEvaluation_ApplicationLevelLockingPreserved() throws InterruptedException {
+    // Given: an APPLICATION_EVALUATION_EVENT
+    SourceControlEvent appEvalEvent = createEvent();
+    appEvalEvent.setEventType(SourceControlEvent.APPLICATION_EVALUATION_EVENT);
+
+    // When: the event is processed
+    processEventAndWaitForCompletion(appEvalEvent);
+
+    // Then: application-level locking should still be used
+    verify(mockRepoAccessController, times(1)).acquire(eq(appEvalEvent.getApplicationId()));
+    verify(mockRepoAccessController, times(1)).release(eq(appEvalEvent.getApplicationId()));
+    verify(mockPullRequestCommentingEventHandler, times(1)).onApplicationEvaluation(eq(appEvalEvent));
+    verifyEventStarted(appEvalEvent);
+    verifyEventCompleted(appEvalEvent);
+  }
+
+  @Test
+  public void testProcessEvent_StatusUpdateDoesNotBlockOtherEvents()
+      throws InterruptedException, GitException, IOException
+  {
+    // Given: STATUS_UPDATE_EVENT and SOURCE_CONTROL_EVALUATION_EVENT for the same application
+    SourceControlEvent statusUpdateEvent = createEvent();
+    statusUpdateEvent.setEventType(SourceControlEvent.STATUS_UPDATE_EVENT);
+    
+    SourceControlEvent repoScanEvent = createEvent();
+    repoScanEvent.setApplicationId(statusUpdateEvent.getApplicationId()); // Same application ID
+    repoScanEvent.setEventType(SourceControlEvent.SOURCE_CONTROL_EVALUATION_EVENT);
+    
+    CountDownLatch statusUpdateLatch = createOnEventFinishedLatch(statusUpdateEvent);
+    CountDownLatch repoScanLatch = createOnEventFinishedLatch(repoScanEvent);
+    
+    // When: both events are processed in parallel
+    sourceControlEventProcessor.processEvent(statusUpdateEvent, mockStatusListener);
+    sourceControlEventProcessor.processEvent(repoScanEvent, mockStatusListener);
+    
+    // Wait for both events to complete
+    verifyUnlatched(statusUpdateLatch);
+    verifyUnlatched(repoScanLatch);
+    
+    // Then: Only ONE acquire call should happen (from SOURCE_CONTROL_EVALUATION_EVENT)
+    // STATUS_UPDATE_EVENT should never acquire locks, allowing it to run in parallel
+    verify(mockRepoAccessController, times(1)).acquire(eq(repoScanEvent.getApplicationId()));
+    verify(mockRepoAccessController, times(1)).release(eq(repoScanEvent.getApplicationId()));
+    
+    // And both events should complete successfully
+    verify(mockGitCommitStatusService, times(1)).onSendCommitStatus(eq(statusUpdateEvent));
+    verify(mockSourceControlScanService, times(1)).onSourceControlScan(eq(repoScanEvent));
   }
 
   private CountDownLatch createOnEventFinishedLatch(SourceControlEvent event) {

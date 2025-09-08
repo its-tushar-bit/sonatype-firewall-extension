@@ -264,4 +264,111 @@ public class ExportEmbeddedDatabaseCommandTest
     }
     return columnNames;
   }
+
+  @Test
+  @H2DiskTest
+  public void testRun_SqlStatementsInCorrectOrder() throws Exception {
+    File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    
+    DefaultTestInsightBrainService service = newService();
+    service.setConfigurator(config -> {
+      try (Connection connection = databaseRule.getOperationalDataStore().getDataSource().getConnection();
+           Statement statement = connection.createStatement()) {
+        statement.execute("CREATE SCHEMA test_schema;");
+        statement.execute("CREATE TABLE test_schema.test_table (id VARCHAR(36) PRIMARY KEY);");
+        statement.execute("CREATE VIEW test_schema.test_view AS SELECT * FROM test_schema.test_table;");
+        statement.execute("INSERT INTO test_schema.test_table VALUES ('test-id');");
+      }
+      catch (SQLException e) {
+        throw new RuntimeException(e);
+      }
+    });
+
+    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+
+    assertThat(dumpFile).isFile();
+    List<String> lines = Files.readAllLines(dumpFile.toPath());
+    
+    int schemaIndex = findStatementIndex(lines, "CREATE SCHEMA");
+    int tableIndex = findStatementIndex(lines, "CREATE TABLE");
+    int viewIndex = findStatementIndex(lines, "CREATE VIEW");
+    int insertIndex = findStatementIndex(lines, "COPY ");
+    
+    assertThat(schemaIndex).as("Schema statements should come first").isLessThan(tableIndex);
+    assertThat(tableIndex).as("Table statements should come before view statements").isLessThan(viewIndex);
+    assertThat(viewIndex).as("View statements should come before insert statements").isLessThan(insertIndex);
+  }
+
+  @Test
+  @H2DiskTest
+  public void testRun_ConstraintManagementStatements() throws Exception {
+    File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    
+    DefaultTestInsightBrainService service = newService();
+    service.setConfigurator(this::initData);
+
+    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+
+    assertThat(dumpFile).isFile();
+    List<String> lines = Files.readAllLines(dumpFile.toPath());
+    
+    boolean foundDisableConstraints = false;
+    boolean foundEnableConstraints = false;
+    int disableIndex = -1;
+    int enableIndex = -1;
+    
+    for (int i = 0; i < lines.size(); i++) {
+      String line = lines.get(i).trim();
+      if (line.equals("SET session_replication_role = replica;")) {
+        foundDisableConstraints = true;
+        disableIndex = i;
+      }
+      if (line.equals("SET session_replication_role = DEFAULT;")) {
+        foundEnableConstraints = true;
+        enableIndex = i;
+      }
+    }
+    
+    assertThat(foundDisableConstraints).as("Should disable constraints at beginning").isTrue();
+    assertThat(foundEnableConstraints).as("Should enable constraints at end").isTrue();
+    assertThat(disableIndex).as("Disable constraints should appear early in file").isLessThan(enableIndex);
+  }
+
+  @Test
+  @H2DiskTest
+  public void testRun_StatementClassificationAndComments() throws Exception {
+    File dumpFile = new File(tempDir.getRoot(), "dump.sql");
+    
+    DefaultTestInsightBrainService service = newService();
+    service.setConfigurator(this::initData);
+
+    service.run("export-embedded-db", "target/test-classes/config-test.yml", "--dump-file", dumpFile.getPath());
+
+    assertThat(dumpFile).isFile();
+    List<String> lines = Files.readAllLines(dumpFile.toPath());
+    
+    boolean foundConstraintDisableComment = false;
+    boolean foundConstraintEnableComment = false;
+    
+    for (String line : lines) {
+      if (line.contains("-- Disable foreign key constraints and triggers for bulk import")) {
+        foundConstraintDisableComment = true;
+      }
+      if (line.contains("-- Re-enable foreign key constraints and triggers")) {
+        foundConstraintEnableComment = true;
+      }
+    }
+    
+    assertThat(foundConstraintDisableComment).as("Should include constraint disable comment").isTrue();
+    assertThat(foundConstraintEnableComment).as("Should include constraint enable comment").isTrue();
+  }
+
+  private int findStatementIndex(List<String> lines, String statementPrefix) {
+    for (int i = 0; i < lines.size(); i++) {
+      if (lines.get(i).startsWith(statementPrefix)) {
+        return i;
+      }
+    }
+    return -1;
+  }
 }

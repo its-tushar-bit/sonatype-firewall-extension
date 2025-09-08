@@ -17,6 +17,8 @@ import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.GZIPOutputStream;
 import javax.sql.DataSource;
 
@@ -132,85 +134,144 @@ public class ExportEmbeddedDatabaseCommand
   /**
    * Delegates to H2's SCRIPT command for the heavy lifting in generating the SQL dump and post-processes its output to
    * be both compatible and efficient for use with PostgreSQL, specifically its psql client.
+   * 
+   * Uses a foreign key constraint bypass strategy: disables constraints during data load, then re-enables them.
    *
    * @see https://www.h2database.com/html/commands.html#script
    * @see https://www.postgresql.org/docs/10/app-psql.html
    */
   private void export(BufferedWriter writer, DataSource dataSource) throws Exception {
     log.info("Reading tables, please be patient");
+    
+    // Start with constraint bypass commands
+    writer.write("-- Disable foreign key constraints and triggers for bulk import");
+    writer.newLine();
+    writer.write("SET session_replication_role = replica;");
+    writer.newLine();
+    writer.newLine();
+    
+    // Collect statements by type to ensure proper ordering
+    List<String> schemaStatements = new ArrayList<>();
+    List<String> tableStatements = new ArrayList<>(); 
+    List<String> viewStatements = new ArrayList<>();
+    List<String> modifyStatements = new ArrayList<>();
+    List<String> insertStatements = new ArrayList<>();
+    
     try (Connection connection = dataSource.getConnection();
         Statement statement = connection.createStatement();
         ResultSet results = statement.executeQuery("SCRIPT SIMPLE NOSETTINGS BLOCKSIZE " + Integer.MAX_VALUE)) {
-      String currentTable = null;
+      
       while (results.next()) {
         String sql = results.getString(1);
         try {
           if (sql.startsWith("INSERT INTO ")) {
-            String tableName = sql.substring("INSERT INTO ".length(), sql.indexOf('(')).trim();
-            int valuesBegin = sql.indexOf(" VALUES");
-            if (!tableName.equals(currentTable)) {
-              writer.write(sql.substring(0, valuesBegin).replace("INSERT INTO ", "COPY "));
-              writer.write(" FROM stdin;");
-              writer.newLine();
-              currentTable = tableName;
-            }
-            sql = transformInsertValues(sql.substring(sql.indexOf('(', valuesBegin) + 1, sql.lastIndexOf(");")));
+            insertStatements.add(sql);
           }
-          else if (sql.startsWith("--")) {
-            continue;
+          else if (sql.startsWith("CREATE UNIQUE INDEX ")) {
+            // unique constraints should be used instead, which will result in the creation of a unique index;
+            // having this CREATE UNIQUE INDEX statement in the sql could be an indication of a problem in H2
+            // where the auto-generated unique indexes can become abandoned (foreign key constraint created
+            // AFTER a unique constraint that uses that FK column and the unique constraint subsequently dropped)
+            log.debug("Database dump contains a CREATE UNIQUE INDEX statement which will be ignored.");
+          }
+          else if (sql.startsWith("CREATE FORCE VIEW ")) {
+            sql = sql.replace("CREATE FORCE VIEW", "CREATE VIEW");
+            viewStatements.add(sql);
+          }
+          else if (sql.startsWith("CREATE VIEW ")) {
+            viewStatements.add(sql);
+          }
+          else if (sql.startsWith("CREATE SCHEMA ")) {
+            sql = sql.replace(" AUTHORIZATION SA", "");
+            sql = sql.replace(" IF NOT EXISTS", "");
+            String schemaName = sql.substring("CREATE SCHEMA ".length(), sql.lastIndexOf(';')).trim();
+            schemaStatements.add("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE;");
+            schemaStatements.add(sql);
+          }
+          else if (sql.startsWith("CREATE CACHED TABLE ")) {
+            String tableName = sql.substring("CREATE CACHED TABLE".length(), sql.indexOf('(')).trim();
+            log.info("Exporting table {}", tableName);
+            sql = sql.replace(" CACHED TABLE", " TABLE");
+            sql = sql.replaceAll(" SELECTIVITY [0-9]+", "");
+            sql = sql.replace(" DATETIME", " TIMESTAMP");
+            sql = sql.replace(" CLOB", " TEXT");
+            tableStatements.add(sql);
+          }
+          else if (sql.startsWith("ALTER TABLE ")) {
+            sql = sql.replaceAll("(?<= ADD CONSTRAINT )\"[^\"]+\"\\.", "");
+            sql = sql.replace(" NOCHECK", "");
+            modifyStatements.add(sql);
+          }
+          else if (sql.startsWith("CREATE INDEX ")) {
+            sql = sql.replaceFirst("(?<=CREATE INDEX )\"[^\"]+\"\\.", "");
+            modifyStatements.add(sql);
+          }
+          else if (sql.startsWith("CREATE USER ")) {
+            // Skip H2-specific user creation commands that are not compatible with PostgreSQL
+            log.debug("Skipping H2-specific CREATE USER command: {}", sql);
           }
           else {
-            if (currentTable != null) {
-              currentTable = null;
-              writer.write("\\.");
-              writer.newLine();
-            }
-            if (sql.startsWith("CREATE USER ")) {
-              continue;
-            }
-            else if (sql.startsWith("CREATE FORCE VIEW ")) {
-              sql = sql.replace("CREATE FORCE VIEW", "CREATE VIEW");
-            }
-            else if (sql.startsWith("CREATE SCHEMA ")) {
-              sql = sql.replace(" AUTHORIZATION SA", "");
-              sql = sql.replace(" IF NOT EXISTS", "");
-              String schemaName = sql.substring("CREATE SCHEMA ".length(), sql.lastIndexOf(';')).trim();
-              writer.write("DROP SCHEMA IF EXISTS ");
-              writer.write(schemaName);
-              writer.write(" CASCADE;");
-              writer.newLine();
-            }
-            else if (sql.startsWith("CREATE CACHED TABLE ")) {
-              String tableName = sql.substring("CREATE CACHED TABLE".length(), sql.indexOf('(')).trim();
-              log.info("Exporting table {}", tableName);
-              sql = sql.replace(" CACHED TABLE", " TABLE");
-              sql = sql.replaceAll(" SELECTIVITY [0-9]+", "");
-              sql = sql.replace(" DATETIME", " TIMESTAMP");
-              sql = sql.replace(" CLOB", " TEXT");
-            }
-            else if (sql.startsWith("ALTER TABLE ")) {
-              sql = sql.replaceAll("(?<= ADD CONSTRAINT )\"[^\"]+\"\\.", "");
-              sql = sql.replace(" NOCHECK", "");
-            }
-            else if (sql.startsWith("CREATE INDEX ")) {
-              sql = sql.replaceFirst("(?<=CREATE INDEX )\"[^\"]+\"\\.", "");
-            }
-            else if (sql.startsWith("CREATE UNIQUE INDEX ")) {
-              // unique constraints should be used instead, which will result in the creation of a unique index;
-              // having this CREATE UNIQUE INDEX statement in the sql could be an indication of a problem in H2
-              // where the auto-generated unique indexes can become abandoned (foreign key constraint created
-              // AFTER a unique constraint that uses that FK column and the unique constraint subsequently dropped)
-              log.debug("Database dump contains a CREATE UNIQUE INDEX statement which will be ignored.");
-              continue;
-            }
+            modifyStatements.add(sql);
           }
         }
         catch (Exception e) {
           throw new IllegalStateException("Failed to transform SQL command:\n" + sql, e);
         }
-        writer.write(sql.replace("\0", ""));
-        writer.newLine();
       }
+    }
+    
+    // Write statements in proper dependency order
+    writeStatements(writer, schemaStatements);
+    writeStatements(writer, tableStatements);
+    writeStatements(writer, viewStatements);
+    writeStatements(writer, modifyStatements);
+    writeInsertStatements(writer, insertStatements);
+    
+    // Re-enable foreign key constraints and triggers
+    writer.newLine();
+    writer.write("-- Re-enable foreign key constraints and triggers");
+    writer.newLine();
+    writer.write("SET session_replication_role = DEFAULT;");
+    writer.newLine();
+    writer.newLine();
+  }
+
+  private void writeStatements(BufferedWriter writer, List<String> statements) throws Exception {
+    for (String sql : statements) {
+      writer.write(sql.replace("\0", ""));
+      writer.newLine();
+    }
+  }
+
+  private void writeInsertStatements(BufferedWriter writer, List<String> insertStatements) throws Exception {
+    // Sort INSERT statements by table name to group them together
+    insertStatements.sort((a, b) -> {
+      String tableA = a.substring("INSERT INTO ".length(), a.indexOf('(')).trim();
+      String tableB = b.substring("INSERT INTO ".length(), b.indexOf('(')).trim();
+      return tableA.compareTo(tableB);
+    });
+    
+    String currentTable = null;
+    for (String sql : insertStatements) { 
+      String tableName = sql.substring("INSERT INTO ".length(), sql.indexOf('(')).trim();
+      int valuesBegin = sql.indexOf(" VALUES");
+      if (!tableName.equals(currentTable)) {
+        if (currentTable != null) {
+          writer.write("\\.");
+          writer.newLine();
+        }
+        writer.write(sql.substring(0, valuesBegin).replace("INSERT INTO ", "COPY "));
+        writer.write(" FROM stdin;");
+        writer.newLine();
+        currentTable = tableName;
+      }
+      String transformedValues = transformInsertValues(
+          sql.substring(sql.indexOf('(', valuesBegin) + 1, sql.lastIndexOf(");")));
+      writer.write(transformedValues.replace("\0", ""));
+      writer.newLine();
+    }
+    if (currentTable != null) {
+      writer.write("\\.");
       writer.newLine();
     }
   }

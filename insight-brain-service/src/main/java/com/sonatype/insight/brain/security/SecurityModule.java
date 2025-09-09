@@ -93,6 +93,10 @@ public class SecurityModule
     manager.createChain("/tasks/**", anonFilters); // DW tasks exposed on admin port
     manager.createChain("/ui/links/**", anonFilters); // only redirects
     manager.createChain("/rest/config/systemNotice/fetch", anonFilters);
+    manager.createChain("/api/v2/vulnerabilities",
+        anonFilters + ", noSessionCreation, " +
+            "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +
+            "authcJWT[permissive], authcBasic[permissive]");
     manager.createChain("/api/v2/vulnerabilities/*",
         anonFilters + ", noSessionCreation, " +
             "reverseProxy[" + ReverseProxyAuthenticationFilter.NO_SESSION_CREATION + ",permissive], " +

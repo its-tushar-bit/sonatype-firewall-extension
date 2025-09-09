@@ -96,6 +96,9 @@ public class PublicApiPaths
   public static final String VULNERABILITIES_RESOURCE_PATH_V2 =
       API_VERSION_PATH_V2 + "vulnerabilities/{refId}";
 
+  public static final String BULK_VULNERABILITIES_RESOURCE_PATH_V2 =
+      API_VERSION_PATH_V2 + "vulnerabilities";
+
   public static final String ROLE_MEMBERSHIP_PATH_V2 = API_VERSION_PATH_V2 + "roleMemberships";
 
   public static final String ROLE_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "roles";

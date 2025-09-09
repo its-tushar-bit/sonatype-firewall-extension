@@ -12,7 +12,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -119,6 +118,7 @@ public class WebhookClientUtilTest
   @Test
   public void testPost_SerializesJson() {
     final List<String> bodies = new ArrayList<>();
+    final String[] signature = new String[1];
     handler = new AbstractHandler()
     {
       @Override
@@ -128,16 +128,19 @@ public class WebhookClientUtilTest
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
         baseRequest.setHandled(true);
+        signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
       }
     };
     doWebhookClientUtilPost();
     assertThat(bodies).contains("{\"foo\":\"bar\"}");
+    assertThat(signature[0]).isEqualTo("52b582138706ac0c597c315cfc1a1bf177408a4d");
   }
 
   @Test
   public void testPost_SerializesJson_FIPSMode() {
     enableFipsMode();
     final List<String> bodies = new ArrayList<>();
+    final String[] signature = new String[1];
     handler = new AbstractHandler()
     {
       @Override
@@ -147,10 +150,12 @@ public class WebhookClientUtilTest
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
         baseRequest.setHandled(true);
+        signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
       }
     };
     doWebhookClientUtilPost();
     assertThat(bodies).contains("{\"foo\":\"bar\"}");
+    assertThat(signature[0]).isEqualTo("3f3ab3986b656abb17af3eb1443ed6c08ef8fff9fea83915909d1b421aec89be");
     disableFipsMode();
   }
 

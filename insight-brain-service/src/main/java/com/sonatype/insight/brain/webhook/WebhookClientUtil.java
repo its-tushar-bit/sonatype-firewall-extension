@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.webhook;
 
 import java.io.IOException;
 import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
@@ -173,10 +174,10 @@ public class WebhookClientUtil
     private String sign(final String json, final String secretKey) throws NoSuchAlgorithmException,
                                                                           InvalidKeyException
     {
-      SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(), hmacAlgorithm);
+      SecretKeySpec key = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), hmacAlgorithm);
       Mac mac = Mac.getInstance(hmacAlgorithm);
       mac.init(key);
-      byte[] bytes = mac.doFinal(json.getBytes());
+      byte[] bytes = mac.doFinal(json.getBytes(StandardCharsets.UTF_8));
       return hex.encode(bytes);
     }
   }

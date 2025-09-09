@@ -187,11 +187,8 @@ public class TestDAOFactory
 
   @Override
   public ApplicationComponentDAO createApplicationComponentDAO() {
-    AggregateFileDAO aggregateFileDAO = createAggregateFileDAO();
-    ApplicationComponentLicenseDAO applicationComponentLicenseDAO = createApplicationComponentLicenseDAO();
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
-    return new ApplicationComponentDAO(dataStoreProvider.getOperationalDataStore(), aggregateFileDAO,
-        applicationComponentLicenseDAO, temporaryTableHelper);
+    return new ApplicationComponentDAO(dataStoreProvider.getOperationalDataStore(), temporaryTableHelper);
   }
 
   @Override
@@ -209,7 +206,6 @@ public class TestDAOFactory
     Provider<OwnerDAO> ownerDAOProvider = this::createOwnerDAO;
     Provider<LicenseThreatGroupDAO> licenseThreatGroupDAOProvider = this::createLicenseThreatGroupDAO;
     Provider<PolicyDAO> policyDAOProvider = this::createPolicyDAO;
-    Provider<ApplicationComponentDAO> applicationComponentDAOProvider = this::createApplicationComponentDAO;
     ProprietaryConfigDAO proprietaryConfigDAO = createProprietaryConfigDAO();
     MembershipMappingDAO membershipMappingDAO = createMembershipMappingDAO();
     PolicyViolationAggregationDAO policyViolationAggregationDAO = createPolicyViolationAggregationDAO();
@@ -223,7 +219,7 @@ public class TestDAOFactory
     TemporaryTableHelper temporaryTableHelper = createTemporaryTableHelper();
     return new ApplicationDAO(dataStoreProvider.getOperationalDataStore(), searchIndexManager, sourceControlDAOProvider,
         licenseThreatGroupDAOProvider, labelDAOProvider, policyDAOProvider, ownerDAOProvider,
-        applicationComponentDAOProvider, proprietaryConfigDAO, membershipMappingDAO,
+        proprietaryConfigDAO, membershipMappingDAO,
         policyViolationAggregationDAO, repositoryConnectionDAO,
         sastScanDAO, thirdPartySbomMetadataDAO, thirdPartyFileDAO, autoPolicyWaiverDAO, cpeMatchingConfigurationDAO,
         organizationDAO, temporaryTableHelper);

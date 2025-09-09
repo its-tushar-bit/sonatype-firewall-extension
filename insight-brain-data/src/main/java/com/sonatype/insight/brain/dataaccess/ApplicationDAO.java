@@ -43,7 +43,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.Application;
-import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.ApplicationRiskDTO;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.NameHelper;
@@ -87,8 +86,6 @@ public class ApplicationDAO
 
   private final Provider<OwnerDAO> ownerDAOProvider;
 
-  private final Provider<ApplicationComponentDAO> applicationComponentDAOProvider;
-
   private final ProprietaryConfigDAO proprietaryConfigDAO;
 
   private final MembershipMappingDAO membershipMappingDAO;
@@ -120,7 +117,6 @@ public class ApplicationDAO
       final Provider<LabelDAO> labelDAOProvider,
       final Provider<PolicyDAO> policyDAOProvider,
       final Provider<OwnerDAO> ownerDAOProvider,
-      final Provider<ApplicationComponentDAO> applicationComponentDAOProvider,
       final ProprietaryConfigDAO proprietaryConfigDAO,
       final MembershipMappingDAO membershipMappingDAO,
       final PolicyViolationAggregationDAO policyViolationAggregationDAO,
@@ -139,7 +135,6 @@ public class ApplicationDAO
     this.labelDAOProvider = labelDAOProvider;
     this.policyDAOProvider = policyDAOProvider;
     this.ownerDAOProvider = ownerDAOProvider;
-    this.applicationComponentDAOProvider = applicationComponentDAOProvider;
     this.proprietaryConfigDAO = proprietaryConfigDAO;
     this.membershipMappingDAO = membershipMappingDAO;
     this.policyViolationAggregationDAO = policyViolationAggregationDAO;
@@ -679,13 +674,6 @@ public class ApplicationDAO
 
     // Cascade to owned entities
     ownerDAOProvider.get().cascadeDelete(tx, application);
-
-    // Cascade to components
-    ApplicationComponentDAO applicationComponentDAO = applicationComponentDAOProvider.get();
-    List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationId(tx, application.getId());
-    for (ApplicationComponent appComponent : appComponents) {
-      applicationComponentDAO.delete(tx, appComponent);
-    }
 
     // Cascade to proprietary config
     ProprietaryConfig proprietaryConfig = proprietaryConfigDAO.getByOwnerId(tx, application.getId());

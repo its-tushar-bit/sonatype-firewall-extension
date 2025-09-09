@@ -196,42 +196,6 @@ public class ApplicationComponentLicenseDAO
     }
   }
 
-  public void deleteByApplicationComponentId(TransactionContext tx, String applicationComponentId) {
-    if (detectTestEntityLeaks()) {
-      // This is never executed in production
-      List<ApplicationComponentLicense> applicationComponentLicenses =
-          getByApplicationComponentId(tx, applicationComponentId);
-      applicationComponentLicenses.forEach(applicationComponentLicense -> delete(tx, applicationComponentLicense));
-    }
-    else {
-      String sQuery = "DELETE FROM ApplicationComponentLicense entity" + //
-          " WHERE entity.applicationComponentId=?1";
-      createQuery(sQuery, applicationComponentId).executeUpdate(tx);
-    }
-  }
-
-  public void deleteByApplicationComponentId(String applicationComponentId) {
-    try (TransactionContext tx = createTransactionContext()) {
-      tx.begin();
-      deleteByApplicationComponentId(tx, applicationComponentId);
-      tx.commit();
-    }
-  }
-
-  @Override
-  public final void delete(TransactionContext tx, ApplicationComponentLicense applicationComponentLicense) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all entities associated with an application component.
-    super.delete(tx, applicationComponentLicense);
-  }
-
-  @Override
-  public final void delete(ApplicationComponentLicense applicationComponentLicense) {
-    // WARNING: Don't add any business logic to this method because, for performance reasons,
-    // we bypass this method when deleting all entities associated with an application component.
-    super.delete(applicationComponentLicense);
-  }
-
   private boolean requiresManualFilter(Collection<?> items) {
     return (isDatabaseEmbedded() && items.size() >= H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY)
         || items.size() >= getInOperatorThreshold();

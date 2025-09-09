@@ -524,7 +524,7 @@ CREATE TABLE application_component (
   proprietary bool DEFAULT false NOT NULL,
   pathnames text, -- the paths to the component that caused the policy violation, paths are new line delimited
   CONSTRAINT application_component_pk PRIMARY KEY (application_component_id),
-  CONSTRAINT application_component_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
+  CONSTRAINT application_component_application_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
   CONSTRAINT application_component_uk UNIQUE (application_id, stage_type_id, hash)
 );
 CREATE INDEX application_component_hash_idx ON application_component(hash);
@@ -536,7 +536,7 @@ CREATE TABLE aggregate_file (
   hash varchar(20) NOT NULL,
   pathnames text,
   CONSTRAINT aggregate_file_pk PRIMARY KEY (aggregate_file_id),
-  CONSTRAINT aggregate_file_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id),
+  CONSTRAINT aggregate_file_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id) ON DELETE CASCADE,
   CONSTRAINT aggregate_file_uk UNIQUE (application_component_id, hash)
 );
 CREATE INDEX aggregate_file_application_component_id_idx ON aggregate_file(application_component_id);
@@ -1122,7 +1122,7 @@ CREATE TABLE application_component_license (
   application_component_id varchar(50) NOT NULL,
   effective_license_id varchar(1000) NOT NULL,
   CONSTRAINT application_component_license_pk PRIMARY KEY (application_component_license_id),
-  CONSTRAINT application_component_license_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id),
+  CONSTRAINT application_component_license_application_component_fk FOREIGN KEY (application_component_id) REFERENCES application_component(application_component_id) ON DELETE CASCADE,
   CONSTRAINT application_component_license_uk UNIQUE (application_component_id, effective_license_id)
 );
 CREATE INDEX application_component_license_effective_license_id_idx ON application_component_license(effective_license_id);

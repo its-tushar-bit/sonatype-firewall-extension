@@ -38,38 +38,20 @@ public class ApplicationComponentDAO
 {
   private static final int H2_IN_OPERATOR_THRESHOLD_COMPLEX_QUERY = 350;
 
-  private final AggregateFileDAO aggregateFileDAO;
-
-  private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
-
   private final TemporaryTableHelper temporaryTableHelper;
 
   @Inject
   public ApplicationComponentDAO(
       final OperationalDataStore operationalDataStore,
-      final AggregateFileDAO aggregateFileDAO,
-      final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
       final TemporaryTableHelper temporaryTableHelper)
   {
     super(operationalDataStore);
-    this.aggregateFileDAO = aggregateFileDAO;
-    this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
     this.temporaryTableHelper = temporaryTableHelper;
   }
 
   @Override
   public void update(TransactionContext tx, ApplicationComponent entity) {
     throw new UnsupportedOperationException("ApplicationComponent does not support update operations");
-  }
-
-  @Override
-  public void delete(TransactionContext tx, ApplicationComponent applicationComponent) {
-    // Cascade to aggregate files
-    aggregateFileDAO.deleteByApplicationComponentId(tx, applicationComponent.getId());
-
-    // Cascade to application component licenses
-    applicationComponentLicenseDAO.deleteByApplicationComponentId(tx, applicationComponent.getId());
-    super.delete(tx, applicationComponent);
   }
 
   public List<ApplicationComponent> getByApplicationId(TransactionContext tx, String appId) {

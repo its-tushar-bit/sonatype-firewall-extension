@@ -100,6 +100,17 @@ const RepositoriesConfigurationTile = () => {
     return enablement.join(', ');
   };
 
+  const validateRepositoryName = (name) => {
+    let regex = /^[a-zA-Z0-9._-]+(?: [a-zA-Z0-9._-]+)*$/;
+    if (name.length === 0) return 'Must be non-empty';
+    if (name.length > 200) return 'Repository name must be 200 characters or less.';
+    if (regex.test(name)) {
+      return null;
+    } else {
+      return 'Not a valid Repository Name';
+    }
+  };
+
   useEffect(() => {
     if (isRepositoryManager) {
       loadRepositoriesByManagerId();
@@ -164,9 +175,9 @@ const RepositoriesConfigurationTile = () => {
           </NxReadOnly>
           <NxFormGroup label="Repository Manager Name">
             <NxStatefulTextInput
-              validator={(value) => (value.length ? null : 'Must be non-empty')}
+              validator={(value) => validateRepositoryName(value)}
               defaultValue={editRepositoryManagerNameModalInfo.managerName || ''}
-              onChange={setRepositoryManagerName}
+              onChange={(value) => setRepositoryManagerName(value.trim())}
             />
           </NxFormGroup>
           <NxP>Any changes made will apply to all repositories for this repository manager.</NxP>

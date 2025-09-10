@@ -15,7 +15,6 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
-import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics.AggregatedPRStats;
@@ -32,9 +31,6 @@ public class SourceControlPullRequestMetricsTest
 {
   private static final ComponentIdentifier MAVEN_COORDINATES =
       ComponentIdentifier.createMavenCoordinates("foo", "bar", "1.0");
-
-  @Mock
-  private PullRequestCommentingRemediationService mockPullRequestCommentingRemediationService;
 
   @Mock
   private ComponentHelper mockComponentHelper;
@@ -56,8 +52,7 @@ public class SourceControlPullRequestMetricsTest
 
   @Test
   public void test_computeStatsAndReset_withPrs() {
-    metrics = new SourceControlPullRequestMetrics(
-        sourceControlPullRequestResultDAO, mockPullRequestCommentingRemediationService, mockComponentHelper);
+    metrics = new SourceControlPullRequestMetrics(sourceControlPullRequestResultDAO, mockComponentHelper);
 
     PullRequestResult success = new PullRequestResult();
     success.setCheckoutTime(1L);

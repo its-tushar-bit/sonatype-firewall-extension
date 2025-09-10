@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPol
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
-import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
@@ -115,8 +115,6 @@ public class PolicyEvaluateService
 
   private final ProductLicense productLicense;
 
-  private final FeaturesService featuresService;
-
   private final ScanPersistenceService scanPersistenceService;
 
   public boolean disablePollingIntervalForTesting = false;
@@ -146,7 +144,6 @@ public class PolicyEvaluateService
       PolicyEvaluationUtil policyEvaluationUtil,
       SbomMetadataUtils sbomMetadataUtils,
       ProductLicense productLicense,
-      FeaturesService featuresService,
       ScanPersistenceService scanPersistenceService,
       OrganizationDAO organizationDAO,
       RepositoryDAO repositoryDAO,
@@ -164,7 +161,6 @@ public class PolicyEvaluateService
     this.policyEvaluateServiceMetrics = policyEvaluateServiceMetrics;
     this.policyEvaluationUtil = policyEvaluationUtil;
     this.productLicense = productLicense;
-    this.featuresService = featuresService;
     this.scanPersistenceService = scanPersistenceService;
     this.executor = buildExecutorService();
     this.stageTypeService = stageTypeService;
@@ -486,8 +482,8 @@ public class PolicyEvaluateService
 
   @Authorize(permission = Permission.EVALUATE_APPLICATION)
   PolicyEvaluationPollingResultDTO pollEvaluationResultCheckEvaluateApplication(
-          @AuthzContext(Key.APPLICATION) Application application,
-          PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+      @SuppressWarnings("unused") @AuthzContext(Key.APPLICATION) Application application,
+      PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
   {
     productLicense.validateFeature(LicensedFeature.APPLICATION_EVALUATION);
     return toPolicyEvaluationPollingResultDTO(persistedPolicyEvaluationPollingResult);
@@ -495,8 +491,8 @@ public class PolicyEvaluateService
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)
   PolicyEvaluationPollingResultDTO pollEvaluationResultCheckEvaluateComponent(
-          @AuthzContext(Key.APPLICATION) Application application,
-          PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
+      @SuppressWarnings("unused") @AuthzContext(Key.APPLICATION) Application application,
+      PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult)
   {
     if (!productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
             || !SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()) {

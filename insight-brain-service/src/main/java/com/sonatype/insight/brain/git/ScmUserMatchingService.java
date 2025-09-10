@@ -337,7 +337,7 @@ public class ScmUserMatchingService
   private Entry<String, String> getRepositoryOwnerAndName(final String repositoryUrl) {
     List<String> tempFields = Arrays.stream(repositoryUrl.split("/")).collect(Collectors.toList());
     Collections.reverse(tempFields);
-    return new SimpleEntry<String, String>(tempFields.get(1), tempFields.get(0));
+    return new SimpleEntry<>(tempFields.get(1), tempFields.get(0));
   }
 
   private Set<String> getAllAvailableUsernamesForMatching(final Set<String> githubUsernames) {

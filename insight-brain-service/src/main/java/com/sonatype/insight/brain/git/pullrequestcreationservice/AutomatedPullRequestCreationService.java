@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -32,7 +33,6 @@ import com.sonatype.insight.brain.policy.evaluator.PullRequestRemediationDetails
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
-import com.sonatype.insight.brain.telemetry.SourceControlPullRequestMetrics;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +44,6 @@ public class AutomatedPullRequestCreationService
 {
   private static final Logger log = LoggerFactory.getLogger(AutomatedPullRequestCreationService.class);
 
-  private final SourceControlPullRequestMetrics sourceControlPullRequestMetrics;
-
   @Inject
   public AutomatedPullRequestCreationService(
       final RemediationPullRequestEligibilityService eligibilityService,
@@ -55,8 +53,7 @@ public class AutomatedPullRequestCreationService
       final OrganizationDAO organizationDAO,
       final PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       final ScmReducedSecurityService scmReducedSecurityService,
-      final InnerSourceService innerSourceService,
-      final SourceControlPullRequestMetrics sourceControlPullRequestMetrics)
+      final InnerSourceService innerSourceService)
   {
     super(baseUrl,
         sourceControlUtils,
@@ -66,7 +63,6 @@ public class AutomatedPullRequestCreationService
         eligibilityService,
         scmReducedSecurityService,
         innerSourceService);
-    this.sourceControlPullRequestMetrics = sourceControlPullRequestMetrics;
   }
 
   public void createAutomatedRemediationPullRequest(

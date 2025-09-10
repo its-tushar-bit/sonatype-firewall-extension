@@ -19,14 +19,9 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 public class ActivePolicyViolationsWithActionFailService
 {
-  private static final Logger log = LoggerFactory.getLogger(ActivePolicyViolationsWithActionFailService.class);
-
   private final ApplicationDAO applicationDAO;
 
   private final PolicyViolationDAO policyViolationDAO;

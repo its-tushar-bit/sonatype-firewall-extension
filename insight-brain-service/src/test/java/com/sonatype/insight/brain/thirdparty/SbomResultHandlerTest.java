@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -60,13 +61,11 @@ import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.assertj.core.api.recursive.comparison.RecursiveComparisonConfiguration;
 import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Dependency;
-import org.cyclonedx.model.ExtensibleType;
 import org.cyclonedx.model.Extension;
 import org.cyclonedx.model.Extension.ExtensionType;
 import org.cyclonedx.model.Hash;
@@ -3018,31 +3017,6 @@ public class SbomResultHandlerTest
       assertVulnerability(coordinateSecurity, expectedBom.getVulnerabilities().get(0), coordinateId,
           optionalValuesPresent, sbomMetadataId, researchType);
     }
-  }
-
-  private void assertThirdPartyCoordinateSecurities(
-      String content,
-      List<ThirdPartyCoordinateSecurity> actualVulnerabilities,
-      ThirdPartyScanContext thirdPartyScanContext) throws Exception
-  {
-    Bom expectedBom = ThirdPartyUtils.parseAndValidateCycloneDx(content, SbomFormat.XML);
-
-    List<ThirdPartyCoordinateSecurity> expectedVulnerabilities = new ArrayList<>();
-
-    for (Component component : expectedBom.getComponents()) {
-      List<ExtensibleType> vulnerabilitiesSbom = component.getExtensions().get("vulnerabilities").getExtensions();
-      for (ExtensibleType vulnerabilities : vulnerabilitiesSbom) {
-        ThirdPartyCoordinateSecurity expectedVulnerability =
-            sbomResultHandler.parseVulnerabilityExtension((Vulnerability10) vulnerabilities, null);
-        expectedVulnerability.setSbomMetadataId(thirdPartyScanContext.getSbomMetadataId());
-        expectedVulnerability.setIdentificationSources(IdentificationSource.SBOM.getId());
-        expectedVulnerabilities.add(expectedVulnerability);
-      }
-    }
-    assertThat(expectedVulnerabilities)
-        .usingRecursiveFieldByFieldElementComparator(RecursiveComparisonConfiguration.builder()
-            .withIgnoredFields("id", "fileCoordinateId", "pcStateManager", "pcDetachedState").build())
-        .containsExactlyInAnyOrderElementsOf(actualVulnerabilities);
   }
 
   private void assertThirdPartyCoordinateLicense(

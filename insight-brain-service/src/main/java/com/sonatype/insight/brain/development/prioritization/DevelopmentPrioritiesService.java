@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -54,7 +55,6 @@ import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
@@ -115,8 +115,6 @@ public class DevelopmentPrioritiesService
 
   private final InnerSourceService innerSourceService;
 
-  private final PathForwardInspector pathForwardInspector;
-
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
   @Inject
@@ -133,7 +131,6 @@ public class DevelopmentPrioritiesService
       final ApplicationDAO applicationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
       final InnerSourceService innerSourceService,
-      final PathForwardInspector pathForwardInspector,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO)
   {
     this.featuresService = featuresService;
@@ -148,7 +145,6 @@ public class DevelopmentPrioritiesService
     this.applicationDAO = applicationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
     this.innerSourceService = innerSourceService;
-    this.pathForwardInspector = pathForwardInspector;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
   }
 

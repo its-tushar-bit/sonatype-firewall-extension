@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.configuration.webhook;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
@@ -21,6 +22,7 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import com.sonatype.insight.license.model.LicensedFeature;
+
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -386,7 +388,7 @@ public class WebhookServiceTest
   }
 
   @Test
-  public void testGetDecrypted() throws PlexusCipherException {
+  public void testGetDecrypted() throws Exception {
     Webhook webhook = tempEntity.newWebhookWithSecret("http://localhost",
         EnumSet.of(APPLICATION_EVALUATION), null, WEBHOOK_SECRET_KEY_ENCRYPTED);
 

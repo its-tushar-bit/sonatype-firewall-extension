@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -71,10 +72,6 @@ public class LuceneSearchIndexClient
   private static final String NO_INDEX_ERROR_MESSAGE =
       "Index does not exist or is unreadable, please (re)create your index.";
 
-  private final OwnerDAO ownerDAO;
-
-  private final LuceneComponents luceneComponents;
-
   private final InsightWork insightWork;
 
   @Inject
@@ -101,8 +98,6 @@ public class LuceneSearchIndexClient
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
         thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper);
-    this.ownerDAO = ownerDAO;
-    this.luceneComponents = luceneComponents;
     this.insightWork = insightWork;
   }
 
@@ -256,7 +251,7 @@ public class LuceneSearchIndexClient
       final int page,
       final int pageSize,
       final SearchResultDTO searchResultDTO,
-      final Map<String, String> groupFieldNamesByItemType) throws IOException
+      final Map<String, String> groupFieldNamesByItemType)
   {
     int startIndex = (page - 1) * pageSize;
     int endIndex = page * pageSize;

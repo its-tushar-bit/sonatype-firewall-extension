@@ -14,6 +14,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -171,7 +172,7 @@ public class S3SbomPersistenceServiceTest
   }
 
   @Test
-  public void testCreateTransientSbom() throws IOException {
+  public void testCreateTransientSbom() {
     SbomEntity entity = service.getTransientSbom(FILE_NAME);
 
     assertThat(entity).isInstanceOf(S3SbomEntity.class);

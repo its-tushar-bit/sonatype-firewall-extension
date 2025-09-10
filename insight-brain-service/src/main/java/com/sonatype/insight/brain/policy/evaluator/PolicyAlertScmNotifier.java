@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -21,7 +22,6 @@ import javax.inject.Singleton;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
-import com.sonatype.insight.brain.git.RemediationPullRequestEligibilityService;
 import com.sonatype.insight.brain.git.RemediationVersionDTO;
 import com.sonatype.insight.brain.git.pullrequestcreationservice.AutomatedPullRequestCreationService;
 import com.sonatype.insight.brain.model.Application;
@@ -49,8 +49,6 @@ public class PolicyAlertScmNotifier
 
   private final AutomatedPullRequestCreationService automatedPullRequestCreationService;
 
-  private final RemediationPullRequestEligibilityService remediationPullRequestEligibilityService;
-
   private final PullRequestCommentingRemediationService pullRequestCommentingRemediationService;
 
   private final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer;
@@ -73,7 +71,6 @@ public class PolicyAlertScmNotifier
   @Inject
   public PolicyAlertScmNotifier(
       final AutomatedPullRequestCreationService automatedPullRequestCreationService,
-      final RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
       final PullRequestCommentingRemediationService pullRequestCommentingRemediationService,
       final PolicyAlertSourceCodeOrganizer policyAlertSourceCodeOrganizer,
       final ShutdownHandler shutdownHandler,
@@ -81,7 +78,6 @@ public class PolicyAlertScmNotifier
   )
   {
     this.automatedPullRequestCreationService = automatedPullRequestCreationService;
-    this.remediationPullRequestEligibilityService = remediationPullRequestEligibilityService;
     this.pullRequestCommentingRemediationService = pullRequestCommentingRemediationService;
     this.policyAlertSourceCodeOrganizer = policyAlertSourceCodeOrganizer;
     this.shutdownHandler = shutdownHandler;

@@ -14,23 +14,23 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
-import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.features.FeaturesService;
-import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.scan.datastore.ScanEntity;
+import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.scan.client.ClientScanRequest;
 import com.sonatype.insight.scan.client.ClientScanner;
 import com.sonatype.insight.scan.config.ScanPropertiesLoader;
 import com.sonatype.insight.scan.file.FileScanRequest;
 import com.sonatype.insight.scan.file.FileScanner;
-import com.sonatype.insight.scan.file.ScanSession;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.scan.file.ScanSession;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.scan.model.Scan;
 import com.sonatype.insight.scan.model.ScanConfiguration;
@@ -57,10 +57,6 @@ public class Scanner
 {
   private static final Logger log = LoggerFactory.getLogger(Scanner.class);
 
-  private static final String TEMP_SCAN_PREFIX = "temp-";
-
-  private static final String SCAN_SUFFIX = ".xml.gz";
-
   private static final String COULD_NOT_DELETE_SCAN_FILE = "Could not delete scan file: {}";
 
   private final ScanPropertiesLoader configLoader;
@@ -70,8 +66,6 @@ public class Scanner
   private final FileScanner fileScanner;
 
   private final ScanWriterFactory writerFactory;
-
-  private final FileCleaner fileCleaner;
 
   private final FeaturesService featuresService;
 
@@ -83,7 +77,6 @@ public class Scanner
       ClientScanner clientScanner,
       FileScanner fileScanner,
       ScanWriterFactory writerFactory,
-      FileCleaner fileCleaner,
       FeaturesService featuresService,
       ScanPersistenceService scanPersistenceService)
   {
@@ -91,7 +84,6 @@ public class Scanner
     this.clientScanner = clientScanner;
     this.fileScanner = fileScanner;
     this.writerFactory = writerFactory;
-    this.fileCleaner = fileCleaner;
     this.featuresService = featuresService;
     this.scanPersistenceService = scanPersistenceService;
   }

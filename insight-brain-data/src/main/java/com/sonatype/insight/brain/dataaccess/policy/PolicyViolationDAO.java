@@ -27,6 +27,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -35,10 +36,10 @@ import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelper;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField.SortableField;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainer;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsForImageContainerFilter.SortField.SortableField;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.containerimages.ContainerImagePolicyViolationSummaryDTO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -365,7 +366,7 @@ public class PolicyViolationDAO
           .map(array -> new RepositoryResultsForImageContainer(getInteger(array[0]), (String) array[1], null,
               (String) array[2],
               array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
-              applicationIdsToScanIdMap.get((String) array[4]), (String) array[5]))
+              applicationIdsToScanIdMap.get(array[4]), (String) array[5]))
           .collect(Collectors.toList());
 
       return results;
@@ -453,7 +454,7 @@ public class PolicyViolationDAO
               getInteger(array[1]),
               (String) array[2],
               array[3] == null ? null : new Date(((Timestamp) array[3]).getTime()),
-              applicationIdsToScanIdMap.get((String) array[4]),
+              applicationIdsToScanIdMap.get(array[4]),
               (String) array[5]
           )).collect(Collectors.toList());
       return results;

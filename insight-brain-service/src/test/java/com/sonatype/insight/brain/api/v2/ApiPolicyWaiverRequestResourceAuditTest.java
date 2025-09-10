@@ -218,20 +218,6 @@ public class ApiPolicyWaiverRequestResourceAuditTest
     assertOwnerData(auditDTO, owner);
   }
 
-  private void testUpdatePolicyWaiverRequest_Unauthorized(Owner owner, AbstractPolicyViolation policyViolation)
-      throws Exception
-  {
-    ApiPolicyWaiverRequestOptionsDTO policyWaiverRequestOptionsDTO = new ApiPolicyWaiverRequestOptionsDTO();
-    policyWaiverRequestOptionsDTO.comment = "waiver comment";
-    HttpResponse response =
-        restRequest().path(POLICY_VIOLATION_ID_PATH).parameter(owner.getType(), owner.getId(), policyViolation.getId())
-            .with(unauthorizedUser()).body(policyWaiverRequestOptionsDTO, MediaType.APPLICATION_JSON).post();
-    assertResponseStatus(403, response);
-
-    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_WAIVER_REQUEST, "unauthorized");
-    assertOwnerData(auditDTO, owner);
-  }
-
   @Test
   public void testReviewPolicyWaiverRequest_Application() throws Exception {
     Organization org = tempEntity.newOrganization();

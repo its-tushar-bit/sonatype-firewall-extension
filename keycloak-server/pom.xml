@@ -38,7 +38,6 @@
       <!-- Included to make use of existing dto classes used by rest api-->
       <groupId>org.keycloak</groupId>
       <artifactId>keycloak-core</artifactId>
-      <version>${keycloak.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.bouncycastle</groupId>

@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -64,7 +65,6 @@ import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
-import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.CpeResultsTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -169,8 +169,6 @@ public class SbomResultsMerger
 
   private final TelemetryUtils telemetryUtils;
 
-  private final InsightWork insightWork;
-
   private ContainerNode<?> bomJsonData;
 
   private ContainerNode<?> dependenciesJsonData;
@@ -209,7 +207,6 @@ public class SbomResultsMerger
       final TelemetrySender telemetrySender,
       final TelemetryUtils telemetryUtils,
       final ApplicationReportPersistenceService applicationReportPersistenceService,
-      final InsightWork insightWork,
       final ScanPersistenceService scanPersistenceService)
   {
     this.thirdPartyFileCoordinatePersister = thirdPartyFileCoordinatePersister;
@@ -224,7 +221,6 @@ public class SbomResultsMerger
     this.telemetrySender = telemetrySender;
     this.telemetryUtils = telemetryUtils;
     this.applicationReportPersistenceService = applicationReportPersistenceService;
-    this.insightWork = insightWork;
     this.scanPersistenceService = scanPersistenceService;
   }
 

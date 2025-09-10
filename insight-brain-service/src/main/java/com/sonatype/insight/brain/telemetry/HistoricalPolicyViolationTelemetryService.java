@@ -20,16 +20,11 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 @Singleton
 public class HistoricalPolicyViolationTelemetryService
     extends HistoricalTelemetryService
 {
-  private static final Logger log = LoggerFactory.getLogger(HistoricalPolicyViolationTelemetryService.class);
-
   private static final Date CUTOFF_DATE = Date.from(
       LocalDate.of(2024, 1, 1)
           .atStartOfDay(ZoneId.of("GMT"))

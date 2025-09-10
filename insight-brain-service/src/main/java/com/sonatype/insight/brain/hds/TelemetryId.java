@@ -15,9 +15,6 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.ClusterIdentificationService;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 @Named
 @Singleton
 /**
@@ -36,8 +33,6 @@ import org.slf4j.LoggerFactory;
  */
 public class TelemetryId
 {
-  private static final Logger log = LoggerFactory.getLogger(TelemetryId.class);
-
   @Deprecated
   public static final String TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME = "TELEMETRY_GENERATED_INSTANCE_ID";
 

@@ -22,7 +22,6 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
-import com.sonatype.insight.brain.git.PullRequestCommentingRemediationService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.iq.manager.PullRequestResult;
@@ -42,17 +41,14 @@ public class SourceControlPullRequestMetrics
 
   private SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO;
 
-  private PullRequestCommentingRemediationService remediationService;
-
   private ComponentHelper componentHelper;
 
   @Inject
-  public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
-                                         PullRequestCommentingRemediationService remediationService,
-                                         ComponentHelper componentHelper)
+  public SourceControlPullRequestMetrics(
+      SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
+      ComponentHelper componentHelper)
   {
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
-    this.remediationService = remediationService;
     this.componentHelper = componentHelper;
   }
 

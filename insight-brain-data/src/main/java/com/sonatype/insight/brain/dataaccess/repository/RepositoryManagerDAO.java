@@ -34,18 +34,14 @@ public class RepositoryManagerDAO
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryManagerDAO.class);
 
-  private final RepositoryDAO repositoryDAO;
-
   private final Provider<OwnerDAO> ownerDAOProvider;
 
   @Inject
   public RepositoryManagerDAO(
       final OperationalDataStore operationalDataStore,
-      final RepositoryDAO repositoryDAO,
       final Provider<OwnerDAO> ownerDAOProvider)
   {
     super(operationalDataStore);
-    this.repositoryDAO = repositoryDAO;
     this.ownerDAOProvider = ownerDAOProvider;
   }
 

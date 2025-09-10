@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -27,7 +28,6 @@ import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
 import com.sonatype.insight.brain.hds.ComponentDetailsDTO;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.hds.ComponentVersionInfoDTO;
-import com.sonatype.insight.brain.innersource.InnerSourceService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.component.DependencyType;
@@ -46,6 +46,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.github.dto.GithubUser;
+
 import org.sonatype.plexus.components.cipher.DefaultPlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
@@ -88,9 +89,6 @@ public class ManualPullRequestCreationServiceTest
 
   @Inject
   private ManualPullRequestCreationService manualPrService;
-
-  @Inject
-  private InnerSourceService innerSourceService;
 
   @Inject
   private SourceControlEventDAO sourceControlEventDAO;

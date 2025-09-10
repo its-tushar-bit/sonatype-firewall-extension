@@ -5,7 +5,6 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import java.io.IOException;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -94,7 +93,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testSearch_Results_In_SinglePage() throws IOException {
+  public void testSearch_Results_In_SinglePage() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -109,7 +108,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testSearch_Results_In_MultiplePages() throws IOException {
+  public void testSearch_Results_In_MultiplePages() {
     enableAdvancedSearch();
 
     // Create 15 policies
@@ -132,7 +131,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testSearch_NoResults() throws IOException {
+  public void testSearch_NoResults() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -147,7 +146,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testNavigationAndResultRetain() throws IOException {
+  public void testNavigationAndResultRetain() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -167,7 +166,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testErrorsShown() throws IOException {
+  public void testErrorsShown() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -190,7 +189,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testQueryResetWhenNextAndPrevious() throws IOException {
+  public void testQueryResetWhenNextAndPrevious() {
     // When a user searches with foo:bar and there are multiple pages in the result
     // If the user modifies the search bar and clicks either next or previous
     // we must set the input field back to foo:bar and navigate in pages for this search
@@ -223,7 +222,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testHelpContainer() throws IOException {
+  public void testHelpContainer() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 
@@ -250,7 +249,7 @@ public class AdvancedSearchPageTest
   }
 
   @Test
-  public void testQueryBuilder() throws IOException {
+  public void testQueryBuilder() {
     enableAdvancedSearch();
     indexService.createSearchIndex();
 

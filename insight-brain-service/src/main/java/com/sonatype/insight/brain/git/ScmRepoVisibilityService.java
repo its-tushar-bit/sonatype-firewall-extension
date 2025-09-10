@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -22,8 +23,6 @@ import com.sonatype.nexus.scm.api.GitApiClient;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Logic for the 'visibility' of an SCM repository. This is primarily if the repo is 'public' or 'private', and then we
@@ -35,8 +34,6 @@ import org.slf4j.LoggerFactory;
 @Singleton
 public class ScmRepoVisibilityService
 {
-  private static final Logger log = LoggerFactory.getLogger(ScmRepoVisibilityService.class);
-
   private final FeaturesService featuresService;
 
   private final TenantReference<LoadingCache<GitRepositoryInfo, Boolean>> privateRepoCache;

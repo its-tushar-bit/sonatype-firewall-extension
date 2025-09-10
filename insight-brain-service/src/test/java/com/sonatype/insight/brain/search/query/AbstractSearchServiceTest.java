@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.search.query;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -17,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.StreamingOutput;
@@ -190,7 +190,7 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_RestrictedApplicationNotReturnedItemTypeSearch() throws IOException {
+  public void testSearchIndex_RestrictedApplicationNotReturnedItemTypeSearch() {
     Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
 
     Application application = tempEntity.newApplicationWithParent();
@@ -212,7 +212,7 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_AllPermittedApplicationsReturned() throws IOException {
+  public void testSearchIndex_AllPermittedApplicationsReturned() {
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("uSeRnAmEiıIİ", "Test User", InternalRealm.ID));
     Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
 
@@ -241,7 +241,7 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_ApplicationsOfOrganizationReturned() throws IOException {
+  public void testSearchIndex_ApplicationsOfOrganizationReturned() {
     Role nonGlobalReadRole = tempEntity.newRole(false, Permission.READ);
 
     Organization organization = tempEntity.newOrganization();
@@ -278,41 +278,37 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+  public void testSearchIndex_ApplicationsReturnedForGlobalContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
         "uSeRnAmEiıIİ");
   }
 
   @Test
-  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForGlobalContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
         "USERNAMEIIIİ");
   }
 
   @Test
-  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForGlobalContextPermission() throws IOException {
+  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForGlobalContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(true, Permission.READ), MembershipMapping.GLOBAL_CONTEXT_ID,
         "usernameiıii̇");
   }
 
   @Test
-  public void testSearchIndex_ApplicationsReturnedForRootOrganizationContextPermission() throws IOException {
+  public void testSearchIndex_ApplicationsReturnedForRootOrganizationContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
         "uSeRnAmEiıIİ");
   }
 
   @Test
-  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForRootOrganizationContextPermission()
-      throws IOException
-  {
+  public void testSearchIndex_MemberNameLowercase_ApplicationsReturnedForRootOrganizationContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
         "USERNAMEIIIİ");
   }
 
   @Test
-  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForRootOrganizationContextPermission()
-      throws IOException
-  {
+  public void testSearchIndex_MemberNameUppercase_ApplicationsReturnedForRootOrganizationContextPermission() {
     testSearchIndex_ShouldReturnAll(tempEntity.newRole(false, Permission.READ), Organization.ROOT_ORGANIZATION_ID,
         "usernameiıii̇");
   }
@@ -320,7 +316,7 @@ public abstract class AbstractSearchServiceTest
   private void testSearchIndex_ShouldReturnAll(
       Role role,
       String contextId,
-      String memberName) throws IOException
+      String memberName)
   {
     when(subject.getPrincipal()).thenReturn(new UserPrincipal("uSeRnAmEiıIİ", "Test User", InternalRealm.ID));
     Organization org1 = tempEntity.newOrganization();
@@ -344,7 +340,7 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_ApplicationsReturnedForOrganizationContextPermission() throws IOException {
+  public void testSearchIndex_ApplicationsReturnedForOrganizationContextPermission() {
     Role role = tempEntity.newRole(false, Permission.READ);
 
     Organization org1 = tempEntity.newOrganization();
@@ -476,7 +472,7 @@ public abstract class AbstractSearchServiceTest
   }
 
   @Test
-  public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() throws IOException {
+  public void testSearchIndex_PoliciesReturnedForOrganizationContextPermission() {
     Role role = tempEntity.newRole(false, Permission.READ);
 
     Organization org1 = tempEntity.newOrganization();

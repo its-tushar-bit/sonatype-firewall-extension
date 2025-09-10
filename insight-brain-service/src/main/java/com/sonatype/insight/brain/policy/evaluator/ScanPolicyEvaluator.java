@@ -19,6 +19,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -40,7 +41,6 @@ import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
-import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
@@ -51,7 +51,6 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
-import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -144,8 +143,6 @@ public class ScanPolicyEvaluator
 
   private final AggregateFileDAO aggregateFileDAO;
 
-  private final ApplicationDAO applicationDAO;
-
   private final ApplicationComponentLicenseDAO applicationComponentLicenseDAO;
 
   private final ApplicationComponentDAO applicationComponentDAO;
@@ -161,8 +158,6 @@ public class ScanPolicyEvaluator
   private final OwnerDAO ownerDAO;
 
   private final OrganizationDAO organizationDAO;
-
-  private final RepositoryDAO repositoryDAO;
 
   private final ComponentPolicyEvaluator componentPolicyEvaluator;
 
@@ -215,7 +210,6 @@ public class ScanPolicyEvaluator
       final PolicyViolationDAO policyViolationDAO,
       final AggregateFileDAO aggregateFileDAO,
       final ApplicationComponentLicenseDAO applicationComponentLicenseDAO,
-      final ApplicationDAO applicationDAO,
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
@@ -223,7 +217,6 @@ public class ScanPolicyEvaluator
       final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
       final OwnerDAO ownerDAO,
       final OrganizationDAO organizationDAO,
-      final RepositoryDAO repositoryDAO,
       final ComponentPolicyEvaluator componentPolicyEvaluator,
       final ApplicationEvaluationEventService applicationEvaluationEventService,
       final LegacyViolationService legacyViolationService,
@@ -253,7 +246,6 @@ public class ScanPolicyEvaluator
     this.policyViolationDAO = policyViolationDAO;
     this.aggregateFileDAO = aggregateFileDAO;
     this.applicationComponentLicenseDAO = applicationComponentLicenseDAO;
-    this.applicationDAO = applicationDAO;
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
@@ -261,7 +253,6 @@ public class ScanPolicyEvaluator
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.ownerDAO = ownerDAO;
     this.organizationDAO = organizationDAO;
-    this.repositoryDAO = repositoryDAO;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
     this.applicationEvaluationEventService = applicationEvaluationEventService;
     this.legacyViolationService = legacyViolationService;

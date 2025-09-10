@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.UUID;
+
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -17,8 +18,6 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Named
 @Singleton
@@ -26,8 +25,6 @@ import org.slf4j.LoggerFactory;
 public class TestTaskScheduler
     extends TaskScheduler
 {
-  private final Logger log = LoggerFactory.getLogger(TestTaskScheduler.class);
-
   private final OperationalDataStore operationalDataStore;
 
   @Inject

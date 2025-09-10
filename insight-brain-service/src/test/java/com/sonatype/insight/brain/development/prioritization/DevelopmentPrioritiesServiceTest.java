@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -47,7 +48,6 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
-import com.sonatype.insight.brain.policy.PathForwardInspector;
 import com.sonatype.insight.brain.policy.PolicyEvaluationDiffService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats.Component;
@@ -138,9 +138,6 @@ public class DevelopmentPrioritiesServiceTest
   @Inject
   private InnerSourceService innerSourceService;
 
-  @Inject
-  private PathForwardInspector pathForwardInspector;
-
   private DevelopmentPrioritiesService developmentPrioritiesService;
 
   private String prioritizationId;
@@ -150,7 +147,7 @@ public class DevelopmentPrioritiesServiceTest
     developmentPrioritiesService = new DevelopmentPrioritiesService(featuresService, developmentPrioritiesReportService,
         prioritizationComponentInfoDAO, reportService, componentReachabilityService, componentRemediationService,
         developmentPrioritiesUtilsService, policyEvaluationDiffService, policyEvaluationDAO, applicationDAO,
-        policyWaiverDAO, innerSourceService, pathForwardInspector, autoPolicyWaiverDAO);
+        policyWaiverDAO, innerSourceService, autoPolicyWaiverDAO);
     prioritizationId = tempEntity.newDevelopmentPrioritization(GIVEN_SOME_SCAN_ID).getId();
     tempEntity.newApplicationWithParent(GIVEN_SOME_PUBLIC_APP_ID);
   }

@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,7 +26,6 @@ import com.sonatype.insight.brain.model.zscaler.ZScalerMetrics;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.error.exception.BadRequestException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import org.slf4j.Logger;
@@ -36,8 +36,6 @@ import org.slf4j.LoggerFactory;
 @HasFeature(SystemConfigurationPropertyFeature.ZSCALER)
 public class ApiZScalerService
 {
-  private static final ObjectMapper MAPPER = new ObjectMapper();
-
   private static final String QUOTA_KEY = "QUOTA_KEY";
 
   private final Logger log = LoggerFactory.getLogger(ApiZScalerService.class);

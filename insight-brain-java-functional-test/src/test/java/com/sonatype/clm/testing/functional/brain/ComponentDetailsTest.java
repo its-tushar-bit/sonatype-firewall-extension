@@ -110,7 +110,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
 import org.openqa.selenium.support.ui.Wait;
@@ -1854,16 +1853,6 @@ public class ComponentDetailsTest
     ElementsCollection observedLicenses = licenseDetectionsTile.getItems(licenseDetectionsTile.observedLicenses());
     observedLicenses.shouldHave(size(1));
     observedLicenses.first().shouldHave(text("Not Provided (Claimed Component)"));
-  }
-
-  private void assertVulnerabilityDetailsTooltip(SelenideElement element) {
-    SelenideElement elementLabel = element.parent().find(".nx-read-only__label");
-    SelenideElement infoIcon = elementLabel.$(".fa-info-circle");
-
-    // Hover over the info icon and check that the tooltip is visible
-    Actions actions = new Actions(WebDriverRunner.getWebDriver());
-    actions.moveToElement(infoIcon).perform();
-    $("[role='tooltip']").shouldBe(visible);
   }
 
   /**

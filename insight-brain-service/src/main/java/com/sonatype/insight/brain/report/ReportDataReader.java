@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,6 +14,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -44,7 +44,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.Weigher;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
-import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,8 +63,6 @@ public class ReportDataReader
   // For testing visibility
   final TenantReference<Cache<String, Table<String, ComponentIdentifier, ReportComponentDTO>>>
       componentCache;
-
-  private static final Comparator<ComparableVersion> comparator = ComparableVersion::compareTo;
 
   private final Provider<ReportService> reportServiceProvider;
 

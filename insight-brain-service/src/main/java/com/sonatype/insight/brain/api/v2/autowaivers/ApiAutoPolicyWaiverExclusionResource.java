@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.autowaivers;
 
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
@@ -20,7 +21,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.autowaivers.ApiAutoPolicyWaiverExclusionResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.autowaivers.ApiAutoPolicyWaiverExclusionService;
@@ -45,8 +45,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @ProductLicenseEnforcementPoint(LicensedFeature.DEVELOPER_DASHBOARD)
 public class ApiAutoPolicyWaiverExclusionResource
 {
-  private final ApiConfigFeaturesService apiConfigFeaturesService;
-
   private final ApiAutoPolicyWaiverExclusionService apiAutoPolicyWaiverExclusionService;
 
   static final String OWNERS_PATH = "{ownerType: application|organization}/{ownerId}";
@@ -57,11 +55,7 @@ public class ApiAutoPolicyWaiverExclusionResource
       OWNERS_PATH + "/{autoPolicyWaiverId}/{autoPolicyWaiverExclusionId}";
 
   @Inject
-  public ApiAutoPolicyWaiverExclusionResource(
-      ApiConfigFeaturesService apiConfigFeaturesService,
-      ApiAutoPolicyWaiverExclusionService apiAutoPolicyWaiverExclusionService)
-  {
-    this.apiConfigFeaturesService = apiConfigFeaturesService;
+  public ApiAutoPolicyWaiverExclusionResource(ApiAutoPolicyWaiverExclusionService apiAutoPolicyWaiverExclusionService) {
     this.apiAutoPolicyWaiverExclusionService = apiAutoPolicyWaiverExclusionService;
   }
 

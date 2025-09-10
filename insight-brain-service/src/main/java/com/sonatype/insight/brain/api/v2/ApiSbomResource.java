@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Set;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -38,7 +39,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityDataDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomVulnerabilityService;
-import com.sonatype.insight.brain.api.v2.service.VulnerabilityDetailsService;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
@@ -99,17 +99,13 @@ public class ApiSbomResource
 
   private final ApiSbomVulnerabilityService apiSbomVulnerabilityService;
 
-  private final VulnerabilityDetailsService vulnerabilityDetailsService;
-
   @Inject
   public ApiSbomResource(
       final ApiSbomService apiSbomService,
-      final ApiSbomVulnerabilityService apiSbomVulnerabilityService,
-      final VulnerabilityDetailsService vulnerabilityDetailsService)
+      final ApiSbomVulnerabilityService apiSbomVulnerabilityService)
   {
     this.apiSbomService = apiSbomService;
     this.apiSbomVulnerabilityService = apiSbomVulnerabilityService;
-    this.vulnerabilityDetailsService = vulnerabilityDetailsService;
   }
 
   @Operation(summary = "Delete sbom version",

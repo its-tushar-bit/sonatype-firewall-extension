@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -63,7 +64,6 @@ import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
-import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader.HostedDataServicesSource;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
@@ -137,8 +137,6 @@ public class ReportResource
 
   private final ApplicationDAO applicationDAO;
 
-  private final PolicyEvaluationDAO policyEvaluationDAO;
-
   private final ReportService reportService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -175,7 +173,6 @@ public class ReportResource
       final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
       final InsightWork work,
       final BaseUrl baseUrl,
-      final PolicyEvaluationDAO policyEvaluationDAO,
       final ApiReportDataServiceV2 reportDataService,
       final SbomPolicyService sbomPolicyService,
       final ReleaseGraphService releaseGraphService,
@@ -189,7 +186,6 @@ public class ReportResource
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
     this.work = work;
     this.baseUrl = baseUrl;
-    this.policyEvaluationDAO = policyEvaluationDAO;
     this.reportDataService = reportDataService;
     this.sbomPolicyService = sbomPolicyService;
     this.releaseGraphService = releaseGraphService;

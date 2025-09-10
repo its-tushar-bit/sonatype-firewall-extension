@@ -22,8 +22,6 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Waiver reason was added to policy waivers in August of 2024.  Unfortunately, the waiver reason wasn't added to the
@@ -39,8 +37,6 @@ import org.slf4j.LoggerFactory;
 public class PolicyWaiverTelemetryBackfillService
     extends HistoricalTelemetryService
 {
-  private static final Logger log = LoggerFactory.getLogger(PolicyWaiverTelemetryBackfillService.class);
-
   // we're sending telemetry data out one at a time since each represents thousands of records
   private static final int BATCH_SIZE = 1;
 

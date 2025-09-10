@@ -5,20 +5,22 @@
  */
 package com.sonatype.insight.brain.configuration.webhook;
 
+import java.util.EnumSet;
+
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CipherFactory;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
+
+import org.sonatype.plexus.components.cipher.PlexusCipher;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.sonatype.plexus.components.cipher.PlexusCipher;
-import org.sonatype.plexus.components.cipher.PlexusCipherException;
-
-import javax.inject.Inject;
-import java.util.EnumSet;
 
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
@@ -52,7 +54,7 @@ public class WebhookServiceFIPSTest extends WebhookServiceTest
 
   @Test
   @Override
-  public void testGetDecrypted() throws PlexusCipherException {
+  public void testGetDecrypted() throws Exception {
     WebhookService webhookService = new WebhookService(
         configuration, productLicense, webhookDAO, organizationApplicationManagementEventService);
     PlexusCipher plexusCipher = CipherFactory.createCipher();

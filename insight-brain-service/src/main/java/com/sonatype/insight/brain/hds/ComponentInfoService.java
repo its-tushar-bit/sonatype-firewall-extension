@@ -54,7 +54,6 @@ import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDAO;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
-import com.sonatype.insight.brain.firewall.container.FirewallContainerHelper;
 import com.sonatype.insight.brain.git.ManualPullRequestImpossibilityReason;
 import com.sonatype.insight.brain.git.ManualPullRequestService;
 import com.sonatype.insight.brain.git.utils.PullRequestBranchNameGenerator;
@@ -156,8 +155,6 @@ public class ComponentInfoService
 
   private final ReportDataReader reportDataReader;
 
-  private final FirewallContainerHelper firewallContainerHelper;
-
   private static final String OTHER_CATEGORY_ID = "113";
 
   private String toolName;
@@ -182,8 +179,7 @@ public class ComponentInfoService
       final IdUtils idUtils,
       ManualPullRequestService manualPullRequestService,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
-      ReportDataReader reportDataReader,
-      FirewallContainerHelper firewallContainerHelper)
+      ReportDataReader reportDataReader)
   {
     this.hdsClient = hdsClient;
     this.componentPolicyEvaluator = componentPolicyEvaluator;
@@ -204,7 +200,6 @@ public class ComponentInfoService
     this.manualPullRequestService = manualPullRequestService;
     this.pullRequestBranchNameGenerator = pullRequestBranchNameGenerator;
     this.reportDataReader = reportDataReader;
-    this.firewallContainerHelper = firewallContainerHelper;
     initUnspecifiedLicense();
     initOtherCategory();
   }
@@ -319,7 +314,7 @@ public class ComponentInfoService
     }
 
     boolean isFromFirewallForContainers =
-        firewallContainerHelper.isFormatValidForFirewallForContainerImages(identifier.getFormat(), owner.getId());
+        ComponentIdentifier.FORMAT_CONTAINER.equals(identifier.getFormat());
 
     // Case 2: Vulnerability from Firewall for Containers, use report data
     if (IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource) && isFromFirewallForContainers) {
@@ -954,8 +949,7 @@ public class ComponentInfoService
     boolean isFromSbomWithCpeMatching = IdentificationSource.SBOM.getId().equals(identificationSource)
         && ComponentIdentifier.isFormatValidForCpeMatching(identifier.getFormat());
 
-    boolean isFromFirewallForContainers = IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource)
-        && firewallContainerHelper.isFormatValidForFirewallForContainerImages(identifier.getFormat(), owner.getId());
+    boolean isFromFirewallForContainers = IdentificationSource.SONATYPE_CONTAINER.getId().equals(identificationSource);
 
     // Case 1: Terraform components (which are also 'knownFormat')
     if (isKnownFormat(identifier) && identifier.isTerraform()) {

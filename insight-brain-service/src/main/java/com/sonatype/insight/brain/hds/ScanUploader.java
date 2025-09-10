@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
@@ -92,8 +91,7 @@ public class ScanUploader
 
     boolean isCpeDataMatchingEnabled = false;
 
-    if (ProxyStageType.ID.equals(stageTypeId)
-        && thirdPartyScanContext != null
+    if (thirdPartyScanContext != null
         && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
         && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
         && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)) {

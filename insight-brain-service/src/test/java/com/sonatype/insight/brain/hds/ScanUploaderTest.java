@@ -346,7 +346,7 @@ public class ScanUploaderTest
     scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
-    assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
+    assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
     verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
   }
 }

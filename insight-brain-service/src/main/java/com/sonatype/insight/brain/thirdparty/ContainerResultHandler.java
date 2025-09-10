@@ -28,7 +28,6 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
-import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
@@ -157,7 +156,6 @@ public class ContainerResultHandler
       PackageUrlIdentifier packageUrlIdentifier;
 
       if (thirdPartyScanContext != null
-          && ProxyStageType.ID.equals(thirdPartyScanContext.getStageType())
           && thirdPartyScanContext.getContainerItemContentType() == ItemContentType.CONTAINER_URI_SONATYPE
           && SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
           && productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION)

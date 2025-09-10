@@ -23,9 +23,11 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -41,6 +43,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -77,6 +80,12 @@ public class PolicyViolationTelemetryCollectorTest
   private static final ComponentIdentifier commonsLang3 = ComponentIdentifier.createMavenCoordinates(
       "org.apache.commons", "commons-lang3", "3.8.1");
 
+  private static final ComponentIdentifier jacksonDatabind_2_13_4 = ComponentIdentifier.createMavenCoordinates(
+      "com.fasterxml.jackson.core", "jackson-databind", "2.13.4");
+
+  private static final ComponentIdentifier jacksonDatabind_2_13_5 = ComponentIdentifier.createMavenCoordinates(
+      "com.fasterxml.jackson.core", "jackson-databind", "2.13.5");
+
   private static final ComponentIdentifier lodashv3 = ComponentIdentifier.createNpmCoordinates("lodash", "3.0.4");
 
   private static final ComponentIdentifier lodashv4 = ComponentIdentifier.createNpmCoordinates("lodash", "4.17.15");
@@ -90,6 +99,9 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Inject
   private PolicyWaiverDAO policyWaiverDAO;
+
+  @Inject
+  private SourceControlEventDAO sourceControlEventDAO;
 
   @Inject
   private TelemetryUtils telemetryUtils;
@@ -225,6 +237,59 @@ public class PolicyViolationTelemetryCollectorTest
         TIME_TO_REMEDIATE_POLICY_VIOLATION,
         TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
     );
+  }
+
+  @Test
+  public void testAddTelemetryForFixedViolation_FixedByUpgrade_WithRemediationPullRequestAttribution() {
+    // given a policy violation on jackson-databind v2.13.4 that was fixed by upgrading to v2.13.5 and a matching
+    // remediation PR event
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(jacksonDatabind_2_13_4)
+            .withScmEnabled(true)
+            .openedHoursAgo(24)
+            .asDirectDependency(true)
+            .withPolicyViolationId("fixedByUpgradeWithPR")
+            .markFixedByUpgrade();
+
+    // Ensure the referenced application exists to satisfy FK constraints
+    // In tests we use a fixed applicationId (TEST_APP_ID), so create an application with that ID
+    String orgId = tempEntity.newOrganization().getId();
+    tempEntity.newApplicationWithSpecificId(TEST_APP_ID, "Test App for PR", "TestAppPublic", orgId);
+
+    // Insert a completed remediation PR event matching the component and remediation version within the cutoff window
+    int prNumber = 123;
+    String remediationVersion = jacksonDatabind_2_13_5.get(ComponentIdentifier.VERSION);
+    Date eventCompleteTime = new Date(policyEvaluation.getTime().getTime() - 60_000L); // 1 minute before evaluation
+
+    SourceControlEvent event = new SourceControlEvent()
+        .setApplicationId(TEST_APP_ID)
+        .setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT)
+        .setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE)
+        .setCreateTime(policyEvaluation.getTime())
+        .setCompleteTime(eventCompleteTime)
+        .setPullRequestNumber(prNumber);
+    event.setRemediationVersion(remediationVersion);
+    event.setComponentIdentifier(jacksonDatabind_2_13_4);
+    sourceControlEventDAO.insert(event);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when - pass in an upgraded component (version matches event remediation version)
+    telemetryCollector.addTelemetryForFixedViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        createWrappedComponent(jacksonDatabind_2_13_5, true, false)
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation
+        .withExpectedRemediationAttribution(prNumber, remediationVersion, true)
+        .validateTelemetryDataForPurposes(
+            telemetryData,
+            TIME_TO_REMEDIATE_POLICY_VIOLATION,
+            TIME_TO_CHANGE_VERSION_POLICY_VIOLATION
+        );
   }
 
   @Test
@@ -476,8 +541,17 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
-    PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, licenseNameProvider, isScmEnabled);
+    ComponentHelper componentHelper = new ComponentHelper(null)
+    {
+      @Override
+      public boolean isGoldenVersion(ComponentIdentifier toVersion, String appId) {
+        return true;
+      }
+    };
+
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(
+        policyWaiverDAO, sourceControlEventDAO, telemetryUtils, licenseNameProvider, isScmEnabled, componentHelper);
+
     telemetryCollector.setTimeOfPolicyEvaluation(policyEvaluation.getTime());
     return telemetryCollector;
   }
@@ -544,6 +618,13 @@ public class PolicyViolationTelemetryCollectorTest
     private String waiverExpiration;
 
     private PurlIdentifiersWithVulnerabilities reachablePurlIdentifiersWithVulnerabilities;
+
+    // Expected PR attribution fields for TIME_TO_CHANGE_VERSION telemetry
+    private Integer expectedPullRequestNumber;
+
+    private String expectedPullRequestRemediationVersion;
+
+    private Boolean expectedPullRequestIsGolden;
 
     TestablePolicyViolation(ComponentIdentifier componentIdentifier, String policyName) {
       this.component = new Component(componentIdentifier);
@@ -648,12 +729,14 @@ public class PolicyViolationTelemetryCollectorTest
 
     TestablePolicyViolation markFixedAsLegacy() {
       this.fixTime = policyEvaluation.getTime().getTime();
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
     TestablePolicyViolation markFixedByDowngrade() {
       this.fixTime = policyEvaluation.getTime().getTime();
       this.fixReason = COMPONENT_DOWNGRADE;
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
@@ -671,6 +754,7 @@ public class PolicyViolationTelemetryCollectorTest
       this.licensesOverrideStatus = overrideStatus.getName();
       component.setLicenseOverrideIds(toLicenseSet(licenseOverrides));
       component.setLicenseOverrideStatus(overrideStatus);
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
@@ -678,12 +762,14 @@ public class PolicyViolationTelemetryCollectorTest
       this.fixTime = policyEvaluation.getTime().getTime();
       component = null;
       this.components.clear();
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
     TestablePolicyViolation markFixedByUpgrade() {
       this.fixTime = policyEvaluation.getTime().getTime();
       this.fixReason = COMPONENT_UPGRADE;
+      policyViolation.setFixTime(new Date(this.fixTime));
       return this;
     }
 
@@ -810,6 +896,17 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withExpectedRemediationAttribution(
+        int pullRequestNumber,
+        String remediationVersion,
+        boolean isGolden)
+    {
+      this.expectedPullRequestNumber = pullRequestNumber;
+      this.expectedPullRequestRemediationVersion = remediationVersion;
+      this.expectedPullRequestIsGolden = isGolden;
+      return this;
+    }
+
     private String createPolicyId(String policyName) {
       return "ID_" + policyName;
     }
@@ -895,6 +992,17 @@ public class PolicyViolationTelemetryCollectorTest
         case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
           validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
           validateMatchesOrNotExists(attributes, FIX_BY_VERSION_CHANGE, fixReason);
+          // New attributes for PR attribution
+          if (expectedPullRequestNumber != null) {
+            assertThat(attributes).containsEntry(PULL_REQUEST_NUMBER, expectedPullRequestNumber);
+            assertThat(attributes).containsEntry(PULL_REQUEST_REMEDIATION_VERSION,
+                expectedPullRequestRemediationVersion);
+            assertThat(attributes).containsEntry(PULL_REQUEST_IS_GOLDEN, expectedPullRequestIsGolden);
+          }
+          else {
+            assertThat(attributes).doesNotContainKeys(PULL_REQUEST_NUMBER, PULL_REQUEST_REMEDIATION_VERSION,
+                PULL_REQUEST_IS_GOLDEN);
+          }
           validateTimeAttribute(attributes, calculateExpectedFixTime());
           break;
 

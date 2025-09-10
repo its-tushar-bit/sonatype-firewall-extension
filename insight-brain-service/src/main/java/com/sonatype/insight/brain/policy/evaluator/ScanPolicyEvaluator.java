@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabil
 import com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUtil;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
+import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
@@ -51,6 +52,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritizationRemediationService;
 import com.sonatype.insight.brain.features.FeaturesService;
@@ -151,6 +153,8 @@ public class ScanPolicyEvaluator
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final SourceControlEventDAO  sourceControlEventDAO;
+
   private final AutoPolicyWaiverDAO autoPolicyWaiverDAO;
 
   private final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO;
@@ -203,6 +207,8 @@ public class ScanPolicyEvaluator
 
   private final ScanPersistenceService scanPersistenceService;
 
+  private final ComponentHelper componentHelper;
+
   @Inject
   public ScanPolicyEvaluator(
       final ReportService reportService,
@@ -213,6 +219,7 @@ public class ScanPolicyEvaluator
       final ApplicationComponentDAO applicationComponentDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final PolicyWaiverDAO policyWaiverDAO,
+      final SourceControlEventDAO sourceControlEventDAO,
       final AutoPolicyWaiverDAO autoPolicyWaiverDAO,
       final AutoPolicyWaiverExclusionDAO autoPolicyWaiverExclusionDAO,
       final OwnerDAO ownerDAO,
@@ -239,7 +246,8 @@ public class ScanPolicyEvaluator
       final PathForwardInspector pathForwardInspector,
       final ApiVulnerabilityReachabilityStatusService apiVulnerabilityReachabilityStatusService,
       final LicenseNameProvider licenseNameProvider,
-      final ScanPersistenceService scanPersistenceService)
+      final ScanPersistenceService scanPersistenceService,
+      final ComponentHelper componentHelper)
   {
     this.reportService = reportService;
     this.policyDAO = policyDAO;
@@ -249,6 +257,7 @@ public class ScanPolicyEvaluator
     this.applicationComponentDAO = applicationComponentDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.autoPolicyWaiverDAO = autoPolicyWaiverDAO;
     this.autoPolicyWaiverExclusionDAO = autoPolicyWaiverExclusionDAO;
     this.ownerDAO = ownerDAO;
@@ -276,6 +285,7 @@ public class ScanPolicyEvaluator
     this.apiVulnerabilityReachabilityStatusService = apiVulnerabilityReachabilityStatusService;
     this.licenseNameProvider = licenseNameProvider;
     this.scanPersistenceService = scanPersistenceService;
+    this.componentHelper = componentHelper;
   }
 
   public ScanPolicyEvaluatorResults evaluate(
@@ -1436,9 +1446,14 @@ public class ScanPolicyEvaluator
         componentPolicyEvaluator.evaluate(appId, stage, policies, reportComponentData.components,
             forMonitoring);
 
-    PolicyViolationTelemetryCollector telemetryCollector =
-        new PolicyViolationTelemetryCollector(policyWaiverDAO, telemetryUtils, licenseNameProvider,
-            sourceControlUtils.isScmEnabled(appId));
+    PolicyViolationTelemetryCollector telemetryCollector = new PolicyViolationTelemetryCollector(
+        policyWaiverDAO,
+        sourceControlEventDAO,
+        telemetryUtils,
+        licenseNameProvider,
+        sourceControlUtils.isScmEnabled(appId),
+        componentHelper
+    );
 
     ScanPolicyEvaluatorResults scanPolicyEvaluatorResults =
         processPolicyResults(application, scanId, stage, scanTriggerType, policies, forMonitoring, policyResults,

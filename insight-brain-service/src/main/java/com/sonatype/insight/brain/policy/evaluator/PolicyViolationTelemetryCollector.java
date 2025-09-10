@@ -13,7 +13,9 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
+import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
@@ -27,11 +29,15 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
 
 public class PolicyViolationTelemetryCollector
 {
+  private static final Logger log = LoggerFactory.getLogger(PolicyViolationTelemetryCollector.class);
+
   @VisibleForTesting
   static final String APPLICATION_ID = "application_id";
 
@@ -98,7 +104,18 @@ public class PolicyViolationTelemetryCollector
   static final String CALL_FLOW_HAS_REACHABLE_INFORMATION_FOR_COMPONENT =
       "call_flow_has_reachable_information_for_component";
 
+  static final String PULL_REQUEST_IS_GOLDEN = "pull_request_is_golden";
+
+  static final String PULL_REQUEST_NUMBER = "pull_request_number";
+
+  static final String PULL_REQUEST_REMEDIATION_VERSION = "pull_request_remediation_version";
+
+  // arbitrary look-back window for associating remediation PRs to a policy violation's open time
+  static final int REMEDIATION_PR_LOOKBACK_DAYS = 7;
+
   private final PolicyWaiverDAO policyWaiverDAO;
+
+  private final SourceControlEventDAO sourceControlEventDAO;
 
   private final List<TelemetryData> telemetryDataList = new ArrayList<>();
 
@@ -110,16 +127,22 @@ public class PolicyViolationTelemetryCollector
 
   private Date timeOfPolicyEvaluation;
 
+  private final ComponentHelper componentHelper;
+
   public PolicyViolationTelemetryCollector(
       final PolicyWaiverDAO policyWaiverDAO,
+      SourceControlEventDAO sourceControlEventDAO,
       TelemetryUtils telemetryUtils,
       LicenseNameProvider licenseNameProvider,
-      boolean isScmEnabled)
+      boolean isScmEnabled,
+      ComponentHelper componentHelper)
   {
     this.policyWaiverDAO = policyWaiverDAO;
+    this.sourceControlEventDAO = sourceControlEventDAO;
     this.telemetryUtils = telemetryUtils;
     this.licenseNameProvider = licenseNameProvider;
     this.isScmEnabled = isScmEnabled;
+    this.componentHelper = componentHelper;
     timeOfPolicyEvaluation = new Date();
   }
 
@@ -152,6 +175,44 @@ public class PolicyViolationTelemetryCollector
             createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation, components)
                 .put(FIX_BY_VERSION_CHANGE, fixByVersionChange)
                 .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+
+        // need to account for the fact that the remediation PR could have been triggered by an evaluation at a
+        // different (earlier) Lifecycle stage (i.e. it could have been a different policy violation that triggered it)
+        Date minCutoffTime = new Date(fixedPolicyViolation.getOpenTime().getTime()
+            - TimeUnit.DAYS.toMillis(REMEDIATION_PR_LOOKBACK_DAYS));
+
+        var remediationPullRequestEvents =
+            sourceControlEventDAO.getCompletedRemediationPullRequestEventsForAppComponent(
+                fixedPolicyViolation.getApplicationId(),
+                fixedPolicyViolation.getComponentIdentifier(),
+                minCutoffTime,
+                fixedPolicyViolation.getFixTime()
+            );
+
+        if (CollectionUtils.isNotEmpty(remediationPullRequestEvents)) {
+          var newComponent = components.get(0);
+          var remediationEvent = remediationPullRequestEvents.get(0);
+          var eventRemediationVersion = remediationEvent.getRemediationVersion();
+
+          if (newComponent.getVersion().equals(eventRemediationVersion)) {
+            // we can attribute the fixed policy violation to the pull request
+            var pullRequestNumber = remediationEvent.getPullRequestNumber();
+            telemetryData.put(PULL_REQUEST_NUMBER, pullRequestNumber);
+            telemetryData.put(PULL_REQUEST_REMEDIATION_VERSION, eventRemediationVersion);
+            var isGolden = componentHelper.isGoldenVersion(
+                newComponent.getComponentIdentifier(),
+                fixedPolicyViolation.getApplicationId()
+            );
+            telemetryData.put(PULL_REQUEST_IS_GOLDEN, isGolden);
+          }
+          else {
+            log.debug("Remediation pull request event exists, but versions don't match: {} -> {}, event version is {}",
+                fixedPolicyViolation.getComponentIdentifier(),
+                newComponent.getComponentIdentifier(),
+                eventRemediationVersion
+            );
+          }
+        }
 
         telemetryDataList.add(telemetryData);
       }

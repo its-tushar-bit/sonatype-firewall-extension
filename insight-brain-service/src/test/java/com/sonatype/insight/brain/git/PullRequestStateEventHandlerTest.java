@@ -1117,7 +1117,9 @@ public class PullRequestStateEventHandlerTest
     assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
     assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
     assertThat(firstEvent.getPullRequestContents()).isEqualTo(
-        "Automatically closing pull request due to being open for more than 5 days");
+        "**This pull request was automatically closed.**  \n" +
+            "This automated pull request was not merged and has been closed after 5 days of inactivity, " +
+            "per Lifecycle configuration.");
 
     // and when:
     handler.updateSourceControlPullRequest(pullRequest, prLifecycleInfo, true);
@@ -1147,7 +1149,9 @@ public class PullRequestStateEventHandlerTest
     assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
     assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
     assertThat(firstEvent.getPullRequestContents()).isEqualTo(
-        "Automatically closing pull request due to failed status checks");
+        "**This pull request was automatically closed.**  \n" +
+            "This automated pull request failed one or more required checks and has been closed, " +
+            "per Lifecycle configuration.");
   }
 
   @Test
@@ -1186,7 +1190,9 @@ public class PullRequestStateEventHandlerTest
     assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
     assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
     assertThat(firstEvent.getPullRequestContents()).isEqualTo(
-        "Automatically closing merge request due to being open for more than 5 days");
+        "**This merge request was automatically closed.**  \n" +
+            "This automated merge request was not merged and has been closed after 5 days of inactivity, " +
+            "per Lifecycle configuration.");
 
     // and when:
     handler.updateSourceControlPullRequest(pullRequest, prLifecycleInfo, true);
@@ -1216,7 +1222,9 @@ public class PullRequestStateEventHandlerTest
     assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
     assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
     assertThat(firstEvent.getPullRequestContents()).isEqualTo(
-        "Automatically closing merge request due to failed CI build status");
+        "**This merge request was automatically closed.**  \n" +
+            "This automated merge request failed one or more required checks and has been closed, " +
+            "per Lifecycle configuration.");
   }
 
   @Test

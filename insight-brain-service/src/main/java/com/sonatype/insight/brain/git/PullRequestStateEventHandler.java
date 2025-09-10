@@ -282,13 +282,17 @@ public class PullRequestStateEventHandler
     if (isClosePrOnFailedChecksEnabled
         && sourceControl.getProvider() == SourceControlProvider.GITHUB
         && hasPrFailedChecks(prLifecycleInfo)) {
-      closeReason = "Automatically closing pull request due to failed status checks";
+      closeReason = "**This pull request was automatically closed.**  \n" +
+          "This automated pull request failed one or more required checks and has been closed, " +
+          "per Lifecycle configuration.";
     }
 
     if (isClosePrOnFailedChecksEnabled
         && sourceControl.getProvider() == SourceControlProvider.GITLAB
         && isMrCloseable(prLifecycleInfo)) {
-      closeReason = "Automatically closing merge request due to failed CI build status";
+      closeReason = "**This merge request was automatically closed.**  \n" +
+          "This automated merge request failed one or more required checks and has been closed, " +
+          "per Lifecycle configuration.";
     }
 
     boolean isClosePrAfterDaysOpenEnabled = Optional.ofNullable(sourceControl.getClosePrAfterDaysOpenEnabled())
@@ -299,8 +303,9 @@ public class PullRequestStateEventHandler
       String codeRequest = sourceControl.getProvider() == SourceControlProvider.GITHUB
           ? "pull request"
           : "merge request";
-      closeReason = "Automatically closing " + codeRequest + " due to being open for more than "
-          + sourceControl.getClosePrAfterDays() + " days";
+      closeReason = String.format("**This %s was automatically closed.**  \n" +
+        "This automated %s was not merged and has been closed after %s days of inactivity, " +
+        "per Lifecycle configuration.", codeRequest, codeRequest, sourceControl.getClosePrAfterDays());
     }
 
     if (closeReason != null) {

@@ -177,6 +177,11 @@ public class DashboardWaiversTest
     DashboardPage.dashboardContainer().shouldBe(visible);
     table.waivers().shouldHave(size(9));
 
+    headers.dateHeader().click();
+    headers.dateHeader().sortArrows().shouldBeUp();
+    headers.dateHeader().click();
+    headers.dateHeader().sortArrows().shouldBeDown();
+
     // check the tile details
     WaiverTile waiver1 = table.firstWaiver();
     waiver1.threatIndicator().shouldHave(SEVERE);

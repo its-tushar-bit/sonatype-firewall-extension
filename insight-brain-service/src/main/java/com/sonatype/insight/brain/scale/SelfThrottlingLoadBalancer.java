@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
@@ -54,6 +55,8 @@ public abstract class SelfThrottlingLoadBalancer
 
   private final PartitionHelper partitionHelper;
 
+  private final TenantUtil tenantUtil;
+
   private int partitionReservationSeconds = DEFAULT_PARTITION_RESERVATION_SECONDS;
 
   public boolean disableForTesting;
@@ -61,7 +64,8 @@ public abstract class SelfThrottlingLoadBalancer
   public SelfThrottlingLoadBalancer(
       final HeartbeatPartitionManager heartbeatPartitionManager,
       final PerpetualLockManager perpetualLockManager,
-      final String category)
+      final String category,
+      final TenantUtil tenantUtil)
   {
     validateInitParams(category);
     this.heartbeatPartitionManager = heartbeatPartitionManager;
@@ -69,6 +73,7 @@ public abstract class SelfThrottlingLoadBalancer
     this.category = category;
     this.partitionHelper = new PartitionHelper(category, myInstanceId)
         .withPerpetualLockManager(perpetualLockManager);
+    this.tenantUtil = tenantUtil;
   }
 
   public void setPartitionReservationSeconds(int partitionReservationSeconds) {
@@ -85,12 +90,18 @@ public abstract class SelfThrottlingLoadBalancer
       return;
     }
     cleanupExpiredLocks();
+    if (tenantUtil.isMultiTenant() && !tenantUtil.isMtiqBatchMode()) {
+      return;
+    }
     heartbeatPartitionManager.start(myInstanceId, category, partitionReservationSeconds);
   }
 
   @Override
   public void stop() {
     if (disableForTesting) {
+      return;
+    }
+    if (tenantUtil.isMultiTenant() && !tenantUtil.isMtiqBatchMode()) {
       return;
     }
     heartbeatPartitionManager.stop();

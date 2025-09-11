@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scale.HeartbeatPartitionManager;
 import com.sonatype.insight.brain.scale.SelfThrottlingLoadBalancer;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -54,9 +55,10 @@ public class SourceControlLoadBalancer
   public SourceControlLoadBalancer(
       HeartbeatPartitionManager heartbeatPartitionManager,
       PerpetualLockManager perpetualLockManager,
-      SourceControlEventDAO sourceControlEventDAO)
+      SourceControlEventDAO sourceControlEventDAO,
+      TenantUtil tenantUtil)
   {
-    super(heartbeatPartitionManager, perpetualLockManager, LOAD_BALANCER_CATEGORY_FOR_SCM);
+    super(heartbeatPartitionManager, perpetualLockManager, LOAD_BALANCER_CATEGORY_FOR_SCM, tenantUtil);
     setPartitionReservationSeconds(SOURCE_CONTROL_INSTANCE_RESERVATION_SECONDS);
     this.sourceControlEventDAO = sourceControlEventDAO;
   }

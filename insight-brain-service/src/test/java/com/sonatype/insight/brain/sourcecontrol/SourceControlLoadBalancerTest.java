@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.scale.HeartbeatPartitionManager;
 import com.sonatype.insight.brain.scale.SelfThrottlingLoadBalancer;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.After;
@@ -30,6 +31,7 @@ import org.mockito.MockitoAnnotations;
 
 import static java.lang.Thread.sleep;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class SourceControlLoadBalancerTest
     extends BrainInjectedTest
@@ -488,7 +490,8 @@ public class SourceControlLoadBalancerTest
     SourceControlLoadBalancer loadBalancer = new SourceControlLoadBalancer(
         heartbeatPartitionManager,
         perpetualLockManager,
-        new SourceControlEventDAO(ods)
+        new SourceControlEventDAO(ods),
+        mock(TenantUtil.class)
     );
     loadBalancer.start();
     try {

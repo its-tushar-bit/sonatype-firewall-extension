@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.sonatype.insight.brain.concurrent.PerpetualLockManager;
 import com.sonatype.insight.brain.model.PerpetualLock;
+import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.common.collect.ImmutableList;
 import org.junit.Before;
@@ -18,8 +19,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 public class SelfThrottlingLoadBalancerTest
@@ -32,13 +36,17 @@ public class SelfThrottlingLoadBalancerTest
   @Mock
   private PerpetualLockManager mockPerpetualLockManager;
 
+  @Mock
+  private TenantUtil mockTenantUtil;
+
   private TestableSelfThrottlingLoadBalancer testableSelfThrottlingLoadBalancer;
 
   @Before
   public void setup() {
     MockitoAnnotations.openMocks(this);
     testableSelfThrottlingLoadBalancer =
-        new TestableSelfThrottlingLoadBalancer(mockHeartbeatPartitionManager, mockPerpetualLockManager, TEST_CATEGORY);
+        new TestableSelfThrottlingLoadBalancer(mockHeartbeatPartitionManager, mockPerpetualLockManager, TEST_CATEGORY,
+            mockTenantUtil);
   }
 
   @Test
@@ -122,15 +130,96 @@ public class SelfThrottlingLoadBalancerTest
     assertThat(canUse).isTrue();
   }
 
+  @Test
+  public void testStart_MultiTenant_BatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    testableSelfThrottlingLoadBalancer.start();
+
+    verify(mockHeartbeatPartitionManager).start(anyString(), anyString(), anyLong());
+  }
+
+  @Test
+  public void testStop_MultiTenant_BatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    testableSelfThrottlingLoadBalancer.stop();
+
+    verify(mockHeartbeatPartitionManager).stop();
+  }
+
+  @Test
+  public void testStart_MultiTenant_NotBatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    testableSelfThrottlingLoadBalancer.start();
+
+    verifyNoInteractions(mockHeartbeatPartitionManager);
+  }
+
+  @Test
+  public void testStop_MultiTenant_NotBatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(true);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    testableSelfThrottlingLoadBalancer.stop();
+
+    verifyNoInteractions(mockHeartbeatPartitionManager);
+  }
+
+  @Test
+  public void testStart_SingleTenant_BatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(false);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    testableSelfThrottlingLoadBalancer.start();
+
+    verify(mockHeartbeatPartitionManager).start(anyString(), anyString(), anyLong());
+  }
+
+  @Test
+  public void testStop_SingleTenant_BatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(false);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+
+    testableSelfThrottlingLoadBalancer.stop();
+
+    verify(mockHeartbeatPartitionManager).stop();
+  }
+
+  @Test
+  public void testStart_SingleTenant_NotBatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(false);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    testableSelfThrottlingLoadBalancer.start();
+
+    verify(mockHeartbeatPartitionManager).start(anyString(), anyString(), anyLong());
+  }
+
+  @Test
+  public void testStop_SingleTenant_NotBatchNode() {
+    when(mockTenantUtil.isMultiTenant()).thenReturn(false);
+    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
+
+    testableSelfThrottlingLoadBalancer.stop();
+
+    verify(mockHeartbeatPartitionManager).stop();
+  }
+
   private class TestableSelfThrottlingLoadBalancer
       extends SelfThrottlingLoadBalancer
   {
     public TestableSelfThrottlingLoadBalancer(
         final HeartbeatPartitionManager heartbeatPartitionManager,
         final PerpetualLockManager perpetualLockManager,
-        final String category)
+        final String category,
+        final TenantUtil tenantUtil)
     {
-      super(heartbeatPartitionManager, perpetualLockManager, category);
+      super(heartbeatPartitionManager, perpetualLockManager, category, tenantUtil);
     }
   }
 }

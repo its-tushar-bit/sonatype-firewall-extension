@@ -31,8 +31,8 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.sourcecontrol.ScmUserMappings;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.assertj.core.api.Assertions;
@@ -68,7 +68,7 @@ public class ApiSourceControlResourceTest
   static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultEncryptionKeyStore())
+      new PasswordHandler(new TestEncryptionKeyStore())
           .encryptPassword("token".toCharArray())
   );
 

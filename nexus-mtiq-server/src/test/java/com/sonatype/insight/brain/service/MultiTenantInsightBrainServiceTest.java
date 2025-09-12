@@ -107,4 +107,10 @@ public class MultiTenantInsightBrainServiceTest
     });
     return modules;
   }
+
+  @Override
+  protected boolean shouldBindTestEncryptionKeyStore() {
+    // This test manages its own EncryptionKeyStore binding
+    return false;
+  }
 }

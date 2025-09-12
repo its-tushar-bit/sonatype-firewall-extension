@@ -21,7 +21,6 @@ import org.junit.experimental.categories.Category;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
-import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getNonFipsEncryptionKeyStoreKey;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -109,12 +108,7 @@ public class PasswordHandlerTest
     assertThat(FIPSModeDetector.isEnabled()).isTrue();
 
     String password = "thisisthepassword";
-    PasswordHandler nonFipsPasswordHandler = new PasswordHandler(new DefaultEncryptionKeyStore() {
-        @Override
-        public String getKey() {
-          return getNonFipsEncryptionKeyStoreKey();
-        }
-    });
+    PasswordHandler nonFipsPasswordHandler = new PasswordHandler(new TestEncryptionKeyStore());
 
     assertThatThrownBy(() -> nonFipsPasswordHandler.decryptPassword(nonFipsPasswordHandler.encryptPassword(password)))
         .isInstanceOf(IllegalStateException.class)

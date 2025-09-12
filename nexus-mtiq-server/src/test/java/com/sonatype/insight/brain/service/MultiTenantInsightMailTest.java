@@ -56,8 +56,9 @@ public class MultiTenantInsightMailTest
     mailConfiguration.setHostname("mailglobal.example.com");
     mailConfiguration.setPort(123);
     mailConfiguration.setUsername("testUsername");
-    // encrypted using the global key
-    mailConfiguration.setPassword("{NB6WQZFvc2sHa5txZFGh9zlWrRkPVA1NyNLsu0BAoJs=}".toCharArray());
+    // encrypt password using current PasswordHandler to ensure compatibility
+    String encryptedPassword = passwordHandler.encryptPassword("testPassword");
+    mailConfiguration.setPassword(encryptedPassword.toCharArray());
     mailConfiguration.setSystemEmail("noreplyglobal@example.com");
     testAsGlobal(g -> mailConfigurationDAO.set(mailConfiguration));
 

@@ -5,13 +5,16 @@
  */
 package com.sonatype.insight.brain.security.keystore;
 
+import java.io.File;
+import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchProviderException;
 
+import com.sonatype.insight.brain.security.FIPSKeyManager;
+import com.sonatype.insight.brain.security.FIPSKeystorePasswordGenerator;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 
-import static com.sonatype.insight.brain.security.FIPSConfig.getFipsEncryptionKeyStoreKeyOrDefault;
 import static com.sonatype.insight.brain.security.FIPSConfig.getFipsKeyStoreProviderOrDefault;
 import static com.sonatype.insight.brain.security.FIPSConfig.getFipsKeyStoreTypeOrDefault;
 
@@ -66,13 +69,18 @@ public class KeyStoreFactory
   }
 
   /**
-   * Returns the default encryption key store key based on the FIPS mode.
+   * Returns the encryption key store key based on the FIPS mode.
+   * In FIPS mode, attempts to generate a secure key using FIPSKeyManager.
    *
-   * @return the default encryption key store key
+   * @param sonatypeWorkDirectory the sonatype work directory to use for FIPS key storage
+   * @return the encryption key store key
+   * @throws FIPSKeyManager.FIPSKeyException if FIPS key generation or retrieval fails
    */
-  public static String getDefaultEncryptionKeyStoreKey() {
+  public static String getDefaultEncryptionKeyStoreKey(final File sonatypeWorkDirectory)
+      throws FIPSKeyManager.FIPSKeyException
+  {
     if (FIPSModeDetector.isEnabled()) {
-      return getFipsEncryptionKeyStoreKeyOrDefault();
+      return getFipsKeyStoreKey(sonatypeWorkDirectory);
     }
 
     return getNonFipsEncryptionKeyStoreKey();
@@ -81,9 +89,33 @@ public class KeyStoreFactory
   /**
    * Returns the encryption key store key for the non-FIPS mode.
    *
-   * @return the encryption key store key, currently coded as "CMMDwoV"
+   * @return the encryption key store key
    */
   public static String getNonFipsEncryptionKeyStoreKey() {
     return ENC;
+  }
+
+  /**
+   * Returns the FIPS keystore password using deterministic generation.
+   * Generates the same password for the same system by combining stable system identifiers
+   * with FIPS-approved key derivation algorithms.
+   *
+   * @param sonatypeWorkDirectory the sonatype work directory for deterministic generation
+   * @return the deterministically generated FIPS keystore password
+   * @throws GeneralSecurityException if password generation fails
+   */
+  public static String getFipsKeystorePassword(final File sonatypeWorkDirectory) 
+      throws GeneralSecurityException
+  {
+    return FIPSKeystorePasswordGenerator.generateDeterministicPassword(sonatypeWorkDirectory);
+  }
+
+  private static String getFipsKeyStoreKey(final File sonatypeWorkDirectory)
+      throws FIPSKeyManager.FIPSKeyException
+  {
+    File dataDirectory = new File(sonatypeWorkDirectory, "data");
+    File fipsDirectory = new File(dataDirectory, "fips");
+    FIPSKeyManager keyManager = new FIPSKeyManager(fipsDirectory);
+    return keyManager.getOrGenerateKey();
   }
 }

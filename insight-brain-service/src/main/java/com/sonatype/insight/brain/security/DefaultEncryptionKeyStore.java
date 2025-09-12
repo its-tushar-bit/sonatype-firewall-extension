@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.brain.security;
 
+import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
+
+import com.sonatype.insight.brain.service.InsightConfig;
 
 import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getDefaultEncryptionKeyStoreKey;
 
@@ -15,8 +18,20 @@ import static com.sonatype.insight.brain.security.keystore.KeyStoreFactory.getDe
 public class DefaultEncryptionKeyStore
     implements EncryptionKeyStore
 {
+  private final InsightConfig insightConfig;
+
+  @Inject
+  public DefaultEncryptionKeyStore(final InsightConfig insightConfig) {
+    this.insightConfig = insightConfig;
+  }
+
   @Override
   public String getKey() {
-    return getDefaultEncryptionKeyStoreKey();
+    try {
+      return getDefaultEncryptionKeyStoreKey(insightConfig.getSonatypeWork());
+    }
+    catch (Exception e) {
+      throw new IllegalStateException("Failed to get encryption key", e);
+    }
   }
 }

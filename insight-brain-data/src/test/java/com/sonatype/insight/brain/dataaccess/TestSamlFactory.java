@@ -7,8 +7,10 @@ package com.sonatype.insight.brain.dataaccess;
 
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.PasswordHandler;
-import com.sonatype.insight.brain.security.keystore.KeyStoreFactory;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 
 public class TestSamlFactory
     implements SamlFactory
@@ -20,7 +22,14 @@ public class TestSamlFactory
 
   @Override
   public PasswordHandler createPasswordHandler() {
-    return new PasswordHandler(KeyStoreFactory::getDefaultEncryptionKeyStoreKey);
+    return new PasswordHandler(() -> {
+      if (FIPSModeDetector.isEnabled()) {
+        return new TestFipsEncryptionKeyStore().getKey();
+      }
+      else {
+        return new TestEncryptionKeyStore().getKey();
+      }
+    });
   }
 
   @Override

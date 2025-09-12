@@ -75,7 +75,11 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.InternalRealm;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestCLMServer;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -481,6 +485,16 @@ public abstract class AbstractFunctionalTest
         bind(JiraService.class).toInstance(jiraService);
         bind(QuartzJobStoreTX.class).to(TestQuartzJobStoreTx.class);
         bind(TaskScheduler.class).to(TestTaskScheduler.class);
+
+        // Bind EncryptionKeyStore to use consistent keys for FIPS and non-FIPS tests
+        bind(EncryptionKeyStore.class).toInstance(() -> {
+          if (FIPSModeDetector.isEnabled()) {
+            return new TestFipsEncryptionKeyStore().getKey();
+          }
+          else {
+            return new TestEncryptionKeyStore().getKey();
+          }
+        });
 
         // Bind an interceptor to intercept method calls to classes that can normally be mocked / spied
         // i.e. not final and containing a non-private constructor or no constructor.

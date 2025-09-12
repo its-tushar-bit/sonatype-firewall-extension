@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -47,7 +47,7 @@ public abstract class AbstractSourceControlEditorTest
   public void init() {
     sourceControlDAO = lookup(SourceControlDAO.class);
     organizationDAO = lookup(OrganizationDAO.class);
-    TOKEN = new String(new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
+    TOKEN = new String(new PasswordHandler(new TestEncryptionKeyStore()).encryptPassword(
         "secret_key".toCharArray()));
     rootOrganization = organizationDAO.getById(ROOT_ORGANIZATION_ID);
   }
@@ -79,7 +79,7 @@ public abstract class AbstractSourceControlEditorTest
   }
 
   private String getDecryptedToken(String token) {
-    return new String(new PasswordHandler(new DefaultEncryptionKeyStore()).decryptPassword(
+    return new String(new PasswordHandler(new TestEncryptionKeyStore()).decryptPassword(
         token.toCharArray()));
   }
 

@@ -13,11 +13,11 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.security.CipherFactory;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 
-import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_DEFAULT_DEFAULT_ENCRYPTION_KEY_STORE_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,16 +65,17 @@ public class ApiCompositeSourceControlServiceFipsTest extends ApiCompositeSource
   @Override
   @Test
   public void getCompositeSourceControlByOwnerDecrypted() throws Exception {
+    EncryptionKeyStore keyStore = new TestFipsEncryptionKeyStore();
     ApiCompositeSourceControlService apiCompositeSourceControlServiceLocal =
         new ApiCompositeSourceControlService(sourceControlDAO, applicationDAO,
-            iqForScmLicenseChecker, organizationDAO, ownerDAO, new DefaultEncryptionKeyStore());
+            iqForScmLicenseChecker, organizationDAO, ownerDAO, keyStore);
     PlexusCipher plexusCipherLocal = CipherFactory.createCipher();
-    setUpRootOrg(plexusCipherLocal, FIPS_DEFAULT_DEFAULT_ENCRYPTION_KEY_STORE_KEY);
+    setUpRootOrg(plexusCipherLocal, keyStore.getKey());
 
     Organization level1OrgLocal = tempEntity.newOrganization();
 
     tempEntity.newSourceControl(level1OrgLocal.getId(), null, plexusCipherLocal.encrypt(TOKEN,
-        FIPS_DEFAULT_DEFAULT_ENCRYPTION_KEY_STORE_KEY), null);
+        keyStore.getKey()), null);
 
     // when we get source control decrypted
     ApiCompositeSourceControlDTO dto =

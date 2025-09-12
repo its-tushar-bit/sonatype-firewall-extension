@@ -14,8 +14,8 @@ import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -42,7 +42,7 @@ public class ApiSourceControlServiceAuthzTest
   private static final String VALID_URL = "https://example.com/organization/project";
 
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultEncryptionKeyStore())
+      new PasswordHandler(new TestEncryptionKeyStore())
           .encryptPassword("token".toCharArray())
   );
 

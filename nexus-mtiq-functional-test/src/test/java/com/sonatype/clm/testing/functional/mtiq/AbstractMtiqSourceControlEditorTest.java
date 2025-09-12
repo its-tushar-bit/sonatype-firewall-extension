@@ -10,8 +10,8 @@ import com.sonatype.clm.testing.functional.pages.*;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import static com.codeborne.selenide.Condition.*;
@@ -45,7 +45,7 @@ public abstract class AbstractMtiqSourceControlEditorTest
   protected static final boolean COMMIT_STATUS_OFF = false;
 
   protected static final String TOKEN =
-      new String(new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
+      new String(new PasswordHandler(new TestEncryptionKeyStore()).encryptPassword(
           "secret_key".toCharArray()));
 
   protected void init(Owner currentOwner) {
@@ -84,7 +84,7 @@ public abstract class AbstractMtiqSourceControlEditorTest
   }
 
   private String getDecryptedToken(String token) {
-    return new String(new PasswordHandler(new DefaultEncryptionKeyStore()).decryptPassword(
+    return new String(new PasswordHandler(new TestEncryptionKeyStore()).decryptPassword(
             token.toCharArray()));
   }
 

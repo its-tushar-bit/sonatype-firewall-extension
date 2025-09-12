@@ -57,6 +57,14 @@ public class FIPSConfig
 
   public static final String FIPS_HMAC_ALGORITHM_ENV = "FIPS_HMAC_ALGORITHM";
 
+  public static final String FIPS_KEYSTORE_PBKDF2_ALGORITHM_ENV = "FIPS_KEYSTORE_PBKDF2_ALGORITHM";
+
+  public static final String FIPS_KEYSTORE_PBKDF2_ITERATIONS_ENV = "FIPS_KEYSTORE_PBKDF2_ITERATIONS";
+
+  public static final String FIPS_KEYSTORE_KEY_LENGTH_BITS_ENV = "FIPS_KEYSTORE_KEY_LENGTH_BITS";
+
+  public static final String FIPS_KEYSTORE_SALT_ENV = "FIPS_KEYSTORE_SALT";
+
   public static final String FIPS_DEFAULT_KEY_STORE_TYPE = "BCFKS";
 
   public static final String FIPS_DEFAULT_KEY_STORE_PROVIDER = "BCFIPS";
@@ -64,8 +72,6 @@ public class FIPSConfig
   public static final String FIPS_HASH_ALGORITHM = "SHA-256";
 
   public static final int HASH_ITERATIONS = 400000;
-
-  public static final String FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY_ENV = "FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY";
 
   public static final String FIPS_DEFAULT_KEY_PAIR_SECURE_ALGORITHM = "DEFAULT";
 
@@ -98,12 +104,18 @@ public class FIPSConfig
 
   public static final String FIPS_DEFAULT_HMAC_ALGORITHM = "HmacSHA256";
 
-  /**
-   * This applies currently only to local FIPS environments.
-   */
-  public static final String FIPS_DEFAULT_DEFAULT_ENCRYPTION_KEY_STORE_KEY = "shesoldseashells";
+  public static final String FIPS_DEFAULT_KEYSTORE_PASSWORD = "fips-keystore-internal";
 
   public static final String FIPS_DEFAULT_WEBHOOK_SECRET_PASSPHRASE = "^d1swM!FF&qQ$%0/";
+
+  public static final String FIPS_DEFAULT_KEYSTORE_PBKDF2_ALGORITHM = "PBKDF2WithHmacSHA256";
+
+  public static final int FIPS_DEFAULT_KEYSTORE_PBKDF2_ITERATIONS = 100000;
+
+  public static final int FIPS_DEFAULT_KEYSTORE_KEY_LENGTH_BITS = 256;
+
+  public static final String FIPS_DEFAULT_KEYSTORE_SALT =
+      "7f2a7b1c8e5d3f3a4b9c2e7f1a8d5c3b6f4a2a9c7b1f8d3e6a2c5f9b4d7a1d8c6";
 
   private FIPSConfig() {
     // prevent instantiation
@@ -532,17 +544,6 @@ public class FIPSConfig
   }
 
   /**
-   * Get the FIPS default encryption key store key from the environment variable
-   * {@link #FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY_ENV} or return the default value.
-   *
-   * @return the FIPS default encryption key store key or "shesoldseashells" if not set.
-   */
-  public static String getFipsEncryptionKeyStoreKeyOrDefault() {
-    String encryptionKeyStore = System.getenv(FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY_ENV);
-    return isNotBlank(encryptionKeyStore) ? encryptionKeyStore : FIPS_DEFAULT_DEFAULT_ENCRYPTION_KEY_STORE_KEY;
-  }
-
-  /**
    * Get the FIPS webhook secret passphrase from the environment variable
    * {@link #FIPS_WEBHOOK_SECRET_PASSPHRASE_ENV} or return the default value.
    *
@@ -572,5 +573,93 @@ public class FIPSConfig
   public static String getFipsHmacAlgorithmOrDefault(final String defaultValue) {
     String fipsHmacAlgo = System.getenv(FIPS_HMAC_ALGORITHM_ENV);
     return isNotBlank(fipsHmacAlgo) ? fipsHmacAlgo : defaultValue;
+  }
+
+  /**
+   * Get the FIPS keystore PBKDF2 algorithm from the environment variable
+   * {@link #FIPS_KEYSTORE_PBKDF2_ALGORITHM_ENV} or return the default value.
+   *
+   * @return the FIPS keystore PBKDF2 algorithm or "PBKDF2WithHmacSHA256" if not set.
+   */
+  public static String getFipsKeystorePbkdf2AlgorithmOrDefault() {
+    return getFipsKeystorePbkdf2AlgorithmOrDefault(FIPS_DEFAULT_KEYSTORE_PBKDF2_ALGORITHM);
+  }
+
+  /**
+   * Get the FIPS keystore PBKDF2 algorithm from the environment variable
+   * {@link #FIPS_KEYSTORE_PBKDF2_ALGORITHM_ENV} or return the provided default value.
+   *
+   * @param defaultValue - the default value to return if the environment variable is not set
+   * @return the FIPS keystore PBKDF2 algorithm or the provided default if not set.
+   */
+  public static String getFipsKeystorePbkdf2AlgorithmOrDefault(final String defaultValue) {
+    String keystorePbkdf2Algorithm = System.getenv(FIPS_KEYSTORE_PBKDF2_ALGORITHM_ENV);
+    return isNotBlank(keystorePbkdf2Algorithm) ? keystorePbkdf2Algorithm : defaultValue;
+  }
+
+  /**
+   * Get the FIPS keystore PBKDF2 iterations from the environment variable
+   * {@link #FIPS_KEYSTORE_PBKDF2_ITERATIONS_ENV} or return the default value.
+   *
+   * @return the FIPS keystore PBKDF2 iterations or 100000 if not set.
+   */
+  public static int getFipsKeystorePbkdf2IterationsOrDefault() {
+    return getFipsKeystorePbkdf2IterationsOrDefault(FIPS_DEFAULT_KEYSTORE_PBKDF2_ITERATIONS);
+  }
+
+  /**
+   * Get the FIPS keystore PBKDF2 iterations from the environment variable
+   * {@link #FIPS_KEYSTORE_PBKDF2_ITERATIONS_ENV} or return the provided default value.
+   *
+   * @param defaultValue - the default value to return if the environment variable is not set
+   * @return the FIPS keystore PBKDF2 iterations or the provided default if not set.
+   */
+  public static int getFipsKeystorePbkdf2IterationsOrDefault(final int defaultValue) {
+    String keystorePbkdf2Iterations = System.getenv(FIPS_KEYSTORE_PBKDF2_ITERATIONS_ENV);
+    return isNotBlank(keystorePbkdf2Iterations) ? Integer.parseInt(keystorePbkdf2Iterations) : defaultValue;
+  }
+
+  /**
+   * Get the FIPS keystore key length bits from the environment variable
+   * {@link #FIPS_KEYSTORE_KEY_LENGTH_BITS_ENV} or return the default value.
+   *
+   * @return the FIPS keystore key length bits or 256 if not set.
+   */
+  public static int getFipsKeystoreKeyLengthBitsOrDefault() {
+    return getFipsKeystoreKeyLengthBitsOrDefault(FIPS_DEFAULT_KEYSTORE_KEY_LENGTH_BITS);
+  }
+
+  /**
+   * Get the FIPS keystore key length bits from the environment variable
+   * {@link #FIPS_KEYSTORE_KEY_LENGTH_BITS_ENV} or return the provided default value.
+   *
+   * @param defaultValue - the default value to return if the environment variable is not set
+   * @return the FIPS keystore key length bits or the provided default if not set.
+   */
+  public static int getFipsKeystoreKeyLengthBitsOrDefault(final int defaultValue) {
+    String keystoreKeyLengthBits = System.getenv(FIPS_KEYSTORE_KEY_LENGTH_BITS_ENV);
+    return isNotBlank(keystoreKeyLengthBits) ? Integer.parseInt(keystoreKeyLengthBits) : defaultValue;
+  }
+
+  /**
+   * Get the FIPS keystore salt from the environment variable
+   * {@link #FIPS_KEYSTORE_SALT_ENV} or return the default value.
+   *
+   * @return the FIPS keystore salt or default hex string if not set.
+   */
+  public static String getFipsKeystoreSaltOrDefault() {
+    return getFipsKeystoreSaltOrDefault(FIPS_DEFAULT_KEYSTORE_SALT);
+  }
+
+  /**
+   * Get the FIPS keystore salt from the environment variable
+   * {@link #FIPS_KEYSTORE_SALT_ENV} or return the provided default value.
+   *
+   * @param defaultValue - the default value to return if the environment variable is not set
+   * @return the FIPS keystore salt or the provided default if not set.
+   */
+  public static String getFipsKeystoreSaltOrDefault(final String defaultValue) {
+    String keystoreSalt = System.getenv(FIPS_KEYSTORE_SALT_ENV);
+    return isNotBlank(keystoreSalt) ? keystoreSalt : defaultValue;
   }
 }

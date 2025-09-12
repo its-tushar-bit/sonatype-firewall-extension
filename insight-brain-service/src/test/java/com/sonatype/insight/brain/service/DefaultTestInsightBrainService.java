@@ -47,9 +47,9 @@ import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexService;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.security.PasswordService;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.successmetrics.SuccessMetricsPurger;
 import com.sonatype.insight.brain.telemetry.ClusterTelemetryTask;
@@ -143,7 +143,7 @@ public class DefaultTestInsightBrainService
     testProxyServerConfiguration.setPort(port);
     testProxyServerConfiguration.setUsername(user);
     testProxyServerConfiguration.setPassword(
-        new PasswordHandler(new DefaultEncryptionKeyStore()).encryptPassword(
+        new PasswordHandler(new TestEncryptionKeyStore()).encryptPassword(
             pass.toCharArray()));
   }
 

@@ -53,6 +53,8 @@ import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
+import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
@@ -75,6 +77,8 @@ import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.scheduler.TestQuartzJobStoreTx;
 import com.sonatype.insight.brain.scheduler.TestTaskScheduler;
+import com.sonatype.insight.brain.security.EncryptionKeyStore;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.search.SearchIndexRule;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -492,6 +496,23 @@ public abstract class AbstractBaseIntegrationTest
 
     // using a provider so the MockCleaner doesn't break the mocked JiraClientFactory between tests
     binder.bind(JiraClientFactory.class).toInstance(mockJiraClientFactory);
+    
+    // Ensure SAML tests use the test password factory  
+    TestSamlFactory testSamlFactory = new TestSamlFactory();
+    binder.bind(SamlPasswordFactory.class).toInstance(testSamlFactory.createSamlPasswordFactory());
+    
+    // Only bind TestEncryptionKeyStore if the test doesn't manage its own EncryptionKeyStore binding
+    if (shouldBindTestEncryptionKeyStore()) {
+      binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
+    }
+  }
+
+  /**
+   * Override this method to control whether TestEncryptionKeyStore should be bound.
+   * Tests that manage their own EncryptionKeyStore binding should override this to return false.
+   */
+  protected boolean shouldBindTestEncryptionKeyStore() {
+    return true;
   }
 
   protected boolean isProxyRequiredToReachHds() {

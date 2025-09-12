@@ -262,15 +262,6 @@ public class FIPSConfigTest
   }
 
   @Test
-  public void testGetFipsDefaultEncryptionKeyStoreKey() {
-    environmentVariables.set(FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY_ENV, "AAAA");
-    assertThat(getFipsEncryptionKeyStoreKeyOrDefault()).isEqualTo("AAAA");
-
-    environmentVariables.clear(FIPS_DEFAULT_ENCRYPTION_KEY_STORE_KEY_ENV);
-    assertThat(getFipsEncryptionKeyStoreKeyOrDefault()).isEqualTo("shesoldseashells");
-  }
-
-  @Test
   public void testGetFipsHmacAlgorithmOrDefault() {
     environmentVariables.set(FIPS_HMAC_ALGORITHM_ENV, "HmacSHA512");
     assertThat(getFipsHmacAlgorithm()).isEqualTo("HmacSHA512");

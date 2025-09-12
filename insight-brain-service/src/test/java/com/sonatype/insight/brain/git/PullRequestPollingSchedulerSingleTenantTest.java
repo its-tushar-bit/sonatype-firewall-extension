@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
-import com.sonatype.insight.brain.security.DefaultEncryptionKeyStore;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -67,7 +67,7 @@ public class PullRequestPollingSchedulerSingleTenantTest
     extends AbstractBrainServiceIntegrationTest
 {
   private static final String TOKEN = new String(
-      new PasswordHandler(new DefaultEncryptionKeyStore())
+      new PasswordHandler(new TestEncryptionKeyStore())
           .encryptPassword("password".toCharArray())
   );
 

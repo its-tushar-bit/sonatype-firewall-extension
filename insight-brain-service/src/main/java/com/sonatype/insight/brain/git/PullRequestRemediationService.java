@@ -210,14 +210,19 @@ public class PullRequestRemediationService
   {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
 
+    telemetryData.put("event_type", "pr_opened");
     telemetryData.put("application_id", telemetryUtils.obfuscate(event.getApplicationId()));
-    telemetryData.put("date_created", event.getCreateTime());
-    telemetryData.put("pull_request_type",
+    telemetryData.put("opened_at", event.getCreateTime());
+    telemetryData.put("pull_request_creation_type",
         pullRequestRemediationDetails.isManualPullRequest()
             ? PullRequestSource.MANUAL.name()
             : PullRequestSource.AUTOMATIC.name());
     telemetryData.put("pull_request_number", event.getPullRequestNumber());
-    telemetryData.put("is_golden", event.isGoldenPullRequest());
+
+    // Convert boolean golden status to string for consistency
+    String pullRequestType = telemetryUtils.convertGoldenStatusToString(event.isGoldenPullRequest());
+    telemetryData.put("pull_request_type", pullRequestType);
+
     telemetryData.put("component_package_url",
         PackageUrlIdentifier.fromComponentIdentifier(event.getComponentIdentifier()).getPackageUrl());
 

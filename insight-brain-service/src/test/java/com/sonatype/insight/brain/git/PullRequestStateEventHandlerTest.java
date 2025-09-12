@@ -21,10 +21,18 @@ import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.times;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
@@ -50,6 +58,9 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -86,6 +97,25 @@ public class PullRequestStateEventHandlerTest
 
   @Inject
   private PasswordHandler passwordHandler;
+  
+  @Inject 
+  private GitClientFactory gitClientFactory;
+  
+  @Inject
+  private com.sonatype.insight.brain.sourcecontrol.SourceControlUtils sourceControlUtils;
+  
+  @Inject
+  private PullRequestPollingService pullRequestPollingService;
+
+  // Mocks for telemetry testing
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+  
+  @Mock
+  private TelemetryUtils mockTelemetryUtils;
+  
+  // Handler with mocked telemetry dependencies for specific tests
+  private PullRequestStateEventHandler handlerWithMockedTelemetry;
 
   private Application applicationWithBatchSupport;
 
@@ -97,6 +127,9 @@ public class PullRequestStateEventHandlerTest
 
   @Before
   public void setup() throws Exception {
+    // Initialize mocks
+    MockitoAnnotations.openMocks(this);
+    
     gitlabRepoUrl = "http://localhost:%d/%s/%s.git".formatted(wireMockRule.port(), TEST_ORG, TEST_REPO);
     bitbucketRepoUrl = "http://localhost:%d/scm/%s/%s.git".formatted(wireMockRule.port(), TEST_ORG, TEST_REPO);
     String encyptedToken = passwordHandler.encryptPassword(TOKEN);
@@ -124,6 +157,18 @@ public class PullRequestStateEventHandlerTest
     );
 
     setupGitlabBoilerplateEndpoints();
+    
+    // Create handler with mocked telemetry dependencies for specific tests
+    handlerWithMockedTelemetry = new PullRequestStateEventHandler(
+        gitClientFactory,
+        sourceControlUtils,
+        sourceControlDAO,
+        sourceControlEventDAO,
+        sourceControlPullRequestDAO,
+        pullRequestPollingService,
+        mockTelemetrySender,
+        mockTelemetryUtils
+    );
   }
 
   /**
@@ -216,6 +261,8 @@ public class PullRequestStateEventHandlerTest
         "different-base-branch",  // Using different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -261,6 +308,8 @@ public class PullRequestStateEventHandlerTest
         "old-target-branch",  // Using different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
 
     // Create a PR state update event
     SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
@@ -461,6 +510,8 @@ public class PullRequestStateEventHandlerTest
         "feature-branch",  // Different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pr1.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr1);
 
     SourceControlPullRequest pr2 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -471,6 +522,8 @@ public class PullRequestStateEventHandlerTest
         "release-branch",
         PullRequestState.OPEN
     );
+    pr2.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr2);
 
     SourceControlPullRequest pr3 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -481,6 +534,8 @@ public class PullRequestStateEventHandlerTest
         "master",  // Different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pr3.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr3);
 
     SourceControlPullRequest pr4 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -491,6 +546,8 @@ public class PullRequestStateEventHandlerTest
         "hotfix-branch",  // Different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pr4.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr4);
 
     // Create a batch PR state update event
     int[] prNumbers = {pr1Number, pr2Number, pr3Number, pr4Number};
@@ -671,6 +728,8 @@ public class PullRequestStateEventHandlerTest
         "dev-branch",  // Different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pr1.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr1);
 
     SourceControlPullRequest pr3 = tempEntity.newSourceControlPullRequest(
         gitlabRepoUrl,
@@ -681,6 +740,8 @@ public class PullRequestStateEventHandlerTest
         "legacy-branch",  // Different value to verify it gets updated
         PullRequestState.OPEN
     );
+    pr3.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pr3);
 
     // Create a batch PR state update event that includes PR 4 which doesn't exist in database
     int[] prNumbers = {pr1Number, pr3Number, pr4Number};
@@ -1242,6 +1303,239 @@ public class PullRequestStateEventHandlerTest
     // then:
     List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(githubApp.getId());
     assertThat(events).isEmpty();
+  }
+
+  @Test
+  public void testHandle_TelemetrySent_PrOpenToOpen_NoTelemetryEmitted() throws Exception {
+    int prNumber = 103;
+
+    // Create a PR that will remain OPEN (no state transition)
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        bitbucketRepoUrl,
+        prNumber,
+        "deadbeef",
+        "deadbeef2",
+        "telemetry-no-transition",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    // Create a remediation event for this PR
+    SourceControlEvent remediationEvent = new SourceControlEvent();
+    remediationEvent.setId("remediation-event-" + prNumber);
+    remediationEvent.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    remediationEvent.setApplicationId(applicationWithoutBatchSupport.getId());
+    remediationEvent.setPullRequestNumber(prNumber);
+    remediationEvent.setIsGoldenPullRequest(true);
+    remediationEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    sourceControlEventDAO.insert(remediationEvent);
+
+    // Create a PR state update event
+    SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
+
+    // Setup mock Bitbucket API response showing PR is still OPEN
+    setupBitbucketPullRequestEndpoint(prNumber, "bitbucket-open.json");
+
+    // Execute with mocked handler
+    handlerWithMockedTelemetry.handle(event);
+
+    // Verify PR state remains OPEN (no lifecycle transition)
+    SourceControlPullRequest updatedPr = sourceControlPullRequestDAO.getById(pullRequest.getId());
+    assertThat(updatedPr).isNotNull();
+    assertThat(updatedPr.getState()).isEqualTo(PullRequestState.OPEN);
+
+    // Verify NO telemetry was sent for non-lifecycle transition
+    verifyNoInteractions(mockTelemetrySender);
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testHandle_TelemetrySent_PrMerged_SendsCorrectTelemetryFields() throws Exception {
+    int prNumber = 200;
+    String applicationId = applicationWithoutBatchSupport.getId();
+
+    // Create a PR that will transition from OPEN to MERGED
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        bitbucketRepoUrl,
+        prNumber,
+        "deadbeef",
+        "deadbeef2",
+        "telemetry-verify-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    // Create a golden remediation event for this PR
+    SourceControlEvent remediationEvent = new SourceControlEvent();
+    remediationEvent.setId("remediation-event-" + prNumber);
+    remediationEvent.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    remediationEvent.setApplicationId(applicationId);
+    remediationEvent.setPullRequestNumber(prNumber);
+    remediationEvent.setIsGoldenPullRequest(true);
+    remediationEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    sourceControlEventDAO.insert(remediationEvent);
+
+    // Create a PR state update event
+    SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
+
+    // Setup mock Bitbucket API response showing PR is MERGED
+    setupBitbucketPullRequestEndpoint(prNumber, "bitbucket-merged.json");
+
+    // Configure mocks
+    when(mockTelemetryUtils.obfuscate(applicationId)).thenReturn("obfuscated-" + applicationId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(true)).thenReturn("golden");
+
+    // Execute with mocked handler
+    handlerWithMockedTelemetry.handle(event);
+
+    // Verify PR state was updated to MERGED
+    SourceControlPullRequest updatedPr = sourceControlPullRequestDAO.getById(pullRequest.getId());
+    assertThat(updatedPr).isNotNull();
+    assertThat(updatedPr.getState()).isEqualTo(PullRequestState.MERGED);
+
+    // Verify telemetry was sent with correct fields
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+
+    // Verify new field names and values
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(prNumber);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + applicationId);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("golden");
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo("AUTOMATIC");
+    assertThat(telemetryData.getAttributes().get("event_type")).isEqualTo("pr_merged");
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("merged_at")).isNotNull();
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testHandle_TelemetrySent_PrClosed_SendsCorrectTelemetryFields() throws Exception {
+    int prNumber = 201;
+    String applicationId = applicationWithoutBatchSupport.getId();
+
+    // Create a PR that will transition from OPEN to CLOSED
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        bitbucketRepoUrl,
+        prNumber,
+        "deadbeef",
+        "deadbeef2",
+        "telemetry-closed-verify-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    // Create a non-golden remediation event for this PR
+    SourceControlEvent remediationEvent = new SourceControlEvent();
+    remediationEvent.setId("remediation-event-" + prNumber);
+    remediationEvent.setEventType(SourceControlEvent.REMEDIATION_PULL_REQUEST_EVENT);
+    remediationEvent.setApplicationId(applicationId);
+    remediationEvent.setPullRequestNumber(prNumber);
+    remediationEvent.setIsGoldenPullRequest(false);
+    remediationEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
+    sourceControlEventDAO.insert(remediationEvent);
+
+    // Create a PR state update event
+    SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
+
+    // Setup mock Bitbucket API response showing PR is CLOSED
+    setupBitbucketPullRequestEndpoint(prNumber, "bitbucket-declined.json");
+
+    // Configure mocks
+    when(mockTelemetryUtils.obfuscate(applicationId)).thenReturn("obfuscated-" + applicationId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(false)).thenReturn("not_golden");
+
+    // Execute with mocked handler
+    handlerWithMockedTelemetry.handle(event);
+
+    // Verify PR state was updated to CLOSED
+    SourceControlPullRequest updatedPr = sourceControlPullRequestDAO.getById(pullRequest.getId());
+    assertThat(updatedPr).isNotNull();
+    assertThat(updatedPr.getState()).isEqualTo(PullRequestState.CLOSED);
+
+    // Verify telemetry was sent with correct fields
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+
+    // Verify new field names and values
+    assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(prNumber);
+    assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + applicationId);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("not_golden");
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo("AUTOMATIC");
+    assertThat(telemetryData.getAttributes().get("event_type")).isEqualTo("pr_closed_unmerged");
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("closed_at")).isNotNull();
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
+  }
+
+  @Test
+  public void testHandle_TelemetrySent_PrMerged_UnknownGoldenStatus() throws Exception {
+    int prNumber = 202;
+    String applicationId = applicationWithoutBatchSupport.getId();
+
+    // Create a PR that will transition from OPEN to MERGED
+    SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
+        bitbucketRepoUrl,
+        prNumber,
+        "deadbeef",
+        "deadbeef2",
+        "telemetry-unknown-branch",
+        "main",
+        PullRequestState.OPEN
+    );
+    pullRequest.setSource(PullRequestSource.AUTOMATIC);
+    sourceControlPullRequestDAO.update(pullRequest);
+
+    // Note: NOT creating any remediation event, so golden status should be unknown
+
+    // Create a PR state update event
+    SourceControlEvent event = createSinglePrEvent(prNumber, applicationWithoutBatchSupport);
+
+    // Setup mock Bitbucket API response showing PR is MERGED
+    setupBitbucketPullRequestEndpoint(prNumber, "bitbucket-merged.json");
+
+    // Configure mocks
+    when(mockTelemetryUtils.obfuscate(applicationId)).thenReturn("obfuscated-" + applicationId);
+
+    // Execute with mocked handler
+    handlerWithMockedTelemetry.handle(event);
+
+    // Verify PR state was updated to MERGED
+    SourceControlPullRequest updatedPr = sourceControlPullRequestDAO.getById(pullRequest.getId());
+    assertThat(updatedPr).isNotNull();
+    assertThat(updatedPr.getState()).isEqualTo(PullRequestState.MERGED);
+
+    // Verify telemetry was sent with unknown golden status
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender, times(1)).send(telemetryCaptor.capture());
+
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+    assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+
+    // Verify golden status is unknown when no original remediation event exists
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("unknown");
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo("AUTOMATIC");
+    assertThat(telemetryData.getAttributes().get("event_type")).isEqualTo("pr_merged");
+
+    // Verify event is deleted
+    assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
   }
 
   private SourceControlPullRequest setupSourceControlAndPullRequestForAutoPrClosing(

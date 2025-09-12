@@ -441,4 +441,19 @@ public class TelemetryUtilsTest
     assertThat(violationTelemetry2.getThreatLevel()).isEqualTo(5);
     assertThat(violationTelemetry2.getThreatCategory()).isEqualTo(PolicyThreatCategory.LICENSE.getName());
   }
+
+  @Test
+  public void testConvertGoldenStatusToString() {
+    // Test true value
+    String goldenResult = telemetryUtils.convertGoldenStatusToString(true);
+    assertThat(goldenResult).isEqualTo("golden");
+
+    // Test false value
+    String notGoldenResult = telemetryUtils.convertGoldenStatusToString(false);
+    assertThat(notGoldenResult).isEqualTo("not_golden");
+
+    // Test null value
+    String unknownResult = telemetryUtils.convertGoldenStatusToString(null);
+    assertThat(unknownResult).isEqualTo("unknown");
+  }
 }

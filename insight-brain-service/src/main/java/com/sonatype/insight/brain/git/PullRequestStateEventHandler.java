@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +29,10 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.BatchPullRequestInfoProvider;
@@ -67,6 +72,10 @@ public class PullRequestStateEventHandler
 
   private final PullRequestPollingService pullRequestPollingService;
 
+  private final TelemetrySender telemetrySender;
+
+  private final TelemetryUtils telemetryUtils;
+
   @Inject
   public PullRequestStateEventHandler(
       final GitClientFactory gitClientFactory,
@@ -74,7 +83,9 @@ public class PullRequestStateEventHandler
       final SourceControlDAO sourceControlDAO,
       final SourceControlEventDAO sourceControlEventDAO,
       final SourceControlPullRequestDAO sourceControlPullRequestDAO,
-      final PullRequestPollingService pullRequestPollingService)
+      final PullRequestPollingService pullRequestPollingService,
+      final TelemetrySender telemetrySender,
+      final TelemetryUtils telemetryUtils)
   {
     this.gitClientFactory = gitClientFactory;
     this.sourceControlUtils = sourceControlUtils;
@@ -82,6 +93,8 @@ public class PullRequestStateEventHandler
     this.sourceControlEventDAO = sourceControlEventDAO;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
     this.pullRequestPollingService = pullRequestPollingService;
+    this.telemetrySender = telemetrySender;
+    this.telemetryUtils = telemetryUtils;
   }
 
   public void handle(final SourceControlEvent event) {
@@ -213,6 +226,7 @@ public class PullRequestStateEventHandler
       final PullRequestLifecycleInfo prLifecycleInfo,
       final boolean autoCloseTriggered)
   {
+    PullRequestState oldState = pullRequest.getState();
     pullRequest.setLastCheckTime(new Date());
 
     if (prLifecycleInfo == null) {
@@ -260,6 +274,11 @@ public class PullRequestStateEventHandler
     }
 
     sourceControlPullRequestDAO.update(pullRequest);
+    
+    // Send telemetry when PR transitions to final states (MERGED/CLOSED)
+    if (isPullRequestConcluded(oldState, pullRequest.getState())) {
+      sendTelemetry(pullRequest, prLifecycleInfo);
+    }
   }
 
   // Visible for testing
@@ -359,5 +378,104 @@ public class PullRequestStateEventHandler
   {
     long daysOpen = ChronoUnit.DAYS.between(pullRequest.getCreateTime().toInstant(), Instant.now());
     return daysOpen > openLimitDays;
+  }
+
+  /**
+   * Determines if a PR state transition represents a lifecycle event that should emit telemetry.
+   * We only emit telemetry when PRs transition from OPEN to MERGED or CLOSED states.
+   */
+  private boolean isPullRequestConcluded(PullRequestState oldState, PullRequestState newState) {
+    return oldState == PullRequestState.OPEN &&
+        (newState == PullRequestState.MERGED
+            || newState == PullRequestState.CLOSED
+            || newState == PullRequestState.AUTO_CLOSED);
+  }
+
+  /**
+   * Sends PR telemetry for lifecycle events (merge/close).
+   * This provides granular telemetry complementing the aggregate metrics.
+   */
+  private void sendTelemetry(SourceControlPullRequest pullRequest, PullRequestLifecycleInfo prLifecycleInfo) {
+    // Create and send telemetry event
+    TelemetryData telemetryData = createPullRequestActivityTelemetry(pullRequest, prLifecycleInfo);
+    telemetrySender.send(telemetryData);
+  }
+
+  /**
+   * Finds the application ID for a given pull request by looking up associated source control.
+   */
+  private String getApplicationIdForPR(SourceControlPullRequest pullRequest) {
+    List<SourceControl> sourceControls = sourceControlDAO.getByRepositoryUrl(pullRequest.getRepositoryUrl());
+    return sourceControls.isEmpty() ? null : sourceControls.get(0).getOwnerId();
+  }
+
+  /**
+   * Determines golden status by finding the original remediation event that created this PR.
+   * Golden PRs are those created with RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES remediation type.
+   * Returns "golden", "not_golden", or "unknown" as string values.
+   */
+  private String getGoldenStatusFromOriginalEvent(SourceControlPullRequest pullRequest, String applicationId) {
+
+    SourceControlEvent originalEvent = sourceControlEventDAO
+        .getLatestRemediationEventForPullRequest(applicationId, pullRequest.getPullRequestId());
+
+    if (originalEvent != null) {
+      return telemetryUtils.convertGoldenStatusToString(originalEvent.isGoldenPullRequest());
+    }
+
+    return "unknown"; // Unknown golden status
+  }
+
+  /**
+   * Creates a telemetry event for PR lifecycle transitions (merged/closed).
+   */
+  private TelemetryData createPullRequestActivityTelemetry(
+      SourceControlPullRequest pullRequest,
+      PullRequestLifecycleInfo prLifecycleInfo)
+  {
+    // Find application ID for this PR
+    String applicationId = getApplicationIdForPR(pullRequest);
+    if (applicationId == null) {
+      log.debug("Could not find application for PR {}", pullRequest.getId());
+    }
+
+    // Determine golden status from original remediation event
+    String pullRequestType = getGoldenStatusFromOriginalEvent(pullRequest, applicationId);
+
+    TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
+
+    // Common fields for both merged and closed events
+    telemetryData.put("pull_request_number", pullRequest.getPullRequestId());
+    telemetryData.put("application_id", telemetryUtils.obfuscate(applicationId));
+    telemetryData.put("opened_at", pullRequest.getCreateTime());
+
+    // Include golden status
+    telemetryData.put("pull_request_type", pullRequestType);
+    telemetryData.put("pull_request_creation_type", pullRequest.getSource().name());
+
+    // Set event type and timestamp based on PR state
+    if (pullRequest.getState() == PullRequestState.MERGED) {
+      telemetryData.put("event_type", "pr_merged");
+      // Use real SCM timestamp if available, fallback to our detected update time
+      Date mergedAt = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate() 
+                                              : pullRequest.getLastDetectedUpdateTime();
+      if (mergedAt == null) {
+        mergedAt = pullRequest.getLastDetectedUpdateTime();
+      }
+      telemetryData.put("merged_at", mergedAt);
+    }
+    else if (pullRequest.getState() == PullRequestState.CLOSED ||
+        pullRequest.getState() == PullRequestState.AUTO_CLOSED) {
+      telemetryData.put("event_type", "pr_closed_unmerged");
+      // Use real SCM timestamp if available, fallback to our detected update time
+      Date closedAt = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate()
+                                              : pullRequest.getLastDetectedUpdateTime();
+      if (closedAt == null) {
+        closedAt = pullRequest.getLastDetectedUpdateTime();
+      }
+      telemetryData.put("closed_at", closedAt);
+    }
+
+    return telemetryData;
   }
 }

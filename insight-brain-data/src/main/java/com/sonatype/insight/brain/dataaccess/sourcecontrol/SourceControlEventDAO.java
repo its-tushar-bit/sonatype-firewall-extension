@@ -63,6 +63,11 @@ public class SourceControlEventDAO
 
   private static final String UPDATED_EVENT_WITH_STATUS = "updated event {} with status {}";
 
+  private static final List<String> REMEDIATION_EVENT_TYPES = List.of(
+      REMEDIATION_PULL_REQUEST_EVENT, 
+      MANUAL_REMEDIATION_PULL_REQUEST_EVENT
+  );
+
   @Inject
   public SourceControlEventDAO(OperationalDataStore operationalDataStore) {
     super(operationalDataStore);
@@ -204,8 +209,7 @@ public class SourceControlEventDAO
   public List<SourceControlEvent> getRemediationEventsForBranch(String applicationId, String branchName) {
     String sQuery =
         SELECT_ENTITY + " WHERE entity.applicationId = ?1 AND entity.eventType IN ?2 AND entity.branchName = ?3";
-    List<String> eventTypes = Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
-    return getList(sQuery, applicationId, eventTypes, branchName);
+    return getList(sQuery, applicationId, REMEDIATION_EVENT_TYPES, branchName);
   }
 
   public void markEventInProgress(final String eventId) {
@@ -324,7 +328,7 @@ public class SourceControlEventDAO
         " AND entity.branchName = ?3";
     List<Object> params = new ArrayList<>();
     params.add(applicationId);
-    params.add(Arrays.asList(REMEDIATION_PULL_REQUEST_EVENT, MANUAL_REMEDIATION_PULL_REQUEST_EVENT));
+    params.add(REMEDIATION_EVENT_TYPES);
     params.add(branchName);
     if (eventStatuses.length > 0) {
       sQuery += " AND entity.eventStatus IN ?4";
@@ -425,6 +429,22 @@ public class SourceControlEventDAO
   public List<SourceControlEvent> getAllByApplicationId(String applicationId) {
     String sQuery = SELECT_ENTITY + "WHERE entity.applicationId =?1";
     return getList(sQuery, applicationId);
+  }
+
+  /**
+   * Finds the latest remediation event (PR creation event) for a specific pull request.
+   * This is used to retrieve golden status information from the original PR creation.
+   */
+  public SourceControlEvent getLatestRemediationEventForPullRequest(String applicationId, int pullRequestNumber) {
+    String sQuery = SELECT_ENTITY + 
+        "WHERE entity.applicationId = ?1 AND entity.pullRequestNumber = ?2 " +
+        "AND entity.eventType IN ?3 " +
+        "ORDER BY entity.createTime DESC";
+    
+    Query<SourceControlEvent> query = new Query<>(sQuery, applicationId, pullRequestNumber, REMEDIATION_EVENT_TYPES);
+    query.setMaxResults(1);
+    List<SourceControlEvent> events = query.getList();
+    return events.isEmpty() ? null : events.get(0);
   }
 
   @Override

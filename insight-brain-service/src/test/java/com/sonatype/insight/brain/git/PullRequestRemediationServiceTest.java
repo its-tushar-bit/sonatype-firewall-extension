@@ -357,6 +357,7 @@ public class PullRequestRemediationServiceTest
     PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
     when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(true)).thenReturn("golden");
 
     // create automatic remediation event (manual = false by default)
     SourceControlEvent event = new SourceControlEvent()
@@ -379,10 +380,11 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.AUTOMATIC.name());
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
+        PullRequestSource.AUTOMATIC.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(123);
-    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("golden");
     assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
 
     // also verify the event was updated with PR details
@@ -413,6 +415,7 @@ public class PullRequestRemediationServiceTest
     PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
     when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(false)).thenReturn("not_golden");
 
     // create manual remediation event
     SourceControlEvent event = new SourceControlEvent()
@@ -436,10 +439,11 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.MANUAL.name());
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
+        PullRequestSource.MANUAL.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(456);
-    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("not_golden");
     assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
 
     // also verify the event was updated
@@ -471,6 +475,7 @@ public class PullRequestRemediationServiceTest
     PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
     when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(true)).thenReturn("golden");
 
     // create manual golden remediation event
     SourceControlEvent event = new SourceControlEvent()
@@ -494,10 +499,11 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.MANUAL.name());
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
+        PullRequestSource.MANUAL.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(789);
-    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(true);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("golden");
     assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
 
     // also verify the event was updated
@@ -528,6 +534,7 @@ public class PullRequestRemediationServiceTest
     PullRequestResult pullRequestResult = createPullRequestResult(true, prUrl);
     when(mockPullRequestTask.run(any(), any())).thenReturn(pullRequestResult);
     when(mockTelemetryUtils.obfuscate(appId)).thenReturn("obfuscated-" + appId);
+    when(mockTelemetryUtils.convertGoldenStatusToString(false)).thenReturn("not_golden");
 
     // create automatic non-golden remediation event (automatic is default)
     SourceControlEvent event = new SourceControlEvent()
@@ -550,10 +557,11 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("date_created")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo(PullRequestSource.AUTOMATIC.name());
+    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
+        PullRequestSource.AUTOMATIC.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(101);
-    assertThat(telemetryData.getAttributes().get("is_golden")).isEqualTo(false);
+    assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("not_golden");
     assertThat(telemetryData.getAttributes().get("component_package_url")).isEqualTo(purl);
 
     // also verify the event was updated

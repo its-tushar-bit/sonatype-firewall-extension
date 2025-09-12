@@ -1604,4 +1604,158 @@ public class SourceControlEventDAOTest
     sourceControlEventDAO.insert(sourceControlEvent);
     return sourceControlEvent;
   }
+
+  @Test
+  public void testGetLatestRemediationEventForPullRequest_NoEvents() {
+    // when: get latest remediation event
+    SourceControlEvent result =
+        sourceControlEventDAO.getLatestRemediationEventForPullRequest(app.getId(), 123);
+
+    // then: should return null
+    assertThat(result).isNull();
+  }
+
+  @Test
+  public void testGetLatestRemediationEventForPullRequest_SingleEvent() {
+    // given: one remediation event for the PR
+    String applicationId = app.getId();
+    int pullRequestNumber = 124;
+
+    SourceControlEvent remediationEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(true)
+        .setCreateTime(testStartTime);
+    sourceControlEventDAO.insert(remediationEvent);
+
+    // when: get latest remediation event
+    SourceControlEvent result =
+        sourceControlEventDAO.getLatestRemediationEventForPullRequest(applicationId, pullRequestNumber);
+
+    // then: should return the remediation event
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(remediationEvent.getId());
+    assertThat(result.getEventType()).isEqualTo(REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(result.isGoldenPullRequest()).isTrue();
+  }
+
+  @Test
+  public void testGetLatestRemediationEventForPullRequest_MultipleEvents_ReturnsLatest() {
+    // given: multiple remediation events for the PR with different create times
+    String applicationId = app.getId();
+    int pullRequestNumber = 125;
+
+    Date earlierTime = new Date(testStartTime.getTime() - 10000);
+    Date laterTime = new Date(testStartTime.getTime() + 10000);
+
+    // Create older event first
+    SourceControlEvent olderEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(false)
+        .setCreateTime(earlierTime);
+    sourceControlEventDAO.insert(olderEvent);
+
+    // Create newer event
+    SourceControlEvent newerEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(true)
+        .setCreateTime(laterTime);
+    sourceControlEventDAO.insert(newerEvent);
+
+    // when: get latest remediation event
+    SourceControlEvent result =
+        sourceControlEventDAO.getLatestRemediationEventForPullRequest(applicationId, pullRequestNumber);
+
+    // then: should return the newer event
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(newerEvent.getId());
+    assertThat(result.getCreateTime()).isEqualTo(laterTime);
+    assertThat(result.isGoldenPullRequest()).isTrue();
+  }
+
+  @Test
+  public void testGetLatestRemediationEventForPullRequest_BothEventTypes() {
+    // given: both REMEDIATION_PULL_REQUEST_EVENT and MANUAL_REMEDIATION_PULL_REQUEST_EVENT
+    String applicationId = app.getId();
+    int pullRequestNumber = 126;
+
+    Date earlierTime = new Date(testStartTime.getTime() - 10000);
+    Date laterTime = new Date(testStartTime.getTime() + 10000);
+
+    // Create automatic remediation event (older)
+    SourceControlEvent autoEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(true)
+        .setCreateTime(earlierTime);
+    sourceControlEventDAO.insert(autoEvent);
+
+    // Create manual remediation event (newer)
+    SourceControlEvent manualEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(MANUAL_REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(false)
+        .setCreateTime(laterTime);
+    sourceControlEventDAO.insert(manualEvent);
+
+    // when: get latest remediation event
+    SourceControlEvent result =
+        sourceControlEventDAO.getLatestRemediationEventForPullRequest(applicationId, pullRequestNumber);
+
+    // then: should return the manual event (newer)
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(manualEvent.getId());
+    assertThat(result.getEventType()).isEqualTo(MANUAL_REMEDIATION_PULL_REQUEST_EVENT);
+    assertThat(result.isGoldenPullRequest()).isFalse();
+  }
+
+  @Test
+  public void testGetLatestRemediationEventForPullRequest_IgnoresNonRemediationEvents() {
+    // given: mix of remediation and non-remediation events
+    String applicationId = app.getId();
+    int pullRequestNumber = 127;
+
+    Date earlierTime = new Date(testStartTime.getTime() - 10000);
+    Date laterTime = new Date(testStartTime.getTime() + 10000);
+
+    // Create non-remediation event (newer but should be ignored)
+    SourceControlEvent nonRemediationEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(PR_STATE_UPDATE_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setCreateTime(laterTime);
+    sourceControlEventDAO.insert(nonRemediationEvent);
+
+    // Create remediation event (older but should be returned)
+    SourceControlEvent remediationEvent = new SourceControlEvent()
+        .setApplicationId(applicationId)
+        .setEventType(REMEDIATION_PULL_REQUEST_EVENT)
+        .setPullRequestNumber(pullRequestNumber)
+        .setEventStatus(EVENT_STATUS_COMPLETE)
+        .setIsGoldenPullRequest(true)
+        .setCreateTime(earlierTime);
+    sourceControlEventDAO.insert(remediationEvent);
+
+    // when: get latest remediation event
+    SourceControlEvent result =
+        sourceControlEventDAO.getLatestRemediationEventForPullRequest(applicationId, pullRequestNumber);
+
+    // then: should return the remediation event, ignoring the non-remediation event
+    assertThat(result).isNotNull();
+    assertThat(result.getId()).isEqualTo(remediationEvent.getId());
+    assertThat(result.getEventType()).isEqualTo(REMEDIATION_PULL_REQUEST_EVENT);
+  }
 }

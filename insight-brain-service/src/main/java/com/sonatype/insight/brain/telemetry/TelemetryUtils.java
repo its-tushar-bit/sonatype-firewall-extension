@@ -212,6 +212,20 @@ public final class TelemetryUtils
     return telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(value);
   }
 
+  /**
+   * Converts a Boolean golden status to its string representation for telemetry consistency.
+   * Used by both pull request creation and lifecycle telemetry.
+   *
+   * @param isGolden the Boolean golden status (can be null)
+   * @return "golden", "not_golden", or "unknown"
+   */
+  public String convertGoldenStatusToString(Boolean isGolden) {
+    if (isGolden == null) {
+      return "unknown";
+    }
+    return isGolden ? "golden" : "not_golden";
+  }
+
   private static long getTotalComponentCounts(final Map<String, Number> componentCounts) {
     if (componentCounts == null) {
       return 0L;

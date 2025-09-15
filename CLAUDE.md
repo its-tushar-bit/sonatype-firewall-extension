@@ -89,6 +89,12 @@ public TemporaryEntity tempEntity = new TemporaryEntity();
 ```
 
 ## Development Notes
+### Git Workflow
+- Use descriptive branch names. The branch name should be prefixed with the Jira ticket ID. For example:
+  `CLM-12345-some-meaningful-description`
+- Keep commits focused and well-described. The commit title should be suffixed with the Jira ticket ID.
+- When creating a PR in github, the first line in the PR description should be a link to the Jira ticket. For ex:
+  Jira: https://sonatype.atlassian.net/browse/CLM-12345
 
 ### Maven Build Cache
 Use Maven 3.9.0+ with build cache extension for faster builds.

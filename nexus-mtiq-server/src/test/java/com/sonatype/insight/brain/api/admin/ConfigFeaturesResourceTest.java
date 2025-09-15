@@ -72,7 +72,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ZSCALER.getId(),
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
-      };
+  };
 
   /**
    * SystemConfigurationPropertyFeature that are enabled by default for the global tenant in MTIQ should be added here
@@ -111,7 +111,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.ZSCALER.getId(),
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
-      };
+  };
 
   /**
    * SystemConfigurationPropertyFeature that are allowed to be used in MTIQ should be added to this list
@@ -131,6 +131,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.EPSS_DATA.getId(),
           SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.getId(),
           SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),
+          SystemConfigurationPropertyFeature.SAML_ENABLED.getId(),
       }
   )).toArray(String[]::new);
 

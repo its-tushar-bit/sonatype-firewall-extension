@@ -21,7 +21,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -51,7 +51,7 @@ public class SamlAuthcTest
 
   private static final String ENCRYPT_ASSERTION = "encryptAssertion";
 
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   private KeyPair idpSigningKeyPair;
 
@@ -67,10 +67,10 @@ public class SamlAuthcTest
 
   @Before
   public void init() throws Exception {
-    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationService = lookup(SamlConfigurationService.class);
     SamlConfiguration samlConfig = new SamlConfiguration();
-    samlConfigurationDAO.insert(samlConfig);
-    samlConfigurationDAO.delete();
+    samlConfigurationService.insert(samlConfig);
+    samlConfigurationService.delete();
     idpSigningKeyPair = samlConfig.getSigningKeyPair();
     idpMetadata = newIdpMetadata(samlConfig.getCertificate());
   }
@@ -125,7 +125,7 @@ public class SamlAuthcTest
     BaseSAML2BindingBuilder<BaseSAML2BindingBuilder<?>> builder = new BaseSAML2BindingBuilder<>();
     builder.signWith(null, idpSigningKeyPair);
     builder.signatureAlgorithm(SignatureAlgorithm.RSA_SHA256);
-    builder.encrypt(samlConfigurationDAO.get().getSigningKeyPair().getPublic());
+    builder.encrypt(samlConfigurationService.get().getSigningKeyPair().getPublic());
 
     if (flags.contains(SIGN_ASSERTION)) {
       Element assertion = DocumentUtil.getElement(document, JBossSAMLConstants.ASSERTION.getAsQName());

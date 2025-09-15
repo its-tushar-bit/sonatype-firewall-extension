@@ -36,7 +36,7 @@ public class RealmTelemetryCollectorTest
 
   @Test
   public void testCollectData_SamlConfigured() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     TelemetryData telemetryData = telemetryCollector.collectData();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REALM);
     assertThat(telemetryData.getAttributes()).containsEntry(SAML_CONFIGURED, "true");

@@ -7,7 +7,6 @@ package com.sonatype.clm.testing.functional.mtiq;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
@@ -15,7 +14,6 @@ import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_E
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-@Ignore("CLM-35281")
 public class MultiTenantAdministratorsFIPSTest
     extends MultiTenantAdministratorsTest
 {

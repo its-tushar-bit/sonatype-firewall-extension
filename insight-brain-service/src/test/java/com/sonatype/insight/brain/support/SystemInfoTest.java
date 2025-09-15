@@ -34,7 +34,7 @@ import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
@@ -93,7 +93,7 @@ public class SystemInfoTest
   private CLMLicenseManager clmLicenseManager;
 
   @Inject
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   @Inject
   private MailConfigurationDAO mailConfigurationDAO;
@@ -663,10 +663,11 @@ public class SystemInfoTest
   @Test
   public void testGetSamlInfo_Configured() throws Exception {
     SamlConfiguration samlConfig = tempEntity.newSamlConfiguration(null, null);
+    samlConfigurationService.insert(samlConfig);
     samlConfig.setIdentityProviderMetadataXml(IOUtils.toString(
         getClass().getResourceAsStream("/" + getClass().getSimpleName() + "/saml-identity-provider-metadata.xml"),
         StandardCharsets.UTF_8));
-    samlConfigurationDAO.update(samlConfig);
+    samlConfigurationService.update(samlConfig);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlInfo samlInfo = new ObjectMapper().readValue(systemInfo.getSamlInfo(), SamlInfo.class);

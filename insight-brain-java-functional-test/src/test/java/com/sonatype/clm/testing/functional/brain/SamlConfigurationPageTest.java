@@ -15,7 +15,7 @@ import com.sonatype.clm.testing.functional.elements.UnsavedModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.SamlConfigurationPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 
 import org.apache.commons.io.FileUtils;
@@ -52,7 +52,7 @@ public class SamlConfigurationPageTest
   public void after() {
     logout();
     clearAlerts();
-    lookup(SamlConfigurationDAO.class).delete();
+    lookup(SamlConfigurationService.class).delete();
   }
 
   @Test

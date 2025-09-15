@@ -32,7 +32,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.db.DatabaseName;
@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.developer.integrationdashboard.DeveloperEnable
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.jira.JiraService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.PersistedUserSession;
 import com.sonatype.insight.brain.model.security.Role;
@@ -782,13 +783,15 @@ public abstract class AbstractMtiqFunctionalTest
   }
 
   public void enableSsoWithSaml() {
-    tempEntity.newSamlConfiguration();
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true");
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
+    lookup(SamlConfigurationService.class).insert(samlConfiguration);
     loadSsoConfiguration();
   }
 
   public void disableSsoWithSaml() {
-    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
-    samlConfigurationDAO.delete();
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    samlConfigurationService.delete();
     loadSsoConfiguration();
   }
 

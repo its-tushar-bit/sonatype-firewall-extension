@@ -33,6 +33,7 @@ import {
   selectIsScmEnabled,
   selectIsAutomaticScmConfigurationEnabled,
   selectTenantScmOptionsTypes,
+  selectIsSAMLEnabled,
   selectIsUserManagementPagesEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
@@ -329,6 +330,18 @@ describe('productFeaturesSelectors', () => {
       expect(optionsIds).toContain('automated-commit-feedback');
       expect(optionsIds).toContain('manual-pull-requests');
       expect(optionsIds).toContain('inner-source-automated-updates');
+    });
+  });
+
+  describe('selectIsSAMLEnabled', () => {
+    it('returns true if selectIsSAMLEnabled is true, and false otherwise', () => {
+      expect(selectIsSAMLEnabled(mockState)).toBe(false);
+
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saml-enabled'], false, mockState);
+      expect(selectIsSAMLEnabled(mockState)).toBe(false);
+
+      mockState = assocPath(['productFeatures', 'productFeatures', 'saml-enabled'], true, mockState);
+      expect(selectIsSAMLEnabled(mockState)).toBe(true);
     });
   });
 

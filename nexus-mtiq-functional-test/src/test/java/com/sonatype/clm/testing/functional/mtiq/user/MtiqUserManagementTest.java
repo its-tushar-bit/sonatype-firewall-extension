@@ -34,7 +34,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.mockito.Mockito;
 import org.openqa.selenium.Keys;
@@ -59,6 +61,9 @@ public class MtiqUserManagementTest
   // APIs are mocked in tests as-needed
   @ClassRule
   public static KeycloakServerRule keycloakServerRule = new KeycloakServerRule();
+
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   private KeycloakServerUtil keycloak = keycloakServerRule.getKeycloakServerUtil();
 
@@ -91,6 +96,8 @@ public class MtiqUserManagementTest
     // This is, for some reason, necessary to get the BaseUrl set properly in the backend
     // prior to the apiSamlConfigurationService call below
     refreshOrOpen(MtiqUserManagementPage.url());
+
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true");
 
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration(keycloak.getSamlMetadataXml(), null);
     String metadata = apiSamlConfigurationService.getMetadata();

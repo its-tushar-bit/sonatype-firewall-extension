@@ -3,44 +3,51 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.configuration.saml;
+package com.sonatype.insight.brain.configuration.saml;
 
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.HasFeature;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationAdapter;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.error.exception.BadRequestException;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
 
 /**
  * @since 1.72
  */
 @Named
 @Singleton
-public class SamlConfigurationDAO
+@HasFeature(SAML_ENABLED)
+public class SamlConfigurationService
 {
   private final SamlConfigurationInternalDAO samlConfigurationInternalDAO;
 
-  private final SamlConfigurationService samlConfigurationService;
+  private final SamlConfigurationAdapter samlConfigurationAdapter;
 
   @Inject
-  public SamlConfigurationDAO(
+  public SamlConfigurationService(
       final SamlConfigurationInternalDAO samlConfigurationInternalDAO,
-      final SamlConfigurationService samlConfigurationService)
+      final SamlConfigurationAdapter samlConfigurationAdapter)
   {
     this.samlConfigurationInternalDAO = samlConfigurationInternalDAO;
-    this.samlConfigurationService = samlConfigurationService;
+    this.samlConfigurationAdapter = samlConfigurationAdapter;
   }
 
   public SamlConfiguration getById(String id) {
-    return samlConfigurationService.toSamlConfiguration(samlConfigurationInternalDAO.getById(id));
+    return samlConfigurationAdapter.toSamlConfiguration(samlConfigurationInternalDAO.getById(id));
   }
 
   /**
    * Returns the one and only SAML configuration or null if SAML is not configured.
    */
   public SamlConfiguration get() {
-    return samlConfigurationService.toSamlConfiguration(samlConfigurationInternalDAO.get());
+    return samlConfigurationAdapter.toSamlConfiguration(samlConfigurationInternalDAO.get());
   }
 
   public void insert(SamlConfiguration samlConfiguration) {
@@ -49,19 +56,19 @@ public class SamlConfigurationDAO
     }
 
     SamlConfigurationInternal samlConfigurationInternal =
-        samlConfigurationService.fromSamlConfiguration(samlConfiguration);
+        samlConfigurationAdapter.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.insert(samlConfigurationInternal);
 
     samlConfiguration.setId(samlConfigurationInternal.getId());
-    samlConfigurationService.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
+    samlConfigurationAdapter.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
   }
 
   public void update(SamlConfiguration samlConfiguration) {
     SamlConfigurationInternal samlConfigurationInternal =
-        samlConfigurationService.fromSamlConfiguration(samlConfiguration);
+        samlConfigurationAdapter.fromSamlConfiguration(samlConfiguration);
     samlConfigurationInternalDAO.update(samlConfigurationInternal);
 
-    samlConfigurationService.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
+    samlConfigurationAdapter.loadKeyStoreData(samlConfigurationInternal, samlConfiguration);
   }
 
   // A parameterless delete method may be needed if the SAML configuration is corrupt see CLM-14027

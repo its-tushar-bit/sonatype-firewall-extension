@@ -16,6 +16,8 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSamlConfigurationResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
@@ -44,11 +46,24 @@ public class MultiTenantSamlConfigurationResourceTest
 
   @Test
   public void test_insertOrUpdateSamlConfiguration_shouldBeBanned() throws Exception {
+    disableSamlByConfiguration();
+
     String xml = validIdentityProviderXml();
     ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
     HttpResponse response =
         restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
     assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void test_insertOrUpdateSamlConfiguration_shouldBeAvailable() throws Exception {
+    enableSamlByConfiguration();
+
+    String xml = validIdentityProviderXml();
+    ApiSamlConfigurationDTO apiSamlConfigurationDTO = new ApiSamlConfigurationDTO();
+    HttpResponse response =
+        restRequest().part("identityProviderXml", xml).part("samlConfiguration", apiSamlConfigurationDTO).put();
+    assertResponseStatus(204, response);
   }
 
   @Test
@@ -59,8 +74,14 @@ public class MultiTenantSamlConfigurationResourceTest
 
   @Test
   public void test_getMetadata() throws Exception {
-    tenantTemporaryEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name",
-        "last-name", "e-mail", "user-name", "teams", null, null);
+    enableSamlByConfiguration();
+
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    SamlConfiguration samlConfiguration =
+        tenantTemporaryEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name",
+            "last-name", "e-mail", "user-name", "teams", null, null);
+    samlConfigurationService.insert(samlConfiguration);
+
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 

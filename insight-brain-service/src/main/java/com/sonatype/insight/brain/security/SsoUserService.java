@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+
 /**
  * This service orchestrates and manages the different SSO User implementations in the application.
  * <p>
@@ -82,7 +84,7 @@ public class SsoUserService
   public void loadSsoConfiguration() {
     Map<String, Boolean> configMap = new HashMap<>();
     configMap.put(OAuth2Realm.ID, oAuth2SsoUserProvider.isSsoConfigured());
-    configMap.put(SamlRealm.ID, samlSsoUserProvider.isSsoConfigured());
+    configMap.put(SamlRealm.ID, SAML_ENABLED.isEnabled() && samlSsoUserProvider.isSsoConfigured());
     configurationMap.set(configMap);
   }
 

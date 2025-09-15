@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.tenancy.Tenant;
@@ -29,15 +30,18 @@ public class MultiTenantRealmTelemetryCollectorTest
 {
   private RealmTelemetryCollector telemetryCollector;
 
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   @Before
   @Override
   public void setup() {
     super.setup();
 
-    samlConfigurationDAO = daoFactory.createSamlConfigurationDAO();
-    telemetryCollector = new RealmTelemetryCollector(samlConfigurationDAO);
+    samlConfigurationService = new SamlConfigurationService(
+        daoFactory.createSamlConfigurationInternalDAO(),
+        new TestSamlFactory().createSamlConfigurationAdapter()
+    );
+    telemetryCollector = new RealmTelemetryCollector(samlConfigurationService);
   }
 
   @Test
@@ -50,7 +54,7 @@ public class MultiTenantRealmTelemetryCollectorTest
       SamlConfiguration samlConfiguration = new SamlConfiguration();
       samlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("valid.xml"));
       samlConfiguration.setEntityId("id");
-      samlConfigurationDAO.insert(samlConfiguration);
+      samlConfigurationService.insert(samlConfiguration);
 
       TelemetryData telemetryData = telemetryCollector.collectData();
       assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.REALM);

@@ -16,7 +16,7 @@ import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelpe
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
@@ -54,6 +54,7 @@ import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -71,7 +72,7 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
 
   private static final Logger log = LoggerFactory.getLogger(AbstractMultiTenantBaseIntegrationTest.class);
 
-  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+  protected SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Rule(order = 0)
   public MultiTenantRule multiTenantRule = new MultiTenantRule();
@@ -226,6 +227,8 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
     testAsGlobal(g -> {
       systemConfigurationPropertyDAO.set(ENABLE_SSO_ONLY, Boolean.toString(true));
     });
+
+    testAsTestTenant(test -> systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true)));
   }
 
   @Override
@@ -254,7 +257,14 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   /**
    * Provision the given tenant name by invoking the admin provisioning endpoint
    */
-  protected HttpResponse provisionTenant(String tenantName) {
+  protected HttpResponse provisionTenant(final String tenantName) {
+    return provisionTenant(tenantName, null);
+  }
+
+  /**
+   * Provision the given tenant name by invoking the admin provisioning endpoint
+   */
+  protected HttpResponse provisionTenant(final String tenantName, final ConsumerWithException<Tenant> consumer) {
     setTenantSlug(tenantName);
 
     try {
@@ -263,6 +273,9 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
           .post();
 
       TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
+        if (consumer != null) {
+          consumer.accept(tenant);
+        }
         testProductLicenseRule.insertLicenseIfNeeded();
       });
 
@@ -366,14 +379,25 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   }
 
   public void enableSsoWithSaml() {
+    systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true));
     tenantTemporaryEntity.newSamlConfiguration();
     loadSsoConfiguration();
   }
 
   public void disableSsoWithSaml() {
-    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
-    samlConfigurationDAO.delete();
+    if (Boolean.parseBoolean(systemConfigurationPropertyDAO.get(SAML_ENABLED))) {
+      SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+      samlConfigurationService.delete();
+    }
     loadSsoConfiguration();
+  }
+
+  public void enableSamlByConfiguration() {
+    testAsTestTenant(test -> systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true)));
+  }
+
+  public void disableSamlByConfiguration() {
+    testAsTestTenant(test -> systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(false)));
   }
 
   private void loadSsoConfiguration() {

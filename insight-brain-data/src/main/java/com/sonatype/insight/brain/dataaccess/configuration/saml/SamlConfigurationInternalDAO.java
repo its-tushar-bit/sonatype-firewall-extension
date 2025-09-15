@@ -43,7 +43,7 @@ public class SamlConfigurationInternalDAO
   /**
    * Returns the one and only SAML configuration or null if SAML is not configured.
    */
-  SamlConfigurationInternal get() {
+  public SamlConfigurationInternal get() {
     String sQuery = "SELECT entity FROM SamlConfigurationInternal entity";
     return createQuery(sQuery).forceSingleResult().get();
   }

@@ -16,13 +16,14 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.keycloak.dom.saml.v2.metadata.EntityDescriptorType;
 import org.keycloak.dom.saml.v2.metadata.SPSSODescriptorType;
@@ -34,12 +35,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSamlConfigurationResourceTest
     extends AbstractResourceTest
 {
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
+
+  @Before
+  public void before() {
+    samlConfigurationService = lookup(SamlConfigurationService.class);
+  }
 
   @After
   public void cleanup() {
-    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
-    samlConfigurationDAO.delete();
+    samlConfigurationService.delete();
     getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
@@ -47,6 +52,7 @@ public class ApiSamlConfigurationResourceTest
   public void testGetSamlConfiguration() throws Exception {
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration("My Awesome IdP", "<xml></xml>", "ent-id",
         "first-name", "last-name", "e-mail", "user-name", "teams", true, null);
+    samlConfigurationService.insert(samlConfiguration);
 
     HttpResponse response = restRequest().get();
     assertResponseStatus(200, restRequest().get());
@@ -76,15 +82,22 @@ public class ApiSamlConfigurationResourceTest
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
     String xml = validIdentityProviderXml();
-    tempEntity.newSamlConfiguration("My Awesome IdP", xml, "ent-id", "first-name", "last-name", "e-mail", "user-name",
-        "teams", null, null);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", xml, "ent-id", "first-name", "last-name", "e-mail",
+            "user-name",
+            "teams", null, null);
+    samlConfigurationService.insert(samlConfiguration);
     assertResponseStatus(204, restRequest().delete());
   }
 
   @Test
   public void testGetMetadata() throws Exception {
-    tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name", "last-name",
-        "e-mail", "user-name", "teams", null, null);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", validIdentityProviderXml(), "ent-id", "first-name",
+            "last-name",
+            "e-mail", "user-name", "teams", null, null);
+    samlConfigurationService.insert(samlConfiguration);
+
     SamlDeploymentManager samlDeploymentManager = getCLMServer().getInstance(SamlDeploymentManager.class);
     samlDeploymentManager.updateFromConfiguration();
 

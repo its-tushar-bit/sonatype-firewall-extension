@@ -15,7 +15,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
@@ -32,7 +32,7 @@ public class ApiSamlConfigurationResourceAuditTest
 {
   private static final String ENTITY_ID = "http://iqserver";
 
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   private String xml;
 
@@ -40,7 +40,7 @@ public class ApiSamlConfigurationResourceAuditTest
 
   @Before
   public void before() throws IOException {
-    samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
+    samlConfigurationService = lookup(SamlConfigurationService.class);
 
     if (xml == null) {
       URL resource = getClass().getResource(
@@ -55,7 +55,7 @@ public class ApiSamlConfigurationResourceAuditTest
 
   @After
   public void cleanup() {
-    samlConfigurationDAO.delete();
+    samlConfigurationService.delete();
     getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
   }
 
@@ -90,6 +90,7 @@ public class ApiSamlConfigurationResourceAuditTest
   @Test
   public void testDeleteSamlConfiguration() throws Exception {
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(xml, ENTITY_ID);
+    samlConfigurationService.insert(samlConfiguration);
 
     restRequest().delete();
 
@@ -112,7 +113,7 @@ public class ApiSamlConfigurationResourceAuditTest
   }
 
   private void assertAuditData(AuditDTO auditDTO) {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     assertAuditData(auditDTO, samlConfiguration);
   }
 

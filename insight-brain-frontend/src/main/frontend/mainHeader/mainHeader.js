@@ -26,6 +26,7 @@ import {
   selectIsSsoIdpManagedBySonatype,
   selectIsOrgsAndAppsEnabled,
   selectIsZscalerEnabled,
+  selectIsSAMLEnabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsSbomManagerOnlyLicense,
@@ -122,7 +123,7 @@ export const mapStateToThis = (state) => ({
   isAdvancedSearchConfigurationEnabled: selectIsAdvancedSearchConfigurationEnabled(state),
   isShowNotificationMenuEnabled: selectIsShowNotificationMenuEnabled(state),
   isBaseUrlConfigurationEnabled: selectIsBaseUrlConfigurationEnabled(state),
-  isSamlConfigurationEnabled: selectTenantMode(state) === 'single-tenant',
+  isSamlConfigurationEnabled: selectIsSAMLEnabled(state),
   isMonitoringSupported: selectIsMonitoringSupported(state),
   isSsoIdpManagedBySonatype: selectIsSsoIdpManagedBySonatype(state),
   isSingleTenant: selectTenantMode(state) !== 'multi-tenant',

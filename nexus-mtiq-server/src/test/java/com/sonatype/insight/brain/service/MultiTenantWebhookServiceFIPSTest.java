@@ -10,7 +10,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CipherFactory;
 import com.sonatype.insight.brain.webhook.OrganizationApplicationManagementEventService;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -31,7 +30,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-@Ignore("CLM-35281")
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantWebhookServiceFIPSTest
     extends MultiTenantWebhookServiceTest

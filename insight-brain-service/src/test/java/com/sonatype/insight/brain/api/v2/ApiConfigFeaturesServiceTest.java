@@ -13,6 +13,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -1434,6 +1435,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("containerImagesEvalEnabled", true);
     expectedFeatureConfigMap.put("zScaler", true);
     expectedFeatureConfigMap.put("thirdPartyKevLookup", true);
+    expectedFeatureConfigMap.put("SAML_ENABLED", true);
     expectedFeatureConfigMap.put("userManagementPages", true);
     expectedFeatureConfigMap.put("epssDataEnabled", false);
     expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
@@ -1513,5 +1515,65 @@ public class ApiConfigFeaturesServiceTest
     assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.EPSS_DATA).getValue())
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.EPSS_DATA)).isTrue();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_UserManagementPages_WithFips() {
+    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
+    
+    assertThat(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_SamlEnabled_WithFips() {
+    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
+    
+    assertThat(SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_LogoutAuth0OnLogout_WithFips() {
+    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
+    
+    assertThat(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_Oauth2Enabled_WithFips() {
+    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
+    
+    assertThat(SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_EnableSsoOnly_WithFips() {
+    environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
+    
+    assertThat(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_UserManagementPages() {
+    assertThat(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_SamlEnabled() {
+    assertThat(SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()).isTrue();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_LogoutAuth0OnLogout() {
+    assertThat(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_Oauth2Enabled() {
+    assertThat(SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testFeatureDefaultValue_EnableSsoOnly() {
+    assertThat(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.isEnabled()).isFalse();
   }
 }

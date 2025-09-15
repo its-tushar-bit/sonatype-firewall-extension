@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.security.SamlGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
@@ -42,7 +42,7 @@ public class SamlSsoUserProviderTest
   private SamlSsoUserProvider samlSsoUserProvider;
 
   @Inject
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   @Inject
   private SamlUserDAO samlUserDAO;
@@ -83,14 +83,14 @@ public class SamlSsoUserProviderTest
 
   @Test
   public void testIsSamlConfigured_False() {
-    samlConfigurationDAO.delete();
+    samlConfigurationService.delete();
 
     assertThat(samlSsoUserProvider.isSsoConfigured()).isFalse();
   }
 
   @Test
   public void testIsSamlConfigured_True() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
 
     assertThat(samlSsoUserProvider.isSsoConfigured()).isTrue();
   }

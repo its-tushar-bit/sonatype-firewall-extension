@@ -88,6 +88,7 @@ public class MtiqSystemConfigurationMenuTest
   public void testPermissionAwareness_CONFIGURE_SYSTEM() {
     User user = newUser(Permission.CONFIGURE_SYSTEM);
 
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SSO_IDP_MANAGED_BY_SONATYPE,
         String.valueOf(true));
 
@@ -104,6 +105,7 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.automaticScmConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.emailConfiguration().shouldBe(visible);
     mtiqSystemConfigMenu.advancedSearchConfiguration().shouldBe(visible);
+    mtiqSystemConfigMenu.samlConfiguration().shouldBe(visible);
     checkMtiqOmissions();
   }
 
@@ -135,7 +137,6 @@ public class MtiqSystemConfigurationMenuTest
     mtiqSystemConfigMenu.ldap().shouldBe(hidden);
     mtiqSystemConfigMenu.productLicense().shouldBe(hidden);
     mtiqSystemConfigMenu.proxyConfiguration().shouldBe(hidden);
-    mtiqSystemConfigMenu.samlConfiguration().shouldBe(hidden);
     mtiqSystemConfigMenu.systemNotice().shouldBe(hidden);
     mtiqSystemConfigMenu.successMetrics().shouldBe(hidden);
   }

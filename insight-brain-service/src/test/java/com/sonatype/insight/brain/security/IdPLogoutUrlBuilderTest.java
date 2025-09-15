@@ -47,7 +47,7 @@ public class IdPLogoutUrlBuilderTest
 
   @Test
   public void testBuildIdPLogoutUrl_shouldReturnAuth0LogoutFromSamlConfiguration() {
-    tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration(auth0IdpXml(), null));
     samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");
@@ -81,7 +81,7 @@ public class IdPLogoutUrlBuilderTest
         "https://an-idp.com/tokens");
 
     // Saml configuration
-    tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration(auth0IdpXml(), null));
     samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");

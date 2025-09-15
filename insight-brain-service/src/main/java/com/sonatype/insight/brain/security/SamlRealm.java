@@ -16,7 +16,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -43,12 +43,12 @@ public class SamlRealm
 
   private final SsoUserService ssoUserService;
 
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   @Inject
-  public SamlRealm(SsoUserService ssoUserService, SamlConfigurationDAO samlConfigurationDAO) {
+  public SamlRealm(SsoUserService ssoUserService, SamlConfigurationService samlConfigurationService) {
     super(new AllowAllCredentialsMatcher());
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
     setName("SAML");
     setAuthenticationTokenClass(SamlAuthenticationToken.class);
     this.ssoUserService = ssoUserService;
@@ -60,7 +60,7 @@ public class SamlRealm
     log.debug("Authenticated SAML principal {} with attributes {} and friendly attributes {}",
         samlPrincipal.getName(), samlPrincipal.getAttributes(), getFriendlyAttributes(samlPrincipal));
 
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     String username =
         Optional.ofNullable(getFirstAttribute(samlPrincipal, samlConfiguration.getUsernameAttributeName()))
             .orElse(samlPrincipal.getName());

@@ -15,7 +15,9 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.codeborne.selenide.SelenideElement;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
@@ -26,7 +28,10 @@ import static com.codeborne.selenide.Condition.visible;
 public class MultiTenantAdministratorsTest
     extends AbstractMtiqFunctionalTest
 {
-  @Before
+  @Rule
+  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
+  @Before  
   public void startup() {
     refreshOrOpen(AdministratorsPage.url());
     loginAsAdmin();

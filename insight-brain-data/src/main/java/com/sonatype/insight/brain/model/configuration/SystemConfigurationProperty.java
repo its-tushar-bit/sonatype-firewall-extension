@@ -277,6 +277,8 @@ public class SystemConfigurationProperty
 
   public static final String THIRD_PARTY_KEV_LOOKUP = "thirdPartyKevLookup";
 
+  public static final String SAML_ENABLED = "SAML_ENABLED";
+
   public static final String USER_MANAGEMENT_PAGES = "userManagementPages";
 
   public static final String EPSS_DATA = "epssDataEnabled";

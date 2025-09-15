@@ -51,11 +51,9 @@ public class MTIQFeatureService
    * This is the list of features that are always enabled in MTIQ.
    */
   private static final List<SystemConfigurationPropertyFeature> MTIQ_ENABLED_FEATURES = Arrays.asList(
-      SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
       SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
       SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
-      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
-      SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT);
+      SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER);
 
   /**
    * This is the list of features that are never enabled in MTIQ.

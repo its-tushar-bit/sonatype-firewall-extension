@@ -39,7 +39,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
@@ -98,7 +98,7 @@ class SystemInfo
 
   private final SamlDeploymentManager samlDeploymentManager;
 
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   private final MailConfigurationDAO mailConfigurationDAO;
 
@@ -110,7 +110,7 @@ class SystemInfo
       final InsightWork insightWork,
       final ProductLicense productLicense,
       final CLMLicenseManager clmLicenseManager,
-      final SamlConfigurationDAO samlConfigurationDAO,
+      final SamlConfigurationService samlConfigurationService,
       final MailConfigurationDAO mailConfigurationDAO,
       final ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       SamlDeploymentManager samlDeploymentManager)
@@ -119,7 +119,7 @@ class SystemInfo
     this.insightWork = insightWork;
     this.productLicense = productLicense;
     this.clmLicenseManager = clmLicenseManager;
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
     this.mailConfigurationDAO = mailConfigurationDAO;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;
     this.samlDeploymentManager = samlDeploymentManager;
@@ -447,7 +447,7 @@ class SystemInfo
 
   String getSamlInfo() {
     SamlInfo samlInfo = new SamlInfo();
-    samlInfo.samlConfiguration = samlConfigurationDAO.get();
+    samlInfo.samlConfiguration = samlConfigurationService.get();
     if (samlInfo.samlConfiguration == null) {
       return "null";
     }

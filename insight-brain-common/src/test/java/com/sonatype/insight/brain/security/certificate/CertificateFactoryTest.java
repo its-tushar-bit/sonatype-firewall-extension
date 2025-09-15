@@ -25,9 +25,15 @@ import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_E
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.generateRSAKeyPair;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.CN_X500_NAME;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.SIGNATURE_ALGORITHM;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.SIGNATURE_VALIDITY_YEARS;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.createBcFipsCertificate;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.createCertificate;
+import static com.sonatype.insight.brain.security.certificate.CertificateFactory.createX509Certificate;
 import static java.util.Calendar.YEAR;
-import static org.assertj.core.api.Assertions.*;
-import static com.sonatype.insight.brain.security.certificate.CertificateFactory.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class CertificateFactoryTest

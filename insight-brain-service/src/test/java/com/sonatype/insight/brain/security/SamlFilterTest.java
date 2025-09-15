@@ -324,7 +324,7 @@ public class SamlFilterTest
       AuthOutcome authOutcome,
       boolean expectedResult) throws Exception
   {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     samlDeploymentManager.updateFromConfiguration();
     lenient().when(mockHttpServletRequest.getHeader("Referer")).thenReturn(referer);
     lenient().when(mockHttpServletRequest.getRequestURI()).thenReturn(requestUri);

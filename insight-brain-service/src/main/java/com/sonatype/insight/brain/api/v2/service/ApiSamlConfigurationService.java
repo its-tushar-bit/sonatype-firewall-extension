@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.audit.AuditData;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;
@@ -52,7 +52,7 @@ public class ApiSamlConfigurationService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiSamlConfigurationService.class);
 
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   private final BaseUrl baseUrl;
 
@@ -62,12 +62,12 @@ public class ApiSamlConfigurationService
 
   @Inject
   public ApiSamlConfigurationService(
-      SamlConfigurationDAO samlConfigurationDAO,
+      SamlConfigurationService samlConfigurationService,
       BaseUrl baseUrl,
       SamlMetadataTool samlMetadataTool,
       SamlDeploymentManager samlDeploymentManager)
   {
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
     this.baseUrl = baseUrl;
     this.samlMetadataTool = samlMetadataTool;
     this.samlDeploymentManager = samlDeploymentManager;
@@ -75,7 +75,7 @@ public class ApiSamlConfigurationService
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
   public ApiSamlConfigurationResponseDTO getSamlConfiguration() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
 
     if (samlConfiguration == null) {
       throw new NotFoundException("SAML not configured.");
@@ -96,7 +96,7 @@ public class ApiSamlConfigurationService
       String identityProviderXml,
       ApiSamlConfigurationDTO apiSamlConfigurationDTO)
   {
-    SamlConfiguration persisted = samlConfigurationDAO.get();
+    SamlConfiguration persisted = samlConfigurationService.get();
     boolean update = persisted != null;
 
     // Updating the existing configurations xml only, meaning keep my configuration
@@ -141,10 +141,10 @@ public class ApiSamlConfigurationService
     }
 
     if (samlConfiguration.getId() != null) {
-      samlConfigurationDAO.update(samlConfiguration);
+      samlConfigurationService.update(samlConfiguration);
     }
     else {
-      samlConfigurationDAO.insert(samlConfiguration);
+      samlConfigurationService.insert(samlConfiguration);
     }
 
     samlDeploymentManager.updateAllClusterNodesFromConfiguration();
@@ -155,11 +155,11 @@ public class ApiSamlConfigurationService
   public void deleteSamlConfiguration() {
     SamlConfiguration samlConfiguration;
     try {
-      samlConfiguration = samlConfigurationDAO.get();
+      samlConfiguration = samlConfigurationService.get();
     }
     catch (Exception e) {
       log.error("Forcing delete of SAML configuration.", e);
-      samlConfigurationDAO.delete();
+      samlConfigurationService.delete();
       samlDeploymentManager.updateAllClusterNodesFromConfiguration();
       return;
     }
@@ -168,7 +168,7 @@ public class ApiSamlConfigurationService
       throw new NotFoundException("SAML not configured.");
     }
 
-    samlConfigurationDAO.delete();
+    samlConfigurationService.delete();
     samlDeploymentManager.updateAllClusterNodesFromConfiguration();
     audit(samlConfiguration);
   }
@@ -182,7 +182,7 @@ public class ApiSamlConfigurationService
     URI samlEndpointUrl = UriBuilder.fromUri(baseUrl.get()).path("saml").build();
     try {
       String certificatePem =
-          Base64.getEncoder().encodeToString(samlConfigurationDAO.get().getCertificate().getEncoded());
+          Base64.getEncoder().encodeToString(samlConfigurationService.get().getCertificate().getEncoded());
       Element keyElement = SPMetadataDescriptor.buildKeyInfoElement(null, certificatePem);
       KeyDescriptorType signingCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.SIGNING);
       KeyDescriptorType encryptionCert = SPMetadataDescriptor.buildKeyDescriptorType(keyElement, KeyTypes.ENCRYPTION);

@@ -29,3 +29,6 @@ __pycache__
 
 # dep tree that is created as part of IQ for vsCode
 dependency_tree.txt
+
+# MCP configuration file
+.mcp.json

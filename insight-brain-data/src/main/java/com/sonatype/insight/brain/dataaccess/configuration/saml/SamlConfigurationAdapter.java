@@ -26,12 +26,12 @@ import static com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfi
 
 @Named
 @Singleton
-public class SamlConfigurationService
+public class SamlConfigurationAdapter
 {
   private final SamlPasswordFactory samlPasswordFactory;
 
   @Inject
-  public SamlConfigurationService(final SamlPasswordFactory samlPasswordFactory) {
+  public SamlConfigurationAdapter(final SamlPasswordFactory samlPasswordFactory) {
     this.samlPasswordFactory = samlPasswordFactory;
   }
 

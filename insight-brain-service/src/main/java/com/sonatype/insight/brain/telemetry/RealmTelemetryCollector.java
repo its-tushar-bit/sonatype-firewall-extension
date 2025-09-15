@@ -9,7 +9,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -21,13 +21,13 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 public class RealmTelemetryCollector
     implements TelemetryCollector
 {
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   public static final String SAML_CONFIGURED = "saml_configured";
 
   @Inject
-  public RealmTelemetryCollector(SamlConfigurationDAO samlConfigurationDAO) {
-    this.samlConfigurationDAO = samlConfigurationDAO;
+  public RealmTelemetryCollector(SamlConfigurationService samlConfigurationService) {
+    this.samlConfigurationService = samlConfigurationService;
   }
 
   @Override
@@ -38,7 +38,7 @@ public class RealmTelemetryCollector
   @Override
   public TelemetryData collectData() {
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REALM);
-    telemetryData.getAttributes().put(SAML_CONFIGURED, String.valueOf(samlConfigurationDAO.get() != null));
+    telemetryData.getAttributes().put(SAML_CONFIGURED, String.valueOf(samlConfigurationService.get() != null));
     return telemetryData;
   }
 }

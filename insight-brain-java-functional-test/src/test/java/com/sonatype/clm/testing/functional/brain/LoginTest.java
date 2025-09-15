@@ -17,7 +17,9 @@ import com.sonatype.clm.testing.functional.pages.ReportListPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage;
 import com.sonatype.clm.testing.functional.pages.UserManagementPage.EditUserForm;
 import com.sonatype.clm.testing.functional.pages.VulnerabilitySearchPage;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.security.SamlDeploymentManager;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -122,7 +124,9 @@ public class LoginTest
 
   @Test
   public void testInitialLoginFormState_SamlSso() {
-    tempEntity.newSamlConfiguration();
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(samlConfiguration);
     testCLMServer.getCLMServer().getInstance(SamlDeploymentManager.class).updateFromConfiguration();
 
     refreshOrOpen(ReportListPage.url());

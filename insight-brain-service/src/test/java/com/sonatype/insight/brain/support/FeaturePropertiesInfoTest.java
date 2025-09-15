@@ -112,8 +112,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-
-    assertThat(featureConfigNode.size()).isEqualTo(57);
+    assertThat(featureConfigNode.size()).isEqualTo(58);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -172,6 +171,7 @@ public class FeaturePropertiesInfoTest
               "containerImagesEvalEnabled": true,
               "zScaler": true,
               "thirdPartyKevLookup": true,
+              "SAML_ENABLED": true,
               "userManagementPages": true,
               "epssDataEnabled": false
             }"""));
@@ -188,7 +188,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(57);
+    assertThat(featureConfigNode.size()).isEqualTo(58);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -247,6 +247,7 @@ public class FeaturePropertiesInfoTest
               "containerImagesEvalEnabled": true,
               "zScaler": true,
               "thirdPartyKevLookup": true,
+              "SAML_ENABLED": true,
               "userManagementPages": true,
               "epssDataEnabled": false
             }"""));
@@ -269,7 +270,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(47)
+        .hasSize(48)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

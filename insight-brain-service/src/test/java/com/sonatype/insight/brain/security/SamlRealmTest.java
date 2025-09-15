@@ -12,7 +12,7 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.JPA;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
@@ -49,7 +49,7 @@ public class SamlRealmTest
   private SamlUserDAO samlUserDAO;
 
   @Inject
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationService samlConfigurationService;
 
   @Override
   public void configure(Binder binder) {
@@ -76,7 +76,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
 
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getUsernameAttributeName(), "jonny");
@@ -105,7 +105,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_UsernameInAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
 
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getUsernameAttributeName(), "jonny");
@@ -116,7 +116,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_UsernameInFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
 
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
     friendlyAttributes.add(samlConfiguration.getUsernameAttributeName(), "jonny");
@@ -127,7 +127,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_UsernameInAttributesAndFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getUsernameAttributeName(), "jonny1");
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
@@ -145,7 +145,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_FirstNameInAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getFirstNameAttributeName(), "john");
 
@@ -155,7 +155,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_FirstNameInFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
     friendlyAttributes.add(samlConfiguration.getFirstNameAttributeName(), "john");
 
@@ -165,7 +165,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_FirstNameInAttributesAndFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getFirstNameAttributeName(), "john1");
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
@@ -177,7 +177,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_LastNameInAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getLastNameAttributeName(), "smith");
 
@@ -187,7 +187,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_LastNameInFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
     friendlyAttributes.add(samlConfiguration.getLastNameAttributeName(), "smith");
 
@@ -197,7 +197,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_LastNameInAttributesAndFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.add(samlConfiguration.getLastNameAttributeName(), "smith1");
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
@@ -209,7 +209,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_GroupsInAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.addAll(samlConfiguration.getGroupsAttributeName(), "group1", "group2", "", " ", null);
 
@@ -219,7 +219,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_GroupsInFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
     friendlyAttributes.addAll(samlConfiguration.getGroupsAttributeName(), "group1", "group2", "", " ", null);
 
@@ -229,7 +229,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_GroupsInAttributesAndFriendlyAttributes() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.addAll(samlConfiguration.getGroupsAttributeName(), "group1", "group2", "", " ", null);
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
@@ -241,7 +241,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_MultipleAttributeValues() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.addAll(samlConfiguration.getUsernameAttributeName(), "jonny", "jonny2");
     attributes.addAll(samlConfiguration.getFirstNameAttributeName(), "john", "john2");
@@ -254,7 +254,7 @@ public class SamlRealmTest
 
   @Test
   public void testDoGetAuthenticationInfo_MultipleFriendlyAttributeValues() {
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> friendlyAttributes = new MultivaluedHashMap<>();
     friendlyAttributes.addAll(samlConfiguration.getUsernameAttributeName(), "jonny", "jonny2");
     friendlyAttributes.addAll(samlConfiguration.getFirstNameAttributeName(), "john", "john2");
@@ -269,7 +269,7 @@ public class SamlRealmTest
   @Test
   public void testDoGetAuthenticationInfo_InsertsSamlUser() {
     SamlUser samlUser = createSamlUser();
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.addAll(samlConfiguration.getUsernameAttributeName(), samlUser.getUsername());
     attributes.addAll(samlConfiguration.getFirstNameAttributeName(), samlUser.getFirstName());
@@ -298,7 +298,7 @@ public class SamlRealmTest
     samlUser.setLastName(samlUser.getLastName() + "2");
     samlUser.setEmail(samlUser.getEmail() + "2");
     samlUser.setGroups(new LinkedHashSet<>(Arrays.asList("someGroup3", "someGroup4")));
-    SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+    SamlConfiguration samlConfiguration = samlConfigurationService.get();
     MultivaluedHashMap<String, String> attributes = new MultivaluedHashMap<>();
     attributes.addAll(samlConfiguration.getUsernameAttributeName(), samlUser.getUsername());
     attributes.addAll(samlConfiguration.getFirstNameAttributeName(), samlUser.getFirstName());

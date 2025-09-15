@@ -5,37 +5,32 @@
  */
 package com.sonatype.insight.brain.service.banning.rest.api.v2;
 
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.security.TestFipsEncryptionKeyStore;
 
 import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-@Ignore("CLM-35281")
 public class MultiTenantSamlConfigurationResourceFIPSTest
     extends MultiTenantSamlConfigurationResourceTest
 {
-  @Rule
-  public EnvironmentVariables environmentVariables = new EnvironmentVariables();
+  private EnvironmentVariables environmentVariables;
 
-  @Before
   @Override
-  public void initTest() throws Exception {
-    // Ensure that the Bouncy Castle FIPS provider is inserted before the tests.
+  protected TemporaryEntity createTenantTemporaryEntity() {
+    // Ensure that the Bouncy Castle FIPS provider is inserted before the TemporaryEntity is created.
     insertBouncyCastleFipsProvider();
 
-    // Set the environment variable to enable FIPS mode.
+    // Initialize the EnvironmentVariables here instead of as a class variable as this gets run as part of a JUnit rule
+    environmentVariables = new EnvironmentVariables();
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
 
-    // Initialize the parent class.
-    super.initTest();
+    return super.createTenantTemporaryEntity();
   }
 
   @After

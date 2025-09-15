@@ -9,14 +9,12 @@ import com.sonatype.insight.brain.security.FIPSConfig;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
-@Ignore("CLM-35281")
 public class MultiTenantRealmTelemetryCollectorFIPSTest extends MultiTenantRealmTelemetryCollectorTest
 {
   @Rule

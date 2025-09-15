@@ -24,6 +24,7 @@ import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH;
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TenantSecurityConfigurationResourceTest
@@ -32,7 +33,9 @@ public class TenantSecurityConfigurationResourceTest
   @Test
   public void shouldUpdateSamlConfigurationAndGrantAdminPermissions() throws Exception {
     String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
+    provisionTenant(tenantSlug, (tenant) -> {
+      systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true));
+    });
 
     HttpResponse response = updateSamlConfigurationAndGrantAdminPermissions(tenantSlug).put();
 
@@ -57,7 +60,9 @@ public class TenantSecurityConfigurationResourceTest
   @Test
   public void shouldUpdateSamlConfiguration() throws Exception {
     String tenantSlug = generateTestTenantName();
-    provisionTenant(tenantSlug);
+    provisionTenant(tenantSlug, (tenant) -> {
+      systemConfigurationPropertyDAO.set(SAML_ENABLED, Boolean.toString(true));
+    });
 
     HttpResponse response = updateSamlConfiguration(tenantSlug).put();
 

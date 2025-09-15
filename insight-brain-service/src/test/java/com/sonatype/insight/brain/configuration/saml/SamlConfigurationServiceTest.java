@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.configuration.saml;
+package com.sonatype.insight.brain.configuration.saml;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -11,15 +11,15 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 import java.util.Date;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -28,29 +28,24 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Category(SlowTest.class)
-public class SamlConfigurationDAOTest
-    extends AbstractDbDAOTest
+public class SamlConfigurationServiceTest
+    extends AbstractComponentTest
 {
-  private SamlConfigurationDAO dao;
-
-  @Before
-  @Override
-  public void setup() {
-    super.setup();
-    dao = daoFactory.createSamlConfigurationDAO();
-  }
+  @Inject
+  private SamlConfigurationService samlConfigurationService;
 
   @Test
   public void testCRUD() {
     // Create
     Date before = new Date();
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(null, null);
+    samlConfigurationService.insert(samlConfiguration);
     Date after = new Date();
     assertSamlConfiguration(samlConfiguration, before, after);
 
     // Read
     String samlConfigurationId = samlConfiguration.getId();
-    samlConfiguration = dao.getById(samlConfigurationId);
+    samlConfiguration = samlConfigurationService.getById(samlConfigurationId);
     assertSamlConfiguration(samlConfiguration, before, after);
 
     // Update
@@ -65,8 +60,8 @@ public class SamlConfigurationDAOTest
     samlConfiguration.setCertificate(null);
     samlConfiguration.setDecryptionKey(null);
     samlConfiguration.setSigningKeyPair(null);
-    dao.update(samlConfiguration);
-    samlConfiguration = dao.getById(samlConfigurationId);
+    samlConfigurationService.update(samlConfiguration);
+    samlConfiguration = samlConfigurationService.getById(samlConfigurationId);
     assertThat(samlConfiguration.getIdentityProviderName()).isEqualTo(identityProviderName);
     assertThat(samlConfiguration.getFirstNameAttributeName()).isEqualTo("updated firstname");
     assertThat(samlConfiguration.getValidateResponseSignature()).isTrue();
@@ -79,24 +74,27 @@ public class SamlConfigurationDAOTest
         .isEqualTo(signingKeyPair.getPublic().getEncoded());
 
     // Delete
-    dao.delete();
-    samlConfiguration = dao.getById(samlConfigurationId);
+    samlConfigurationService.delete();
+    samlConfiguration = samlConfigurationService.getById(samlConfigurationId);
     assertThat(samlConfiguration).isNull();
   }
 
   @Test
   public void testInsert_MoreThanOneSamlConfigurations() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
 
-    assertThatThrownBy(() -> tempEntity.newSamlConfiguration())
+    assertThatThrownBy(() -> samlConfigurationService.insert(new SamlConfiguration()))
         .isInstanceOf(BadRequestException.class).hasMessage("A SAML configuration already exists.");
   }
 
   @Test
   public void testInsert_IdentityProviderNameTooLong() {
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> tempEntity
+    SamlConfiguration samlConfiguration = tempEntity
         .newSamlConfiguration(StringUtils.repeat("a", SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH + 1),
-            "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz", null, null))
+            "<xml></xml>", "ent-id", "name-first", "name-last", "mail-e", "name-user", "teamz", null, null);
+
+    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(
+            () -> samlConfigurationService.insert(samlConfiguration))
         .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
   }
 
@@ -108,14 +106,15 @@ public class SamlConfigurationDAOTest
     samlConfiguration
         .setIdentityProviderName(StringUtils.repeat("a", SamlConfiguration.IDENTITY_PROVIDER_NAME_MAXIMUM_LENGTH + 1));
 
-    assertThatExceptionOfType(InvalidNameException.class).isThrownBy(() -> dao.update(samlConfiguration))
+    assertThatExceptionOfType(InvalidNameException.class)
+        .isThrownBy(() -> samlConfigurationService.update(samlConfiguration))
         .withMessageContaining("Identity provider name").withMessageContaining("characters or less");
   }
 
   @Test
   public void testDelete_Null() {
-    assertThat(dao.get()).isNull();
-    dao.delete();
+    assertThat(samlConfigurationService.get()).isNull();
+    samlConfigurationService.delete();
   }
 
   private void assertSamlConfiguration(SamlConfiguration samlConfiguration, Date before, Date after) {

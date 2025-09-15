@@ -76,13 +76,15 @@ public class MultiTenantSsoUserServiceTest
     when(systemConfigurationPropertyDAO.createTransactionContext()).thenReturn(tx);
     when(systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.OAUTH2_ENABLED)).thenReturn(
         new SystemConfigurationProperty(SystemConfigurationProperty.OAUTH2_ENABLED, "true"));
+    when(systemConfigurationPropertyDAO.getByName(tx, SystemConfigurationProperty.SAML_ENABLED)).thenReturn(
+        new SystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true"));
 
     MtiqUserDTO mtiqUserDTO = new MtiqUserDTO();
     mtiqUserDTO.setUsername("username");
 
     testAsNewTenant(t1 -> {
-      underTest.loadSsoConfiguration();
       SystemConfigurationPropertyFeature.injectDependencies(systemConfigurationPropertyDAO);
+      underTest.loadSsoConfiguration();
 
       underTest.upsertByUsername(mtiqUserDTO);
 

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dataaccess.configuration.saml;
+package com.sonatype.insight.brain.configuration.saml;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
@@ -18,14 +18,19 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastl
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
 @Category(SlowTest.class)
-public class SamlConfigurationDAOFIPSTest
-    extends SamlConfigurationDAOTest
+public class SamlConfigurationServiceFIPSTest
+    extends SamlConfigurationServiceTest
 {
   @Rule
   public EnvironmentVariables environmentVariables;
 
   @After
-  public void tearDown() {
+  @Override
+  public void afterTest() {
+    super.afterTest();
+
+    // Ensure that the Bouncy Castle FIPS provider is removed after the tests as
+    // some providers are accessed in the afterTest parent method.
     removeBouncyCastleFipsProvider();
   }
 

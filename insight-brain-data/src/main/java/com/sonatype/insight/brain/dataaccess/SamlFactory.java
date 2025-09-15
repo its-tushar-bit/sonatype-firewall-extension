@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
@@ -15,5 +15,5 @@ public interface SamlFactory
 
   PasswordHandler createPasswordHandler();
 
-  SamlConfigurationService createSamlConfigurationService();
+  SamlConfigurationAdapter createSamlConfigurationAdapter();
 }

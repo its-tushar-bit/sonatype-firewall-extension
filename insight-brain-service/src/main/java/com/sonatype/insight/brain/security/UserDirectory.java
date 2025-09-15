@@ -476,7 +476,8 @@ public class UserDirectory
     Map<String, Member> groups = new LinkedHashMap<>();
 
     String internalRealmQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
-    for (User internalUser : userDao.findUsersByName(internalRealmQuery)) {
+    List<User> foundInternalUsers = userDao.findUsersByName(internalRealmQuery);
+    for (User internalUser : foundInternalUsers) {
       Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
           internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
       users.put(member.getInternalNameLowerCase(), member);

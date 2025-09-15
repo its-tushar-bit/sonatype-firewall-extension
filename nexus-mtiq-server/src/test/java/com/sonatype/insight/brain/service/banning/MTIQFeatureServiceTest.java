@@ -103,6 +103,11 @@ public class MTIQFeatureServiceTest
 
     expectedFeatures.remove(LicensedFeature.MALWARE_DEFENSE);
 
+    // only test if it was enabled that it's expected
+    if (!SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()) {
+      expectedFeatures.remove(SystemConfigurationPropertyFeature.SAML_ENABLED);
+    }
+
     assertThat(features).containsExactlyInAnyOrderElementsOf(expectedFeatures);
   }
 
@@ -160,11 +165,9 @@ public class MTIQFeatureServiceTest
   @Test
   public void testDisableFeature_throwsExceptionForUnsupportedFeature() {
     List<Feature> expectedAlwaysEnabledFeatures = List.of(
-        SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY,
         SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
         SystemConfigurationPropertyFeature.INNER_SOURCE_REPOSITORY_INTEGRATION,
-        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER,
-        SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT
+        SystemConfigurationPropertyFeature.INNER_SOURCE_TRANSITIVE_WAIVER
     );
 
     assertThat(expectedAlwaysEnabledFeatures).allSatisfy(expectedAlwaysEnabledFeature -> {
@@ -234,6 +237,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.API_PAGE,
         SystemConfigurationPropertyFeature.ZSCALER,
         SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP,
+        SystemConfigurationPropertyFeature.SAML_ENABLED,
         SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }

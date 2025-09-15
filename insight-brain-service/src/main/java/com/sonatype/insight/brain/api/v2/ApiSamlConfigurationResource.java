@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationResponseDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSamlConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
@@ -52,7 +51,6 @@ public class ApiSamlConfigurationResource
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  @BlockIfMultiTenant
   @Operation(description = "Use this method to inspect the SAML configuration." +
       "\n" +
       "\n" +
@@ -99,7 +97,6 @@ public class ApiSamlConfigurationResource
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Audited(AuditEvent.CONFIGURE_SAML)
-  @BlockIfMultiTenant
   @Operation(description = "Use this method to enable SSO using SAML. This request uses the content type " +
       "multipart/form-data to transmit the configuration to IQ Server." +
       "\n" +
@@ -128,7 +125,6 @@ public class ApiSamlConfigurationResource
 
   @DELETE
   @Audited(AuditEvent.DELETE_SAML)
-  @BlockIfMultiTenant
   @Operation(description = "Use this method to delete the SAML configuration." +
       "\n" +
       "\n" +

@@ -19,6 +19,8 @@ import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+
 public class ApiSamlConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -36,7 +38,7 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Test
   public void testGetSamlConfiguration_Authorized() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     grantConfigureSystemPermission();
     apiSamlConfigurationService.getSamlConfiguration();
   }
@@ -70,9 +72,19 @@ public class ApiSamlConfigurationServiceAuthzTest
     apiSamlConfigurationService.insertOrUpdateSamlConfiguration("", new ApiSamlConfigurationDTO());
   }
 
+  @Test(expected = NotFoundException.class)
+  public void testGetSamlConfiguration_AuthorizedAndSamlDisabled() {
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
+    grantConfigureSystemPermission();
+
+    SAML_ENABLED.setEnabled(false);
+
+    apiSamlConfigurationService.getSamlConfiguration();
+  }
+
   @Test
   public void testDeleteSamlConfiguration_Authorized() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     grantConfigureSystemPermission();
     apiSamlConfigurationService.deleteSamlConfiguration();
   }
@@ -85,6 +97,16 @@ public class ApiSamlConfigurationServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testDeleteSamlConfiguration_Unauthenticated() {
+    apiSamlConfigurationService.deleteSamlConfiguration();
+  }
+
+  @Test(expected = NotFoundException.class)
+  public void testDeleteSamlConfiguration_AuthorizedAndSamlDisabled() {
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
+    grantConfigureSystemPermission();
+
+    SAML_ENABLED.setEnabled(false);
+
     apiSamlConfigurationService.deleteSamlConfiguration();
   }
 

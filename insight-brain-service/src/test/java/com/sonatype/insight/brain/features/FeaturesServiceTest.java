@@ -215,6 +215,21 @@ public class FeaturesServiceTest
   }
 
   @Test
+  public void testGetFeatures_SamlEnabled() {
+    when(productLicense.isValid()).thenReturn(true);
+
+    assertThat(featuresService.getFeatures())
+        .contains(SystemConfigurationPropertyFeature.SAML_ENABLED);
+
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "true");
+    assertThat(featuresService.getFeatures())
+        .contains(SystemConfigurationPropertyFeature.SAML_ENABLED);
+
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SAML_ENABLED, "false");
+    assertThat(featuresService.getFeatures())
+        .doesNotContain(SystemConfigurationPropertyFeature.SAML_ENABLED);
+  }
+
   public void testGetFeatures_UserManagementPagesEnabled() {
     when(productLicense.isValid()).thenReturn(true);
     assertThat(featuresService.getFeatures())

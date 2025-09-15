@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -86,6 +86,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.context.SharedConfigurationState;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -102,6 +103,9 @@ public class AbstractComponentTest
 
   @Inject
   protected SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
+
+  @Inject
+  protected SamlConfigurationService samlConfigurationService;
 
   @Rule
   public MockCleaner mockCleaner = new MockCleaner();
@@ -399,13 +403,19 @@ public class AbstractComponentTest
   }
 
   public void enableSsoWithSaml() {
-    tempEntity.newSamlConfiguration();
+    samlConfigurationService.insert(tempEntity.newSamlConfiguration());
     loadSsoConfiguration();
   }
 
   public void disableSsoWithSaml() {
-    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
-    samlConfigurationDAO.delete();
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+
+    // maintain previous
+    boolean previousValue = SAML_ENABLED.isEnabled();
+    SAML_ENABLED.setEnabled(true);
+    samlConfigurationService.delete();
+    SAML_ENABLED.setEnabled(previousValue);
+
     loadSsoConfiguration();
   }
 

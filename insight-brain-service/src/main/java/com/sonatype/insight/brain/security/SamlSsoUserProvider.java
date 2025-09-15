@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.security.SamlGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
@@ -29,7 +29,7 @@ import com.google.common.collect.Sets;
 public class SamlSsoUserProvider
     implements SsoUserProvider
 {
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   private final SamlUserDAO samlUserDAO;
 
@@ -39,12 +39,12 @@ public class SamlSsoUserProvider
 
   @Inject
   public SamlSsoUserProvider(
-      SamlConfigurationDAO samlConfigurationDAO,
+      SamlConfigurationService samlConfigurationService,
       SamlUserDAO samlUserDAO,
       SamlGroupDAO samlGroupDAO,
       SamlUserGroupDAO samlUserGroupDAO)
   {
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
     this.samlUserDAO = samlUserDAO;
     this.samlGroupDAO = samlGroupDAO;
     this.samlUserGroupDAO = samlUserGroupDAO;
@@ -62,7 +62,7 @@ public class SamlSsoUserProvider
 
   @Override
   public boolean isSsoConfigured() {
-    return samlConfigurationDAO.get() != null;
+    return samlConfigurationService.get() != null;
   }
 
   @Override

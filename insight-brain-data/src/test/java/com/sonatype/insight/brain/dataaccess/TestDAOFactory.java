@@ -32,7 +32,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
@@ -339,12 +338,6 @@ public class TestDAOFactory
   @Override
   public ReverseProxyAuthenticationConfigurationDAO createReverseProxyAuthenticationConfigurationDAO() {
     return new ReverseProxyAuthenticationConfigurationDAO(dataStoreProvider.getOperationalDataStore());
-  }
-
-  @Override
-  public SamlConfigurationDAO createSamlConfigurationDAO() {
-    SamlConfigurationInternalDAO samlConfigurationInternalDAO = createSamlConfigurationInternalDAO();
-    return new SamlConfigurationDAO(samlConfigurationInternalDAO, testSamlFactory.createSamlConfigurationService());
   }
 
   @Override

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.testing;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.SsoUserService;
@@ -64,8 +64,8 @@ public abstract class AbstractBrainServiceIntegrationTest
   }
 
   public void disableSsoWithSaml() {
-    SamlConfigurationDAO samlConfigurationDAO = lookup(SamlConfigurationDAO.class);
-    samlConfigurationDAO.delete();
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    samlConfigurationService.delete();
     loadSsoConfiguration();
   }
 

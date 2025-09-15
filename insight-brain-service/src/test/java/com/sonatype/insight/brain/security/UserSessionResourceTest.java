@@ -14,7 +14,9 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.Group;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.UserSessionResource.AuthenticationStatus;
@@ -198,7 +200,9 @@ public class UserSessionResourceTest
 
   @Test
   public void testBuildAuth0LogoutUrl() throws Exception {
-    tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    SamlConfigurationService samlConfigurationService = lookup(SamlConfigurationService.class);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(auth0IdpXml(), null);
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     tempEntity.newSystemConfigurationProperty(LOGOUT_AUTH0_ON_LOGOUT, "true");

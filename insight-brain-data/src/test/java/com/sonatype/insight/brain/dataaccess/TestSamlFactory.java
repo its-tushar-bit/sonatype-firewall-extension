@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationService;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationAdapter;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -33,7 +33,7 @@ public class TestSamlFactory
   }
 
   @Override
-  public SamlConfigurationService createSamlConfigurationService() {
-    return new SamlConfigurationService(createSamlPasswordFactory());
+  public SamlConfigurationAdapter createSamlConfigurationAdapter() {
+    return new SamlConfigurationAdapter(createSamlPasswordFactory());
   }
 }

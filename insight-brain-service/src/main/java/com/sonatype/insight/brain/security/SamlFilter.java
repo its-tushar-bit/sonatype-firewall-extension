@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.landing.LandingService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
@@ -64,7 +64,7 @@ class SamlFilter
 
   private final Configuration configuration;
 
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   @Inject
   public SamlFilter(
@@ -73,14 +73,14 @@ class SamlFilter
       SamlSessionIdMapper samlSessionIdMapper,
       IdPLogoutUrlBuilder idPLogoutUrlBuilder,
       Configuration configuration,
-      SamlConfigurationDAO samlConfigurationDAO)
+      SamlConfigurationService samlConfigurationService)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
     this.idPLogoutUrlBuilder = idPLogoutUrlBuilder;
     this.configuration = configuration;
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
   }
 
   // Visible for testing
@@ -174,7 +174,7 @@ class SamlFilter
       else {
         // let the UI know that SAML SSO should be a login option
         httpResponse.setHeader("WWW-Authenticate", "SAML");
-        SamlConfiguration samlConfiguration = samlConfigurationDAO.get();
+        SamlConfiguration samlConfiguration = samlConfigurationService.get();
         if (samlConfiguration != null) {
           httpResponse.setHeader("X-SAML-IdP", samlConfiguration.getIdentityProviderName());
         }

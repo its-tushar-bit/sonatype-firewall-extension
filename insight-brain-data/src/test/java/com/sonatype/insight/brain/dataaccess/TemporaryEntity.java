@@ -78,7 +78,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternal;
+import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationInternalDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
@@ -529,7 +530,7 @@ public class TemporaryEntity
 
   private SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
-  private SamlConfigurationDAO samlConfigurationDAO;
+  private SamlConfigurationInternalDAO samlConfigurationInternalDAO;
 
   private UserTokenDAO userTokenDAO;
 
@@ -945,7 +946,7 @@ public class TemporaryEntity
       delete(sourceControlUserActivityDAO.getAll(), sourceControlUserActivityDAO);
       delete(sourceControlUserDAO.getAll(), sourceControlUserDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
-      samlConfigurationDAO.delete();
+      deleteSamlConfiguration();
       delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
       delete(thirdPartyScanDAO.getAll(), thirdPartyScanDAO);
       delete(thirdPartyFileDAO.getAll(), thirdPartyFileDAO);
@@ -4485,7 +4486,6 @@ public class TemporaryEntity
     SamlConfiguration samlConfiguration = new SamlConfiguration();
     samlConfiguration.setIdentityProviderMetadataXml(identityProviderMetadataXml);
     samlConfiguration.setEntityId(entityId);
-    samlConfigurationDAO.insert(samlConfiguration);
     return samlConfiguration;
   }
 
@@ -5088,9 +5088,6 @@ public class TemporaryEntity
     samlConfiguration.setGroupsAttributeName(groupsAttributeName);
     samlConfiguration.setValidateResponseSignature(validateResponseSignature);
     samlConfiguration.setValidateAssertionSignature(validateAssertionSignature);
-
-    samlConfigurationDAO.insert(samlConfiguration);
-
     return samlConfiguration;
   }
 
@@ -6395,7 +6392,7 @@ public class TemporaryEntity
     sourceControlPullRequestDAO = daoFactory.createSourceControlPullRequestDAO();
     sourceControlUserDAO = daoFactory.createSourceControlUserDAO();
     sourceControlUserActivityDAO = daoFactory.crateSourceControlUserActivityDAO();
-    samlConfigurationDAO = daoFactory.createSamlConfigurationDAO();
+    samlConfigurationInternalDAO = daoFactory.createSamlConfigurationInternalDAO();
     userTokenDAO = daoFactory.createUserTokenDAO();
     mailConfigurationDAO = daoFactory.createMailConfigurationDAO();
     sourceControlDefaultBranchCommitHistoryDAO = daoFactory.createSourceControlDefaultBranchCommitHistoryDAO();
@@ -6531,6 +6528,13 @@ public class TemporaryEntity
 
   public void deleteSystemConfigurationProperty(final String name) {
     systemConfigurationPropertyDAO.set(name, null);
+  }
+
+  private void deleteSamlConfiguration() {
+    SamlConfigurationInternal samlConfigurationInternal = samlConfigurationInternalDAO.get();
+    if (samlConfigurationInternal != null) {
+      samlConfigurationInternalDAO.delete(samlConfigurationInternal);
+    }
   }
 
   public Organization createOrganizationHierarchyForContainers(

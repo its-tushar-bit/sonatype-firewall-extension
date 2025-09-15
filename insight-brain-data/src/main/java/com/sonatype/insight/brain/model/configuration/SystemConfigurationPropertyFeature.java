@@ -9,6 +9,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
+import com.sonatype.insight.brain.security.FIPSModeDetector;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotAuthorizedException;
@@ -123,7 +124,18 @@ public enum SystemConfigurationPropertyFeature
     @Override
     public boolean isEnabled(TransactionContext tx) {
       String valueInEnvVar = System.getenv().get(NXIQ_ENABLE_SSO_ONLY_ENV_VAR);
-      return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+
+      if (valueInEnvVar == null) {
+        final SystemConfigurationProperty systemConfigurationProperty =
+            systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+        // Enabled in MTIQ non-FIPS mode, disabled otherwise
+        return systemConfigurationProperty == null ?
+            !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled() :
+            Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      }
+      else {
+        return Boolean.parseBoolean(valueInEnvVar);
+      }
     }
 
     @Override
@@ -155,7 +167,18 @@ public enum SystemConfigurationPropertyFeature
   /**
    * If configured a logout request will be sent to Auth0 via a browser redirect when the application is logged out
    */
-  LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false),
+  LOGOUT_AUTH0_ON_LOGOUT(SystemConfigurationProperty.LOGOUT_AUTH0_ON_LOGOUT, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      // Enabled in MTIQ non-FIPS mode, disabled otherwise
+      return systemConfigurationProperty == null ?
+          !tenantUtil.isSingleTenant() && !FIPSModeDetector.isEnabled() :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
 
   /**
    * If configured the UI will show the Sonatype managed IDP Auth0 user management pages
@@ -285,14 +308,33 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
+  SAML_ENABLED(SystemConfigurationProperty.SAML_ENABLED, true)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+
+      // CLM-35986 - default this based on the environment we are in.
+      // 1) On prem IQ - Default to be enabled.
+      // 2) MTIQ with FIPS enabled - Default to be enabled.
+      // 3) MITQ with FIPS disabled - Default to be disabled.
+      return systemConfigurationProperty == null ?
+          tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled() :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+  },
+
   USER_MANAGEMENT_PAGES(SystemConfigurationProperty.USER_MANAGEMENT_PAGES, true)
   {
     @Override
     public boolean isEnabled(TransactionContext tx) {
       final SystemConfigurationProperty systemConfigurationProperty =
           systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
-      return systemConfigurationProperty == null ? tenantUtil.isSingleTenant() :
-          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+      // Enabled in single tenant OR FIPS mode, disabled otherwise
+      return systemConfigurationProperty == null ?
+        tenantUtil.isSingleTenant() || FIPSModeDetector.isEnabled() :
+        Boolean.parseBoolean(systemConfigurationProperty.getValue());
     }
   },
 

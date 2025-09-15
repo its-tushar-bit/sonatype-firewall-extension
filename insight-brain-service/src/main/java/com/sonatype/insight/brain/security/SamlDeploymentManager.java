@@ -14,7 +14,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightJob;
@@ -69,7 +69,7 @@ public class SamlDeploymentManager
 
   private final SamlMetadataTool samlMetadataTool;
 
-  private final SamlConfigurationDAO samlConfigurationDAO;
+  private final SamlConfigurationService samlConfigurationService;
 
   private final TaskScheduler taskScheduler;
 
@@ -78,11 +78,11 @@ public class SamlDeploymentManager
   @Inject
   public SamlDeploymentManager(
       SamlMetadataTool samlMetadataTool,
-      SamlConfigurationDAO samlConfigurationDAO,
+      SamlConfigurationService samlConfigurationService,
       TaskScheduler taskScheduler)
   {
     this.samlMetadataTool = samlMetadataTool;
-    this.samlConfigurationDAO = samlConfigurationDAO;
+    this.samlConfigurationService = samlConfigurationService;
     this.taskScheduler = taskScheduler;
   }
 
@@ -111,7 +111,7 @@ public class SamlDeploymentManager
 
   // Visible for testing
   public void updateFromConfiguration() {
-    SamlDeployment saml = parse(samlConfigurationDAO.get());
+    SamlDeployment saml = parse(samlConfigurationService.get());
 
     if (saml != null) {
       samlDeployment.set(saml);

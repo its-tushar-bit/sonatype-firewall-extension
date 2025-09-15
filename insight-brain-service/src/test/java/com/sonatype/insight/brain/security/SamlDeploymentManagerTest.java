@@ -14,7 +14,7 @@ import java.util.Base64;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfigurationDAO;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -79,7 +79,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testStart_ValidConfiguration() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.register();
     SamlDeployment samlDeployment = samlDeploymentManager.get();
     assertThat(samlDeployment.getEntityID()).isEqualTo("sp-entity-id");
@@ -101,7 +102,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_InvalidConfiguration() {
-    tempEntity.newSamlConfiguration(null, null);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(null, null);
+    samlConfigurationService.insert(samlConfiguration);
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
         .withMessageContaining("Invalid SAML metadata");
@@ -110,7 +112,8 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_SigningKeyWithoutCertificate() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-certificate.xml"), null);
+    SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(getSamlMetadata("no-certificate.xml"), null);
+    samlConfigurationService.insert(samlConfiguration);
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
         .withMessageContaining("SAML metadata for identity provider contains invalid certificate");
@@ -120,6 +123,7 @@ public class SamlDeploymentManagerTest
   @Test
   public void testUpdateFromConfiguration_ValidConfiguration() {
     SamlConfiguration samlConfiguration = tempEntity.newSamlConfiguration(getSamlMetadata("valid.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -178,7 +182,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoRequestSigning() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-request-signing.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("no-request-signing.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -192,7 +198,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_EncryptionVsSigningKeys() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("encryption-vs-signing-keys.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("encryption-vs-signing-keys.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -208,7 +216,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_MultiUseKey() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("multi-use-key.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("multi-use-key.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -224,7 +234,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSigningKeys() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("no-signing-keys.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -244,8 +256,10 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSigningKeysButResponseSignatureValidationEnabled() {
-    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
-        "firstName", "lastName", "email", "username", "groups", true, null);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
+            "firstName", "lastName", "email", "username", "groups", true, null);
+    samlConfigurationService.insert(samlConfiguration);
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
         .withMessageContaining("SAML metadata for identity provider misses signing key");
@@ -254,8 +268,10 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSigningKeysButAssertionSignatureValidationEnabled() {
-    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
-        "firstName", "lastName", "email", "username", "groups", null, true);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("no-signing-keys.xml"), "sp-entity-id",
+            "firstName", "lastName", "email", "username", "groups", null, true);
+    samlConfigurationService.insert(samlConfiguration);
     assertThatExceptionOfType(IllegalArgumentException.class)
         .isThrownBy(() -> samlDeploymentManager.updateFromConfiguration())
         .withMessageContaining("SAML metadata for identity provider misses signing key");
@@ -264,8 +280,10 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoResponseSignatureValidation() {
-    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
-        "lastName", "email", "username", "groups", false, null);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
+            "lastName", "email", "username", "groups", false, null);
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -277,8 +295,10 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoAssertionSignatureValidation() {
-    tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
-        "lastName", "email", "username", "groups", null, false);
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration("My Awesome IdP", getSamlMetadata("valid.xml"), "sp-entity-id", "firstName",
+            "lastName", "email", "username", "groups", null, false);
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -290,7 +310,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_PostVsRedirectSso() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("post-vs-redirect-sso.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("post-vs-redirect-sso.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -301,7 +323,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_PostVsRedirectSlo() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("post-vs-redirect-slo.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("post-vs-redirect-slo.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -312,7 +336,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testUpdateFromConfiguration_NoSlo() {
-    tempEntity.newSamlConfiguration(getSamlMetadata("no-slo.xml"), "sp-entity-id");
+    SamlConfiguration samlConfiguration =
+        tempEntity.newSamlConfiguration(getSamlMetadata("no-slo.xml"), "sp-entity-id");
+    samlConfigurationService.insert(samlConfiguration);
     samlDeploymentManager.updateFromConfiguration();
 
     SamlDeployment samlDeployment = samlDeploymentManager.get();
@@ -351,8 +377,9 @@ public class SamlDeploymentManagerTest
 
   @Test
   public void testConfigurationsStoredIndependently_ForEachTenant() {
-    SamlConfigurationDAO samlConfigurationDAO = mock(SamlConfigurationDAO.class);
-    SamlDeploymentManager saml = new SamlDeploymentManager(samlMetadataTool, samlConfigurationDAO, taskSchedulerMock);
+    SamlConfigurationService samlConfigurationService = mock(SamlConfigurationService.class);
+    SamlDeploymentManager saml =
+        new SamlDeploymentManager(samlMetadataTool, samlConfigurationService, taskSchedulerMock);
 
     String tenant1EntityId = "sp-entity-id";
     String tenant2EntityId = "sp-entity-id2";
@@ -361,7 +388,7 @@ public class SamlDeploymentManagerTest
       SamlConfiguration tenant1SamlConfiguration = new SamlConfiguration();
       tenant1SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("no-request-signing.xml"));
       tenant1SamlConfiguration.setEntityId(tenant1EntityId);
-      when(samlConfigurationDAO.get()).thenReturn(tenant1SamlConfiguration);
+      when(samlConfigurationService.get()).thenReturn(tenant1SamlConfiguration);
 
       saml.register();
 
@@ -374,7 +401,7 @@ public class SamlDeploymentManagerTest
       SamlConfiguration tenant2SamlConfiguration = new SamlConfiguration();
       tenant2SamlConfiguration.setIdentityProviderMetadataXml(getSamlMetadata("encryption-vs-signing-keys.xml"));
       tenant2SamlConfiguration.setEntityId(tenant2EntityId);
-      when(samlConfigurationDAO.get()).thenReturn(tenant2SamlConfiguration);
+      when(samlConfigurationService.get()).thenReturn(tenant2SamlConfiguration);
 
       saml.register();
 

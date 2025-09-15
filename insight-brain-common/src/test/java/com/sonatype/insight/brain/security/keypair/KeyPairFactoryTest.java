@@ -19,11 +19,22 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.sonatype.insight.brain.security.FIPSConfig.*;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_GENERATOR_ALGORITHM_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_GENERATOR_KEY_SIZE_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_GENERATOR_PROVIDER_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_SECURE_ALGORITHM_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_KEY_PAIR_SECURE_PROVIDER_ENV;
+import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
-import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.*;
-import static org.assertj.core.api.Assertions.*;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.RSA_ALGORITHM;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.createFipsKeyPairGenerator;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.createFipsSecureRandom;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.createKeyPair;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.generateKeyPair;
+import static com.sonatype.insight.brain.security.keypair.KeyPairFactory.generateRSAKeyPair;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @RunWith(MockitoJUnitRunner.class)
 public class KeyPairFactoryTest

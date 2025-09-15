@@ -12,7 +12,6 @@ import java.net.URLEncoder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
@@ -638,7 +637,7 @@ public class PrioritiesPageTest
     page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
 
     // change the status of the pull request event to error
-    pullRequestEvent = sourceControlEventDAO.getAll().get(0);
+    pullRequestEvent = sourceControlEventDAO.getById(pullRequestEvent.getId());
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
     pullRequestEvent.setEventStatusDetails("Branch already exists.");
     sourceControlEventDAO.update(pullRequestEvent);
@@ -658,7 +657,10 @@ public class PrioritiesPageTest
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
 
     // change the status of the pull request event from new to in progress
-    pullRequestEvent = sourceControlEventDAO.getAll().get(1);
+    pullRequestEvent = sourceControlEventDAO.getAll().stream()
+        .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
+        .findFirst()
+        .orElseThrow();
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_IN_PROGRESS);
     sourceControlEventDAO.update(pullRequestEvent);
 
@@ -672,10 +674,16 @@ public class PrioritiesPageTest
     page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
 
     // change the status of the new PR event from new to error
-    pullRequestEvent = sourceControlEventDAO.getAll().get(1);
+    pullRequestEvent = sourceControlEventDAO.getById(pullRequestEvent.getId());
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
     pullRequestEvent.setEventStatusDetails("Branch already exists.");
     sourceControlEventDAO.update(pullRequestEvent);
+
+    // wait for a new polling call
+    Wait()
+        .withTimeout(Duration.ofSeconds(1))
+        .pollingEvery(Duration.ofMillis(200))
+        .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 4));
 
     // polling should end
     page.retryCreatePullRequestButton(8).shouldBe(visible).shouldHave(text("Retry"));

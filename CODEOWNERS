@@ -3,6 +3,3 @@
 
 # This assigns the iq-tech-leads group to any ADR that comes in automatically.
 /doc/adr/* @sonatype/iq-tech-leads
-
-# MTIQ is very sensitive to DB migrations and would like to monitor changes
-/insight-brain-db/src/main/resources/db/** @sonatype/mtiq

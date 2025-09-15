@@ -45,11 +45,10 @@ public class DisplayThemeTest
     DisplayThemeModal displayThemeModal = new DisplayThemeModal();
     displayThemeModal.shouldBe(visible);
 
-    displayThemeModal.lightModeRadio().shouldHave(cssClass("tm-checked"));
+    displayThemeModal.systemSettingRadio().shouldHave(cssClass("tm-checked"));
 
     SelenideElement htmlRoot = $("html");
     htmlRoot.shouldHave(cssClass("nx-html--enable-color-schemes"));
-    htmlRoot.shouldHave(cssClass("nx-html--light-mode"));
 
     displayThemeModal.darkModeRadio().click();
     displayThemeModal.darkModeRadio().shouldHave(cssClass("tm-checked"));

@@ -61,13 +61,13 @@ describe('DisplayThemeModal', () => {
     expect(radioButtons).toHaveLength(3);
 
     const systemSettingRadio = within(dialog).getByRole('radio', { name: 'System Setting' });
-    expect(systemSettingRadio).not.toBeChecked();
+    expect(systemSettingRadio).toBeChecked();
 
     const darkModeRadio = within(dialog).getByRole('radio', { name: 'Dark Mode' });
     expect(darkModeRadio).not.toBeChecked();
 
     const lightModeRadio = within(dialog).getByRole('radio', { name: 'Light Mode' });
-    expect(lightModeRadio).toBeChecked();
+    expect(lightModeRadio).not.toBeChecked();
 
     expect(within(dialog).getByRole('button', { name: 'Close' })).toBeInTheDocument();
   });
@@ -92,7 +92,11 @@ describe('DisplayThemeModal', () => {
     const dialog = screen.getByRole('dialog', { name: 'Edit Display Theme' });
     expect(dialog).toBeInTheDocument();
 
+    // Since system is selected by default, we need to set it to dark mode first
     const radioButtons = within(dialog).getAllByRole('radio');
+    await user.click(radioButtons[1]);
+
+    // Then set to system setting
     await user.click(radioButtons[0]);
 
     expect(localStorage.getItem('displayTheme')).toBe('system');
@@ -124,11 +128,7 @@ describe('DisplayThemeModal', () => {
     const dialog = screen.getByRole('dialog', { name: 'Edit Display Theme' });
     expect(dialog).toBeInTheDocument();
 
-    // Since light mode is selected by default, we need to set it to dark mode first
     const radioButtons = within(dialog).getAllByRole('radio');
-    await user.click(radioButtons[1]);
-
-    // Then set to light mode
     await user.click(radioButtons[2]);
 
     expect(localStorage.getItem('displayTheme')).toBe('light');
@@ -236,6 +236,10 @@ describe('DisplayThemeModal', () => {
       let darkModeRadio = within(dialog).getByRole('radio', { name: 'Dark Mode' });
       let lightModeRadio = within(dialog).getByRole('radio', { name: 'Light Mode' });
 
+      // Since theme is set to light initially, set theme to dark first
+      await user.click(darkModeRadio);
+
+      // Set theme back to light
       await user.click(systemSettingRadio);
 
       expect(systemSettingRadio).toBeChecked();
@@ -322,10 +326,6 @@ describe('DisplayThemeModal', () => {
       let darkModeRadio = within(dialog).getByRole('radio', { name: 'Dark Mode' });
       let lightModeRadio = within(dialog).getByRole('radio', { name: 'Light Mode' });
 
-      // Since theme is set to light initially, set theme to dark first
-      await user.click(darkModeRadio);
-
-      // Set theme back to light
       await user.click(lightModeRadio);
 
       expect(systemSettingRadio).not.toBeChecked();

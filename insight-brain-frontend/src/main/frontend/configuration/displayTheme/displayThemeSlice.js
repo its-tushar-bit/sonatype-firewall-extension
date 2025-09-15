@@ -16,7 +16,7 @@ const REDUCER_NAME = 'displayTheme';
 export const validDisplayThemes = ['system', 'dark', 'light'];
 
 //The whole state here is just a single string, not an object
-const initialState = 'light';
+const initialState = 'system';
 
 export const displayThemeSlice = createSlice({
   name: REDUCER_NAME,

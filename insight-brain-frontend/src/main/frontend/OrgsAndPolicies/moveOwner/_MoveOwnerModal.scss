@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 #success-move-org-modal {
   .move-owner-success-links-header {
     margin-bottom: 0;
@@ -15,6 +17,15 @@
 
     & > *:first-child {
       margin-top: auto;
+    }
+  }
+}
+
+#success-move-application-modal,
+#success-move-org-modal {
+  .nx-h3 {
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-indigo-10);
     }
   }
 }

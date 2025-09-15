@@ -5,6 +5,7 @@
  */
 
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
 
 #iq-repositories-configuration-table {
   display: grid;
@@ -42,6 +43,9 @@
     .nx-cell {
       margin: 0;
       background-color: var(--nx-swatch-indigo-95);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-indigo-30);
+      }
     }
   }
 

@@ -72,9 +72,10 @@ public class MultiTenantAuth0ManagementService
       throw new RuntimeException("Unable to initialise Auth0 Management API");
     }
 
-    User user = auth0ManagementAPI.getUserByEmail(email, connectionName);
+    String normalizedEmail = email.toLowerCase();
+    User user = auth0ManagementAPI.getUserByEmail(normalizedEmail, connectionName);
     if (user == null) {
-      user = auth0ManagementAPI.createOrGetUser(email, firstName, lastName, connectionName);
+      user = auth0ManagementAPI.createOrGetUser(normalizedEmail, firstName, lastName, connectionName);
     }
 
     if (StringUtils.isNotBlank(organizationId)) {
@@ -83,7 +84,7 @@ public class MultiTenantAuth0ManagementService
 
     // We send the reset password email only if user has not accepted the invite
     if (shouldSendResetPassword(user)) {
-      sendResetPassword(email, connectionName, connectionId, applicationId, organizationId);
+      sendResetPassword(normalizedEmail, connectionName, connectionId, applicationId, organizationId);
     }
 
     return user;

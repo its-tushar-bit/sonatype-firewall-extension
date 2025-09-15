@@ -102,10 +102,13 @@ public class MultiTenantAuth0ManagementServiceTest
     when(tokenRequest.execute()).thenReturn(tokenHolder);
     when(authApi.requestToken(any())).thenReturn(tokenRequest);
     User user = mockUser("userId", true);
+
     when(managementApi.createOrGetUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME))
         .thenReturn(user);
 
-    underTest.createOrUpdateUser(EMAIL, FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID, CONNECTION_ID,
+    // Set to upper case to verify email normalization
+    underTest.createOrUpdateUser(EMAIL.toUpperCase(), FIRST_NAME, LAST_NAME, CONNECTION_NAME, APPLICATION_ID,
+        CONNECTION_ID,
         ORGANIZATION_ID);
 
     verify(authApi).requestToken(any());

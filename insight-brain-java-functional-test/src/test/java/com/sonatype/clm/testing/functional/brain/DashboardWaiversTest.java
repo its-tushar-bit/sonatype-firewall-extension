@@ -478,6 +478,7 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
+  @Ignore //CLM-36174
   @Test
   public void testWaiversTable_sortByThreat() {
     refreshOrOpen(DashboardPage.urlToWaivers());

@@ -39,7 +39,8 @@ public class ApiZScalerConfigurationServiceAuthzTest
   @Test
   public void testGetConfiguration() {
     grantConfigureSystemPermission();
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey",
+        true, false, false, false);
     apiZScalerConfigurationService.getConfiguration();
   }
 
@@ -60,7 +61,7 @@ public class ApiZScalerConfigurationServiceAuthzTest
     ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
-    dto.setHostname("testhostname");
+    dto.setHostname("https://api.zscaler.net");
     dto.setApiKey("testapikey");
     dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
@@ -81,7 +82,8 @@ public class ApiZScalerConfigurationServiceAuthzTest
   @Test
   public void testDeleteConfiguration() {
     grantConfigureSystemPermission();
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey",
+        true, false, false, false);
     apiZScalerConfigurationService.getConfiguration();
   }
 

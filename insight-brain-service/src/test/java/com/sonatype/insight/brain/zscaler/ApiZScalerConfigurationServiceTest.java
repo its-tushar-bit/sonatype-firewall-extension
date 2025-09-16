@@ -49,8 +49,8 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testGetConfiguration() {
-    ZScalerConfiguration config =
-        tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, true);
+    ZScalerConfiguration config = tempEntity.newZScalerConfiguration("user", "password",
+        "https://api.zscaler.net", "apikey", true, false, false, true);
 
     ApiZScalerConfigurationDTO dto = underTest.getConfiguration();
 
@@ -71,7 +71,7 @@ public class ApiZScalerConfigurationServiceTest
     ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
-    dto.setHostname("testhostname");
+    dto.setHostname("https://api.zscaler.net");
     dto.setApiKey("testapikey");
     dto.setMavenFormatEnabled(true);
     dto.setEulaAgreed(true);
@@ -96,7 +96,7 @@ public class ApiZScalerConfigurationServiceTest
     ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
-    dto.setHostname("testhostname");
+    dto.setHostname("https://api.zscaler.net");
     dto.setEulaAgreed(false);
     assertThrows(String.format("You must acknowledge and agree that %s", EULA_MESSAGE), BadRequestException.class,
         () -> underTest.setConfiguration(dto));
@@ -107,7 +107,7 @@ public class ApiZScalerConfigurationServiceTest
     ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
     dto.setUsername("testusername");
     dto.setPassword("testpassword");
-    dto.setHostname("testhostname");
+    dto.setHostname("https://api.zscaler.net");
     dto.setEulaAgreed(true);
     assertThrows("At least one format must be enabled.", BadRequestException.class,
         () -> underTest.setConfiguration(dto));
@@ -115,7 +115,8 @@ public class ApiZScalerConfigurationServiceTest
 
   @Test
   public void testDeleteConfiguration() {
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, false, false, false);
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey",
+        true, false, false, false);
 
     underTest.deleteConfiguration();
 
@@ -126,5 +127,37 @@ public class ApiZScalerConfigurationServiceTest
   @Test
   public void testDeleteConfiguration_notFoundException() {
     assertThrows("Zscaler not configured.", NotFoundException.class, () -> underTest.deleteConfiguration());
+  }
+
+  @Test
+  public void testSetConfiguration_integratesWithUrlValidation_noHostname() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("https://");
+    dto.setApiKey("testapikey");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("Not a valid URL");
+  }
+
+  @Test
+  public void testSetConfiguration_integratesWithUrlValidation_invalidProtocol() {
+    ApiZScalerConfigurationDTO dto = new ApiZScalerConfigurationDTO();
+    dto.setUsername("testusername");
+    dto.setPassword("testpassword");
+    dto.setHostname("ftp://api.zscaler.net");
+    dto.setApiKey("testapikey");
+    dto.setMavenFormatEnabled(true);
+    dto.setEulaAgreed(true);
+
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.setConfiguration(dto));
+
+    assertThat(exception.getMessage()).isEqualTo("Protocol must be http or https");
   }
 }

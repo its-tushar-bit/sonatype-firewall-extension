@@ -306,7 +306,15 @@ export default function ZscalerConfig(props) {
                 evt.target.select();
               }
             )}
-            {field(hostnameState, setHostname, 'https://zsapi.zscalertwo.net', 'zscaler-config-hostname', 'Hostname')}
+            {field(
+              hostnameState,
+              setHostname,
+              'https://zsapi.zscalertwo.net',
+              'zscaler-config-hostname',
+              'Hostname',
+              'text',
+              'Enter the base ZScaler URL (e.g., https://zsapi.zscalertwo.net)'
+            )}
             {field(
               apiKeyState,
               setApiKey,

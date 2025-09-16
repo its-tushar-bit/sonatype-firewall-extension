@@ -20,6 +20,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -186,5 +187,24 @@ public class ZScalerClientTest
     assertNotNull(quota);
     assertEquals(12, quota.getUniqueUrlsProvisioned());
     assertEquals(100, quota.getRemainingUrlsQuota());
+  }
+
+  @Test
+  public void testAuthenticate_integratesWithUrlValidation_invalidProtocol() {
+    // Test that client layer calls validation before attempting authentication
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate("ftp://badurl.com", "user", "pass", "apiKey", "timestamp"));
+
+    assertThat(exception.getMessage())
+        .isEqualTo("Protocol must be http or https");
+  }
+
+  @Test
+  public void testAuthenticate_integratesWithUrlValidation_nullHostname() {
+    // Test that client layer validates null hostnames
+    BadRequestException exception = assertThrows(BadRequestException.class,
+        () -> underTest.authenticate(null, "user", "pass", "apiKey", "timestamp"));
+
+    assertThat(exception.getMessage()).isEqualTo("Host name is required");
   }
 }

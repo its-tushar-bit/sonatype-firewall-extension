@@ -31,6 +31,7 @@ import io.dropwizard.util.Duration;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -370,6 +371,46 @@ public class InsightConfigTest
     assertThat(logOutput).atErrorLevel().contains(
         "Invalid storage configuration: Property 'objectKeyPrefix' does not match the expected regex pattern "
             + S3DataStoreConfig.S3_KEY_PREFIX);
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_invalidServerSideEncryption() {
+    S3DataStoreConfig s3DataStoreConfig = new S3DataStoreConfig();
+    s3DataStoreConfig.setBucketName("bucket");
+    s3DataStoreConfig.setRegion("us-east-1");
+    s3DataStoreConfig.setServerSideEncryption("doesNotExist");
+
+    StorageConfig storageConfig = new StorageConfig();
+    storageConfig.setType(DataStoreType.S3);
+    storageConfig.setS3Config(s3DataStoreConfig);
+
+    InsightConfig insightConfig = new InsightConfig();
+    insightConfig.setStorage(storageConfig);
+
+    assertThat(insightConfig.isValidStorageConfig()).isFalse();
+    assertThat(logOutput).atErrorLevel().contains("Invalid storage configuration: Property 'serverSideEncryption' " +
+        "with value 'doesNotExist' does not correspond to a known server side encryption algorithm.");
+  }
+
+  @Test
+  public void testStorageConfig_s3Type_validServerSideEncryption() {
+    for (ServerSideEncryption serverSideEncryption : ServerSideEncryption.knownValues()) {
+      S3DataStoreConfig s3DataStoreConfig = new S3DataStoreConfig();
+      s3DataStoreConfig.setBucketName("bucket");
+      s3DataStoreConfig.setRegion("us-east-1");
+      s3DataStoreConfig.setServerSideEncryption(serverSideEncryption.toString());
+
+      StorageConfig storageConfig = new StorageConfig();
+      storageConfig.setType(DataStoreType.S3);
+      storageConfig.setS3Config(s3DataStoreConfig);
+
+      InsightConfig insightConfig = new InsightConfig();
+      insightConfig.setStorage(storageConfig);
+
+      assertThat(insightConfig.isValidStorageConfig()).isTrue();
+      assertThat(ServerSideEncryption.fromValue(s3DataStoreConfig.getServerSideEncryption())).isEqualTo(
+          serverSideEncryption);
+    }
   }
 
   @Test

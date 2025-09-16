@@ -36,6 +36,7 @@ public record S3ScanEntity(
     S3Client s3Client,
     String bucketName,
     String objectKey,
+    String serverSideEncryption,
     String appId,
     String scanName
 )
@@ -55,22 +56,24 @@ public record S3ScanEntity(
       S3Client s3Client,
       String bucketName,
       String objectKeyPrefix,
+      String serverSideEncryption,
       String appId,
       String scanId)
   {
     String scanName = "scan-" + scanId + ".xml.gz";
-    return forScanName(s3Client, bucketName, objectKeyPrefix, appId, scanName);
+    return forScanName(s3Client, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
   }
 
   public static S3ScanEntity forTempScan(
       S3Client s3Client,
       String bucketName,
       String objectKeyPrefix,
+      String serverSideEncryption,
       String appId,
       String tempId)
   {
     String scanName = "temp-" + tempId + ".xml.gz";
-    return forScanName(s3Client, bucketName, objectKeyPrefix, appId, scanName);
+    return forScanName(s3Client, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
   }
 
   /**
@@ -80,11 +83,12 @@ public record S3ScanEntity(
       S3Client s3Client,
       String bucketName,
       String objectKeyPrefix,
+      String serverSideEncryption,
       String appId,
       String scanName)
   {
     String objectKey = objectKeyPrefix + "scan/" + appId + "/" + scanName;
-    return new S3ScanEntity(s3Client, bucketName, objectKey, appId, scanName);
+    return new S3ScanEntity(s3Client, bucketName, objectKey, serverSideEncryption, appId, scanName);
   }
 
   @Override
@@ -97,7 +101,7 @@ public record S3ScanEntity(
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-    return new S3OutputStream(s3Client, objectKey, bucketName);
+    return new S3OutputStream(s3Client, objectKey, bucketName, serverSideEncryption);
   }
 
   @Override

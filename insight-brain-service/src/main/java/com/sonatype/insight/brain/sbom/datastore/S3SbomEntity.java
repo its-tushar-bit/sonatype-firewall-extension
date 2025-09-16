@@ -52,7 +52,12 @@ public record S3SbomEntity(
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-    return new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName());
+    return new S3OutputStream(
+        s3Client,
+        key.toString(),
+        s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getServerSideEncryption()
+    );
   }
 
   @Override

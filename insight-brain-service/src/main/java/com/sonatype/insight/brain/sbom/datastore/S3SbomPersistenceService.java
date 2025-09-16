@@ -95,7 +95,7 @@ public class S3SbomPersistenceService
 
     try (InputStream inputStream = sbomEntity.getInputStream();
          OutputStream outputStream = new S3OutputStream(s3Client, targetKey.toString(),
-             s3DataStoreConfig.getBucketName())) {
+             s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getServerSideEncryption())) {
       inputStream.transferTo(outputStream);
     }
 
@@ -164,6 +164,7 @@ public class S3SbomPersistenceService
         .sourceKey(fromS3.key().toString())
         .destinationBucket(s3DataStoreConfig.getBucketName())
         .destinationKey(toS3.key().toString())
+        .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
         .build();
 
     wrapS3Exception(() -> s3Client.copyObject(copyRequest));

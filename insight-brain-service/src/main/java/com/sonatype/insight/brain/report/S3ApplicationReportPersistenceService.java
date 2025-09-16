@@ -119,7 +119,12 @@ public class S3ApplicationReportPersistenceService
     @Override
     @Trace
     public OutputStream getOutputStream() {
-      return new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName());
+      return new S3OutputStream(
+          s3Client,
+          key.toString(),
+          s3DataStoreConfig.getBucketName(),
+          s3DataStoreConfig.getServerSideEncryption()
+      );
     }
 
     @Override
@@ -380,6 +385,7 @@ public class S3ApplicationReportPersistenceService
         .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
         .destinationBucket(s3DataStoreConfig.getBucketName())
         .destinationKey(getCacheKey(applicationId, scanId, name).toString())
+        .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
         .build();
 
     wrapS3Exception(() -> {
@@ -432,6 +438,7 @@ public class S3ApplicationReportPersistenceService
           .sourceKey(sourceKey)
           .destinationBucket(s3DataStoreConfig.getBucketName())
           .destinationKey(targetKey)
+          .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
           .build();
       wrapS3Exception(() -> s3Client.copyObject(copyRequest));
     }
@@ -439,7 +446,8 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {
-    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName())) {
+    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getServerSideEncryption())) {
       log.debug("Saving report file to S3: {}", key);
       contents.transferTo(outputStream);
     }

@@ -49,29 +49,47 @@ public class S3ScanPersistenceService
 
   @Override
   protected ScanEntity doGetScan(String appId, String scanId) {
-    return S3ScanEntity.forScan(s3Client, s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getObjectKeyPrefix(),
-        appId, scanId);
+    return S3ScanEntity.forScan(
+        s3Client,
+        s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix(),
+        s3DataStoreConfig.getServerSideEncryption(),
+        appId,
+        scanId
+    );
   }
 
   @Override
   public ScanEntity createTempScan(String appId) {
     String tempId = generateTempId();
-    return S3ScanEntity.forTempScan(s3Client, s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getObjectKeyPrefix(),
-        appId, tempId);
+    return S3ScanEntity.forTempScan(
+        s3Client,
+        s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix(),
+        s3DataStoreConfig.getServerSideEncryption(),
+        appId,
+        tempId
+    );
   }
 
   @Override
   public void moveTempScan(ScanEntity tempScanEntity, String appId, String scanId) throws IOException {
     S3ScanEntity tempS3Entity = (S3ScanEntity) tempScanEntity;
-    S3ScanEntity targetEntity =
-        S3ScanEntity.forScan(s3Client, s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getObjectKeyPrefix(), appId,
-            scanId);
+    S3ScanEntity targetEntity = S3ScanEntity.forScan(
+        s3Client,
+        s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix(),
+        s3DataStoreConfig.getServerSideEncryption(),
+        appId,
+        scanId
+    );
 
     CopyObjectRequest copyRequest = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
         .sourceKey(tempS3Entity.objectKey())
         .destinationBucket(s3DataStoreConfig.getBucketName())
         .destinationKey(targetEntity.objectKey())
+        .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
         .build();
 
     wrapS3Exception(() -> s3Client.copyObject(copyRequest));
@@ -81,8 +99,14 @@ public class S3ScanPersistenceService
 
   @Override
   public ScanEntity getScanByName(String appId, String name) {
-    return S3ScanEntity.forScanName(s3Client, s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getObjectKeyPrefix(),
-        appId, name);
+    return S3ScanEntity.forScanName(
+        s3Client,
+        s3DataStoreConfig.getBucketName(),
+        s3DataStoreConfig.getObjectKeyPrefix(),
+        s3DataStoreConfig.getServerSideEncryption(),
+        appId,
+        name
+    );
   }
 
   @Override
@@ -95,6 +119,7 @@ public class S3ScanPersistenceService
         .sourceKey(sourceS3Entity.objectKey())
         .destinationBucket(s3DataStoreConfig.getBucketName())
         .destinationKey(destS3Entity.objectKey())
+        .serverSideEncryption(s3DataStoreConfig.getServerSideEncryption())
         .build();
 
     wrapS3Exception(() -> s3Client.copyObject(copyRequest));
@@ -116,8 +141,14 @@ public class S3ScanPersistenceService
             // Extract scan name from the full key
             String fullKey = s3Object.key();
             String scanName = fullKey.substring(fullKey.lastIndexOf('/') + 1);
-            return S3ScanEntity.forScanName(s3Client, s3DataStoreConfig.getBucketName(),
-                s3DataStoreConfig.getObjectKeyPrefix(), appId, scanName);
+            return S3ScanEntity.forScanName(
+                s3Client,
+                s3DataStoreConfig.getBucketName(),
+                s3DataStoreConfig.getObjectKeyPrefix(),
+                s3DataStoreConfig.getServerSideEncryption(),
+                appId,
+                scanName
+            );
           });
     }
     catch (IOException e) {

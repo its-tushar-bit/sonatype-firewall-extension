@@ -137,7 +137,7 @@ public class S3ScanPersistenceServiceTest
   public void testExceptionHandlingAndCleanup() throws Exception {
     var spyS3Client = spy(this.s3Client);
 
-    var scanEntity = S3ScanEntity.forScan(spyS3Client, BUCKET_NAME, expectedPrefix, APPLICATION_ID, SCAN_ID);
+    var scanEntity = S3ScanEntity.forScan(spyS3Client, BUCKET_NAME, expectedPrefix, null, APPLICATION_ID, SCAN_ID);
 
     helper.saveMockScan();
     assertThat(scanEntity.exists()).isTrue();

@@ -13,6 +13,8 @@ import javax.annotation.Nullable;
 import javax.validation.ValidationException;
 import javax.validation.constraints.NotNull;
 
+import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
+
 public class StorageConfig
 {
   @NotNull
@@ -118,6 +120,9 @@ public class StorageConfig
     @Nullable
     private String objectKeyPrefix;
 
+    @Nullable
+    private String serverSideEncryption;
+
     public String getBucketName() {
       return bucketName;
     }
@@ -158,6 +163,14 @@ public class StorageConfig
       this.objectKeyPrefix = objectKeyPrefix;
     }
 
+    public String getServerSideEncryption() {
+      return serverSideEncryption;
+    }
+
+    public void setServerSideEncryption(@Nullable final String serverSideEncryption) {
+      this.serverSideEncryption = serverSideEncryption;
+    }
+
     public void validate() {
       if (bucketName == null || bucketName.isEmpty()) {
         throw new ValidationException("Property 'bucketName' must be provided and non-empty.");
@@ -168,6 +181,11 @@ public class StorageConfig
       if (objectKeyPrefix != null && !objectKeyPrefix.matches(S3_KEY_PREFIX)) {
         throw new ValidationException(
             "Property 'objectKeyPrefix' does not match the expected regex pattern " + S3_KEY_PREFIX);
+      }
+      if (serverSideEncryption != null &&
+          ServerSideEncryption.UNKNOWN_TO_SDK_VERSION == ServerSideEncryption.fromValue(serverSideEncryption)) {
+        throw new ValidationException(("Property 'serverSideEncryption' with value '%s' " +
+            "does not correspond to a known server side encryption algorithm.").formatted(serverSideEncryption));
       }
     }
   }

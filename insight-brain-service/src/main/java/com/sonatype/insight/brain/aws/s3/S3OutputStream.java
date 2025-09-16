@@ -57,16 +57,19 @@ public class S3OutputStream
 
   private final String key;
 
+  private final String serverSideEncryption;
+
   private final ByteBuffer buffer;
 
   private volatile boolean closed;
 
   private MultipartUpload multiPartUpload;
 
-  public S3OutputStream(S3Client s3Client, String key, String bucketName) {
+  public S3OutputStream(S3Client s3Client, String key, String bucketName, String serverSideEncryption) {
     this.s3Client = s3Client;
     this.bucketName = bucketName;
     this.key = key;
+    this.serverSideEncryption = serverSideEncryption;
     this.closed = false;
     this.buffer = ByteBuffer.allocate(PART_SIZE);
     this.multiPartUpload = null;
@@ -199,7 +202,11 @@ public class S3OutputStream
   private MultipartUpload newMultipartUpload() throws IOException {
     // PATCH removed try/catch from SOLR implementation and just wrap in IOException instead
     return wrapS3Exception(() ->
-        new MultipartUpload(s3Client.createMultipartUpload(b -> b.bucket(bucketName).key(key)).uploadId())
+        new MultipartUpload(s3Client.createMultipartUpload(
+            b -> b.bucket(bucketName)
+                .key(key)
+                .serverSideEncryption(serverSideEncryption)
+        ).uploadId())
     );
   }
 

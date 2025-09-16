@@ -75,6 +75,8 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.util.stream.Collectors.toMap;
+
 /**
  * @since 1.18.0
  */
@@ -259,14 +261,23 @@ public class RepositoryPolicyEvaluator
 
     // Evaluate the policies
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(repository.getId());
+
+    // Filter out nulls and crete a quick lookup table for components by path name:
+    // This is a hot code path that we have to careful of from a performance perspective.
+    // It is used by the Repo Policy Compliant Component Selection. Latency here can slow down builds:
+    // https://sonatype.atlassian.net/browse/NEXUS-48520
+    final List<Component> componentsWithoutNulls = components.stream().filter(Objects::nonNull)
+        .collect(Collectors.toList());
+    final Map<List<String>, Component> lookup = mapComponentForQuickLookUp(componentsWithoutNulls);
+
     PolicyResults policyResults = componentPolicyEvaluator.evaluate(repository.getId(), new Stage(ProxyStageType.ID),
-        policies, components.stream().filter(Objects::nonNull).collect(Collectors.toList()), false /* forMonitoring */);
+        policies, componentsWithoutNulls, false /* forMonitoring */);
 
     Map<Component, List<PolicyAlert>> policyAlertsByComponent =
-        groupPolicyAlertsByComponent(policyResults.getActiveAlerts(), components);
+        groupPolicyAlertsByComponent(policyResults.getActiveAlerts(), lookup);
 
     Map<Component, List<PolicyAlert>> waivedAlertsByComponent =
-        groupPolicyAlertsByComponent(policyResults.getWaivedAlerts(), components);
+        groupPolicyAlertsByComponent(policyResults.getWaivedAlerts(), lookup);
 
     List<PolicyNotification> policyNotifications = policyResults.getActiveNotifications();
 
@@ -335,20 +346,22 @@ public class RepositoryPolicyEvaluator
     if (shouldSendNotifications) {
       repositoryPolicyAlertEmailer.sendNotifications(repository, policyNotifications);
     }
+
     log.trace("Evaluated {} components with quarantine {} for repository {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine,
         repository.getPublicId(), System.currentTimeMillis() - start);
+
     return componentEvaluationResultList;
   }
 
   private Map<Component, List<PolicyAlert>> groupPolicyAlertsByComponent(
       final List<PolicyAlert> policyAlerts,
-      final List<Component> components)
+      final Map<List<String>, Component> lookup)
   {
     Map<Component, List<PolicyAlert>> policyAlertsByComponent = new HashMap<>();
 
     for (PolicyAlert policyAlert : policyAlerts) {
-      Component component = findComponentForAlert(policyAlert, components);
+      Component component = findComponentForAlert(policyAlert, lookup);
       if (component != null) {
         policyAlertsByComponent.computeIfAbsent(component, k -> new ArrayList<>()).add(policyAlert);
       }
@@ -375,10 +388,17 @@ public class RepositoryPolicyEvaluator
     return policyWaiverByComponent;
   }
 
-  private Component findComponentForAlert(final PolicyAlert policyAlert, final List<Component> components) {
+  private Map<List<String>, Component> mapComponentForQuickLookUp(final List<Component> components) {
     return components.stream()
-        .filter(Objects::nonNull)
-        .filter(component -> getComponentFact(policyAlert, component) != null)
+        .collect(
+          toMap(Component::getPathnames, Function.identity(), (existing, replacement) -> replacement));
+  }
+
+  private Component findComponentForAlert(final PolicyAlert policyAlert, final Map<List<String>, Component> lookup) {
+    return policyAlert.getTrigger().getComponentFacts()
+        .stream()
+        .filter(componentFact -> lookup.containsKey(componentFact.getPathnames()))
+        .map(componentFact -> lookup.get(componentFact.getPathnames()))
         .findFirst()
         .orElse(null);
   }
@@ -393,7 +413,7 @@ public class RepositoryPolicyEvaluator
         .collect(Collectors.toList());
 
     return repositoryComponentDAO.getByRepositoryIdAndPathnames(repository.getId(), pathnames).stream()
-        .collect(Collectors.toMap(RepositoryComponent::getPathname, Function.identity()));
+        .collect(toMap(RepositoryComponent::getPathname, Function.identity()));
   }
 
   private static List<String> validateIndexesMatchAndGetHashes(

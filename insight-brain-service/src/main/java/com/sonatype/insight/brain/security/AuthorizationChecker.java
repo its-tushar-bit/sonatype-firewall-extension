@@ -5,15 +5,10 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
@@ -30,6 +25,9 @@ import com.sonatype.insight.brain.security.AuthzFilter.Context;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import static com.sonatype.insight.brain.security.AuthorizationPermissionEntityFilter.newCollection;
+import static java.util.stream.Collectors.toSet;
+
 /**
  * Evaluates authorization.
  *
@@ -42,6 +40,8 @@ public class AuthorizationChecker
   private RolePermissionDAO rolePermissionDAO;
 
   private final ContextResolver contextResolver;
+
+  private final AuthorizationPermissionEntityFilter entityPermissionFilter = new AuthorizationPermissionEntityFilter();
 
   @Inject
   AuthorizationChecker(ContextResolver contextResolver) {
@@ -75,9 +75,10 @@ public class AuthorizationChecker
    * Determines whether the given user has the specified permission in the supplied context or any of its ancestor
    * contexts.
    */
-  public boolean isPermitted(UserPrincipal user,
-                             Permission permission,
-                             Map<AuthzContext.Key, Object> contextParameters)
+  public boolean isPermitted(
+      UserPrincipal user,
+      Permission permission,
+      Map<AuthzContext.Key, Object> contextParameters)
   {
     Iterable<String> contextIds = contextResolver.resolveContextIds(contextParameters);
     return isPermitted(user, permission, contextIds);
@@ -110,10 +111,11 @@ public class AuthorizationChecker
    * permission.
    */
   @SuppressWarnings("unchecked")
-  public <T> Collection<T> filterByPermission(UserPrincipal user,
-                                              Permission permission,
-                                              Iterable<T> entities,
-                                              Context contextEntity)
+  public <T> Collection<T> filterByPermission(
+      UserPrincipal user,
+      Permission permission,
+      Iterable<T> entities,
+      Context contextEntity)
   {
     if (user == null) {
       return newCollection(entities);
@@ -139,80 +141,17 @@ public class AuthorizationChecker
     }
   }
 
-  private static <T> Collection<T> newCollection(Object prototype) {
-    if (prototype instanceof Set) {
-      return new LinkedHashSet<>();
-    }
-    else {
-      return new ArrayList<>();
-    }
-  }
-
-  private <T> Collection<T> filter(UserPrincipal user,
-                                   Permission permission,
-                                   Iterable<T> entities,
-                                   ContextIdResolver<? super T> resolver)
+  private <T> Collection<T> filter(
+      UserPrincipal user,
+      Permission permission,
+      Iterable<T> entities,
+      ContextIdResolver<? super T> resolver)
   {
-    Collection<T> filtered = newCollection(entities);
     Set<String> roleIds = rolePermissionDAO.getRoleIdsByPermission(permission);
-    Map<String, Boolean> permitsByContextId = new HashMap<>(256);
-
     String username = user.getUsername();
     Set<String> groups = user.getMembership();
-
-    Set<String> userContextIds =
-        membershipMappingDAO.getByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds).stream()
-        .map(MembershipMapping::getContextId)
-        .collect(Collectors.toSet());
-
-    for (T entity : entities) {
-      Iterable<String> contextIds = resolver.resolveContextIds(entity);
-      if (isUserHavingAnyRoleInAnyContext(userContextIds, contextIds, permitsByContextId)) {
-        filtered.add(entity);
-      }
-    }
-    return filtered;
-  }
-
-  private boolean isUserHavingAnyRoleInAnyContext(Set<String> userContextIds,
-                                                  Iterable<String> contextIds,
-                                                  Map<String, Boolean> permitsByContextId)
-  {
-    List<String> uncachedContextIds = new ArrayList<>();
-
-    // consult the cache first (walking up the hierarchy)
-    for (String contextId : contextIds) {
-      Boolean permit = permitsByContextId.get(contextId);
-      if (permit != null) {
-        if (permit) {
-          // due to inheritance, the permit also implies to all child contexts
-          for (String childId : uncachedContextIds) {
-            permitsByContextId.put(childId, true);
-          }
-          return true;
-        }
-        // this context and none of its ancestors permit access
-        break;
-      }
-      uncachedContextIds.add(contextId);
-    }
-
-    // consult the database about the uncached contexts (walking down the hierarchy)
-    for (int i = uncachedContextIds.size() - 1; i >= 0; i--) {
-      String contextId = uncachedContextIds.get(i);
-      boolean permit = userContextIds.contains(contextId);
-      permitsByContextId.put(contextId, permit);
-      if (permit) {
-        // due to inheritance, the permit also implies to all child contexts
-        for (i--; i >= 0; i--) {
-          String childId = uncachedContextIds.get(i);
-          permitsByContextId.put(childId, true);
-        }
-        return true;
-      }
-    }
-
-    return false;
+    Set<String> userContextIds = getContextIds(username, groups, roleIds);
+    return entityPermissionFilter.filterWithPermissionCheck(entities, resolver, userContextIds);
   }
 
   private boolean isUserHavingAnyRoleInContext(UserPrincipal user, Set<String> roleIds, String contextId) {
@@ -227,5 +166,24 @@ public class AuthorizationChecker
 
   private boolean isUserHavingAnyRoleInAnyContext(UserPrincipal user, Set<String> roleIds) {
     return membershipMappingDAO.isUserHavingRolesInAnyContext(roleIds, user.getUsername(), user.getMembership());
+  }
+
+  private Set<String> getContextIds(final String username, final Set<String> groups, final Set<String> roleIds) {
+    switch (AuthorizationMembershipQueryStrategy.getStrategyFromEnv()) {
+      // Direct context ID query - faster, less memory usage
+      case DIRECT_CONTEXT_ID:
+        return new HashSet<>(
+            membershipMappingDAO
+                .getContextIdsByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds)
+        );
+      // Full MembershipMapping + mapping approach - traditional method
+      case FULL_MEMBERSHIP_MAPPING_CONTEXT_ID:
+      default:
+        return membershipMappingDAO
+            .getByUserCaseInsensitiveAndGroupsAndRoles(username, groups, roleIds)
+            .stream()
+            .map(MembershipMapping::getContextId)
+            .collect(toSet());
+    }
   }
 }

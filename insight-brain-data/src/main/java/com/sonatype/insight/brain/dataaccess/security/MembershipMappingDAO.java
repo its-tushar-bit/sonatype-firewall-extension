@@ -108,6 +108,27 @@ public class MembershipMappingDAO
             getList(sQuery, username, MemberType.USER, groupPartition, MemberType.GROUP, rolesPartition)));
   }
 
+  public List<String> getContextIdsByUserCaseInsensitiveAndGroupsAndRoles(
+      String username,
+      Set<String> groupNames,
+      Set<String> roleIds)
+  {
+    String sQuery = "SELECT entity.contextId FROM MembershipMapping entity" +
+        " WHERE ((" +
+        "(entity.memberName=?1" +
+        " OR LOWER(entity.memberName)=LOWER(?1)" +
+        " OR UPPER(entity.memberName)=UPPER(?1))" +
+        " AND entity.memberType=?2" +
+        ")" +
+        " OR (entity.memberName IN ?3 AND entity.memberType=?4))" +
+        " AND entity.roleId IN ?5";
+
+    return getListWithSqlInClause(roleIds,
+        rolesPartition -> getListWithSqlInClause(groupNames, groupPartition ->
+            getScalars(String.class, sQuery, username, MemberType.USER, groupPartition, MemberType.GROUP,
+                rolesPartition)));
+  }
+
   List<MembershipMapping> getByContextIdAndUser(String contextId, String username) {
     String sQuery = "SELECT entity FROM MembershipMapping entity"
         + " WHERE entity.contextId=?1 and entity.memberName=?2 and entity.memberType=?3" + " ORDER BY entity.roleId";

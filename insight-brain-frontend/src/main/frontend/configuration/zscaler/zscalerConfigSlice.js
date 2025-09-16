@@ -8,8 +8,7 @@ import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@s
 import { any, compose, curryN, equals, map, pick, prop, values, keys, filter, fromPairs } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
-import { hasValidationErrors, validateNonEmpty, combineValidators } from '../../util/validationUtil';
-import { validateZScalerHostName } from './utils/validators';
+import { hasValidationErrors, validateNonEmpty } from '../../util/validationUtil';
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
 import { getZScalerConfigUrl, getZScalerTestConfigUrl } from '../../util/CLMLocation';
@@ -30,7 +29,7 @@ export const initialState = {
   formState: {
     username: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     password: nxTextInputStateHelpers.initialState('', validateNonEmpty),
-    hostname: nxTextInputStateHelpers.initialState('', combineValidators([validateNonEmpty, validateZScalerHostName])),
+    hostname: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     apiKey: nxTextInputStateHelpers.initialState('', validateNonEmpty),
     eula: {
       value: false,
@@ -99,16 +98,14 @@ function computeHasAllRequiredData(state) {
   const {
       formState: { username, password, hostname, apiKey, configuredFormatState },
     } = state,
-    // Check if hostname has value AND no validation errors
-    isHostnameValid = hostname.value && (!hostname.validationErrors || hostname.validationErrors.length === 0),
     hasAllRequiredData = !!(
       username.value &&
       password.value &&
-      isHostnameValid &&
+      hostname.value &&
       apiKey.value &&
       configuredFormatState.formats.size > 0
     ),
-    hasAllRequiredDataForTestConfig = !!(username.value && password.value && isHostnameValid && apiKey.value);
+    hasAllRequiredDataForTestConfig = !!(username.value && password.value && hostname.value && apiKey.value);
 
   return { ...state, hasAllRequiredData, hasAllRequiredDataForTestConfig };
 }
@@ -388,7 +385,7 @@ const zscalerConfigSlice = createSlice({
     resetForm: resetForm,
     setUsername: setTextInput('username', validateNonEmpty),
     setPassword: setTextInput('password', validateNonEmpty),
-    setHostname: setTextInput('hostname', combineValidators([validateNonEmpty, validateZScalerHostName])),
+    setHostname: setTextInput('hostname', validateNonEmpty),
     setApiKey: setTextInput('apiKey', validateNonEmpty),
     setShowDeleteModal: propSet('showDeleteModal'),
     submitMaskTimerDone: propSetConst('submitMaskState', null),

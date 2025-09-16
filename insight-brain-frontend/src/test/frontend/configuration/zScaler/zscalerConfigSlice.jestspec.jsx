@@ -364,7 +364,7 @@ describe('zscalerConfigSlice', () => {
 
       expect(newState.formState.hostname.value).toBe('https://zsapi.zscalertwo.net');
       expect(newState.formState.hostname.isPristine).toBe(false);
-      expect(newState.formState.hostname.validationErrors).toHaveLength(0);
+      expect(newState.formState.hostname.validationErrors).toBeFalsy();
     });
   });
 

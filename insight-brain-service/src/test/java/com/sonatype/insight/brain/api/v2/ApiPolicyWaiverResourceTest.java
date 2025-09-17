@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -23,6 +24,7 @@ import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -62,6 +64,8 @@ import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.BY_POLIC
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.OWNERS_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_SCAN_ID_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiPolicyWaiverResource.TRANSITIVE_VIOLATIONS_BY_STAGE_ID_PATH;
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService.MAX_BULK_WAIVER_VIOLATIONS;
+import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static com.sonatype.insight.brain.report.ReportTestUtils.zipReportDir;
@@ -913,5 +917,369 @@ public class ApiPolicyWaiverResourceTest
     assertThat(new ApiWaiverOptionsDTO(policyWaiverDAO.getById(policyWaiver.getId())))
         .usingRecursiveComparison(JPA.RECURSIVE_COMPARISON_CONFIG)
         .isEqualTo(dto);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Application_Success() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy1 = tempEntity.newPolicy(application);
+    Policy policy2 = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation1 = tempEntity.newPolicyViolation(policyEvaluation, policy1,
+        "g1", "a1", "v1", "hash1", "reason");
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2,
+        "g2", "a2", "v2", "hash2", "reason");
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Bulk waiver via API";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(violation1.getId(), violation2.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    assertThat(waivers)
+        .hasSize(2)
+        .allSatisfy(waiver -> {
+          assertThat(waiver.getComment()).isEqualTo("Bulk waiver via API");
+          assertThat(waiver.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+        });
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Organization_Success() throws Exception {
+    Organization organization = tempEntity.newOrganization();
+    Application application = tempEntity.newApplicationWithParent(organization);
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        "g1", "a1", "v1", "hash1", "reason");
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Org bulk waiver";
+    waiverOptions.matcherStrategy =
+        com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(violation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.ORGANIZATION, organization.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(organization.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Org bulk waiver");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Repository_Success() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Repo bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(repositoryPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.REPOSITORY, repository.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(repository.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Repo bulk waiver");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_RepositoryContainer_Success() throws Exception {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Container bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(repositoryPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH).parameter(OwnerType.REPOSITORY_CONTAINER,
+            RepositoryContainer.REPOSITORY_CONTAINER_ID, repositoryPolicyViolation.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON).post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Container bulk waiver");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_RepositoryManager_Success() throws Exception {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID);
+    RepositoryPolicyViolation repositoryPolicyViolation =
+        tempEntity.newRepositoryPolicyViolation(repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Repository Manager bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(repositoryPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.REPOSITORY_MANAGER, repositoryManager.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(repositoryManager.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Repository Manager bulk waiver");
+    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NullRequest() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(null, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Waivers request cannot be null");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_EmptyViolationIds() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.emptyList(),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Violation IDs list cannot be null or empty");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_TooManyViolations() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    List<String> tooManyViolations = new ArrayList<>();
+    for (int i = 0; i < 1001; i++) {
+      tooManyViolations.add("violation-" + i);
+    }
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        tooManyViolations,
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Maximum "
+        + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed per waiver request");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_InvalidMatcherStrategy() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        "g1", "a1", "v1", "hash1", "reason");
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = ALL_COMPONENTS;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(violation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Only EXACT_COMPONENT and ALL_VERSIONS matcher strategies " +
+        "are supported for bulk waivers");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NoValidViolations() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList("invalid-1", "invalid-2"),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Error processing policy violation with ID: invalid-1");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_ThrowsErrorsOnInvalidViolationIds() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        "g1", "a1", "v1", "hash1", "reason");
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Partial success test";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(violation.getId(), "invalid-id-123", "another-invalid-id"),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .satisfiesAnyOf(
+            bodyText -> assertThat(bodyText).contains("Error processing policy violation with ID: invalid-id-123"),
+            bodyText -> assertThat(bodyText).contains("Error processing policy violation with ID: another-invalid-id")
+        );
+
+    // Should create no waivers when invalid valid violation IDs are present
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    assertThat(waivers).hasSize(0);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_WithExpiryTime() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        "g1", "a1", "v1", "hash1", "reason");
+
+    Date futureDate = DateUtils.addDays(new Date(), 7);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Expiring waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expiryTime = futureDate;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(violation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(204, response);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(application.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getExpiryTime()).isEqualTo(futureDate);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_ExpiryTimeInPast() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    Policy policy = tempEntity.newPolicy(application);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), "develop", "scan1");
+    PolicyViolation violation = tempEntity.newPolicyViolation(policyEvaluation, policy,
+        "g1", "a1", "v1", "hash1", "reason");
+
+    Date pastDate = DateUtils.addDays(new Date(), -1);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Invalid expiry";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expiryTime = pastDate;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        singletonList(violation.getId()),
+        waiverOptions
+    );
+
+    HttpResponse response = restRequest()
+        .path(OWNERS_PATH)
+        .parameter(OwnerType.APPLICATION, application.getId())
+        .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
+        .post();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText()).contains("Expiration date must be in the future");
   }
 }

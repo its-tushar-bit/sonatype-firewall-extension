@@ -12,11 +12,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +34,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
@@ -81,6 +84,7 @@ import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.utils.IdUtils;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.InternalServerException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
@@ -111,6 +115,8 @@ public class ApiPolicyWaiverService
   private static final String OWNER_TYPE_ATTR = "owner_type";
 
   private static final String OWNER_ID_ATTR = "owner_id";
+
+  public static final int MAX_BULK_WAIVER_VIOLATIONS = 1000;
 
   private final TelemetrySender telemetrySender;
 
@@ -281,6 +287,60 @@ public class ApiPolicyWaiverService
         waiverReasonId, expireWhenRemediationAvailable);
   }
 
+  /**
+   * Creates policy waivers for multiple policy violations using the same waiver options
+   * 
+   * @param ownerType The owner type
+   * @param ownerId The owner ID
+   * @param bulkWaiversDTO The waiver request containing violation IDs and waiver options
+   */
+  @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
+  public void addBulkPolicyWaivers(
+      @AuthzContext(Key.TYPE) final OwnerType ownerType,
+      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      final ApiBulkWaiversDTO bulkWaiversDTO)
+  {
+    validateRequestData(bulkWaiversDTO);
+    
+    // Deduplicate violation IDs early for accurate validation and processing
+    Set<String> uniqueViolationIds = new HashSet<>(bulkWaiversDTO.violationIds());
+    validateUniqueViolationIds(uniqueViolationIds);
+    
+    validateExpiryTime(bulkWaiversDTO.apiWaiverOptionsDTO().expiryTime);
+    validateExpireWhenRemediationAvailable(
+        bulkWaiversDTO.apiWaiverOptionsDTO().expireWhenRemediationAvailable,
+        bulkWaiversDTO.apiWaiverOptionsDTO().matcherStrategy);
+    
+    String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
+    Owner owner = ownerDAO.getById(internalOwnerId);
+    
+    List<AbstractPolicyViolation> allViolations = new ArrayList<>();
+
+    for (String violationId : uniqueViolationIds) {
+      try {
+        AbstractPolicyViolation abstractPolicyViolation = policyViolationDAO.getByIdWithConstraintFacts(violationId);
+        if (abstractPolicyViolation == null) {
+          abstractPolicyViolation = repositoryPolicyViolationDAO.getByIdWithConstraintFacts(violationId);
+        }
+        
+        if (abstractPolicyViolation == null) {
+          throw new BadRequestException("Could not find policy violation with ID: " + violationId);
+        }
+        
+        allViolations.add(abstractPolicyViolation);
+      }
+      catch (Exception e) {
+        throw new BadRequestException("Error processing policy violation with ID: " + violationId);
+      }
+    }
+    
+    if (allViolations.isEmpty()) {
+      throw new BadRequestException("No valid policy violations found for the provided violation IDs");
+    }
+
+    createBulkPolicyWaivers(owner, bulkWaiversDTO.apiWaiverOptionsDTO(), allViolations);
+  }
+
   private void validateExpiryTime(final Date expiryTime) {
     if (Objects.nonNull(expiryTime) &&
         !expiryTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDate().isAfter(LocalDate.now())) {
@@ -295,6 +355,40 @@ public class ApiPolicyWaiverService
     if (expireWhenRemediationAvailable && matcherStrategy != EXACT_COMPONENT) {
       throw new BadRequestException(
           "Expire When Remediation Available Waivers can only be applied to Exact Components.");
+    }
+  }
+
+  private void validateRequestData(ApiBulkWaiversDTO bulkWaiversDTO) {
+    if (bulkWaiversDTO == null) {
+      throw new BadRequestException("Waivers request cannot be null");
+    }
+
+    if (bulkWaiversDTO.violationIds() == null || bulkWaiversDTO.violationIds().isEmpty()) {
+      throw new BadRequestException("Violation IDs list cannot be null or empty");
+    }
+
+    if (bulkWaiversDTO.apiWaiverOptionsDTO() == null) {
+      throw new BadRequestException("Waiver options cannot be null");
+    }
+
+    ComponentMatcherStrategyForWaiver matcherStrategy = bulkWaiversDTO.apiWaiverOptionsDTO().matcherStrategy;
+    if (matcherStrategy == null) {
+      throw new BadRequestException("Matcher strategy is required");
+    }
+
+    if (matcherStrategy != EXACT_COMPONENT && matcherStrategy != ALL_VERSIONS) {
+      throw new BadRequestException("Only EXACT_COMPONENT and ALL_VERSIONS matcher " +
+          "strategies are supported for bulk waivers");
+    }
+  }
+
+  private void validateUniqueViolationIds(Set<String> uniqueViolationIds) {
+    if (uniqueViolationIds.isEmpty()) {
+      throw new BadRequestException("No unique violation IDs found");
+    }
+
+    if (uniqueViolationIds.size() > MAX_BULK_WAIVER_VIOLATIONS) {
+      throw new BadRequestException("Maximum " + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed per waiver request");
     }
   }
 
@@ -711,6 +805,19 @@ public class ApiPolicyWaiverService
     }
   }
 
+  private void createBulkPolicyWaivers(
+      Owner owner,
+      ApiWaiverOptionsDTO waiverDTO,
+      List<AbstractPolicyViolation> abstractPolicyViolations
+  )
+  {
+    try (TransactionContext tx = policyWaiverDAO.createTransactionContext()) {
+      tx.begin();
+      createBulkWaiversInternal(owner, waiverDTO, abstractPolicyViolations, tx);
+      tx.commit();
+    }
+  }
+
   private void createPolicyWaiversInternal(
       Owner owner,
       ApiWaiverOptionsDTO waiverDTO,
@@ -746,6 +853,65 @@ public class ApiPolicyWaiverService
       }
       catch (BadRequestException e) {
         log.warn("Unable to add waiver for PolicyViolation ID {}", policyViolation.getId(), e);
+      }
+    }
+
+    AuditData.get().commitSubEvents();
+    sendTelemetry(owner.getType(), owner.getPublicId());
+  }
+
+  private void createBulkWaiversInternal(
+      Owner owner,
+      ApiWaiverOptionsDTO waiverDTO,
+      List<AbstractPolicyViolation> abstractPolicyViolations,
+      TransactionContext tx
+  )
+  {
+    waiverDTO.matcherStrategy = waiverDTO.matcherStrategy != null ? waiverDTO.matcherStrategy : EXACT_COMPONENT;
+    validateExistingPolicyWaiverReason(waiverDTO.waiverReasonId);
+
+    Map<PolicyWaiver, AbstractPolicyViolation> successfulWaivers = new HashMap<>();
+
+    for (AbstractPolicyViolation abstractPolicyViolation : abstractPolicyViolations) {
+      try {
+        PolicyWaiver policyWaiver = savePolicyWaiverInternal(
+            tx,
+            owner.getId(),
+            abstractPolicyViolation,
+            waiverDTO.comment,
+            waiverDTO.matcherStrategy,
+            waiverDTO.expiryTime,
+            waiverDTO.waiverReasonId,
+            waiverDTO.expireWhenRemediationAvailable,
+            false,
+            false
+        );
+        successfulWaivers.put(policyWaiver, abstractPolicyViolation);
+      }
+      catch (Exception e) {
+        if (e instanceof BadRequestException && e.getMessage() != null && 
+            e.getMessage().contains("This policy waiver already exists.")) {
+          // Log duplicate waiver and continue processing other violations
+          log.debug("Skipping duplicate waiver for PolicyViolation ID {}: {}",
+              abstractPolicyViolation.getId(), e.getMessage());
+        }
+        else {
+          // All other exceptions should fail the entire operation
+          successfulWaivers.clear();
+          throw new InternalServerException("Unable to add waiver for PolicyViolation: "
+              + abstractPolicyViolation.getId(), e);
+        }
+      }
+    }
+
+    if (!successfulWaivers.isEmpty()) {
+      for (PolicyWaiver policyWaiver : successfulWaivers.keySet()) {
+        policyWaiverTelemetryCreator.sendWaiverTelemetryForOwnerType(
+            policyWaiver, owner.getType(), successfulWaivers.get(policyWaiver)
+        );
+        try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.CREATE_WAIVER, false)) {
+          auditPolicyWaiver(policyWaiver, tx);
+        }
       }
     }
 

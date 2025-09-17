@@ -27,6 +27,7 @@ import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiversApplicableToViolationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -63,6 +64,7 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -84,6 +86,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverDTOTestUtils.assertApiPolicyWaiverDTO;
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService.MAX_BULK_WAIVER_VIOLATIONS;
 import static com.sonatype.insight.brain.model.OwnerType.REPOSITORY_CONTAINER;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_VERSIONS;
@@ -2358,5 +2361,542 @@ public class ApiPolicyWaiverServiceTest
     repositoryDAO.update(repository);
     org.setRelatedRepositoryId(repository.getId());
     organizationDAO.update(org);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Application_Success() {
+    Policy policy2 = tempEntity.newPolicy(app);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2, 
+        5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hash2", FailActionType.ID);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Bulk waiver comment";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId(), violation2.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers)
+        .hasSize(2)
+        .allSatisfy(waiver -> {
+          assertThat(waiver.getComment()).isEqualTo("Bulk waiver comment");
+          assertThat(waiver.getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+          assertThat(waiver.getCreatorId()).isEqualTo("testuser");
+        });
+
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Organization_Success() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Org bulk waiver";
+    waiverOptions.matcherStrategy = ALL_VERSIONS;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.ORGANIZATION, org.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(org.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Org bulk waiver");
+    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(ALL_VERSIONS);
+
+    assertTelemetry(OwnerType.ORGANIZATION, org.getPublicId());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_Repository_Success() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+        repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Repo bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(repoPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.REPOSITORY, repository.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(repository.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Repo bulk waiver");
+    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+
+    assertTelemetry(OwnerType.REPOSITORY, repository.getPublicId());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_RepositoryManager_Success() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+        repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Repository Manager bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(repoPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(
+        OwnerType.REPOSITORY_MANAGER, repositoryManager.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(repositoryManager.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Repository Manager bulk waiver");
+    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+
+    assertTelemetry(OwnerType.REPOSITORY_MANAGER, repositoryManager.getPublicId());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_RepositoryContainer_Success() {
+    Repository repository = tempEntity.newRepository();
+    RepositoryPolicyViolation repoPolicyViolation = tempEntity.newRepositoryPolicyViolation(
+        repository.getId(), policy.getId(), policy.getThreatLevel());
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Container bulk waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(repoPolicyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.REPOSITORY_CONTAINER,
+        RepositoryContainer.REPOSITORY_CONTAINER_ID, bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Container bulk waiver");
+    assertThat(waivers.get(0).getComponentMatchStrategy()).isEqualTo(EXACT_COMPONENT);
+
+    assertTelemetry(OwnerType.REPOSITORY_CONTAINER, RepositoryContainer.REPOSITORY_CONTAINER_ID);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_WithExpiryTime() {
+    Date futureDate = Date.from(Instant.now().plus(7, ChronoUnit.DAYS));
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Expiring waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expiryTime = futureDate;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getExpiryTime()).isEqualTo(futureDate);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_WithWaiverReason() {
+    PolicyWaiverReason reason = policyWaiverReasonDAO.getAll().get(0);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Waiver with reason";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.waiverReasonId = reason.getId();
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getWaiverReasonId()).isEqualTo(reason.getId());
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_WithExpireWhenRemediationAvailable() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Auto-expire waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expireWhenRemediationAvailable = true;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).isExpireWhenRemediationAvailable()).isTrue();
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_ThrowsErrorOnInvalidViolationIds() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Partial success";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId(), "invalid-id-123"),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Error processing policy violation with ID: invalid-id-123");
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_SkipsExistingWaivers() {
+    // First create a regular waiver
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Original waiver";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(
+        OwnerType.APPLICATION, app.getId(), policyViolation.getId(), waiverOptions);
+
+    // Now try to create bulk waiver with same violation
+    waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Duplicate attempt";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    // Should still have only 1 waiver (the original one)
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1);
+    assertThat(waivers.get(0).getComment()).isEqualTo("Original waiver");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NullRequest() {
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), null)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Waivers request cannot be null");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NullViolationIds() {
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        null,
+        new ApiWaiverOptionsDTO()
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Violation IDs list cannot be null or empty");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_EmptyViolationIds() {
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.emptyList(),
+        new ApiWaiverOptionsDTO()
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Violation IDs list cannot be null or empty");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_TooManyViolations() {
+    List<String> tooManyViolations = new ArrayList<>();
+    for (int i = 0; i < 1001; i++) {
+      tooManyViolations.add("violation-" + i);
+    }
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        tooManyViolations,
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Maximum " + MAX_BULK_WAIVER_VIOLATIONS + " violations allowed per waiver request");
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NullWaiverOptions() {
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        null
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Waiver options cannot be null");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NullMatcherStrategy() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = null;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Matcher strategy is required");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_InvalidMatcherStrategy() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = ALL_COMPONENTS;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Only EXACT_COMPONENT and ALL_VERSIONS matcher strategies are supported for bulk waivers");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_ExpiryTimeInPast() {
+    Date pastDate = Date.from(Instant.now().minus(1, ChronoUnit.DAYS));
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.expiryTime = pastDate;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Expiration date must be in the future.");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_ExpireWhenRemediationWithAllVersions() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = ALL_VERSIONS;
+    waiverOptions.expireWhenRemediationAvailable = true;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Expire When Remediation Available Waivers can only be applied to Exact Components.");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_InvalidWaiverReason() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.waiverReasonId = "invalid-reason-id";
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Collections.singletonList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Waiver reason not found");
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_NoValidViolations() {
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList("invalid-1", "invalid-2", "invalid-3"),
+        waiverOptions
+    );
+
+    assertThatThrownBy(() -> 
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class)
+        .hasMessage("Error processing policy violation with ID: invalid-1");
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+  }
+
+  @Test
+  public void testAddBulkPolicyWaivers_MaximumAllowedViolations() {
+    // Create maximum allowed violation IDs (just at the limit)
+    List<String> maxViolations = new ArrayList<>();
+    for (int i = 0; i < MAX_BULK_WAIVER_VIOLATIONS; i++) {
+      maxViolations.add(policyViolation.getId()); // Reuse same valid ID
+    }
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Maximum violations test";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        maxViolations,
+        waiverOptions
+    );
+
+    // Should not throw exception (but will only create 1 waiver due to duplicates)
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(1); // Only 1 because all IDs are the same
+  }
+
+  @Test
+  public void testCreateBulkWaiversInternal_SuccessfulTelemetryAndAudit() {
+    // Given: Create multiple violations
+    Policy policy2 = tempEntity.newPolicy(app);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2,
+        5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hash2", FailActionType.ID);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Bulk telemetry test";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId(), violation2.getId()),
+        waiverOptions
+    );
+
+    // When: Create bulk waivers
+    apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO);
+
+    // Then: Verify waivers were created successfully
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(2);
+
+    // Verify telemetry was sent exactly once (for the entire bulk operation)
+    verify(telemetrySenderMock, times(1)).send(any(TelemetryData.class));
+    assertTelemetry(OwnerType.APPLICATION, app.getPublicId());
+
+    // Verify waiver telemetry was sent for each individual waiver
+    verify(policyWaiverTelemetryCreator, times(2)).sendWaiverTelemetryForOwnerType(
+        any(PolicyWaiver.class), any(OwnerType.class), any(AbstractPolicyViolation.class));
+  }
+
+  @Test
+  public void testCreateBulkWaiversInternal_FailureNoTelemetryOrAudit() {
+    // Given: Create a violation with invalid waiver reason to cause failure
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Test failure";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.waiverReasonId = "invalid-reason-id";
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId()),
+        waiverOptions
+    );
+
+    // When: Attempt to create bulk waivers (should fail)
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class);
+
+    // Then: Verify no waivers were created
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+
+    // Verify NO telemetry was sent (entire transaction failed)
+    verifyNoInteractions(telemetrySenderMock);
+    verifyNoInteractions(policyWaiverTelemetryCreator);
+  }
+
+  @Test
+  public void testCreateBulkWaiversInternal_PartialFailure_NoTelemetryForFailedBatch() {
+    // Given: Create mixed violations where one will fail
+    Policy policy2 = tempEntity.newPolicy(app);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2,
+        5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hash2", FailActionType.ID);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Partial failure test";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    waiverOptions.waiverReasonId = "invalid-reason-id"; // This will cause failure
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId(), violation2.getId()),
+        waiverOptions
+    );
+
+    // When: Attempt to create bulk waivers (should fail completely)
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class);
+
+    // Then: Verify NO waivers were created (atomic operation)
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+
+    // Verify NO telemetry was sent (entire batch failed)
+    verifyNoInteractions(telemetrySenderMock);
+    verifyNoInteractions(policyWaiverTelemetryCreator);
+  }
+
+  @Test
+  public void testCreateBulkWaiversInternal_DatabaseRollback_NoWaiversPersisted() {
+    // Given: Multiple violations to create waivers for
+    Policy policy2 = tempEntity.newPolicy(app);
+    PolicyViolation violation2 = tempEntity.newPolicyViolation(policyEvaluation, policy2,
+        5, PolicyThreatCategory.SECURITY, "g2", "a2", "v2", "hash2", FailActionType.ID);
+
+    ApiWaiverOptionsDTO waiverOptions = new ApiWaiverOptionsDTO();
+    waiverOptions.comment = "Transaction rollback test";
+    waiverOptions.matcherStrategy = EXACT_COMPONENT;
+    // Set invalid waiver reason to cause transaction failure
+    waiverOptions.waiverReasonId = "invalid-reason-id";
+    ApiBulkWaiversDTO bulkWaiversDTO = new ApiBulkWaiversDTO(
+        Arrays.asList(policyViolation.getId(), violation2.getId()),
+        waiverOptions
+    );
+
+    // When: Attempt bulk waiver creation that will fail
+    assertThatThrownBy(() ->
+        apiPolicyWaiverService.addBulkPolicyWaivers(OwnerType.APPLICATION, app.getId(), bulkWaiversDTO)
+    ).isInstanceOf(BadRequestException.class);
+
+    // Then: Verify database state is clean (transaction rolled back)
+    List<PolicyWaiver> waivers = policyWaiverDAO.getActiveByOwnerId(app.getId());
+    assertThat(waivers).hasSize(0);
+
+    // Verify no partial state was persisted to database
+    List<PolicyWaiver> allWaivers = policyWaiverDAO.getAll();
+    assertThat(allWaivers)
+        .filteredOn(waiver -> waiver.getComment() != null && waiver.getComment().equals("Transaction rollback test"))
+        .hasSize(0);
   }
 }

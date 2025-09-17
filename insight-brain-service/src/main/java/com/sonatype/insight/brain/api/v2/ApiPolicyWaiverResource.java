@@ -22,6 +22,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiBulkWaiversDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRequestPolicyWaiverDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiWaiverOptionsDTO;
@@ -40,6 +41,8 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import static com.sonatype.insight.brain.api.v2.service.ApiPolicyWaiverService.MAX_BULK_WAIVER_VIOLATIONS;
 
 /**
  * @since 1.90
@@ -123,6 +126,51 @@ public class ApiPolicyWaiverResource
       ApiWaiverOptionsDTO waiverOptionsDTO)
   {
     apiPolicyWaiverService.addPolicyWaiverByPolicyViolationId(ownerType, ownerId, policyViolationId, waiverOptionsDTO);
+  }
+
+  @POST
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.CREATE_WAIVER)
+  @Path(OWNERS_PATH)
+  @Operation(
+      description = "Use this method to create policy waivers for multiple policy violations." +
+          "\n" +
+          "\n" +
+          "Permissions required: Waive Policy Violations",
+      responses = {
+          @ApiResponse(
+              responseCode = "204",
+              description = "No content. Indicates that the waivers have been created successfully."
+          )
+      }
+  )
+  public void addBulkPolicyWaivers(
+      @Parameter(description = "Indicates the scope of the waiver. Possible values are application, " +
+          "organization, repository, repository_manager, repository_container.", required = true)
+      @PathParam("ownerType") OwnerType ownerType,
+      @Parameter(description = "Enter the id for the ownerType provided above. E.g. applicationId if the " +
+          "ownerType is application.", required = true)
+      @PathParam("ownerId") String ownerId,
+      @RequestBody(
+          description = "The request JSON should include:" +
+              "<ol>" +
+              "<li>violationIds (required, list of policy violation IDs, maximum "
+              + MAX_BULK_WAIVER_VIOLATIONS + ")</li>" +
+              "<li>apiWaiverOptionsDTO (required) containing:" +
+              "<ul>" +
+              "<li>comment (optional, to indicate the reason of the waiver)</li>" +
+              "<li>matcherStrategy (enumeration, required) can have values EXACT_COMPONENT or ALL_VERSIONS</li>" +
+              "<li>expiryTime (optional) to set the datetime when the waiver expires</li>" +
+              "<li>waiverReasonId (optional) waiver reason ID</li>" +
+              "<li>expireWhenRemediationAvailable (optional boolean, default false) expire waiver when remediation " +
+              "is available, can only be applied to Exact Components.</li>" +
+              "</ul></li>" +
+              "</ol>",
+          required = true
+      )
+      ApiBulkWaiversDTO bulkWaiversDTO)
+  {
+    apiPolicyWaiverService.addBulkPolicyWaivers(ownerType, ownerId, bulkWaiversDTO);
   }
 
   @PUT

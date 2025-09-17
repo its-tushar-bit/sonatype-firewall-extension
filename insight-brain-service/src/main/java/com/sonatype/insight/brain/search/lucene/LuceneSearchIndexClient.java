@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -93,11 +94,13 @@ public class LuceneSearchIndexClient
       final Configuration configuration,
       final PermissionService permissionService,
       final CurrentUser currentUser,
-      final ConversionHelper conversionHelper)
+      final ConversionHelper conversionHelper,
+      final ShutdownHandler shutdownHandler)
   {
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
         thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
-        advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper);
+        advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper,
+        shutdownHandler);
     this.insightWork = insightWork;
   }
 

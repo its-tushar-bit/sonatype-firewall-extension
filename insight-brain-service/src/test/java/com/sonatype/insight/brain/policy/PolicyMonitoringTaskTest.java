@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.policy;
 
-import java.io.PrintWriter;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.policy.evaluator.PolicyMonitor;
@@ -38,16 +36,6 @@ public class PolicyMonitoringTaskTest
   public void configure(Binder binder) {
     binder.bind(PolicyMonitor.class).toInstance(policyMonitorMock);
     super.configure(binder);
-  }
-
-  @Test
-  public void testExecute_DropwizardTask() {
-    PrintWriter printWriterMock = mock(PrintWriter.class);
-
-    policyMonitoringTask.execute(null, printWriterMock);
-
-    verify(policyMonitorMock).run();
-    verify(printWriterMock).write("Completed manual Policy Monitor execution\n");
   }
 
   @Test

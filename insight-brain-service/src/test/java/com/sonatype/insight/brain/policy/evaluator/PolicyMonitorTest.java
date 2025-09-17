@@ -50,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
@@ -59,10 +60,12 @@ import com.sonatype.insight.brain.policy.PolicyResource;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.brain.webhook.ApplicationEvaluationEvent;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -72,6 +75,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+import org.mockito.Mockito;
 
 import static com.sonatype.insight.brain.Assert.assertNotifications;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
@@ -81,6 +85,8 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THI
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.THIRD_PARTY_SECURITY_JSON;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -104,9 +110,11 @@ public class PolicyMonitorTest
 
   private OwnerDAO ownerDAO;
 
-  private static ShutdownHandler mockShutdownHandler = mock(ShutdownHandler.class);
+  private static final TelemetrySender mockTelemetrySender = mock(TelemetrySender.class);
 
-  private static MailConfiguration testMailConfiguration = createTestMailConfiguration();
+  private static final ShutdownHandler mockShutdownHandler = mock(ShutdownHandler.class);
+
+  private static final MailConfiguration testMailConfiguration = createTestMailConfiguration();
 
   private static MailConfiguration createTestMailConfiguration() {
     MailConfiguration mailConfiguration = new MailConfiguration();
@@ -118,8 +126,9 @@ public class PolicyMonitorTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
   }
 
   @Before
@@ -141,6 +150,7 @@ public class PolicyMonitorTest
     if (handler != null) {
       asyncEventBus.unregister(handler);
     }
+    Mockito.reset(mockTelemetrySender);
   }
 
   @Test
@@ -276,6 +286,23 @@ public class PolicyMonitorTest
     assertThat(event.initiator).isEqualTo(CurrentUser.SYSTEM);
 
     assertShutdownHandler();
+  }
+
+  @Test
+  public void testPolicyMonitorThreads() {
+    Application application = tempEntity.newApplicationWithParent();
+    String scanId = "scanId";
+    createScanFile(application, scanId);
+    mockScanReceiptAndReport(scanId);
+    PolicyMonitoring policyMonitoring = new PolicyMonitoring(Organization.ROOT_ORGANIZATION_ID, BuildStageType.ID);
+    tempEntity.newPolicyMonitoring(policyMonitoring);
+    doThrow(new RuntimeException("Something went wrong")).when(mockTelemetrySender).send(any(TelemetryData.class));
+
+    PolicyMonitor policyMonitor = getCLMServer().getInstance(PolicyMonitor.class);
+    assertThatExceptionOfType(RuntimeException.class)
+        .isThrownBy(policyMonitor::run)
+        .withMessageContaining("Something went wrong");
+    assertThat(policyMonitor.getExecutorService().isShutdown()).isTrue();
   }
 
   private void testMonitored(OwnerType monitorOwnerType) throws Exception {
@@ -892,7 +919,7 @@ public class PolicyMonitorTest
   }
 
   private void assertShutdownHandler() {
-    verify(mockShutdownHandler).add(policyMonitor.getApplicationMonitorForkJoinPool());
-    verify(mockShutdownHandler).remove(policyMonitor.getApplicationMonitorForkJoinPool());
+    verify(mockShutdownHandler).add(policyMonitor.getExecutorService());
+    verify(mockShutdownHandler).remove(policyMonitor.getExecutorService());
   }
 }

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.time.LocalTime;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
@@ -23,6 +22,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -106,5 +106,12 @@ public class PolicyMonitorSchedulerTest
     policyMonitorScheduler.productLicenseChanged();
 
     verify(taskSchedulerMock).unscheduleTask(any(PolicyMonitoringTask.class));
+  }
+
+  @Test
+  public void testExecute_DropwizardTask() {
+    policyMonitorScheduler.execute(null, null);
+
+    verify(taskSchedulerMock).triggerTaskNow(any(PolicyMonitoringTask.class), eq(null));
   }
 }

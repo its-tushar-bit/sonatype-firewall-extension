@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -55,23 +56,28 @@ import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.report.ReportTestUtils;
+import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
+import com.sonatype.insight.brain.search.lucene.DocumentBuilderHelper;
 import com.sonatype.insight.brain.search.query.SearchService;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightWork;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.inject.Binder;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -82,8 +88,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.notNullValue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -113,8 +123,7 @@ public abstract class AbstractIndexSearchingTest
   @Inject
   private ApplicationDAO applicationDAO;
 
-  @Inject
-  private OrganizationDAO organizationDAO;
+  private OrganizationDAO spyOrganizationDAO;
 
   @Inject
   private LabelDAO labelDAO;
@@ -137,14 +146,23 @@ public abstract class AbstractIndexSearchingTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Inject
+  private DocumentBuilderHelper documentBuilderHelper;
+
+  @Mock
+  private ShutdownHandler mockShutdownHandler;
+
   @Rule
   public HdsMockServerRule hdsMockServer = new HdsMockServerRule();
 
   @Override
   public void configure(Binder binder) {
+    spyOrganizationDAO = spy(daoFactory.createOrganizationDAO());
+    binder.bind(OrganizationDAO.class).toInstance(spyOrganizationDAO);
     lenient().when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn("");
     binder.bind(VulnerabilityDescriptionFetcher.class).toInstance(vulnerabilityDescriptionFetcher);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(ShutdownHandler.class).toInstance(mockShutdownHandler);
     super.configure(binder);
   }
 
@@ -1229,7 +1247,7 @@ public abstract class AbstractIndexSearchingTest
     // Update organization
     String oldOrgName = org.getName();
     org.setName("NewOrgName");
-    organizationDAO.update(org);
+    spyOrganizationDAO.update(org);
     indexChanges();
     // Verify the new values are in the index
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
@@ -1240,7 +1258,7 @@ public abstract class AbstractIndexSearchingTest
 
     // Delete organization
     applicationDAO.delete(app);
-    organizationDAO.delete(org);
+    spyOrganizationDAO.delete(org);
     indexChanges();
     assertThat(search(FieldIdentifier.ORGANIZATION_ID, org.getId())).isEmpty();
     assertThat(search(FieldIdentifier.ORGANIZATION_NAME, org.getName())).isEmpty();
@@ -1264,7 +1282,7 @@ public abstract class AbstractIndexSearchingTest
         ItemType.APPLICATION.name(), ItemType.SECURITY_VULNERABILITY.name());
 
     org.setName("NewOrgName");
-    organizationDAO.update(org);
+    spyOrganizationDAO.update(org);
     indexChanges();
 
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, org.getName());
@@ -1305,7 +1323,7 @@ public abstract class AbstractIndexSearchingTest
     assertThat(searchResults).hasSize(4);
 
     barOrg.setName("bar-new-name");
-    organizationDAO.update(barOrg);
+    spyOrganizationDAO.update(barOrg);
     indexChanges();
 
     searchResults = search(FieldIdentifier.ORGANIZATION_NAME, fooOrg.getName());
@@ -1427,5 +1445,51 @@ public abstract class AbstractIndexSearchingTest
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_NAME, tag.getName())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_DESCRIPTION, tag.getDescription())).isEmpty();
     assertThat(search(FieldIdentifier.APPLICATION_CATEGORY_COLOR, tag.getColor().toValue())).isEmpty();
+  }
+
+  @BeforeClass
+  public static void beforeClass() {
+    System.setProperty("AdvancedSearch.createSearchIndex", "2");
+    System.setProperty("AdvancedSearch.createSearchIndex.eval", "2");
+    System.setProperty("AdvancedSearch.createSearchIndex.component", "2");
+  }
+
+  @AfterClass
+  public static void afterClass() {
+    System.clearProperty("AdvancedSearch.createSearchIndex");
+    System.clearProperty("AdvancedSearch.createSearchIndex.eval");
+    System.clearProperty("AdvancedSearch.createSearchIndex.component");
+  }
+
+  @Test
+  public void testIndex_ThreadsAreLimited() throws Exception {
+    String vulnDescription = "Remote Code Execution, you may panic now";
+    when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(anyString())).thenReturn(vulnDescription);
+    newAppReport(Stage.ID_BUILD, "report1");
+    newAppReport(Stage.ID_BUILD, "report2");
+    newAppReport(Stage.ID_BUILD, "report3");
+    Set<Thread> threads = new HashSet<>();
+    doAnswer(invocationOnMock -> {
+      Thread.sleep(200);
+      threads.add(Thread.currentThread());
+      return invocationOnMock.callRealMethod();
+    }).when(spyOrganizationDAO).getById(any(), anyString());
+
+    index();
+
+    assertThat(threads).extracting(Thread::getName)
+        .allSatisfy(name -> {
+          assertThat(name).doesNotStartWith("ForkJoinPool.commonPool-worker");
+          assertThat(name).doesNotEndWith("2");
+        });
+  }
+
+  @Test
+  public void testIndex_ExecutorsAreAddedToShutdownHandler() throws Exception {
+    newAppReport(Stage.ID_RELEASE, "report-id");
+    index();
+    verify(mockShutdownHandler).add(((AbstractSearchIndexClient) searchIndexClient).getIndexingExecutor());
+    verify(mockShutdownHandler).add(documentBuilderHelper.getEvalExecutor());
+    verify(mockShutdownHandler).add(documentBuilderHelper.getComponentExecutor());
   }
 }

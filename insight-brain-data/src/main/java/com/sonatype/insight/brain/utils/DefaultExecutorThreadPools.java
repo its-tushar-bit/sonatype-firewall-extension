@@ -12,7 +12,6 @@ import java.util.concurrent.ForkJoinWorkerThread;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -94,8 +93,7 @@ public class DefaultExecutorThreadPools
     return new ForkJoinPool(threadCount, factory, null, false);
   }
 
-  @VisibleForTesting
-  static int getThreadCount(int minThreads, int maxThreads, int defaultThreads, String configProp) {
+  public static int getThreadCount(int minThreads, int maxThreads, int defaultThreads, String configProp) {
     /*
      * get value based on configProp, if not set, fall back to defaultThreads
      * if value is less than minThreads, fall back to minThreads

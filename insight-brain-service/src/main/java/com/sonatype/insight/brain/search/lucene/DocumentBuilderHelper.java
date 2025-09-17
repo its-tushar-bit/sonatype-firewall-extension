@@ -14,6 +14,12 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -53,12 +59,16 @@ import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.search.index.IndexingContext;
 import com.sonatype.insight.brain.search.index.ItemType;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
-import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
 import org.slf4j.Logger;
@@ -74,6 +84,23 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 public class DocumentBuilderHelper
 {
+  private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL = "AdvancedSearch.createSearchIndex.eval";
+
+  private static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT =
+      "AdvancedSearch.createSearchIndex.component";
+
+  private static final int EVAL_THREADS_MIN = 1;
+
+  private static final int EVAL_THREADS_MAX = Integer.MAX_VALUE;
+
+  private static final int EVAL_THREADS_DEFAULT = 8;
+
+  private static final int COMPONENT_THREADS_MIN = 1;
+
+  private static final int COMPONENT_THREADS_MAX = Integer.MAX_VALUE;
+
+  private static final int COMPONENT_THREADS_DEFAULT = 8;
+
   private static final Logger log = LoggerFactory.getLogger(DocumentBuilderHelper.class);
 
   private final LabelDAO labelDAO;
@@ -102,6 +129,12 @@ public class DocumentBuilderHelper
 
   private final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher;
 
+  private final TenantReference<TenantThreadPoolExecutor> evalExecutors;
+
+  private final TenantReference<TenantThreadPoolExecutor> componentExecutors;
+
+  private final ShutdownHandler shutdownHandler;
+
   @Inject
   public DocumentBuilderHelper(
       final LabelDAO labelDAO,
@@ -116,7 +149,8 @@ public class DocumentBuilderHelper
       final ThirdPartyVulnerabilityDAO thirdPartyVulnerabilityDAO,
       final ComponentLoaderFactory componentLoaderFactory,
       final ReportService reportService,
-      final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher)
+      final VulnerabilityDescriptionFetcher vulnerabilityDescriptionFetcher,
+      final ShutdownHandler shutdownHandler)
   {
     this.labelDAO = labelDAO;
     this.organizationDAO = organizationDAO;
@@ -131,6 +165,61 @@ public class DocumentBuilderHelper
     this.componentLoaderFactory = componentLoaderFactory;
     this.reportService = reportService;
     this.vulnerabilityDescriptionFetcher = vulnerabilityDescriptionFetcher;
+    this.evalExecutors = new TenantReference<>();
+    this.componentExecutors = new TenantReference<>();
+    this.shutdownHandler = shutdownHandler;
+  }
+
+  // Visible for testing
+  public ExecutorService getEvalExecutor() {
+    return evalExecutors.computeIfAbsent(tenant -> {
+      int evalThreadCount = DefaultExecutorThreadPools.getThreadCount(
+          EVAL_THREADS_MIN,
+          EVAL_THREADS_MAX,
+          EVAL_THREADS_DEFAULT,
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_EVAL
+      );
+      TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+          evalThreadCount,
+          evalThreadCount,
+          5L,
+          TimeUnit.SECONDS,
+          new LinkedBlockingQueue<>(),
+          new ThreadFactoryBuilder().setNameFormat("DocumentBuilderHelper-eval-%d").build(),
+          new AbortPolicy(),
+          "advanced_search_indexing_eval",
+          getClass().getSimpleName()
+      );
+      tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      shutdownHandler.add(tenantThreadPoolExecutor);
+      return tenantThreadPoolExecutor;
+    });
+  }
+
+  // Visible for testing
+  public ExecutorService getComponentExecutor() {
+    return componentExecutors.computeIfAbsent(tenant -> {
+      int componentThreadCount = DefaultExecutorThreadPools.getThreadCount(
+          COMPONENT_THREADS_MIN,
+          COMPONENT_THREADS_MAX,
+          COMPONENT_THREADS_DEFAULT,
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX_COMPONENT
+      );
+      TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+          componentThreadCount,
+          componentThreadCount,
+          5L,
+          TimeUnit.SECONDS,
+          new LinkedBlockingQueue<>(),
+          new ThreadFactoryBuilder().setNameFormat("DocumentBuilderHelper-component-%d").build(),
+          new AbortPolicy(),
+          "advanced_search_indexing_component",
+          getClass().getSimpleName()
+      );
+      tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      shutdownHandler.add(tenantThreadPoolExecutor);
+      return tenantThreadPoolExecutor;
+    });
   }
 
   public List<Document> buildOrganizationDocs(
@@ -247,12 +336,27 @@ public class DocumentBuilderHelper
       Application application,
       Map<Organization, Collection<Organization>> parentOrgsMap)
   {
-
-    return StageTypes.getAll().parallelStream()
-        .map(new TenantAwareFunction<>(
-            stageType -> buildApplicationStageSVDocs(indexingContext, organization, application, stageType,
-                parentOrgsMap.get(organization))))
-        .flatMap(Collection::stream).collect(toList());
+    return StageTypes.getAll().stream()
+        .map(stageType -> CompletableFuture.supplyAsync(
+            () -> buildApplicationStageSVDocs(
+                indexingContext,
+                organization,
+                application,
+                stageType,
+                parentOrgsMap.get(organization)
+            ),
+            getEvalExecutor()
+        ))
+        .collect(Collectors.collectingAndThen(
+            Collectors.toList(),
+            futures -> {
+              CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+              return futures.stream()
+                  .map(CompletableFuture::join)
+                  .flatMap(List::stream)
+                  .toList();
+            }
+        ));
   }
 
   public List<Document> buildApplicationStageSVDocs(
@@ -284,18 +388,35 @@ public class DocumentBuilderHelper
       }
 
       return componentLoaderFactory.createComponentLoader(application)
-          .getAll(licenseReportEntry.buf, securityReportEntry.buf, bomReportEntry.buf,
-              dependenciesReportEntry.buf)
-          .parallelStream()
-          .map(new TenantAwareFunction<>(
-              component -> buildApplicationComponentVulnerabilityDocuments(
+          .getAll(
+              licenseReportEntry.buf,
+              securityReportEntry.buf,
+              bomReportEntry.buf,
+              dependenciesReportEntry.buf
+          )
+          .stream()
+          .map(component -> CompletableFuture.supplyAsync(
+              () -> buildApplicationComponentVulnerabilityDocuments(
                   indexingContext,
                   organization,
                   parentOrganizations,
                   application,
                   stageType,
                   scanId,
-                  component))).flatMap(Collection::stream).collect(toList());
+                  component
+              ),
+              getComponentExecutor()
+          ))
+          .collect(Collectors.collectingAndThen(
+              Collectors.toList(),
+              futures -> {
+                CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+                return futures.stream()
+                    .map(CompletableFuture::join)
+                    .flatMap(List::stream)
+                    .toList();
+              }
+          ));
     }
     catch (IOException | NotFoundException e) {
       log.error(e.getMessage(), e);
@@ -317,10 +438,9 @@ public class DocumentBuilderHelper
       Component component)
   {
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
-      return component.getSecurityVulnerabilities().parallelStream()
-          .map(new TenantAwareFunction<>(
-              vulnerability -> buildDocument(indexingContext, application, stageType, reportId, component,
-                  vulnerability, parentOrganizations)))
+      return component.getSecurityVulnerabilities().stream()
+          .map(vulnerability -> buildDocument(indexingContext, application, stageType, reportId, component,
+              vulnerability, parentOrganizations))
           .collect(toList());
     }
     else if (component.getComponentIdentifier() != null) {
@@ -429,11 +549,27 @@ public class DocumentBuilderHelper
       Application application,
       Map<Organization, Collection<Organization>> parentOrgsMap)
   {
-    return thirdPartySbomMetadataDAO.getByApplicationId(application.getId()).parallelStream()
-        .map(new TenantAwareFunction<>(
-            sbomMetadata -> buildSbomVersionSVDocs(organization, application, sbomMetadata,
-                parentOrgsMap.get(organization))))
-        .flatMap(Collection::stream).collect(toList());
+    return thirdPartySbomMetadataDAO.getByApplicationId(application.getId())
+        .stream()
+        .map(sbomMetadata -> CompletableFuture.supplyAsync(
+            () -> buildSbomVersionSVDocs(
+                organization,
+                application,
+                sbomMetadata,
+                parentOrgsMap.get(organization)
+            ),
+            getEvalExecutor()
+        ))
+        .collect(Collectors.collectingAndThen(
+            Collectors.toList(),
+            futures -> {
+              CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+              return futures.stream()
+                  .map(CompletableFuture::join)
+                  .flatMap(List::stream)
+                  .toList();
+            }
+        ));
   }
 
   public List<Document> buildSbomVersionSVDocs(
@@ -442,11 +578,28 @@ public class DocumentBuilderHelper
       ThirdPartySbomMetadata sbomMetadata,
       Collection<Organization> parentOrganizations)
   {
-    return thirdPartyFileCoordinateDAO.getBySbomMetadataId(sbomMetadata.getId()).parallelStream()
-        .map(new TenantAwareFunction<>(
-            fileCoord -> buildSbomFileCoordinateSVDocs(organization, application, sbomMetadata,
-                parentOrganizations, fileCoord)))
-        .flatMap(Collection::stream).collect(toList());
+    return thirdPartyFileCoordinateDAO.getBySbomMetadataId(sbomMetadata.getId())
+        .stream()
+        .map(fileCoord -> CompletableFuture.supplyAsync(
+            () -> buildSbomFileCoordinateSVDocs(
+                organization,
+                application,
+                sbomMetadata,
+                parentOrganizations,
+                fileCoord
+            ),
+            getComponentExecutor()
+        ))
+        .collect(Collectors.collectingAndThen(
+            Collectors.toList(),
+            futures -> {
+              CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+              return futures.stream()
+                  .map(CompletableFuture::join)
+                  .flatMap(List::stream)
+                  .toList();
+            }
+        ));
   }
 
   public List<Document> buildSbomFileCoordinateSVDocs(
@@ -461,10 +614,9 @@ public class DocumentBuilderHelper
     );
 
     if (CollectionUtils.isNotEmpty(vulns)) {
-      return vulns.parallelStream()
-          .map(new TenantAwareFunction<>(
-              vuln -> buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, vuln,
-                  parentOrganizations)))
+      return vulns.stream()
+          .map(vuln -> buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, vuln,
+              parentOrganizations))
           .collect(toList());
     }
     else if (thirdPartyFileCoord.getPackageUrl() != null) {

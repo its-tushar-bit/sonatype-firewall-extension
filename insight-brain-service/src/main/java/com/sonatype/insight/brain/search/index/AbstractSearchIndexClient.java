@@ -17,7 +17,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -54,11 +58,12 @@ import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.Configuration;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
-import com.sonatype.insight.brain.tenancy.TenantAwareFunction;
-import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
-import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
@@ -67,6 +72,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.search.QueryVisitor;
@@ -86,11 +92,11 @@ public abstract class AbstractSearchIndexClient
 {
   private static final Logger log = LoggerFactory.getLogger(AbstractSearchIndexClient.class);
 
-  public static final String SEARCH_INDEX_CONFIG_PROPS = "AdvancedSearch.createSearchIndex";
+  public static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX = "AdvancedSearch.createSearchIndex";
 
   private static final int INDEX_THREADS_MIN = 1;
 
-  private static final int INDEX_THREADS_MAX = 7;
+  private static final int INDEX_THREADS_MAX = Integer.MAX_VALUE;
 
   private static final int INDEX_THREADS_DEFAULT = 1;
 
@@ -135,7 +141,9 @@ public abstract class AbstractSearchIndexClient
 
   protected final ConversionHelper conversionHelper;
 
-  protected final Executor indexingExecutor;
+  protected final TenantReference<TenantThreadPoolExecutor> indexingExecutors;
+
+  private final ShutdownHandler shutdownHandler;
 
   public AbstractSearchIndexClient(
       final ApplicationDAO applicationDAO,
@@ -154,7 +162,8 @@ public abstract class AbstractSearchIndexClient
       final Configuration configuration,
       final PermissionService permissionService,
       final CurrentUser currentUser,
-      final ConversionHelper conversionHelper)
+      final ConversionHelper conversionHelper,
+      final ShutdownHandler shutdownHandler)
   {
     this.applicationDAO = applicationDAO;
     this.labelDAO = labelDAO;
@@ -173,8 +182,8 @@ public abstract class AbstractSearchIndexClient
     this.permissionService = permissionService;
     this.currentUser = currentUser;
     this.conversionHelper = conversionHelper;
-    this.indexingExecutor = ExecutorThreadPools.getInstance()
-        .createThreadPool(INDEX_THREADS_MIN, INDEX_THREADS_MAX, INDEX_THREADS_DEFAULT, SEARCH_INDEX_CONFIG_PROPS);
+    this.indexingExecutors = new TenantReference<>();
+    this.shutdownHandler = shutdownHandler;
   }
 
   /**
@@ -707,6 +716,32 @@ public abstract class AbstractSearchIndexClient
     }
   }
 
+  // Visible for testing
+  public ExecutorService getIndexingExecutor() {
+    return indexingExecutors.computeIfAbsent(tenant -> {
+      int threadCount = DefaultExecutorThreadPools.getThreadCount(
+          INDEX_THREADS_MIN,
+          INDEX_THREADS_MAX,
+          INDEX_THREADS_DEFAULT,
+          ADVANCED_SEARCH_CREATE_SEARCH_INDEX
+      );
+      TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+          threadCount,
+          threadCount,
+          5L,
+          TimeUnit.SECONDS,
+          new LinkedBlockingQueue<>(),
+          new ThreadFactoryBuilder().setNameFormat(getClass().getSimpleName() + "-%d").build(),
+          new AbortPolicy(),
+          "advanced_search_index",
+          getClass().getSimpleName()
+      );
+      tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      shutdownHandler.add(tenantThreadPoolExecutor);
+      return tenantThreadPoolExecutor;
+    });
+  }
+
   protected void doPopulateIndex(final IndexingContext indexingContext) {
     log.info("begin indexing");
 
@@ -721,62 +756,58 @@ public abstract class AbstractSearchIndexClient
     indexingContext.addOwners(applications);
 
     CompletableFuture<Void> orgDocs = CompletableFuture.supplyAsync(
-            new TenantAwareSupplier<>(
-                () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations)
-            ),
-            indexingExecutor)
+            () -> documentBuilderHelper.buildOrganizationDocs(indexingContext, organizations),
+            getIndexingExecutor())
         .thenAccept(indexingContext::addDocumentsWithException);
 
     CompletableFuture<Void> appDocs = CompletableFuture.supplyAsync(
-            new TenantAwareSupplier<>(
-                () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications)
-            ),
-            indexingExecutor)
+            () -> documentBuilderHelper.buildApplicationDocs(indexingContext, applications),
+            getIndexingExecutor())
         .thenAccept(indexingContext::addDocumentsWithException);
 
-    TenantAwareFunction<Application, CompletableFuture<Void>> processSVDocsForApplication =
-        new TenantAwareFunction<>(application -> CompletableFuture
-            .supplyAsync(new TenantAwareSupplier<>(
+    Function<Application, CompletableFuture<Void>> processSVDocsForApplication =
+        application -> CompletableFuture
+            .supplyAsync(
                 () -> documentBuilderHelper.buildApplicationSVDocs(indexingContext,
                     organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization)), indexingExecutor)
-            .thenAccept(indexingContext::addDocumentsWithException));
+                    application, parentsByOrganization), getIndexingExecutor())
+            .thenAccept(indexingContext::addDocumentsWithException);
 
     List<CompletableFuture<Void>> appSVDocs = applications
-        .parallelStream()
+        .stream()
         .map(processSVDocsForApplication)
         .toList();
 
     CompletableFuture<Void> tagDocs =
         CompletableFuture.supplyAsync(
-                new TenantAwareSupplier<>(() -> documentBuilderHelper.buildTagDocs(indexingContext)), indexingExecutor)
+                () -> documentBuilderHelper.buildTagDocs(indexingContext), getIndexingExecutor())
             .thenAccept(indexingContext::addDocumentsWithException);
 
     CompletableFuture<Void> labelDocs =
         CompletableFuture.supplyAsync(
-                new TenantAwareSupplier<>(() -> documentBuilderHelper.buildLabelDocs(indexingContext)),
-                indexingExecutor)
+                () -> documentBuilderHelper.buildLabelDocs(indexingContext),
+                getIndexingExecutor())
             .thenAccept(indexingContext::addDocumentsWithException);
 
     CompletableFuture<Void> policyDocs =
         CompletableFuture.supplyAsync(
-                new TenantAwareSupplier<>(() -> documentBuilderHelper.buildPolicyDocs(indexingContext)),
-                indexingExecutor)
+                () -> documentBuilderHelper.buildPolicyDocs(indexingContext),
+                getIndexingExecutor())
             .thenAccept(indexingContext::addDocumentsWithException);
 
     CompletableFuture<Void> sbomDocs = CompletableFuture.supplyAsync(
-        new TenantAwareSupplier<>(() -> documentBuilderHelper.buildSbomDocs(indexingContext)), indexingExecutor
+        () -> documentBuilderHelper.buildSbomDocs(indexingContext), getIndexingExecutor()
     ).thenAccept(indexingContext::addDocumentsWithException);
 
-    TenantAwareFunction<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
-        new TenantAwareFunction<>(application -> CompletableFuture
-            .supplyAsync(new TenantAwareSupplier<>(
+    Function<Application, CompletableFuture<Void>> processSbomSVDocsForApplication =
+        application -> CompletableFuture
+            .supplyAsync(
                 () -> documentBuilderHelper.buildSbomSVDocs(organizationById.get(application.getOrganizationId()),
-                    application, parentsByOrganization)), indexingExecutor)
-            .thenAccept(indexingContext::addDocumentsWithException));
+                    application, parentsByOrganization), getIndexingExecutor())
+            .thenAccept(indexingContext::addDocumentsWithException);
 
     List<CompletableFuture<Void>> sbomSVDocs = applications
-        .parallelStream()
+        .stream()
         .map(processSbomSVDocsForApplication)
         .toList();
 
@@ -785,7 +816,7 @@ public abstract class AbstractSearchIndexClient
     log.info("org indexing complete");
     appDocs.join();
     log.info("app indexing complete");
-    appSVDocs.forEach(CompletableFuture::join);
+    CompletableFuture.allOf(appSVDocs.toArray(CompletableFuture[]::new)).join();
     log.info("appSV indexing complete");
     tagDocs.join();
     log.info("tag indexing complete");
@@ -795,7 +826,7 @@ public abstract class AbstractSearchIndexClient
     log.info("policy indexing complete");
     sbomDocs.join();
     log.info("SBOM metadata indexing complete");
-    sbomSVDocs.forEach(CompletableFuture::join);
+    CompletableFuture.allOf(sbomSVDocs.toArray(CompletableFuture[]::new)).join();
     log.info("sbomSV indexing complete");
   }
 

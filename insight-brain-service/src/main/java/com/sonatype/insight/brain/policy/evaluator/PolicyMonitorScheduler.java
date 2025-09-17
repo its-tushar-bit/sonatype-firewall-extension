@@ -5,9 +5,11 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import java.io.PrintWriter;
 import java.time.LocalTime;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -19,6 +21,7 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
+import io.dropwizard.servlets.tasks.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +33,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class PolicyMonitorScheduler
+    extends Task
     implements TenantManaged, ProductLicenseListener
 {
   private static final Logger log = LoggerFactory.getLogger(PolicyMonitorScheduler.class);
@@ -53,6 +57,7 @@ public class PolicyMonitorScheduler
       TaskScheduler taskScheduler,
       PolicyMonitoringTask policyMonitoringTask)
   {
+    super("triggerPolicyMonitor");
     this.configuration = configuration;
     this.productLicense = productLicense;
     this.taskScheduler = taskScheduler;
@@ -115,5 +120,13 @@ public class PolicyMonitorScheduler
   @Override
   public void deregister() {
     // noop
+  }
+
+  // To tigger the task:
+  // curl -X POST -u <user>:<password> http://localhost:8071/tasks/triggerPolicyMonitor
+  @Override
+  public void execute(final Map<String, List<String>> parameters, final PrintWriter output) {
+    log.info("Manual request to run Policy Monitor");
+    taskScheduler.triggerTaskNow(policyMonitoringTask, null);
   }
 }

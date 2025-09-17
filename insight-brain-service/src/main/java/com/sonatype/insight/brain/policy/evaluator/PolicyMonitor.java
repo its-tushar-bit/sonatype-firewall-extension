@@ -14,7 +14,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -49,11 +52,13 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
-import com.sonatype.insight.brain.utils.ExecutorThreadPools;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +78,7 @@ public class PolicyMonitor
 
   private static final int POLICY_MONITOR_THREADS_MAX = 20;
 
-  private ForkJoinPool applicationMonitorForkJoinPool;
+  private ExecutorService executorService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
@@ -150,11 +155,11 @@ public class PolicyMonitor
   }
 
   // Visible for testing
-  ForkJoinPool getApplicationMonitorForkJoinPool() {
-    return applicationMonitorForkJoinPool;
+  ExecutorService getExecutorService() {
+    return executorService;
   }
 
-  private ForkJoinPool initThreadPool(Configuration configuration) {
+  private ExecutorService initThreadPool(Configuration configuration) {
     int maxThreadCount = POLICY_MONITOR_THREADS_MAX;
     int threadCount = POLICY_MONITOR_THREADS_DEFAULT;
 
@@ -164,11 +169,26 @@ public class PolicyMonitor
       threadCount = saasPolicyMonitorPoolSize;
     }
 
-    ForkJoinPool threadPool = ExecutorThreadPools.getInstance().createThreadPool(
-        POLICY_MONITOR_THREADS_MIN, maxThreadCount, threadCount, "insight.threads.monitor");
-    log.info("insight.threads.monitor pool-size: {}", threadPool.getParallelism());
+    int finalThreadCount = DefaultExecutorThreadPools.getThreadCount(
+        POLICY_MONITOR_THREADS_MIN,
+        maxThreadCount,
+        threadCount,
+        "insight.threads.monitor"
+    );
+    TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+        finalThreadCount,
+        finalThreadCount,
+        5L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat("insight-thread-monitor-%d").build(),
+        new AbortPolicy(),
+        "policy_monitor",
+        getClass().getSimpleName()
+    );
+    tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
 
-    return threadPool;
+    return tenantThreadPoolExecutor;
   }
 
   public void run() {
@@ -189,14 +209,17 @@ public class PolicyMonitor
     policyMonitorings.stream().filter(pm -> pm.getStageTypeId().equals(ComplianceStageType.ID))
         .forEach(pm -> smPolicyMonitoringsByOwnerId.put(pm.getOwnerId(), pm));
 
-    applicationMonitorForkJoinPool = initThreadPool(configuration);
-    shutdownHandler.add(applicationMonitorForkJoinPool);
+    try {
+      executorService = initThreadPool(configuration);
+      shutdownHandler.add(executorService);
 
-    evaluateApplications(lcPolicyMonitoringsByOwnerId);
-    evaluateApplications(smPolicyMonitoringsByOwnerId);
-
-    applicationMonitorForkJoinPool.shutdown();
-    shutdownHandler.remove(applicationMonitorForkJoinPool);
+      evaluateApplications(lcPolicyMonitoringsByOwnerId);
+      evaluateApplications(smPolicyMonitoringsByOwnerId);
+    }
+    finally {
+      executorService.shutdown();
+      shutdownHandler.remove(executorService);
+    }
 
     log.info("Policy monitoring evaluated in {} ms for tenant {}", System.currentTimeMillis() - start,
         TenantThreadLocal.getTenant());
@@ -250,7 +273,7 @@ public class PolicyMonitor
           }
         }
         return null;
-      }, applicationMonitorForkJoinPool);
+      }, executorService);
       futures.add(future);
     }
     futures.forEach(CompletableFuture::join);

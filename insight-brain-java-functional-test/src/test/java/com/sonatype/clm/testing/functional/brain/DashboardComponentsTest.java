@@ -32,6 +32,7 @@ import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -117,6 +118,7 @@ public class DashboardComponentsTest
     paginator.previousPageButton().shouldBe(hidden);
   }
 
+  @Ignore("Disabled due to occasional CI failures: https://sonatype.atlassian.net/browse/CLM-36202")
   @Test
   public void testComponentsTable() {
     // add a violation for each Risk Level

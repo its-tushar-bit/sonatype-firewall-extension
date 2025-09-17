@@ -44,9 +44,8 @@ public class SourceControlPullRequestMetrics
   private ComponentHelper componentHelper;
 
   @Inject
-  public SourceControlPullRequestMetrics(
-      SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
-      ComponentHelper componentHelper)
+  public SourceControlPullRequestMetrics(SourceControlPullRequestResultDAO sourceControlPullRequestResultDAO,
+                                         ComponentHelper componentHelper)
   {
     this.sourceControlPullRequestResultDAO = sourceControlPullRequestResultDAO;
     this.componentHelper = componentHelper;

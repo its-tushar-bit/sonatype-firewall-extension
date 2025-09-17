@@ -10,7 +10,6 @@ import java.nio.file.Files;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -43,7 +42,7 @@ public class SourceControlUtilsTest
 
   private static final String SCM_USERNAME = "username";
 
-  private ApiSourceControlService mockSourceControlService;
+  private SourceControlDataService mockSourceControlDataService;
 
   private GitClientFactory mockGitClientFactory;
 
@@ -61,10 +60,10 @@ public class SourceControlUtilsTest
 
   @Override
   public void configure(Binder binder) {
-    mockSourceControlService = mock(ApiSourceControlService.class);
+    mockSourceControlDataService = mock(SourceControlDataService.class);
     mockGitClientFactory = mock(GitClientFactory.class);
     mockGitClientApi = mock(GitApiClient.class);
-    binder.bind(ApiSourceControlService.class).toInstance(mockSourceControlService);
+    binder.bind(SourceControlDataService.class).toInstance(mockSourceControlDataService);
     binder.bind(GitClientFactory.class).toInstance(mockGitClientFactory);
     binder.bind(GitApiClient.class).toInstance(mockGitClientApi);
     super.configure(binder);
@@ -92,12 +91,12 @@ public class SourceControlUtilsTest
         .setSourceControlScanTarget("/target/*")
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
 
-    verify(mockSourceControlService).getCompositeSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlDataService).getCompositeSourceControlByOwnerDecrypted(application.getId());
     assertGitRepositoryInfoValues(value);
   }
 
@@ -112,7 +111,7 @@ public class SourceControlUtilsTest
         .setProvider(SourceControlProvider.GITHUB)
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(orgSourceControl);
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForApplication(application.getId());
@@ -146,7 +145,7 @@ public class SourceControlUtilsTest
         .setProvider(SourceControlProvider.GITHUB)
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     // when : get repo info for app
@@ -154,7 +153,7 @@ public class SourceControlUtilsTest
 
     // then : expect result to have default base branch
     assertThat(value.baseBranch).isEqualTo(SourceControlUtils.DEFAULT_BASE_BRANCH);
-    verify(mockSourceControlService).getCompositeSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlDataService).getCompositeSourceControlByOwnerDecrypted(application.getId());
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isTrue();
   }
@@ -170,7 +169,7 @@ public class SourceControlUtilsTest
   public void testIsScmEnabled_NoRepositoryUrl() {
     SourceControl sourceControl = new SourceControl.Builder().setOwnerId(application.getId()).build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
@@ -183,7 +182,7 @@ public class SourceControlUtilsTest
         .setRepositoryUrl(VALID_URL)
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
@@ -197,7 +196,7 @@ public class SourceControlUtilsTest
         .setProvider(SourceControlProvider.GITHUB)
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     assertThat(sourceControlUtils.isScmEnabled(application.getId())).isFalse();
@@ -215,7 +214,7 @@ public class SourceControlUtilsTest
         .setRemediationPullRequestsEnabled(true)
         .setStatusChecksEnabled(true)
         .build();
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
 
     // expect: source control is not enabled
@@ -280,13 +279,13 @@ public class SourceControlUtilsTest
         .build();
 
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitClientApi);
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
     when(mockGitClientApi.getUserId()).thenReturn("scmUser");
 
     String userId = sourceControlUtils.getScmUserIdForApplication(application.getId());
 
-    verify(mockSourceControlService, times(1)).getCompositeSourceControlByOwnerDecrypted(application.getId());
+    verify(mockSourceControlDataService, times(1)).getCompositeSourceControlByOwnerDecrypted(application.getId());
     verify(mockGitClientFactory, times(1)).createApiClient(any());
     verify(mockGitClientApi, times(1)).getUserId();
     assertThat(userId).isNotNull();
@@ -308,12 +307,12 @@ public class SourceControlUtilsTest
         .setSourceControlScanTarget("/target/*")
         .build();
 
-    when(mockSourceControlService.getCompositeSourceControlByOwnerDecrypted(eq(org.getId())))
+    when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(org.getId())))
         .thenReturn(orgSourceControl);
 
     GitRepositoryInfo value = sourceControlUtils.getGitRepositoryInfoForRepository(org.getId(), VALID_URL, GITHUB);
 
-    verify(mockSourceControlService).getCompositeSourceControlByOwnerDecrypted(org.getId());
+    verify(mockSourceControlDataService).getCompositeSourceControlByOwnerDecrypted(org.getId());
     assertGitRepositoryInfoValuesForRepository(value);
   }
 

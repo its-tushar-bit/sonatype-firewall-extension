@@ -31,7 +31,7 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
 import javax.inject.Inject;
-import javax.inject.Provider;
+
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.SecurityUtils;
 import org.slf4j.Logger;
@@ -57,7 +57,7 @@ public class ManualPullRequestService
 
   private final ComponentRemediationService componentRemediationService;
 
-  private final Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService;
+  private final RemediationPullRequestEligibilityService remediationPullRequestEligibilityService;
 
   private final TenantUtil tenantUtil;
 
@@ -70,7 +70,7 @@ public class ManualPullRequestService
       PasswordHandler passwordHandler,
       PullRequestBranchNameGenerator pullRequestBranchNameGenerator,
       ComponentRemediationService componentRemediationService,
-      Provider<RemediationPullRequestEligibilityService> remediationPullRequestEligibilityService,
+      RemediationPullRequestEligibilityService remediationPullRequestEligibilityService,
       TenantUtil tenantUtil)
   {
     this.sourceControlDAO = sourceControlDAO;
@@ -161,7 +161,7 @@ public class ManualPullRequestService
     Application application = (Application) owner;
     String branchName =
         pullRequestBranchNameGenerator.getBranchName(application, componentIdentifier, suggestedVersion);
-    if (remediationPullRequestEligibilityService.get().isRemediationWaitingOrDone(application.getId(), branchName)) {
+    if (remediationPullRequestEligibilityService.isRemediationWaitingOrDone(application.getId(), branchName)) {
       return Optional.of(ManualPullRequestImpossibilityReason.REMEDIATION_EVENT_EXISTS);
     }
 

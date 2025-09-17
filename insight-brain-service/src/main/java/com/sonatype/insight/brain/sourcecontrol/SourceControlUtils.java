@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.common.io.FileCleaner.FileDeletionException;
 import com.sonatype.insight.brain.git.GitClientFactory;
@@ -41,7 +40,7 @@ public class SourceControlUtils
 
   public static final String DEFAULT_BASE_BRANCH = "master";
 
-  private final ApiSourceControlService sourceControlService;
+  private final SourceControlDataService sourceControlDataService;
 
   private final InsightWork insightWork;
 
@@ -51,19 +50,19 @@ public class SourceControlUtils
 
   @Inject
   public SourceControlUtils(
-      ApiSourceControlService sourceControlService,
+      SourceControlDataService sourceControlDataService,
       InsightWork insightWork,
       FileCleaner fileCleaner,
       GitClientFactory gitClientFactory)
   {
-    this.sourceControlService = sourceControlService;
+    this.sourceControlDataService = sourceControlDataService;
     this.insightWork = insightWork;
     this.fileCleaner = fileCleaner;
     this.gitClientFactory = gitClientFactory;
   }
 
   public GitRepositoryInfo getGitRepositoryInfoForApplication(String applicationId) {
-    SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted(applicationId);
+    SourceControl sourceControl = sourceControlDataService.getCompositeSourceControlByOwnerDecrypted(applicationId);
     return getGitRepositoryInfoForApplicationStatic(sourceControl, applicationId);
   }
 
@@ -198,7 +197,7 @@ public class SourceControlUtils
       SourceControlProvider provider)
   {
     // check up the organization hierarchy for missing fields
-    SourceControl sourceControl = sourceControlService.getCompositeSourceControlByOwnerDecrypted(orgId);
+    SourceControl sourceControl = sourceControlDataService.getCompositeSourceControlByOwnerDecrypted(orgId);
     if (sourceControl == null || sourceControl.getOwnerId() == null) {
       return null;
     }

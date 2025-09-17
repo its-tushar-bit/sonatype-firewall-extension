@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.sourcecontrol.SourceControlDataService;
 import com.sonatype.insight.brain.git.EnhancedPullRequestResult;
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.git.IqForScmLicenseChecker;
@@ -126,6 +127,8 @@ public class ApiSourceControlService
 
   private final ScmRepoVisibilityService scmRepoVisibilityService;
 
+  private final SourceControlDataService sourceControlDataService;
+
   @Inject
   public ApiSourceControlService(
       final PasswordHandler passwordHandler,
@@ -143,7 +146,8 @@ public class ApiSourceControlService
       final GitClientFactory gitClientFactory,
       final SourceControlUserActivityService sourceControlUserActivityService,
       final TelemetryUtils telemetryUtils,
-      final ScmRepoVisibilityService scmRepoVisibilityService)
+      final ScmRepoVisibilityService scmRepoVisibilityService,
+      final SourceControlDataService sourceControlDataService)
   {
     this.passwordHandler = passwordHandler;
     this.sourceControlDAO = sourceControlDAO;
@@ -161,6 +165,7 @@ public class ApiSourceControlService
     this.sourceControlUserActivityService = sourceControlUserActivityService;
     this.telemetryUtils = telemetryUtils;
     this.scmRepoVisibilityService = scmRepoVisibilityService;
+    this.sourceControlDataService = sourceControlDataService;
   }
 
   @Authorize(permission = Permission.READ)
@@ -415,16 +420,11 @@ public class ApiSourceControlService
    * @param ownerId an application or organization ID
    */
   public SourceControl getCompositeSourceControlByOwnerDecrypted(final String ownerId) {
-    SourceControl sourceControl =
-        sourceControlDAO.buildCompositeSourceControlInApplication(ownerId);
-    if (sourceControl != null && StringUtils.isNotEmpty(sourceControl.getToken())) {
-      fillWithDecryptedToken(sourceControl);
-    }
-    return sourceControl;
+    return sourceControlDataService.getCompositeSourceControlByOwnerDecrypted(ownerId);
   }
 
   public SourceControl getCompositeSourceControlByApplicationId(final String applicationId) {
-    return sourceControlDAO.buildCompositeSourceControlForApplicationId(applicationId);
+    return sourceControlDataService.getCompositeSourceControlByApplicationId(applicationId);
   }
 
   private String getPublicOwnerId(final String ownerId) {
@@ -446,21 +446,6 @@ public class ApiSourceControlService
       throw e;
     }
     sourceControl.setToken(token);
-  }
-
-  private void fillWithDecryptedToken(final SourceControl sourceControl) {
-    String token = decryptToken(sourceControl.getToken());
-    sourceControl.setToken(token);
-  }
-
-  private String decryptToken(final String encryptedToken) {
-    try {
-      return passwordHandler.decryptPassword(encryptedToken);
-    }
-    catch (IllegalStateException e) {
-      log.error("Unable to decrypt SourceControl token", e);
-      throw e;
-    }
   }
 
   private void auditSourceControl(final SourceControl sourceControl) {
@@ -519,7 +504,7 @@ public class ApiSourceControlService
     }
 
     try {
-      gitRepositoryInfo.token = decryptToken(sourceControl.getToken());
+      gitRepositoryInfo.token = sourceControlDataService.decryptToken(sourceControl.getToken());
       if (gitRepositoryInfo.token == null) {
         return null;
       }
@@ -619,7 +604,7 @@ public class ApiSourceControlService
     if (sourceControl.getToken() == null) {
       return;
     }
-    fillWithDecryptedToken(sourceControl);
+    sourceControlDataService.fillWithDecryptedToken(sourceControl);
     Owner definingOwner = getOwnerDefiningToken(sourceControlsInHierarchy);
     definingOwnersByToken.computeIfAbsent(sourceControl.getToken(), token -> new LinkedHashSet<>())
         .add(definingOwner);

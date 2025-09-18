@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -31,9 +30,9 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequest;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.nexus.scm.SourceControlProvider;
 import com.sonatype.nexus.scm.api.BatchPullRequestInfoProvider;
 import com.sonatype.nexus.scm.api.GitApiClient;
@@ -447,33 +446,26 @@ public class PullRequestStateEventHandler
     // Common fields for both merged and closed events
     telemetryData.put("pull_request_number", pullRequest.getPullRequestId());
     telemetryData.put("application_id", telemetryUtils.obfuscate(applicationId));
-    telemetryData.put("opened_at", pullRequest.getCreateTime());
 
     // Include golden status
     telemetryData.put("pull_request_type", pullRequestType);
     telemetryData.put("pull_request_creation_type", pullRequest.getSource().name());
 
+    // Use real SCM timestamp if available, fallback to our detected update time
+    Date eventTime = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate()
+        : pullRequest.getLastDetectedUpdateTime();
+    if (eventTime == null) {
+      eventTime = pullRequest.getLastDetectedUpdateTime();
+    }
+    telemetryData.put("event_time", eventTime);
+
     // Set event type and timestamp based on PR state
     if (pullRequest.getState() == PullRequestState.MERGED) {
       telemetryData.put("event_type", "pr_merged");
-      // Use real SCM timestamp if available, fallback to our detected update time
-      Date mergedAt = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate() 
-                                              : pullRequest.getLastDetectedUpdateTime();
-      if (mergedAt == null) {
-        mergedAt = pullRequest.getLastDetectedUpdateTime();
-      }
-      telemetryData.put("merged_at", mergedAt);
     }
     else if (pullRequest.getState() == PullRequestState.CLOSED ||
         pullRequest.getState() == PullRequestState.AUTO_CLOSED) {
       telemetryData.put("event_type", "pr_closed_unmerged");
-      // Use real SCM timestamp if available, fallback to our detected update time
-      Date closedAt = prLifecycleInfo != null ? prLifecycleInfo.getMergedOrClosedDate()
-                                              : pullRequest.getLastDetectedUpdateTime();
-      if (closedAt == null) {
-        closedAt = pullRequest.getLastDetectedUpdateTime();
-      }
-      telemetryData.put("closed_at", closedAt);
     }
 
     return telemetryData;

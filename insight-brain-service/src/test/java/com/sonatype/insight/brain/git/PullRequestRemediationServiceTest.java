@@ -380,7 +380,7 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
         PullRequestSource.AUTOMATIC.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(123);
@@ -439,7 +439,7 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
         PullRequestSource.MANUAL.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(456);
@@ -499,7 +499,7 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
         PullRequestSource.MANUAL.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(789);
@@ -557,7 +557,7 @@ public class PullRequestRemediationServiceTest
     TelemetryData telemetryData = telemetryCaptor.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.SOURCE_CONTROL_PULL_REQUEST_ACTIVITY);
     assertThat(telemetryData.getAttributes().get("application_id")).isEqualTo("obfuscated-" + appId);
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo(
         PullRequestSource.AUTOMATIC.name());
     assertThat(telemetryData.getAttributes().get("pull_request_number")).isEqualTo(101);

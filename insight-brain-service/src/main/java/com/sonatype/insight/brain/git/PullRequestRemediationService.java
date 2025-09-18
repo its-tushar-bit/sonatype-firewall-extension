@@ -212,7 +212,7 @@ public class PullRequestRemediationService
 
     telemetryData.put("event_type", "pr_opened");
     telemetryData.put("application_id", telemetryUtils.obfuscate(event.getApplicationId()));
-    telemetryData.put("opened_at", event.getCreateTime());
+    telemetryData.put("event_time", event.getCreateTime());
     telemetryData.put("pull_request_creation_type",
         pullRequestRemediationDetails.isManualPullRequest()
             ? PullRequestSource.MANUAL.name()

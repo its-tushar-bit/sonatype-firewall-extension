@@ -1412,8 +1412,7 @@ public class PullRequestStateEventHandlerTest
     assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("golden");
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo("AUTOMATIC");
     assertThat(telemetryData.getAttributes().get("event_type")).isEqualTo("pr_merged");
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("merged_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
 
     // Verify event is deleted
     assertThat(sourceControlEventDAO.getById(event.getId())).isNull();
@@ -1478,8 +1477,7 @@ public class PullRequestStateEventHandlerTest
     assertThat(telemetryData.getAttributes().get("pull_request_type")).isEqualTo("not_golden");
     assertThat(telemetryData.getAttributes().get("pull_request_creation_type")).isEqualTo("AUTOMATIC");
     assertThat(telemetryData.getAttributes().get("event_type")).isEqualTo("pr_closed_unmerged");
-    assertThat(telemetryData.getAttributes().get("opened_at")).isNotNull();
-    assertThat(telemetryData.getAttributes().get("closed_at")).isNotNull();
+    assertThat(telemetryData.getAttributes().get("event_time")).isNotNull();
 
     // Verify event is deleted
     assertThat(sourceControlEventDAO.getById(event.getId())).isNull();

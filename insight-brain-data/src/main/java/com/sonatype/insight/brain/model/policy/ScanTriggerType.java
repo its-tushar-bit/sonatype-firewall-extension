@@ -14,6 +14,7 @@ import java.util.List;
 public enum ScanTriggerType
 {
   CLI("CLI"), //
+  CLI_WITH_SONATYPE_CONTAINER("CLI (Sonatype Container)"),
   CONTINUOUS_INTEGRATION("Continuous Integration"), //
   REPOSITORY_MANAGER("Repository Manager"), //
   SOURCE_CONTROL_API("Source Control API", true), //
@@ -39,7 +40,7 @@ public enum ScanTriggerType
   ScanTriggerType(String displayName) {
     this(displayName, false);
   }
-  
+
   ScanTriggerType(String displayName, Boolean internal) {
     this.displayName = displayName;
     this.internal = internal;

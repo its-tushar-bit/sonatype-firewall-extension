@@ -62,6 +62,8 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil;
+import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
@@ -308,14 +310,30 @@ public class PolicyEvaluateService
 
     validateLicenseLimits(stage);
 
+    UserAgent userAgent = ClientUserAgentUtil.parseUserAgentHeader(req);
+    ScanTriggerType scanTriggerType = getScanTriggerType(integrationType, userAgent);
+
     evaluateWithPolling(statusId, app, clientScanType, stage,
-        EvaluationUtils.getScanTriggerType(integrationType), tempScanEntity, thirdPartyScanType,
+        scanTriggerType, tempScanEntity, thirdPartyScanType,
         HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), null);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
 
     return policyEvaluationReceipt;
+  }
+
+  static ScanTriggerType getScanTriggerType(IntegrationType integrationType, UserAgent userAgent) {
+    ScanTriggerType scanTriggerType = EvaluationUtils.getScanTriggerType(integrationType);
+
+    if (userAgent != null
+        && userAgent.other != null
+        && userAgent.other.contains("containerScannerMode=sonatype")
+        && scanTriggerType == ScanTriggerType.CLI) {
+      return ScanTriggerType.CLI_WITH_SONATYPE_CONTAINER;
+    }
+
+    return scanTriggerType;
   }
 
   private void checkEvaluationPermissions(Application app, Stage stage) {

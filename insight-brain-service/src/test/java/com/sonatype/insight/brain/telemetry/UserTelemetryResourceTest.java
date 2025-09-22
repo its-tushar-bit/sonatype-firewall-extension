@@ -15,7 +15,8 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class UserTelemetryResourceTest extends AbstractResourceTest
+public class UserTelemetryResourceTest
+    extends AbstractResourceTest
 {
   @Before
   public void setup() {
@@ -47,17 +48,15 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
 
   @Test
   public void testProxyGet() throws Exception {
-    String contentType = "application/javascript;charset=UTF-8";
-    getHdsServer().respondWith("some response").withType(contentType)
-        .atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
+    getHdsServer().respondWith("").atUri(PendoService.HDS_TELEMETRY_PATH + "/foo/bar");
 
     String url = UriBuilder.fromPath(UserTelemetryResource.RESOURCE_PATH).path(UserTelemetryResource.EVENTS_PATH)
         .build(new String[]{"foo/bar"}, false /* encodeSlashInPath */).toString();
     HttpResponse response = restRequest().path(url).get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText()).isEqualTo("some response");
-    assertThat(response.getContentType()).isEqualTo(contentType);
+    assertThat(response.getBodyText()).isEmpty();
+    assertThat(response.getContentType()).isEqualTo("application/json;charset=utf-8");
   }
 
   @Test
@@ -65,7 +64,7 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").get();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText()).isEqualTo("");
+    assertThat(response.getBodyText()).isEmpty();
   }
 
   @Test
@@ -85,6 +84,6 @@ public class UserTelemetryResourceTest extends AbstractResourceTest
     HttpResponse response = restRequest().path(UserTelemetryResource.RESOURCE_PATH, "events", "foo", "bar").post();
     assertResponseStatus(200, response);
 
-    assertThat(response.getBodyText()).isEqualTo("");
+    assertThat(response.getBodyText()).isEmpty();
   }
 }

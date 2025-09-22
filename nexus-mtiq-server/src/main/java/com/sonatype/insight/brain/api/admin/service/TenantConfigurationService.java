@@ -76,7 +76,8 @@ public class TenantConfigurationService
       SAAS_POLICY_MONITOR_POOL_SIZE,
       SOURCE_CONTROL_IMPORT_POOL_SIZE,
       SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
-      USER_AGENT_SUFFIX
+      USER_AGENT_SUFFIX,
+      USER_TELEMETRY_POOL_SIZE
   );
 
   private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";

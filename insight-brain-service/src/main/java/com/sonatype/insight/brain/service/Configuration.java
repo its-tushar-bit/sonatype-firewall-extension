@@ -163,6 +163,7 @@ public class Configuration
         SystemConfigurationProperty.SAAS_POLICY_MONITOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
         SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE,
+        SystemConfigurationProperty.USER_TELEMETRY_POOL_SIZE,
         SystemConfigurationProperty.CSRF_PROTECTION,
         SystemConfigurationProperty.USER_AGENT_SUFFIX,
         SystemConfigurationProperty.CSP_ENABLED,
@@ -464,6 +465,10 @@ public class Configuration
 
   public int getSourceControlImportPoolSize() {
     return configCache.get(SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE);
+  }
+
+  public int getUserTelemetryPoolSize() {
+    return configCache.get(SystemConfigurationProperty.USER_TELEMETRY_POOL_SIZE);
   }
 
   public boolean isAntiCsrfEnabled() {

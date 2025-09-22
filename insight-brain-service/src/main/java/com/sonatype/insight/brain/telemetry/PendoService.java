@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -17,9 +16,9 @@ import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.hds.TelemetryId;
+import com.sonatype.insight.brain.hds.GainsightTelemetryClient;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -53,24 +52,24 @@ public class PendoService
 
   private final PendoCache pendoCache;
 
-  private final HdsClient hdsClient;
-
   private final VersionService versionService;
 
   private final CurrentUser currentUser;
 
   private final ProductLicense productLicense;
 
+  private final GainsightTelemetryClient gainsightTelemetryClient;
+
   @Inject
   public PendoService(
-      HdsClient hdsClient,
+      GainsightTelemetryClient gainsightTelemetryClient,
       PendoCache pendoCache,
       TelemetryId telemetryId,
       VersionService versionService,
       CurrentUser currentUser,
       ProductLicense productLicense)
   {
-    this.hdsClient = hdsClient;
+    this.gainsightTelemetryClient = gainsightTelemetryClient;
     this.pendoCache = pendoCache;
     this.telemetryId = telemetryId;
     this.versionService = versionService;
@@ -99,19 +98,23 @@ public class PendoService
     return pendoConfig;
   }
 
-  public RelayResponse<InputStream> proxy(HttpServletRequest request, String pendoPath) {
+  public RelayResponse<InputStream> proxyWithoutRetry(HttpServletRequest request, String pendoPath) {
     try {
-      return hdsClient.relay(request, InputStream.class,
-          UriBuilder.fromPath(HDS_TELEMETRY_PATH).path(pendoPath).build().toString());
+      return gainsightTelemetryClient.relayNoRetry(request, InputStream.class, UriBuilder
+          .fromPath(HDS_TELEMETRY_PATH).path(pendoPath).build().toString());
     }
     catch (Exception e) {
       log.debug("An error occurred while proxying user telemetry", e);
-      return new RelayResponse<>(new ByteArrayInputStream(new byte[0]));
+      return null;
     }
   }
 
   public byte[] getJavascript() {
     return pendoCache.getJs();
+  }
+
+  public byte[] getCss() {
+    return pendoCache.getCss();
   }
 
   public static class PendoConfig

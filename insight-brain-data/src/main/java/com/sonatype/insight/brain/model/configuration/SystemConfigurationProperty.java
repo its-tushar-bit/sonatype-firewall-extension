@@ -101,6 +101,8 @@ public class SystemConfigurationProperty
 
   public static final String SOURCE_CONTROL_IMPORT_POOL_SIZE = "sourceControlImportPoolSize";
 
+  public static final String USER_TELEMETRY_POOL_SIZE = "userTelemetryPoolSize";
+
   public static final String ACCESS_ALLOWLIST = "accessAllowlist";
 
   public static final String BASE_URL = "baseUrl";

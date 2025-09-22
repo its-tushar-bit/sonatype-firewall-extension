@@ -13,7 +13,7 @@ import java.time.Duration;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.GainsightTelemetryClient;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.error.exception.BadGatewayException;
@@ -46,7 +46,7 @@ public class PendoCacheTest
       "{ \"segmentAttributes\": { \"foo\": \"bar\"} }".getBytes();
 
   @Mock
-  private HdsClient mockHdsClient;
+  private GainsightTelemetryClient gainsightTelemetryClient;
 
   @Inject
   private PendoCache pendoCache;
@@ -56,7 +56,7 @@ public class PendoCacheTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(HdsClient.class).toInstance(mockHdsClient);
+    binder.bind(GainsightTelemetryClient.class).toInstance(gainsightTelemetryClient);
     super.configure(binder);
   }
 
@@ -67,7 +67,7 @@ public class PendoCacheTest
 
   @Test
   public void testGetJs() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     byte[] fileContent = pendoCache.getJs();
@@ -76,19 +76,19 @@ public class PendoCacheTest
 
   @Test
   public void testGetJs_telemetryDisabled() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats")).thenReturn(
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats")).thenReturn(
         new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
 
     byte[] fileContent = pendoCache.getJs();
     assertThat(fileContent).isNull();
-    verify(mockHdsClient, never()).get(InputStream.class, "user-telemetry.js");
+    verify(gainsightTelemetryClient, never()).get(InputStream.class, "user-telemetry.js");
   }
 
   @Test
   public void testGetJs_FailToGetTelemetryProperties() {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenThrow(new BadGatewayException(""));
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     assertThat(new String(pendoCache.getJs(), StandardCharsets.UTF_8)).isEqualTo("test");
@@ -96,27 +96,28 @@ public class PendoCacheTest
 
   @Test
   public void testGetJs_FailToGetJsFile() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js")).thenThrow(new NotFoundException(""));
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
+        .thenThrow(new NotFoundException(""));
 
     assertThat(pendoCache.getJs()).isNull();
-    verify(mockHdsClient).get(InputStream.class, "user-telemetry.js");
+    verify(gainsightTelemetryClient).getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js");
   }
 
   @Test
   public void testGetJs_MultiTenant() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     Tenant tenant1 = testAsNewTenant(testName, (Tenant t1) -> {
       pendoCache.getJs();
     });
 
-    lenient().when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    lenient().when(gainsightTelemetryClient.get(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("never".getBytes()));
 
     Tenant tenant2 = testAsNewTenant(testName, (Tenant t2) -> {
@@ -135,19 +136,19 @@ public class PendoCacheTest
 
   @Test
   public void testGetJs_MultiTenant_Expiration() throws Exception {
-    PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
+    PendoCache pendoCache = new PendoCache(objectMapper, gainsightTelemetryClient, Duration.ofSeconds(2));
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     Tenant tenant1 = testAsNewTenant(testName, (Tenant t1) -> {
       pendoCache.getJs();
     });
 
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("later".getBytes()));
 
     Tenant tenant2 = testAsNewTenant(testName, (Tenant t2) -> {
@@ -175,7 +176,7 @@ public class PendoCacheTest
 
   @Test
   public void testGetCustomerTelemetryProperties() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats")).thenReturn(
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats")).thenReturn(
         new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
 
     var result = pendoCache.getCustomerTelemetryProperties();
@@ -185,7 +186,7 @@ public class PendoCacheTest
 
   @Test
   public void testGetCustomerTelemetryProperties_error() {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenThrow(new BadGatewayException(""));
 
     CustomerTelemetryProperties properties = pendoCache.getCustomerTelemetryProperties();
@@ -196,14 +197,14 @@ public class PendoCacheTest
 
   @Test
   public void testGetCustomerTelemetryProperties_MultiTenant() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
     Tenant tenant1 = testAsNewTenant(testName, (Tenant t1) -> {
       assertThat(pendoCache.getCustomerTelemetryProperties().segmentAttributes.get("foo")).isEqualTo("bar");
     });
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
 
     Tenant tenant2 = testAsNewTenant(testName, (Tenant t2) -> {
@@ -216,7 +217,7 @@ public class PendoCacheTest
     });
 
     // no effect - old value is cached
-    lenient().when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    lenient().when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
     testAsTenant(tenant2, (Tenant t2) -> {
@@ -226,16 +227,16 @@ public class PendoCacheTest
 
   @Test
   public void testGetCustomerTelemetryProperties_MultiTenant_Expiration() throws Exception {
-    PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
+    PendoCache pendoCache = new PendoCache(objectMapper, gainsightTelemetryClient, Duration.ofSeconds(2));
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
     Tenant tenant1 = testAsNewTenant(testName, (Tenant t1) -> {
       assertThat(pendoCache.getCustomerTelemetryProperties().segmentAttributes.get("foo")).isEqualTo("bar");
     });
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
 
     Tenant tenant2 = testAsNewTenant(testName, (Tenant t2) -> {
@@ -247,7 +248,7 @@ public class PendoCacheTest
       assertThat(pendoCache.getCustomerTelemetryProperties().segmentAttributes.get("foo")).isEqualTo("bar");
     });
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
     testAsTenant(tenant2, (Tenant t2) -> {
@@ -261,7 +262,7 @@ public class PendoCacheTest
       assertThat(pendoCache.getCustomerTelemetryProperties().segmentAttributes.get("foo")).isEqualTo("bar");
     });
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
 
     testAsTenant(tenant1, (Tenant t1) -> {
@@ -275,14 +276,14 @@ public class PendoCacheTest
 
   @Test
   public void testProductLicenseChanged() throws Exception {
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
     assertThat(pendoCache.getJs()).isNull();
     pendoCache.productLicenseChanged();
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     assertThat(pendoCache.getCustomerTelemetryProperties().segmentAttributes.get("foo")).isEqualTo("bar");
@@ -295,16 +296,16 @@ public class PendoCacheTest
     // Initial values cached prior to the first `productLicenseChanged` call. The JS file is cached
     // globally and does not get invalidated when the product license changes.  The telemetry properties
     // are cached per-tenant and do get invalidated when the product license changes.
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
-    when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     assertThat(pendoCache.getJs()).isNotNull();
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(DISABLED_TELEMETRY_RESPONSE));
-    lenient().when(mockHdsClient.get(InputStream.class, "user-telemetry.js"))
+    lenient().when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("never".getBytes()));
 
     // trigger cache invalidation in tenant1 and then refresh cached values (JS file doesn't actually refresh)
@@ -314,7 +315,7 @@ public class PendoCacheTest
       pendoCache.getJs();
     });
 
-    when(mockHdsClient.get(InputStream.class, "rest/environment/stats"))
+    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "rest/environment/stats"))
         .thenReturn(new ByteArrayInputStream(BASIC_ENABLED_TELEMETRY_RESPONSE));
 
     // trigger cache invalidation in tenant2 and then refresh cached values (JS file doesn't actually refresh)

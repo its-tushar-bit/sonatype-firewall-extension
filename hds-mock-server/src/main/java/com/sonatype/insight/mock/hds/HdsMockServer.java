@@ -5,8 +5,11 @@
  */
 package com.sonatype.insight.mock.hds;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -16,6 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.stream.Collectors;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -69,6 +73,8 @@ public class HdsMockServer
   private Map<String, Map<String, String>> capturedRequestHttpHeadersByUri = new HashMap<>();
 
   private Map<String, String> capturedRequestBodyByUri = new HashMap<>();
+
+  static final long DEFAULT_TEST_RESPONSE_DELAY_MS = 35000;
 
   public void reset() {
     responses.clear();
@@ -208,7 +214,7 @@ public class HdsMockServer
       ConstraintSecurityHandler secHandler = new ConstraintSecurityHandler();
       secHandler.setAuthenticator(new BasicAuthenticator());
       secHandler.setLoginService(loginService);
-      secHandler.setConstraintMappings(new ConstraintMapping[] { constraintMapping });
+      secHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
       secHandler.setHandler(mainHandler);
 
       mainHandler = secHandler;
@@ -341,9 +347,75 @@ public class HdsMockServer
             consume(baseRequest);
           }
         }
+        //required to load gainsight sdk on the frontend
         else if (uri.equals("/user-telemetry.js") && "GET".equals(request.getMethod())) {
+          StringBuffer sb = new StringBuffer();
+          try (InputStream mockJsStream = HdsMockServer.class.getResourceAsStream("/mockGainsightSdk.js")) {
+            // Handle case where the resource is not found
+            if (mockJsStream == null) {
+              sb.append("var mockGainsightSdkNotFound = true;");
+            }
+            else {
+              // Read the input stream using a BufferedReader
+              try (BufferedReader reader = new BufferedReader(new InputStreamReader(mockJsStream,
+                  StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                  sb.append(line).append("\n");
+                }
+              }
+              catch (IOException e) {
+                sb = new StringBuffer();
+                sb.append("var mockGainsightFailedIncompleteLoading = true;");
+              }
+            }
+          }
+
           consume(baseRequest);
-          send(response, "application/javascript", "function noop() {}");
+          send(response, "application/javascript", sb.toString());
+        }
+        //required to load gainsight sdk on the frontend
+        else if (uri.contains("/user-telemetry/v1/rte/v1/configuration/") && "GET".equals(request.getMethod())) {
+          consume(baseRequest);
+          //At minimum, an empty JSON object is required
+          sendJson(response, "{}");
+        }
+        //required to load gainsight sdk on the frontend
+        else if (uri.equals("/user-telemetry/v1/style.css") && "GET".equals(request.getMethod())) {
+          StringBuffer sb = new StringBuffer();
+          try (InputStream mockCssStream = HdsMockServer.class.getResourceAsStream("/mockGainsightSdk.css")) {
+            // Handle case where the resource is not found
+            if (mockCssStream == null) {
+              sb.append("/* Mock Gainsight SDK CSS not found. Resource not found */");
+            }
+            else {
+              // Read the input stream using a BufferedReader
+              try (BufferedReader reader = new BufferedReader(new InputStreamReader(mockCssStream,
+                  StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                  sb.append(line).append("\n");
+                }
+              }
+              catch (IOException e) {
+                sb = new StringBuffer();
+                sb.append("/* Error reading Mock Gainsight SDK CSS resource*/");
+              }
+            }
+          }
+
+          consume(baseRequest);
+          send(response, "text/css", sb.toString());
+        }
+        // V1 api calls don't return anything
+        else if (uri.contains("/user-telemetry/v1/rte/")) {
+          consume(baseRequest);
+          sendJson(response, "");
+        }
+        // All other telemetry calls
+        else if (uri.contains("/user-telemetry/")) {
+          consume(baseRequest);
+          sendJson(response, "");
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
           consume(baseRequest);
@@ -435,6 +507,15 @@ public class HdsMockServer
         sendError(response, HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED,
             "Proxy authentication required, got " + auth);
       }
+    }
+  }
+
+  private void delay(long millis) {
+    try {
+      Thread.sleep(millis);
+    }
+    catch (Exception e) {
+      System.err.println("Interrupted while waiting for user telemetry");
     }
   }
 

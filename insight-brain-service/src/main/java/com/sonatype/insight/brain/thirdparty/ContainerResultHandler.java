@@ -202,7 +202,7 @@ public class ContainerResultHandler
 
             Source source = new Source();
             source.setName(IdentificationSource.SONATYPE_CONTAINER.getName());
-            source.setUrl(getUrl(vulnerability).toString());
+            source.setUrl(getUrl(vulnerability));
             cycloneDxVulnerability.setSource(source);
 
             cycloneDxVulnerability.setRecommendation(vulnerability.getFixed_version());
@@ -229,9 +229,9 @@ public class ContainerResultHandler
     return Pair.of(bom, true);
   }
 
-  private URL getUrl(final Vulnerability vulnerability) {
+  private String getUrl(final Vulnerability vulnerability) {
     try {
-      return new URL(vulnerability.getLink());
+      return new URL(vulnerability.getLink()).toString();
     }
     catch (MalformedURLException e) {
       log.debug(e.getMessage(), e);

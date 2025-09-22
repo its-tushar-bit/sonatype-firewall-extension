@@ -48,6 +48,7 @@ import org.mockito.Mock;
 
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.verify;
 
 public class ContainerResultsHandlerTest
@@ -370,6 +371,18 @@ public class ContainerResultsHandlerTest
         coordinateSecurityList.stream().filter(p -> p.getRefId().equals(cveThatIsMissingInformation))
             .collect(Collectors.toList());
     assertThat(list).isEmpty();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_MalformedUrlVulnerability() throws Exception {
+    String json = loadResource("malformed-url-vulnerability.json");
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("container:test:latest", ItemContentType.CONTAINER_URI, null, null, json);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    assertThatCode(() -> containerResultHandler.handleAndFilterContents(content, thirdPartyFile))
+        .doesNotThrowAnyException();
   }
 
   private void assertCoordinateSecurity(

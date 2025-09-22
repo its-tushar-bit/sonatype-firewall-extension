@@ -155,9 +155,19 @@ describe('gettingStarted', function () {
       });
 
       it('renders all documentation sections for adding users', function () {
-        const setupTile = renderComponent({ isAuthorizedToViewSystemSetup: true }).getByRole('region', {
-          name: 'System Setup',
-        });
+        const preloadedState = {
+          productFeatures: {
+            productFeatures: {
+              'saml-enabled': true,
+              'user-management-pages': true,
+            },
+          },
+        };
+
+        const additionalProps = { isAuthorizedToViewSystemSetup: true };
+        const setupTile = render(<GettingStarted {...minimalProps} {...additionalProps} />, {
+          preloadedState,
+        }).getByRole('region', { name: 'System Setup' });
 
         expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE LDAP' })).toBeInTheDocument();
         expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE SAML' })).toBeInTheDocument();
@@ -165,12 +175,33 @@ describe('gettingStarted', function () {
         expect(within(setupTile).queryByRole('heading', { name: 'INVITE USERS' })).not.toBeInTheDocument();
       });
 
+      it('does not render LDAP section when user management is disabled', function () {
+        const preloadedState = {
+          productFeatures: {
+            productFeatures: {
+              'saml-enabled': true,
+              'user-management-pages': false,
+            },
+          },
+        };
+
+        const additionalProps = { isAuthorizedToViewSystemSetup: true };
+        const setupTile = render(<GettingStarted {...minimalProps} {...additionalProps} />, {
+          preloadedState,
+        }).getByRole('region', { name: 'System Setup' });
+
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE LDAP' })).not.toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE SAML' })).toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'MANUALLY ADD USERS' })).toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'INVITE USERS' })).not.toBeInTheDocument();
+      });
+
       it('renders the appropriate link for manually adding users', function () {
-        const setupTile = renderComponent({ isAuthorizedToViewSystemSetup: true }).getByRole('region', {
+        const setupTile = renderComponent({ isAuthorizedToViewSystemSetup: true, isAdmin: false }).getByRole('region', {
           name: 'System Setup',
         });
-        // in on-prem, the fifth link rendered is for manually adding users
-        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[4];
+        // in on-prem, when LDAP and SAML are disabled, the third link rendered is for manually adding users
+        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[2];
         expect(linkToDoc).toHaveAttribute(
           'href',
           'https://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user'
@@ -236,8 +267,6 @@ describe('gettingStarted', function () {
         });
         const setupTile = getByRole('region', { name: 'System Setup' });
 
-        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE LDAP' })).toBeInTheDocument();
-        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE SAML' })).toBeInTheDocument();
         expect(within(setupTile).getByRole('heading', { name: 'MANUALLY ADD USERS' })).toBeInTheDocument();
         expect(within(setupTile).queryByRole('heading', { name: 'INVITE USERS' })).not.toBeInTheDocument();
       });
@@ -248,8 +277,9 @@ describe('gettingStarted', function () {
         });
         const setupTile = getByRole('region', { name: 'System Setup' });
 
-        // when user management is enabled in multi-tenant, the third link rendered is for manually adding users
-        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[2];
+        // when user management is enabled in multi-tenant and saml is disabled, the first link
+        // rendered is for manually adding users
+        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[0];
         expect(linkToDoc).toHaveAttribute(
           'href',
           'https://links.sonatype.com/products/nxiq/doc/user-management/creating-a-user'
@@ -290,6 +320,77 @@ describe('gettingStarted', function () {
         const setupTile = getByRole('region', { name: 'System Setup' });
 
         // when user management is disabled in multi-tenant, the first link rendered is for inviting users
+        const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[0];
+        expect(linkToDoc).toHaveAttribute(
+          'href',
+          'https://links.sonatype.com/products/nxiq/doc/firewall-saas-getting-started-on-cloud/user-management'
+        );
+      });
+    });
+
+    describe('when tenantMode is multi-tenant and isSamlEnabled is enabled', function () {
+      const multiTenantProps = {
+        isAuthorizedToViewSystemSetup: true,
+        tenantMode: 'multi-tenant',
+        isAdmin: false,
+      };
+
+      const preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'user-management-pages': false,
+            'saml-enabled': true,
+          },
+        },
+      };
+
+      it('renders sections for manual user flow when isSamlEnabled is enabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE LDAP' })).not.toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'CONFIGURE SAML' })).toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'MANUALLY ADD USERS' })).not.toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'INVITE USERS' })).toBeInTheDocument();
+      });
+    });
+
+    describe('when tenantMode is multi-tenant and isSamlEnabled is disabled', function () {
+      const multiTenantProps = {
+        isAuthorizedToViewSystemSetup: true,
+        tenantMode: 'multi-tenant',
+      };
+
+      const preloadedState = {
+        productFeatures: {
+          productFeatures: {
+            'user-management-pages': false,
+            'saml-enabled': false,
+          },
+        },
+      };
+
+      it('renders sections for invite user flow when isSamlEnabled is disabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE LDAP' })).not.toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'CONFIGURE SAML' })).not.toBeInTheDocument();
+        expect(within(setupTile).queryByRole('heading', { name: 'MANUALLY ADD USERS' })).not.toBeInTheDocument();
+        expect(within(setupTile).getByRole('heading', { name: 'INVITE USERS' })).toBeInTheDocument();
+      });
+
+      it('renders the appropriate link for inviting users when isSamlEnabled is disabled', function () {
+        const { getByRole } = render(<GettingStarted {...minimalProps} {...multiTenantProps} />, {
+          preloadedState,
+        });
+        const setupTile = getByRole('region', { name: 'System Setup' });
+
+        // when SAML is disabled in multi-tenant, the first link rendered is for inviting users
         const linkToDoc = within(setupTile).getAllByRole('link', { name: 'Documentation' })[0];
         expect(linkToDoc).toHaveAttribute(
           'href',

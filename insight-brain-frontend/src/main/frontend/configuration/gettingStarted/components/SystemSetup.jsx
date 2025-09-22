@@ -8,11 +8,15 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import GettingStartedDocLink from './GettingStartedDocLink';
 import { useSelector } from 'react-redux';
-import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsSAMLEnabled,
+  selectIsUserManagementPagesEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function SystemSetup({ tenantMode }) {
   const isSingleTenant = tenantMode !== 'multi-tenant';
   const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
+  const isSamlEnabled = useSelector(selectIsSAMLEnabled);
   const isManualUserFlow = isSingleTenant || isUserManagementEnabled;
   const userSectionTitle = isManualUserFlow ? 'MANUALLY ADD USERS' : 'INVITE USERS',
     userSectionLink = isManualUserFlow
@@ -72,12 +76,12 @@ export default function SystemSetup({ tenantMode }) {
               <div className="nx-read-only__item">
                 <dt className="nx-read-only__label">Adding Users</dt>
                 <dd className="nx-read-only__data">
-                  Start in the system preferences menu. You have two ways to add users to IQ Server.
+                  Start in the system preferences menu. Choose from the following options to add users to IQ Server:
                 </dd>
               </div>
               <section className="nx-grid-col__section">
                 <div className="nx-read-only__item">
-                  {isManualUserFlow && (
+                  {isSingleTenant && isUserManagementEnabled && (
                     <>
                       <h4 className="nx-h4 nx-grid-header__title">CONFIGURE LDAP</h4>
                       <p className="nx-p">
@@ -86,6 +90,10 @@ export default function SystemSetup({ tenantMode }) {
                           text="Documentation"
                         />
                       </p>
+                    </>
+                  )}
+                  {isSamlEnabled && (
+                    <>
                       <h4 className="nx-h4 nx-grid-header__title">CONFIGURE SAML</h4>
                       <p className="nx-p">
                         <GettingStartedDocLink

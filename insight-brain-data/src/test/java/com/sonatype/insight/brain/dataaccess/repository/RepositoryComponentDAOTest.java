@@ -1025,6 +1025,169 @@ public class RepositoryComponentDAOTest
     assertThat(result).hasSize(3);
   }
 
+  @Test
+  public void testGetRepositoryToComponentsByHash() {
+    // Setup test data
+    String targetHash = "test_hash_123";
+    String otherHash = "other_hash_456";
+    Date now = new Date();
+
+    // Create repositories
+    Repository repo1 = tempEntity.newRepository();
+    Repository repo2 = tempEntity.newRepository();
+    Repository repo3 = tempEntity.newRepository();
+
+    // Create components with target hash in repo1 and repo2
+    RepositoryComponent component1InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
+        MatchState.EXACT, "/path1", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, now);
+
+    RepositoryComponent component2InRepo1 = tempEntity.newRepositoryComponent(repo1.getId(),
+        MatchState.EXACT, "/path2", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.0.0"), now, now);
+
+    RepositoryComponent componentInRepo2 = tempEntity.newRepositoryComponent(repo2.getId(),
+        MatchState.EXACT, "/path3", targetHash,
+        ComponentIdentifier.createNpmCoordinates("package1", "2.0.0"), now, now);
+
+    // Create component with different hash (should not be returned)
+    tempEntity.newRepositoryComponent(repo1.getId(),
+        MatchState.EXACT, "/path4", otherHash,
+        ComponentIdentifier.createMavenCoordinates("group3", "artifact3", "1.0.0"), now, now);
+
+    // Create component in repo3 with different hash (should not be returned)
+    tempEntity.newRepositoryComponent(repo3.getId(),
+        MatchState.EXACT, "/path5", otherHash,
+        ComponentIdentifier.createMavenCoordinates("group4", "artifact4", "1.0.0"), now, now);
+
+    // Execute test with transaction context
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+
+      // Assertions
+      assertThat(result).hasSize(2); // Only repo1 and repo2 should be returned
+      assertThat(result.keySet()).extracting(Repository::getId).containsExactlyInAnyOrder(repo1.getId(), repo2.getId());
+
+      // Verify repo1 has 2 components
+      Repository foundRepo1 = result.keySet().stream().filter(r -> r.getId().equals(repo1.getId())).findFirst()
+          .orElseThrow(() -> new AssertionError("Repository 1 not found in results"));
+      List<RepositoryComponent> repo1Components = result.get(foundRepo1);
+      assertThat(repo1Components).hasSize(2);
+      assertThat(repo1Components).extracting(RepositoryComponent::getId)
+          .containsExactlyInAnyOrder(component1InRepo1.getId(), component2InRepo1.getId());
+      assertThat(repo1Components).allMatch(c -> c.getHash().equals(targetHash));
+
+      // Verify repo2 has 1 component
+      Repository foundRepo2 = result.keySet().stream().filter(r -> r.getId().equals(repo2.getId())).findFirst()
+          .orElseThrow(() -> new AssertionError("Repository 2 not found in results"));
+      List<RepositoryComponent> repo2Components = result.get(foundRepo2);
+      assertThat(repo2Components).hasSize(1);
+      assertThat(repo2Components.get(0).getId()).isEqualTo(componentInRepo2.getId());
+      assertThat(repo2Components.get(0).getHash()).isEqualTo(targetHash);
+
+      // Verify repo3 is not in results (no matching hash)
+      assertThat(result.keySet()).extracting(Repository::getId).doesNotContain(repo3.getId());
+    }
+  }
+
+  @Test
+  public void testGetRepositoryToComponentsByHash_NoComponentsFound() {
+    String nonExistentHash = "non_existent_hash";
+
+    // Create some repositories with components but with different hashes
+    Repository repo1 = tempEntity.newRepository();
+    tempEntity.newRepositoryComponent(repo1.getId(), MatchState.EXACT, "/path1", "different_hash",
+        ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), new Date(), new Date());
+
+    // Execute test
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, nonExistentHash);
+
+      // Assertions
+      assertThat(result).isEmpty();
+    }
+  }
+
+  @Test
+  public void testGetRepositoryToComponentsByHash_SingleRepositoryMultipleComponents() {
+    String targetHash = "single_repo_hash";
+    Date now = new Date();
+    Repository repo = tempEntity.newRepository();
+
+    // Create multiple components with same hash in single repository
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repo.getId(),
+        MatchState.EXACT, "/path1", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, now);
+
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repo.getId(),
+        MatchState.EXACT, "/path2", targetHash,
+        ComponentIdentifier.createNpmCoordinates("package1", "2.0.0"), now, now);
+
+    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repo.getId(),
+        MatchState.EXACT, "/path3", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "3.0.0"), now, now);
+
+    // Execute test
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+
+      // Assertions
+      assertThat(result).hasSize(1);
+      assertThat(result.keySet()).extracting(Repository::getId).containsExactly(repo.getId());
+
+      List<RepositoryComponent> components = result.values().iterator().next();
+      assertThat(components).hasSize(3);
+      assertThat(components).extracting(RepositoryComponent::getId)
+          .containsExactlyInAnyOrder(component1.getId(), component2.getId(), component3.getId());
+      assertThat(components).allMatch(c -> c.getHash().equals(targetHash));
+    }
+  }
+
+  @Test
+  public void testGetRepositoryToComponentsByHash_QuarantinedAndNonQuarantined() {
+    String targetHash = "quarantine_test_hash";
+    Date now = new Date();
+    Date quarantineTime = new Date();
+    Repository repo = tempEntity.newRepository();
+
+    // Create quarantined and non-quarantined components with same hash
+    RepositoryComponent quarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
+        MatchState.EXACT, "/quarantined", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group1", "artifact1", "1.0.0"), now, quarantineTime);
+
+    RepositoryComponent nonQuarantinedComponent = tempEntity.newRepositoryComponent(repo.getId(),
+        MatchState.EXACT, "/not-quarantined", targetHash,
+        ComponentIdentifier.createMavenCoordinates("group2", "artifact2", "1.0.0"), now, now);
+    // Explicitly set non-quarantined (null quarantine time)
+    nonQuarantinedComponent.setQuarantineTime(null);
+    dao.update(nonQuarantinedComponent);
+
+    // Execute test
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      Map<Repository, List<RepositoryComponent>> result = dao.getRepositoryToComponentsByHash(tx, targetHash);
+
+      // Assertions
+      assertThat(result).hasSize(1);
+      List<RepositoryComponent> components = result.values().iterator().next();
+      assertThat(components).hasSize(2);
+
+      // Verify both quarantined and non-quarantined components are returned
+      assertThat(components).extracting(RepositoryComponent::getId)
+          .containsExactlyInAnyOrder(quarantinedComponent.getId(), nonQuarantinedComponent.getId());
+
+      // Verify quarantine status is preserved
+      RepositoryComponent foundQuarantined = components.stream()
+          .filter(c -> c.getId().equals(quarantinedComponent.getId()))
+          .findFirst().orElseThrow(() -> new AssertionError("Quarantined component not found"));
+      assertThat(foundQuarantined.getQuarantineTime()).isNotNull();
+
+      RepositoryComponent foundNonQuarantined = components.stream()
+          .filter(c -> c.getId().equals(nonQuarantinedComponent.getId()))
+          .findFirst().orElseThrow(() -> new AssertionError("Non-quarantined component not found"));
+      assertThat(foundNonQuarantined.getQuarantineTime()).isNull();
+    }
+  }
+
   private void setupMockDataForGetFirewallRepositoryComponents() {
     // ADD COMPONENT
     tempEntity

@@ -273,6 +273,10 @@ import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritization
 import com.sonatype.insight.brain.model.prioritization.DevelopmentPrioritizationComponentInfo;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.QuarantinedComponentAccess;
+import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
+import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
+import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequest;
+import com.sonatype.insight.brain.model.repository.ReevaluateCascadeRequestStatus;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryConnection;
@@ -477,6 +481,10 @@ public class TemporaryEntity
   private RepositoryComponentDAO repositoryComponentDAO;
 
   private RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
+
+  private ReevaluateCascadeRequestDAO reevaluateCascadeRequestDAO;
+
+  private ReevaluateCascadeProgressDAO reevaluateCascadeProgressDAO;
 
   private SecurityVulnerabilityOverrideDAO securityVulnerabilityOverrideDAO;
 
@@ -936,6 +944,8 @@ public class TemporaryEntity
       delete(tagDAO.getAll(), tagDAO);
       delete(licenseThreatGroupDAO.getAll(), licenseThreatGroupDAO);
       delete(policyMonitoringDAO.getAll(), policyMonitoringDAO);
+      delete(reevaluateCascadeProgressDAO.getAll(), reevaluateCascadeProgressDAO);
+      delete(reevaluateCascadeRequestDAO.getAll(), reevaluateCascadeRequestDAO);
       delete(repositoryDAO.getAll(), repositoryDAO);
       delete(repositoryManagerDAO.getAll(), repositoryManagerDAO);
       delete(webhookDAO.getAll(), webhookDAO);
@@ -3815,6 +3825,28 @@ public class TemporaryEntity
     return repositoryComponent;
   }
 
+  public ReevaluateCascadeRequest newReevaluateCascadeRequest() {
+    return newReevaluateCascadeRequest(uuid(), uuid(), "testUser");
+  }
+
+  public ReevaluateCascadeRequest newReevaluateCascadeRequest(String requestId, String componentHash, String username) {
+    ReevaluateCascadeRequest request =
+        new ReevaluateCascadeRequest(componentHash, username, ReevaluateCascadeRequestStatus.PENDING);
+    request.setId(requestId);
+    reevaluateCascadeRequestDAO.insert(request);
+    return request;
+  }
+
+  public ReevaluateCascadeProgress newReevaluateCascadeProgress(String progressId, String requestId,
+      String repositoryId, String repositoryComponentId, String status)
+  {
+    ReevaluateCascadeProgress progress = new ReevaluateCascadeProgress(requestId, repositoryId,
+        repositoryComponentId, ReevaluateCascadeProgressStatus.fromString(status));
+    progress.setId(progressId);
+    reevaluateCascadeProgressDAO.insert(progress);
+    return progress;
+  }
+
   public RepositoryPolicyViolation newRepositoryPolicyViolation(String repositoryId) {
     return newRepositoryPolicyViolation(repositoryId, new Date());
   }
@@ -6369,6 +6401,8 @@ public class TemporaryEntity
     repositoryDAO = daoFactory.createRepositoryDAO();
     repositoryComponentDAO = daoFactory.createRepositoryComponentDAO();
     repositoryPolicyViolationDAO = daoFactory.createRepositoryPolicyViolationDAO();
+    reevaluateCascadeRequestDAO = daoFactory.createReevaluateCascadeRequestDAO();
+    reevaluateCascadeProgressDAO = daoFactory.createReevaluateCascadeProgressDAO();
     securityVulnerabilityOverrideDAO = daoFactory.createSecurityVulnerabilityOverrideDAO();
     vulnerabilityGroupDAO = daoFactory.createVulnerabilityGroupDAO();
     vulnerabilityGroupVulnerabilityDAO = daoFactory.createVulnerabilityGroupVulnerabilityDAO();

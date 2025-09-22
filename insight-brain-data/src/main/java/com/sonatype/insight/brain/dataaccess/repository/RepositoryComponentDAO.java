@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -103,6 +105,31 @@ public class RepositoryComponentDAO
         " WHERE entity.repositoryId=?1" + //
         " AND entity.hash=?2";
     return getList(sQuery, repositoryId, hash);
+  }
+
+  @SuppressWarnings("unchecked")
+  public Map<Repository, List<RepositoryComponent>> getRepositoryToComponentsByHash(
+      TransactionContext tx,
+      String hash)
+  {
+    String sQuery = """
+        SELECT repository, component
+          FROM Repository repository, RepositoryComponent component
+         WHERE repository.id = component.repositoryId
+           AND component.hash = ?1
+        """;
+
+    List<Object[]> results = (List<Object[]>) createQuery(tx, sQuery, hash).getResultList();
+    Map<Repository, List<RepositoryComponent>> resultMap = new HashMap<>();
+
+    for (Object[] row : results) {
+      Repository repository = (Repository) row[0];
+      RepositoryComponent component = (RepositoryComponent) row[1];
+
+      resultMap.computeIfAbsent(repository, key -> new ArrayList<>()).add(component);
+    }
+
+    return resultMap;
   }
 
   public int getComponentCountByRepositoryId(String repositoryId) {

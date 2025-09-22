@@ -86,6 +86,8 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
@@ -1232,6 +1234,16 @@ public class TestDAOFactory
   @Override
   public ZScalerMetricsDAO createZScalerMetricsDAO() {
     return new ZScalerMetricsDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ReevaluateCascadeRequestDAO createReevaluateCascadeRequestDAO() {
+    return new ReevaluateCascadeRequestDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public ReevaluateCascadeProgressDAO createReevaluateCascadeProgressDAO() {
+    return new ReevaluateCascadeProgressDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   private TemporaryTableHelper createTemporaryTableHelper() {

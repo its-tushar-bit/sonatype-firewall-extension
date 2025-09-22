@@ -983,7 +983,7 @@ CREATE TABLE reevaluate_cascade_request
   component_reference_hash varchar(50) NOT NULL,
   created_at timestamp DEFAULT now() NOT NULL,
   created_by_username varchar(255) NOT NULL,
-  owner_id varchar(50) NULL,
+  status varchar(50) DEFAULT 'PENDING' NOT NULL,
   CONSTRAINT reevaluate_cascade_request_pk PRIMARY KEY (reevaluate_cascade_request_id)
 );
 

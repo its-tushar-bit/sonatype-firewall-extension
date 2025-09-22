@@ -1053,6 +1053,8 @@ public class PrioritiesPageTest
   public void testCreatePRModal_PollOnCreation_FailureAndRetry() {
     SourceControlDAO sourceControlDAO = lookup(SourceControlDAO.class);
     SourceControlEventDAO sourceControlEventDAO = lookup(SourceControlEventDAO.class);
+    SourceControlPullRequestService pullRequestServiceSpy = spy(lookup(SourceControlPullRequestService.class));
+    mocks.put(SourceControlPullRequestService.class, pullRequestServiceSpy);
 
     SourceControl sourceControl = tempEntity.newSourceControl(
         application.getId(),
@@ -1085,7 +1087,10 @@ public class PrioritiesPageTest
     page.pullRequestCreationLoadingSpinner(8).shouldBe(visible).shouldHave(text("Creating PR…"));
 
     // change the status of the pull request event to error
-    SourceControlEvent pullRequestEvent = sourceControlEventDAO.getAll().get(0);
+    SourceControlEvent pullRequestEvent = sourceControlEventDAO.getAll().stream()
+        .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
+        .findFirst()
+        .orElseThrow();
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_ERROR);
     pullRequestEvent.setEventStatusDetails("Branch already exists.");
     sourceControlEventDAO.update(pullRequestEvent);
@@ -1103,11 +1108,20 @@ public class PrioritiesPageTest
         .withTimeout(Duration.ofSeconds(1))
         .pollingEvery(Duration.ofMillis(200))
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
-    pullRequestEvent = sourceControlEventDAO.getAll().get(1);
+    pullRequestEvent = sourceControlEventDAO.getAll().stream()
+        .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
+        .findFirst()
+        .orElseThrow();
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
     pullRequestEvent.setEventStatusDetails("https://example.com/pull/123");
     pullRequestEvent.setPullRequestNumber(123);
     sourceControlEventDAO.update(pullRequestEvent);
+
+    // wait for a new polling call
+    Wait()
+        .withTimeout(Duration.ofSeconds(1))
+        .pollingEvery(Duration.ofMillis(200))
+        .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 4));
 
     // polling should end
     SelenideElement prLink =

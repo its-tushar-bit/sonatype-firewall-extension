@@ -7,7 +7,6 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * Utility class that parses IQ client/integration user agent string
@@ -23,14 +22,6 @@ public class ClientUserAgentUtil
   private static final Pattern PATTERN_IQ_CLIENT_USER_AGENT = Pattern.compile(
       "([^/]{1,100})\\/([^\\s]{1,50})\\s" +
           "\\(([^;\\s]{1,50})\\s([^\\s;]{1,50});\\s([^\\s]{1,50})\\s([^;]{1,50})(?:;\\s(.+))?\\)");
-
-  public static UserAgent parseUserAgentHeader(HttpServletRequest httpServletRequest) {
-    if (httpServletRequest == null) {
-      return null;
-    }
-
-    return parse(httpServletRequest.getHeader("User-Agent"));
-  }
 
   public static UserAgent parse(String ua) {
     if (ua == null) {

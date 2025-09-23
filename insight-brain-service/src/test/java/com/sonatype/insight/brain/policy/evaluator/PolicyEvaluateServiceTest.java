@@ -95,7 +95,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
-import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -535,34 +534,25 @@ public class PolicyEvaluateServiceTest
 
   @Test
   public void testEvaluateWithPolling_CI() throws Exception {
-    testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI, ScanTriggerType.CONTINUOUS_INTEGRATION,
-        "testClientUserAgent");
+    testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI,
+        ScanTriggerType.CONTINUOUS_INTEGRATION);
   }
 
   @Test
   public void testEvaluateWithPolling_CLI() throws Exception {
-    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, ScanTriggerType.CLI,
-        "testClientUserAgent");
-  }
-
-  @Test
-  public void testEvaluateWithPolling_CLI_Sonatype_Container() throws Exception {
-    String cliUserAgent = "Sonatype_CLM_CLI/2.5.2 (Java 17.0.16; Mac OS X 15.6.1; containerScannerMode=sonatype)";
-    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI,
-        ScanTriggerType.CLI_WITH_SONATYPE_CONTAINER, cliUserAgent);
+    testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, ScanTriggerType.CLI);
   }
 
   @Test
   public void testEvaluateWithPolling_RepoManager() throws Exception {
     testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM,
-        ScanTriggerType.REPOSITORY_MANAGER, "testClientUserAgent");
+        ScanTriggerType.REPOSITORY_MANAGER);
   }
 
   private void testEvaluateWithPolling(
       LicensedFeature requiredFeature,
       IntegrationType integrationType,
-      ScanTriggerType scanTriggerType,
-      String clientUserAgent)
+      ScanTriggerType scanTriggerType)
       throws Exception
   {
     productLicenseManager.setFeatures(requiredFeature, LicensedFeature.NOTIFICATIONS);
@@ -605,8 +595,6 @@ public class PolicyEvaluateServiceTest
     HttpServletRequest mockHttpServletRequest = mock(HttpServletRequest.class);
     when(mockHttpServletRequest.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER))
         .thenReturn(testClientUserAgent);
-
-    when(mockHttpServletRequest.getHeader("User-Agent")).thenReturn(clientUserAgent);
 
     when(mockScanHandler.createTempScanFile(eq(mockHttpServletRequest), any(Application.class)))
         .thenReturn(mock(ScanEntity.class));
@@ -651,7 +639,7 @@ public class PolicyEvaluateServiceTest
         .thenReturn(scanReceipt);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
-    when(req.getHeader("User-Agent")).thenReturn("userAgent");
+    when(req.getHeader(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).thenReturn("userAgent");
 
     PolicyEvaluationReceipt policyEvaluationReceipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE_THIRD_PARTY, req, stage);
@@ -1436,26 +1424,6 @@ public class PolicyEvaluateServiceTest
     assertThat(telemetryDataForContainer.getAttributes())
         .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
         .containsKey(POLICY_VIOLATION_TELEMETRY);
-  }
-
-  @Test
-  public void testGetScanTriggerType() {
-    // user-agent null
-    assertThat(PolicyEvaluateService.getScanTriggerType(IntegrationType.CLI, null)).isEqualTo(ScanTriggerType.CLI);
-
-    UserAgent userAgent = new UserAgent();
-
-    // user-agent.other null
-    assertThat(PolicyEvaluateService.getScanTriggerType(IntegrationType.CLI, userAgent)).isEqualTo(ScanTriggerType.CLI);
-
-    // CLI with userAgent.other = "containerScannerMode=sonatype";
-    userAgent.other = "containerScannerMode=sonatype";
-    assertThat(PolicyEvaluateService.getScanTriggerType(IntegrationType.CLI, userAgent)).isEqualTo(
-        ScanTriggerType.CLI_WITH_SONATYPE_CONTAINER);
-
-    // userAgent.other = "containerScannerMode=sonatype" but not CLI
-    assertThat(PolicyEvaluateService.getScanTriggerType(IntegrationType.RM, userAgent)).isEqualTo(
-        ScanTriggerType.REPOSITORY_MANAGER);
   }
 
   private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {

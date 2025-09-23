@@ -5,37 +5,14 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import javax.servlet.http.HttpServletRequest;
-
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil.UserAgent;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ClientUserAgentUtilTest
 {
-  @Test
-  public void testParseUserAgentHeader() {
-    HttpServletRequest mock = Mockito.mock(HttpServletRequest.class);
-
-    // request null
-    assertThat(ClientUserAgentUtil.parseUserAgentHeader(null)).isNull();
-
-    // header null
-    Mockito.when(mock.getHeader("User-Agent")).thenReturn(null);
-    assertThat(ClientUserAgentUtil.parseUserAgentHeader(mock)).isNull();
-
-    // valid
-    String userAgent = "Sonatype_CLM_CLI/2.5.2 (Java 17.0.16; Mac OS X 15.6.1; containerScannerMode=sonatype)";
-    Mockito.when(mock.getHeader("User-Agent")).thenReturn(userAgent);
-    UserAgent parsed = ClientUserAgentUtil.parseUserAgentHeader(mock);
-    assertThat(parsed.client).isEqualTo("Sonatype_CLM_CLI");
-    assertThat(parsed.clientVersion).isEqualTo("2.5.2");
-    assertThat(parsed.other).isEqualTo("containerScannerMode=sonatype");
-  }
-
   @Test
   public void testParse_NullEmpty() {
     assertThat(ClientUserAgentUtil.parse(null)).isNull();

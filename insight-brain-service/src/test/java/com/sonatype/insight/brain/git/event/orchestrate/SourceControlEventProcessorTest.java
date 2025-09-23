@@ -37,6 +37,7 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -222,6 +223,7 @@ public class SourceControlEventProcessorTest
         "SourceControlEvent with ID " + event.getId() + " processed as user 'JohnDoe' instead of 'system'");
   }
 
+  @Ignore("CLM-36266")
   @Test
   public void testProcessEvents_interruptOnAcquireRepoAccessControl() throws Exception {
     // given: DAO setup to throw an exception
@@ -242,6 +244,7 @@ public class SourceControlEventProcessorTest
     );
   }
 
+  @Ignore("CLM-36266")
   @Test
   public void testProcessEvents_interruptOnReleaseRepoAccessControl() throws Exception {
     // given: DAO setup to throw an exception

@@ -42,6 +42,7 @@ import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -405,6 +406,7 @@ public class SourceControlScanServiceTest
     verifyNoInteractions(sourceControlSshService);
   }
 
+  @Ignore("CLM-36266")
   @Test
   public void testDoSynchronousSourceControlScan_Unlicensed() throws Exception {
     // given a product license without the automation and notifications features

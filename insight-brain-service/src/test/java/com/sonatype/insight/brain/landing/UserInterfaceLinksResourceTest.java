@@ -338,7 +338,7 @@ public class UserInterfaceLinksResourceTest
     String url = UserInterfaceLinksHelper.getRepositoryReportUrl("repo id");
     assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repository/repo%20id/result");
     HttpResponse response = get(UserInterfaceLinksHelper.REPO_RESULT_PATH, "repo id");
-    assertRedirect(response, "assets/index.html#/repository/repo%20id/result");
+    assertRedirect(response, "assets/index.html#/malware-defense/repository/repo%20id/result");
   }
 
   @Test

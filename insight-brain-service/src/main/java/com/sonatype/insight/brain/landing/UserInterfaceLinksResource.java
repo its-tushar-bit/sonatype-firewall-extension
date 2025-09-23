@@ -64,6 +64,9 @@ public class UserInterfaceLinksResource
 
   public static final String DEFAULT_CDX_BOM_SPECIFICATION = ExportSpecification.DEFAULT.getVersion();
 
+  public static final String MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH = 
+      "/malware-defense/repository/{repositoryId}/result";
+
   private final BaseUrl baseUrl;
 
   private final TelemetrySender telemetrySender;
@@ -288,7 +291,7 @@ public class UserInterfaceLinksResource
     }
 
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ASSET_INDEX_PATH).fragment("/" + REPO_RESULT_PATH);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH);
     return redirect(uriBuilder, repositoryId);
   }
 

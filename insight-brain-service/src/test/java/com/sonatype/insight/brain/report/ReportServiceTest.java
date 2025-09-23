@@ -1384,6 +1384,37 @@ public class ReportServiceTest
         );
   }
 
+  @Test
+  public void testSetContainerScannerMode_FieldMissing_resultsInNull() throws Exception {
+    ReportService reportService = createReportService();
+    ApplicationReport appReport =
+        new ApplicationReport(applicationReportPersistenceService, app, "scanId");
+
+    ObjectNode summary = new ObjectMapper().createObjectNode();
+    appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
+
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    reportService.setContainerScannerMode(appReport, metadata);
+
+    assertThat(metadata.getContainerScanningMode()).isNull();
+  }
+
+  @Test
+  public void testSetContainerScannerMode_FieldPresent_setsSonatype() throws Exception {
+    ReportService reportService = createReportService();
+    ApplicationReport appReport =
+        new ApplicationReport(applicationReportPersistenceService, app, "scanId");
+
+    ObjectNode summary = new ObjectMapper().createObjectNode();
+    summary.put("containerScanningMode", "sonatype");
+    appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
+
+    ReportMetadataDTO metadata = new ReportMetadataDTO();
+    reportService.setContainerScannerMode(appReport, metadata);
+
+    assertThat(metadata.getContainerScanningMode()).isEqualTo("sonatype");
+  }
+
   private ArgumentMatcher<Supplier<Optional<RemediationVersionDTO>>> remediationMatches(
       RemediationVersionDTO expected)
   {

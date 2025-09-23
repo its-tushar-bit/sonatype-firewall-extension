@@ -24,12 +24,20 @@ import { getDownloadPdfUrl, getExportCycloneDxUrl, getExportSpdxUrl } from 'Main
 import ReevaluationModal from 'MainRoot/applicationReport/ReevaluationModal';
 
 const renderDescription = (metadataDetails) => {
-  const { scanTriggerType, forMonitoring, reevaluation, reportTime, commitHash } = metadataDetails;
+  const {
+    scanTriggerType,
+    forMonitoring,
+    reevaluation,
+    reportTime,
+    commitHash,
+    containerScanningMode,
+  } = metadataDetails;
 
   const formatDate = (date) => moment(date).format('YYYY-MM-DD HH:mm:ss [UTC]ZZ');
   const description = [
     scanTriggerType && `Triggered by ${scanTriggerType}`,
     forMonitoring && '(Continuous Monitoring)',
+    containerScanningMode && 'sonatype' === containerScanningMode && '(Sonatype Container)',
     !forMonitoring && reevaluation && '(Re-evaluation)',
     reportTime && `on ${formatDate(reportTime)}`,
     commitHash && `- Commit ${commitHash}`,

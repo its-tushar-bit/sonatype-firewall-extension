@@ -440,7 +440,31 @@ public class ReportService
       }
     }
 
+    setContainerScannerMode(applicationReport, metadata);
+
     return metadata;
+  }
+
+  // visible for testing
+  void setContainerScannerMode(ApplicationReport applicationReport, ReportMetadataDTO metadata)
+      throws IOException
+  {
+    ReportEntry reportSummary = applicationReport.getEntry(SUMMARY_JSON.getName());
+    if (reportSummary == null) {
+      return;
+    }
+
+    ContainerNode<?> summaryNode = JsonUtils.parse(reportSummary.buf);
+    if (summaryNode == null) {
+      return;
+    }
+
+    JsonNode containerScanningModeNode = summaryNode.get("containerScanningMode");
+    if (containerScanningModeNode == null) {
+      return;
+    }
+
+    metadata.setContainerScanningMode(containerScanningModeNode.asText());
   }
 
   private int finalExtractTotalRiskOrDefault(final ApplicationRiskScoreDTO applicationRiskScoreDTO) {

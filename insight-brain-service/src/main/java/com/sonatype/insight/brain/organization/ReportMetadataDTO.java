@@ -33,6 +33,8 @@ public class ReportMetadataDTO
 
   private String branchName;
 
+  private String containerScanningMode;
+
   public Date getReportTime() {
     return reportTime;
   }
@@ -119,5 +121,13 @@ public class ReportMetadataDTO
 
   public void setBranchName(String branchName) {
     this.branchName = branchName;
+  }
+
+  public String getContainerScanningMode() {
+    return containerScanningMode;
+  }
+
+  public void setContainerScanningMode(String containerScanningMode) {
+    this.containerScanningMode = containerScanningMode;
   }
 }

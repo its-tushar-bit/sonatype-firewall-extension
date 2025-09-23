@@ -284,4 +284,19 @@ describe('ReportTitle', () => {
 
     expect(description).toBeVisible();
   });
+
+  it('renders a description with container scanning mode', () => {
+    selectApplicationReportMetaDataSpy.mockReturnValue({
+      ...metadataDetails,
+      containerScanningMode: 'sonatype',
+    });
+
+    renderComponent();
+
+    const description = screen.getByText(
+      `Triggered by ${metadataDetails.scanTriggerType} (Sonatype Container) on 2018-11-11 15:13:11 UTC-0500`
+    );
+
+    expect(description).toBeVisible();
+  });
 });

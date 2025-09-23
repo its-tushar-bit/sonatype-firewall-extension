@@ -266,7 +266,7 @@ public class DevelopmentPrioritiesService
 
           final ReachabilityStatus securityReachable;
           if (hasSecurityViolations(policyViolations)) {
-            securityReachable = isSecurityReachable(applicationPublicId, scanId, component.hash);
+            securityReachable = isSecurityReachable(policyThreats, component.hash);
           }
           else {
             securityReachable = ReachabilityStatus.combine(Stream.of());
@@ -696,11 +696,10 @@ public class DevelopmentPrioritiesService
   }
 
   private ReachabilityStatus isSecurityReachable(
-      final String applicationId,
-      final String scanId,
+      final PolicyThreats policyThreats,
       final String componentHash)
   {
-    return componentReachabilityService.isComponentReachable(applicationId, scanId, componentHash);
+    return componentReachabilityService.isComponentReachable(policyThreats, componentHash);
   }
 
   private boolean isBulkRecommendationsEnabled() {

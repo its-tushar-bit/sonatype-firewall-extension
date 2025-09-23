@@ -19,7 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -1161,7 +1160,18 @@ public class ScanPolicyEvaluator
       List<PolicyViolation> policyViolations,
       boolean createAlerts)
   {
-    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts);
+    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts,
+        null);
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      List<PolicyViolation> policyViolations,
+      boolean createAlerts,
+      ReportEntry summaryReportEntry)
+  {
+    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts,
+        summaryReportEntry);
   }
 
   public PolicyEvaluationResult createPolicyEvaluationResult(
@@ -1169,6 +1179,16 @@ public class ScanPolicyEvaluator
       List<Component> components,
       List<PolicyViolation> policyViolations,
       boolean createAlerts)
+  {
+    return createPolicyEvaluationResult(policyEvaluation, components, policyViolations, createAlerts, null);
+  }
+
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      List<Component> components,
+      List<PolicyViolation> policyViolations,
+      boolean createAlerts,
+      ReportEntry summaryReportEntry)
   {
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
@@ -1179,7 +1199,7 @@ public class ScanPolicyEvaluator
           components, activePolicyViolations);
       policyEvaluationResult.setAlerts(policyAlerts);
     }
-    policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation));
+    policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation, summaryReportEntry));
     return policyEvaluationResult;
   }
 
@@ -1216,11 +1236,14 @@ public class ScanPolicyEvaluator
         .postEvent(policyEvaluation, policyEvaluationResult, application, waivedAlerts, fixedAlerts);
   }
 
-  private int getTotalComponentCount(PolicyEvaluation policyEvaluation) {
+  private int getTotalComponentCount(PolicyEvaluation policyEvaluation, ReportEntry summaryReportEntry) {
     try {
-      ApplicationReport applicationReport =
-          reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
-      ReportEntry summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
+      ReportEntry summaryEntry = summaryReportEntry;
+      if (summaryEntry == null) {
+        ApplicationReport applicationReport =
+            reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+        summaryEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
+      }
       if (summaryEntry != null) {
         JsonNode content = JsonUtils.parse(summaryEntry.buf);
         return content.get("totalArtifactCount").asInt();

@@ -80,6 +80,8 @@ public class S3ApplicationReportPersistenceService
   {
     protected final S3ObjectKey key;
 
+    private volatile Metadata metadata;
+
     public S3ReportEntity(final S3ObjectKey key) {
       this.key = key;
     }
@@ -88,7 +90,7 @@ public class S3ApplicationReportPersistenceService
     @Trace
     public boolean exists() throws IOException {
       try {
-        getMetadata();
+        getS3Metadata();
         return true;
       }
       catch (IOException e) {
@@ -103,7 +105,11 @@ public class S3ApplicationReportPersistenceService
 
     @Override
     public long getTime() throws IOException {
-      return getMetadata().lastModified().toEpochMilli();
+      return getTime(getS3Metadata());
+    }
+
+    public long getTime(final S3Object s3Metadata) {
+      return s3Metadata.lastModified().toEpochMilli();
     }
 
     @Override
@@ -113,7 +119,35 @@ public class S3ApplicationReportPersistenceService
 
     @Override
     public long length() throws IOException {
-      return getMetadata().size();
+      return length(getS3Metadata());
+    }
+
+    public long length(final S3Object s3Metadata) {
+      return s3Metadata.size();
+    }
+
+    @Override
+    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+      try {
+        S3Object s3Metadata = getS3Metadata();
+        return new Metadata(s3Metadata.lastModified().toEpochMilli(), s3Metadata.size());
+      }
+      catch (IOException e) {
+        if (e.getCause() instanceof NoSuchKeyException) {
+          return null;
+        }
+        else {
+          throw e;
+        }
+      }
+    }
+
+    @Override
+    public Metadata getLastMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+      if (metadata == null) {
+        metadata = getMetadata();
+      }
+      return metadata;
     }
 
     @Override
@@ -140,8 +174,8 @@ public class S3ApplicationReportPersistenceService
       return S3ApplicationReportPersistenceService.class;
     }
 
-    protected S3Object getMetadata() throws IOException {
-      return wrapS3Exception(() -> {
+    protected S3Object getS3Metadata() throws IOException {
+      S3Object s3Object = wrapS3Exception(() -> {
         HeadObjectRequest request = HeadObjectRequest.builder()
             .bucket(s3DataStoreConfig.getBucketName())
             .key(key.toString())
@@ -154,6 +188,8 @@ public class S3ApplicationReportPersistenceService
             .lastModified(response.lastModified())
             .build();
       });
+      metadata = new Metadata(s3Object.lastModified().toEpochMilli(), s3Object.size());
+      return s3Object;
     }
   }
 

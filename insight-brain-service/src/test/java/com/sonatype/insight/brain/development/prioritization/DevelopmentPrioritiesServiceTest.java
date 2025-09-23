@@ -233,6 +233,8 @@ public class DevelopmentPrioritiesServiceTest
     );
 
     verifyServiceCallsInvokedWithExpectedArguments();
+
+    verify(reportService).getPolicyThreats(anyString(), anyString());
   }
 
   @Test

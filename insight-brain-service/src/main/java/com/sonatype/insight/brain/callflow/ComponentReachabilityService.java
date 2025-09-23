@@ -34,6 +34,13 @@ public class ComponentReachabilityService
       final String componentHash)
   {
     final PolicyThreats policyThreats = reportService.getPolicyThreats(applicationPublicId, scanId);
+    return isComponentReachable(policyThreats, componentHash);
+  }
+
+  public ReachabilityStatus isComponentReachable(
+      final PolicyThreats policyThreats,
+      final String componentHash)
+  {
     return hasReachableSecurityViolation(policyThreats.aaData, componentHash);
   }
 

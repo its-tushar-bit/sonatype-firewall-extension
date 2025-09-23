@@ -47,7 +47,7 @@ public class SbomPolicyService
   public SbomPolicyService(
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
       final ThirdPartyScanDAO thirdPartyScanDAO,
-      final  ReportService reportService
+      final ReportService reportService
   )
   {
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
@@ -80,7 +80,8 @@ public class SbomPolicyService
       String componentRef,
       String fileCoordinateId,
       String hash,
-      ReportEntry policyThreatsReportEntry) throws IOException
+      ReportEntry policyThreatsReportEntry,
+      ReportEntry bomReportEntry) throws IOException
   {
     if (StringUtils.isAllBlank(componentRef, fileCoordinateId, hash)) {
       throw new BadRequestException("componentRef, fileCoordinateId and hash cannot be both null or empty.");
@@ -94,7 +95,8 @@ public class SbomPolicyService
     }
 
     String scanId = getScanIdForPolicyViolation(applicationId, sbomVersion);
-    String bomComponentHash = findComponentHashInReport(applicationId, scanId, componentRef, fileCoordinateId, hash);
+    String bomComponentHash =
+        findComponentHashInReport(applicationId, scanId, componentRef, fileCoordinateId, hash, bomReportEntry);
 
     if (StringUtils.isBlank(bomComponentHash)) {
       return null;
@@ -117,10 +119,12 @@ public class SbomPolicyService
       String scanId,
       String componentRef,
       String fileCoordinateId,
-      String hash) throws IOException
+      String hash,
+      ReportEntry bomReportEntry) throws IOException
   {
-    ReportEntry bomReportEntry =
-        reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
+    if (bomReportEntry == null) {
+      bomReportEntry = reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
+    }
     if (bomReportEntry == null) {
       return null;
     }
@@ -184,11 +188,13 @@ public class SbomPolicyService
       String sbomVersion,
       String componentRef,
       String fileCoordinateId,
-      String hash) throws IOException
+      String hash,
+      ReportEntry policyViolationsReportEntry,
+      ReportEntry bomReportEntry) throws IOException
   {
     JsonNode jsonNode =
         getPolicyViolationsJsonNodeByComponentRefOrHash(applicationId, sbomVersion, componentRef, fileCoordinateId,
-            hash, null);
+            hash, policyViolationsReportEntry, bomReportEntry);
     return jsonNode != null ? JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class) : null;
   }
 }

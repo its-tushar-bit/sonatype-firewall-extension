@@ -143,9 +143,12 @@ public class ApplicationReport
   public ReportEntry getEntry(final String name) throws IOException {
     ReportEntity entity = getEntity(name);
 
-    if (entity.exists()) {
+    // Some persistence services, such as S3, store the last retrieved metadata for a report entity
+    // If we already got this metadata when getting the report entity, then re-use it for efficiency
+    Metadata metadata = entity.getLastMetadata(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME);
+    if (metadata != null) {
       try (var stream = entity.getInputStream()) {
-        return new ReportEntry(name, entity.getTime(), stream.readAllBytes());
+        return new ReportEntry(name, metadata.lastModifiedEpochTime(), stream.readAllBytes());
       }
     }
     else {

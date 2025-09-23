@@ -13,8 +13,10 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.FileTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -99,6 +101,21 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
+    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+      if (!exists()) {
+        return null;
+      }
+      String attributeNames = Set.of(metadataAttributes).stream()
+          .map(MetadataAttribute::getFileAttributeName)
+          .collect(Collectors.joining(","));
+      Map<String, Object> fileAttributes = Files.readAttributes(entityPath, attributeNames);
+      return new Metadata(
+          ((FileTime) fileAttributes.get(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME.getFileAttributeName())).toMillis(),
+          (Long) fileAttributes.get(MetadataAttribute.SIZE_IN_BYTES.getFileAttributeName())
+      );
+    }
+
+    @Override
     @Trace
     public OutputStream getOutputStream() throws IOException {
       return Files.newOutputStream(entityPath);
@@ -163,6 +180,18 @@ public class FileApplicationReportPersistenceService
     @Override
     public long length() throws IOException {
       return entry.getSize();
+    }
+
+    @Override
+    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+      if (!exists()) {
+        return null;
+      }
+      Set<MetadataAttribute> metadataAttributesSet = Set.of(metadataAttributes);
+      return new Metadata(
+          metadataAttributesSet.contains(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME) ? getTime() : null,
+          metadataAttributesSet.contains(MetadataAttribute.SIZE_IN_BYTES) ? length() : null
+      );
     }
 
     @Override

@@ -57,6 +57,8 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
+import com.sonatype.insight.brain.report.ReportEntry;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams;
@@ -91,6 +93,9 @@ import org.cyclonedx.Version;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 
 @Named
 @Singleton
@@ -141,6 +146,8 @@ public class ApiSbomService
 
   private final LicenseDAO licenseDAO;
 
+  private final ReportService reportService;
+
   @Inject
   public ApiSbomService(
       final ThirdPartySbomMetadataDAO dao,
@@ -156,7 +163,9 @@ public class ApiSbomService
       final SbomPolicyService sbomPolicyService,
       final ThirdPartyPersistenceService thirdPartyPersistenceService,
       final ThirdPartyComponentLicenseResolutionService thirdPartyComponentLicenseResolutionService,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO, final LicenseDAO licenseDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final LicenseDAO licenseDAO,
+      final ReportService reportService)
   {
     this.dao = dao;
     this.sbomScanEvaluator = sbomScanEvaluator;
@@ -173,6 +182,7 @@ public class ApiSbomService
     this.thirdPartyComponentLicenseResolutionService = thirdPartyComponentLicenseResolutionService;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.licenseDAO = licenseDAO;
+    this.reportService = reportService;
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -442,6 +452,19 @@ public class ApiSbomService
     SbomComponentListDTO sbomComponentListDTO =
         thirdPartyFileCoordinateDAO.getSbomComponentsByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId(),
             vulnerabilityThreatLevels, dependencyTypes, filterText, sortBy, asc, pageSize, page);
+    ThirdPartyScan thirdPartyScan =
+        thirdPartyScanDAO.getByThirdPartyFileId(thirdPartySbomMetadata.getThirdPartyFileId());
+    ReportEntry policyThreatsReportEntry;
+    ReportEntry bomReportEntry;
+    if (thirdPartyScan != null) {
+      String scanId = thirdPartyScan.getScanId();
+      policyThreatsReportEntry = reportService.processBrowseReport(applicationId, scanId, POLICY_THREATS.getName());
+      bomReportEntry = reportService.processBrowseReport(applicationId, scanId, BOM_JSON.getName());
+    }
+    else {
+      policyThreatsReportEntry = null;
+      bomReportEntry = null;
+    }
     sbomComponentListDTO.getResults().forEach(sbomComponentDTO -> {
       if (thirdPartyComponentLicenseResolutionService.shouldConsiderLicenseOverrides()) {
         applyLicenseOverrides(applicationId, sbomComponentDTO);
@@ -452,7 +475,7 @@ public class ApiSbomService
           PolicyThreats.Component component =
               sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(applicationId, version,
                   sbomComponentDTO.getComponentRef(), sbomComponentDTO.getFileCoordinateId(),
-                  sbomComponentDTO.getHash());
+                  sbomComponentDTO.getHash(), policyThreatsReportEntry, bomReportEntry);
           if (component != null) {
             sbomComponentDTO.setPolicyViolationCount(component.activeViolations.size());
           }

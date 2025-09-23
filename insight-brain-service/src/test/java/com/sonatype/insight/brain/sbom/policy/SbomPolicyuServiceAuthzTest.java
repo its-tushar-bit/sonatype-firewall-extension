@@ -69,21 +69,21 @@ public class SbomPolicyuServiceAuthzTest extends AbstractServiceAuthzTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> sbomPolicyService.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "12345678",
-            "componentRef", "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20])))
+            "componentRef", "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]), null))
         .withMessage("Cannot find version 12345678 for application with ID " + app.getId() + ".");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_Unauthenticated() throws Exception {
     sbomPolicyService.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "12345678",
-        "componentRef", "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]));
+        "componentRef", "fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]), null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyViolationsJsonNodeByFileCoordinateIdOrHash_Unauthorized() throws Exception {
     login();
     sbomPolicyService.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "12345678",
-        "componentRef","fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]));
+        "componentRef","fileCoordinateId1", null, new ReportEntry("report", 12345L, new byte[20]), null);
   }
 
   @Test
@@ -92,20 +92,20 @@ public class SbomPolicyuServiceAuthzTest extends AbstractServiceAuthzTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
-            "componentRef","fileCoordinateId1", null))
+            "componentRef","fileCoordinateId1", null, null, null))
         .withMessage("Cannot find version 12345678 for application with ID " + app.getId() + ".");
   }
 
   @Test(expected = UnauthenticatedException.class)
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_Unauthenticated() throws IOException {
     sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
-        "componentRef","fileCoordinateId1", null);
+        "componentRef","fileCoordinateId1", null, null, null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testGetPolicyViolationsByFileCoordinateIdOrHash_Unauthorized() throws IOException {
     login();
     sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), "12345678",
-        "componentRef","fileCoordinateId1", null);
+        "componentRef","fileCoordinateId1", null, null, null);
   }
 }

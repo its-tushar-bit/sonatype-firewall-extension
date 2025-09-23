@@ -14,6 +14,7 @@ import java.nio.file.FileSystems;
 import java.time.Instant;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -772,5 +773,36 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     service.deleteReportEntity(reportEntity);
 
     assertThat(reportEntity.exists()).isFalse();
+  }
+
+  @Test
+  public void testGetMetadata() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("additional.txt", "additional");
+    helper.writeLocalFile("local.txt", "local");
+    helper.writePdf("pdf");
+    helper.writeVulnerabilitySignatures("vulnerability signatures");
+
+    assertThat(service.getReportEntity(APPLICATION_ID, SCAN_ID, "doesNotExist").getMetadata()).isNull();
+    assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html"));
+    assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "additional.txt"));
+    assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "local.txt"));
+    assertMetadataEqualsDirectCalls(service.getPdfEntity(APPLICATION_ID, SCAN_ID));
+    assertMetadataEqualsDirectCalls(service.getVulnerabilitySignaturesEntity(APPLICATION_ID, SCAN_ID));
+    try (Stream<ReportEntity> reportEntitiesStream = service.getOriginalReportEntities(APPLICATION_ID, SCAN_ID)) {
+      ReportEntity[] reportEntities = reportEntitiesStream.toArray(ReportEntity[]::new);
+      for (ReportEntity reportEntity : reportEntities) {
+        assertMetadataEqualsDirectCalls(reportEntity);
+      }
+    }
+  }
+
+  private void assertMetadataEqualsDirectCalls(final BaseReportEntity reportEntity) throws Exception {
+    Metadata metadata = reportEntity.getMetadata(
+        MetadataAttribute.LAST_MODIFIED_EPOCH_TIME,
+        MetadataAttribute.SIZE_IN_BYTES
+    );
+    assertThat(metadata.lastModifiedEpochTime()).isEqualTo(reportEntity.getTime());
+    assertThat(metadata.sizeInBytes()).isEqualTo(reportEntity.length());
   }
 }

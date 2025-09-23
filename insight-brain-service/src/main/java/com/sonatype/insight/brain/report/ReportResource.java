@@ -240,7 +240,7 @@ public class ReportResource
 
     if (!StringUtils.isAllBlank(fileCoordinateId, componentRef, hash)) {
       JsonNode jsonNode = sbomPolicyService.getPolicyViolationsJsonNodeByComponentRefOrHash(applicationInternalId,
-          sbomVersion, componentRef, fileCoordinateId, hash, policyThreatsReportEntry);
+          sbomVersion, componentRef, fileCoordinateId, hash, policyThreatsReportEntry, null);
 
       if (jsonNode != null) {
         ResponseBuilder response = Response.ok(jsonNode);

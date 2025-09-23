@@ -73,6 +73,11 @@ public class ReportBundleUpdaterTest
     }
 
     @Override
+    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) {
+      return null;
+    }
+
+    @Override
     public InputStream getInputStream() {
       return CharSequenceInputStream.builder().setCharSequence("test").get();
     }

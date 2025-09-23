@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,6 +53,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
+import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
@@ -73,6 +75,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.matcher.Matchers;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.tika.utils.StringUtils;
@@ -103,12 +106,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 public class ApiSbomServiceTest
     extends AbstractComponentTest
@@ -154,10 +160,19 @@ public class ApiSbomServiceTest
   @Mock
   private BaseUrl mockBaseUrl;
 
+  @Mock
+  private ReportService mockReportService;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(BaseUrl.class).toInstance(mockBaseUrl);
+    binder.bindInterceptor(Matchers.subclassesOf(ReportService.class), Matchers.any(), invocation -> {
+      if (invocation.getMethod().getModifiers() == Modifier.PUBLIC) {
+        invocation.getMethod().invoke(mockReportService, invocation.getArguments());
+      }
+      return invocation.proceed();
+    });
     super.configure(binder);
   }
 
@@ -680,6 +695,8 @@ public class ApiSbomServiceTest
               .extracting(ResolvedLicenseDTO::licenseName).containsExactlyInAnyOrder("License 1", "License 2");
           assertThat(component.getPolicyViolationCount()).isEqualTo(1);
         });
+
+    verify(mockReportService, times(2)).processBrowseReport(anyString(), anyString(), anyString());
   }
 
   @Test

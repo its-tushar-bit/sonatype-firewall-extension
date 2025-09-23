@@ -151,7 +151,7 @@ public class SbomComponentsService
 
     try {
       PolicyThreats.Component componentFound = sbomPolicyService.getPolicyViolationsByFileCoordinateIdOrHash(
-          applicationId, sbomVersion, component.getComponentRef(), component.getId(), component.getHash());
+          applicationId, sbomVersion, component.getComponentRef(), component.getId(), component.getHash(), null, null);
 
       SbomPolicyViolationSummaryDTO policyViolationSummary = componentFound != null ?
           calculatePolicyViolationSummary(componentFound.activeViolations) :

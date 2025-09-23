@@ -36,6 +36,18 @@ public interface BaseReportEntity
   long length() throws IOException;
 
   /**
+   * @return at least the requested metadata for the report entity or null if it does not exist
+   */
+  Metadata getMetadata(MetadataAttribute... metadataAttributes) throws IOException;
+
+  /**
+   * @return the last requested metadata for the report entity, by default, this is the same as {@code getMetadata}
+   */
+  default Metadata getLastMetadata(MetadataAttribute... metadataAttributes) throws IOException {
+    return getMetadata(metadataAttributes);
+  }
+
+  /**
    * @return an OutputStream that can be used to write to the file. If the file already exists, it will be overwritten.
    * If it doesn't already exist, it will be created.
    */

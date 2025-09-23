@@ -8,14 +8,20 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationReportDTOV2;
@@ -33,26 +39,41 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyAlertUtil;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
 import com.sonatype.insight.brain.report.ApplicationReport;
+import com.sonatype.insight.brain.report.ReportDataStore;
 import com.sonatype.insight.brain.report.ReportEntry;
-import com.sonatype.insight.brain.report.ReportService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SUMMARY_JSON;
 
+@Named
+@Singleton
 public class ApiReportServiceV2
 {
   private static final Logger log = LoggerFactory.getLogger(ApiReportServiceV2.class);
 
   private static final int MAX_POLICY_EVALUATIONS_TO_RETURN = 100;
+
+  private static final int REPORT_HISTORY_THREADS_MIN = 1;
+
+  private static final int REPORT_HISTORY_THREADS_MAX = Integer.MAX_VALUE;
+
+  private static final int REPORT_HISTORY_THREADS_DEFAULT = 10;
+
+  private static final String REPORT_HISTORY_THREADS = "reportHistoryThreads";
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
@@ -62,7 +83,9 @@ public class ApiReportServiceV2
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
 
-  private final ReportService reportService;
+  private final ReportDataStore reportDataStore;
+
+  private final TenantReference<TenantThreadPoolExecutor> reportHistoryExecutors;
 
   @Inject
   public ApiReportServiceV2(
@@ -70,13 +93,36 @@ public class ApiReportServiceV2
       ApiApplicationService applicationService,
       ApplicationDAO applicationDAO,
       ScanPolicyEvaluator scanPolicyEvaluator,
-      ReportService reportService)
+      ReportDataStore reportDataStore,
+      ShutdownHandler shutdownHandler)
   {
     this.applicationDAO = applicationDAO;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
-    this.reportService = reportService;
+    this.reportDataStore = reportDataStore;
+    reportHistoryExecutors = new TenantReference<>(() -> {
+      int reportHistoryThreadCount = DefaultExecutorThreadPools.getThreadCount(
+          REPORT_HISTORY_THREADS_MIN,
+          REPORT_HISTORY_THREADS_MAX,
+          REPORT_HISTORY_THREADS_DEFAULT,
+          REPORT_HISTORY_THREADS
+      );
+      TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+          reportHistoryThreadCount,
+          reportHistoryThreadCount,
+          5L,
+          TimeUnit.SECONDS,
+          new LinkedBlockingQueue<>(),
+          new ThreadFactoryBuilder().setNameFormat("ReportHistory-%d").build(),
+          new AbortPolicy(),
+          "report_history",
+          getClass().getSimpleName()
+      );
+      tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+      shutdownHandler.add(tenantThreadPoolExecutor);
+      return tenantThreadPoolExecutor;
+    });
   }
 
   @Authorize(permission = Permission.READ)
@@ -111,7 +157,7 @@ public class ApiReportServiceV2
     final ApiReportHistoryDTO
         apiReportHistoryDTO = new ApiReportHistoryDTO();
     apiReportHistoryDTO.applicationId = applicationId;
-    apiReportHistoryDTO.reports = new ArrayList<>();
+    apiReportHistoryDTO.reports = new CopyOnWriteArrayList<>();
     loadReportHistory(apiReportHistoryDTO, application, stage, limit);
     return apiReportHistoryDTO;
   }
@@ -155,13 +201,25 @@ public class ApiReportServiceV2
     List<PolicyEvaluation> policyEvaluations =
         policyEvaluationDAO.getLimitedAmountByApplicationId(apiReportHistoryDTO.applicationId, maxResultsToReturn,
             stage);
-    Set<String> processedScans = new HashSet<>();
-    policyEvaluations.forEach(policyEvaluation -> {
-      if (!processedScans.contains(policyEvaluation.getScanId())) {
-        addPolicyEvaluationResult(apiReportHistoryDTO, policyEvaluation, application);
-        processedScans.add(policyEvaluation.getScanId());
-      }
-    });
+
+    List<PolicyEvaluation> uniquePolicyEvaluations = policyEvaluations.stream()
+        .collect(Collectors.toMap(
+            PolicyEvaluation::getScanId,
+            Function.identity(),
+            (existing, replacement) -> existing))
+        .values()
+        .stream()
+        .toList();
+
+    List<CompletableFuture<Void>> futures = uniquePolicyEvaluations.stream()
+        .map(policyEvaluation -> CompletableFuture.runAsync(
+            () -> addPolicyEvaluationResult(apiReportHistoryDTO, policyEvaluation, application),
+            reportHistoryExecutors.get()))
+        .toList();
+
+    CompletableFuture.allOf(futures.toArray(CompletableFuture[]::new)).join();
+
+    apiReportHistoryDTO.reports.sort(Comparator.comparing((ApiReportResultsDTO r) -> r.evaluationDate).reversed());
   }
 
   private void addPolicyEvaluationResult(
@@ -171,17 +229,19 @@ public class ApiReportServiceV2
   {
     try {
       ApplicationReport applicationReport =
-          reportService.getReport(policyEvaluation.getApplicationId(), policyEvaluation.getScanId());
+          reportDataStore.getApplicationReport(application, policyEvaluation.getScanId());
       PolicyThreats policyThreats = JsonUtils.parse(
           Objects.requireNonNull(applicationReport.getEntry(POLICY_THREATS.getName())).buf,
           PolicyThreats.class);
       List<PolicyViolation> policyViolations =
           PolicyAlertUtil.getDummyPolicyViolationsFromPolicyThreatsForCounts(policyThreats);
 
+      ReportEntry summaryReportEntry = applicationReport.getEntry(SUMMARY_JSON.getName());
       ApiReportResultsDTO apiReportResultsDTO = new ApiReportResultsDTO(
           policyEvaluation,
-          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false),
-          getScannerVersion(applicationReport)
+          scanPolicyEvaluator.createPolicyEvaluationResult(policyEvaluation, policyViolations, false,
+              summaryReportEntry),
+          getScannerVersion(summaryReportEntry)
       );
       populateReportDTO(apiReportResultsDTO, application, policyEvaluation);
       apiReportHistoryDTO.reports.add(apiReportResultsDTO);
@@ -196,12 +256,11 @@ public class ApiReportServiceV2
     }
   }
 
-  private String getScannerVersion(final ApplicationReport applicationReport) throws IOException {
-    ReportEntry entry = applicationReport.getEntry(SUMMARY_JSON.getName());
-    if (entry == null || entry.buf == null) {
+  private String getScannerVersion(final ReportEntry summaryReportEntry) throws IOException {
+    if (summaryReportEntry == null || summaryReportEntry.buf == null) {
       return null;
     }
-    JsonNode summary = JsonUtils.parse(entry.buf);
+    JsonNode summary = JsonUtils.parse(summaryReportEntry.buf);
     return summary.path("scannerVersion").asText();
   }
 }

@@ -124,7 +124,7 @@ public class SbomPolicyServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(
             () -> service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "version", null, null, null,
-                null))
+                null, null))
         .withMessage("componentRef, fileCoordinateId and hash cannot be both null or empty.");
   }
 
@@ -143,7 +143,7 @@ public class SbomPolicyServiceTest
 
     assertThatExceptionOfType(NotFoundException.class)
         .isThrownBy(() -> service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), "sbomVersion2",
-            "eb95f7c60bd3ae19e4ee272c96b62ca473614987", "86163fcc32524261bfd2bdbedb7eae43", null, null))
+            "eb95f7c60bd3ae19e4ee272c96b62ca473614987", "86163fcc32524261bfd2bdbedb7eae43", null, null, null))
         .withMessage("Cannot find version sbomVersion2 for application with ID " + app.getId() + ".");
   }
 
@@ -163,7 +163,7 @@ public class SbomPolicyServiceTest
     JsonNode jsonNode =
         service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
             "eb95f7c60bd3ae19e4ee272c96b62ca473614987",
-            null, null, null);
+            null, null, null, null);
     assertThat(jsonNode).isNotNull();
     Component cp = JsonUtils.asPojo(jsonNode, Component.class);
     assertThat(cp.policyThreatLevel).isEqualTo(9);
@@ -174,7 +174,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
-            componentRef, "some-fake-file-coordinate-id", null, null);
+            componentRef, "some-fake-file-coordinate-id", null, null, null);
         assertThat(jsonNode).isNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -189,7 +189,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion, null,
-            componentRef, "1249e25aebb15358bedd", null);
+            componentRef, "1249e25aebb15358bedd", null, null);
         assertThat(jsonNode).isNotNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -204,7 +204,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
-            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash", null);
+            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash", null, null);
         assertThat(jsonNode).isNull();
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
       }
@@ -219,7 +219,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         JsonNode jsonNode = service.getPolicyViolationsJsonNodeByComponentRefOrHash(app.getId(), sbomVersion,
-            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9", null);
+            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9", null, null);
         assertThat(jsonNode).isNotNull();
         assertThat(jsonNode.get("hash").asText()).isEqualTo("1249e25aebb15358bedd");
         return JsonUtils.asPojo(jsonNode, PolicyThreats.Component.class);
@@ -235,7 +235,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion, componentRef,
-            fileCoordinateId, null);
+            fileCoordinateId, null, null, null);
         assertThat(result).isNotNull();
         return result;
       }
@@ -250,7 +250,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            componentRef, "some-fake-file-coordinate-id", null);
+            componentRef, "some-fake-file-coordinate-id", null, null, null);
         assertThat(result).isNull();
         return result;
       }
@@ -265,7 +265,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            componentRef, "some-fake-file-coordinate-id", "1249e25aebb15358bedd");
+            componentRef, "some-fake-file-coordinate-id", "1249e25aebb15358bedd", null, null);
         assertThat(result).isNotNull();
         return result;
       }
@@ -280,7 +280,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash");
+            componentRef, "some-fake-file-coordinate-id", "some-fake-file-hash", null, null);
         assertThat(result).isNull();
         return result;
       }
@@ -295,7 +295,7 @@ public class SbomPolicyServiceTest
     doTestGetPolicyViolationsByFileCoordinateIdOrHash((sbomVersion, componentRef, fileCoordinateId) -> {
       try {
         Component result = service.getPolicyViolationsByFileCoordinateIdOrHash(app.getId(), sbomVersion,
-            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9");
+            componentRef, fileCoordinateId, "1a667c9d419dc4f185c9", null, null);
         assertThat(result).isNotNull();
         assertThat(result.hash).isEqualTo("1249e25aebb15358bedd");
         return result;

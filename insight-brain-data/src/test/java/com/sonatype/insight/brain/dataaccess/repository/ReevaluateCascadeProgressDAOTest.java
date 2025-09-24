@@ -76,7 +76,7 @@ public class ReevaluateCascadeProgressDAOTest
     assertThat(foundProgress.getRepositoryId()).isEqualTo(repository.getId());
     assertThat(foundProgress.getRepositoryComponentId()).isEqualTo(repositoryComponent.getId());
     assertThat(foundProgress.getStatus()).isEqualTo(status);
-    assertThat(foundProgress.isQuarantined()).isFalse();
+    assertThat(foundProgress.isQuarantined()).isNull();
   }
 
   @Test

@@ -37,8 +37,8 @@ public class ReevaluateCascadeProgress implements HasStringId
   @Column(name = "repository_component_id", nullable = false)
   private String repositoryComponentId;
 
-  @Column(name = "quarantined", nullable = false)
-  private boolean quarantined = false;
+  @Column(name = "quarantined")
+  private Boolean quarantined;
 
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
@@ -91,11 +91,11 @@ public class ReevaluateCascadeProgress implements HasStringId
     this.repositoryComponentId = repositoryComponentId;
   }
 
-  public boolean isQuarantined() {
+  public Boolean isQuarantined() {
     return quarantined;
   }
 
-  public void setQuarantined(boolean quarantined) {
+  public void setQuarantined(Boolean quarantined) {
     this.quarantined = quarantined;
   }
 

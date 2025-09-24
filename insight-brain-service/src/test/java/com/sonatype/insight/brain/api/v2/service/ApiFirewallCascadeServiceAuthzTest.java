@@ -6,21 +6,25 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Date;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.CascadeReevaluateTicketDTO;
-import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.api.v2.dto.CascadeStatusResponseDTO;
 import com.sonatype.insight.brain.model.component.MatchState;
+import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
+import com.sonatype.insight.error.exception.NotFoundException;
+
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
-import com.sonatype.insight.brain.model.repository.Repository;
-import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
-
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiFirewallCascadeServiceAuthzTest
@@ -110,5 +114,103 @@ public class ApiFirewallCascadeServiceAuthzTest
         ComponentIdentifier.createNpmCoordinates("test-package", "1.0.0"), now, now);
 
     return repository;
+  }
+
+  @Test
+  public void testGetCascadeStatus_ValidRequest_Authorized() {
+    // Arrange
+    Repository repository = createRepositoryWithoutComponent();
+    String componentHash = "status_auth_hash";
+    String cascadeRequestId = createCascadeRequestWithProgress(repository, componentHash);
+
+    grantEvaluateComponentPermission(REPOSITORY_CONTAINER_ID);
+
+    // Act & Assert - Should succeed without throwing
+    CascadeStatusResponseDTO result = cascadeService.getCascadeStatus(cascadeRequestId);
+    assertThat(result).isNotNull();
+    assertThat(result.referenceComponentHash).isEqualTo(componentHash);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testGetCascadeStatus_ValidRequest_Unauthenticated() {
+    // Arrange
+    Repository repository = createRepositoryWithoutComponent();
+    String componentHash = "status_unauth_hash";
+    String cascadeRequestId = createCascadeRequestWithProgress(repository, componentHash);
+
+    // No authentication set up
+    cascadeService.getCascadeStatus(cascadeRequestId);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testGetCascadeStatus_ValidRequest_Unauthorized() {
+    // Arrange
+    Repository repository = createRepositoryWithoutComponent();
+    String componentHash = "status_unauthor_hash";
+    String cascadeRequestId = createCascadeRequestWithProgress(repository, componentHash);
+
+    login(); // Login but no specific permissions
+
+    // Act & Assert
+    cascadeService.getCascadeStatus(cascadeRequestId);
+  }
+
+  @Test
+  public void testGetCascadeStatus_RequestNotFound() {
+    // Arrange
+    String nonExistentRequestId = "nonexistent_authz_test";
+
+    grantEvaluateComponentPermission(REPOSITORY_CONTAINER_ID);
+
+    // Act & Assert - Should throw NotFoundException regardless of authorization
+    try {
+      cascadeService.getCascadeStatus(nonExistentRequestId);
+    }
+    catch (NotFoundException e) {
+      assertThat(e.getMessage()).contains("Cascade request not found: " + nonExistentRequestId);
+    }
+  }
+
+  @Test
+  public void testGetCascadeStatus_CrossTenantAccess() {
+    // Arrange - Create cascade request in one tenant context
+    Repository repository = createRepositoryWithoutComponent();
+    String componentHash = "cross_tenant_hash";
+    String cascadeRequestId = createCascadeRequestWithProgress(repository, componentHash);
+
+    // Grant permissions for accessing the request
+    grantEvaluateComponentPermission(REPOSITORY_CONTAINER_ID);
+
+    // Act & Assert - Should work for same tenant
+    CascadeStatusResponseDTO result = cascadeService.getCascadeStatus(cascadeRequestId);
+    assertThat(result).isNotNull();
+    assertThat(result.referenceComponentHash).isEqualTo(componentHash);
+  }
+
+  private String createCascadeRequestWithProgress(Repository repository, String componentHash) {
+    Date now = new Date();
+
+    // Create repository component for the test
+    RepositoryComponent repositoryComponent = tempEntity.newRepositoryComponent(
+        repository.getId(),
+        MatchState.EXACT,
+        "authz/status/test",
+        componentHash,
+        ComponentIdentifier.createNpmCoordinates("authz-status-pkg", "1.0.0"),
+        now,
+        now
+    );
+
+    String cascadeRequestId = "authz_cascade_" + System.currentTimeMillis();
+    tempEntity.newReevaluateCascadeRequest(cascadeRequestId, componentHash, "testuser");
+
+    tempEntity.newReevaluateCascadeProgress("authz_progress_completed", cascadeRequestId, repository.getId(),
+        repositoryComponent.getId(), ReevaluateCascadeProgressStatus.COMPLETED.name());
+
+    return cascadeRequestId;
+  }
+
+  private Repository createRepositoryWithoutComponent() {
+    return tempEntity.newRepository("authz-test-repo");
   }
 }

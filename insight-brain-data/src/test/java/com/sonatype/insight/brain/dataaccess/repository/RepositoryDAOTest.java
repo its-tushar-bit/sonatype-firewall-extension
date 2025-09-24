@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
@@ -807,5 +808,17 @@ public class RepositoryDAOTest
     result = dao.getByContainerImageId(application.getPublicId());
     assertThat(result).isNotNull();
     JPA.assertEntityEquals(result, repository1);
+  }
+
+  @Test
+  public void testGetByIds() {
+    Repository repository1 = tempEntity.newRepository();
+    Repository repository2 = tempEntity.newRepository();
+    // not querying for this one
+    tempEntity.newRepository();
+
+    assertThat(dao.getByIds(Set.of(repository1.getId(), repository2.getId())))
+        .usingRecursiveFieldByFieldElementComparatorIgnoringFields(JPA.IGNORE_FIELDS)
+        .containsExactlyInAnyOrder(repository1, repository2);
   }
 }

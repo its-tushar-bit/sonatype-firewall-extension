@@ -993,7 +993,7 @@ CREATE TABLE reevaluate_cascade_progress
   reevaluate_cascade_request_id varchar(50) NOT NULL,
   repository_id varchar(50) NOT NULL,
   repository_component_id varchar(50) NOT NULL,
-  quarantined boolean NOT NULL DEFAULT FALSE,
+  quarantined boolean,
   status varchar(20) NOT NULL,
   CONSTRAINT reevaluate_cascade_progress_pk PRIMARY KEY (reevaluate_cascade_progress_id),
   CONSTRAINT reevaluate_cascade_request_id_fk FOREIGN KEY (reevaluate_cascade_request_id) REFERENCES reevaluate_cascade_request(reevaluate_cascade_request_id) ON DELETE CASCADE,

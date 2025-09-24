@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -369,5 +370,14 @@ public class RepositoryDAO
            AND repository.format = ?3
         """;
     return get(sQuery, containerImageId, RepositoryType.proxy, "docker");
+  }
+
+  public List<Repository> getByIds(Set<String> repositoryIds) {
+    String sQuery = """
+        SELECT entity
+          FROM Repository entity
+         WHERE entity.id IN ?1
+        """;
+    return getListWithSqlInClause(repositoryIds, inClauseValuesPartition -> getList(sQuery, inClauseValuesPartition));
   }
 }

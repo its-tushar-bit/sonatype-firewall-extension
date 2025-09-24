@@ -3837,6 +3837,16 @@ public class TemporaryEntity
     return request;
   }
 
+  public ReevaluateCascadeRequest newReevaluateCascadeRequest(String requestId, String componentHash, String username,
+                                                              ReevaluateCascadeRequestStatus status)
+  {
+    ReevaluateCascadeRequest request =
+        new ReevaluateCascadeRequest(componentHash, username, status);
+    request.setId(requestId);
+    reevaluateCascadeRequestDAO.insert(request);
+    return request;
+  }
+
   public ReevaluateCascadeProgress newReevaluateCascadeProgress(String progressId, String requestId,
       String repositoryId, String repositoryComponentId, String status)
   {

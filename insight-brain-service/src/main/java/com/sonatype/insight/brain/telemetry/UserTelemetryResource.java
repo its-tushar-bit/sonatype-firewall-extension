@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.50
  */
 @Named
+@Singleton
 @Path(UserTelemetryResource.RESOURCE_PATH)
 public class UserTelemetryResource
 {

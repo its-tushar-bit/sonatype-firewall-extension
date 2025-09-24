@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
+import javax.inject.Named;
+import javax.inject.Singleton;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpResponse;
@@ -21,6 +23,12 @@ public class UserTelemetryResourceTest
   @Before
   public void setup() {
     getCLMServer().getInstance(PendoCache.class).invalidateAll();
+  }
+
+  @Test
+  public void testUserTelemetryResource_NamedSingleton() {
+    assertThat(UserTelemetryResource.class.isAnnotationPresent(Named.class)).isTrue();
+    assertThat(UserTelemetryResource.class.isAnnotationPresent(Singleton.class)).isTrue();
   }
 
   @Test

@@ -64,6 +64,8 @@ public class ApiConfigFeaturesService
 
   public static final String FEATURE_SAAS_LIFECYCLE_SCM_ENABLED = "saasLifecycleScmEnabled";
 
+  public static final String FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED = "saasLifecycleScmPrsEnabled";
+
   public static final String FEATURE_SCM_UX_IMPROVEMENTS = "scmUxImprovements";
 
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
@@ -99,6 +101,10 @@ public class ApiConfigFeaturesService
    */
   public boolean isSaasLifecycleScmEnabled() {
     return isFeatureEnabled(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_ENABLED);
+  }
+
+  public boolean isSaasLifecycleScmPrsEnabled() {
+    return isFeatureEnabled(SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED);
   }
 
   public boolean isDefaultBranchMonitoringEnabled() {
@@ -206,6 +212,7 @@ public class ApiConfigFeaturesService
           SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       case FEATURE_SCM_UX_IMPROVEMENTS -> SystemConfigurationProperty.SCM_UX_IMPROVEMENTS;
       case FEATURE_SAAS_LIFECYCLE_SCM_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
+      case FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED;
       default -> feature;
     };
   }
@@ -263,6 +270,7 @@ public class ApiConfigFeaturesService
           FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS;
       case SystemConfigurationProperty.SCM_UX_IMPROVEMENTS -> FEATURE_SCM_UX_IMPROVEMENTS;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
+      case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED;
       default -> propertyName;
     };
   }

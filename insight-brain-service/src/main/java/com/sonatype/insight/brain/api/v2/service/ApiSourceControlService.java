@@ -127,6 +127,8 @@ public class ApiSourceControlService
 
   private final ScmRepoVisibilityService scmRepoVisibilityService;
 
+  private final ApiSourceControlAdapter apiSourceControlAdapter;
+
   private final SourceControlDataService sourceControlDataService;
 
   @Inject
@@ -147,6 +149,7 @@ public class ApiSourceControlService
       final SourceControlUserActivityService sourceControlUserActivityService,
       final TelemetryUtils telemetryUtils,
       final ScmRepoVisibilityService scmRepoVisibilityService,
+      final ApiSourceControlAdapter apiSourceControlAdapter,
       final SourceControlDataService sourceControlDataService)
   {
     this.passwordHandler = passwordHandler;
@@ -165,6 +168,7 @@ public class ApiSourceControlService
     this.sourceControlUserActivityService = sourceControlUserActivityService;
     this.telemetryUtils = telemetryUtils;
     this.scmRepoVisibilityService = scmRepoVisibilityService;
+    this.apiSourceControlAdapter = apiSourceControlAdapter;
     this.sourceControlDataService = sourceControlDataService;
   }
 
@@ -175,7 +179,7 @@ public class ApiSourceControlService
 
     return sourceControlDAOAll.stream()
         .map(this::setTokenValueForReturn)
-        .map(ApiSourceControlAdapter::convertToDTO)
+        .map(apiSourceControlAdapter::convertToDTO)
         .collect(Collectors.toList());
   }
 
@@ -280,7 +284,7 @@ public class ApiSourceControlService
       }
     }
 
-    return ApiSourceControlAdapter.convertToDTO(setTokenValueForReturn(sourceControl));
+    return apiSourceControlAdapter.convertToDTO(setTokenValueForReturn(sourceControl));
   }
 
   @Authorize(permission = Permission.READ)
@@ -296,7 +300,7 @@ public class ApiSourceControlService
     }
     setTokenValueForReturn(sourceControl);
 
-    return ApiSourceControlAdapter.convertToDTO(sourceControl);
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -308,7 +312,7 @@ public class ApiSourceControlService
     sourceControlDTO.ownerId = ownerId;
     checkLicense();
 
-    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(sourceControlDTO);
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     setTokenValueForSave(sourceControl);
     encryptToken(sourceControl);
 
@@ -325,7 +329,7 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.ADD, compositeSourceControl, ownerType);
 
     setTokenValueForReturn(sourceControl);
-    return ApiSourceControlAdapter.convertToDTO(sourceControl);
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)
@@ -343,7 +347,7 @@ public class ApiSourceControlService
           "Cannot find SourceControl for %s with id: %s", ownerType, getPublicOwnerId(ownerId)));
     }
 
-    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(sourceControlDTO);
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(sourceControlDTO);
     sourceControl.setId(storedSourceControl.getId());
     sourceControl.setPullRequestPollTime(storedSourceControl.getPullRequestPollTime());
     sourceControl.setPullRequestErrorCount(storedSourceControl.getPullRequestErrorCount());
@@ -375,7 +379,7 @@ public class ApiSourceControlService
     sendSourceControlTelemetryData(METHOD.UPDATE, compositeSourceControl, ownerType);
 
     setTokenValueForReturn(sourceControl);
-    return ApiSourceControlAdapter.convertToDTO(sourceControl);
+    return apiSourceControlAdapter.convertToDTO(sourceControl);
   }
 
   @Authorize(permission = Permission.WRITE)

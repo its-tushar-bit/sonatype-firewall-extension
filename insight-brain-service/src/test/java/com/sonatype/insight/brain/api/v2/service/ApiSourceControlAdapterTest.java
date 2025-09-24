@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -17,6 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ApiSourceControlAdapterTest
     extends AbstractComponentTest
 {
+  @Inject
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   @SuppressWarnings("deprecation")
   @Test
   public void convertToDTO() {
@@ -41,7 +46,7 @@ public class ApiSourceControlAdapterTest
     sourceControl.setClosePrAfterDaysOpenEnabled(true);
     sourceControl.setClosePrAfterDays(7);
 
-    ApiSourceControlDTO dto = ApiSourceControlAdapter.convertToDTO(sourceControl);
+    ApiSourceControlDTO dto = apiSourceControlAdapter.convertToDTO(sourceControl);
 
     assertThat(dto.id).isEqualTo("id");
     assertThat(dto.ownerId).isEqualTo("ownerId");
@@ -89,7 +94,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.closePrAfterDaysOpenEnabled = true;
     apiSourceControlDTO.closePrAfterDays = 7;
 
-    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
     assertThat(sourceControl.getId()).isNull();
     assertThat(sourceControl.getOwnerId()).isEqualTo("ownerId");
@@ -119,7 +124,7 @@ public class ApiSourceControlAdapterTest
     apiSourceControlDTO.enablePullRequests = true;
     apiSourceControlDTO.enableStatusChecks = false;
 
-    SourceControl sourceControl = ApiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
+    SourceControl sourceControl = apiSourceControlAdapter.convertFromDTO(apiSourceControlDTO);
 
     assertThat(sourceControl.getRemediationPullRequestsEnabled()).isEqualTo(true);
     assertThat(sourceControl.getStatusChecksEnabled()).isEqualTo(false);

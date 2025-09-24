@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import javax.inject.Inject;
+
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -15,6 +17,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
@@ -23,11 +26,19 @@ import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE
 public class MtiqApiSourceControlResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {
+  @Inject
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   private static final String OWNER_TYPE = "{ownerType:application|organization}";
 
   private static final String OWNER_ID = "{internalOwnerId}";
 
   private static final String BY_OWNER = OWNER_TYPE + "/" + OWNER_ID;
+
+  @Before
+  public void setup() {
+    apiSourceControlAdapter = lookup(ApiSourceControlAdapter.class);
+  }
 
   @Override
   protected HttpRequest restRequest() {
@@ -121,7 +132,7 @@ public class MtiqApiSourceControlResourceTest
   private HttpResponse sendSourceControlConfigWithProvider(SourceControlProvider gitlab) throws Exception {
     Organization org = tenantTemporaryEntity.newOrganization();
 
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setProvider(gitlab)
             .setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
             .build());

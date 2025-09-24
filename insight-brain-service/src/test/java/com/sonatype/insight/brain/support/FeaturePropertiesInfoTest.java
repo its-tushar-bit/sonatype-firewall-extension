@@ -112,7 +112,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(58);
+    assertThat(featureConfigNode.size()).isEqualTo(59);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -155,6 +155,7 @@ public class FeaturePropertiesInfoTest
               "prCommenting": true,
               "prLineCommenting": true,
               "reportsList": true,
+              "saasLifecycleScmPrsEnabled": true,
               "sbomBinaryScanning": true,
               "sbomContinuousMonitoringUi": true,
               "sbomManager": false,
@@ -188,7 +189,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(58);
+    assertThat(featureConfigNode.size()).isEqualTo(59);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -231,6 +232,7 @@ public class FeaturePropertiesInfoTest
               "prCommenting": true,
               "prLineCommenting": false,
               "reportsList": true,
+              "saasLifecycleScmPrsEnabled": true,
               "sbomBinaryScanning": true,
               "sbomContinuousMonitoringUi": true,
               "sbomManager": false,
@@ -270,7 +272,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(48)
+        .hasSize(49)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

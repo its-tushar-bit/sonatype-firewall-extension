@@ -11,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -80,6 +81,9 @@ public class ApiSourceControlResourceTest
 
   private Organization org;
 
+  @Inject
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -96,6 +100,7 @@ public class ApiSourceControlResourceTest
             .withBody("{ \"private\": false }")));
 
     sourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
+    apiSourceControlAdapter = lookup(ApiSourceControlAdapter.class);
     app = tempEntity.newApplicationWithParent();
     org = tempEntity.newOrganization();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
@@ -146,7 +151,7 @@ public class ApiSourceControlResourceTest
 
   @Test
   public void testAddSourceControlByOwner_ByOrganization() throws Exception {
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
             .setInnerSourceAutomatedUpdatesEnabled(false)
@@ -172,7 +177,7 @@ public class ApiSourceControlResourceTest
   @Test
   public void testAddSourceControlByOwner_ByApplication_HttpsUrl() throws Exception {
     String repoUrl = String.format("%s/organization/project", gitService.baseUrl());
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repoUrl).setToken("token")
             .setCommitStatusEnabled(false)
             .setManualPullRequestsEnabled(false)
@@ -206,7 +211,7 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.ORGANIZATION, org.getId())
-        .body(ApiSourceControlAdapter.convertToDTO(sourceControl))
+        .body(apiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
     assertResponseStatus(200, response);
 
@@ -230,7 +235,7 @@ public class ApiSourceControlResourceTest
     HttpResponse response = restRequest()
         .path(ApiSourceControlResource.BY_OWNER)
         .parameter(OwnerType.APPLICATION, app.getId())
-        .body(ApiSourceControlAdapter.convertToDTO(sourceControl))
+        .body(apiSourceControlAdapter.convertToDTO(sourceControl))
         .put();
     assertResponseStatus(200, response);
 
@@ -246,7 +251,7 @@ public class ApiSourceControlResourceTest
   public void testAddSourceControlByOwner_InvalidSourceControlProvider()
       throws Exception
   {
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         tempEntity.newSourceControl(org.getId(), null, "token", null));
 
     ObjectNode node = OBJECT_MAPPER.valueToTree(sourceControl);
@@ -268,7 +273,7 @@ public class ApiSourceControlResourceTest
       throws Exception
   {
     ApiSourceControlDTO sourceControl =
-        ApiSourceControlAdapter.convertToDTO(tempEntity.newSourceControl(org.getId(), null, "token", null));
+        apiSourceControlAdapter.convertToDTO(tempEntity.newSourceControl(org.getId(), null, "token", null));
 
     ObjectNode node = (ObjectNode) OBJECT_MAPPER.valueToTree(sourceControl);
     node.put("provider", "invalid_scm");
@@ -525,7 +530,7 @@ public class ApiSourceControlResourceTest
   @SuppressWarnings("deprecation")
   @Test
   public void testAddSourceControl_DeprecatedFieldsAreNotUsedWhenReplacementFieldsArePopulated() throws Exception {
-    ApiSourceControlDTO apiSourceControlDTO = ApiSourceControlAdapter
+    ApiSourceControlDTO apiSourceControlDTO = apiSourceControlAdapter
         .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build());
     // Deprecated fields must be used if the replacement fields are not populated
     apiSourceControlDTO.remediationPullRequestsEnabled = true;
@@ -580,7 +585,7 @@ public class ApiSourceControlResourceTest
   @SuppressWarnings("deprecation")
   @Test
   public void testUpdateSourceControl_DeprecatedFieldsAreNotUsedWhenReplacementFieldsArePopulated() throws Exception {
-    ApiSourceControlDTO apiSourceControlDTO = ApiSourceControlAdapter
+    ApiSourceControlDTO apiSourceControlDTO = apiSourceControlAdapter
         .convertToDTO(new SourceControl.Builder().setOwnerId(org.getId()).setToken("token").build());
     // Deprecated fields must be used if the replacement fields are not populated
     apiSourceControlDTO.remediationPullRequestsEnabled = true;

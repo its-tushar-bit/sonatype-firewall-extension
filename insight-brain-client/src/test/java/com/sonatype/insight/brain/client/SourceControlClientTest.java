@@ -52,6 +52,8 @@ public class SourceControlClientTest
 
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   private Application application;
 
   @Rule
@@ -70,6 +72,7 @@ public class SourceControlClientTest
             .withBody("{ \"private\": false }")));
 
     automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
+    apiSourceControlAdapter = lookup(ApiSourceControlAdapter.class);
     application = tempEntity.newApplicationWithParent(APP_ID);
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);
   }
@@ -181,7 +184,7 @@ public class SourceControlClientTest
   private void addOrgSourceControlForTest() throws Exception {
     turnOnAutomaticSourceControl();
     String repoUrl = String.format("%s/org/proj", gitService.baseUrl());
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(application.getId()).setRepositoryUrl(repoUrl)
             .setToken("token").build());
     HttpResponse response =

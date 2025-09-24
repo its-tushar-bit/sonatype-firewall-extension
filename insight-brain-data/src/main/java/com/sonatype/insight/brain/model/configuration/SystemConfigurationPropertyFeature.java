@@ -201,6 +201,30 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
+  /**
+   * Self-Hosted: PR creation is always enabled (at the feature flag level) for self-hosted.
+   * SaaS: PR creation can be controlled via feature flag or environment variable.
+   */
+  SAAS_LIFECYCLE_SCM_PRS_ENABLED(SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED, false)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      if (tenantUtil.isSingleTenant()) {
+        return true;
+      }
+      String valueInEnvVar = System.getenv().get(NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR);
+      return valueInEnvVar == null ? super.isEnabled(tx) : Boolean.parseBoolean(valueInEnvVar);
+    }
+
+    @Override
+    public void setEnabled(TransactionContext tx, boolean enabled) {
+      String valueInEnvVar = System.getenv().get(NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR);
+      if (valueInEnvVar == null) {
+        super.setEnabled(tx, enabled);
+      }
+    }
+  },
+
   SBOM_MANAGER(SystemConfigurationProperty.SBOM_MANAGER, false),
   DEVELOPMENT_DASHBOARD_METRIC_COLLECTION(
       SystemConfigurationProperty.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,
@@ -364,6 +388,8 @@ public enum SystemConfigurationPropertyFeature
   public static final String NXIQ_ADVANCED_SEARCH_CONFIGURATION_ENV_VAR = "NXIQ_ADVANCED_SEARCH_CONFIGURATION";
 
   public static final String NXIQ_ENABLE_FEDRAMP_AUDIT_ENV_VAR = "NXIQ_ENABLE_FEDRAMP_AUDIT";
+
+  public static final String NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED_ENV_VAR = "NXIQ_SAAS_LIFECYCLE_SCM_PRS_ENABLED";
 
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 

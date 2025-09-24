@@ -81,6 +81,7 @@ describe('sourceControlConfiguration', () => {
             notifications: true,
             automation: true,
             'manual-pull-requests': true,
+            'saas-lifecycle-scm-prs-enabled': true,
           },
         },
         orgsAndPolicies: {
@@ -424,12 +425,22 @@ describe('sourceControlConfiguration', () => {
         expect(screen.queryByText('An error occurred saving data. Saving Error')).not.toBeInTheDocument();
       });
 
-      it('shows the manual pull requests toggle', async () => {
+      it('shows the manual pull requests toggle when saas-lifecycle-scm-prs-enabled is true', async () => {
         renderComponent();
         await screen.findByRole('button', { name: 'Create' });
         const switchesWithFlag = screen.getAllByRole('switch');
         expect(switchesWithFlag.length).toBe(7);
         expect(screen.getByText('Manual Pull Requests')).toBeInTheDocument();
+      });
+
+      it('hides the manual pull requests toggle when saas-lifecycle-scm-prs-enabled is false', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['saas-lifecycle-scm-prs-enabled'] = false;
+        renderComponent(preloadedState);
+        await screen.findByRole('button', { name: 'Create' });
+        const switchesWithFlag = screen.getAllByRole('switch');
+        expect(switchesWithFlag.length).toBe(3);
+        expect(screen.queryByText('Manual Pull Requests')).not.toBeInTheDocument();
       });
     });
 
@@ -578,6 +589,23 @@ describe('sourceControlConfiguration', () => {
         expect(afterDaysCheckbox).not.toBeInTheDocument();
         expect(daysInput).not.toBeInTheDocument();
       });
+
+      it('hides advanced options for GitHub when saas-lifecycle-scm-prs-enabled is false', async () => {
+        const preloadedState = clone(defaultPreloadedState);
+        preloadedState.productFeatures.productFeatures['saas-lifecycle-scm-prs-enabled'] = false;
+        renderComponent(preloadedState);
+        await selectProvider('github');
+
+        const advancedOptionsSection = screen.queryByText(/Advanced Github Options/);
+        const failedChecksCheckbox = screen.queryByText('Close AutoPRs when one or more required checks fail');
+        const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
+        const daysInput = screen.queryByPlaceholderText('Ex. 7');
+
+        expect(advancedOptionsSection).not.toBeInTheDocument();
+        expect(failedChecksCheckbox).not.toBeInTheDocument();
+        expect(afterDaysCheckbox).not.toBeInTheDocument();
+        expect(daysInput).not.toBeInTheDocument();
+      });
     });
 
     describe('Advanced options state management', () => {
@@ -622,6 +650,7 @@ describe('sourceControlConfiguration', () => {
           productFeatures: {
             notifications: true,
             automation: true,
+            'saas-lifecycle-scm-prs-enabled': true,
           },
         },
         orgsAndPolicies: {
@@ -1058,6 +1087,7 @@ describe('sourceControlConfiguration', () => {
           productFeatures: {
             notifications: true,
             automation: true,
+            'saas-lifecycle-scm-prs-enabled': true,
           },
         },
         orgsAndPolicies: {

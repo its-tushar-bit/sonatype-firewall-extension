@@ -10,7 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
@@ -19,14 +23,23 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.ImmutableSet;
 
+@Named
+@Singleton
 public class ApiSourceControlAdapter
 {
   private static final Set<SourceControlProvider> MULTI_TENANT_SCM_PROVIDERS =
       ImmutableSet.of(SourceControlProvider.AZURE, SourceControlProvider.BITBUCKET, SourceControlProvider.GITHUB,
         SourceControlProvider.GITLAB);
 
+  private final ApiConfigFeaturesService configFeaturesService;
+
+  @Inject
+  public ApiSourceControlAdapter(final ApiConfigFeaturesService configFeaturesService) {
+    this.configFeaturesService = configFeaturesService;
+  }
+
   @SuppressWarnings("deprecation")
-  public static ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
+  public ApiSourceControlDTO convertToDTO(final SourceControl sourceControl) {
     if (sourceControl == null) {
       return null;
     }
@@ -57,7 +70,7 @@ public class ApiSourceControlAdapter
     return apiSourceControlDTO;
   }
 
-  private static SourceControlProvider getSourceControlProvider(final String provider) {
+  private SourceControlProvider getSourceControlProvider(final String provider) {
     List<String> availableSourceControlValues = getAvailableSourceControlValues();
     try {
       if (provider != null && availableSourceControlValues.stream().noneMatch(provider::equals)) {
@@ -73,14 +86,14 @@ public class ApiSourceControlAdapter
     }
   }
 
-  private static List<String> getAvailableSourceControlValues() {
+  private List<String> getAvailableSourceControlValues() {
     return Arrays.stream(SourceControlProvider.values())
         .filter(getSourceControlPredicate())
         .map(provider -> provider.name().toLowerCase())
         .collect(Collectors.toList());
   }
 
-  private static Predicate<SourceControlProvider> getSourceControlPredicate() {
+  private Predicate<SourceControlProvider> getSourceControlPredicate() {
     if (new TenantUtil().isMultiTenant()) {
       return MULTI_TENANT_SCM_PROVIDERS::contains;
     }
@@ -89,31 +102,30 @@ public class ApiSourceControlAdapter
     }
   }
 
-  private static Boolean convertRemediationPullRequestsEnabled(Boolean remediationPullRequestsEnabled) {
-    if (new TenantUtil().isMultiTenant()) {
-      return false;
-    }
-    else {
+  private Boolean convertRemediationPullRequestsEnabled(Boolean remediationPullRequestsEnabled) {
+    // NOTE: isSaasLifecycleScmPrsEnabled always returns true in self-hosted
+    if (configFeaturesService.isSaasLifecycleScmPrsEnabled()) {
       return remediationPullRequestsEnabled;
     }
+    return false;
   }
 
-  private static Boolean convertManualPullRequestsEnabled(Boolean manualPullRequestsEnabled) {
-    if (new TenantUtil().isMultiTenant()) {
-      return false;
+  private Boolean convertManualPullRequestsEnabled(Boolean manualPullRequestsEnabled) {
+    if (configFeaturesService.isSaasLifecycleScmPrsEnabled()) {
+      return manualPullRequestsEnabled;
     }
-    return manualPullRequestsEnabled;
+    return false;
   }
 
-  private static Boolean convertInnerSourceAutomatedUpdatesEnabled(Boolean innerSourceAutomatedUpdatesEnabled) {
-    if (new TenantUtil().isMultiTenant()) {
-      return false;
+  private Boolean convertInnerSourceAutomatedUpdatesEnabled(Boolean innerSourceAutomatedUpdatesEnabled) {
+    if (configFeaturesService.isSaasLifecycleScmPrsEnabled()) {
+      return innerSourceAutomatedUpdatesEnabled;
     }
-    return innerSourceAutomatedUpdatesEnabled;
+    return false;
   }
 
   @SuppressWarnings("deprecation")
-  static SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
+  public SourceControl convertFromDTO(final ApiSourceControlDTO dto) {
     if (dto == null) {
       return null;
     }

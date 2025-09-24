@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.inject.Inject;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -62,6 +63,9 @@ public class ApiSourceControlResourceAuditTest
 
   private RoleDAO roleDAO;
 
+  @Inject
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   @Rule
   public WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -90,6 +94,7 @@ public class ApiSourceControlResourceAuditTest
 
     roleDAO = lookup(RoleDAO.class);
     automaticSourceControlConfigurationDAO = lookup(AutomaticSourceControlConfigurationDAO.class);
+    apiSourceControlAdapter = lookup(ApiSourceControlAdapter.class);
     app = tempEntity.newApplicationWithParent();
     tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null,
         "aLkXJ3Ku07gHpyWJ3BPFHxnt1ueuJCBtVq0VBVqLBr8=", SourceControlProvider.GITHUB);
@@ -99,7 +104,7 @@ public class ApiSourceControlResourceAuditTest
   public void testAuditForCRUD() throws Exception {
     //CREATE
     String repositoryUrl = String.format("%s/organization/project", gitService.baseUrl());
-    ApiSourceControlDTO sourceControl = ApiSourceControlAdapter.convertToDTO(
+    ApiSourceControlDTO sourceControl = apiSourceControlAdapter.convertToDTO(
         new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(repositoryUrl).setToken("token")
             .build());
 

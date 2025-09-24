@@ -181,6 +181,10 @@ export const selectIsSbomPoliciesSupported = createSelector(selectProductFeature
 
 const selectIsSingleTenantEnabled = createSelector(selectProductFeatures, propOr(false, 'single-tenant'));
 const selectIsMultiTenantEnabled = createSelector(selectProductFeatures, propOr(false, 'multi-tenant'));
+const selectMultiTenantPRsEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'saas-lifecycle-scm-prs-enabled')
+);
 
 const SINGLE_TENANT = 'single-tenant';
 const MULTI_TENANT = 'multi-tenant';
@@ -208,8 +212,8 @@ export const selectTenantScmProviderTypes = createSelector(selectTenantMode, (mo
   }
 });
 
-export const selectTenantScmOptionsTypes = createSelector(selectTenantMode, (mode) => {
-  if (mode === MULTI_TENANT) {
+export const selectTenantScmOptionsTypes = createSelector(selectMultiTenantPRsEnabled, (prsEnabled) => {
+  if (!prsEnabled) {
     return SOURCE_CONTROL_OPTIONS.filter(
       (option) =>
         option.id !== 'source-control-remediation-pull-requests' &&

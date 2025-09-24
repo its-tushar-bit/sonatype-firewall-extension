@@ -304,9 +304,9 @@ describe('productFeaturesSelectors', () => {
   describe('selectSourceControlOptions', () => {
     it(
       'returns all with the exception of ' +
-        'auto remediated PR, manual PR, InnerSource PR, and ssh for git operations in multi-tenant mode',
+        'auto remediated PR, manual PR, InnerSource PR, and ssh for git operations when saas-lifecycle-scm-prs-enabled is false',
       () => {
-        mockState.productFeatures.productFeatures['multi-tenant'] = true;
+        mockState.productFeatures.productFeatures['saas-lifecycle-scm-prs-enabled'] = false;
         const options = selectTenantScmOptionsTypes(mockState);
 
         expect(options).toHaveLength(3);
@@ -318,8 +318,24 @@ describe('productFeaturesSelectors', () => {
       }
     );
 
-    it('returns all option in single-tenant mode', () => {
-      mockState.productFeatures.productFeatures['single-tenant'] = true;
+    it(
+      'returns all with the exception of ' +
+        'auto remediated PR, manual PR, InnerSource PR, and ssh for git operations when saas-lifecycle-scm-prs-enabled is undefined',
+      () => {
+        // Don't set the flag, so it defaults to false via propOr
+        const options = selectTenantScmOptionsTypes(mockState);
+
+        expect(options).toHaveLength(3);
+
+        const optionsIds = options.map((option) => option.id);
+        expect(optionsIds).toContain('source-control-pull-request-commenting');
+        expect(optionsIds).toContain('source-control-evaluations');
+        expect(optionsIds).toContain('automated-commit-feedback');
+      }
+    );
+
+    it('returns all options when saas-lifecycle-scm-prs-enabled is true', () => {
+      mockState.productFeatures.productFeatures['saas-lifecycle-scm-prs-enabled'] = true;
       const options = selectTenantScmOptionsTypes(mockState);
       expect(options).toHaveLength(7);
       const optionsIds = options.map((option) => option.id);

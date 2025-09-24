@@ -58,6 +58,9 @@ public class ApiSourceControlServiceAuthzTest
   @Inject
   private AutomaticSourceControlConfigurationDAO automaticSourceControlConfigurationDAO;
 
+  @Inject
+  private ApiSourceControlAdapter apiSourceControlAdapter;
+
   @Mock
   private GitClientFactory mockGitClientFactory;
 
@@ -124,7 +127,7 @@ public class ApiSourceControlServiceAuthzTest
     grantWritePermission(app.getId());
     sourceControlService.addSourceControlByOwner(
         OwnerType.APPLICATION, app.getId(),
-        ApiSourceControlAdapter.convertToDTO(
+        apiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
                 .build()));
   }
@@ -146,7 +149,7 @@ public class ApiSourceControlServiceAuthzTest
   public void testUpdateSourceControlByOwner_Authorized() {
     grantWritePermission(app.getId());
     ApiSourceControlDTO sourceControl = sourceControlService.addSourceControlByOwner(OwnerType.APPLICATION,
-        app.getId(), ApiSourceControlAdapter.convertToDTO(
+        app.getId(), apiSourceControlAdapter.convertToDTO(
             new SourceControl.Builder().setOwnerId(app.getId()).setRepositoryUrl(VALID_URL).setToken("token")
               .build()));
     sourceControl.token = "newToken";

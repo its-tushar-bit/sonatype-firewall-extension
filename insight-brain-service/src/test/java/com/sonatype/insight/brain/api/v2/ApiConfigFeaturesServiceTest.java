@@ -1439,6 +1439,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("userManagementPages", true);
     expectedFeatureConfigMap.put("epssDataEnabled", false);
     expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
+    expectedFeatureConfigMap.put("saasLifecycleScmPrsEnabled", true);
 
     return expectedFeatureConfigMap;
   }

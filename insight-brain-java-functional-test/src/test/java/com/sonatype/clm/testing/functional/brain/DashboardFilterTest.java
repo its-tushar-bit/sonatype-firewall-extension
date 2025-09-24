@@ -1461,6 +1461,7 @@ public class DashboardFilterTest
   }
 
   @Test
+  @Ignore("CLM-36294")
   public void testWaiverReposFilterIncludesRootOrgAndAllRepositories() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();

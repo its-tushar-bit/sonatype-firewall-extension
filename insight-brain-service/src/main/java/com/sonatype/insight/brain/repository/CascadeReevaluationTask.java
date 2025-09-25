@@ -88,7 +88,8 @@ public class CascadeReevaluationTask
 
       if (repositoryToComponents.isEmpty()) {
         updateRequestStatus(ReevaluateCascadeRequestStatus.NO_COMPONENTS_FOUND);
-        log.info("Cascade re-evaluation completed with no components found for hash: {}", componentHash);
+        log.info("Cascade re-evaluation request {} completed with no components found for hash: {}", cascadeRequestId,
+            componentHash);
         return;
       }
 
@@ -111,16 +112,17 @@ public class CascadeReevaluationTask
         }
         catch (Exception e) {
           failedEvaluations++;
-          log.error("Failed to process repository {} for cascade re-evaluation of component {}: {}",
-              repository.getId(), componentHash, e.getMessage(), e);
+          log.error("Failed to process repository {} for cascade re-evaluation request {} of component {}: {}",
+              repository.getId(), cascadeRequestId, componentHash, e.getMessage(), e);
         }
       }
 
       // Mark as completed
       updateRequestStatus(ReevaluateCascadeRequestStatus.COMPLETED);
-      log.info("Completed cascade re-evaluation for component {}. Processed {} components in {} repositories. " +
-              "Successes: {}, Failures: {}",
-          componentHash, totalComponents, repositoryToComponents.size(), successfulEvaluations, failedEvaluations);
+      log.info(
+          "Completed cascade re-evaluation request {} for component {}. Processed {} components in {} repositories. " +
+              "Successes: {}, Failures: {}", cascadeRequestId, componentHash, totalComponents,
+          repositoryToComponents.size(), successfulEvaluations, failedEvaluations);
 
       AuditData.get().setData("totalComponents", totalComponents)
           .setData("successfulEvaluations", successfulEvaluations)
@@ -204,8 +206,9 @@ public class CascadeReevaluationTask
       }
     }
     catch (Exception e) {
-      log.error("Failed to batch re-evaluate {} components in repository {}: {}",
-          components.size(), repository.getId(), e.getMessage(), e);
+      log.error(
+          "Failed to re-evaluate {} components in repository {} in cascade re-evaluation request {} with hash {}: {}",
+          components.size(), repository.getId(), cascadeRequestId, componentHash, e.getMessage(), e);
 
       for (RepositoryComponent component : components) {
         updateProgressFailed(progressByComponentId.get(component.getId()));

@@ -21,17 +21,24 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.brain.utils.FirewallForContainerImagesHelper;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,13 +57,20 @@ public class PolicyAlertUtilTest
 
   private ReportComponentService reportComponentService;
 
+  private OrganizationDAO organizationDAO;
+
   @Before
   public void setUp() {
     reportComponentService = Mockito.mock(ReportComponentService.class);
     OwnerDAO ownerDAO = daoFactory.createOwnerDAO();
+    organizationDAO = daoFactory.createOrganizationDAO();
+    RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
     policyDAO = daoFactory.createPolicyDAO();
     policyViolationDAO = daoFactory.createPolicyViolationDAO();
-    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO, policyViolationDAO, reportComponentService);
+    FirewallForContainerImagesHelper firewallForContainerImagesHelper =
+        new FirewallForContainerImagesHelper(organizationDAO, repositoryDAO, ownerDAO);
+    policyAlertUtil = new PolicyAlertUtil(ownerDAO, policyDAO, policyViolationDAO, reportComponentService,
+        firewallForContainerImagesHelper);
   }
 
   @Test
@@ -347,5 +361,54 @@ public class PolicyAlertUtilTest
     ComponentFact componentFact = componentFacts.get(0);
     assertThat(componentFact).isNotNull();
     assertThat(componentFact.getPathnames()).isEmpty();
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_ActionsFromApplicationHierarchyWithoutRelatedRepository() {
+    Organization organization = tempEntity.newOrganization("org-without-repo");
+    Application app = tempEntity.newApplicationWithParent(organization);
+
+    Policy policy = tempEntity.newPolicy(organization);
+    policy.setAction(Stage.ID_PROXY, Action.ID_WARN);
+    policyDAO.update(policy);
+
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_PROXY, "proxy-scan");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, policy);
+
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
+
+    assertThat(alerts).hasSize(1);
+    PolicyAlert alert = alerts.get(0);
+    assertThat(alert.getActions()).hasSize(1);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_WARN);
+  }
+
+  @Test
+  public void testCreatePolicyAlerts_ActionsFromRelatedRepositoryHierarchy() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository dockerProxyRepo =
+        tempEntity.newRepository(repositoryManager, "docker-proxy-repo", RepositoryType.proxy, "docker");
+
+    Organization orgWithRepo = tempEntity.newOrganization("org-with-docker-repo");
+    orgWithRepo.setRelatedRepositoryId(dockerProxyRepo.getId());
+    organizationDAO.update(orgWithRepo);
+
+    Application app = tempEntity.newApplicationWithParent(orgWithRepo);
+
+    Policy repositoryPolicy = tempEntity.newPolicy(repositoryManager);
+    repositoryPolicy.setAction(Stage.ID_PROXY, Action.ID_FAIL);
+    policyDAO.update(repositoryPolicy);
+
+    PolicyEvaluation policyEval = tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_PROXY, "proxy-scan");
+    PolicyViolation policyViolation = tempEntity.newPolicyViolation(policyEval, repositoryPolicy);
+
+    List<PolicyAlert> alerts = policyAlertUtil.createPolicyAlerts(Collections.singletonList(policyViolation),
+        policyEval.getStageTypeId(), app.getId(), policyEval.isForMonitoring(), true);
+
+    assertThat(alerts).hasSize(1);
+    PolicyAlert alert = alerts.get(0);
+    assertThat(alert.getActions()).hasSize(1);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
   }
 }

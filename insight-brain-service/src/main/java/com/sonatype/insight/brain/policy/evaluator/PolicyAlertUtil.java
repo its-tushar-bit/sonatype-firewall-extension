@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
+import com.sonatype.insight.brain.utils.FirewallForContainerImagesHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +57,8 @@ public class PolicyAlertUtil
 
   private final ReportComponentService reportComponentService;
 
+  private final FirewallForContainerImagesHelper firewallForContainerImagesHelper;
+
   private static final Logger log = LoggerFactory.getLogger(PolicyAlertUtil.class);
 
   @Inject
@@ -63,12 +66,14 @@ public class PolicyAlertUtil
       final OwnerDAO ownerDAO,
       final PolicyDAO policyDAO,
       final PolicyViolationDAO policyViolationDAO,
-      final ReportComponentService reportComponentService)
+      final ReportComponentService reportComponentService,
+      final FirewallForContainerImagesHelper firewallForContainerImagesHelper)
   {
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.reportComponentService = reportComponentService;
+    this.firewallForContainerImagesHelper = firewallForContainerImagesHelper;
   }
 
   public List<PolicyAlert> createPolicyAlerts(
@@ -104,7 +109,8 @@ public class PolicyAlertUtil
       String scanId)
   {
     Owner owner = ownerDAO.getById(applicationId);
-    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
+    List<String> ownerIdsForPolicies =
+        firewallForContainerImagesHelper.getApplicableOwnersForPolicies(stageTypeId, owner);
     Map<String, Policy> policiesById =
         policyDAO.getByIds(policyViolations.stream().map(PolicyViolation::getPolicyId).collect(toSet())).stream()
             .collect(toMap(Policy::getId, Function.identity()));
@@ -124,7 +130,7 @@ public class PolicyAlertUtil
         actions = Collections.emptyList();
       }
       else {
-        actions = policy.toActions(stageTypeId, forMonitoring, ownerIds);
+        actions = policy.toActions(stageTypeId, forMonitoring, ownerIdsForPolicies);
       }
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
       result.add(policyAlert);

@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyFact;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -50,6 +51,8 @@ import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.policy.stages.DevelopStageType;
 import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.policy.stages.ReleaseStageType;
+import com.sonatype.insight.brain.model.repository.Repository;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.json.store.JsonUtils;
@@ -1222,6 +1225,60 @@ public class ComponentPolicyEvaluatorTest
                                                          SecurityVulnerability securityVulnerability)
   {
     return new ConditionTrigger(conditionIndex, new TriggerSecurityVulnerabilityWithStatus(securityVulnerability));
+  }
+
+  @Test
+  public void testToPolicyResults_ActionsFromApplicationHierarchyWithoutRelatedRepository() {
+    Organization organization = tempEntity.newOrganization("org-without-repo");
+    Application app = tempEntity.newApplicationWithParent(organization);
+
+    Policy policy = tempEntity.newPolicy(organization);
+    policy.setAction(Stage.ID_PROXY, Action.ID_WARN);
+    Constraint constraint = new Constraint("ConstraintId", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    policy.addConstraint(constraint);
+
+    PolicyFact policyFact = new PolicyFact(policy.getId(), policy.getName(), policy.getThreatLevel());
+    List<PolicyFact> policyFacts = Collections.singletonList(policyFact);
+
+    PolicyResults results = componentPolicyEvaluator.toPolicyResults(app.getId(), Collections.singletonList(policy),
+        policyFacts, new Stage(ProxyStageType.ID), false);
+
+    assertThat(results.getActiveAlerts()).hasSize(1);
+    PolicyAlert alert = results.getActiveAlerts().get(0);
+    assertThat(alert.getActions()).hasSize(1);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_WARN);
+  }
+
+  @Test
+  public void testToPolicyResults_ActionsFromRelatedRepositoryHierarchy() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository dockerProxyRepo =
+        tempEntity.newRepository(repositoryManager, "docker-proxy-repo", RepositoryType.proxy, "docker");
+
+    Organization orgWithRepo = tempEntity.newOrganization("org-with-docker-repo");
+    orgWithRepo.setRelatedRepositoryId(dockerProxyRepo.getId());
+
+    Application app = tempEntity.newApplicationWithParent(orgWithRepo);
+
+    Policy repositoryPolicy = tempEntity.newPolicy(repositoryManager);
+    repositoryPolicy.setAction(Stage.ID_PROXY, Action.ID_FAIL);
+    Constraint constraint = new Constraint("ConstraintId", "Constraint Name", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7"));
+    repositoryPolicy.addConstraint(constraint);
+
+    PolicyFact policyFact =
+        new PolicyFact(repositoryPolicy.getId(), repositoryPolicy.getName(), repositoryPolicy.getThreatLevel());
+    List<PolicyFact> policyFacts = Collections.singletonList(policyFact);
+
+    PolicyResults results =
+        componentPolicyEvaluator.toPolicyResults(app.getId(), Collections.singletonList(repositoryPolicy),
+            policyFacts, new Stage(ProxyStageType.ID), false);
+
+    assertThat(results.getActiveAlerts()).hasSize(1);
+    PolicyAlert alert = results.getActiveAlerts().get(0);
+    assertThat(alert.getActions()).hasSize(1);
+    assertThat(alert.getActions().get(0).getActionTypeId()).isEqualTo(Action.ID_FAIL);
   }
 }
 

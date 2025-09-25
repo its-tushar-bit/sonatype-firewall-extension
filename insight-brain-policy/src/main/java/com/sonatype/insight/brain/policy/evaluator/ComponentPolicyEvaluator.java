@@ -46,6 +46,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
 import com.sonatype.insight.brain.policy.comparison.ConstraintFactsListComparator;
 import com.sonatype.insight.brain.utils.ComponentFactUtil;
+import com.sonatype.insight.brain.utils.FirewallForContainerImagesHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.cache.CacheBuilder;
@@ -101,15 +102,19 @@ public class ComponentPolicyEvaluator
 
   private final PolicyDAO policyDAO;
 
+  private final FirewallForContainerImagesHelper firewallForContainerImagesHelper;
+
   @Inject
   public ComponentPolicyEvaluator(
       final PolicyWaiverDAO policyWaiverDAO,
       final OwnerDAO ownerDAO,
-      final PolicyDAO policyDAO)
+      final PolicyDAO policyDAO,
+      final FirewallForContainerImagesHelper firewallForContainerImagesHelper)
   {
     this.policyWaiverDAO = policyWaiverDAO;
     this.ownerDAO = ownerDAO;
     this.policyDAO = policyDAO;
+    this.firewallForContainerImagesHelper = firewallForContainerImagesHelper;
   }
 
   public List<PolicyAlert> evaluate(String ownerId, Stage stage, List<Component> components) {
@@ -163,16 +168,18 @@ public class ComponentPolicyEvaluator
     PolicyResults policyResults = new PolicyResults();
 
     Owner owner = ownerDAO.getById(ownerId);
-    List<String> ownerIds = ownerDAO.getOwnerIds(owner);
+    List<String> ownerIdsForPolicies =
+        firewallForContainerImagesHelper.getApplicableOwnersForPolicies(stage.getStageTypeId(), owner);
+
     Map<String, Policy> policiesById = policies.stream().collect(Collectors.toMap(Policy::getId, Function.identity()));
     List<PolicyWaiver> policyWaivers = policyWaiverDAO.getActiveApplicableByOwnerId(ownerId);
     for (PolicyFact policyFact : policyFacts) {
       Policy policy = policiesById.get(policyFact.getPolicyId());
 
       Notifications notifications =
-          policy.getEffectiveNotifications(ownerIds).getApplicable(stage.getStageTypeId(), forMonitoring);
+          policy.getEffectiveNotifications(ownerIdsForPolicies).getApplicable(stage.getStageTypeId(), forMonitoring);
       PolicyNotification policyNotification = new PolicyNotification(policyFact, notifications);
-      List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring, ownerIds);
+      List<Action> actions = policy.toActions(stage.getStageTypeId(), forMonitoring, ownerIdsForPolicies);
       PolicyAlert policyAlert = new PolicyAlert(policyFact, actions);
 
       PolicyWaiver policyWaiver = getApplicablePolicyWaiver(policyWaivers, policyFact);

@@ -156,6 +156,10 @@ public class ApiZScalerConfigurationService
       }
     }
 
+    if (!StringUtils.isBlank(configuration.getHostname())) {
+      ZScalerValidator.validateHostName(configuration.getHostname());
+    }
+
     if (!configuration.isMavenFormatEnabled() &&
         !configuration.isNpmFormatEnabled() &&
         !configuration.isPypiFormatEnabled() &&

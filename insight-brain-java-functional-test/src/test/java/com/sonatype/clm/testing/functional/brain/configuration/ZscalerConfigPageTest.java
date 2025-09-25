@@ -211,8 +211,9 @@ public class ZscalerConfigPageTest
     saveConfiguration();
     page.cancel().shouldBe(disabled);
 
-    List<SelenideElement> inputElements = asList(page.username(), page.hostname(), page.apiKey());
+    List<SelenideElement> inputElements = asList(page.username(), page.apiKey());
     inputElements.forEach(ele -> ele.setValue("a"));
+    page.hostname().setValue("https://zsapi.zscalerthree.net");
     saveConfiguration();
     assertValidationError("Password must be re-entered when any fields are modified.");
   }
@@ -231,7 +232,12 @@ public class ZscalerConfigPageTest
     List<SelenideElement> inputElements = asList(page.username(), page.password(), page.hostname(), page.apiKey());
     inputElements.forEach(ele -> ele.setValue("a"));
     inputElements.forEach(ele -> ele.sendKeys(Keys.BACK_SPACE));
-    inputElements.forEach(ele -> new NxTextInput(ele).errorMessage().shouldHave(text("Must be non-empty")));
+    
+    new NxTextInput(page.username()).errorMessage().shouldHave(text("Must be non-empty"));
+    new NxTextInput(page.password()).errorMessage().shouldHave(text("Must be non-empty"));
+    new NxTextInput(page.apiKey()).errorMessage().shouldHave(text("Must be non-empty"));
+    // Hostname field has specific URL validation message
+    new NxTextInput(page.hostname()).errorMessage().shouldHave(text("URL is required"));
   }
 
   @Test

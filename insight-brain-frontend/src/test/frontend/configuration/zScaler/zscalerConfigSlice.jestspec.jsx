@@ -349,7 +349,7 @@ describe('zscalerConfigSlice', () => {
 
       expect(newState.formState.hostname.value).toBe('');
       expect(newState.formState.hostname.isPristine).toBe(false);
-      expect(newState.formState.hostname.validationErrors).toContain('Must be non-empty');
+      expect(newState.formState.hostname.validationErrors).toContain('URL is required');
     });
 
     it('sets the hostname and no validation error when the payload is present', () => {
@@ -364,7 +364,7 @@ describe('zscalerConfigSlice', () => {
 
       expect(newState.formState.hostname.value).toBe('https://zsapi.zscalertwo.net');
       expect(newState.formState.hostname.isPristine).toBe(false);
-      expect(newState.formState.hostname.validationErrors).toBeFalsy();
+      expect(newState.formState.hostname.validationErrors).toBe(null);
     });
   });
 

@@ -66,8 +66,8 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testGetZScalerConfiguration() throws Exception {
-    ZScalerConfiguration config =
-        tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, true, true, true);
+    ZScalerConfiguration config = tempEntity.newZScalerConfiguration("user", "password",
+        "https://api.zscaler.net", "apikey", true, true, true, true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).get();
 
@@ -98,7 +98,7 @@ public class ApiZScalerConfigurationResourceTest
     ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
     request.setUsername("testusername");
     request.setPassword("testpassword");
-    request.setHostname("testhostname");
+    request.setHostname("https://api.zscaler.net");
     request.setApiKey("testapikey");
     request.setMavenFormatEnabled(true);
     request.setEulaAgreed(true);
@@ -140,7 +140,7 @@ public class ApiZScalerConfigurationResourceTest
     ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
     request.setUsername("testusername");
     request.setPassword("testpassword");
-    request.setHostname("testhostname");
+    request.setHostname("https://api.zscaler.net");
     request.setApiKey("testapikey");
     request.setMavenFormatEnabled(true);
     request.setEulaAgreed(false);
@@ -157,7 +157,7 @@ public class ApiZScalerConfigurationResourceTest
     ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
     request.setUsername("testusername");
     request.setPassword("testpassword");
-    request.setHostname("testhostname");
+    request.setHostname("https://api.zscaler.net");
     request.setApiKey("testapikey");
     request.setEulaAgreed(true);
 
@@ -211,7 +211,7 @@ public class ApiZScalerConfigurationResourceTest
 
   @Test
   public void testDeleteZScalerConfiguration() throws Exception {
-    tempEntity.newZScalerConfiguration("user", "password", "host", "apikey", true, true, true, true);
+    tempEntity.newZScalerConfiguration("user", "password", "https://api.zscaler.net", "apikey", true, true, true, true);
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).delete();
 
@@ -278,7 +278,8 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testUpdateUrlsZScalerConfiguration_authenticationException() throws Exception {
     tempEntity.newZScalerConfiguration(
-        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
+        "username", passwordHandler.encryptPassword("password"),
+        zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
         false, false, false);
 
     zScalerMockServer.mockAuthentication(401, "{\"error\":\"Invalid credentials\"}");
@@ -292,7 +293,8 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testUpdateUrlsZScalerConfiguration_getCustomUrlCategoriesException() throws Exception {
     tempEntity.newZScalerConfiguration(
-        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
+        "username", passwordHandler.encryptPassword("password"),
+        zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
@@ -306,7 +308,8 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testUpdateUrlsZScalerConfiguration_updateCustomUrlCategoriesException() throws Exception {
     tempEntity.newZScalerConfiguration(
-        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
+        "username", passwordHandler.encryptPassword("password"),
+        zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
@@ -321,7 +324,8 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testUpdateUrlsZScalerConfiguration_createCustomUrlCategoryException() throws Exception {
     tempEntity.newZScalerConfiguration(
-        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
+        "username", passwordHandler.encryptPassword("password"),
+        zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
@@ -336,7 +340,8 @@ public class ApiZScalerConfigurationResourceTest
   @Test
   public void testUpdateUrlsZScalerConfiguration_activateChangesException() throws Exception {
     tempEntity.newZScalerConfiguration(
-        "username", passwordHandler.encryptPassword("password"), zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
+        "username", passwordHandler.encryptPassword("password"),
+        zScalerMockServer.getBaseUrl(), "cajgffdcgkej", true,
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
@@ -429,5 +434,22 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of()));
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
+  }
+
+  @Test
+  public void testSetZScalerConfiguration_invalidProtocol_returnsHttpBadRequest() throws Exception {
+    ApiZScalerConfigurationDTO request = new ApiZScalerConfigurationDTO();
+    request.setUsername("testusername");
+    request.setPassword("testpassword");
+    request.setHostname("ftp://invalid-protocol.com");
+    request.setApiKey("testapikey");
+    request.setMavenFormatEnabled(true);
+    request.setEulaAgreed(true);
+
+    HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2).body(request).put();
+
+    // Test that validation exception becomes HTTP 400 Bad Request
+    assertThat(response.getStatusCode()).isEqualTo(400);
+    assertThat(response.getBodyText()).isEqualTo("Protocol must be http or https");
   }
 }

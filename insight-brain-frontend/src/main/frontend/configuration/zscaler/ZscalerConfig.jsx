@@ -159,8 +159,8 @@ export default function ZscalerConfig(props) {
   );
 
   const formValidationErrors = reject(isNil, [
-    hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
     mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
+    hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
     eulaState.value ? null : 'Review the highlighted fields for missing information.',
     isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
@@ -306,7 +306,15 @@ export default function ZscalerConfig(props) {
                 evt.target.select();
               }
             )}
-            {field(hostnameState, setHostname, 'https://zsapi.zscalertwo.net', 'zscaler-config-hostname', 'Hostname')}
+            {field(
+              hostnameState,
+              setHostname,
+              'https://zsapi.zscalertwo.net',
+              'zscaler-config-hostname',
+              'Hostname',
+              'text',
+              'Enter the base ZScaler URL (e.g., https://zsapi.zscalertwo.net)'
+            )}
             {field(
               apiKeyState,
               setApiKey,

@@ -66,6 +66,8 @@ public class ZScalerClient
   }
 
   public void authenticate(String baseUrl, String username, String password, String apiKey, String timestamp) {
+    ZScalerValidator.validateHostName(baseUrl);
+
     Map<String, String> authPayload = new HashMap<>();
     authPayload.put("username", username);
     authPayload.put("password", password);

@@ -14,9 +14,9 @@ import java.util.Collections;
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletRequest;
 
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.hds.HdsClient.RelayResponse;
 import com.sonatype.insight.brain.hds.TelemetryId;
-import com.sonatype.insight.brain.hds.GainsightTelemetryClient;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PendoService.PendoConfig;
@@ -50,7 +50,7 @@ public class PendoServiceTest
   private VersionService versionService;
 
   @Mock
-  private GainsightTelemetryClient gainsightTelemetryClient;
+  private HdsClient hdsClient;
 
   private String hashedVisitorId;
 
@@ -59,7 +59,7 @@ public class PendoServiceTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(GainsightTelemetryClient.class).toInstance(gainsightTelemetryClient);
+    binder.bind(HdsClient.class).toInstance(hdsClient);
     binder.bind(ProductLicense.class).toInstance(productLicense);
     super.configure(binder);
   }
@@ -73,7 +73,7 @@ public class PendoServiceTest
   public void testGetConfig() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
     when(productLicense.getContactCompany()).thenReturn(null);
 
@@ -87,7 +87,7 @@ public class PendoServiceTest
   @Test
   public void testGetConfig_disabled() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(true);
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
@@ -101,7 +101,7 @@ public class PendoServiceTest
 
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("foo", "bar");
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
@@ -113,8 +113,7 @@ public class PendoServiceTest
 
   @Test
   public void testGetConfig_error() {
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenThrow(
-        new NotFoundException("failed"));
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenThrow(new NotFoundException("failed"));
 
     PendoConfig config = pendoService.getConfig();
 
@@ -137,7 +136,7 @@ public class PendoServiceTest
     when(productLicense.getContactCompany()).thenReturn("Company A");
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "UNKNOWN-62ec3ededa4a5d9e453f990cac348a");
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     String hashedCompanyName =
@@ -151,7 +150,7 @@ public class PendoServiceTest
   public void testGetConfig_TelemetryId_LicenseWithSalesforceId() throws Exception {
     CustomerTelemetryProperties segmentInfo = new CustomerTelemetryProperties(false);
     segmentInfo.segmentAttributes = Collections.singletonMap("iq_accountId", "sfAccountIdTest");
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
+    when(hdsClient.get(InputStream.class, TelemetrySender.RESOURCE_PATH)).thenReturn(
         new ByteArrayInputStream(JsonUtils.generate(segmentInfo)));
 
     PendoConfig config = pendoService.getConfig();
@@ -160,7 +159,7 @@ public class PendoServiceTest
 
   @Test
   public void testGetJavascript() {
-    when(gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, "user-telemetry.js"))
+    when(hdsClient.get(InputStream.class, "user-telemetry.js"))
         .thenReturn(new ByteArrayInputStream("test".getBytes()));
 
     byte[] javascript = pendoService.getJavascript();
@@ -168,29 +167,26 @@ public class PendoServiceTest
   }
 
   @Test
-  public void proxyWithTimeout() throws Exception {
+  public void testProxy() throws Exception {
     HttpServletRequest request = mock(HttpServletRequest.class);
-    InputStream mockContent = mock(InputStream.class);
-    RelayResponse<InputStream> result = new RelayResponse<>(mockContent);
-    when(gainsightTelemetryClient.relayNoRetry(eq(request), eq(InputStream.class), eq(PendoService
-        .HDS_TELEMETRY_PATH + "/foo/bar"))).thenReturn(result);
+    RelayResponse<InputStream> result = new RelayResponse<>(mock(InputStream.class));
 
-    RelayResponse<InputStream> actual = pendoService.proxyWithoutRetry(request, "foo/bar");
-    verify(gainsightTelemetryClient).relayNoRetry(eq(request), eq(InputStream.class),
-        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
-    assertThat(actual.contentType).isEqualTo(result.contentType);
-    assertThat(actual.content).isEqualTo(result.content);
+    when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
+        .thenReturn(result);
+
+    assertThat(pendoService.proxy(request, "foo/bar")).isEqualTo(result);
+    verify(hdsClient).relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar"));
   }
 
   @Test
   public void testProxy_error() throws Exception {
     HttpServletRequest request = mock(HttpServletRequest.class);
 
-    when(gainsightTelemetryClient.relayNoRetry(eq(request), eq(InputStream.class),
-        eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
+    when(hdsClient.relay(eq(request), eq(InputStream.class), eq(PendoService.HDS_TELEMETRY_PATH + "/foo/bar")))
         .thenThrow(new IOException());
 
-    RelayResponse<InputStream> in = pendoService.proxyWithoutRetry(request, "foo/bar");
-    assertThat(in).isNull();
+    try (InputStream in = pendoService.proxy(request, "foo/bar").content) {
+      assertThat(in).hasContent("");
+    }
   }
 }

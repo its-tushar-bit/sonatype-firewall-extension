@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.FIPSConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
-import com.sonatype.insight.brain.telemetry.UserTelemetryThreadPoolExecutor;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.common.collect.ImmutableMap;
@@ -76,10 +75,6 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.SOURCE_CONTROL_IMPORT_POOL_SIZE, Integer.class,
           (p, s) -> ConfigurationUtils.getSourceControlImportPoolSize(s,
               SourceControlImportThreadPoolExecutor.DEFAULT_MAX_THREAD_POOL_SIZE),
-          (p, o) -> Objects.toString(o, null)),
-      new ConfigurationProperty(SystemConfigurationProperty.USER_TELEMETRY_POOL_SIZE, Integer.class,
-          (p, s) -> ConfigurationUtils.getUserTelemetryPoolSize(s,
-              UserTelemetryThreadPoolExecutor.DEFAULT_MAX_THREAD_POOL_SIZE),
           (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.CSRF_PROTECTION, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),

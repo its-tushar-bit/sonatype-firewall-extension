@@ -289,8 +289,7 @@ public class ConfigurationInfoTest
         "zScaler",
         "thirdPartyKevLookup",
         "userManagementPages",
-        "epssDataEnabled",
-        "userTelemetryPoolSize"
+        "epssDataEnabled"
     );
 
     // Properties included in the config.json in support zip

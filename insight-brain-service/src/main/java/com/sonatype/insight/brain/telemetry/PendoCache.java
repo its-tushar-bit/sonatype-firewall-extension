@@ -13,9 +13,8 @@ import java.time.Duration;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.hds.GainsightTelemetryClient;
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicenseListener;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
@@ -28,11 +27,11 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @since 1.50
- * <p>
- * Caches frontend telemetry files so that they do not need to be re-fetched on every page load. This cache is local to
- * the node as there isn't really a need for it to be perfectly synchronized across nodes, and putting it on the
- * filesystem contributes to performance problems as well as defeating the point of caching, when the FS is a networked
- * FS mount as it would be in a clustered environment.
+ *
+ * Caches frontend telemetry files so that they do not need to be re-fetched on every page load. This cache
+ * is local to the node as there isn't really a need for it to be perfectly synchronized across nodes, and putting
+ * it on the filesystem contributes to performance problems as well as defeating the point of caching, when the FS
+ * is a networked FS mount as it would be in a clustered environment.
  */
 @Named
 @Singleton
@@ -47,17 +46,12 @@ public class PendoCache
 
   public static final Duration DEFAULT_CACHE_EXPIRATION = Duration.ofDays(1);
 
-  public static final String PENDO_CSS_FILENAME = "style.css";
-
   private final Duration cacheExpiration;
 
-  private final GainsightTelemetryClient gainsightTelemetryClient;
+  private final HdsClient hdsClient;
 
   // The JS file is the same for all tenants, so we can cache it globally
   private Supplier<byte[]> jsSupplier;
-
-  // The CSS file is the same for all tenants, so we can cache it globally
-  private Supplier<byte[]> cssSupplier;
 
   // The segment config is tenant-specific, so we need to cache it per tenant
   private TenantReference<Supplier<CustomerTelemetryProperties>> segmentSupplier = new TenantReference<>();
@@ -65,17 +59,16 @@ public class PendoCache
   private final ObjectMapper objectMapper;
 
   @Inject
-  public PendoCache(ObjectMapper objectMapper, GainsightTelemetryClient gainsightTelemetryClient) {
-    this(objectMapper, gainsightTelemetryClient, DEFAULT_CACHE_EXPIRATION);
+  public PendoCache(ObjectMapper objectMapper, HdsClient hdsClient) {
+    this(objectMapper, hdsClient, DEFAULT_CACHE_EXPIRATION);
   }
 
   // visible for testing
-  PendoCache(ObjectMapper objectMapper, GainsightTelemetryClient gainsightTelemetryClient, Duration cacheExpiration) {
-    this.gainsightTelemetryClient = gainsightTelemetryClient;
+  PendoCache(ObjectMapper objectMapper, HdsClient hdsClient, Duration cacheExpiration) {
+    this.hdsClient = hdsClient;
     this.objectMapper = objectMapper;
     this.cacheExpiration = cacheExpiration;
     this.jsSupplier = createJsSupplier();
-    this.cssSupplier = createCssSupplier();
   }
 
   /**
@@ -96,25 +89,8 @@ public class PendoCache
   }
 
   /**
-   * Retrieve the user telemetry Stylesheet as a byte[]. This byte[] is cached globally (across tenants) as it is the
-   * same for all tenants. The cache expires once per day and the file will be (re-)fetched automatically when needed
-   */
-  public byte[] getCss() {
-    try {
-      CustomerTelemetryProperties customerTelemetryProperties = getCustomerTelemetryProperties();
-      if (customerTelemetryProperties.disabled == null || !customerTelemetryProperties.disabled) {
-        return cssSupplier.get();
-      }
-    }
-    catch (Exception e) {
-      log.error("Failed to retrieve {}.", PENDO_CSS_FILENAME, e);
-    }
-    return null;
-  }
-
-  /**
-   * Retrieve the tenant-specific segment configuration. This byte[] is cached per-tenant. The caches expire once per
-   * day and the configuration will be (re-)fetched automatically when needed
+   * Retrieve the tenant-specific segment configuration. This byte[] is cached per-tenant.
+   * The caches expire once per day and the configuration will be (re-)fetched automatically when needed
    */
   public CustomerTelemetryProperties getCustomerTelemetryProperties() {
     try {
@@ -131,7 +107,6 @@ public class PendoCache
    */
   public void invalidateAll() {
     jsSupplier = createJsSupplier();
-    cssSupplier = createCssSupplier();
     segmentSupplier = new TenantReference<>();
   }
 
@@ -146,7 +121,7 @@ public class PendoCache
   }
 
   private byte[] loadJs() {
-    try (var jsInputStream = loadFromHdsWithoutRetry(PENDO_JS_FILENAME)) {
+    try (var jsInputStream = loadFromHds(PENDO_JS_FILENAME)) {
       return jsInputStream.readAllBytes();
     }
     catch (IOException e) {
@@ -154,19 +129,8 @@ public class PendoCache
     }
   }
 
-  private byte[] loadCss() {
-    String telemetryCssUrl = UriBuilder.fromPath(PendoService.HDS_TELEMETRY_PATH).path(PENDO_CSS_FILENAME).build()
-        .toString();
-    try (var cssInputStream = gainsightTelemetryClient.get(InputStream.class, telemetryCssUrl)) {
-      return cssInputStream.readAllBytes();
-    }
-    catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
-  }
-
   private CustomerTelemetryProperties loadSegmentConfig() {
-    try (var customerTelemtryInputStream = loadFromHdsWithoutRetry(PENDO_CUSTOMER_TELEMETRY_FILENAME)) {
+    try (var customerTelemtryInputStream = loadFromHds(PENDO_CUSTOMER_TELEMETRY_FILENAME)) {
       return objectMapper.readValue(customerTelemtryInputStream, CustomerTelemetryProperties.class);
     }
     catch (IOException e) {
@@ -175,11 +139,7 @@ public class PendoCache
   }
 
   private InputStream loadFromHds(String path) {
-    return gainsightTelemetryClient.get(InputStream.class, path);
-  }
-
-  private InputStream loadFromHdsWithoutRetry(String path) {
-    return gainsightTelemetryClient.getWithTimeoutNoRetry(InputStream.class, path);
+    return hdsClient.get(InputStream.class, path);
   }
 
   private void resetSegmentCacheForCurrentTenant() {
@@ -192,9 +152,5 @@ public class PendoCache
 
   private Supplier<byte[]> createJsSupplier() {
     return Suppliers.memoizeWithExpiration(this::loadJs, cacheExpiration);
-  }
-
-  private Supplier<byte[]> createCssSupplier() {
-    return Suppliers.memoizeWithExpiration(this::loadCss, cacheExpiration);
   }
 }

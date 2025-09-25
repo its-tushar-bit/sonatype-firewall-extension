@@ -137,7 +137,7 @@ public class HdsClient
 
   static final String DISABLE_TELEMETRY_CONFIG_KEY = "com.sonatype.insight.disableOutboundTelemetryRequests";
 
-  static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats", "user-telemetry");
+  static final List<String> TELEMETRY_URLS = ImmutableList.of("environment/stats","user-telemetry");
 
   public static final String CLIENT_INSTANCE_ID_HEADER = "X-CLM-Client-Instance-Id";
   // VisibleForTesting
@@ -379,7 +379,7 @@ public class HdsClient
     return execute(retry, labReq);
   }
 
-  protected <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
+  private <T> T fromHttpResponse(HttpResponse response, Class<T> clazz) {
     boolean usingStream = false;
     try {
       HttpEntity entity = response.getEntity();
@@ -485,7 +485,7 @@ public class HdsClient
     return response.getStatusLine().getReasonPhrase();
   }
 
-  protected HttpUriRequest createRequest(HttpServletRequest request, String url, HdsClientAnalytics analytics)
+  private HttpUriRequest createRequest(HttpServletRequest request, String url, HdsClientAnalytics analytics)
       throws IOException
   {
     HttpUriRequest cloudReq;
@@ -549,7 +549,7 @@ public class HdsClient
         Map.of(), uriParams);
   }
 
-  protected HttpGet createGetRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
+  private HttpGet createGetRequest(String url, HdsClientAnalytics analytics, String clientUserAgent) {
     return createGetRequest(url, analytics, null, clientUserAgent);
   }
 
@@ -666,8 +666,8 @@ public class HdsClient
   /**
    * Validates the product license if needed - i.e. for HDS requests that require a product license.
    *
-   * The requests that do require a product license, pass it to HDS via the "X-CLM-Token" http header. This method
-   * assumes that the above header was already set on the request param.
+   * The requests that do require a product license, pass it to HDS via the "X-CLM-Token" http header.
+   * This method assumes that the above header was already set on the request param.
    */
   private void validateProductLicenseIfNeeded(HttpUriRequest request) {
     Header productLicenseHeader = request.getFirstHeader("X-CLM-Token");
@@ -680,7 +680,7 @@ public class HdsClient
     }
   }
 
-  protected HttpResponse execute(HttpUriRequest request, int retryCount) {
+  private HttpResponse execute(HttpUriRequest request, int retryCount) {
     validateProductLicenseIfNeeded(request);
 
     HttpRequestWrapper wrapper = HttpRequestWrapper.wrap(request);
@@ -837,13 +837,13 @@ public class HdsClient
     req.setHeader(HttpHeaders.USER_AGENT, config.getUserAgent());
   }
 
-  protected void setClientUserAgentHeader(HttpUriRequest request, String clientUserAgent) {
+  private void setClientUserAgentHeader(HttpUriRequest request, String clientUserAgent) {
     if (clientUserAgent != null) {
       request.setHeader(CLM_CLIENT_USER_AGENT_HEADER, clientUserAgent);
     }
   }
 
-  protected String buildUri(String path, String... uriParams) {
+  private String buildUri(String path, String... uriParams) {
     return buildUri(null /* base request */, path, null /* queryParams */, uriParams);
   }
 
@@ -851,12 +851,7 @@ public class HdsClient
     return buildUri(null /* base request */, path, queryParams, uriParams);
   }
 
-  protected String buildUri(
-      HttpServletRequest base,
-      String path,
-      Map<String, String> queryParams,
-      String... uriParams)
-  {
+  private String buildUri(HttpServletRequest base, String path, Map<String, String> queryParams, String... uriParams) {
     UriBuilder uriBuilder = UriBuilder.fromUri(config.getServerUrl());
     uriBuilder.path(path);
     if (base != null && queryParams == null) {

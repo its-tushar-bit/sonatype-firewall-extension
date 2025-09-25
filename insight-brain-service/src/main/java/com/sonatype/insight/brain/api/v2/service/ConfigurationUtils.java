@@ -77,8 +77,6 @@ public class ConfigurationUtils
 
   public static final String NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE = "NXIQ_SAAS_POLICY_MONITOR_POOL_SIZE";
 
-  public static final String NXIQ_USER_TELEMETRY_POOL_SIZE = "NXIQ_USER_TELEMETRY_POOL_SIZE";
-
   private static SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private ConfigurationUtils() {
@@ -380,13 +378,6 @@ public class ConfigurationUtils
   public static int getSourceControlImportPoolSize(String value, int defaultVal) {
     if (Strings.isNullOrEmpty(value)) {
       return getIntEnvValueOrDefault(NXIQ_SOURCE_CONTROL_IMPORT_POOL_SIZE, defaultVal);
-    }
-    return NumberUtils.toInt(value, defaultVal);
-  }
-
-  public static int getUserTelemetryPoolSize(String value, int defaultVal) {
-    if (Strings.isNullOrEmpty(value)) {
-      return getIntEnvValueOrDefault(NXIQ_USER_TELEMETRY_POOL_SIZE, defaultVal);
     }
     return NumberUtils.toInt(value, defaultVal);
   }

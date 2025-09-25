@@ -407,15 +407,15 @@ export function getReportMetadataUrl(applicationPublicId, scanId) {
 }
 
 export function getFirewallConfigurationUrl() {
-  return uriTemplate`/api/v2/malware-defense/releaseQuarantine/configuration`;
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/configuration`;
 }
 
 export function getFirewallTileMetricsUrl() {
-  return uriTemplate`/api/v2/malware-defense/metrics/embedded`;
+  return uriTemplate`/api/v2/firewall/metrics/embedded`;
 }
 
 export function getFirewallReleaseQuarantineSummaryUrl() {
-  return uriTemplate`/api/v2/malware-defense/releaseQuarantine/summary`;
+  return uriTemplate`/api/v2/firewall/releaseQuarantine/summary`;
 }
 
 export function getRetentionPoliciesUrl(orgId) {
@@ -561,7 +561,7 @@ export function getFirewallReleaseQuarantineListUrl(page, pageSize, sortBy, sort
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/malware-defense/components/autoReleasedFromQuarantine` + params;
+  return uriTemplate`/api/v2/firewall/components/autoReleasedFromQuarantine` + params;
 }
 
 export function getFirewallQuarantineListUrl(
@@ -587,7 +587,7 @@ export function getFirewallQuarantineListUrl(
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/malware-defense/components/quarantined` + params;
+  return uriTemplate`/api/v2/firewall/components/quarantined` + params;
 }
 
 export function getFirewallContainerQuarantineListUrl(page, pageSize) {
@@ -598,7 +598,7 @@ export function getFirewallContainerQuarantineListUrl(page, pageSize) {
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/malware-defense/container-image/policyViolations/quarantined` + params;
+  return uriTemplate`/api/v2/firewall/container-image/policyViolations/quarantined` + params;
 }
 
 export function getFirewallContainerWaiverListUrl(page, pageSize) {
@@ -609,11 +609,11 @@ export function getFirewallContainerWaiverListUrl(page, pageSize) {
 
   params = params.length === 0 ? '' : '?' + params;
 
-  return uriTemplate`/api/v2/malware-defense/container-image/policyWaiver` + params;
+  return uriTemplate`/api/v2/firewall/container-image/policyWaiver` + params;
 }
 
 export function getFirewallQuarantineSummaryUrl() {
-  return uriTemplate`/api/v2/malware-defense/quarantine/summary`;
+  return uriTemplate`/api/v2/firewall/quarantine/summary`;
 }
 
 export function getProductFeaturesUrl() {
@@ -633,7 +633,7 @@ export function getOAuth2Enabled() {
 }
 
 export function getQuarantinedComponentViewAnonymousAccessEnabledState() {
-  return uriTemplate`/api/v2/malware-defense/quarantinedComponentView/configuration/anonymousAccess/`;
+  return uriTemplate`/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/`;
 }
 
 /*
@@ -1532,9 +1532,9 @@ export const getRepositoryListUrl = (repositoryManagerId) =>
 export const getSupportedRepositoriesFormat = () => uriTemplate`/rest/integration/repositories/evaluate/ignorePatterns`;
 
 export const getRepositoryManagerById = (repositoryManagerId) =>
-  uriTemplate`/api/v2/malware-defense/repositoryManagers/${repositoryManagerId}`;
+  uriTemplate`/api/v2/firewall/repositoryManagers/${repositoryManagerId}`;
 
-export const getRepositoryContainer = () => uriTemplate`/api/v2/malware-defense/repositoryContainer`;
+export const getRepositoryContainer = () => uriTemplate`/api/v2/firewall/repositoryContainer`;
 
 export const getConfigureRepositoriesUrl = (repositoryManagerId) =>
   uriTemplate`/rest/repositories/repositoryManager/${repositoryManagerId}/configureRepositories`;
@@ -1698,10 +1698,10 @@ export const getRoiConfigurationRestoreDefaultsUrl = (currencyType) =>
   uriTemplate`/rest/roiConfiguration/defaultValues/currencyType/${currencyType}`;
 
 export const getContainerRepositoryResultsUrl = (repositoryId) =>
-  uriTemplate`/api/v2/malware-defense/container-images/repositories/repository/${repositoryId}/results/image-details`;
+  uriTemplate`/api/v2/firewall/container-images/repositories/repository/${repositoryId}/results/image-details`;
 
 export const getContainerRepositoryReportSummaryUrl = (repositoryId) =>
-  uriTemplate`/rest/malware-defense/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
+  uriTemplate`/rest/firewall/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
 
 export const getSessionLogoutUrl = () => {
   return uriTemplate`/rest/user/session/logout`;
@@ -1715,11 +1715,11 @@ export function getActiveViolationsWithActionFailUrl(containerImageId, stageId) 
 }
 
 export function getAddContainerImagePolicyWaiverUrl(containerImageId) {
-  return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
 }
 
 export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
-  return uriTemplate`/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+  return uriTemplate`/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
 }
 
 export const getFipsStatusUrl = () => uriTemplate`/rest/security/fipsMode`;

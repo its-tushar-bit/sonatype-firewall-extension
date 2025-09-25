@@ -50,9 +50,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Timed
 @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
 @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
-@Path(PublicApiPaths.MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH)
+@Path(PublicApiPaths.FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH)
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
-public class ApiMalwareDefenseContainerImagePolicyWaiverResource
+public class ApiFirewallContainerImagePolicyWaiverResource
 {
   static final String CONTAINER_IMAGE_ID = "/{containerImageId}";
 
@@ -61,7 +61,7 @@ public class ApiMalwareDefenseContainerImagePolicyWaiverResource
   private final ApiPolicyWaiverService apiPolicyWaiverService;
 
   @Inject
-  public ApiMalwareDefenseContainerImagePolicyWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
+  public ApiFirewallContainerImagePolicyWaiverResource(final ApiPolicyWaiverService apiPolicyWaiverService) {
     this.apiPolicyWaiverService = apiPolicyWaiverService;
   }
 

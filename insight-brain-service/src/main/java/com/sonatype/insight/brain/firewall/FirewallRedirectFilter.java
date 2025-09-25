@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.firewall;
 
 import java.io.IOException;
+
 import javax.inject.Named;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -21,7 +22,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 public class FirewallRedirectFilter
     implements Filter
 {
-  private static final String DEPRECATED_FIREWALL_RESOURCE_PATH = "api/v2/firewall";
+  private static final String DEPRECATED_MALWARE_DEFENSE_RESOURCE_PATH = "api/v2/malware-defense";
 
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {
@@ -35,8 +36,9 @@ public class FirewallRedirectFilter
     HttpServletRequest httpRequest = (HttpServletRequest) request;
 
     String pathInfo = httpRequest.getPathInfo();
-    if (pathInfo != null && pathInfo.contains("/" + DEPRECATED_FIREWALL_RESOURCE_PATH)) {
-      pathInfo = pathInfo.replace(DEPRECATED_FIREWALL_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
+    if (pathInfo != null && pathInfo.contains("/" + DEPRECATED_MALWARE_DEFENSE_RESOURCE_PATH) &&
+        !pathInfo.endsWith("/evaluate") && !pathInfo.endsWith("/metrics")) {
+      pathInfo = pathInfo.replace(DEPRECATED_MALWARE_DEFENSE_RESOURCE_PATH, PublicApiPaths.FIREWALL_RESOURCE_PATH);
       request.getRequestDispatcher(pathInfo).forward(request, response);
     }
     else {

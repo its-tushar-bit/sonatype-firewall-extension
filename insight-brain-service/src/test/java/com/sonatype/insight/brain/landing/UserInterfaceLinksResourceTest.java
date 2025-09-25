@@ -65,7 +65,7 @@ public class UserInterfaceLinksResourceTest
   @Test
   public void testLinkToFirewallHome() throws Exception {
     HttpResponse response = get(UserInterfaceLinksHelper.FIREWALL_HOME_PATH);
-    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/malware-defense/dashboard");
+    assertRedirect(response, ASSET_INDEX_PATH_NO_SLASH + "#/firewall/dashboard");
   }
 
   @Test
@@ -350,7 +350,7 @@ public class UserInterfaceLinksResourceTest
     assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repository/" + repository.getId() + "/result");
     HttpResponse response = get(UserInterfaceLinksHelper.REPO_RESULT_PATH, repository.getId());
     assertRedirect(response,
-        "assets/index.html#/malware-defense/container/repository/" + repository.getId() + "/results");
+        "assets/index.html#/firewall/container/repository/" + repository.getId() + "/results");
   }
 
   @Test
@@ -365,9 +365,9 @@ public class UserInterfaceLinksResourceTest
   public void testLinkToQuarantinedComponentReport() throws Exception {
     String url = UserInterfaceLinksHelper.getQuarantinedComponentReportPath("token");
     assertThat(url).isEqualTo(
-        UserInterfaceLinksHelper.RESOURCE_PATH + "/malware-defense/repositories/quarantinedComponent/token");
+        UserInterfaceLinksHelper.RESOURCE_PATH + "/firewall/repositories/quarantinedComponent/token");
     HttpResponse response = get(UserInterfaceLinksHelper.QUARANTINED_COMPONENT_REPORT_PATH, "token");
-    assertRedirect(response, "assets/index.html#/malware-defense/repositories/quarantinedComponent/token");
+    assertRedirect(response, "assets/index.html#/firewall/repositories/quarantinedComponent/token");
   }
 
   @Test
@@ -434,9 +434,9 @@ public class UserInterfaceLinksResourceTest
 
   @Test
   public void testLinkToMalwareDefenseContainerEvaluationReport() throws Exception {
-    HttpResponse response = get(UserInterfaceLinksHelper.MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH,
+    HttpResponse response = get(UserInterfaceLinksHelper.FIREWALL_CONTAINER_IMAGE_EVALUATION_REPORT_PATH,
         "container-public-id", "scan-id");
-    assertRedirect(response, "assets/index.html#/malware-defense/containerReport/container-public-id/scan-id/policy");
+    assertRedirect(response, "assets/index.html#/firewall/containerReport/container-public-id/scan-id/policy");
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(

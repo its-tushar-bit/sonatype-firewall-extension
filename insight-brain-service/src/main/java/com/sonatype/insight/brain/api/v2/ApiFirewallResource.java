@@ -74,7 +74,7 @@ import org.apache.commons.lang3.StringUtils;
 @Path(PublicApiPaths.FIREWALL_RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL,
-    description = "Use this REST API for managing and monitoring malware defense features, including metrics, " +
+    description = "Use this REST API for managing and monitoring firewall features, including metrics, " +
         "repository management, quarantine operations, and namespace confusion prevention.")
 public class ApiFirewallResource
 {

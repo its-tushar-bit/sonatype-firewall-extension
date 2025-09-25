@@ -51,7 +51,7 @@ public class ApplicationReportPage
 
   public static String firewallContainerReportUrl(String applicationPublicId, String scanId) {
     return BaseUrl.resolvePageUrl(
-        "/malware-defense/containerReport/{publicId}/{scanId}/policy",
+        "/firewall/containerReport/{publicId}/{scanId}/policy",
         applicationPublicId,
         scanId);
   }

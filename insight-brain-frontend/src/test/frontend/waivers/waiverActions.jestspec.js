@@ -1577,7 +1577,7 @@ describe('waiverActions', function () {
     });
 
     it('sends a DELETE request to the appropriate url when forContainerImage is true ', function () {
-      const expectedUrl = '/api/v2/malware-defense/container-image/containerImage123/policyWaiver';
+      const expectedUrl = '/api/v2/firewall/container-image/containerImage123/policyWaiver';
       jest.spyOn(axios, 'delete').mockResolvedValue();
 
       store.dispatch(deleteWaiver('ownerType', 'ownerId', 'waiverId', 'containerImage123', true));

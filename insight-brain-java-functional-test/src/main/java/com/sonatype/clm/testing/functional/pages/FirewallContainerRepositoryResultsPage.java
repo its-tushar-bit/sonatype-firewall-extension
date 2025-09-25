@@ -22,7 +22,7 @@ public class FirewallContainerRepositoryResultsPage
   }
 
   public static String url(String repositoryId) {
-    return BaseUrl.resolvePageUrl("/malware-defense/container/repository/{repositoryId}/results", repositoryId);
+    return BaseUrl.resolvePageUrl("/firewall/container/repository/{repositoryId}/results", repositoryId);
   }
 
   public SelenideElement title() {

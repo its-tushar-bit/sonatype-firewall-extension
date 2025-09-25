@@ -121,7 +121,7 @@ public class SecurityModule
 
     // The UI uses this path to get the config for anonymous access for the Quarantined Component View.
     // This must work for unauthenticated users when the anonymous access is enabled for this page.
-    manager.createChain("/api/v2/malware-defense/quarantinedComponentView/configuration/anonymousAccess",
+    manager.createChain("/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess",
         anonFilters + ", antiCsrf");
 
     // public REST API

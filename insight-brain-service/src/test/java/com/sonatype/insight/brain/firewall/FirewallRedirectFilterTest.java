@@ -47,8 +47,8 @@ public class FirewallRedirectFilterTest
   }
 
   @Test
-  public void testDoFilter_RedirectsDeprecatedFirewallPath() throws Exception {
-    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/firewall/somePath");
+  public void testDoFilter_RedirectsDeprecatedMalwareDefensePath() throws Exception {
+    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/malware-defense/somePath");
     when(mockHttpServletRequest.getRequestDispatcher(anyString())).thenReturn(mockRequestDispatcher);
 
     firewallRedirectFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
@@ -60,7 +60,7 @@ public class FirewallRedirectFilterTest
 
   @Test
   public void testDoFilter_AllowsNonDeprecatedFirewallPath() throws Exception {
-    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/notFirewall/somePath");
+    when(mockHttpServletRequest.getPathInfo()).thenReturn("/api/v2/notMalwareDefense/somePath");
 
     firewallRedirectFilter.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 

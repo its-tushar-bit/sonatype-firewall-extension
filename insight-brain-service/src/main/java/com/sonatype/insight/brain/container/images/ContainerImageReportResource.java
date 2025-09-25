@@ -30,7 +30,7 @@ public class ContainerImageReportResource
 {
   static final String SUMMARY = "/containerImageReportSummary";
 
-  static final String RESOURCE_PATH = "rest/malware-defense/container-images/repositories/{repositoryId}/report";
+  static final String RESOURCE_PATH = "rest/firewall/container-images/repositories/{repositoryId}/report";
 
   private final ContainerImageReportService containerImageReportService;
 

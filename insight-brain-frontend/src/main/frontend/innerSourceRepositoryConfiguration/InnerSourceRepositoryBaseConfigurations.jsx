@@ -106,7 +106,7 @@ export default function InnerSourceRepositoryBaseConfigurations() {
   };
 
   const getBackHref = () => {
-    const firewallPrefix = isStandaloneFirewall ? 'malware-defense/' : '';
+    const firewallPrefix = isStandaloneFirewall ? 'firewall/' : '';
     if (ownerType === 'application') {
       return `#/${firewallPrefix}management/view/${ownerType}/${ownerPublicId}`;
     }

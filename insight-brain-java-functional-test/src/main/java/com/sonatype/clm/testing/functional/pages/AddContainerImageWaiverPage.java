@@ -22,7 +22,7 @@ public class AddContainerImageWaiverPage
 
   public static String url(String containerImageId, String scanId) {
     return BaseUrl.resolvePageUrl(
-        "/malware-defense/containerReport/{publicId}/{scanId}/policy/addContainerImageWaiver",
+        "/firewall/containerReport/{publicId}/{scanId}/policy/addContainerImageWaiver",
         containerImageId,
         scanId);
   }

@@ -2995,7 +2995,7 @@ public class FirewallComponentDetailsPageTest
     String expectedComponentName = "com.lingocoder : abi.cli : 0.5.2";
     createAllTypePolicies();
     ArrayList<RepositoryComponent> repositoryComponents = setupAllTestDataFor2QuarantinedComponents();
-    refreshOrOpen(RepositoryResultDetailPage.malewareDefenseUrl(repositoryComponents.get(0).getRepositoryId()));
+    refreshOrOpen(RepositoryResultDetailPage.firewallUrl(repositoryComponents.get(0).getRepositoryId()));
     RepositoryResultDetailPage.aggregateToggle().click();
     waitUntilSpinnersGone();
     RepositoryResultDetailPage.page().shouldBe(visible);
@@ -3082,7 +3082,7 @@ public class FirewallComponentDetailsPageTest
     waitUntilSpinnersGone();
 
     waiversPagesFromRepositoryComponentDetailsPage_commonBackButtonsAssertions(
-        "#/malware-defense/repository/");
+        "#/firewall/repository/");
   }
 
   @Test

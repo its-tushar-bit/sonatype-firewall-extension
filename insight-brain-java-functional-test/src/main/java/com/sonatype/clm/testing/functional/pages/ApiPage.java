@@ -28,7 +28,7 @@ public class ApiPage
   }
 
   public static String firewallUrl() {
-    return BaseUrl.resolvePageUrl("/malware-defense/api");
+    return BaseUrl.resolvePageUrl("/firewall/api");
   }
 
   public static String sbomManagerUrl() {

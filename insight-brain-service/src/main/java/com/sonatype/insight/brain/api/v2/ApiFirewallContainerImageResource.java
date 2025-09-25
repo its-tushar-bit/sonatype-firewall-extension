@@ -41,16 +41,16 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Timed
 @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
 @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
-@Path(PublicApiPaths.MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH)
+@Path(PublicApiPaths.FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH)
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
-public class ApiMalwareDefenseContainerImageResource
+public class ApiFirewallContainerImageResource
 {
   static final String QUARANTINED_PATH = "policyViolations/quarantined";
 
   private final ApiPolicyViolationServiceV2 policyViolationService;
 
   @Inject
-  public ApiMalwareDefenseContainerImageResource(final ApiPolicyViolationServiceV2 policyViolationService) {
+  public ApiFirewallContainerImageResource(final ApiPolicyViolationServiceV2 policyViolationService) {
     this.policyViolationService = policyViolationService;
   }
 

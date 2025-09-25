@@ -24,11 +24,11 @@ describe('FirewallSidebar', () => {
       href: jest.fn().mockImplementation((stateName) => {
         switch (stateName) {
           case 'firewall.firewallPage':
-            return '#/malware-defense/dashboard';
+            return '#/firewall/dashboard';
           case 'firewall.management.view':
-            return '#/malware-defense/management/view';
+            return '#/firewall/management/view';
           case 'firewall.api':
-            return '#/malware-defense/api';
+            return '#/firewall/api';
           default:
             return '/mocked-default-href';
         }
@@ -51,9 +51,9 @@ describe('FirewallSidebar', () => {
     const dashboardLink = sidebarLinks[0];
     const repositoriesLink = sidebarLinks[1];
     expect(dashboardLink).toHaveTextContent('Dashboard');
-    expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
-    expect(repositoriesLink).toHaveAttribute('href', '#/malware-defense/management/view');
+    expect(repositoriesLink).toHaveAttribute('href', '#/firewall/management/view');
   });
 
   it('does not render the sidebar when the user is not logged in', () => {
@@ -68,9 +68,9 @@ describe('FirewallSidebar', () => {
     const dashboardLink = sidebarLinks[0];
     const repositoriesLink = sidebarLinks[1];
     expect(dashboardLink).toHaveTextContent('Dashboard');
-    expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
-    expect(repositoriesLink).toHaveAttribute('href', '#/malware-defense/management/view');
+    expect(repositoriesLink).toHaveAttribute('href', '#/firewall/management/view');
     expect(screen.queryByRole('link', { name: 'API' })).not.toBeInTheDocument();
   });
 
@@ -82,10 +82,10 @@ describe('FirewallSidebar', () => {
     const repositoriesLink = sidebarLinks[1];
     const apiLink = sidebarLinks[2];
     expect(dashboardLink).toHaveTextContent('Dashboard');
-    expect(dashboardLink).toHaveAttribute('href', '#/malware-defense/dashboard');
+    expect(dashboardLink).toHaveAttribute('href', '#/firewall/dashboard');
     expect(repositoriesLink).toHaveTextContent('Repos and Policies');
-    expect(repositoriesLink).toHaveAttribute('href', '#/malware-defense/management/view');
+    expect(repositoriesLink).toHaveAttribute('href', '#/firewall/management/view');
     expect(apiLink).toHaveTextContent('API');
-    expect(apiLink).toHaveAttribute('href', '#/malware-defense/api');
+    expect(apiLink).toHaveAttribute('href', '#/firewall/api');
   });
 });

@@ -27,7 +27,7 @@ public class ContainerComponentDetailsPage
 {
   public static final String ROOT = ".nx-page-main.iq-component-details-page";
 
-  private static final String BASE_URL = "/malware-defense/containerReport/{publicId}/{scanId}/componentDetails/{hash}";
+  private static final String BASE_URL = "/firewall/containerReport/{publicId}/{scanId}/componentDetails/{hash}";
 
   public static String url(Application app, String scanId, String hash) {
     return urlToOverview(app, scanId, hash);

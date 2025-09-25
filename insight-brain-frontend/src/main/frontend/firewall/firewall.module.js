@@ -38,7 +38,7 @@ export default angular
   .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
-function routes($stateProvider) {
+function routes($stateProvider, $urlServiceProvider) {
   var ownerTypesForFirewall = [
     {
       type: 'organization',
@@ -71,7 +71,7 @@ function routes($stateProvider) {
 
   $stateProvider
     .state('firewall', {
-      url: '/malware-defense',
+      url: '/firewall',
       abstract: true,
       data: {
         product: 'Firewall',
@@ -833,6 +833,106 @@ function routes($stateProvider) {
         title: 'Customize Vulnerability Details',
       },
     });
+
+  // Backward compatibility: redirect /malware-defense URLs to /firewall
+  $urlServiceProvider.rules.when('/malware-defense', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage', matchValues)
+  );
+
+  $urlServiceProvider.rules.when(
+    '/malware-defense/repositories/quarantinedComponent/{token}',
+    (matchValues, _urlParts, router) => router.stateService.go('firewall.quarantinedComponentReport', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/components/quarantine', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.components.quarantine', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/components/waivers', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.components.waivers', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/containers/quarantine', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.containers.quarantine', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/containers/waivers', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.containers.waivers', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/components', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.components', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/containers', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.containers', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/dashboard/roi', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallPage.roi', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/api', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.api', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/autoReleaseQuarantine', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.firewallAutoUnquarantinePage', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/users', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.users', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/roles', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.rolesList', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/administrators', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.administrators', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/gettingStarted', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.gettingStarted', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/saml', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.saml', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/ldap-servers', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.ldap-list', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/mailConfig', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.mailConfig', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/proxyConfig', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.proxyConfig', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/webhooks/list', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.listWebhooks', matchValues)
+  );
+
+  $urlServiceProvider.rules.when(
+    '/malware-defense/management/view/{ownerType}/{ownerId}',
+    (matchValues, _urlParts, router) => {
+      const stateName = `firewall.management.view.${matchValues.ownerType}`;
+      const ownerTypeConfig = ownerTypesForFirewall.find((t) => t.type === matchValues.ownerType);
+      const params = ownerTypeConfig ? { [ownerTypeConfig.id]: matchValues.ownerId } : {};
+      return router.stateService.go(stateName, params);
+    }
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/management/tree', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.management.tree', matchValues)
+  );
 }
 
-routes.$inject = ['$stateProvider'];
+routes.$inject = ['$stateProvider', '$urlServiceProvider'];

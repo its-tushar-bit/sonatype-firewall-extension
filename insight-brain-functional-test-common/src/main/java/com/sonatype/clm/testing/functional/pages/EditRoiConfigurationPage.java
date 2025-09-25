@@ -23,7 +23,7 @@ public class EditRoiConfigurationPage
   }
 
   public static String firewallUrl() {
-    return BaseUrl.resolvePageUrl("/malware-defense/roiConfiguration/edit");
+    return BaseUrl.resolvePageUrl("/firewall/roiConfiguration/edit");
   }
 
   public SelenideElement title() {

@@ -33,15 +33,15 @@ public class FirewallPage
   }
 
   public static String url() {
-    return BaseUrl.resolvePageUrl("/malware-defense/dashboard");
+    return BaseUrl.resolvePageUrl("/firewall/dashboard");
   }
   
   public static String roiTabUrl() {
-    return BaseUrl.resolvePageUrl("/malware-defense/dashboard?roiEnabled=true");
+    return BaseUrl.resolvePageUrl("/firewall/dashboard?roiEnabled=true");
   }
 
   public static String urlToFirewallContainerQuarantine() {
-    return BaseUrl.resolvePageUrl("malware-defense/dashboard/containers/quarantine");
+    return BaseUrl.resolvePageUrl("firewall/dashboard/containers/quarantine");
   }
 
   public SelenideElement title() {
@@ -77,11 +77,11 @@ public class FirewallPage
   }
 
   public static String urlToFirewallWaivers() {
-    return BaseUrl.resolvePageUrl("malware-defense/dashboard/components/waivers");
+    return BaseUrl.resolvePageUrl("firewall/dashboard/components/waivers");
   }
 
   public static String urlToFirewallContainerWaivers() {
-    return BaseUrl.resolvePageUrl("malware-defense/dashboard/containers/waivers");
+    return BaseUrl.resolvePageUrl("firewall/dashboard/containers/waivers");
   }
 
   public FirewallWaiversTable firewallWaiversTable() {

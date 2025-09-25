@@ -35,10 +35,10 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseContainerImageResource.QUARANTINED_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallContainerImageResource.QUARANTINED_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiMalwareDefenseContainerImageResourceTest
+public class ApiFirewallContainerImageResourceTest
     extends AbstractResourceTest
 {
   private RepositoryDAO repositoryDAO;
@@ -86,7 +86,7 @@ public class ApiMalwareDefenseContainerImageResourceTest
 
   @Override
   public HttpRequest restRequest() {
-    return super.restRequest().path(PublicApiPaths.MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH);
+    return super.restRequest().path(PublicApiPaths.FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH);
   }
 
   @Test

@@ -12,11 +12,11 @@ public class FirewallLdapConfigurationPage
 {
   @Override
   public String urlToEdit(String ldapId) {
-    return BaseUrl.resolvePageUrl("/malware-defense/ldap/edit/{ldapId}", ldapId);
+    return BaseUrl.resolvePageUrl("/firewall/ldap/edit/{ldapId}", ldapId);
   }
 
   @Override
   public String urlToCreate() {
-    return BaseUrl.resolvePageUrl("/malware-defense/ldap/create");
+    return BaseUrl.resolvePageUrl("/firewall/ldap/create");
   }
 }

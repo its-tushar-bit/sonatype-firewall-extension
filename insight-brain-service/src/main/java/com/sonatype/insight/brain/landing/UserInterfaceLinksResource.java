@@ -120,7 +120,7 @@ public class UserInterfaceLinksResource
   public Response linkToFirewallHome() {
     UriBuilder uriBuilder = baseUrl.redirect()
         .path(ASSET_INDEX_PATH)
-        .fragment("/malware-defense/dashboard");
+        .fragment("/firewall/dashboard");
     return redirect(uriBuilder);
   }
 
@@ -286,7 +286,7 @@ public class UserInterfaceLinksResource
     if (repository != null && "docker".equals(repository.getFormat())
         && repository.getRepositoryType() == RepositoryType.proxy) {
       UriBuilder uriBuilder = baseUrl.redirect();
-      uriBuilder.path(ASSET_INDEX_PATH).fragment("/malware-defense/container/repository/{repositoryId}/results");
+      uriBuilder.path(ASSET_INDEX_PATH).fragment("/firewall/container/repository/{repositoryId}/results");
       return redirect(uriBuilder, repositoryId);
     }
 
@@ -420,12 +420,12 @@ public class UserInterfaceLinksResource
   }
 
   @GET
-  @Path(MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH)
+  @Path(FIREWALL_CONTAINER_IMAGE_EVALUATION_REPORT_PATH)
   public Response linkToMalwareDefenseContainerEvaluationReport(
       @PathParam("containerImagePublicId") String containerImagePublicId,
       @PathParam("scanId") String scanId)
   {
-    String fragmentTemplate = "/malware-defense/containerReport/{applicationPublicId}/{scanId}/policy";
+    String fragmentTemplate = "/firewall/containerReport/{applicationPublicId}/{scanId}/policy";
     UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment(fragmentTemplate);
 

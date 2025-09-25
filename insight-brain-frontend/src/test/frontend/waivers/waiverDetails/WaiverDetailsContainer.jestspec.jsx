@@ -25,7 +25,7 @@ describe('WaiverDetailsContainer', () => {
     routerContextMock = {
       href: jest.fn('href').mockImplementation((stateName) => {
         if (stateName.includes('firewall')) {
-          return '#/malware-defense/dashboard/components/waivers';
+          return '#/firewall/dashboard/components/waivers';
         }
         return '#/dashboard/waivers';
       }),
@@ -71,6 +71,6 @@ describe('WaiverDetailsContainer', () => {
     renderComponent(firewallPreloadedState);
     const backButton = screen.getByRole('link');
     expect(backButton).toBeInTheDocument();
-    expect(backButton).toHaveAttribute('href', '#/malware-defense/dashboard/components/waivers');
+    expect(backButton).toHaveAttribute('href', '#/firewall/dashboard/components/waivers');
   });
 });

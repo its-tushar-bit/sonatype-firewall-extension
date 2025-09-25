@@ -35,7 +35,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
 public class ApiFirewallMetricsResource
 {
-  public static final String RESOURCE_PATH = "/api/v2/malware-defense/metrics/embedded";
+  public static final String RESOURCE_PATH = "/api/v2/firewall/metrics/embedded";
 
   public static final String ROI_FIREWALL_METRICS_PATH = "/roi-firewall-metrics/{currencyType}";
 
@@ -49,14 +49,14 @@ public class ApiFirewallMetricsResource
   }
 
   @GET
-  @Operation(description = "Use this method to retrieve malware defense dashboard metrics." +
+  @Operation(description = "Use this method to retrieve firewall dashboard metrics." +
       "\n" +
       "\n" +
       "Permissions required: View IQ Elements",
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "The response contains a map of malware defense metric name to value including the last " +
+              description = "The response contains a map of firewall metric name to value including the last " +
                   "updated time.",
               useReturnTypeSchema = true
           )
@@ -70,19 +70,19 @@ public class ApiFirewallMetricsResource
   @Path(ROI_FIREWALL_METRICS_PATH)
   @Produces(MediaType.APPLICATION_JSON)
   @Hidden
-  @Operation(description = "Use this method to retrieve ROI malware defense metrics for the specified currency type." +
+  @Operation(description = "Use this method to retrieve ROI firewall metrics for the specified currency type." +
       "\n" +
       "\n" +
       "Permissions required: Edit System Configuration and Users",
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Successfully retrieved ROI malware defense metrics.",
+              description = "Successfully retrieved ROI firewall metrics.",
               useReturnTypeSchema = true
           )
       })
   public RoiFirewallMetricsDTO getRoiFirewallMetrics(
-      @Parameter(description = "The currency to use for the ROI malware defense metrics.", required = true)
+      @Parameter(description = "The currency to use for the ROI firewall metrics.", required = true)
       @PathParam("currencyType") String currencyType)
   {
     return apiFirewallMetricsService.getRoiFirewallMetrics(CurrencyTypes.fromString(currencyType));

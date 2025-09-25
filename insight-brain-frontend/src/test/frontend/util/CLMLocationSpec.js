@@ -627,7 +627,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall release quarantine url with params', function () {
-    let urlStart = '/api/v2/malware-defense/components/autoReleasedFromQuarantine?',
+    let urlStart = '/api/v2/firewall/components/autoReleasedFromQuarantine?',
       page = 1,
       pageSize = 12,
       sortBy = 'quarantineTime',
@@ -645,7 +645,7 @@ describe('CLMLocation.js', function () {
   });
 
   it('should return the firewall tile metrics url', function () {
-    expect(CLMLocation.getFirewallTileMetricsUrl()).toBe('/api/v2/malware-defense/metrics/embedded');
+    expect(CLMLocation.getFirewallTileMetricsUrl()).toBe('/api/v2/firewall/metrics/embedded');
   });
 
   describe('ComponentCopyrightDetails', function () {
@@ -1174,7 +1174,7 @@ describe('CLMLocation.js', function () {
   describe('getQuarantinedComponentViewAnonymousAccessEnabledState', () => {
     it('returns url for anonymous access configuration', () => {
       expect(clmLocation.getQuarantinedComponentViewAnonymousAccessEnabledState()).toEqual(
-        '/api/v2/malware-defense/quarantinedComponentView/configuration/anonymousAccess/'
+        '/api/v2/firewall/quarantinedComponentView/configuration/anonymousAccess/'
       );
     });
   });
@@ -1452,22 +1452,22 @@ describe('CLMLocation.js', function () {
 
   describe('getFirewallQuarantineListUrl', () => {
     it('should return a URL to get the firewall quarantine list', () => {
-      expect(CLMLocation.getFirewallQuarantineListUrl()).toBe('/api/v2/malware-defense/components/quarantined');
+      expect(CLMLocation.getFirewallQuarantineListUrl()).toBe('/api/v2/firewall/components/quarantined');
     });
 
     it('should return a URL to get the firewall quarantine list with parameters', () => {
       expect(CLMLocation.getFirewallQuarantineListUrl(1, 2, 'field', true, 'id', 'name', 'publicId', 1)).toBe(
-        '/api/v2/malware-defense/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name&repositoryPublicId=publicId&quarantineTime=1'
+        '/api/v2/firewall/components/quarantined?page=1&pageSize=2&sortBy=field&asc=true&policyId=id&componentName=name&repositoryPublicId=publicId&quarantineTime=1'
       );
     });
 
     it('handles a single parameter correctly', () => {
-      expect(CLMLocation.getFirewallQuarantineListUrl(2)).toBe('/api/v2/malware-defense/components/quarantined?page=2');
+      expect(CLMLocation.getFirewallQuarantineListUrl(2)).toBe('/api/v2/firewall/components/quarantined?page=2');
     });
 
     it('handles a different parameter order correctly', () => {
       expect(CLMLocation.getFirewallQuarantineListUrl(null, 3, 'field')).toBe(
-        '/api/v2/malware-defense/components/quarantined?pageSize=3&sortBy=field'
+        '/api/v2/firewall/components/quarantined?pageSize=3&sortBy=field'
       );
     });
   });
@@ -1508,7 +1508,7 @@ describe('CLMLocation.js', function () {
 
   describe('getRepositoryContainerUrl', () => {
     it('returns the url for the repository container', () => {
-      const expectedUrl = '/api/v2/malware-defense/repositoryContainer';
+      const expectedUrl = '/api/v2/firewall/repositoryContainer';
 
       expect(clmLocation.getRepositoryContainer()).toEqual(expectedUrl);
     });
@@ -1862,7 +1862,7 @@ describe('CLMLocation.js', function () {
   describe('getContainerRepositoryResultsUrl', () => {
     it('returns the url for the container repository results', () => {
       const repositoryId = 'someRepositoryId';
-      const expectedUrl = `/api/v2/malware-defense/container-images/repositories/repository/${repositoryId}/results/image-details`;
+      const expectedUrl = `/api/v2/firewall/container-images/repositories/repository/${repositoryId}/results/image-details`;
       expect(clmLocation.getContainerRepositoryResultsUrl(repositoryId)).toEqual(expectedUrl);
     });
   });
@@ -1870,7 +1870,7 @@ describe('CLMLocation.js', function () {
   describe('getContainerRepositoryReportSummaryUrl', () => {
     it('should return the correct URL with the given repositoryId', () => {
       const repositoryId = 'repo123';
-      const expectedUrl = `/rest/malware-defense/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
+      const expectedUrl = `/rest/firewall/container-images/repositories/${repositoryId}/report/containerImageReportSummary`;
       expect(clmLocation.getContainerRepositoryReportSummaryUrl(repositoryId)).toBe(expectedUrl);
     });
   });
@@ -1878,7 +1878,7 @@ describe('CLMLocation.js', function () {
   describe('getDeleteContainerImagePolicyWaiverUrl', () => {
     it('should return correct URL with the given containerImageId', () => {
       const containerImageId = 'containerImage123';
-      const expectedUrl = `/api/v2/malware-defense/container-image/${containerImageId}/policyWaiver`;
+      const expectedUrl = `/api/v2/firewall/container-image/${containerImageId}/policyWaiver`;
       expect(clmLocation.getDeleteContainerImagePolicyWaiverUrl(containerImageId)).toBe(expectedUrl);
     });
   });

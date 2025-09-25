@@ -61,7 +61,7 @@ public class UserInterfaceLinksHelper
   public static final String LATEST_VERSION_SBOM_REPORT_PATH = "cycloneDx/{applicationId}/reports/{scanId}";
 
   public static final String QUARANTINED_COMPONENT_REPORT_PATH =
-      "malware-defense/repositories/quarantinedComponent/{token}";
+      "firewall/repositories/quarantinedComponent/{token}";
 
   public static final String LATEST_VERSION_SPDX_REPORT_PATH = "spdx/{applicationId}/reports/{scanId}";
 
@@ -78,8 +78,8 @@ public class UserInterfaceLinksHelper
   public static final String ENTERPRISE_REPORTING_DASHBOARD_PATH =
       "enterpriseReporting/{dashboardId}";
 
-  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH =
-      "malware-defense/containerReport/{containerImagePublicId}/report/{scanId}";
+  public static final String FIREWALL_CONTAINER_IMAGE_EVALUATION_REPORT_PATH =
+      "firewall/containerReport/{containerImagePublicId}/report/{scanId}";
 
   private static String buildStableUrl(String path) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build().toString();
@@ -254,10 +254,10 @@ public class UserInterfaceLinksHelper
   /**
    * Gets the relative URL to the stable hyperlink for the HTML container image report of the given container and scan.
    */
-  public static String getMalwareDefenseContainerImageEvaluationReportUrl(
+  public static String getFirewallContainerImageEvaluationReportUrl(
       String containerImagePublicId,
       String scanId)
   {
-    return buildStableUrl(MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH, containerImagePublicId, scanId);
+    return buildStableUrl(FIREWALL_CONTAINER_IMAGE_EVALUATION_REPORT_PATH, containerImagePublicId, scanId);
   }
 }

@@ -2497,7 +2497,7 @@ public abstract class AbstractRepositoryServiceTest
 
     // then
     assertThat(quarantinedComponentReport.getReportUrl())
-        .isEqualTo("ui/links/malware-defense/repositories/quarantinedComponent/token");
+        .isEqualTo("ui/links/firewall/repositories/quarantinedComponent/token");
   }
 
   @Test

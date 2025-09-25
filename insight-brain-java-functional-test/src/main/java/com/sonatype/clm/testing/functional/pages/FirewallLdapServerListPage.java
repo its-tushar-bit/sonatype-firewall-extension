@@ -12,6 +12,6 @@ public class FirewallLdapServerListPage
 {
   @Override
   public String url() {
-    return BaseUrl.resolvePageUrl("/malware-defense/ldap-servers");
+    return BaseUrl.resolvePageUrl("/firewall/ldap-servers");
   }
 }

@@ -123,7 +123,7 @@ public class ScanUploader
     }
     else {
       String reportUrl = StageTypes.PROXY.getId().equals(stageTypeId)
-          ? UserInterfaceLinksHelper.getMalwareDefenseContainerImageEvaluationReportUrl(
+          ? UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(
               applicationPublicId, receipt.getScanId())
           : UserInterfaceLinksHelper.getReportUrl(applicationPublicId, receipt.getScanId());
       receipt.setReportUrl(reportUrl);

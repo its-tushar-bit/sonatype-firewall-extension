@@ -41,14 +41,14 @@ import org.apache.commons.lang.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.PublicApiPaths.MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseContainerImagePolicyWaiverResource.CONTAINER_IMAGE_ID;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseContainerImagePolicyWaiverResource.POLICY_WAIVER;
+import static com.sonatype.insight.brain.api.PublicApiPaths.FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallContainerImagePolicyWaiverResource.CONTAINER_IMAGE_ID;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallContainerImagePolicyWaiverResource.POLICY_WAIVER;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.ALL_COMPONENTS;
 import static com.sonatype.insight.brain.model.policy.PolicyWaiver.ComponentMatcherStrategyForWaiver.EXACT_COMPONENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiMalwareDefenseContainerImagePolicyWaiverResourceTest
+public class ApiFirewallContainerImagePolicyWaiverResourceTest
     extends AbstractResourceTest
 {
   private static final ObjectMapper JSON = new ObjectMapper();
@@ -93,7 +93,7 @@ public class ApiMalwareDefenseContainerImagePolicyWaiverResourceTest
 
   @Override
   public HttpRequest restRequest() {
-    return super.restRequest().path(MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH);
+    return super.restRequest().path(FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH);
   }
 
   @Test

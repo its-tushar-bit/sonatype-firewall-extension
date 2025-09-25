@@ -39,12 +39,12 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
 
-import static com.sonatype.insight.brain.api.PublicApiPaths.MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseContainerImagePolicyWaiverResource.CONTAINER_IMAGE_ID;
-import static com.sonatype.insight.brain.api.v2.ApiMalwareDefenseContainerImagePolicyWaiverResource.POLICY_WAIVER;
+import static com.sonatype.insight.brain.api.PublicApiPaths.FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallContainerImagePolicyWaiverResource.CONTAINER_IMAGE_ID;
+import static com.sonatype.insight.brain.api.v2.ApiFirewallContainerImagePolicyWaiverResource.POLICY_WAIVER;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class ApiMalwareDefenseContainerImagePolicyWaiverResourceAuditTest
+public class ApiFirewallContainerImagePolicyWaiverResourceAuditTest
     extends AbstractAuditTest
 {
   private PolicyWaiverDAO policyWaiverDAO;
@@ -86,7 +86,7 @@ public class ApiMalwareDefenseContainerImagePolicyWaiverResourceAuditTest
 
   @Override
   public HttpRequest restRequest() {
-    return super.restRequest().path(MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH + CONTAINER_IMAGE_ID + POLICY_WAIVER);
+    return super.restRequest().path(FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH + CONTAINER_IMAGE_ID + POLICY_WAIVER);
   }
 
   @Test

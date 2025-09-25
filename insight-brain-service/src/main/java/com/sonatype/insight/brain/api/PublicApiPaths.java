@@ -39,7 +39,7 @@ public class PublicApiPaths
 
   public static final String POLICY_WAIVER_PATH = API_VERSION_PATH_V2 + "policyWaivers";
 
-  public static final String REPOSITORY_RESULTS_FOR_IMAGE_CONTAINER_PATH = API_VERSION_PATH_V2 + "malware-defense"
+  public static final String REPOSITORY_RESULTS_FOR_IMAGE_CONTAINER_PATH = API_VERSION_PATH_V2 + "firewall"
       + "/container-images/repositories/{ownerType: repository_container|repository_manager|repository}";
 
   public static final String POLICY_WAIVER_REASONS_PATH = API_VERSION_PATH_V2 + "policyWaiverReasons";
@@ -153,12 +153,12 @@ public class PublicApiPaths
 
   public static final String REPOSITORIES_RESOURCE_PATH = API_VERSION_PATH_V2 + "repositories";
 
-  public static final String FIREWALL_RESOURCE_PATH = API_VERSION_PATH_V2 + "malware-defense";
+  public static final String FIREWALL_RESOURCE_PATH = API_VERSION_PATH_V2 + "firewall";
 
   public static final String MALWARE_DEFENSE_RESOURCE_PATH = API_VERSION_PATH_V2 + "malware-defense";
 
-  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_RESOURCE_PATH =
-      MALWARE_DEFENSE_RESOURCE_PATH + "/container-image";
+  public static final String FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH =
+      FIREWALL_RESOURCE_PATH + "/container-image";
 
   public static final String MALWARE_CASCADE_REEVALUATE_PATH =
       MALWARE_DEFENSE_RESOURCE_PATH + "/repositories/cascade-reevaluate";

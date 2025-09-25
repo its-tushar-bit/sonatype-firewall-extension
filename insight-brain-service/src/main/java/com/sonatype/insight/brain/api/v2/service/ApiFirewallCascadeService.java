@@ -112,7 +112,7 @@ public class ApiFirewallCascadeService
     launchAsyncProcessing(cascadeRequestId, componentHash);
 
     CascadeReevaluateTicketDTO responseDTO = new CascadeReevaluateTicketDTO();
-    responseDTO.statusUrl = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/" + cascadeRequestId;
+    responseDTO.statusUrl = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/" + cascadeRequestId;
 
     log.info("Initiated cascade re-evaluation for component {}. Request ID: {}",
         componentHash, cascadeRequestId);

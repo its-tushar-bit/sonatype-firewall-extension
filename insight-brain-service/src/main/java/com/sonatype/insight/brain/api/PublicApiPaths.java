@@ -160,8 +160,8 @@ public class PublicApiPaths
   public static final String FIREWALL_CONTAINER_IMAGE_RESOURCE_PATH =
       FIREWALL_RESOURCE_PATH + "/container-image";
 
-  public static final String MALWARE_CASCADE_REEVALUATE_PATH =
-      MALWARE_DEFENSE_RESOURCE_PATH + "/repositories/cascade-reevaluate";
+  public static final String FIREWALL_CASCADE_REEVALUATE_PATH =
+      FIREWALL_RESOURCE_PATH + "/repositories/cascade-reevaluate";
 
   public static final String EXTERNAL_TELEMETRY_PATH = API_VERSION_PATH_V2 + "telemetry";
 

@@ -63,7 +63,7 @@ public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
 
     // Assert
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
 
     // Verify cascade request was created in database
     List<ReevaluateCascadeRequest> cascadeRequests = reevaluateCascadeRequestDAO.getByComponentHash(componentHash);
@@ -95,7 +95,7 @@ public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
 
     // Assert
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
 
     // Verify cascade request was created
     List<ReevaluateCascadeRequest> cascadeRequests = reevaluateCascadeRequestDAO.getByComponentHash(componentHash);
@@ -114,7 +114,7 @@ public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
 
     // Assert - Request is created successfully, task will set NO_COMPONENTS_FOUND status
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
 
     List<ReevaluateCascadeRequest> cascadeRequests = reevaluateCascadeRequestDAO.getByComponentHash(nonExistentHash);
     assertThat(cascadeRequests).hasSize(1);
@@ -158,7 +158,7 @@ public class ApiFirewallCascadeServiceTest extends AbstractComponentTest
 
     // Assert DTO response
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
 
     // Assert cascade request was properly created
     List<ReevaluateCascadeRequest> createdRequests = reevaluateCascadeRequestDAO.getByComponentHash(componentHash);

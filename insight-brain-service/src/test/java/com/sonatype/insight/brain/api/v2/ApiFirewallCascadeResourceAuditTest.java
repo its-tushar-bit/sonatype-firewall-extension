@@ -76,7 +76,7 @@ public class ApiFirewallCascadeResourceAuditTest
 
   private HttpRequest cascadeReevaluateRequest(String componentHash) {
     return restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/componentHash/" + componentHash);
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/componentHash/" + componentHash);
   }
 
   private void createRepositoryWithComponent() {

@@ -37,7 +37,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Named
 @Singleton
 @Timed
-@Path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH)
+@Path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH)
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
 @Hidden
 public class ApiFirewallCascadeResource

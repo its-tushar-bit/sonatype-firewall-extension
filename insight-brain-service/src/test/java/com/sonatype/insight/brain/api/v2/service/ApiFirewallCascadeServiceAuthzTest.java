@@ -43,7 +43,7 @@ public class ApiFirewallCascadeServiceAuthzTest
     CascadeReevaluateTicketDTO result = cascadeService.initiateCascadeReevaluation(componentHash);
 
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test(expected = UnauthenticatedException.class)
@@ -72,7 +72,7 @@ public class ApiFirewallCascadeServiceAuthzTest
     CascadeReevaluateTicketDTO result = cascadeService.initiateCascadeReevaluation(componentHash);
 
     assertThat(result).isNotNull();
-    assertThat(result.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(result.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test(expected = UnauthenticatedException.class)

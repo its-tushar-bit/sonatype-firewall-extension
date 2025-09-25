@@ -40,7 +40,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
         MatchState.EXACT, "test/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-package", "1.0.0"), now, now);
 
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -50,7 +50,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     CascadeReevaluateTicketDTO ticket = response.getBody(CascadeReevaluateTicketDTO.class);
     assertThat(ticket).isNotNull();
-    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test
@@ -68,7 +68,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
         MatchState.EXACT, "test/path2", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-package", "1.0.0"), now, now);
 
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -78,13 +78,13 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     CascadeReevaluateTicketDTO ticket = response.getBody(CascadeReevaluateTicketDTO.class);
     assertThat(ticket).isNotNull();
-    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test
   public void testInitiateCascadeReevaluation_ComponentNotFound() throws Exception {
     String nonExistentHash = "non_existent_hash";
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + nonExistentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + nonExistentHash;
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -94,12 +94,12 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     CascadeReevaluateTicketDTO ticket = response.getBody(CascadeReevaluateTicketDTO.class);
     assertThat(ticket).isNotNull();
-    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test
   public void testInitiateCascadeReevaluation_BlankComponentHash() throws Exception {
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/";
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/";
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -111,7 +111,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
   @Test
   public void testInitiateCascadeReevaluation_InvalidPath() throws Exception {
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/";
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/";
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -130,7 +130,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
         MatchState.EXACT, "test/path", componentHash,
         ComponentIdentifier.createNpmCoordinates("permission-package", "1.0.0"), now, now);
 
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
     HttpResponse response = restRequest()
         .path(uri)
@@ -140,7 +140,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     CascadeReevaluateTicketDTO ticket = response.getBody(CascadeReevaluateTicketDTO.class);
     assertThat(ticket).isNotNull();
-    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/status/");
+    assertThat(ticket.statusUrl).startsWith(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/status/");
   }
 
   @Test
@@ -154,7 +154,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
         MatchState.EXACT, "test/path/status", componentHash,
         ComponentIdentifier.createNpmCoordinates("test-status-pkg", "1.0.0"), now, now);
 
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
     // Setup the mocked hds return
     ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
@@ -214,7 +214,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     // Act
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
         .get();
 
     // Assert
@@ -261,7 +261,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     // Act
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
         .get();
 
     // Assert
@@ -306,7 +306,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     // Act
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
         .get();
 
     // Assert
@@ -329,7 +329,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
     String nonExistentRequestId = "cascade_nonexistent_123";
 
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/status/" + nonExistentRequestId)
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/status/" + nonExistentRequestId)
         .get();
 
     assertResponseStatus(404, response);
@@ -341,7 +341,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
     tempEntity.newRepository();
     String componentHash = "status_test_hash_empty";
 
-    String uri = PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
+    String uri = PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH + "/componentHash/" + componentHash;
 
     //call to start the cascade request
     HttpResponse responseCreateRequest = restRequest()
@@ -391,7 +391,7 @@ public class ApiFirewallCascadeResourceTest extends AbstractResourceTest
 
     // Act
     HttpResponse response = restRequest()
-        .path(PublicApiPaths.MALWARE_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
+        .path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH, "/status/" + cascadeRequestId)
         .get();
 
     // Assert

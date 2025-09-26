@@ -514,6 +514,30 @@ describe('Report Page component', () => {
     });
   });
 
+  describe('LegacyScannerBanner', () => {
+    it('renders LegacyScannerBanner when containerScanningMode is neuvector', () => {
+      metadata.containerScanningMode = 'neuvector';
+      renderComponent();
+
+      expect(screen.getByText('Legacy Scanner Used')).toBeVisible();
+      expect(screen.getByText('Learn more about the new container scanner')).toBeVisible();
+    });
+
+    it('does not render LegacyScannerBanner when containerScanningMode is not neuvector', () => {
+      metadata.containerScanningMode = 'sonatype';
+      renderComponent();
+
+      expect(screen.queryByText('Legacy Scanner Used')).not.toBeInTheDocument();
+    });
+
+    it('does not render LegacyScannerBanner when containerScanningMode is undefined', () => {
+      delete metadata.containerScanningMode;
+      renderComponent();
+
+      expect(screen.queryByText('Legacy Scanner Used')).not.toBeInTheDocument();
+    });
+  });
+
   function renderComponent() {
     return render(<ReportPage />);
   }

@@ -45,6 +45,7 @@ import { isNilOrEmpty } from '../util/jsUtil';
 import { useRouterState } from '../react/RouterStateContext';
 import { NewerReportAvailable } from 'MainRoot/applicationReport/NewerReportAvailable';
 import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
+import LegacyScannerBanner from 'MainRoot/applicationReport/LegacyScannerBanner';
 
 export default function ReportPage() {
   const applicationReport = useSelector(selectApplicationReportSlice);
@@ -146,6 +147,8 @@ export default function ReportPage() {
           )}
 
           <ReportTitle />
+
+          <LegacyScannerBanner />
 
           <NewerReportAvailable />
 

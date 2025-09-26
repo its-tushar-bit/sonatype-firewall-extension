@@ -12,24 +12,26 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.inject.Named;
-
-import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiPageResult;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.development.integration.IntegrationStatusDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusDTO;
 import com.sonatype.insight.brain.developer.integrationdashboard.api.IntegrationStatusFilter;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.prioritization.IntegrationStatusSummary;
 import com.sonatype.insight.brain.model.security.Permission;
-import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.organization.ApplicationSourceControlService;
 import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.AuthzContext;
@@ -49,22 +51,28 @@ public class IntegrationService
 
   private final ApplicationDAO applicationDAO;
 
+  private final IntegrationStatusDAO integrationStatusDAO;
+
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
   private final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO;
 
   private final TelemetrySender telemetrySender;
 
+  private static final long LOOKBACK_WINDOW_MS = TimeUnit.DAYS.toMillis(84);
+
   @Inject
   public IntegrationService(
       final ApplicationSourceControlService applicationSourceControlService,
       final ApplicationDAO applicationDAO,
+      final IntegrationStatusDAO integrationStatusDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final SourceControlDefaultBranchCommitHistoryDAO sourceControlDefaultBranchCommitHistoryDAO,
       final TelemetrySender telemetrySender)
   {
     this.applicationSourceControlService = applicationSourceControlService;
     this.applicationDAO = applicationDAO;
+    this.integrationStatusDAO = integrationStatusDAO;
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.sourceControlDefaultBranchCommitHistoryDAO = sourceControlDefaultBranchCommitHistoryDAO;
     this.telemetrySender = telemetrySender;
@@ -106,47 +114,10 @@ public class IntegrationService
                     filter.getOptionalFilterApplicationNamesBy()))
             .toList() : applications;
 
-    final List<IntegrationStatusDTO> minimalAppSummaries = filteredApps.stream()
-        // Set application
-        .map(application -> new IntegrationStatusDTO()
-            .setApplicationName(application.getName())
-            .setApplicationId(application.getId())
-            .setApplicationPublicId(application.getPublicId())
-            .setOrganizationId(application.getOrganizationId()))
-        // Set last policy evaluation time (build stage), priorities report status and scan ID
-        .map(statusDTO -> {
-          final PolicyEvaluation latestBuildStageEvaluation =
-              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
-                  Stage.ID_BUILD);
-          if (Objects.isNull(latestBuildStageEvaluation)) {
-            return statusDTO.setHasPrioritiesReport(false);
-          }
-          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluation.getTime().getTime())
-              .setHasPrioritiesReport(true)
-              .setLastScanId(latestBuildStageEvaluation.getScanId());
-        })
-        // Set last commit time
-        .map(statusDTO -> {
-          final SourceControlDefaultBranchCommitHistory commitHistory =
-              sourceControlDefaultBranchCommitHistoryDAO.getLatestCommitForApplicationId(statusDTO.getApplicationId());
-          return statusDTO.setLastCommitTimestamp(
-              commitHistory != null ? commitHistory.getCommitTime().getTime() : 0L);
-        })
-        // Set CI/CD Integration status
-        .map(statusDTO -> {
-          // 84 days is meant to approximate 3 months and is a value used for several related metrics in
-          // Sonatype Developer
-          final long lookBackWindowMs = 7257600000L; // 84 Days * 24 hours * 60 Minutes * 60 Seconds * 1000 Ms
-          final Date sinceUtcDate = new Date(System.currentTimeMillis() - lookBackWindowMs);
-
-          return statusDTO.setCiIntegrationEnabled(
-              policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate));
-        })
-        .filter(statusDTO ->
-            // Optionally filter on CI/CD Integration status
-            optionalFilterAppsByCiCdIntegration == null ||
-                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
-        .toList();
+    final Date sinceUtcDate = new Date(System.currentTimeMillis() - LOOKBACK_WINDOW_MS);
+    
+    final List<IntegrationStatusDTO> minimalAppSummaries = getIntegrationStatusSummaries(
+        filteredApps, sinceUtcDate, optionalFilterAppsByCiCdIntegration);
 
     final List<IntegrationStatusDTO> possiblyPaginatedSummaries = paginateEarly ?
         minimalAppSummaries.stream()
@@ -210,6 +181,92 @@ public class IntegrationService
     }
 
     return filter;
+  }
+
+  /**
+   * Retrieves integration status summaries using database-specific optimizations.
+   * Uses IntegrationStatusDAO for PostgreSQL databases with optimized bulk queries,
+   * falls back to programmatic approach for other databases (H2, etc.).
+   */
+  private List<IntegrationStatusDTO> getIntegrationStatusSummaries(
+      final List<Application> filteredApps,
+      final Date sinceUtcDate,
+      final Boolean optionalFilterAppsByCiCdIntegration)
+  {
+    try {
+      final List<String> filteredAppIds = filteredApps.stream()
+          .map(Application::getId)
+          .toList();
+      
+      final List<IntegrationStatusSummary> statusSummaries = 
+          integrationStatusDAO.getIntegrationStatusBulk(filteredAppIds, sinceUtcDate);
+      
+      return statusSummaries.stream()
+          .map(this::convertToDTO)
+          .filter(statusDTO ->
+              // Optionally filter on CI/CD Integration status
+              optionalFilterAppsByCiCdIntegration == null ||
+                  statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+          .toList();
+    }
+    catch (UnsupportedOperationException e) {
+      return getIntegrationStatusSummariesFallback(filteredApps, sinceUtcDate, optionalFilterAppsByCiCdIntegration);
+    }
+  }
+
+  private List<IntegrationStatusDTO> getIntegrationStatusSummariesFallback(
+      final List<Application> filteredApps,
+      final Date sinceUtcDate,
+      final Boolean optionalFilterAppsByCiCdIntegration)
+  {
+    return filteredApps.stream()
+        // Set application
+        .map(application -> new IntegrationStatusDTO()
+            .setApplicationName(application.getName())
+            .setApplicationId(application.getId())
+            .setApplicationPublicId(application.getPublicId())
+            .setOrganizationId(application.getOrganizationId()))
+        // Set last policy evaluation time (build stage), priorities report status and scan ID
+        .map(statusDTO -> {
+          final PolicyEvaluation latestBuildStageEvaluation =
+              policyEvaluationDAO.getLastByApplicationIdAndStageIdNoMonitoringNoReeval(statusDTO.getApplicationId(),
+                  Stage.ID_BUILD);
+          if (Objects.isNull(latestBuildStageEvaluation)) {
+            return statusDTO.setHasPrioritiesReport(false);
+          }
+          return statusDTO.setLastEvaluationTimestamp(latestBuildStageEvaluation.getTime().getTime())
+              .setHasPrioritiesReport(true)
+              .setLastScanId(latestBuildStageEvaluation.getScanId());
+        })
+        // Set last commit time
+        .map(statusDTO -> {
+          final SourceControlDefaultBranchCommitHistory commitHistory =
+              sourceControlDefaultBranchCommitHistoryDAO
+                  .getLatestCommitForApplicationId(statusDTO.getApplicationId());
+          return statusDTO.setLastCommitTimestamp(
+              commitHistory != null ? commitHistory.getCommitTime().getTime() : 0L);
+        })
+        // Set CI/CD Integration status
+        .map(statusDTO -> statusDTO.setCiIntegrationEnabled(
+            policyEvaluationDAO.hasCIIntegrationEvaluation(statusDTO.getApplicationId(), sinceUtcDate)))
+        .filter(statusDTO ->
+            // Optionally filter on CI/CD Integration status
+            optionalFilterAppsByCiCdIntegration == null ||
+                statusDTO.isCiIntegrationEnabled() == optionalFilterAppsByCiCdIntegration)
+        .toList();
+  }
+
+  private IntegrationStatusDTO convertToDTO(final IntegrationStatusSummary summary) {
+    return new IntegrationStatusDTO()
+        .setApplicationId(summary.applicationId())
+        .setApplicationName(summary.applicationName())
+        .setApplicationPublicId(summary.applicationPublicId())
+        .setOrganizationId(summary.organizationId())
+        .setLastEvaluationTimestamp(summary.lastEvaluationTimestamp())
+        .setLastScanId(summary.lastScanId())
+        .setLastCommitTimestamp(summary.lastCommitTimestamp())
+        .setCiIntegrationEnabled(summary.isCiIntegrationEnabled())
+        .setHasPrioritiesReport(summary.hasPrioritiesReport());
   }
 
   private void sendAppIntegrationFilterTelemetry(

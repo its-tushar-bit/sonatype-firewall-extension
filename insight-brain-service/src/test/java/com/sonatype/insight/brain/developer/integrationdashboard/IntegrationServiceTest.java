@@ -462,9 +462,9 @@ public class IntegrationServiceTest
     assertThat(descAppSummaries.get(1).getApplicationId())
         .isEqualTo(app1.getId());
     assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
         .isEqualTo(app4.getId());
+    assertThat(descAppSummaries.get(3).getApplicationId())
+        .isEqualTo(app3.getId());
   }
 
   @Test
@@ -472,16 +472,19 @@ public class IntegrationServiceTest
   public void testGetIntegrationSummaries_OrderByLastCommit_postgres() {
     setUpAppsWithBuildStageRisk();
 
-    final Date commitTime = new Date();
-    final Date latestCommitTime1 = new Date(commitTime.getTime() + 5000);
-    final Date latestCommitTime2 = new Date(commitTime.getTime() + 10_000);
+    final Date commitTime1 = new Date();
+    final Date commitTime2 = new Date(commitTime1.getTime() + 2000);
+    final Date latestCommitTime1 = new Date(commitTime1.getTime() + 5000);
+    final Date latestCommitTime2 = new Date(commitTime2.getTime() + 5000);
 
     // App 1
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app1.getId(), "commit1", commitTime, null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app1.getId(), "commit1", commitTime1,
+        null);
     tempEntity.newSourceControlDefaultBranchCommitHistory(app1.getId(), "commit2", latestCommitTime1, null);
 
     // App 2
-    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit1", commitTime, null);
+    tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit1", commitTime2,
+        null);
     tempEntity.newSourceControlDefaultBranchCommitHistory(app2.getId(), "commit2", latestCommitTime2, null);
 
     // ASC
@@ -510,9 +513,9 @@ public class IntegrationServiceTest
     assertThat(descAppSummaries.get(1).getApplicationId())
         .isEqualTo(app1.getId());
     assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app3.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
         .isEqualTo(app4.getId());
+    assertThat(descAppSummaries.get(3).getApplicationId())
+        .isEqualTo(app3.getId());
   }
 
   @Test
@@ -557,9 +560,9 @@ public class IntegrationServiceTest
     assertThat(descAppSummaries.get(1).getApplicationId())
         .isEqualTo(app3.getId());
     assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app1.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
         .isEqualTo(app4.getId());
+    assertThat(descAppSummaries.get(3).getApplicationId())
+        .isEqualTo(app1.getId());
   }
 
   @Test
@@ -605,9 +608,9 @@ public class IntegrationServiceTest
     assertThat(descAppSummaries.get(1).getApplicationId())
         .isEqualTo(app3.getId());
     assertThat(descAppSummaries.get(2).getApplicationId())
-        .isEqualTo(app1.getId());
-    assertThat(descAppSummaries.get(3).getApplicationId())
         .isEqualTo(app4.getId());
+    assertThat(descAppSummaries.get(3).getApplicationId())
+        .isEqualTo(app1.getId());
   }
 
   @Test

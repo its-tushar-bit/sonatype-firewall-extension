@@ -32,10 +32,19 @@ public class IntegrationStatusDTOComparator
         case NAME:
           return String.CASE_INSENSITIVE_ORDER.compare(ob1.getApplicationName(), ob2.getApplicationName());
         case COMMIT:
+          if (ob1.getLastCommitTimestamp() == ob2.getLastCommitTimestamp()) {
+            return String.CASE_INSENSITIVE_ORDER.compare(ob1.getApplicationName(), ob2.getApplicationName());
+          }
           return getTimeDiff(ob1.getLastCommitTimestamp(), ob2.getLastCommitTimestamp());
         case EVALUATION:
+          if (ob1.getLastEvaluationTimestamp() == ob2.getLastEvaluationTimestamp()) {
+            return String.CASE_INSENSITIVE_ORDER.compare(ob1.getApplicationName(), ob2.getApplicationName());
+          }
           return getTimeDiff(ob1.getLastEvaluationTimestamp(), ob2.getLastEvaluationTimestamp());
         case TOTAL_RISK:
+          if (ob1.getTotalRiskScore() == ob2.getTotalRiskScore()) {
+            return String.CASE_INSENSITIVE_ORDER.compare(ob1.getApplicationName(), ob2.getApplicationName());
+          }
           return ob1.getTotalRiskScore() - ob2.getTotalRiskScore();
         default:
           throw new IllegalArgumentException(

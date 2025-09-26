@@ -274,9 +274,6 @@ public class EnterpriseReportingService
 
     String requestId = UUID.randomUUID().toString().replace("-", "");
     String usernameAndRealm = getUsernameAndRealm(userPrincipal);
-    Pair<String, String> userFirstAndLastNames = getUserFirstAndLastNames(userPrincipal);
-    String userFirstName = userFirstAndLastNames.getLeft();
-    String userLastName = userFirstAndLastNames.getRight();
     Set<String> userPermissions = membershipMappingService.getPermissionsForUserPrincipal(username, membership);
     Set<String> applicationIds = obfuscateApplicationIds(applicationService.getApplications().stream()
         .map(Application::getId).collect(Collectors.toSet()));
@@ -284,8 +281,8 @@ public class EnterpriseReportingService
     return new SSOEmbedUrlRequest(
         requestId,
         usernameAndRealm,
-        userFirstName,
-        userLastName,
+        null,
+        null,
         lookerDashboard,
         userPermissions,
         applicationIds,

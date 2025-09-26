@@ -30,7 +30,6 @@ import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -608,8 +607,6 @@ public class EnterpriseReportingServiceTest
 
   private void mockEmbedSessionParams(String baseUrl) {
     when(mockCurrentUser.getUserPrincipal()).thenReturn(new UserPrincipal("username", "displayName", InternalRealm.ID));
-    when(mockUserDAO.getByUsernameNotNull("username"))
-        .thenReturn( new User("username", "password", "firstName", "lastName", "email"));
     when(mockConfiguration.getBaseUrlConfiguration()).thenReturn(new BaseUrlConfiguration(baseUrl, false));
   }
 
@@ -687,12 +684,10 @@ public class EnterpriseReportingServiceTest
     final Application application4 = tempEntity.newApplication("Some App 4", "SOME_APP4", organization.getId());
 
     UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", InternalRealm.ID);
-    User user = new User(userPrincipal.getUsername(), "password", "firstName", "lastName", "email");
     String dashboardId = "dashboardId";
     String embedDomain = "http://sonatype.sonatype.sonatype.com";
 
     when(mockCurrentUser.getUserPrincipal()).thenReturn(userPrincipal);
-    when(mockUserDAO.getByUsernameNotNull("username")).thenReturn(user);
 
     SSOEmbedUrlRequest ssoEmbedUrlRequest = enterpriseReportingService
         .createEmbedRequest(dashboardId, embedDomain);
@@ -703,8 +698,6 @@ public class EnterpriseReportingServiceTest
     obfuscatedApplicationIds.add(HashUtils.hash(application3.getId(), HashUtils.SHA1));
     obfuscatedApplicationIds.add(HashUtils.hash(application4.getId(), HashUtils.SHA1));
 
-    assertThat(ssoEmbedUrlRequest.userFirstName).isEqualTo(user.getFirstName());
-    assertThat(ssoEmbedUrlRequest.userLastName).isEqualTo(user.getLastName());
     assertThat(ssoEmbedUrlRequest.embedDomain).isEqualTo(embedDomain);
     assertThat(ssoEmbedUrlRequest.dashboardKey).isEqualTo(dashboardId);
     assertThat(ssoEmbedUrlRequest.usernameAndRealm).isEqualTo("username@Internal");

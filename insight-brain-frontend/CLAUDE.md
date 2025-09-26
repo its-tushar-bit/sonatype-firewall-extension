@@ -1,0 +1,792 @@
+# CLAUDE.md - Insight Brain Frontend
+
+This file provides guidance to Claude Code (claude.ai/code) when working with the **insight-brain-frontend** module specifically.
+
+## Module Overview
+
+**insight-brain-frontend** is the frontend module for Nexus IQ Server, containing the user interface for all four Sonatype products: **Lifecycle**, **SBOM Manager**, **Firewall**, and **Developer**. It implements a hybrid architecture combining React and AngularJS with Redux state management.
+
+## Key Responsibilities
+
+- **User Interface**: Complete frontend UI for all IQ Server products
+- **State Management**: Redux-based state management with both legacy and modern patterns
+- **Component Library**: React components integrated with AngularJS via react2angular
+- **Asset Management**: Webpack-based build system with multiple bundles
+- **Testing Infrastructure**: Dual testing framework (Jest + Jasmine) with comprehensive coverage
+- **Styling System**: SCSS-based styling with BEM conventions
+
+## Architecture
+
+### Framework Stack
+
+#### Core Frameworks
+
+- **React 16.14.0**: Modern component development (preferred for new features)
+- **AngularJS 1.6.10**: Legacy framework (being gradually migrated away from)
+- **Redux 3.7.2 + Redux Toolkit 1.5.1**: State management
+- **react2angular**: Bridge between React and AngularJS
+- **@sonatype/react-shared-components**: Sonatype's shared React component library
+
+#### Build Tools
+
+- **Webpack 5.95.0**: Module bundling and asset processing
+- **Babel**: JavaScript transpilation with React preset
+- **SASS**: CSS preprocessing with SCSS syntax
+- **ESLint + Prettier**: Code linting and formatting
+
+#### Testing Frameworks
+
+- **Jest 29.6.1**: Modern testing framework (preferred for new tests)
+- **Jasmine 3.9.0**: Legacy testing framework (being phased out)
+- **Karma**: Test runner for Jasmine tests in browser environment
+- **React Testing Library**: Component testing utilities
+
+#### Development Tools
+
+- **Webpack Dev Server**: Hot reload development server
+- **yarn**: Package management (preferred over npm)
+- **Node.js**: JavaScript runtime (version specified in pom.xml)
+
+## Development Commands
+
+### Prerequisites
+
+Ensure you have the correct Node.js and yarn versions (check `pom.xml` for versions):
+
+```bash
+# Install Node.js (match version in pom.xml)
+# Install yarn globally
+npm install -g yarn@<version-from-pom>
+```
+
+### Development Server
+
+```bash
+# Start backend on port 8072 (from insight-brain-service directory)
+mvn exec:java -Dexec.mainClass=com.sonatype.insight.brain.service.InsightBrainService -Dexec.args='server src/test/resources/config-dev.yml' -Ddw.server.applicationConnectors[0].port=8072
+
+# Start frontend dev server (from insight-brain-frontend directory)
+yarn start                     # Main bundle only (faster)
+```
+
+### Testing
+
+```bash
+# Run all tests (Jest + Jasmine)
+yarn test
+
+# Jest tests only (preferred for new tests)
+yarn jest
+yarn jest-watch                # Watch mode
+
+# Jasmine tests only (legacy)
+yarn karma
+yarn test-watch                # Watch mode
+
+# Run specific test file
+yarn jest -- <test-name>
+
+# Run specific Jasmine tests (requires code changes)
+# Use fit() or fdescribe() in test files, then run yarn test-watch
+# ⚠️ IMPORTANT: Remove all fit/fdescribe calls before committing!
+```
+
+## Key Service Patterns
+
+### React Component Pattern
+
+```jsx
+// ComponentName.jsx
+import React from 'react';
+import PropTypes from 'prop-types';
+import { useSelector, useDispatch } from 'react-redux';
+import { NxButton } from '@sonatype/react-shared-components';
+// Import selectors from dedicated selector files
+import { selectFeatureData, selectFeatureLoading } from './featureSelectors';
+import { someAction } from './featureSlice';
+
+export default function ComponentName({ someProp }) {
+  const dispatch = useDispatch();
+  // Use dedicated selectors instead of inline state access
+  const data = useSelector(selectFeatureData);
+  const loading = useSelector(selectFeatureLoading);
+
+  const handleClick = () => {
+    dispatch(someAction());
+  };
+
+  return (
+    // All CSS classes must use "iq-" prefix
+    <div className="iq-component-name">
+      <NxButton onClick={handleClick} disabled={loading}>
+        {someProp}
+      </NxButton>
+      {data && (
+        // Use BEM naming with iq- prefix
+        <div className="iq-component-name__content">
+          <span className="iq-component-name__label">Data:</span>
+          <span className="iq-component-name__value">{data.name}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+ComponentName.propTypes = {
+  someProp: PropTypes.string.isRequired,
+};
+```
+
+**Important**:
+
+- Always create and use dedicated selectors in separate `featureSelectors.js` files rather than accessing state directly with `useSelector((state) => state.featureName.data)`. This approach provides better performance through memoization, improves testability, and makes state access patterns more reusable across components.
+- All CSS class names must use the `iq-` prefix following BEM naming conventions (e.g., `iq-component-name`, `iq-component-name__element`, `iq-component-name--modifier`).
+
+### AngularJS Integration Pattern
+
+```javascript
+// module.js
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
+import ComponentName from './ComponentName.jsx';
+
+export default angular
+  .module('insight.componentName', [])
+  .component('componentName', iqReact2Angular(ComponentName, ['someProp'], ['$ngRedux', '$state']));
+```
+
+**Important**: For each custom Angular component created via `iqReact2Angular`, you must set `display: contents` in your SCSS:
+
+```scss
+// _componentName.scss
+component-name {
+  display: contents;
+}
+
+.iq-component-name {
+  // Your component styles here
+}
+```
+
+### Redux State Management Pattern
+
+```javascript
+// featureSlice.js
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
+import { getFeatureDataUrl } from 'MainRoot/util/CLMLocation';
+import { Messages } from 'MainRoot/utilAngular/CommonServices';
+
+const REDUCER_NAME = 'feature';
+
+const initialState = {
+  data: null,
+  loading: false,
+  error: null,
+  isDirty: false,
+};
+
+// Async thunk for data fetching
+export const fetchData = createAsyncThunk(`${REDUCER_NAME}/fetchData`, async (params, { rejectWithValue }) => {
+  try {
+    const response = await axios.get(getFeatureDataUrl(params.id));
+    return response.data;
+  } catch (error) {
+    return rejectWithValue(error);
+  }
+});
+
+// Separate reducer functions (not inline)
+const fetchDataRequested = (state) => {
+  state.loading = true;
+  state.error = null;
+};
+
+const fetchDataFulfilled = (state, { payload }) => {
+  state.loading = false;
+  state.data = payload;
+};
+
+const fetchDataFailed = (state, { payload }) => {
+  state.loading = false;
+  state.error = Messages.getHttpErrorMessage(payload);
+};
+
+const setDirty = (state, action) => {
+  state.isDirty = action.payload;
+};
+
+const clearError = (state) => {
+  state.error = null;
+};
+
+const featureSlice = createSlice({
+  name: REDUCER_NAME,
+  initialState,
+  reducers: {
+    setDirty,
+    clearError,
+  },
+  extraReducers: {
+    [fetchData.pending]: fetchDataRequested,
+    [fetchData.fulfilled]: fetchDataFulfilled,
+    [fetchData.rejected]: fetchDataFailed,
+  },
+});
+
+export const actions = {
+  ...featureSlice.actions,
+  fetchData,
+};
+
+export default featureSlice.reducer;
+```
+
+**Create separate selectors file (`featureSelectors.js`)**:
+
+```javascript
+// featureSelectors.js
+import { createSelector } from '@reduxjs/toolkit';
+import { prop } from 'ramda';
+
+export const selectFeatureSlice = prop('feature');
+
+export const selectFeatureData = createSelector(selectFeatureSlice, prop('data'));
+export const selectFeatureLoading = createSelector(selectFeatureSlice, prop('loading'));
+export const selectFeatureError = createSelector(selectFeatureSlice, prop('error'));
+export const selectFeatureIsDirty = createSelector(selectFeatureSlice, prop('isDirty'));
+```
+
+### SCSS Structure Pattern
+
+```scss
+// _componentName.scss
+.iq-component-name {
+  // Block styles
+  display: flex;
+  padding: 1rem;
+
+  &__element {
+    // Element styles (BEM)
+    font-size: 1.2rem;
+  }
+
+  &--modifier {
+    // Modifier styles (BEM)
+    background-color: $primary-color;
+  }
+
+  // Nested components
+  .iq-sub-component {
+    margin-top: 0.5rem;
+  }
+}
+```
+
+## Styling Considerations
+
+### SCSS Conventions
+
+- **Prefix all classes with `iq-`**
+- **Use BEM naming convention**: `block__element--modifier`
+- **Use SCSS variables for colors and dimensions**: Check `_variables.scss` for existing variables before creating new ones to avoid duplication
+- **Import new SCSS files**: Add `@use` statements to `scss/scss.scss` to include your new stylesheets in the build
+
+### Dark Mode Support
+
+**RSC components provide built-in dark mode support**. When creating custom components or overriding RSC colors, ensure dark mode compatibility:
+
+```scss
+// Import dark mode helpers
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
+.iq-custom-component {
+  // Light mode styles
+  background-color: var(--nx-swatch-blue-90);
+  border-color: var(--nx-swatch-blue-70);
+
+  // Dark mode overrides
+  @include nx-dark-mode-helpers.dark-mode {
+    background-color: var(--nx-swatch-blue-30);
+    border-color: var(--nx-swatch-blue-20);
+  }
+}
+```
+
+**Best Practices**:
+
+- **Use RSC CSS variables**: Prefer `var(--nx-color-*)` or `var(--nx-swatch-*)` over hardcoded colors (color palette details are available at https://gallery.sonatype.dev/#/pages/Color%20Palettes )
+- **Test both themes**: Always verify components work in light and dark mode
+- **Check existing variables**: Look in `_variables.scss` for theme-aware color definitions
+
+## Testing Guidelines
+
+### Test Categories
+
+**Philosophy**: Use as few mocks as possible to ensure the system behaves as a user operating the system would expect. Prefer integration-style tests over heavily mocked unit tests.
+
+### Jest Tests (Preferred)
+
+```jsx
+// ComponentName.jestspec.jsx
+import React from 'react';
+import userEvent from '@testing-library/user-event';
+import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import ComponentName from 'MainRoot/featureName/ComponentName';
+import { getFeatureDataUrl } from 'MainRoot/util/CLMLocation';
+import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
+import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
+
+describe('ComponentName', () => {
+  let axiosMock, stateGoSpy, mockRouterState;
+
+  // Default preloaded state that can be customized per test
+  const defaultPreloadedState = {
+    feature: {
+      data: null,
+      loading: false,
+      error: null,
+      isDirty: false,
+    },
+    router: {
+      currentParams: { appId: 'test-app-id' },
+      currentState: { name: 'feature.view' },
+    },
+  };
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    // Spy on router actions for navigation testing
+    stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+
+    // Mock router state context for URL generation
+    mockRouterState = {
+      href: jest.fn().mockImplementation((stateName) => {
+        switch (stateName) {
+          case 'feature.details':
+            return '#/feature/details';
+          case 'feature.edit':
+            return '#/feature/edit';
+          default:
+            return '#/mocked-default-href';
+        }
+      }),
+      get: jest.fn(),
+      includes: jest.fn(),
+    };
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue(mockRouterState);
+
+    // Mock network requests with axiosMockAdapter
+    axiosMock.onGet(getFeatureDataUrl('test-app-id')).reply(200, { id: 1, name: 'Test Feature' });
+  });
+
+  // Helper function to render with customizable state
+  const renderComponent = (props = {}, preloadedState) => {
+    return render(<ComponentName someProp="test" {...props} />, {
+      preloadedState: preloadedState || defaultPreloadedState,
+    });
+  };
+
+  it('should render component with initial state', () => {
+    renderComponent();
+
+    expect(screen.getByText('test')).toBeInTheDocument();
+  });
+
+  it('should handle network requests properly', async () => {
+    renderComponent();
+
+    // Wait for async operations to complete
+    await waitFor(() => {
+      expect(axiosMock.history.get.length).toBe(1);
+      expect(axiosMock.history.get[0].url).toBe(getFeatureDataUrl('test-app-id'));
+    });
+
+    expect(screen.getByText('Test Feature')).toBeInTheDocument();
+  });
+
+  it('should navigate when button is clicked', async () => {
+    const user = userEvent.setup();
+    renderComponent();
+
+    await user.click(screen.getByRole('button', { name: 'Go to Details' }));
+
+    // Test navigation using stateGo spy
+    expect(stateGoSpy).toHaveBeenCalledWith('feature.details', {
+      appId: 'test-app-id',
+      featureId: 1,
+    });
+  });
+
+  it('should generate correct href URLs', () => {
+    renderComponent();
+
+    const detailsLink = screen.getByRole('link', { name: 'View Details' });
+    expect(detailsLink).toHaveAttribute('href', '#/feature/details');
+  });
+
+  it('should handle custom preloaded state', () => {
+    const customState = {
+      ...defaultPreloadedState,
+      feature: {
+        ...defaultPreloadedState.feature,
+        data: { id: 2, name: 'Custom Feature' },
+        loading: true,
+      },
+    };
+
+    renderComponent({}, customState);
+
+    expect(screen.getByText('Custom Feature')).toBeInTheDocument();
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
+  it('should handle network errors gracefully', async () => {
+    axiosMock.onGet(getFeatureDataUrl('test-app-id')).reply(500, { message: 'Server Error' });
+
+    renderComponent();
+
+    await waitFor(() => {
+      expect(screen.getByText(/error occurred/i)).toBeInTheDocument();
+    });
+  });
+});
+```
+
+### Key Testing Patterns
+
+**Import from SpecUtil.js** (not directly from @testing-library/react):
+
+```javascript
+import { axiosMockAdapter, render, screen, waitFor } from 'TestRoot/SpecUtil';
+import userEvent from '@testing-library/user-event';
+```
+
+**Prefer userEvent over fireEvent** for more realistic user interactions:
+
+```javascript
+import userEvent from '@testing-library/user-event';
+
+// Preferred - more realistic user interactions
+const user = userEvent.setup();
+await userEvent.click(button);
+await userEvent.type(input, 'text');
+await userEvent.selectOptions(select, 'option1');
+
+// Use fireEvent only when userEvent doesn't cover the interaction
+fireEvent.scroll(window, { target: { scrollY: 100 } });
+```
+
+**Mock Network Requests** (preferred over Redux/state mocks):
+
+```javascript
+// Use axiosMockAdapter for all HTTP mocking
+beforeAll(() => {
+  axiosMock = axiosMockAdapter();
+});
+
+// Mock specific endpoints
+axiosMock.onGet('/api/endpoint').reply(200, mockData);
+axiosMock.onPost('/api/create').reply(201, createdData);
+```
+
+**Router State Mocking** for href testing:
+
+```javascript
+const mockRouterState = {
+  href: jest.fn().mockImplementation((stateName) => {
+    switch (stateName) {
+      case 'target.state':
+        return '#/target/path';
+      default:
+        return '#/default';
+    }
+  }),
+  get: jest.fn(),
+  includes: jest.fn(),
+};
+jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue(mockRouterState);
+```
+
+**Navigation Testing** with stateGo spy:
+
+```javascript
+const stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
+
+// In test
+const user = userEvent.setup();
+await user.click(navigationButton);
+expect(stateGoSpy).toHaveBeenCalledWith('target.state', { param: 'value' });
+```
+
+**Flexible State Management**:
+
+```javascript
+const defaultPreloadedState = {
+  /* base state */
+};
+
+const renderComponent = (props = {}, preloadedState) => {
+  return render(<Component {...props} />, {
+    preloadedState: preloadedState || defaultPreloadedState,
+  });
+};
+
+// Use custom state when needed
+renderComponent({}, { ...defaultPreloadedState, customProp: 'value' });
+```
+
+### Test File Organization
+
+- **Jest tests**: `src/test/frontend/path/to/ComponentName.jestspec.jsx`
+- **Jasmine tests**: `src/test/frontend/path/to/ComponentNameSpec.jsx` (legacy)
+- **Test utilities**: `src/test/frontend/SpecUtil.js`
+
+### Legacy Testing Patterns (Migrate Away From)
+
+**❌ AVOID: Jasmine Spy Patterns** (migrate to Jest):
+
+```javascript
+// AdministratorsEditSpec.jsx - LEGACY APPROACH
+describe('AdministratorsEdit', () => {
+  let selectIsLoadingSpy, selectLoadErrorSpy;
+
+  beforeEach(() => {
+    // OLD: Jasmine spyOn with .and.returnValue()
+    selectIsLoadingSpy = spyOn(administratorsSelectors, 'selectIsLoading').and.returnValue(false);
+    selectLoadErrorSpy = spyOn(administratorsSelectors, 'selectLoadError').and.returnValue(null);
+
+    // OLD: jasmine.createSpy()
+    spyOn(RouterStateContext, 'useRouterState').and.returnValue({
+      get: jasmine.createSpy('useRouterState.get'),
+      href: jasmine.createSpy('useRouterState.href'),
+    });
+
+    // OLD: jasmine.clock() for timing
+    jasmine.clock().install();
+    jasmine.clock().mockDate();
+  });
+
+  it('renders loading state', () => {
+    // OLD: .and.returnValue() chaining
+    selectIsLoadingSpy.and.returnValue(true);
+    renderComponent();
+    expect(screen.getByText('Loading…')).toBeVisible();
+  });
+
+  afterEach(() => {
+    jasmine.clock().uninstall();
+  });
+});
+```
+
+**✅ PREFERRED: Jest Equivalent**:
+
+```javascript
+// AdministratorsEdit.jestspec.jsx - MODERN APPROACH
+describe('AdministratorsEdit', () => {
+  let selectIsLoadingSpy, selectLoadErrorSpy;
+
+  beforeEach(() => {
+    // MODERN: jest.spyOn with mockReturnValue()
+    selectIsLoadingSpy = jest.spyOn(administratorsSelectors, 'selectIsLoading').mockReturnValue(false);
+    selectLoadErrorSpy = jest.spyOn(administratorsSelectors, 'selectLoadError').mockReturnValue(null);
+
+    // MODERN: jest.fn()
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({
+      get: jest.fn(),
+      href: jest.fn(),
+    });
+  });
+
+  it('renders loading state', () => {
+    // MODERN: mockReturnValue()
+    selectIsLoadingSpy.mockReturnValue(true);
+    renderComponent();
+    expect(screen.getByText('Loading…')).toBeVisible();
+  });
+
+  // MODERN: Use fake timers when needed
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+});
+```
+
+**❌ AVOID: Direct Redux Store Mocking**:
+
+```javascript
+// OLD: Mocking Redux store directly
+const mockStore = {
+  getState: jest.fn(() => ({ data: mockData })),
+  dispatch: jest.fn(),
+  subscribe: jest.fn(),
+};
+```
+
+**❌ AVOID: Enzyme (if present)**:
+
+```javascript
+// OLD: Enzyme shallow/mount
+import { shallow, mount } from 'enzyme';
+const wrapper = shallow(<Component />);
+expect(wrapper.find('.selector')).toHaveLength(1);
+```
+
+**❌ AVOID: fireEvent for User Interactions**:
+
+```javascript
+// OLD: fireEvent for simple interactions
+fireEvent.click(button);
+fireEvent.change(input, { target: { value: 'text' } });
+
+// PREFER: userEvent for realistic interactions
+await userEvent.click(button);
+await userEvent.type(input, 'text');
+```
+
+**❌ AVOID: Hardcoded Test IDs Without Accessibility**:
+
+```javascript
+// OLD: Generic test IDs
+screen.getByTestId('submit-button');
+
+// PREFER: Accessible queries
+screen.getByRole('button', { name: 'Submit' });
+screen.getByLabelText('Email Address');
+```
+
+## Key Patterns and Utilities
+
+### Unsaved Changes Modal
+
+For pages with form data, implement unsaved changes warning using **selector functions** (preferred approach):
+
+```javascript
+// featureSelectors.js - Create a memoized selector for dirty state
+import { createSelector } from '@reduxjs/toolkit';
+import { prop } from 'ramda';
+import { equals } from 'ramda';
+
+export const selectFeatureSlice = prop('feature');
+
+export const selectFeatureData = createSelector(selectFeatureSlice, prop('data'));
+export const selectFeatureOriginalData = createSelector(selectFeatureSlice, prop('originalData'));
+
+// Memoized selector that computes dirtiness by comparing current vs original data
+export const selectIsDirty = createSelector(
+  selectFeatureData,
+  selectFeatureOriginalData,
+  (currentData, originalData) => currentData !== originalData
+);
+
+// For complex forms, combine multiple dirty checks
+export const selectFormIsDirty = createSelector(selectFeatureSlice, (state) => {
+  const { data, originalData, settings, originalSettings, isConfigDirty } = state;
+
+  const isDataDirty = data !== originalData;
+  const isSettingsDirty = settings !== originalSettings;
+
+  return isDataDirty || isSettingsDirty || isConfigDirty;
+});
+```
+
+```javascript
+// In router configuration - use selector function instead of state path
+import { selectIsDirty } from 'MainRoot/featureName/featureSelectors';
+
+.state('featureName.edit', {
+  // ... other config
+  data: {
+    isDirty: selectIsDirty  // Pass selector function directly
+  }
+})
+```
+
+**Legacy approach** (still supported but not preferred):
+
+```javascript
+// Only use this pattern for simple cases or when migrating existing code
+.state('featureName', {
+  data: {
+    isDirty: ['featureName', 'isPageDirty']  // State path array
+  }
+})
+```
+
+**Benefits of Selector Approach**:
+
+- **Memoization**: Selector only recalculates when dependencies change
+- **Reusability**: Can be used across multiple components/routes
+- **Complex Logic**: Can combine multiple state slices and perform complex comparisons
+- **Performance**: Better than storing redundant dirty flags in state
+
+### Shared Components
+
+Always check **React Shared Components Library** before building custom components:
+
+**For AI/Claude**: The RSC documentation website (https://gallery.sonatype.dev/) is JavaScript-rendered and not readable by static crawlers. To help with RSC usage, ask the human to provide the location of a local clone of the `@sonatype/react-shared-components` repository so you can examine the source code, component APIs, and examples directly.
+
+**For Developers**: Browse https://gallery.sonatype.dev/ for available components and their usage examples.
+
+- **NxButton, NxTable, NxForm**: Common UI components
+- **NxLoadWrapper**: Loading states and error handling
+
+## Common Development Tasks
+
+### Adding a New Feature
+
+1. **Create feature directory**: `src/main/frontend/newFeature/`
+2. **Implement React components**: Use modern patterns and hooks
+3. **Create Redux slice**: Use Redux Toolkit
+4. **Add routing**: Configure AngularJS routes
+5. **Write tests**: Jest tests for new components
+6. **Add styling**: SCSS with BEM conventions
+7. **Integration**: Use `iqReact2Angular` for AngularJS integration
+
+## Migration Status
+
+### Current State
+
+- **React**: Required for new UI components
+- **AngularJS**: Legacy, primarily still used for routing and utilities, being gradually migrated
+- **Jest**: Preferred for new tests
+- **Jasmine**: Legacy, being phased out
+- **Redux Toolkit**: Preferred for state management
+- **Legacy Redux**: Still present, migrate to Redux Toolkit when touching
+
+### Testing Strategy
+
+Frontend changes typically require updates to multiple test layers:
+
+- **Unit/Integration Tests**: Jest and Jasmine tests in this directory (`src/test/frontend/`)
+- **Java Functional Tests**: Located mostly in `insight-brain-java-functional-test/` directory
+  - **When to update**: Any UI changes, new features, or modified user workflows
+  - **Coverage**: End-to-end scenarios, cross-browser testing, API integration
+  - **Important**: These tests are outside this frontend directory but are critical for validating frontend changes in production-like environments
+
+## Related Modules
+
+- **insight-brain-service**: Backend REST API and business logic
+- **insight-brain-data**: Database entities and data access
+- **insight-brain-java-functional-test**: End-to-end testing
+- **@sonatype/react-shared-components**: UI component library
+
+## Important Files
+
+- **`package.json`**: Dependencies and build scripts
+- **`webpack.config.js`**: Build configuration
+- **`jest.config.js`**: Test configuration
+- **`src/main/frontend/MainModule.js`**: Application entry point
+- **`src/main/frontend/scss/scss.scss`**: Main stylesheet entry
+- **`src/test/frontend/SpecUtil.js`**: Test utilities and helpers
+
+---
+
+**Note**: This frontend module serves all four Sonatype products and requires careful consideration of cross-product compatibility when making changes. Always test changes across different product contexts and deployment scenarios.

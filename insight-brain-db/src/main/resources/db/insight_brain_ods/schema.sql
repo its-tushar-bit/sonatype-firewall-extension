@@ -906,7 +906,7 @@ CREATE TABLE source_control_pull_request_comment
   update_time timestamp,
   content_hash varchar(40),
   CONSTRAINT source_control_pull_request_comment_pk PRIMARY KEY (source_control_pull_request_comment_id),
-  CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id),
+  CONSTRAINT source_control_pull_request_comment_app_fk FOREIGN KEY (application_id) REFERENCES application(application_id) ON DELETE CASCADE,
   CONSTRAINT source_control_pull_request_source_policy_eval_fk FOREIGN KEY (source_policy_evaluation_id)
     REFERENCES policy_evaluation(policy_evaluation_id) ON DELETE CASCADE,
   CONSTRAINT source_control_pull_request_target_policy_eval_fk FOREIGN KEY (target_policy_evaluation_id)

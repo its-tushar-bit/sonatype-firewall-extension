@@ -43,6 +43,7 @@ import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
+import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestResultDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlUserDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.PolicyViolationAggregationDAO;
@@ -95,6 +96,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranchCommitHistory;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
+import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestResult;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlUser;
 import com.sonatype.insight.brain.model.successmetrics.PolicyViolationAggregation;
@@ -113,6 +115,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
+import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.google.common.collect.Lists;
@@ -1329,6 +1332,52 @@ public class ApplicationDAOTest
 
     // verify deletion
     assertThat(cpeMatchingConfigurationDao.getByOwnerId(cpeMatchingConfiguration.getOwnerId())).isNull();
+  }
+
+  @Test
+  public void testDelete_CascadesToSourceControlPullRequestComments() {
+    Application application = tempEntity.newApplicationWithParent();
+    
+    // Create policy evaluations (required for SourceControlPullRequestComment foreign keys)
+    PolicyEvaluation sourcePolicyEvaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), BuildStageType.ID, "scanId1", ClientScanType.SONATYPE);
+    PolicyEvaluation targetPolicyEvaluation = tempEntity.newPolicyEvaluation(
+        application.getId(), BuildStageType.ID, "scanId2", ClientScanType.SONATYPE);
+    
+    // Create SourceControlPullRequestComment entities
+    tempEntity.newSourceControlPullRequestComment(
+        application.getId(),
+        1, // pullRequestId
+        101, // pullRequestCommentId
+        1, // pullRequestCommentVersion
+        "hash1", // contentHash
+        sourcePolicyEvaluation.getId(), // sourcePolicyEvaluationId
+        targetPolicyEvaluation.getId() // targetPolicyEvaluationId
+    );
+
+    tempEntity.newSourceControlPullRequestComment(
+        application.getId(),
+        2, // pullRequestId
+        102, // pullRequestCommentId
+        1, // pullRequestCommentVersion
+        "hash2", // contentHash
+        sourcePolicyEvaluation.getId(), // sourcePolicyEvaluationId
+        targetPolicyEvaluation.getId() // targetPolicyEvaluationId
+    );
+
+    // Verify the comments exist
+    SourceControlPullRequestCommentDAO pullRequestCommentDAO = daoFactory.createSourceControlPullRequestCommentDAO();
+    List<SourceControlPullRequestComment> commentsBeforeDelete = 
+        pullRequestCommentDAO.getByApplicationId(application.getId());
+    assertThat(commentsBeforeDelete).hasSize(2);
+
+    // Delete application - this should also clean up the pull request comments
+    applicationDAO.delete(application);
+
+    // Verify the comments were deleted
+    List<SourceControlPullRequestComment> commentsAfterDelete = 
+        pullRequestCommentDAO.getByApplicationId(application.getId());
+    assertThat(commentsAfterDelete).isEmpty();
   }
 
   @Test

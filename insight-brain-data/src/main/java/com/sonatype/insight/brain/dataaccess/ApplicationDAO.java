@@ -649,6 +649,7 @@ public class ApplicationDAO
     // - PolicyViolation
     // - SourceControlDefaultBranchCommitHistory
     // - SourceControlEvent
+    // - SourceControlPullRequestComment
     // - SourceControlPullRequestResult
     // - SourceControlUser
 

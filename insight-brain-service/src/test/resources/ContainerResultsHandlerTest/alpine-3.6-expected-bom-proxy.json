@@ -6,10 +6,10 @@
     {
       "type": "file",
       "bom-ref": "28d1cc5d-fcfc-4eee-ada7-f5a15fc30111",
-      "group": "*",
+      "group": "jar",
       "name": "java_se_runtime_environment",
       "version": "1.2.3",
-      "purl": "pkg:cpe/%2A/java_se_runtime_environment@1.2.3",
+      "purl": "pkg:maven/jar/java_se_runtime_environment@1.2.3?type=jar",
       "properties": [
         {
           "name": "componentRef",

@@ -245,13 +245,10 @@ public class ContainerResultHandler
   {
     switch (module.getSource()) {
       case "jar": {
-        // https://sonatype.atlassian.net/browse/NEXUS-47708
         String[] parts = resourceId.split(":");
         String groupId = parts[0];
         String artifactId = parts[1];
-        return groupId.equals("jar")
-          ? ComponentIdentifier.createCpeCoordinates("*", artifactId, module.getVersion())
-          : ComponentIdentifier.createMavenCoordinates(groupId, artifactId, module.getVersion());
+        return ComponentIdentifier.createMavenCoordinates(groupId, artifactId, module.getVersion());
       }
       case ".NET": {
         String name = resourceId.split(":")[1];

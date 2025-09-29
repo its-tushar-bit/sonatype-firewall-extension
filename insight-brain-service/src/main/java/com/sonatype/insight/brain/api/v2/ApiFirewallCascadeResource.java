@@ -56,25 +56,28 @@ public class ApiFirewallCascadeResource
   @Operation(
       description = "Initiate cascade re-evaluation for a component across repository hierarchies." +
           "<p>" +
-          "This operation asynchronously re-evaluates the specified component across all repositories " +
-          "where the user has EVALUATE_COMPONENT permission at the Repository Managers level and the component exists."
+          "This operation asynchronously re-evaluates the specified component across all repositories where the " +
+          "component exists."
           + "<p>" +
-          "The system will automatically discover all eligible repositories based on user permissions " +
-          "and component presence.",
+          "The system will automatically discover all eligible repositories based on component presence."
+          + "<p>" +
+          "Permissions Required: Evaluate Components at Repository Managers level",
       responses = {
           @ApiResponse(
               responseCode = "200",
-              description = "Cascade re-evaluation initiated successfully. Returns the task ID for tracking progress.",
+              description = "Cascade re-evaluation initiated successfully. The response contains statusUrl with a " +
+                  "requestId, which can be used to check the cascade re-evaluation status using the GET method." +
+                  "A requestId for a cascade re-evaluation only lasts 24 hours before being deleted.",
               useReturnTypeSchema = true
           ),
           @ApiResponse(
               responseCode = "403",
-              description = "Forbidden - insufficient permissions or no accessible repositories found"
+              description = "Forbidden - insufficient permissions"
           ),
       }
   )
   public CascadeReevaluateTicketDTO initiateCascadeReevaluation(
-      @Parameter(description = "The component hash to re-evaluate across all accessible repositories", required = true)
+      @Parameter(description = "The component hash to re-evaluate across all repositories", required = true)
       @PathParam("componentHash") final String componentHash)
   {
     // Initiate cascade re-evaluation
@@ -96,11 +99,14 @@ public class ApiFirewallCascadeResource
           "<p>" +
           "The response includes:" +
           "<ul>" +
-          "<li><b>status:</b> Overall status ('pending' or 'completed')</li>" +
+          "<li><b>status:</b> Overall status (PENDING, IN_PROGRESS, COMPLETED, NO_COMPONENTS_FOUND, FAILED)</li>" +
           "<li><b>referenceComponentHash:</b> The component hash that was re-evaluated</li>" +
-          "<li><b>evaluated:</b> List of components that have been processed (COMPLETED or FAILED status)</li>" +
-          "<li><b>pending:</b> List of components still being processed (PENDING status)</li>" +
-          "</ul>",
+          "<li><b>pending:</b> Components still being processed (PENDING status)</li>" +
+          "<li><b>evaluated:</b> Components successfully re-evaluated (COMPLETED or NO_COMPONENTS_FOUND status)</li>" +
+          "<li><b>failed:</b> Components that could not be re-evaluated (FAILED status)</li>" +
+          "</ul>"
+          + "<p>" +
+          "Permissions Required: Evaluate Components at Repository Managers level",
       responses = {
           @ApiResponse(
               responseCode = "200",
@@ -109,7 +115,7 @@ public class ApiFirewallCascadeResource
           ),
           @ApiResponse(
               responseCode = "404",
-              description = "Cascade request not found"
+              description = "Cascade request not found. It could have been deleted after 24 hours."
           ),
           @ApiResponse(
               responseCode = "403",

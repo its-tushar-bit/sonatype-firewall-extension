@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
@@ -237,5 +238,119 @@ public class ReevaluateCascadeProgressDAOTest
     List<ReevaluateCascadeProgress> found = dao.getByRequestId(requestId);
     assertThat(found).hasSize(1);
     assertThat(found.get(0).getStatus()).isEqualTo(ReevaluateCascadeProgressStatus.FAILED);
+  }
+
+  @Test
+  public void testDeleteByRequestIds() {
+    // Arrange
+    String requestId1 = "test8_delete_all_request_1";
+    String requestId2 = "test8_delete_all_request_2";
+    String requestId3 = "test8_delete_all_request_3";
+
+    // Create repositories and cascade requests
+    Repository repository1 = tempEntity.newRepository("test-delete-all-repo-1");
+    Repository repository2 = tempEntity.newRepository("test-delete-all-repo-2");
+    Repository repository3 = tempEntity.newRepository("test-delete-all-repo-3");
+    Repository repository4 = tempEntity.newRepository("test-delete-all-repo-4");
+    Repository repository5 = tempEntity.newRepository("test-delete-all-repo-5");
+    RepositoryComponent component1 = tempEntity.newRepositoryComponent(repository1.getId(), "component-path-1");
+    RepositoryComponent component2 = tempEntity.newRepositoryComponent(repository2.getId(), "component-path-2");
+    RepositoryComponent component3 = tempEntity.newRepositoryComponent(repository3.getId(), "component-path-3");
+    RepositoryComponent component4 = tempEntity.newRepositoryComponent(repository4.getId(), "component-path-4");
+    RepositoryComponent component5 = tempEntity.newRepositoryComponent(repository5.getId(), "component-path-5");
+    createTestDataForCascadeRequest(requestId1, "test-hash-delete-all-1");
+    createTestDataForCascadeRequest(requestId2, "test-hash-delete-all-2");
+    createTestDataForCascadeRequest(requestId3, "test-hash-delete-all-3");
+
+    // Request 1: Mixed statuses (ALL should be deleted)
+    tempEntity.newReevaluateCascadeProgress(
+        "completed_delete_all_1", requestId1, repository1.getId(), component1.getId(),
+        ReevaluateCascadeProgressStatus.COMPLETED.name());
+    tempEntity.newReevaluateCascadeProgress(
+        "failed_delete_all_1", requestId1, repository2.getId(), component2.getId(),
+        ReevaluateCascadeProgressStatus.FAILED.name());
+    tempEntity.newReevaluateCascadeProgress(
+        "pending_delete_all_1", requestId1, repository5.getId(), component5.getId(),
+        ReevaluateCascadeProgressStatus.PENDING.name());
+
+    // Request 2: Only PENDING entries (should ALL be deleted)
+    tempEntity.newReevaluateCascadeProgress(
+        "pending_delete_all_2", requestId2, repository3.getId(), component3.getId(),
+        ReevaluateCascadeProgressStatus.PENDING.name());
+
+    // Request 3: NOT in deletion set (should remain untouched)
+    tempEntity.newReevaluateCascadeProgress(
+        "pending_keep_all_1", requestId3, repository4.getId(), component4.getId(),
+        ReevaluateCascadeProgressStatus.PENDING.name());
+
+    // Verify initial state
+    assertThat(dao.getByRequestId(requestId1)).hasSize(3); // 3 entries with mixed statuses
+    assertThat(dao.getByRequestId(requestId2)).hasSize(1); // 1 pending entry
+    assertThat(dao.getByRequestId(requestId3)).hasSize(1); // 1 pending entry
+
+    // Act - Delete ALL entries for request1 and request2 (regardless of status)
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRequestIds(tx, Set.of(requestId1, requestId2));
+      tx.commit();
+    }
+
+    // Assert - ALL entries for request1 and request2 should be deleted, request3 should remain
+    assertThat(dao.getByRequestId(requestId1)).isEmpty(); // All entries deleted
+    assertThat(dao.getByRequestId(requestId2)).isEmpty(); // All entries deleted
+
+    List<ReevaluateCascadeProgress> request3Remaining = dao.getByRequestId(requestId3);
+    assertThat(request3Remaining).hasSize(1); // Not in deletion set, should remain untouched
+    assertThat(request3Remaining.get(0).getId()).isEqualTo("pending_keep_all_1");
+    assertThat(request3Remaining.get(0).getStatus()).isEqualTo(ReevaluateCascadeProgressStatus.PENDING);
+  }
+
+  @Test
+  public void testDeleteByRequestIdsWithEmptySet() {
+    String requestId = "test9_empty_set_all_request";
+
+    Repository repository = tempEntity.newRepository("test-empty-all-repo");
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
+    createTestDataForCascadeRequest(requestId, "test-hash-empty-all");
+
+    tempEntity.newReevaluateCascadeProgress(
+        "pending_before_empty_all", requestId, repository.getId(), component.getId(),
+        ReevaluateCascadeProgressStatus.PENDING.name());
+
+    assertThat(dao.getByRequestId(requestId)).hasSize(1);
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRequestIds(tx, Set.of());
+      tx.commit();
+    }
+
+    assertThat(dao.getByRequestId(requestId)).hasSize(1);
+  }
+
+  @Test
+  public void testDeleteByRequestIdsWithNonExistentIds() {
+    String requestId = "test10_existing_all_request";
+    String nonExistentRequestId = "test10_non_existent_all_request";
+
+    Repository repository = tempEntity.newRepository("test-non-existent-all-repo");
+    RepositoryComponent component = tempEntity.newRepositoryComponent(repository.getId(), "component-path");
+    createTestDataForCascadeRequest(requestId, "test-hash-non-existent-all");
+
+    tempEntity.newReevaluateCascadeProgress(
+        "pending_existing_all", requestId, repository.getId(), component.getId(),
+        ReevaluateCascadeProgressStatus.PENDING.name());
+
+    assertThat(dao.getByRequestId(requestId)).hasSize(1);
+
+    // Act - Try to delete with both existing and non-existent request IDs
+    try (TransactionContext tx = dao.createTransactionContext()) {
+      tx.begin();
+      dao.deleteByRequestIds(tx, Set.of(requestId, nonExistentRequestId));
+      tx.commit();
+    }
+
+    // Assert - Existing entry should be deleted, non-existent ID has no effect
+    assertThat(dao.getByRequestId(requestId)).isEmpty(); // Existing entry deleted
+    assertThat(dao.getByRequestId(nonExistentRequestId)).isEmpty(); // Non-existent ID has no effect
   }
 }

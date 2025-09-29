@@ -1238,7 +1238,8 @@ public class TestDAOFactory
 
   @Override
   public ReevaluateCascadeRequestDAO createReevaluateCascadeRequestDAO() {
-    return new ReevaluateCascadeRequestDAO(dataStoreProvider.getOperationalDataStore());
+    ReevaluateCascadeProgressDAO reevaluateCascadeProgressDAO = createReevaluateCascadeProgressDAO();
+    return new ReevaluateCascadeRequestDAO(dataStoreProvider.getOperationalDataStore(), reevaluateCascadeProgressDAO);
   }
 
   @Override

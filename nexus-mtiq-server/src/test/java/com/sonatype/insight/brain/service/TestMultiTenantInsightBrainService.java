@@ -41,6 +41,7 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler;
 import com.sonatype.insight.brain.product.license.FirewallReleaseIntegrityLicenseListener;
 import com.sonatype.insight.brain.product.notifications.HdsProductNotificationService;
 import com.sonatype.insight.brain.report.ReportPurger;
+import com.sonatype.insight.brain.repository.ReevaluateCascadeRequestCleaner;
 import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineReleaseScheduler;
 import com.sonatype.insight.brain.sbom.PendingSbomMetadataCleaner;
 import com.sonatype.insight.brain.scan.PersistedScanTicketCleaner;
@@ -351,6 +352,7 @@ public class TestMultiTenantInsightBrainService
     getInstance(TenantSizeMetricsJob.class).disableForTesting = true;
     getInstance(HistoricalPolicyViolationTelemetryTask.class).disableForTesting = true;
     getInstance(PolicyWaiverTelemetryBackfillTask.class).disableForTesting = true;
+    getInstance(ReevaluateCascadeRequestCleaner.class).disableForTesting = true;
   }
 
   @Override

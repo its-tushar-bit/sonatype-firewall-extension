@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.repository;
 
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -16,6 +17,7 @@ import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgress;
 import com.sonatype.insight.brain.model.repository.ReevaluateCascadeProgressStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
+import com.google.common.collect.Iterables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,18 +38,12 @@ public class ReevaluateCascadeProgressDAO
     super(operationalDataStore);
   }
 
-  /**
-   * Finds all progress entries for a given cascade request ID.
-   */
   public List<ReevaluateCascadeProgress> getByRequestId(final String reevaluateCascadeRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRequestId(tx, reevaluateCascadeRequestId);
     }
   }
 
-  /**
-   * Finds all progress entries for a given cascade request ID.
-   */
   public List<ReevaluateCascadeProgress> getByRequestId(
       final TransactionContext tx,
       final String reevaluateCascadeRequestId)
@@ -57,18 +53,12 @@ public class ReevaluateCascadeProgressDAO
     return getList(tx, sQuery, reevaluateCascadeRequestId);
   }
 
-  /**
-   * Finds progress entries by repository ID.
-   */
   public List<ReevaluateCascadeProgress> getByRepositoryId(final String repositoryId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryId(tx, repositoryId);
     }
   }
 
-  /**
-   * Finds progress entries by repository ID.
-   */
   public List<ReevaluateCascadeProgress> getByRepositoryId(
       final TransactionContext tx,
       final String repositoryId)
@@ -78,18 +68,12 @@ public class ReevaluateCascadeProgressDAO
     return getList(tx, sQuery, repositoryId);
   }
 
-  /**
-   * Finds progress entries by repository component ID.
-   */
   public List<ReevaluateCascadeProgress> getByRepositoryComponentId(final String repositoryComponentId) {
     try (TransactionContext tx = createTransactionContext()) {
       return getByRepositoryComponentId(tx, repositoryComponentId);
     }
   }
 
-  /**
-   * Finds progress entries by repository component ID.
-   */
   public List<ReevaluateCascadeProgress> getByRepositoryComponentId(
       final TransactionContext tx,
       final String repositoryComponentId)
@@ -99,18 +83,12 @@ public class ReevaluateCascadeProgressDAO
     return getList(tx, sQuery, repositoryComponentId);
   }
 
-  /**
-   * Counts pending progress entries for a given cascade request.
-   */
   public long countPendingByRequestId(final String reevaluateCascadeRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
       return countPendingByRequestId(tx, reevaluateCascadeRequestId);
     }
   }
 
-  /**
-   * Counts pending progress entries for a given cascade request.
-   */
   public long countPendingByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
     String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
         " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
@@ -118,18 +96,12 @@ public class ReevaluateCascadeProgressDAO
         ReevaluateCascadeProgressStatus.PENDING).longValue();
   }
 
-  /**
-   * Counts completed progress entries for a given cascade request.
-   */
   public long countCompletedByRequestId(final String reevaluateCascadeRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
       return countCompletedByRequestId(tx, reevaluateCascadeRequestId);
     }
   }
 
-  /**
-   * Counts completed progress entries for a given cascade request.
-   */
   public long countCompletedByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
     String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
         " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
@@ -137,18 +109,12 @@ public class ReevaluateCascadeProgressDAO
         ReevaluateCascadeProgressStatus.COMPLETED).longValue();
   }
 
-  /**
-   * Counts failed progress entries for a given cascade request.
-   */
   public long countFailedByRequestId(final String reevaluateCascadeRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
       return countFailedByRequestId(tx, reevaluateCascadeRequestId);
     }
   }
 
-  /**
-   * Counts failed progress entries for a given cascade request.
-   */
   public long countFailedByRequestId(final TransactionContext tx, final String reevaluateCascadeRequestId) {
     String sQuery = "SELECT COUNT(entity.id) FROM ReevaluateCascadeProgress entity" +
         " WHERE entity.reevaluateCascadeRequestId=?1 AND entity.status=?2";
@@ -156,18 +122,12 @@ public class ReevaluateCascadeProgressDAO
         ReevaluateCascadeProgressStatus.FAILED).longValue();
   }
 
-  /**
-   * Checks if all progress entries for a cascade request have been completed (either COMPLETED or FAILED).
-   */
   public boolean isRequestComplete(final String reevaluateCascadeRequestId) {
     try (TransactionContext tx = createTransactionContext()) {
       return isRequestComplete(tx, reevaluateCascadeRequestId);
     }
   }
 
-  /**
-   * Checks if all progress entries for a cascade request have been completed (either COMPLETED or FAILED).
-   */
   public boolean isRequestComplete(final TransactionContext tx, final String reevaluateCascadeRequestId) {
     long pendingCount = countPendingByRequestId(tx, reevaluateCascadeRequestId);
     boolean isComplete = pendingCount == 0;
@@ -178,5 +138,20 @@ public class ReevaluateCascadeProgressDAO
     }
 
     return isComplete;
+  }
+
+  public void deleteByRequestIds(TransactionContext tx, Set<String> requestIds) {
+    if (requestIds.isEmpty()) {
+      return;
+    }
+
+    Iterable<List<String>> batches = Iterables.partition(requestIds, getInOperatorThreshold());
+
+    String sQuery = "DELETE FROM ReevaluateCascadeProgress entity" +
+        " WHERE entity.reevaluateCascadeRequestId IN (?1)";
+
+    for (List<String> batch : batches) {
+      createQuery(sQuery, batch).executeUpdate(tx);
+    }
   }
 }

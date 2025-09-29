@@ -19,6 +19,7 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Test;
@@ -696,6 +697,45 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     helper.saveEmptyMockReport();
 
     assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isTrue();
+  }
+
+  @Test
+  public void testReportExists_NoFilesExists() throws Exception {
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
+  }
+
+  @Test
+  public void testReportExists_OnlyCopyMarkerExists() throws Exception {
+    service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
+        new ByteArrayInputStream(new byte[] {0}));
+
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
+  }
+
+  @Test
+  public void testReportExists_OnlyReportFilesExist() throws Exception {
+    helper.saveEmptyMockReport();
+
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isTrue();
+  }
+
+  @Test
+  public void testReportExists_CopyMarkerAndReportFilesExist() throws Exception {
+    helper.saveEmptyMockReport();
+    service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
+        new ByteArrayInputStream(new byte[] {0}));
+
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
+  }
+
+  @Test
+  public void testReportExists_CopyMarkerDeleted() throws Exception {
+    service.saveAdditionalReportFile(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER,
+        new ByteArrayInputStream(new byte[] {0}));
+    ReportEntity copyMarker = service.getReportEntity(APPLICATION_ID, SCAN_ID, CopyStorageService.COPY_MARKER);
+    service.deleteReportEntity(copyMarker);
+
+    assertThat(service.reportExists(APPLICATION_ID, SCAN_ID)).isFalse();
   }
 
   @Test

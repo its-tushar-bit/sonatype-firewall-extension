@@ -30,6 +30,7 @@ import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
 import com.sonatype.insight.brain.report.pdf.PdfGenerator;
+import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.utils.AutoDeletingTempFile;
 
@@ -382,6 +383,9 @@ public class FileApplicationReportPersistenceService
   @Override
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) {
+    if (Files.exists(getAdditionalFilesPath(applicationId, scanId).resolve(CopyStorageService.COPY_MARKER))) {
+      return false;
+    }
     return Files.exists(getZipPath(applicationId, scanId));
   }
 

@@ -16,9 +16,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
+import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.model.S3Object;
 
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
@@ -68,5 +71,21 @@ public class S3Utils
     return wrapS3Exception(() -> s3Client.listObjectsV2Paginator(request).stream()
         .map(ListObjectsV2Response::contents)
         .flatMap(List::stream));
+  }
+
+  public static boolean exists(S3Client s3Client, String bucketName, String key) throws IOException {
+    try {
+      s3Client.headObject(HeadObjectRequest.builder()
+          .bucket(bucketName)
+          .key(key)
+          .build());
+      return true;
+    }
+    catch (NoSuchKeyException e) {
+      return false;
+    }
+    catch (S3Exception e) {
+      throw new IOException(e);
+    }
   }
 }

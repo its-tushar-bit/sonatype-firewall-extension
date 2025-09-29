@@ -24,6 +24,7 @@ import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.aws.s3.S3Utils;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
+import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
@@ -344,6 +345,10 @@ public class S3ApplicationReportPersistenceService
   @Override
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
+    if (S3Utils.exists(s3Client, s3DataStoreConfig.getBucketName(),
+        getAdditionalObjectKey(applicationId, scanId, CopyStorageService.COPY_MARKER).toString())) {
+      return false;
+    }
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
       // Do we have at least one object saved for this app and scan

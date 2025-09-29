@@ -60,7 +60,7 @@ public class CopyStorageService
 {
   private static final Logger log = LoggerFactory.getLogger(CopyStorageService.class);
 
-  private static final String COPY_MARKER = "copyInProgress";
+  public static final String COPY_MARKER = "copyInProgress";
 
   private static final int DEFAULT_PAGE_SIZE = 10000;
 
@@ -263,24 +263,17 @@ public class CopyStorageService
       String toLocation = to.getReportLocation(appId, scanId);
 
       try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(app, scanId)) {
-        ReportEntity copyMarker;
-        if (to.reportExists(appId, scanId)) {
-          copyMarker = to.getReportEntity(eval.getApplicationId(), eval.getScanId(), COPY_MARKER);
-          if (!copyMarker.exists()) {
-            log.trace("Skipping report copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
-            continue;
-          }
-        }
-        else {
-          to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, new ByteArrayInputStream(new byte[0]));
-          copyMarker = to.getReportEntity(eval.getApplicationId(), eval.getScanId(), COPY_MARKER);
-        }
-        // Once we're sure we want to copy this report, lock it so it can't be changed
         clusterLock.lock();
+        if (to.reportExists(appId, scanId)) {
+          log.trace("Skipping report copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
+          continue;
+        }
         if (!from.reportExists(appId, scanId)) {
           log.trace("Skipping report copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
           continue;
         }
+        to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, new ByteArrayInputStream(new byte[] {0}));
+        ReportEntity copyMarker = to.getReportEntity(eval.getApplicationId(), eval.getScanId(), COPY_MARKER);
         log.trace("Copying report from '{}' to '{}'.", fromLocation, toLocation);
 
         try (InputStream inputStream = createInputStream(from.getOriginalReportEntities(appId, scanId))) {

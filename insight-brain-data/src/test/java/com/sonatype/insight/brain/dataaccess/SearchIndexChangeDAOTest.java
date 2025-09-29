@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
+import java.util.List;
+
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.SearchIndexChange.ChangeType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -25,8 +28,17 @@ public class SearchIndexChangeDAOTest
   public void setup() {
     super.setup();
     dao = daoFactory.createSearchIndexChangeDAO();
-    // Sanity check
-    assertThat(dao.getAll()).isEmpty();
+    // The first test may initialize the schema which inserts the root org search index change
+    // this will be cleared by TemporaryEntity.after for later tests
+    List<SearchIndexChange> searchIndexChanges = dao.getAll();
+    if (!searchIndexChanges.isEmpty()) {
+      assertThat(searchIndexChanges).hasSize(1);
+      SearchIndexChange searchIndexChange = searchIndexChanges.get(0);
+      assertThat(searchIndexChange).isNotNull();
+      assertThat(searchIndexChange.getChangeType()).isEqualTo(ChangeType.ORGANIZATION);
+      assertThat(searchIndexChange.getChangeData()).isEqualTo(Organization.ROOT_ORGANIZATION_ID);
+      dao.delete(searchIndexChange);
+    }
   }
 
   @Test

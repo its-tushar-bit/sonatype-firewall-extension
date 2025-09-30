@@ -14,10 +14,13 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
@@ -102,6 +105,9 @@ public class CopyStorageServiceTest
 
   @Inject
   private InsightConfig insightConfig;
+
+  @Inject
+  private ClusterLockManager clusterLockManager;
 
   @Parameters
   public static List<Object[]> dataStoreTypes() {
@@ -301,6 +307,37 @@ public class CopyStorageServiceTest
     logOutput.assertThat().atInfoLevel().contains(
         String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s' for 2 app(s)",
             dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+  }
+
+  @Test
+  public void testExecute_SkipsReportInProgress() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval1 =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(eval1);
+    createReport(eval1);
+    PolicyEvaluation eval2 =
+        tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(eval2);
+    createReport(eval2);
+
+    // Simulate eval2 is still in progress, which means it should be ignored
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(app, eval2.getScanId())) {
+      clusterLock.lock();
+      copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+    }
+
+    assertScanCopied(eval1);
+    assertReportCopied(eval1);
+    assertScanCopied(eval2);
+    ApplicationReportPersistenceService reportPersistenceService =
+        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
+    // Check that the report and copy marker do not exist
+    assertThat(reportPersistenceService.reportExists(eval2.getApplicationId(), eval2.getScanId())).isFalse();
+    try (Stream<ReportEntity> reportEntities = reportPersistenceService.getAllReportEntities(eval2.getApplicationId(),
+        eval2.getScanId())) {
+      assertThat(reportEntities.toList()).isEmpty();
+    }
   }
 
   private void assertScanCopied(final PolicyEvaluation eval) throws Exception {

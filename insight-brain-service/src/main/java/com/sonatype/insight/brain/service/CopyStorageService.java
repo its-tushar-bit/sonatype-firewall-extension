@@ -263,7 +263,10 @@ public class CopyStorageService
       String toLocation = to.getReportLocation(appId, scanId);
 
       try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(app, scanId)) {
-        clusterLock.lock();
+        if (!clusterLock.tryLock()) {
+          log.trace("Skipping report copying for app id '{}' scan id '{}' since it is in progress.", appId, scanId);
+          continue;
+        }
         if (to.reportExists(appId, scanId)) {
           log.trace("Skipping report copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
           continue;

@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
+
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.AiModelContentType;
@@ -4323,29 +4324,23 @@ public class ScanPolicyEvaluatorTest
 
     assertThat(telemetryDataList).hasSize(conditions.size());
 
-    boolean hasHygieneViolation = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(HygieneRatingConditionType.ID));
+    boolean hasHygieneViolation = assertConditionTypeExistsInTelemetryData(HygieneRatingConditionType.ID,
+        telemetryDataList);
 
-    boolean hasComponentCategoryViolation = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(ComponentCategoryConditionType.ID));
+    boolean hasComponentCategoryViolation = assertConditionTypeExistsInTelemetryData(ComponentCategoryConditionType.ID,
+        telemetryDataList);
 
-    boolean hasDependencyTypeViolation = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(DependencyTypeConditionType.ID));
+    boolean hasDependencyTypeViolation = assertConditionTypeExistsInTelemetryData(DependencyTypeConditionType.ID,
+        telemetryDataList);
 
-    boolean hasSVCategoryTypeViolation = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(SecurityVulnerabilityCategoryConditionType.ID));
+    boolean hasSVCategoryTypeViolation = assertConditionTypeExistsInTelemetryData(
+        SecurityVulnerabilityCategoryConditionType.ID, telemetryDataList);
 
-    boolean hasIntegrityViolation = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(IntegrityRatingConditionType.ID));
+    boolean hasIntegrityViolation = assertConditionTypeExistsInTelemetryData(
+        IntegrityRatingConditionType.ID, telemetryDataList);
 
-    boolean hasComponentEndOfLife = telemetryDataList.stream().anyMatch(telemetryData ->
-        telemetryData.getAttributes().get(
-            PolicyViolationTelemetryCollector.CONDITION_TYPE).equals(ComponentEndOfLifeConditionType.ID));
+    boolean hasComponentEndOfLife = assertConditionTypeExistsInTelemetryData(
+        ComponentEndOfLifeConditionType.ID, telemetryDataList);
 
     assertThat(hasHygieneViolation).isTrue();
     assertThat(hasComponentCategoryViolation).isTrue();
@@ -4679,7 +4674,7 @@ public class ScanPolicyEvaluatorTest
     // Find the manually waived violation that replaced the auto-waived one
     Optional<PolicyViolation> manuallyWaivedViolationOpt = results2.waivedViolations.stream()
         .filter(v -> v.getHash().equals(autoWaivedViolation.getHash()) &&
-                     v.getPolicyId().equals(autoWaivedViolation.getPolicyId()))
+            v.getPolicyId().equals(autoWaivedViolation.getPolicyId()))
         .findFirst();
 
     assertThat(manuallyWaivedViolationOpt).isPresent();
@@ -4706,7 +4701,7 @@ public class ScanPolicyEvaluatorTest
     // Find the unwaive telemetry (has COUNT = -1)
     Optional<TelemetryData> unwaiveTelemetryOpt = waiveTelemetry.stream()
         .filter(telemetryData -> telemetryData.getAttributes().containsKey(COUNT) &&
-                                 telemetryData.getAttributes().get(COUNT).equals(-1))
+            telemetryData.getAttributes().get(COUNT).equals(-1))
         .findFirst();
 
     assertThat(unwaiveTelemetryOpt).isPresent();
@@ -4719,7 +4714,7 @@ public class ScanPolicyEvaluatorTest
     // Find the waive telemetry for the new manually waived violation
     Optional<TelemetryData> waiveTelemetryOpt = waiveTelemetry.stream()
         .filter(telemetryData -> telemetryData.getAttributes().containsKey("policy_waiver_id") &&
-                                 telemetryData.getAttributes().get("policy_waiver_id").equals(manualWaiver.getId()))
+            telemetryData.getAttributes().get("policy_waiver_id").equals(manualWaiver.getId()))
         .findFirst();
 
     assertThat(waiveTelemetryOpt).isPresent();
@@ -5529,7 +5524,7 @@ public class ScanPolicyEvaluatorTest
   /**
    * Adds a reachable component vulnerability to the map for each package URL identifier.
    *
-   * @param packageUrlIdentifiers the list of package URL identifiers
+   * @param packageUrlIdentifiers                the list of package URL identifiers
    * @param reachableComponentVulnerabilitiesMap the map to add the reachable component vulnerabilities to
    */
   private void addReachabilityMap(
@@ -5541,5 +5536,19 @@ public class ScanPolicyEvaluatorTest
       reachableComponentVulnerabilitiesMap.put(packageUrl,
           new PresentReachableComponentVulnerabilities(Set.of("UNKNOWN_CVE")));
     }
+  }
+
+  private boolean assertConditionTypeExistsInTelemetryData(
+      String conditionType,
+      List<TelemetryData> telemetryDataList)
+  {
+    return telemetryDataList.stream().anyMatch(
+        telemetryData -> {
+          List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
+              .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+          return constraints.stream().anyMatch(c -> c.getConditions().stream().anyMatch(cond ->
+              cond.getConditionTypeId().equals(conditionType)));
+        }
+    );
   }
 }

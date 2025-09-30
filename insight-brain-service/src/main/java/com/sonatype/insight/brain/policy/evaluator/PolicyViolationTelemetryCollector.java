@@ -12,12 +12,18 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConditionFact;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.component.ComponentHelper;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetryBuilder;
@@ -109,6 +115,8 @@ public class PolicyViolationTelemetryCollector
   static final String PULL_REQUEST_NUMBER = "pull_request_number";
 
   static final String PULL_REQUEST_REMEDIATION_VERSION = "pull_request_remediation_version";
+
+  static final String POLICY_CONSTRAINTS = "policy_constraints";
 
   // arbitrary look-back window for associating remediation PRs to a policy violation's open time
   static final int REMEDIATION_PR_LOOKBACK_DAYS = 7;
@@ -281,16 +289,41 @@ public class PolicyViolationTelemetryCollector
 
   public void addTelemetryForConditionTypeViolation(
       PolicyViolation policyViolation,
-      String conditionType,
-      List<Component> components)
+      List<Component> components,
+      List<Constraint> constraintsTelemetryData)
   {
     if (policyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION, policyViolation, components)
-              .put(CONDITION_TYPE, conditionType);
+              .put(POLICY_CONSTRAINTS, constraintsTelemetryData);
 
       telemetryDataList.add(telemetryData);
     }
+  }
+
+  public Condition formatConditionForTelemetryData(ConditionFact conditionFact, String constraintFactOperatorName) {
+    Condition condition = new Condition(conditionFact.getConditionTypeId(), constraintFactOperatorName);
+    condition.setConditionIndex(conditionFact.getConditionIndex());
+    TriggerReference conditionTriggerReference = conditionFact.getReference();
+    if (conditionTriggerReference != null) {
+      condition.setValue(conditionTriggerReference.getValue());
+    }
+
+    return condition;
+  }
+
+  public Constraint formatConstraintForTelemetryData(ConstraintFact cf, List<Condition> conditions) {
+    LogicalOperator operator = null;
+    try {
+      operator = LogicalOperator.valueOf(cf.getOperatorName());
+    }
+    catch (Exception e) {
+      log.debug("Unknown operator name '{}' in constraint fact, defaulting to AND", cf.getOperatorName());
+      operator = LogicalOperator.AND;
+    }
+    Constraint constraint = new Constraint(cf.getConstraintId(), cf.getConstraintName(), operator);
+    constraint.setConditions(conditions);
+    return constraint;
   }
 
   public void addTelemetryForLegacyViolation(PolicyViolation legacyViolation, Component component) {

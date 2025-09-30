@@ -27,6 +27,9 @@ import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO
 import com.sonatype.insight.brain.license.LicenseNameProvider;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.InnerSourceData;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
+import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -36,7 +39,6 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
-import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseThreatGroupConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -48,10 +50,12 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
+import static com.sonatype.insight.brain.model.policy.conditions.ConditionTypes.HygieneRatingConditionType;
 import static com.sonatype.insight.brain.policy.evaluator.PolicyViolationTelemetryCollector.*;
 import static com.sonatype.insight.brain.telemetry.TelemetryUtils.REAL_APPLICATION_ID;
 import static com.sonatype.insight.purl.PackageUrlIdentifier.fromComponentIdentifier;
@@ -119,11 +123,20 @@ public class PolicyViolationTelemetryCollectorTest
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
 
+    // Build the constraints test data as
+    List<Constraint> formattedConstraints = testablePolicyViolation.policyViolation.getConstraintFacts()
+        .stream().map(
+            cf -> {
+              List<Condition> conditions = cf.getConditionFacts().stream().map(condF -> telemetryCollector
+                  .formatConditionForTelemetryData(condF, cf.getOperatorName())).collect(Collectors.toList());
+              return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
+            }).toList();
+
     // when
     telemetryCollector.addTelemetryForConditionTypeViolation(
         testablePolicyViolation.getPolicyViolation(),
-        testablePolicyViolation.getConditionType(),
-        testablePolicyViolation.getComponents()
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
     );
 
     // then
@@ -458,7 +471,6 @@ public class PolicyViolationTelemetryCollectorTest
     // then
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, TIME_TO_WAIVE_POLICY_VIOLATION);
-
   }
 
   @Test
@@ -985,8 +997,8 @@ public class PolicyViolationTelemetryCollectorTest
     void validatePurposeSpecificAttributes(Map<String, Object> attributes, TelemetryPurpose purpose) {
       switch (purpose) {
         case CONDITION_TYPE_VIOLATION:
-          validateMatchesOrNotExists(attributes, CONDITION_TYPE, conditionType);
           validateTimeAttribute(attributes, 0L);
+          validateConstraintsData(attributes);
           break;
 
         case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
@@ -1046,6 +1058,35 @@ public class PolicyViolationTelemetryCollectorTest
 
     private Set<String> toLicenseSet(String licenses) {
       return new LinkedHashSet<>(Arrays.asList(licenses.split(", ")));
+    }
+
+    private static void validateConstraintsData(Map<String, Object> attributes) {
+      assertThat(attributes).containsKey(POLICY_CONSTRAINTS);
+
+      @SuppressWarnings("unchecked")
+      List<Constraint> constraints = (List<Constraint>) attributes
+          .get(POLICY_CONSTRAINTS);
+      assertThat(constraints).hasSize(3);
+
+      // Validate each constraint has required properties
+      for (int i = 0; i < constraints.size(); i++) {
+        Constraint constraint = constraints.get(i);
+        assertThat(constraint.getId()).isEqualTo("constraintId" + i);
+        assertThat(constraint.getName()).isEqualTo("constraintName" + i);
+        assertThat(constraint.getOperator()).isEqualTo(LogicalOperator.AND);
+        assertThat(constraint.getConditions()).hasSize(3);
+
+        List<Condition> conditions = constraint.getConditions();
+        // Validate each condition within the constraint
+        for (int j = 0; j < conditions.size(); j++) {
+          Condition condition = conditions.get(j);
+          assertThat(condition.getConditionTypeId()).isEqualTo("SecurityVulnerabilitySeverity");
+          assertThat(condition.getConditionIndex()).isEqualTo(j);
+          assertThat(condition.getOperator()).isEqualTo("operatorName" + i);
+        }
+      }
+
+      assertThat(constraints.get(1).getConditions().get(1).getValue()).isEqualTo("CVE-123");
     }
   }
 

@@ -69,6 +69,8 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiverExclusion;
+import com.sonatype.insight.brain.model.policy.Condition;
+import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -936,12 +938,19 @@ public class ScanPolicyEvaluator
     List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
         newPolicyViolation.getComponentIdentifier());
 
+    List<Constraint> policyViolationTelemetryConstraints = new ArrayList<>();
     for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
+      List<Condition> policyViolationTelemetryConditions = new ArrayList<>();
       for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-        String conditionTypeId = conditionFact.getConditionTypeId();
-        telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, conditionTypeId, found);
+        policyViolationTelemetryConditions.add(telemetryCollector.formatConditionForTelemetryData(conditionFact,
+            constraintFact.getOperatorName()));
       }
+      policyViolationTelemetryConstraints.add(telemetryCollector.formatConstraintForTelemetryData(constraintFact,
+          policyViolationTelemetryConditions));
     }
+
+    telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, found,
+        policyViolationTelemetryConstraints);
   }
 
   /**

@@ -273,6 +273,8 @@ public class UserTokenService
     apiUserTokenDTO.userCode = userToken.getUserCode();
     apiUserTokenDTO.username = userToken.getUsername();
     apiUserTokenDTO.realm = userToken.getRealmId();
+    apiUserTokenDTO.createTime = userToken.getCreateTime();
+    apiUserTokenDTO.lastAccessTime = userToken.getLastAccessTime();
     return apiUserTokenDTO;
   }
 }

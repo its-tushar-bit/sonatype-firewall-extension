@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.util.Date;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -25,6 +26,7 @@ import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
+import jakarta.persistence.EntityNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
@@ -32,7 +34,9 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.SimpleAuthenticationInfo;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.credential.PasswordMatcher;
+import org.apache.shiro.lang.util.ByteSource;
 import org.apache.shiro.realm.AuthenticatingRealm;
+import org.apache.shiro.subject.PrincipalCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,6 +96,23 @@ public class UserTokenRealm
   }
 
   @Override
+  protected void assertCredentialsMatch(final AuthenticationToken token, final AuthenticationInfo info)
+      throws AuthenticationException
+  {
+    super.assertCredentialsMatch(token, info);
+    SimpleAuthenticationInfoWithUserToken simpleAuthenticationInfoWithUserToken =
+        (SimpleAuthenticationInfoWithUserToken) info;
+    UserToken userToken = simpleAuthenticationInfoWithUserToken.getUserToken();
+    userToken.setLastAccessTime(new Date());
+    try {
+      userTokenDAO.update(userToken);
+    }
+    catch (EntityNotFoundException e) {
+      throw new AuthenticationException("User token '%s' no longer exists.".formatted(userToken.getUserCode()));
+    }
+  }
+
+  @Override
   protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
     UsernamePasswordToken usernamePasswordToken = (UsernamePasswordToken) token;
     String username = usernamePasswordToken.getUsername();
@@ -121,23 +142,25 @@ public class UserTokenRealm
     }
   }
 
-  private SimpleAuthenticationInfo doGetInternalRealmAuthenticationInfo(UserToken userToken) {
+  private SimpleAuthenticationInfoWithUserToken doGetInternalRealmAuthenticationInfo(UserToken userToken) {
     User user = userDAO.getByUsername(userToken.getUsername());
-    return new SimpleAuthenticationInfo( //
+    return new SimpleAuthenticationInfoWithUserToken( //
         new UserPrincipal(userToken.getUsername(), user.calculateDisplayName(), ID), //
         userToken.getPassCode(), //
-        getName());
+        getName(),
+        userToken);
   }
 
-  private SimpleAuthenticationInfo doGetSsoRealmAuthenticationInfo(UserToken userToken) {
+  private SimpleAuthenticationInfoWithUserToken doGetSsoRealmAuthenticationInfo(UserToken userToken) {
     SsoUser ssoUser = ssoUserService.getByUsername(userToken.getUsername());
-    return new SimpleAuthenticationInfo( //
+    return new SimpleAuthenticationInfoWithUserToken( //
         new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, ssoUser.getGroups()), //
         userToken.getPassCode(), //
-        getName());
+        getName(),
+        userToken);
   }
 
-  private SimpleAuthenticationInfo doGetCrowdRealmAuthenticationInfo(UserToken userToken) {
+  private SimpleAuthenticationInfoWithUserToken doGetCrowdRealmAuthenticationInfo(UserToken userToken) {
     CrowdClient crowdClient = crowdClientFactory.createCrowdClient();
 
     if (crowdClient == null) {
@@ -145,7 +168,8 @@ public class UserTokenRealm
     }
 
     try {
-      return new SimpleAuthenticationInfo(crowdClient.getUser(userToken), userToken.getPassCode(), getName());
+      return new SimpleAuthenticationInfoWithUserToken(crowdClient.getUser(userToken), userToken.getPassCode(),
+          getName(), userToken);
     }
     catch (UserNotFoundException e) {
       // The Crowd user was deleted.
@@ -167,16 +191,17 @@ public class UserTokenRealm
     }
   }
 
-  private SimpleAuthenticationInfo doGetLdapRealmAuthenticationInfo(UserToken userToken) {
+  private SimpleAuthenticationInfoWithUserToken doGetLdapRealmAuthenticationInfo(UserToken userToken) {
     String username = userToken.getUsername();
     LdapServer ldapServer = ldapServerDAO.getById(userToken.getRealmId());
 
     try {
       LdapUser ldapUser = ldapService.getUserByName(ldapServer, username);
-      return new SimpleAuthenticationInfo( //
+      return new SimpleAuthenticationInfoWithUserToken( //
           new UserPrincipal(username, ldapUser.getRealName(), ID, ldapUser.getMembership()), //
           userToken.getPassCode(), //
-          getName());
+          getName(),
+          userToken);
     }
     catch (NameNotFoundException e) {
       // The LDAP user was deleted.
@@ -195,6 +220,60 @@ public class UserTokenRealm
     catch (NamingException e) {
       throw new AuthenticationException(
           "LDAP naming error while attempting to authenticate by user token.", e);
+    }
+  }
+
+  private static class SimpleAuthenticationInfoWithUserToken
+      extends SimpleAuthenticationInfo
+  {
+    private final UserToken userToken;
+
+    public SimpleAuthenticationInfoWithUserToken(final UserToken userToken) {
+      this.userToken = userToken;
+    }
+
+    public SimpleAuthenticationInfoWithUserToken(
+        final Object principal,
+        final Object credentials,
+        final String realmName,
+        final UserToken userToken)
+    {
+      super(principal, credentials, realmName);
+      this.userToken = userToken;
+    }
+
+    public SimpleAuthenticationInfoWithUserToken(
+        final Object principal,
+        final Object hashedCredentials,
+        final ByteSource credentialsSalt,
+        final String realmName,
+        final UserToken userToken)
+    {
+      super(principal, hashedCredentials, credentialsSalt, realmName);
+      this.userToken = userToken;
+    }
+
+    public SimpleAuthenticationInfoWithUserToken(
+        final PrincipalCollection principals,
+        final Object credentials,
+        final UserToken userToken)
+    {
+      super(principals, credentials);
+      this.userToken = userToken;
+    }
+
+    public SimpleAuthenticationInfoWithUserToken(
+        final PrincipalCollection principals,
+        final Object hashedCredentials,
+        final ByteSource credentialsSalt,
+        final UserToken userToken)
+    {
+      super(principals, hashedCredentials, credentialsSalt);
+      this.userToken = userToken;
+    }
+
+    public UserToken getUserToken() {
+      return userToken;
     }
   }
 }

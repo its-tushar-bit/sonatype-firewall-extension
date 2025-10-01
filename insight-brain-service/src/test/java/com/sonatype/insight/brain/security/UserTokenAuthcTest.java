@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -137,6 +138,7 @@ public class UserTokenAuthcTest
     String hashedUserTokenPassword =
         getCLMServer().getInstance(PasswordService.class).encryptPassword(userTokenPassword);
     userToken = tempEntity.newUserToken(USERNAME, "TestUserCode", hashedUserTokenPassword, realmId);
+    assertThat(userTokenDAO.getById(userToken.getId()).getLastAccessTime()).isNull();
   }
 
   private Set<String> getExpectedGroupNames() {
@@ -155,6 +157,7 @@ public class UserTokenAuthcTest
   @Test
   public void testAuthenticate() throws Exception {
     HttpRequest request = restRequest();
+    Date date = new Date();
     HttpResponse response =
         request.subpath(UserSessionResource.RESOURCE_PATH).auth(userToken.getUserCode(), userTokenPassword).get();
 
@@ -167,6 +170,8 @@ public class UserTokenAuthcTest
       assertThat(authStatus.getUsername()).isEqualTo(USERNAME);
       assertThat(authStatus.getDisplayName()).isEqualTo("John Doe");
       assertThat(authStatus.getGroups()).isEqualTo(getExpectedGroupNames());
+      Date lastAccessTime = userTokenDAO.getById(userToken.getId()).getLastAccessTime();
+      assertThat(lastAccessTime).isAfterOrEqualTo(date);
 
       response = request.subpath(PublicApiPaths.ORG_RESOURCE_PATH).get();
       assertResponseStatus(200, response);

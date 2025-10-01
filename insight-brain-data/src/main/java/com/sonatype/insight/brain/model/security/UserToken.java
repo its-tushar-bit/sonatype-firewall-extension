@@ -45,6 +45,9 @@ public class UserToken
   @Column(name = "create_time")
   private Date createTime;
 
+  @Column(name = "last_access_time")
+  private Date lastAccessTime;
+
   @Override
   public String getId() {
     return id;
@@ -101,5 +104,13 @@ public class UserToken
 
   public void setRealmId(String realmId) {
     this.realmId = realmId;
+  }
+
+  public Date getLastAccessTime() {
+    return lastAccessTime;
+  }
+
+  public void setLastAccessTime(Date lastAccessTime) {
+    this.lastAccessTime = lastAccessTime;
   }
 }

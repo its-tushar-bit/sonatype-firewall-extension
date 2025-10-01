@@ -64,10 +64,45 @@ public class UserTokenDAOTest
     assertThat(byUsername.getPassCode()).isEqualTo(userToken.getPassCode());
     assertThat(byUsername.getRealmId()).isEqualTo(realmId);
     assertThat(byUsername.getCreateTime()).isBetween(start, end, true, true);
+    assertThat(byUsername.getLastAccessTime()).isNull();
 
-    // Update is not allowed.
-    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> userTokenDAO.update(byUsername))
-        .withMessage("The UserToken table does not support update operations.");
+    // Only last access time can be updated
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      UserToken token = userTokenDAO.getById(userToken.getId());
+      token.setUsername(token.getUsername() + "2");
+      userTokenDAO.update(token);
+    }).withMessage("Cannot update anything except last access time.");
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      UserToken token = userTokenDAO.getById(userToken.getId());
+      token.setUserCode(token.getUserCode() + "2");
+      userTokenDAO.update(token);
+    }).withMessage("Cannot update anything except last access time.");
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      UserToken token = userTokenDAO.getById(userToken.getId());
+      token.setPassCode(token.getPassCode() + "2");
+      userTokenDAO.update(token);
+    }).withMessage("Cannot update anything except last access time.");
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      UserToken token = userTokenDAO.getById(userToken.getId());
+      token.setRealmId(token.getRealmId() + "2");
+      userTokenDAO.update(token);
+    }).withMessage("Cannot update anything except last access time.");
+    assertThatExceptionOfType(UnsupportedOperationException.class).isThrownBy(() -> {
+      UserToken token = userTokenDAO.getById(userToken.getId());
+      token.setCreateTime(new Date(0));
+      userTokenDAO.update(token);
+    }).withMessage("Cannot update anything except last access time.");
+
+    byUsername.setLastAccessTime(new Date());
+    userTokenDAO.update(byUsername);
+    UserToken updated = userTokenDAO.getById(userToken.getId());
+    assertThat(updated.getUsername()).isEqualTo(byUsername.getUsername());
+    assertThat(updated.isInternalUser()).isEqualTo(byUsername.isInternalUser());
+    assertThat(updated.getUserCode()).isEqualTo(byUsername.getUserCode());
+    assertThat(updated.getPassCode()).isEqualTo(byUsername.getPassCode());
+    assertThat(updated.getRealmId()).isEqualTo(byUsername.getRealmId());
+    assertThat(updated.getCreateTime()).isEqualTo(byUsername.getCreateTime());
+    assertThat(updated.getLastAccessTime()).isEqualTo(byUsername.getLastAccessTime());
 
     // Delete
     userTokenDAO.delete(userToken);

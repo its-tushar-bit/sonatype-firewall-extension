@@ -92,7 +92,15 @@ public class UserTokenDAO
 
   @Override
   public void update(TransactionContext tx, UserToken userToken) {
-    throw new UnsupportedOperationException("The UserToken table does not support update operations.");
+    UserToken stored = getByIdNotNull(tx, userToken.getId());
+    if (!userToken.getUsername().equals(stored.getUsername())
+        || !userToken.getUserCode().equals(stored.getUserCode())
+        || !userToken.getPassCode().equals(stored.getPassCode())
+        || !userToken.getRealmId().equals(stored.getRealmId())
+        || !userToken.getCreateTime().equals(stored.getCreateTime())) {
+      throw new UnsupportedOperationException("Cannot update anything except last access time.");
+    }
+    super.update(tx, userToken);
   }
 
   public void deleteByRealmId(TransactionContext tx, String realmId) {

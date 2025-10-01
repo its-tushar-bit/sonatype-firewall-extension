@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
+import java.util.Date;
+
+import com.sonatype.insight.json.store.ApiDateFormat;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
@@ -18,4 +22,10 @@ public class ApiUserTokenDTO
   public String username;
 
   public String realm;
+
+  @ApiDateFormat
+  public Date createTime;
+
+  @ApiDateFormat
+  public Date lastAccessTime;
 }

@@ -297,7 +297,7 @@ public class ApiPolicyWaiverService
   @Authorize(permission = Permission.WAIVE_POLICY_VIOLATIONS)
   public void addBulkPolicyWaivers(
       @AuthzContext(Key.TYPE) final OwnerType ownerType,
-      @AuthzContext(Key.INTERNAL_ID) final String ownerId,
+      @AuthzContext(Key.ID) final String ownerId,
       final ApiBulkWaiversDTO bulkWaiversDTO)
   {
     validateRequestData(bulkWaiversDTO);

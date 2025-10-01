@@ -941,7 +941,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1081,7 +1081,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(null, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1102,7 +1102,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1128,7 +1128,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1155,7 +1155,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1177,7 +1177,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1204,7 +1204,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1242,7 +1242,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 
@@ -1275,7 +1275,7 @@ public class ApiPolicyWaiverResourceTest
 
     HttpResponse response = restRequest()
         .path(OWNERS_PATH)
-        .parameter(OwnerType.APPLICATION, application.getId())
+        .parameter(OwnerType.APPLICATION, application.getPublicId())
         .body(bulkWaiversDTO, MediaType.APPLICATION_JSON)
         .post();
 

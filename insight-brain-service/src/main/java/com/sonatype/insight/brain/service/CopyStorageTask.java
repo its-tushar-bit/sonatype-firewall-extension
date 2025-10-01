@@ -109,14 +109,19 @@ public class CopyStorageTask
 
   private void doExecute(final JobExecutionContext context) {
     log.info("Running '{}' job.", JOB_NAME);
-    String from = context.getMergedJobDataMap().getString(FROM_PARAMETER);
-    String to = context.getMergedJobDataMap().getString(TO_PARAMETER);
+    try {
+      String from = context.getMergedJobDataMap().getString(FROM_PARAMETER);
+      String to = context.getMergedJobDataMap().getString(TO_PARAMETER);
 
-    DataStoreType fromDataStoreType = DataStoreType.valueOf(from);
-    DataStoreType toDataStoreType = DataStoreType.valueOf(to);
+      DataStoreType fromDataStoreType = DataStoreType.valueOf(from);
+      DataStoreType toDataStoreType = DataStoreType.valueOf(to);
 
-    copyStorageService.execute(fromDataStoreType, toDataStoreType);
-    log.info("Completed '{}' job.", JOB_NAME);
+      copyStorageService.execute(fromDataStoreType, toDataStoreType);
+      log.info("Completed '{}' job.", JOB_NAME);
+    }
+    catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
   }
 
   @Override

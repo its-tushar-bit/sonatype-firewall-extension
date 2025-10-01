@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -131,35 +132,37 @@ public class ScanFileCleaner
               .map(scanId -> scanPersistenceService.getScan(appId, scanId)) //
               .collect(Collectors.toSet());
 
-      scanPersistenceService.allScanFilesFor(appId).forEach(scanEntity -> {
+      try (Stream<ScanEntity> scanEntityStream = scanPersistenceService.allScanFilesFor(appId)) {
+        scanEntityStream.forEach(scanEntity -> {
 
-        // Don't delete files that are yonger than one hour in order to not interfere with concurrent policy
-        // evaluations.
-        try {
-          if (!isOlderThanOneHour(scanEntity)) {
+          // Don't delete files that are younger than one hour in order to not interfere with concurrent policy
+          // evaluations.
+          try {
+            if (!isOlderThanOneHour(scanEntity)) {
+              return;
+            }
+          }
+          catch (Exception e) {
+            log.warn("Error accessing the last modified timestamp for scan file '{}': {}", scanEntity, e.toString());
             return;
           }
-        }
-        catch (Exception e) {
-          log.warn("Error accessing the last modified timestamp for scan file '{}': {}", scanEntity, e.toString());
-          return;
-        }
 
-        // Don't delete scan files that are for the last policy evaluation for a stage.
-        if (lastPolicyEvaluationScanFiles.contains(scanEntity)) {
-          return;
-        }
+          // Don't delete scan files that are for the last policy evaluation for a stage.
+          if (lastPolicyEvaluationScanFiles.contains(scanEntity)) {
+            return;
+          }
 
-        // Delete the scan file.
-        try {
-          scanPersistenceService.deleteScan(scanEntity);
-          deletedFilesCount.getAndIncrement();
-          log.info("Deleted obsolete scan file: '{}'.", scanEntity);
-        }
-        catch (Exception e) {
-          log.warn("Error deleting scan file '{}': {}", scanEntity, e.toString());
-        }
-      });
+          // Delete the scan file.
+          try {
+            scanPersistenceService.deleteScan(scanEntity);
+            deletedFilesCount.getAndIncrement();
+            log.info("Deleted obsolete scan file: '{}'.", scanEntity);
+          }
+          catch (Exception e) {
+            log.warn("Error deleting scan file '{}': {}", scanEntity, e.toString());
+          }
+        });
+      }
     }
 
     if (!migrationTrackerDAO.isTrackerPresent(MARKER_ID)) {

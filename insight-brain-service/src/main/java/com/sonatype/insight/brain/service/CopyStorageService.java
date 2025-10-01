@@ -15,7 +15,6 @@ import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.error.exception.BadRequestException;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,7 @@ public class CopyStorageService
 
   private static final int DEFAULT_PAGE_SIZE = 10000;
 
-  private static final int DEFAULT_APPS_PER_LOG = 100;
+  private static final int DEFAULT_PER_LOG = 100;
 
   private static final Set<DataStoreType> SUPPORTED = Set.of(DataStoreType.FILE, DataStoreType.S3);
 
@@ -105,7 +105,9 @@ public class CopyStorageService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.clusterLockManager = clusterLockManager;
-    zipExecutorService = Executors.newSingleThreadExecutor();
+    zipExecutorService = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder().setNameFormat("CopyStorage-ReportZipWriter-%d").build()
+    );
   }
 
   public void execute(final DataStoreType from, final DataStoreType to) {
@@ -129,7 +131,7 @@ public class CopyStorageService
     long start = System.currentTimeMillis();
     int count = 0;
     while (apps.hasNext()) {
-      if (count > 0 && count % DEFAULT_APPS_PER_LOG == 0) {
+      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
         log.info("Copy of scans, reports, and SBOMs from '{}' to '{}' completed for {} app(s).", from, to, count);
       }
 
@@ -188,64 +190,66 @@ public class CopyStorageService
   }
 
   private void copyScans(final Application app, final ScanPersistenceService from, final ScanPersistenceService to) {
-    from.allScanFilesFor(app.getId()).forEach(sourceScan -> {
-      String appId = sourceScan.getAppId();
-      String scanId = sourceScan.getScanId();
+    try (Stream<ScanEntity> scanEntityStream = from.allScanFilesFor(app.getId())) {
+      scanEntityStream.forEach(sourceScan -> {
+        String appId = sourceScan.getAppId();
+        String scanId = sourceScan.getScanId();
 
-      if (!sourceScan.exists()) {
-        log.trace("Skipping scan copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
-        return;
-      }
+        if (!sourceScan.exists()) {
+          log.trace("Skipping scan copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
+          return;
+        }
 
-      ScanEntity targetScan = to.getScan(appId, scanId);
-      if (targetScan.exists()) {
-        log.trace("Skipping scan copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
-        return;
-      }
+        ScanEntity targetScan = to.getScan(appId, scanId);
+        if (targetScan.exists()) {
+          log.trace("Skipping scan copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
+          return;
+        }
 
-      String fromLocation = sourceScan.getLocation();
-      String toLocation = targetScan.getLocation();
+        String fromLocation = sourceScan.getLocation();
+        String toLocation = targetScan.getLocation();
 
-      ScanEntity targetTempScan = null;
-      Exception exception = null;
-      try {
+        ScanEntity targetTempScan = null;
+        Exception exception = null;
         try {
-          log.trace("Copying scan from '{}' to '{}'.", fromLocation, toLocation);
-          targetTempScan = to.createTempScan(appId);
-          try (InputStream inputStream = sourceScan.getInputStream();
-               OutputStream outputStream = targetTempScan.getOutputStream()) {
-            inputStream.transferTo(outputStream);
-          }
-          to.moveTempScan(targetTempScan, appId, scanId);
-          log.trace("Copied scan from '{}' to '{}'.", fromLocation, toLocation);
-        }
-        catch (Exception e) {
-          exception = e;
-          throw exception;
-        }
-        finally {
           try {
-            if (targetTempScan != null && targetTempScan.exists()) {
-              to.deleteScan(targetTempScan);
+            log.trace("Copying scan from '{}' to '{}'.", fromLocation, toLocation);
+            targetTempScan = to.createTempScan(appId);
+            try (InputStream inputStream = sourceScan.getInputStream();
+                 OutputStream outputStream = targetTempScan.getOutputStream()) {
+              inputStream.transferTo(outputStream);
             }
+            to.moveTempScan(targetTempScan, appId, scanId);
+            log.trace("Copied scan from '{}' to '{}'.", fromLocation, toLocation);
           }
           catch (Exception e) {
-            if (exception != null) {
-              exception.addSuppressed(e);
+            exception = e;
+            throw exception;
+          }
+          finally {
+            try {
+              if (targetTempScan != null && targetTempScan.exists()) {
+                to.deleteScan(targetTempScan);
+              }
             }
-            else {
-              exception = e;
+            catch (Exception e) {
+              if (exception != null) {
+                exception.addSuppressed(e);
+              }
+              else {
+                exception = e;
+              }
             }
           }
+          if (exception != null) {
+            throw exception;
+          }
         }
-        if (exception != null) {
-          throw exception;
+        catch (Exception e) {
+          log.error("Failed to copy scan from '{}' to '{}'.", fromLocation, toLocation, e);
         }
-      }
-      catch (Exception e) {
-        log.error("Failed to copy scan from '{}' to '{}'.", fromLocation, toLocation, e);
-      }
-    });
+      });
+    }
   }
 
   private void copyReports(
@@ -254,7 +258,12 @@ public class CopyStorageService
       final ApplicationReportPersistenceService to)
   {
     Iterator<PolicyEvaluation> evals = createPolicyEvaluationIterator(app.getId());
+    int count = 0;
     while (evals.hasNext()) {
+      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
+        log.info("Copy of {} reports from '{}' to '{}' completed for app '{}' with id '{}'.", count, from, to,
+            app.getName(), app.getId());
+      }
       PolicyEvaluation eval = evals.next();
       String appId = eval.getApplicationId();
       String scanId = eval.getScanId();
@@ -314,12 +323,18 @@ public class CopyStorageService
       catch (Exception e) {
         log.error("Failed to copy report from '{}' to '{}'.", fromLocation, toLocation, e);
       }
+      count++;
     }
   }
 
   private void copySboms(final Application app, final SbomPersistenceService from, final SbomPersistenceService to) {
     Iterator<ThirdPartySbomMetadata> sboms = createThirdPartySbomMetadataIterator(app.getId());
+    int count = 0;
     while (sboms.hasNext()) {
+      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
+        log.info("Copy of {} sboms from '{}' to '{}' completed for app '{}' with id '{}'.", count, from, to,
+            app.getName(), app.getId());
+      }
       ThirdPartySbomMetadata sbomMetadata = sboms.next();
       String appId = sbomMetadata.getApplicationId();
       String fileName = sbomMetadata.getFilename();
@@ -381,6 +396,7 @@ public class CopyStorageService
       catch (Exception e) {
         log.error("Failed to copy sbom from '{}' to '{}'.", fromLocation, toLocation, e);
       }
+      count++;
     }
   }
 
@@ -413,14 +429,16 @@ public class CopyStorageService
       try {
         asyncWriting.get();
       }
-      catch (ExecutionException e) {
+      catch (InterruptedException e) {
+        log.error(e.getMessage(), e);
+        Thread.currentThread().interrupt();
+        throw new IOException(e);
+      }
+      catch (Exception e) {
+        log.error(e.getMessage(), e);
         if (e.getCause() instanceof IOException ioException) {
           throw ioException;
         }
-        throw new IOException(e);
-      }
-      catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
         throw new IOException(e);
       }
       finally {
@@ -446,11 +464,19 @@ public class CopyStorageService
             log.error(e.getMessage(), e);
             throw new UncheckedIOException(e);
           }
+          catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw e;
+          }
         });
       }
       catch (IOException e) {
         log.error(e.getMessage(), e);
         throw new UncheckedIOException(e);
+      }
+      catch (Exception e) {
+        log.error(e.getMessage(), e);
+        throw e;
       }
       finally {
         reportEntities.close();

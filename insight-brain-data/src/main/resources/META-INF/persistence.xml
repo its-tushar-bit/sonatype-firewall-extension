@@ -183,6 +183,9 @@
       or
       <property name="openjpa.jdbc.UpdateManager" value="batching-operation-order"/>
        -->
+      <!-- Enable JDBC batching to reduce round trips on inserts -->
+      <property name="openjpa.jdbc.DBDictionary" value="batchLimit=50"/>
+
     </properties>
   </persistence-unit>
   <persistence-unit name="InsightBrainDM" transaction-type="RESOURCE_LOCAL">

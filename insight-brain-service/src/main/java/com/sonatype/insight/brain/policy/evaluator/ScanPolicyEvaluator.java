@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.api.v2.service.autowaivers.AutoPolicyWaiverUti
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.component.ComponentDisplayFilename;
 import com.sonatype.insight.brain.component.ComponentHelper;
+import com.sonatype.insight.brain.db.IdUtil;
 import com.sonatype.insight.brain.dataaccess.AggregateFileDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentLicenseDAO;
@@ -1055,7 +1056,12 @@ public class ScanPolicyEvaluator
       applicationComponentDAO.delete(tx, oldApplicationComponent);
     }
 
-    // Add new app->component associations for the specified stage
+    // Collect all entities in memory first to enable batch inserts by table
+    List<ApplicationComponent> newApplicationComponents = new ArrayList<>();
+    List<AggregateFile> newAggregateFiles = new ArrayList<>();
+    List<ApplicationComponentLicense> newLicenses = new ArrayList<>();
+
+    // Build all entities
     for (Component component : components) {
       if (component.getHash() == null) {
         continue;
@@ -1064,10 +1070,12 @@ public class ScanPolicyEvaluator
       ApplicationComponent applicationComponent = new ApplicationComponent(appId, stage.getStageTypeId(), time,
           component.getHash(), component.getComponentIdentifier(), component.getMatchState().getId(), component
           .getIdentificationSource().getId(), component.isProprietary(), component.getPathnames());
-      applicationComponentDAO.insert(tx, applicationComponent);
+      applicationComponent.setId(IdUtil.newUUID());
+      newApplicationComponents.add(applicationComponent);
+
       for (com.sonatype.clm.dto.model.component.AggregateFile aggregateFile : component.getAggregateFiles()) {
-        aggregateFileDAO
-            .insert(tx, new AggregateFile(applicationComponent.getId(), aggregateFile.hash, aggregateFile.pathnames));
+        newAggregateFiles.add(
+            new AggregateFile(applicationComponent.getId(), aggregateFile.hash, aggregateFile.pathnames));
       }
 
       Set<String> effectiveLicenseIds = ComponentDetailsLoader.calculateEffectiveLicenses(
@@ -1075,10 +1083,21 @@ public class ScanPolicyEvaluator
           component.getObservedMultiLicenseIds(),
           component.getLicenseOverrideIds());
       for (String effectiveLicenseId : effectiveLicenseIds) {
-        ApplicationComponentLicense applicationComponentLicense =
-            new ApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId);
-        applicationComponentLicenseDAO.insert(tx, applicationComponentLicense);
+        newLicenses.add(new ApplicationComponentLicense(applicationComponent.getId(), effectiveLicenseId));
       }
+    }
+
+    // Batch insert by table - OpenJPA will batch operations for same table
+    for (ApplicationComponent applicationComponent : newApplicationComponents) {
+      applicationComponentDAO.insert(tx, applicationComponent);
+    }
+
+    for (AggregateFile aggregateFile : newAggregateFiles) {
+      aggregateFileDAO.insert(tx, aggregateFile);
+    }
+
+    for (ApplicationComponentLicense license : newLicenses) {
+      applicationComponentLicenseDAO.insert(tx, license);
     }
   }
 

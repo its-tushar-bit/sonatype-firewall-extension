@@ -5,10 +5,11 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
+import com.sonatype.insight.brain.service.CopyStorageTask;
 import com.sonatype.insight.brain.service.InsightJob;
-import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
@@ -23,6 +24,7 @@ import org.junit.rules.TestName;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.quartz.Scheduler;
 import org.quartz.TriggerKey;
 import org.quartz.simpl.SimpleThreadPool;
 import org.quartz.spi.JobFactory;
@@ -67,8 +69,7 @@ public class MultiTenantTaskSchedulerTest
   @Mock
   private TenantManager mockTenantManager;
 
-  @Mock
-  private TenantUtil mockTenantUtil;
+  private TenantUtil spyTenantUtil;
 
   @Mock
   private ShutdownHandler mockShutdownHandler;
@@ -77,7 +78,10 @@ public class MultiTenantTaskSchedulerTest
   private QuartzJobSchedulingService mockQuartzJobSchedulingService;
 
   @Mock
-  private MultiTenantInsightConfig mockMultiTenantInsightConfig;
+  private CopyStorageTask copyStorageTask;
+
+  @Mock
+  private ApiConfigurationService apiConfigurationService;
 
   private MultiTenantTaskScheduler spyUnderTest;
 
@@ -86,6 +90,7 @@ public class MultiTenantTaskSchedulerTest
     when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
     when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
     when(mockTenantManager.areTenantsPreRegistered()).thenReturn(true);
+    spyTenantUtil = spy(new TenantUtil());
     spyUnderTest = spy(new MultiTenantTaskScheduler(
             mockMultiTenantQuartzJobStoreTX,
             mockMultiTenantBatchModeJobStoreTX,
@@ -95,7 +100,7 @@ public class MultiTenantTaskSchedulerTest
             mockTenantContextJobListener,
             mockSystemConfigurationPropertyDAO,
             mockTenantManager,
-            mockTenantUtil,
+            spyTenantUtil,
             mockShutdownHandler,
             mockQuartzJobSchedulingService
         )
@@ -152,7 +157,7 @@ public class MultiTenantTaskSchedulerTest
   public void shouldUnscheduleJobForAllTenants_whenGlobalTenant() throws Exception {
     ImmutableList<String> tenants = ImmutableList.of("tenant1", "tenant2");
 
-    when(mockTenantUtil.isGlobalTenant()).thenReturn(true);
+    when(spyTenantUtil.isGlobalTenant()).thenReturn(true);
     when(mockMultiTenantQuartzJobStoreTX.getJobGroupNames()).thenReturn(tenants);
     InsightJob mockInsightJob = mock(InsightJob.class);
     when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
@@ -170,7 +175,7 @@ public class MultiTenantTaskSchedulerTest
     testAsNewTenant(testName, t -> {
       when(mockTenantManager.getTenant()).thenReturn(t);
 
-      when(mockTenantUtil.isGlobalTenant()).thenReturn(false);
+      when(spyTenantUtil.isGlobalTenant()).thenReturn(false);
       InsightJob mockInsightJob = mock(InsightJob.class);
       when(mockInsightJob.getJobName()).thenReturn(testName.getMethodName());
       doReturn(true).when(spyUnderTest).unscheduleTask(any(), any(InsightJob.class));
@@ -195,20 +200,8 @@ public class MultiTenantTaskSchedulerTest
   }
 
   @Test
-  public void testInitialize_NotBatch() {
+  public void testInitialize() {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(false);
-
-    spyUnderTest.initialize();
-
-    assertThat(spyUnderTest.getScheduler()).isNotNull();
-    assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName)).isNull();
-  }
-
-  @Test
-  public void testInitialize_Batch() {
-    String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
     spyUnderTest.initialize();
 
@@ -219,7 +212,7 @@ public class MultiTenantTaskSchedulerTest
   @Test
   public void testStart_Unknown() throws Exception {
     String mtiqBatchSchedulerName = spyUnderTest.getMtiqBatchSchedulerName();
-    when(mockTenantUtil.isMtiqBatchMode()).thenReturn(true);
+    when(spyTenantUtil.isMtiqBatchMode()).thenReturn(true);
 
     spyUnderTest.start();
 
@@ -227,5 +220,37 @@ public class MultiTenantTaskSchedulerTest
     assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isStarted()).isTrue();
     assertThat(spyUnderTest.getScheduler().isInStandbyMode()).isFalse();
     assertThat(spyUnderTest.getScheduler(mtiqBatchSchedulerName).isInStandbyMode()).isFalse();
+  }
+
+  @Test
+  public void testGetScheduler_MtiqBatchJob() throws Exception {
+    spyUnderTest.initialize();
+    Scheduler scheduler = spyUnderTest.getScheduler(copyStorageTask);
+
+    assertThat(scheduler.getSchedulerName()).isEqualTo(spyUnderTest.getMtiqBatchSchedulerName());
+  }
+
+  @Test
+  public void testGetQuartzJobStoreTX_MtiqBatchJob() {
+    spyUnderTest.initialize();
+    QuartzJobStoreTX quartzJobStoreTX = spyUnderTest.getQuartzJobStoreTX(copyStorageTask);
+
+    assertThat(quartzJobStoreTX).isEqualTo(mockMultiTenantBatchModeJobStoreTX);
+  }
+
+  @Test
+  public void testGetScheduler_NonMtiqBatchJob() throws Exception {
+    spyUnderTest.initialize();
+    Scheduler scheduler = spyUnderTest.getScheduler(apiConfigurationService);
+
+    assertThat(scheduler.getSchedulerName()).isEqualTo(testName.getMethodName());
+  }
+
+  @Test
+  public void testGetQuartzJobStoreTX_NonMtiqBatchJob() {
+    spyUnderTest.initialize();
+    QuartzJobStoreTX quartzJobStoreTX = spyUnderTest.getQuartzJobStoreTX(apiConfigurationService);
+
+    assertThat(quartzJobStoreTX).isEqualTo(mockMultiTenantQuartzJobStoreTX);
   }
 }

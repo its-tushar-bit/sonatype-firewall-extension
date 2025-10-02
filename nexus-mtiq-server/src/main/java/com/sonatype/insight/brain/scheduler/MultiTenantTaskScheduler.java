@@ -79,10 +79,7 @@ public class MultiTenantTaskScheduler
   @Override
   public void initialize() {
     createScheduler(schedulerName, quartzJobStoreTX);
-
-    if (tenantUtil.isMtiqBatchMode()) {
-      createScheduler(getMtiqBatchSchedulerName(), mtiqBatchJobStoreTX);
-    }
+    createScheduler(getMtiqBatchSchedulerName(), mtiqBatchJobStoreTX);
   }
 
   @Override
@@ -242,7 +239,7 @@ public class MultiTenantTaskScheduler
   }
 
   private Scheduler getSchedulerForJobType(Class<? extends Job> jobType) {
-    if (tenantUtil.isMtiqBatchMode() && tenantUtil.isMtiqBatchJob(jobType)) {
+    if (tenantUtil.isMtiqBatchJob(jobType)) {
       return getScheduler(getMtiqBatchSchedulerName());
     }
     else {
@@ -251,7 +248,7 @@ public class MultiTenantTaskScheduler
   }
 
   private QuartzJobStoreTX getQuartzJobStoreTXForJobType(Class<? extends Job> jobType) {
-    if (tenantUtil.isMtiqBatchMode() && tenantUtil.isMtiqBatchJob(jobType)) {
+    if (tenantUtil.isMtiqBatchJob(jobType)) {
       return mtiqBatchJobStoreTX;
     }
     else {

@@ -121,6 +121,8 @@ public class PolicyViolationTelemetryCollector
   // arbitrary look-back window for associating remediation PRs to a policy violation's open time
   static final int REMEDIATION_PR_LOOKBACK_DAYS = 7;
 
+  static final String REMEDIATION_VERSION = "remediation_version";
+
   private final PolicyWaiverDAO policyWaiverDAO;
 
   private final SourceControlEventDAO sourceControlEventDAO;
@@ -179,9 +181,12 @@ public class PolicyViolationTelemetryCollector
     if (components.size() == 1) {
       String fixByVersionChange = calculateFixByVersionChange(components, fixedPolicyViolation);
       if (fixByVersionChange != null) {
+        var newComponent = components.get(0);
+
         TelemetryData telemetryData =
             createTelemetry(TelemetryPurpose.TIME_TO_CHANGE_VERSION_POLICY_VIOLATION, fixedPolicyViolation, components)
                 .put(FIX_BY_VERSION_CHANGE, fixByVersionChange)
+                .put(REMEDIATION_VERSION, newComponent.getVersion())
                 .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
 
         // need to account for the fact that the remediation PR could have been triggered by an evaluation at a
@@ -198,7 +203,6 @@ public class PolicyViolationTelemetryCollector
             );
 
         if (CollectionUtils.isNotEmpty(remediationPullRequestEvents)) {
-          var newComponent = components.get(0);
           var remediationEvent = remediationPullRequestEvents.get(0);
           var eventRemediationVersion = remediationEvent.getRemediationVersion();
 

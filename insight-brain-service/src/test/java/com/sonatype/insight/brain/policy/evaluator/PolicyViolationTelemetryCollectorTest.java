@@ -152,7 +152,8 @@ public class PolicyViolationTelemetryCollectorTest
             .openedHoursAgo(48)
             .asDirectDependency(true)
             .withPolicyViolationId("fixedByDowngrade")
-            .markFixedByDowngrade();
+            .markFixedByDowngrade()
+            .withExpectedRemediationVersion(lodashv3.get(ComponentIdentifier.VERSION));
 
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
@@ -232,7 +233,8 @@ public class PolicyViolationTelemetryCollectorTest
             .openedHoursAgo(72)
             .asDirectDependency(true)
             .withPolicyViolationId("fixedByUpgrade")
-            .markFixedByUpgrade();
+            .markFixedByUpgrade()
+            .withExpectedRemediationVersion(lodashv5.get(ComponentIdentifier.VERSION));
 
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
@@ -298,6 +300,7 @@ public class PolicyViolationTelemetryCollectorTest
     List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
     testablePolicyViolation
         .withExpectedRemediationAttribution(prNumber, remediationVersion, true)
+        .withExpectedRemediationVersion(remediationVersion)
         .validateTelemetryDataForPurposes(
             telemetryData,
             TIME_TO_REMEDIATE_POLICY_VIOLATION,
@@ -638,6 +641,9 @@ public class PolicyViolationTelemetryCollectorTest
 
     private Boolean expectedPullRequestIsGolden;
 
+    // Expected remediation version for TIME_TO_CHANGE_VERSION telemetry
+    private String expectedRemediationVersion;
+
     TestablePolicyViolation(ComponentIdentifier componentIdentifier, String policyName) {
       this.component = new Component(componentIdentifier);
       this.components.add(component);
@@ -908,6 +914,11 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withExpectedRemediationVersion(String remediationVersion) {
+      this.expectedRemediationVersion = remediationVersion;
+      return this;
+    }
+
     TestablePolicyViolation withExpectedRemediationAttribution(
         int pullRequestNumber,
         String remediationVersion,
@@ -1004,6 +1015,10 @@ public class PolicyViolationTelemetryCollectorTest
         case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
           validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
           validateMatchesOrNotExists(attributes, FIX_BY_VERSION_CHANGE, fixReason);
+          // Assert remediation version if expected
+          if (expectedRemediationVersion != null) {
+            assertThat(attributes).containsEntry(REMEDIATION_VERSION, expectedRemediationVersion);
+          }
           // New attributes for PR attribution
           if (expectedPullRequestNumber != null) {
             assertThat(attributes).containsEntry(PULL_REQUEST_NUMBER, expectedPullRequestNumber);

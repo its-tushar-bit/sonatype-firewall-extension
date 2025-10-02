@@ -93,6 +93,10 @@ import static org.mockito.Mockito.verify;
 public class PrioritiesPageTest
     extends AbstractFunctionalTest
 {
+  private static final Duration TIMEOUT = Duration.ofSeconds(3);
+
+  private static final Duration POLL_FREQUENCY = Duration.ofMillis(200);
+
   @Rule
   public final WireMockRule gitService = new WireMockRule(wireMockConfig().dynamicPort());
 
@@ -420,8 +424,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
 
     // polling should continue
@@ -436,7 +440,7 @@ public class PrioritiesPageTest
     // polling should end
     SelenideElement prLink =
         page.viewPullRequestLink(8)
-            .shouldBe(visible, Duration.ofSeconds(1)).shouldHave(text("PR #123"));
+            .shouldBe(visible, TIMEOUT).shouldHave(text("PR #123"));
     prLink.shouldBe(enabled);
     prLink.shouldHave(href("https://example.com/pull/123"));
   }
@@ -523,8 +527,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
 
     // polling should continue
@@ -587,8 +591,8 @@ public class PrioritiesPageTest
 
     // change the status of the new PR event from new to complete
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
     pullRequestEvent = sourceControlEventDAO.getAll().get(1);
     pullRequestEvent.setEventStatus(SourceControlEvent.EVENT_STATUS_COMPLETE);
@@ -652,8 +656,8 @@ public class PrioritiesPageTest
 
     // wait for the new PR event to be created
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
 
     // change the status of the pull request event from new to in progress
@@ -666,8 +670,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 3));
 
     // polling should continue
@@ -681,8 +685,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 4));
 
     // polling should end
@@ -738,8 +742,8 @@ public class PrioritiesPageTest
 
     // wait for the new PR event to be created
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
 
     // change the status of the pull request event from new to in progress
@@ -749,8 +753,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 3));
 
     // polling should continue
@@ -964,8 +968,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(3))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
 
     // polling should continue
@@ -1028,8 +1032,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(3))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
 
     // polling should continue
@@ -1105,8 +1109,8 @@ public class PrioritiesPageTest
 
     // change the status of the new PR event from new to complete
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> sourceControlEventDAO.getAll().size() == 2);
     pullRequestEvent = sourceControlEventDAO.getAll().stream()
         .filter(event -> SourceControlEvent.EVENT_STATUS_NEW.equals(event.getEventStatus()))
@@ -1119,8 +1123,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 4));
 
     // polling should end
@@ -1175,8 +1179,8 @@ public class PrioritiesPageTest
 
     // wait for a new polling call
     Wait()
-        .withTimeout(Duration.ofSeconds(1))
-        .pollingEvery(Duration.ofMillis(200))
+        .withTimeout(TIMEOUT)
+        .pollingEvery(POLL_FREQUENCY)
         .until(webDriver -> isPullRequestStatusCalled(pullRequestServiceSpy, 2));
 
     // polling should continue
@@ -1431,7 +1435,7 @@ public class PrioritiesPageTest
     VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
     toVersionData.setBreakingChangeCount(0);
     versionScoringDTO.setToVersionsNonBreaking(Map.of("5.6.0", toVersionData));
-    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[] {versionScoringDTO})
+    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
   }
 
@@ -1459,7 +1463,7 @@ public class PrioritiesPageTest
 
     testCLMServer.getHdsServer().respondWith(new ComponentDependenciesDTO(Map.of(), Map.of()))
         .atUri("rest/component/dependencies");
-    
+
     VersionScoringDTO versionScoringDTO = new VersionScoringDTO();
     versionScoringDTO.setComponentIdentifier(logbackAccessCoordFromReport);
     versionScoringDTO.setVersionScore(0);
@@ -1467,7 +1471,7 @@ public class PrioritiesPageTest
     VersionScoringDTO.ToVersionData toVersionData = new ToVersionData();
     toVersionData.setBreakingChangeCount(0);
     versionScoringDTO.setToVersionsNonBreaking(Map.of("3.2", toVersionData));
-    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[] {versionScoringDTO})
+    testCLMServer.getHdsServer().respondWith(new VersionScoringDTO[]{versionScoringDTO})
         .atUri("rest/component/version-scoring/list");
   }
 

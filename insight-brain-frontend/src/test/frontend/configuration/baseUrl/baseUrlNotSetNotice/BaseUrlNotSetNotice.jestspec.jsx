@@ -16,46 +16,46 @@ describe('BaseUrlNotSetNotice component', () => {
   const renderComponent = () => render(<BaseUrlNotSetNotice />);
   let loadSpy;
   beforeEach(() => {
-    loadSpy = spyOn(actions, 'load').and.callThrough();
+    loadSpy = jest.spyOn(actions, 'load');
   });
 
   describe('Component load', () => {
     it('should render when shouldDisplayNotice is true', () => {
-      spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice').and.callFake(() => true);
+      jest.spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice').mockImplementation(() => true);
       renderComponent();
       expect(screen.getByText('The Base URL is not configured.')).toBeInTheDocument();
     });
 
     it('should not render when shouldDisplayNotice is false', () => {
-      spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice').and.callFake(() => false);
+      jest.spyOn(baseUrlConfigurationSelectors, 'selectShouldDisplayNotice').mockImplementation(() => false);
       renderComponent();
       expect(screen.queryByText('The Base URL is not configured.')).not.toBeInTheDocument();
     });
 
     it('should dispatch a load if it is an admin user and single tenant', () => {
-      spyOn(userSelectors, 'selectCurrentUser').and.returnValue({ authenticated: true });
-      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
+      jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).toHaveBeenCalled();
     });
 
     it('should not dispatch a load if it is multi tenant', () => {
-      spyOn(userSelectors, 'selectCurrentUser').and.returnValue({ authenticated: true });
-      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(false);
+      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
+      jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(false);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
     it('should not dispatch a load if it is not authenticated', () => {
-      spyOn(userSelectors, 'selectCurrentUser').and.returnValue({ authenticated: false });
-      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: false });
+      jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
     it('should not dispatch a load if there is no current user', () => {
-      spyOn(userSelectors, 'selectCurrentUser').and.returnValue(null);
-      spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').and.returnValue(true);
+      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue(null);
+      jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();
     });

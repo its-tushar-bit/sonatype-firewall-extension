@@ -56,9 +56,9 @@ describe('AdministratorsConfig', () => {
   ];
 
   beforeEach(() => {
-    selectIsLoadingSpy = spyOn(administratorsSelectors, 'selectIsLoading').and.returnValue(false);
-    selectLoadErrorSpy = spyOn(administratorsSelectors, 'selectLoadError').and.returnValue(null);
-    selectMembersByRoleSpy = spyOn(administratorsSelectors, 'selectMembersByRole').and.returnValue([]);
+    selectIsLoadingSpy = jest.spyOn(administratorsSelectors, 'selectIsLoading').mockReturnValue(false);
+    selectLoadErrorSpy = jest.spyOn(administratorsSelectors, 'selectLoadError').mockReturnValue(null);
+    selectMembersByRoleSpy = jest.spyOn(administratorsSelectors, 'selectMembersByRole').mockReturnValue([]);
 
     renderComponent = () => render(<AdministratorsConfig />);
   });
@@ -70,7 +70,7 @@ describe('AdministratorsConfig', () => {
   });
 
   it('renders loading indicator', () => {
-    selectIsLoadingSpy.and.returnValue(true);
+    selectIsLoadingSpy.mockReturnValue(true);
     renderComponent();
 
     expect(screen.getByText('Loading…')).toBeVisible();
@@ -84,7 +84,7 @@ describe('AdministratorsConfig', () => {
   });
 
   it('renders a table with header and 2 data rows', () => {
-    selectMembersByRoleSpy.and.returnValue(membersByRoleMock);
+    selectMembersByRoleSpy.mockReturnValue(membersByRoleMock);
     renderComponent();
 
     const rows = screen.getAllByRole('row');
@@ -102,7 +102,7 @@ describe('AdministratorsConfig', () => {
   });
 
   it('shows error message on error', () => {
-    selectLoadErrorSpy.and.returnValue('Error');
+    selectLoadErrorSpy.mockReturnValue('Error');
     renderComponent();
 
     const error = screen.getByRole('alert');

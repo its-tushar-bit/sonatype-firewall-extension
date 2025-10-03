@@ -3,39 +3,42 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
+
+// Mock the authorizationUtil module before importing slice
+jest.mock('../../../../../main/frontend/util/authorizationUtil', () => ({
+  checkPermissions: jest.fn(),
+}));
+
+import '../../../SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { checkPermissions } from '../../../../../main/frontend/util/authorizationUtil';
 import { getLdapConfigUrl, getLdapPriority } from '../../../../../main/frontend/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
+import { actions } from '../../../../../main/frontend/configuration/ldap/ldapServersList/ldapListSlice';
 
 describe('ldapListActions', () => {
-  let checkPermissionsSpy, loadServers, saveOrder;
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
   const loadConfigUrl = getLdapConfigUrl();
   const saveOrderUrl = getLdapPriority();
 
-  beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const module = require('inject-loader!../../../../../../src/main/frontend/configuration/ldap/ldapServersList/ldapListSlice')(
-      {
-        '../../../util/authorizationUtil': {
-          checkPermissions: checkPermissionsSpy,
-        },
-      }
-    );
+  // Import actions directly from the slice
+  const { loadServers, saveOrder } = actions;
 
-    ({
-      actions: { loadServers: loadServers, saveOrder: saveOrder },
-    } = module);
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+    checkPermissions.mockClear();
   });
 
   describe('loadServers', () => {
     it('fires ldapList/loadServers/fulfilled', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
-      mockAxiosCalls({
-        get: {
-          [loadConfigUrl]: Promise.resolve({ data: [] }),
-        },
-      });
+      checkPermissions.mockReturnValue(Promise.resolve());
+      axiosMock.onGet(loadConfigUrl).reply(200, []);
       const store = SpecUtil.mockReduxStore();
       store.dispatch(loadServers()).then(() => {
         const actions = store.getActions();
@@ -46,7 +49,7 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/loadServers/rejected because of permissions', (done) => {
-      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
+      checkPermissions.mockImplementation(() => Promise.reject('some error'));
       const store = SpecUtil.mockReduxStore();
       store.dispatch(loadServers()).then(() => {
         const actions = store.getActions();
@@ -57,35 +60,27 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/loadServers/rejected because of service failures', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
-      mockAxiosCalls({
-        get: {
-          [loadConfigUrl]: () => Promise.reject('some error'),
-        },
-      });
+      checkPermissions.mockReturnValue(Promise.resolve());
+      axiosMock.onGet(loadConfigUrl).reply(500, 'some error');
       const store = SpecUtil.mockReduxStore();
       store.dispatch(loadServers()).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('ldapList/loadServers/pending');
         expect(actions[1].type).toBe('ldapList/loadServers/rejected');
-        expect(actions[1].payload).toBe('some error');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
         done();
       });
     });
 
     it('skips permission check if called with true flag', (done) => {
-      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
-      mockAxiosCalls({
-        get: {
-          [loadConfigUrl]: Promise.resolve({ data: [] }),
-        },
-      });
+      checkPermissions.mockImplementation(() => Promise.reject('some error'));
+      axiosMock.onGet(loadConfigUrl).reply(200, []);
       const store = SpecUtil.mockReduxStore();
       store.dispatch(loadServers(true)).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('ldapList/loadServers/pending');
         expect(actions[1].type).toBe('ldapList/loadServers/fulfilled');
-        expect(checkPermissionsSpy).not.toHaveBeenCalled();
+        expect(checkPermissions).not.toHaveBeenCalled();
         done();
       });
     });
@@ -93,15 +88,9 @@ describe('ldapListActions', () => {
 
   describe('saveOrder', () => {
     it('fires ldapList/saveOrder/fulfilled and, after timeout, hides success mask and reloads servers', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
-      mockAxiosCalls({
-        put: {
-          [saveOrderUrl]: Promise.resolve({ data: [] }),
-        },
-        get: {
-          [loadConfigUrl]: Promise.resolve({ data: [] }),
-        },
-      });
+      checkPermissions.mockReturnValue(Promise.resolve());
+      axiosMock.onPut(saveOrderUrl).reply(200, []);
+      axiosMock.onGet(loadConfigUrl).reply(200, []);
 
       const state = {
         ldapList: {
@@ -109,22 +98,22 @@ describe('ldapListActions', () => {
         },
       };
       const store = SpecUtil.mockReduxStore(state);
-      jasmine.clock().install();
+      jest.useFakeTimers();
 
       store.dispatch(saveOrder()).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapList/saveOrder/pending');
         expect(actions[1].type).toBe('ldapList/saveOrder/fulfilled');
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        jasmine.clock().uninstall();
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
 
         SpecUtil.flushPromise().then(() => {
           expect(actions.length).toBe(5);
           expect(actions[2].type).toBe('ldapList/saveMaskTimerDone');
           expect(actions[3].type).toBe('ldapList/loadServers/pending');
           expect(actions[4].type).toBe('ldapList/loadServers/fulfilled');
-          expect(checkPermissionsSpy.calls.count()).toBe(1);
+          expect(checkPermissions.mock.calls.length).toBe(1);
 
           done();
         });
@@ -132,7 +121,7 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/saveOrder/rejected because of permissions', (done) => {
-      checkPermissionsSpy.and.callFake(() => Promise.reject('some error'));
+      checkPermissions.mockImplementation(() => Promise.reject('some error'));
       const store = SpecUtil.mockReduxStore();
       store.dispatch(saveOrder()).then(() => {
         const actions = store.getActions();
@@ -143,12 +132,8 @@ describe('ldapListActions', () => {
     });
 
     it('fires ldapList/saveOrder/rejected because of service failures', (done) => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
-      mockAxiosCalls({
-        put: {
-          [saveOrderUrl]: () => Promise.reject('some error'),
-        },
-      });
+      checkPermissions.mockReturnValue(Promise.resolve());
+      axiosMock.onPut(saveOrderUrl).reply(500, 'some error');
 
       const state = {
         ldapList: {
@@ -160,7 +145,7 @@ describe('ldapListActions', () => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('ldapList/saveOrder/pending');
         expect(actions[1].type).toBe('ldapList/saveOrder/rejected');
-        expect(actions[1].payload).toBe('some error');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
         done();
       });
     });

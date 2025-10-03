@@ -3,19 +3,37 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
+
+// Mock the authorizationUtil module before importing actions
+jest.mock('../../../../main/frontend/util/authorizationUtil', () => ({
+  checkPermissions: jest.fn(),
+}));
+
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 
 import {
   loadSystemNotice,
   update,
+  load,
 } from '../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationActions';
+import { checkPermissions } from '../../../../main/frontend/util/authorizationUtil';
 import { getSystemNoticeFetchUrl, getSystemNoticeUrl } from '../../../../main/frontend/util/CLMLocation';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 
 describe('systemNoticeConfigurationActions', function () {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
   const systemNoticeFetchUrl = getSystemNoticeFetchUrl();
   const systemNoticeUpdateUrl = getSystemNoticeUrl();
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+    checkPermissions.mockClear();
+  });
 
   describe('loadSystemNotice', function () {
     let store, state;
@@ -39,13 +57,7 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('after a successful GET call', function () {
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED action', function (done) {
-        mockAxiosCalls({
-          get: {
-            [systemNoticeFetchUrl]: Promise.resolve({
-              data: { enabled: true, message: 'some message' },
-            }),
-          },
-        });
+        axiosMock.onGet(systemNoticeFetchUrl).reply(200, { enabled: true, message: 'some message' });
 
         store.dispatch(loadSystemNotice()).then(() => {
           actions = store.getActions();
@@ -64,11 +76,7 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('after a failed GET call', function () {
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_SYSTEM_NOTICE_LOAD_FAILED action', function (done) {
-        mockAxiosCalls({
-          get: {
-            [systemNoticeFetchUrl]: () => Promise.reject({ status: 403 }),
-          },
-        });
+        axiosMock.onGet(systemNoticeFetchUrl).reply(403);
 
         store.dispatch(loadSystemNotice()).then(() => {
           actions = store.getActions();
@@ -87,20 +95,9 @@ describe('systemNoticeConfigurationActions', function () {
   });
 
   describe('load', () => {
-    let checkPermissionsSpy, load, store, state;
+    let store, state;
 
     beforeEach(() => {
-      checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-      const module = require('inject-loader!../../../../main/frontend/configuration/systemNoticeConfiguration/systemNoticeConfigurationActions')(
-        {
-          '../../util/authorizationUtil': {
-            checkPermissions: checkPermissionsSpy,
-          },
-        }
-      );
-
-      load = module.load;
-
       state = {
         systemNoticeConfiguration: {
           formState: {
@@ -119,20 +116,14 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('when authorized', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
+        checkPermissions.mockReturnValue(Promise.resolve());
       });
 
       it('fires an SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED action', (done) => {
-        mockAxiosCalls({
-          get: {
-            [systemNoticeFetchUrl]: Promise.resolve({
-              data: { enabled: true, message: 'some message' },
-            }),
-          },
-        });
+        axiosMock.onGet(systemNoticeFetchUrl).reply(200, { enabled: true, message: 'some message' });
 
         store.dispatch(load()).then(() => {
-          actions = store.getActions();
+          const actions = store.getActions();
           expect(actions.length).toBe(3);
           expect(actions[2].type).toBe('SYSTEM_NOTICE_CONFIGURATION_LOAD_FULFILLED');
           done();
@@ -146,17 +137,15 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('when not authorized', () => {
       it('fires an SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED action', (done) => {
-        checkPermissionsSpy.and.callFake(() => Promise.reject('system notice page authorization error'));
-        const store = SpecUtil.mockReduxStore();
+        checkPermissions.mockImplementation(() => Promise.reject('system notice page authorization error'));
 
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
           expect(actions.length).toBe(2);
 
-          expect(actions).toHaveActionsInOrder([
-            { type: 'SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED' },
-            { type: 'SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED', payload: 'system notice page authorization error' },
-          ]);
+          expect(actions[0].type).toBe('SYSTEM_NOTICE_CONFIGURATION_LOAD_REQUESTED');
+          expect(actions[1].type).toBe('SYSTEM_NOTICE_CONFIGURATION_LOAD_PAGE_FAILED');
+          expect(actions[1].payload).toBe('system notice page authorization error');
 
           done();
         });
@@ -182,7 +171,9 @@ describe('systemNoticeConfigurationActions', function () {
 
     afterEach(function () {
       const { formState } = state.systemNoticeConfiguration;
-      expect(axios.put).toHaveBeenCalledWith(systemNoticeUpdateUrl, {
+      expect(axiosMock.history.put.length).toBe(1);
+      expect(axiosMock.history.put[0].url).toBe(systemNoticeUpdateUrl);
+      expect(JSON.parse(axiosMock.history.put[0].data)).toEqual({
         enabled: formState.enabled,
         message: formState.message.value,
       });
@@ -190,11 +181,7 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('after successful PUT call', function () {
       beforeEach(function () {
-        mockAxiosCalls({
-          put: {
-            [systemNoticeUpdateUrl]: Promise.resolve({}),
-          },
-        });
+        axiosMock.onPut(systemNoticeUpdateUrl).reply(200, {});
       });
 
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_UPDATE_FULFILLED', function (done) {
@@ -212,11 +199,11 @@ describe('systemNoticeConfigurationActions', function () {
       });
 
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE after timeout', function (done) {
-        jasmine.clock().install();
+        jest.useFakeTimers();
 
         store.dispatch(update()).then(() => {
-          jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-          jasmine.clock().uninstall();
+          jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+          jest.useRealTimers();
 
           actions = store.getActions();
           expect(actions.length).toBe(3);
@@ -232,11 +219,7 @@ describe('systemNoticeConfigurationActions', function () {
 
     describe('after failed PUT call', function () {
       beforeEach(function () {
-        mockAxiosCalls({
-          put: {
-            [systemNoticeUpdateUrl]: () => Promise.reject({ status: 403 }),
-          },
-        });
+        axiosMock.onPut(systemNoticeUpdateUrl).reply(403);
       });
 
       it('dispatches SYSTEM_NOTICE_CONFIGURATION_UPDATE_FAILED action', function (done) {

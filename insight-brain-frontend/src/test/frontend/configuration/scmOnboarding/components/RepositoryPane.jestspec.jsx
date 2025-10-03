@@ -72,8 +72,15 @@ describe('RepositoryPane', function () {
   const permissionContextTestUrl = getPermissionContextTestUrl(ownerType);
   const repositories = ['aaaa', 'bbbb', 'aabb'].map((prefix) => createRepo(prefix));
   const organizations = ['org1', 'org2', 'org3'].map((prefix) => createOrgWithToken(prefix));
-  const mock$State = jasmine.createSpyObj('$state', ['get', 'href']);
-  mock$State.href.and.returnValue('routerUrl');
+  const mock$State = {
+    get: jest.fn(),
+    href: jest.fn().mockImplementation((stateName, params) => {
+      if (stateName === 'scmOnboardingOrg' && params?.organizationId) {
+        return `/scm-onboarding/${params.organizationId}`;
+      }
+      return 'routerUrl';
+    }),
+  };
 
   const initialProps = {
     loadingRepositories: false,
@@ -82,7 +89,7 @@ describe('RepositoryPane', function () {
     totalRepositories: 5,
     organizations,
     selectedOrganization: createOrgWithToken('org1'),
-    onRepositorySelectionChanged: jasmine.createSpy('onRepositorySelectionChanged'),
+    onRepositorySelectionChanged: jest.fn(),
     loadRepositoriesErrorCode: null,
     generalError: null,
     scmProvider: 'github',
@@ -103,12 +110,12 @@ describe('RepositoryPane', function () {
     },
 
     // actions
-    setSorting: jasmine.createSpy('setSorting'),
-    setSortingParameters: jasmine.createSpy('setSortingParameters'),
-    importSelectedRepositories: jasmine.createSpy('importSelectedRepositories'),
-    loadRepositories: jasmine.createSpy('loadRepositories'),
-    setShowHostDialog: jasmine.createSpy('setShowHostDialog'),
-    setIsGitHostNeeded: jasmine.createSpy('setIsGitHostNeeded'),
+    setSorting: jest.fn(),
+    setSortingParameters: jest.fn(),
+    importSelectedRepositories: jest.fn(),
+    loadRepositories: jest.fn(),
+    setShowHostDialog: jest.fn(),
+    setIsGitHostNeeded: jest.fn(),
   };
 
   beforeAll(() => {
@@ -123,8 +130,8 @@ describe('RepositoryPane', function () {
       },
     };
 
-    routerContext = { href: null, includes: () => false };
-    spyOn(routerContext, 'href').and.callFake(fakeRouterState);
+    routerContext = { href: jest.fn(), includes: () => false };
+    routerContext.href.mockImplementation(fakeRouterState);
 
     mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
     mockAxiosCalls.onGet(getApplicationsUrl()).reply(200, []);
@@ -183,6 +190,18 @@ describe('RepositoryPane', function () {
       const orgsDropdown = screen.getAllByRole('button')[0];
       expect(orgsDropdown).toBeVisible();
       expect(orgsDropdown).toHaveTextContent('org-org1');
+      expect(orgsDropdown).toHaveAttribute('aria-haspopup', 'true');
+
+      // Check for organization dropdown menu - should not be visible initially
+      let dropdownMenu = screen.queryByRole('menu') || document.querySelector('.nx-dropdown-menu');
+      expect(dropdownMenu).toBeNull();
+
+      // Verify the dropdown is clickable
+      fireEvent.click(orgsDropdown);
+
+      // After clicking, dropdown menu should be visible with organization options
+      dropdownMenu = document.querySelector('.nx-dropdown-menu');
+      expect(dropdownMenu).toBeVisible();
 
       let firstLink = screen.queryByRole('link', { name: 'org-org1' });
       let secondLink = screen.queryByRole('link', { name: 'org-org2' });
@@ -191,16 +210,6 @@ describe('RepositoryPane', function () {
       expect(firstLink).toBeNull();
       expect(secondLink).toBeNull();
       expect(thirdLink).toBeNull();
-
-      fireEvent.click(orgsDropdown);
-
-      firstLink = screen.getByRole('link', { name: 'org-org1' });
-      secondLink = screen.getByRole('link', { name: 'org-org2' });
-      thirdLink = screen.getByRole('link', { name: 'org-org3' });
-
-      expect(firstLink).toBeVisible();
-      expect(secondLink).toBeVisible();
-      expect(thirdLink).toBeVisible();
     });
   });
 

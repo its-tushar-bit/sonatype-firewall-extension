@@ -11,7 +11,7 @@ describe('AdministratorsRow', () => {
   let renderComponent, onClickSpy;
 
   beforeEach(() => {
-    onClickSpy = jasmine.createSpy('onClick');
+    onClickSpy = jest.fn();
     const minimalProps = {
       onClick: onClickSpy,
       role: {

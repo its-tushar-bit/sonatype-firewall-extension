@@ -4,35 +4,36 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+// Mock the dependencies before importing actions
+jest.mock('../../../../main/frontend/util/authorizationUtil', () => ({
+  getPermissions: jest.fn(),
+}));
+
 import {
   GETTING_STARTED_LOAD_REQUESTED,
   GETTING_STARTED_LOAD_FULFILLED,
   GETTING_STARTED_LOAD_FAILED,
+  load,
 } from 'MainRoot/configuration/gettingStarted/gettingStartedActions';
-import axios from 'axios';
+import '../../SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { getPermissions } from '../../../../main/frontend/util/authorizationUtil';
 import { getIsHdsReachable } from 'MainRoot/util/CLMLocation';
 import * as productLicenseActions from 'MainRoot/configuration/license/productLicenseActions';
 
 describe('gettingStartedReducerActions', () => {
-  let getPermissionsSpy, loadIfNotYetLoadedSpy, load, store;
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let loadIfNotYetLoadedSpy, store;
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   const isHdsReachable = getIsHdsReachable();
 
   beforeEach(() => {
-    getPermissionsSpy = jasmine.createSpy('getPermissions');
-    loadIfNotYetLoadedSpy = spyOn(productLicenseActions, 'load');
-    const actionsModule = require('inject-loader!../../../../../src/main/frontend/configuration/gettingStarted/gettingStartedActions')(
-      {
-        '../../util/authorizationUtil': {
-          getPermissions: getPermissionsSpy,
-        },
-        'MainRoot/configuration/license/productLicenseActions': {
-          load: loadIfNotYetLoadedSpy,
-        },
-      }
-    );
-
-    ({ load: load } = actionsModule);
+    jest.clearAllMocks();
+    getPermissions.mockClear();
+    loadIfNotYetLoadedSpy = jest.spyOn(productLicenseActions, 'load');
   });
 
   describe('load', () => {
@@ -41,8 +42,8 @@ describe('gettingStartedReducerActions', () => {
 
       beforeEach(() => {
         mockLicenseResponse = { payload: { expiryTimestamp: '' } };
-        getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
-        loadIfNotYetLoadedSpy.and.callFake(() => () => Promise.resolve(mockLicenseResponse));
+        getPermissions.mockReturnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
+        loadIfNotYetLoadedSpy.mockImplementation(() => () => Promise.resolve(mockLicenseResponse));
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_REQUESTED} action`, (done) => {
@@ -57,12 +58,7 @@ describe('gettingStartedReducerActions', () => {
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_FULFILLED} action`, (done) => {
-        const mockHdsResponse = { data: {} };
-        mockAxiosCalls({
-          get: {
-            [isHdsReachable]: Promise.resolve(mockHdsResponse),
-          },
-        });
+        axiosMock.onGet(isHdsReachable).reply(200, {});
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
@@ -77,7 +73,7 @@ describe('gettingStartedReducerActions', () => {
     describe('fail', () => {
       const errorMsg = 'fetch failed';
       beforeEach(() => {
-        getPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
+        getPermissions.mockImplementation(() => Promise.reject(errorMsg));
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_REQUESTED} action`, () => {
@@ -100,8 +96,8 @@ describe('gettingStartedReducerActions', () => {
       });
 
       it(`dispatches a ${GETTING_STARTED_LOAD_FAILED} action because of service failures`, (done) => {
-        getPermissionsSpy.and.returnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
-        loadIfNotYetLoadedSpy.and.callFake(() => () => Promise.reject({ response: {} }));
+        getPermissions.mockReturnValue(Promise.resolve(['CONFIGURE_SYSTEM', 'ADD_APPLICATION']));
+        loadIfNotYetLoadedSpy.mockImplementation(() => () => Promise.reject({ response: {} }));
         store = SpecUtil.mockReduxStore();
         store.dispatch(load()).then(() => {
           const [, { type }] = store.getActions();

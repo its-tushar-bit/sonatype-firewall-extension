@@ -10,8 +10,8 @@ import SAMLConfigurationDeleteModal from 'MainRoot/configuration/saml/SAMLConfig
 describe('SAMLConfigurationDeleteModal', () => {
   let renderComponent, props, deleteConfigurationSpy, toggleDeleteModalSpy;
 
-  deleteConfigurationSpy = jasmine.createSpy('deleteConfiguration');
-  toggleDeleteModalSpy = jasmine.createSpy('toggleDeleteModal');
+  deleteConfigurationSpy = jest.fn();
+  toggleDeleteModalSpy = jest.fn();
 
   props = {
     deleteConfiguration: deleteConfigurationSpy,

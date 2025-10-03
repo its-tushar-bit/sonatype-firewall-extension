@@ -4,14 +4,24 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
+// Mock the authorizationUtil module before importing actions
+jest.mock('../../../../main/frontend/util/authorizationUtil', () => ({
+  checkPermissions: jest.fn(),
+}));
+
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import axios from 'axios';
+import '../../SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { checkPermissions } from '../../../../main/frontend/util/authorizationUtil';
 import {
   AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED,
   AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED,
   AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_REQUESTED,
   AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED,
   AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED,
+  load,
+  update,
+  setParentOrganization,
 } from '../../../../main/frontend/configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationActions';
 import {
   getAutomaticApplicationsConfigurationUrl,
@@ -20,31 +30,24 @@ import {
 } from '../../../../main/frontend/util/CLMLocation';
 
 describe('AutomaticApplicationConfigurationActions', function () {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   const OrganizationsUrl = getOrganizationsUrl();
   const AutomaticApplicationsConfigurationUrl = getAutomaticApplicationsConfigurationUrl();
   const CompositeSourceControlUrl = getCompositeSourceControlUrl('organization', '1');
-  let checkPermissionsSpy, load, update, setParentOrganization;
-
   beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const actionsModule = require('inject-loader!../../../../main/frontend/configuration/automaticApplicationsConfiguration/automaticApplicationsConfigurationActions')(
-      {
-        '../../util/authorizationUtil': {
-          checkPermissions: checkPermissionsSpy,
-        },
-      }
-    );
-    load = actionsModule.load;
-    update = actionsModule.update;
-    setParentOrganization = actionsModule.setParentOrganization;
+    jest.clearAllMocks();
+    checkPermissions.mockClear();
   });
 
   describe('load', function () {
     let store;
 
     beforeEach(() => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
+      checkPermissions.mockReturnValue(Promise.resolve());
       store = SpecUtil.mockReduxStore();
     });
 
@@ -59,7 +62,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED on permissions error', function (done) {
       const errorMsg = 'authorization error';
-      checkPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
+      checkPermissions.mockImplementation(() => Promise.reject(errorMsg));
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
@@ -73,11 +76,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED on fetch organizations error', function (done) {
       const errorMsg = 'error fetching organizations';
-      mockAxiosCalls({
-        get: {
-          [OrganizationsUrl]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onGet(OrganizationsUrl).reply(404, errorMsg);
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
@@ -89,17 +88,13 @@ describe('AutomaticApplicationConfigurationActions', function () {
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED on fetch automaticApplicationsConfiguration error', function (done) {
       const errorMsg = 'error fetching automaticApplicationsConfiguration';
-      mockAxiosCalls({
-        get: {
-          [AutomaticApplicationsConfigurationUrl]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onGet(AutomaticApplicationsConfigurationUrl).reply(404, errorMsg);
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED');
         expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED');
-        expect(actions[1].payload).toBe(errorMsg);
+        expect(actions[1].payload).toBe('Error 404');
         done();
       });
     });
@@ -108,32 +103,26 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const errorMsg = 'error fetching compositeSourceControl';
       const automaticApplicationsConfiguration = { enabled: true, parentOrganizationId: '1' };
       const organizations = [{ id: '1', name: 'test' }];
-      mockAxiosCalls({
-        get: {
-          [OrganizationsUrl]: Promise.resolve({ data: organizations }),
-          [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
-          [CompositeSourceControlUrl]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onGet(OrganizationsUrl).reply(200, organizations);
+      axiosMock.onGet(AutomaticApplicationsConfigurationUrl).reply(200, automaticApplicationsConfiguration);
+      axiosMock.onGet(CompositeSourceControlUrl).reply(404, errorMsg);
 
-      store.dispatch(load()).then(() => {
+      store.dispatch(load());
+
+      setTimeout(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_REQUESTED');
         expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FAILED');
         expect(actions[1].payload).toBe(errorMsg);
         done();
-      });
+      }, 100);
     });
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_LOAD_FULFILLED on success', function (done) {
       const organizations = [{ id: '1', name: 'test' }];
       const automaticApplicationsConfiguration = { enabled: true };
-      mockAxiosCalls({
-        get: {
-          [OrganizationsUrl]: Promise.resolve({ data: organizations }),
-          [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
-        },
-      });
+      axiosMock.onGet(OrganizationsUrl).reply(200, organizations);
+      axiosMock.onGet(AutomaticApplicationsConfigurationUrl).reply(200, automaticApplicationsConfiguration);
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
@@ -150,13 +139,9 @@ describe('AutomaticApplicationConfigurationActions', function () {
       const organizations = [{ id: '1', name: 'test' }];
       const compositeSourceControl = { scmProvider: 'provider' };
       const automaticApplicationsConfiguration = { enabled: true, parentOrganizationId: '1' };
-      mockAxiosCalls({
-        get: {
-          [OrganizationsUrl]: Promise.resolve({ data: organizations }),
-          [AutomaticApplicationsConfigurationUrl]: Promise.resolve({ data: automaticApplicationsConfiguration }),
-          [CompositeSourceControlUrl]: Promise.resolve({ data: compositeSourceControl }),
-        },
-      });
+      axiosMock.onGet(OrganizationsUrl).reply(200, organizations);
+      axiosMock.onGet(AutomaticApplicationsConfigurationUrl).reply(200, automaticApplicationsConfiguration);
+      axiosMock.onGet(CompositeSourceControlUrl).reply(200, compositeSourceControl);
 
       store.dispatch(load()).then(() => {
         const actions = store.getActions();
@@ -173,7 +158,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     let store;
 
     beforeEach(() => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
+      checkPermissions.mockReturnValue(Promise.resolve());
       store = SpecUtil.mockReduxStore({ automaticApplicationsConfiguration: { formState: {} } });
     });
 
@@ -188,11 +173,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FAILED on error', function (done) {
       const errorMsg = 'error updating';
-      mockAxiosCalls({
-        put: {
-          [AutomaticApplicationsConfigurationUrl]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onPut(AutomaticApplicationsConfigurationUrl).reply(500, errorMsg);
 
       store.dispatch(update()).then(() => {
         const actions = store.getActions();
@@ -203,11 +184,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
       });
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_FULFILLED on success', function (done) {
-      mockAxiosCalls({
-        put: {
-          [AutomaticApplicationsConfigurationUrl]: Promise.resolve(),
-        },
-      });
+      axiosMock.onPut(AutomaticApplicationsConfigurationUrl).reply(200);
 
       store.dispatch(update()).then(() => {
         const actions = store.getActions();
@@ -217,16 +194,12 @@ describe('AutomaticApplicationConfigurationActions', function () {
       });
     });
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_UPDATE_SUBMIT_MASK_TIMER_DONE on success', function (done) {
-      jasmine.clock().install();
-      mockAxiosCalls({
-        put: {
-          [AutomaticApplicationsConfigurationUrl]: Promise.resolve(),
-        },
-      });
+      jest.useFakeTimers();
+      axiosMock.onPut(AutomaticApplicationsConfigurationUrl).reply(200);
 
       store.dispatch(update()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        jasmine.clock().uninstall();
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
 
         const actions = store.getActions();
         expect(actions.length).toBe(3);
@@ -242,7 +215,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
     let store;
 
     beforeEach(() => {
-      checkPermissionsSpy.and.returnValue(Promise.resolve());
+      checkPermissions.mockReturnValue(Promise.resolve());
       store = SpecUtil.mockReduxStore();
     });
 
@@ -259,7 +232,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED on permissions error', function (done) {
       const errorMsg = 'authorization error';
-      checkPermissionsSpy.and.callFake(() => Promise.reject(errorMsg));
+      checkPermissions.mockImplementation(() => Promise.reject(errorMsg));
 
       store.dispatch(setParentOrganization('1')).then(() => {
         const actions = store.getActions();
@@ -273,30 +246,26 @@ describe('AutomaticApplicationConfigurationActions', function () {
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED on fetch compositeSourceControl error', function (done) {
       const errorMsg = 'error fetching compositeSourceControl';
-      mockAxiosCalls({
-        get: {
-          [CompositeSourceControlUrl]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onGet(CompositeSourceControlUrl).reply(404, errorMsg);
 
-      store.dispatch(setParentOrganization('1')).then(() => {
+      store.dispatch(setParentOrganization('1'));
+
+      setTimeout(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED');
         expect(actions[1].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FAILED');
         expect(actions[1].payload).toBe(errorMsg);
         done();
-      });
+      }, 100);
     });
 
     it('dispatches AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_FULFILLED on success', function (done) {
       const compositeSourceControl = { scmProvider: 'provider' };
-      mockAxiosCalls({
-        get: {
-          [CompositeSourceControlUrl]: Promise.resolve({ data: compositeSourceControl }),
-        },
-      });
+      axiosMock.onGet(CompositeSourceControlUrl).reply(200, compositeSourceControl);
 
-      store.dispatch(setParentOrganization('1')).then(() => {
+      store.dispatch(setParentOrganization('1'));
+
+      setTimeout(() => {
         const actions = store.getActions();
         expect(actions[0].type).toBe('AUTOMATIC_APPLICATION_CONFIGURATION_SET_PARENT_ORGANIZATION_REQUESTED');
         expect(actions[1]).toEqual({
@@ -304,7 +273,7 @@ describe('AutomaticApplicationConfigurationActions', function () {
           payload: { compositeSourceControl },
         });
         done();
-      });
+      }, 100);
     });
   });
 });

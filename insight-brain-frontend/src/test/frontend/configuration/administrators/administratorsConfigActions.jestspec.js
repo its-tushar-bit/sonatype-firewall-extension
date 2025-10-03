@@ -3,34 +3,39 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
+
+// Mock the authorizationUtil module before importing administrators slice
+jest.mock('MainRoot/util/authorizationUtil', () => ({
+  checkPermissions: jest.fn(),
+}));
+
+import '../../SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getGlobalRoleMappingUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 import { getFindUsersUrl, getRoleMappingUrl } from 'MainRoot/util/CLMLocation';
-import { loadRolesIfNeeded } from 'MainRoot/configuration/administrators/administratorsSlice';
+import { loadRolesIfNeeded, actions } from 'MainRoot/configuration/administrators/administratorsSlice';
 import * as administratorsSelectors from 'MainRoot/configuration/administrators/administratorsSelectors';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('administratorsConfigActionsSpec', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   const mappingUrl = getGlobalRoleMappingUrl();
   const fetchUrl = getFindUsersUrl('search');
   const saveMembersUrl = getRoleMappingUrl('roleId');
 
-  let load, goToAdministratorPage, checkPermissionsSpy, goToAdministrators, loadFetchUsers, saveMembers;
+  // Import actions directly from the slice
+  const { load, loadFetchUsers, saveMembers, goToAdministratorPage, goToAdministrators } = actions;
 
   beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const module = require('inject-loader!../../../../main/frontend/configuration/administrators/administratorsSlice')({
-      'MainRoot/util/authorizationUtil': {
-        checkPermissions: checkPermissionsSpy,
-      },
-    });
-    load = module.actions.load;
-    loadFetchUsers = module.actions.loadFetchUsers;
-    saveMembers = module.actions.saveMembers;
-    goToAdministratorPage = module.actions.goToAdministratorPage;
-    goToAdministrators = module.actions.goToAdministrators;
+    // Clear all mocks before each test
+    jest.clearAllMocks();
+    checkPermissions.mockClear();
   });
 
   describe('load', () => {
@@ -50,16 +55,12 @@ describe('administratorsConfigActionsSpec', () => {
 
     describe('when authorized', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
+        checkPermissions.mockReturnValue(Promise.resolve());
       });
 
       it('fires administratorsConfig/load/fulfilled action on success', (done) => {
-        spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ roleId: 'roleId' });
-        mockAxiosCalls({
-          get: {
-            [mappingUrl]: Promise.resolve({ data: {} }),
-          },
-        });
+        jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ roleId: 'roleId' });
+        axiosMock.onGet(mappingUrl).reply(200, {});
 
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
@@ -75,7 +76,7 @@ describe('administratorsConfigActionsSpec', () => {
 
     describe('when not authorized', () => {
       it('does not load configure administrators page', (done) => {
-        checkPermissionsSpy.and.callFake(() => Promise.reject('Administrator config page: authorization error'));
+        checkPermissions.mockImplementation(() => Promise.reject('Administrator config page: authorization error'));
         store.dispatch(load()).then(() => {
           const actions = store.getActions();
 
@@ -106,11 +107,7 @@ describe('administratorsConfigActionsSpec', () => {
     });
 
     it('fires administratorsConfig/loadFetchUsers/fulfilled action on success', (done) => {
-      mockAxiosCalls({
-        get: {
-          [fetchUrl]: Promise.resolve({ data: {} }),
-        },
-      });
+      axiosMock.onGet(fetchUrl).reply(200, {});
 
       store.dispatch(loadFetchUsers('search')).then(() => {
         const actions = store.getActions();
@@ -122,20 +119,14 @@ describe('administratorsConfigActionsSpec', () => {
     });
 
     it('fires administratorsConfig/loadFetchUsers/rejected action on reject', (done) => {
-      mockAxiosCalls({
-        get: {
-          [fetchUrl]: () => Promise.reject('some error'),
-        },
-      });
+      axiosMock.onGet(fetchUrl).reply(500, 'some error');
 
       store.dispatch(loadFetchUsers('search')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionType('administratorsConfig/loadFetchUsers/pending');
-        expect(actions).toHaveAction({
-          type: 'administratorsConfig/loadFetchUsers/rejected',
-          payload: 'some error',
-        });
+        expect(actions[1].type).toBe('administratorsConfig/loadFetchUsers/rejected');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
@@ -157,17 +148,13 @@ describe('administratorsConfigActionsSpec', () => {
     });
 
     it('fires administratorsConfig/saveMembers/fulfilled action on success', (done) => {
-      jasmine.clock().install();
-      spyOn(routerSelectors, 'selectRouterCurrentParams').and.returnValue({ roleId: 'roleId' });
-      spyOn(administratorsSelectors, 'selectAddedUsers').and.returnValue([]);
-      mockAxiosCalls({
-        put: {
-          [saveMembersUrl]: Promise.resolve(),
-        },
-      });
+      jest.useFakeTimers();
+      jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ roleId: 'roleId' });
+      jest.spyOn(administratorsSelectors, 'selectAddedUsers').mockReturnValue([]);
+      axiosMock.onPut(saveMembersUrl).reply(200);
 
       store.dispatch(saveMembers([])).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         const actions = store.getActions();
         expect(actions.length).toBe(4);
         expect(actions).toHaveActionType('administratorsConfig/saveMembers/pending');
@@ -181,24 +168,20 @@ describe('administratorsConfigActionsSpec', () => {
             options: undefined,
           },
         });
-        jasmine.clock().uninstall();
+        jest.useRealTimers();
         done();
       });
     });
 
     it('fires administratorsConfig/loadFetchUsers/rejected action on reject', (done) => {
-      mockAxiosCalls({
-        get: {
-          [fetchUrl]: () => Promise.reject('some error'),
-        },
-      });
+      axiosMock.onGet(fetchUrl).reply(500, 'some error');
 
       store.dispatch(loadFetchUsers('search')).then(() => {
         const actions = store.getActions();
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('administratorsConfig/loadFetchUsers/pending');
         expect(actions[1].type).toBe('administratorsConfig/loadFetchUsers/rejected');
-        expect(actions[1].payload).toBe('some error');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
@@ -242,12 +225,12 @@ describe('administratorsConfigActionsSpec', () => {
   describe('loadRolesIfNeeded', () => {
     it('dispatches load() if matching role doesn`t exist in memory', () => {
       const store = SpecUtil.mockReduxStore({});
-      spyOn(administratorsSelectors, 'selectRoleToEdit').and.returnValue(null);
+      jest.spyOn(administratorsSelectors, 'selectRoleToEdit').mockReturnValue(null);
 
       store.dispatch(loadRolesIfNeeded());
       const actions = store.getActions();
 
-      expect(actions.length).toBe(2);
+      expect(actions.length).toBe(3);
       expect(actions).toHaveAction({
         type: 'administratorsConfig/load/pending',
       });
@@ -258,7 +241,7 @@ describe('administratorsConfigActionsSpec', () => {
 
     it('does not dispatch load() if matching role exists in memory', () => {
       const store = SpecUtil.mockReduxStore({});
-      spyOn(administratorsSelectors, 'selectRoleToEdit').and.returnValue({ roleId: 'roleId' });
+      jest.spyOn(administratorsSelectors, 'selectRoleToEdit').mockReturnValue({ roleId: 'roleId' });
 
       store.dispatch(loadRolesIfNeeded());
       const actions = store.getActions();

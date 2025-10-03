@@ -4,37 +4,45 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
+import { axiosMockAdapter, render, screen, fireEvent, waitFor } from 'TestRoot/SpecUtil';
 import AtlassianCrowdConfiguration from 'MainRoot/configuration/crowd/AtlassianCrowdConfiguration';
 
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as atlassianCrowdConfigurationSelectors from 'MainRoot/configuration/crowd/atlassianCrowdConfigurationSelectors';
-import { render, screen, fireEvent, waitFor } from 'TestRoot/SpecUtil';
-import axios from 'axios';
 import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
 
 describe('AtlassianCrowdConfiguration', () => {
   let renderComponent;
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   const crowdConfigurationUrl = getCrowdConfigurationUrl();
   const crowdConfigurationTestUrl = getCrowdConfigurationTestUrl();
   const globalPermissionTestUrl = getGlobalPermissionTestUrl();
   const filledFormState = {
-    serverUrl: { value: 'someUrl' },
-    applicationName: { value: 'someAppName' },
-    applicationPassword: { value: 'someAppPass' },
+    serverUrl: { value: 'someUrl', isPristine: false, trimmedValue: 'someUrl', validationErrors: null },
+    applicationName: { value: 'someAppName', isPristine: false, trimmedValue: 'someAppName', validationErrors: null },
+    applicationPassword: {
+      value: 'someAppPass',
+      isPristine: false,
+      trimmedValue: 'someAppPass',
+      validationErrors: null,
+    },
   };
 
   const partFilledFormState = {
-    serverUrl: { value: 'someUrl' },
-    applicationName: { value: '' },
-    applicationPassword: { value: '' },
+    serverUrl: { value: 'someUrl', isPristine: false, trimmedValue: 'someUrl', validationErrors: null },
+    applicationName: { value: '', isPristine: true, trimmedValue: '', validationErrors: null },
+    applicationPassword: { value: '', isPristine: true, trimmedValue: '', validationErrors: null },
   };
 
   const cleanformState = {
-    serverUrl: { value: '' },
-    applicationName: { value: '' },
-    applicationPassword: { value: '' },
+    serverUrl: { value: '', isPristine: true, trimmedValue: '', validationErrors: null },
+    applicationName: { value: '', isPristine: true, trimmedValue: '', validationErrors: null },
+    applicationPassword: { value: '', isPristine: true, trimmedValue: '', validationErrors: null },
   };
 
   const serverData = {
@@ -46,12 +54,12 @@ describe('AtlassianCrowdConfiguration', () => {
   const crowdConfigurationParameters = {};
 
   beforeEach(() => {
-    spyOn(atlassianCrowdConfigurationSelectors, 'selectAtlassianCrowdConfigurationSlice').and.returnValue(
-      crowdConfigurationParameters
-    );
-    spyOn(RouterStateContext, 'useRouterState').and.returnValue({
-      get: jasmine.createSpy('useRouterState.get'),
-      href: jasmine.createSpy('useRouterState.href'),
+    jest
+      .spyOn(atlassianCrowdConfigurationSelectors, 'selectAtlassianCrowdConfigurationSlice')
+      .mockReturnValue(crowdConfigurationParameters);
+    jest.spyOn(RouterStateContext, 'useRouterState').mockReturnValue({
+      get: jest.fn(),
+      href: jest.fn(),
     });
     renderComponent = () => render(<AtlassianCrowdConfiguration />);
   });
@@ -59,13 +67,13 @@ describe('AtlassianCrowdConfiguration', () => {
   describe('component load', () => {
     it('passes error when a load error exits', () => {
       const errorMessage = 'Error on page load';
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectLoadError').and.callFake(() => errorMessage);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectLoadError').mockImplementation(() => errorMessage);
       renderComponent();
       expect(screen.getByText(new RegExp('Error on page load'))).toBeVisible();
     });
 
     it('renders form when page load successfully', function () {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectLoading').and.callFake(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectLoading').mockImplementation(() => false);
       renderComponent();
       expect(screen.getByRole('heading', { name: 'Atlassian Crowd' })).toBeVisible();
       expect(screen.getByRole('heading', { name: 'Configure Atlassian Crowd Connection' })).toBeVisible();
@@ -78,8 +86,8 @@ describe('AtlassianCrowdConfiguration', () => {
     });
 
     it('inputs filled when serverData', function () {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectLoading').and.callFake(() => false);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectLoading').mockImplementation(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
       renderComponent();
       expect(screen.getByRole('textbox', { name: 'Crowd Server URL' })).toHaveValue(filledFormState.serverUrl.value);
       expect(screen.getByRole('textbox', { name: 'Crowd Application Name' })).toHaveValue(
@@ -90,27 +98,24 @@ describe('AtlassianCrowdConfiguration', () => {
 
   describe('on Save Configuration Button', function () {
     it('calls update when the form is submitted', async () => {
-      mockAxiosCalls({
-        put: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-          [crowdConfigurationUrl]: Promise.resolve({
-            data: {},
-          }),
-        },
-      });
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectHasAllRequiredData').and.callFake(() => true);
+      axiosMock.onPut(globalPermissionTestUrl).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onPut(crowdConfigurationUrl).reply(200, {});
+
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => true);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectHasAllRequiredData').mockImplementation(() => true);
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
       expect(screen.getByRole('button', { name: 'Save Configuration' })).toBeVisible();
       fireEvent.click(screen.getByText('Save Configuration'));
-      expect(axios.put.calls.count()).toBe(1);
+      await waitFor(() => {
+        expect(axiosMock.history.put.length).toBe(1);
+      });
     });
 
     it('shows correct form alert when no data provided', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => cleanformState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => cleanformState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => false);
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
       fireEvent.click(screen.getByText('Save Configuration'));
@@ -118,8 +123,8 @@ describe('AtlassianCrowdConfiguration', () => {
     });
 
     it('shows correct form alert when data partially provided', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => partFilledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => partFilledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => true);
       renderComponent();
       await waitFor(() => screen.getByText('Save Configuration'));
       fireEvent.click(screen.getByText('Save Configuration'));
@@ -131,27 +136,24 @@ describe('AtlassianCrowdConfiguration', () => {
 
   describe('on Test Configuration button', function () {
     it('calls test when the data was provided', async () => {
-      mockAxiosCalls({
-        post: {
-          [globalPermissionTestUrl]: Promise.resolve({ data: ['CONFIGURE_SYSTEM'] }),
-          [crowdConfigurationTestUrl]: Promise.resolve({
-            data: { code: 200, message: '' },
-          }),
-        },
-      });
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectHasAllRequiredData').and.callFake(() => true);
+      axiosMock.onPost(globalPermissionTestUrl).reply(200, ['CONFIGURE_SYSTEM']);
+      axiosMock.onPost(crowdConfigurationTestUrl).reply(200, { code: 200, message: '' });
+
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => true);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectHasAllRequiredData').mockImplementation(() => true);
       renderComponent();
       await waitFor(() => screen.getByText('Test Configuration'));
       expect(screen.getByRole('button', { name: 'Test Configuration' })).toBeVisible();
       fireEvent.click(screen.getByText('Test Configuration'));
-      expect(axios.post.calls.count()).toBe(1);
+      await waitFor(() => {
+        expect(axiosMock.history.post.length).toBe(1);
+      });
     });
 
     it('disabled test button when the form is clean', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => cleanformState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => cleanformState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => false);
       renderComponent();
       await waitFor(() => screen.getByText('Test Configuration'));
       expect(screen.getByRole('button', { name: 'Test Configuration' })).toHaveAttribute('aria-disabled', 'true');
@@ -160,16 +162,16 @@ describe('AtlassianCrowdConfiguration', () => {
 
   describe('on Cancel button', function () {
     it('cancel button is enabled when the form is clean', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => cleanformState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => cleanformState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => false);
       renderComponent();
       await waitFor(() => screen.getByText('Cancel'));
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     });
 
     it('keep cancel button enabled when the form is filled', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => true);
       renderComponent();
       await waitFor(() => screen.getByText('Cancel'));
       expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
@@ -178,26 +180,26 @@ describe('AtlassianCrowdConfiguration', () => {
 
   describe('on Delete button', function () {
     it('disabled Delete button when the form is clean', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => cleanformState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => cleanformState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => false);
       renderComponent();
       await waitFor(() => screen.getByText('Delete Configuration'));
       expect(screen.getByRole('button', { name: 'Delete Configuration' })).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('disable Delete button when the form is filled but serverData is clean', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => true);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectServerData').and.callFake(() => null);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => true);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectServerData').mockImplementation(() => null);
       renderComponent();
       await waitFor(() => screen.getByText('Delete Configuration'));
       expect(screen.getByRole('button', { name: 'Delete Configuration' })).toHaveAttribute('aria-disabled', 'true');
     });
 
     it('enable Delete button when the form is filled with serverData', async () => {
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').and.callFake(() => filledFormState);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').and.callFake(() => false);
-      spyOn(atlassianCrowdConfigurationSelectors, 'selectServerData').and.callFake(() => serverData);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectFormState').mockImplementation(() => filledFormState);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectIsDirty').mockImplementation(() => false);
+      jest.spyOn(atlassianCrowdConfigurationSelectors, 'selectServerData').mockImplementation(() => serverData);
       renderComponent();
       await waitFor(() => screen.getByText('Delete Configuration'));
       expect(screen.getByRole('button', { name: 'Delete Configuration' })).toHaveAttribute('aria-disabled', 'false');

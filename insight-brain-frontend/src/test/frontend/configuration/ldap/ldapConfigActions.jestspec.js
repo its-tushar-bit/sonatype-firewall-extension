@@ -3,7 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import axios from 'axios';
+
+// Mock the authorizationUtil module before importing ldap config slice
+jest.mock('../../../../main/frontend/util/authorizationUtil', () => ({
+  checkPermissions: jest.fn(),
+}));
+
+import '../../SpecUtil';
+import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {
   getLdapConfigUrl,
@@ -13,17 +20,23 @@ import {
   getLdapLoginTest,
   getLdapUserMappingTest,
 } from '../../../../main/frontend/util/CLMLocation';
+import { actions } from '../../../../main/frontend/configuration/ldap/ldapConfigSlice';
+import { checkPermissions } from '../../../../main/frontend/util/authorizationUtil';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
 describe('ldapConfigSliceActions', () => {
-  const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
+  let axiosMock;
+
+  beforeAll(() => {
+    axiosMock = axiosMockAdapter();
+  });
   const ldapUrl = getLdapConfigUrl();
   const ldapConnectionUrl = getLdapConnectionConfig('200');
   const ldapUsermappingUrl = getLdapUserMappingConfig('201');
   const getLdapConnectionTestUrl = getLdapConnectionTest('201');
 
-  let checkPermissionsSpy,
+  const {
     loadAddPage,
     maybeLoadEditPage,
     testConnection,
@@ -32,30 +45,18 @@ describe('ldapConfigSliceActions', () => {
     removeServer,
     saveUserAndGroupSettings,
     checkLogin,
-    loadUserMapping;
+    loadUserMapping,
+  } = actions;
 
   beforeEach(() => {
-    checkPermissionsSpy = jasmine.createSpy('checkPermissions');
-    const module = require('inject-loader!../../../../main/frontend/configuration/ldap/ldapConfigSlice')({
-      '../../util/authorizationUtil': {
-        checkPermissions: checkPermissionsSpy,
-      },
-    });
-    loadAddPage = module.actions.loadAddPage;
-    maybeLoadEditPage = module.actions.maybeLoadEditPage;
-    testConnection = module.actions.testConnection;
-    saveConnection = module.actions.saveConnection;
-    saveServerName = module.actions.saveServerName;
-    removeServer = module.actions.removeServer;
-    saveUserAndGroupSettings = module.actions.saveUserAndGroupSettings;
-    checkLogin = module.actions.checkLogin;
-    loadUserMapping = module.actions.loadUserMapping;
+    jest.clearAllMocks();
+    checkPermissions.mockClear();
   });
 
   describe('loadAddPage', () => {
     describe('when authorized', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
+        checkPermissions.mockReturnValue(Promise.resolve());
       });
 
       it('fires ldapConfig/loadAddPage/fulfilled action on success', (done) => {
@@ -75,7 +76,7 @@ describe('ldapConfigSliceActions', () => {
 
     describe('when not authorized', () => {
       it('does not load ldap add server page', (done) => {
-        checkPermissionsSpy.and.callFake(() => Promise.reject('ldap add server page authorization error'));
+        checkPermissions.mockImplementation(() => Promise.reject('ldap add server page authorization error'));
         const store = SpecUtil.mockReduxStore();
 
         store.dispatch(loadAddPage()).then(() => {
@@ -95,7 +96,7 @@ describe('ldapConfigSliceActions', () => {
   describe('maybeLoadEditPage', () => {
     describe('when authorized', () => {
       beforeEach(() => {
-        checkPermissionsSpy.and.returnValue(Promise.resolve());
+        checkPermissions.mockReturnValue(Promise.resolve());
       });
 
       it('fires ldapConfig/loadEditPage/fulfilled action on success when ldapId is different', (done) => {
@@ -110,13 +111,9 @@ describe('ldapConfigSliceActions', () => {
           },
         });
 
-        mockAxiosCalls({
-          get: {
-            [ldapUrl]: Promise.resolve({ data: [{ id: '200', serverName: 'name' }] }),
-            [getLdapConnectionConfig('200')]: Promise.resolve({ data: {} }),
-            [getLdapUserMappingConfig('200')]: Promise.resolve({ data: {} }),
-          },
-        });
+        axiosMock.onGet(ldapUrl).reply(200, [{ id: '200', serverName: 'name' }]);
+        axiosMock.onGet(getLdapConnectionConfig('200')).reply(200, {});
+        axiosMock.onGet(getLdapUserMappingConfig('200')).reply(200, {});
 
         store.dispatch(maybeLoadEditPage({ ldapId: '200', currentTab: 'edit-ldap-connection' })).then(() => {
           const actions = store.getActions();
@@ -143,13 +140,9 @@ describe('ldapConfigSliceActions', () => {
           },
         });
 
-        mockAxiosCalls({
-          get: {
-            [ldapUrl]: Promise.resolve({ data: [{ id: '200', serverName: 'newName12' }] }),
-            [getLdapConnectionConfig('200')]: Promise.resolve({ data: {} }),
-            [getLdapUserMappingConfig('200')]: Promise.resolve({ data: {} }),
-          },
-        });
+        axiosMock.onGet(ldapUrl).reply(200, [{ id: '200', serverName: 'newName12' }]);
+        axiosMock.onGet(getLdapConnectionConfig('200')).reply(200, {});
+        axiosMock.onGet(getLdapUserMappingConfig('200')).reply(200, {});
 
         store.dispatch(maybeLoadEditPage({ ldapId: '200', currentTab: 'edit-ldap-usermapping' })).then(() => {
           const actions = store.getActions();
@@ -175,13 +168,9 @@ describe('ldapConfigSliceActions', () => {
           },
         });
 
-        mockAxiosCalls({
-          get: {
-            [ldapUrl]: Promise.resolve({ data: [{ id: '202', serverName: 'name' }] }),
-            [getLdapConnectionConfig('200')]: Promise.resolve({ data: {} }),
-            [getLdapUserMappingConfig('200')]: Promise.resolve({ data: {} }),
-          },
-        });
+        axiosMock.onGet(ldapUrl).reply(200, [{ id: '202', serverName: 'name' }]);
+        axiosMock.onGet(getLdapConnectionConfig('200')).reply(200, {});
+        axiosMock.onGet(getLdapUserMappingConfig('200')).reply(200, {});
 
         store.dispatch(maybeLoadEditPage({ ldapId: '200', currentTab: 'edit-ldap-connection' })).then(() => {
           const actions = store.getActions();
@@ -200,7 +189,7 @@ describe('ldapConfigSliceActions', () => {
 
     describe('when not authorized', () => {
       it('does not load ldap edit page', (done) => {
-        checkPermissionsSpy.and.callFake(() => Promise.reject('ldap edit page authorization error'));
+        checkPermissions.mockImplementation(() => Promise.reject('ldap edit page authorization error'));
         const store = SpecUtil.mockReduxStore({
           ldapConfig: {
             serverData: {
@@ -242,16 +231,12 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/saveServerName/fulfilled action on success', (done) => {
-      mockAxiosCalls({
-        post: {
-          [ldapUrl]: Promise.resolve({ data: { id: '200' } }),
-        },
-      });
-      jasmine.clock().install();
+      axiosMock.onPost(ldapUrl).reply(200, { id: '200' });
+      jest.useFakeTimers();
 
       store.dispatch(saveServerName()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        jasmine.clock().uninstall();
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.useRealTimers();
 
         const actions = store.getActions();
 
@@ -268,11 +253,7 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/saveServerName/rejected action on error', (done) => {
-      mockAxiosCalls({
-        post: {
-          [ldapUrl]: () => Promise.reject('cannot save'),
-        },
-      });
+      axiosMock.onPost(ldapUrl).reply(500, 'cannot save');
 
       store.dispatch(saveServerName()).then(() => {
         const actions = store.getActions();
@@ -281,7 +262,7 @@ describe('ldapConfigSliceActions', () => {
 
         expect(actions[0].type).toBe('ldapConfig/saveServerName/pending');
         expect(actions[1].type).toBe('ldapConfig/saveServerName/rejected');
-        expect(actions[1].payload).toBe('cannot save');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
@@ -321,28 +302,22 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
-      jasmine.clock().install();
+      jest.useFakeTimers();
     });
 
-    afterEach(() => jasmine.clock().uninstall());
+    afterEach(() => jest.useRealTimers());
 
     it('fires ldapConfig/saveConnection/fulfilled action on success', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: Promise.resolve({
-            data: {
-              id: '200',
-              name: 'newName1',
-              nameLowercaseNoWhitespace: 'newName1',
-              priority: 1,
-            },
-          }),
-          [ldapConnectionUrl]: Promise.resolve({ data: {} }),
-        },
+      axiosMock.onPut(ldapUrl).reply(200, {
+        id: '200',
+        name: 'newName1',
+        nameLowercaseNoWhitespace: 'newName1',
+        priority: 1,
       });
+      axiosMock.onPut(ldapConnectionUrl).reply(200, {});
 
       store.dispatch(saveConnection()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
@@ -362,50 +337,40 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/saveConnection/rejected action if server name already exist', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: () => Promise.reject('newName1 is already used as a name.'),
-        },
-      });
+      axiosMock.onPut(ldapUrl).reply(500, 'newName1 is already used as a name.');
 
       store.dispatch(saveConnection()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
         expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
-        expect(actions[1].payload).toBe('newName1 is already used as a name.');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
     });
 
     it('fires ldapConfig/saveConnection/rejected action if connection data is not full', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: Promise.resolve({
-            data: {
-              id: '200',
-              name: 'newName1',
-              nameLowercaseNoWhitespace: 'newName1',
-              priority: 1,
-            },
-          }),
-          [ldapConnectionUrl]: () => Promise.reject('not enough data'),
-        },
+      axiosMock.onPut(ldapUrl).reply(200, {
+        id: '200',
+        name: 'newName1',
+        nameLowercaseNoWhitespace: 'newName1',
+        priority: 1,
       });
+      axiosMock.onPut(ldapConnectionUrl).reply(400, 'not enough data');
 
       store.dispatch(saveConnection()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapConfig/saveConnection/pending');
         expect(actions[1].type).toBe('ldapConfig/saveConnection/rejected');
-        expect(actions[1].payload).toBe('not enough data');
+        expect(actions[1].payload.message).toBe('Request failed with status code 400');
 
         done();
       });
@@ -443,19 +408,15 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
-      jasmine.clock().install();
+      jest.useFakeTimers();
     });
-    afterEach(() => jasmine.clock().uninstall());
+    afterEach(() => jest.useRealTimers());
 
     it('fires ldapConfig/testConnection/fulfilled action on success', (done) => {
-      mockAxiosCalls({
-        put: {
-          [getLdapConnectionTestUrl]: Promise.resolve({ data: { status: 'OK' } }),
-        },
-      });
+      axiosMock.onPut(getLdapConnectionTestUrl).reply(200, { status: 'OK' });
 
       store.dispatch(testConnection()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
@@ -470,14 +431,10 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/testConnection/rejected action on fail', (done) => {
-      mockAxiosCalls({
-        put: {
-          [getLdapConnectionTestUrl]: Promise.resolve({ data: { status: 'FAILURE', message: 'should be rejected' } }),
-        },
-      });
+      axiosMock.onPut(getLdapConnectionTestUrl).reply(200, { status: 'FAILURE', message: 'should be rejected' });
 
       store.dispatch(testConnection()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
@@ -495,20 +452,16 @@ describe('ldapConfigSliceActions', () => {
   describe('removeServer', () => {
     const removeLdapUrl = getLdapConfigUrl('200');
 
-    beforeEach(() => jasmine.clock().install());
+    beforeEach(() => jest.useFakeTimers());
 
-    afterEach(() => jasmine.clock().uninstall());
+    afterEach(() => jest.useRealTimers());
 
     it('fires ldapConfig/removeServer/fulfilled action on success', (done) => {
       const store = SpecUtil.mockReduxStore();
-      mockAxiosCalls({
-        del: {
-          [removeLdapUrl]: Promise.resolve({}),
-        },
-      });
+      axiosMock.onDelete(removeLdapUrl).reply(200, {});
 
       store.dispatch(removeServer('200')).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
@@ -524,21 +477,17 @@ describe('ldapConfigSliceActions', () => {
 
     it('fires ldapConfig/removeServer/rejected action on fail', (done) => {
       const store = SpecUtil.mockReduxStore();
-      mockAxiosCalls({
-        del: {
-          [removeLdapUrl]: () => Promise.reject('Can not remove ldap server'),
-        },
-      });
+      axiosMock.onDelete(removeLdapUrl).reply(500, 'Can not remove ldap server');
 
       store.dispatch(removeServer('200')).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapConfig/removeServer/pending');
         expect(actions[1].type).toBe('ldapConfig/removeServer/rejected');
-        expect(actions[1].payload).toBe('Can not remove ldap server');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
@@ -585,28 +534,19 @@ describe('ldapConfigSliceActions', () => {
       };
 
       store = SpecUtil.mockReduxStore(state);
-      jasmine.clock().install();
+      jest.useFakeTimers();
     });
 
-    afterEach(() => jasmine.clock().uninstall());
+    afterEach(() => jest.useRealTimers());
 
     it('fires ldapConfig/saveUserAndGroupSettings/fulfilled action on success', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: Promise.resolve({
-            data: {
-              id: '201',
-              name: 'newName2',
-              nameLowercaseNoWhitespace: 'newName2',
-              priority: 1,
-            },
-          }),
-          [ldapUsermappingUrl]: Promise.resolve({ data: {} }),
-        },
-      });
+      axiosMock
+        .onPut(ldapUrl)
+        .reply(200, { id: '201', name: 'newName2', nameLowercaseNoWhitespace: 'newName2', priority: 1 });
+      axiosMock.onPut(ldapUsermappingUrl).reply(200, {});
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
@@ -626,49 +566,36 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/saveUserAndGroupSettings/rejected action if server name already exist', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: () => Promise.reject('newName2 is already used as a name.'),
-        },
-      });
+      axiosMock.onPut(ldapUrl).reply(500, 'newName2 is already used as a name.');
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
         expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
-        expect(actions[1].payload).toBe('newName2 is already used as a name.');
+        expect(actions[1].payload.message).toBe('Request failed with status code 500');
 
         done();
       });
     });
 
     it('fires ldapConfig/saveUserAndGroupSettings/rejected action if settings data is not full', (done) => {
-      mockAxiosCalls({
-        put: {
-          [ldapUrl]: Promise.resolve({
-            data: {
-              id: '201',
-              name: 'newName1',
-              nameLowercaseNoWhitespace: 'newName1',
-              priority: 1,
-            },
-          }),
-          [ldapUsermappingUrl]: () => Promise.reject('not enough data'),
-        },
-      });
+      axiosMock
+        .onPut(ldapUrl)
+        .reply(200, { id: '201', name: 'newName1', nameLowercaseNoWhitespace: 'newName1', priority: 1 });
+      axiosMock.onPut(ldapUsermappingUrl).reply(400, 'not enough data');
 
       store.dispatch(saveUserAndGroupSettings()).then(() => {
-        jasmine.clock().tick(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
         const actions = store.getActions();
 
         expect(actions.length).toBe(2);
         expect(actions[0].type).toBe('ldapConfig/saveUserAndGroupSettings/pending');
         expect(actions[1].type).toBe('ldapConfig/saveUserAndGroupSettings/rejected');
-        expect(actions[1].payload).toBe('not enough data');
+        expect(actions[1].payload.message).toBe('Request failed with status code 400');
 
         done();
       });
@@ -725,11 +652,7 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/checkLogin/fulfilled', (done) => {
-      mockAxiosCalls({
-        put: {
-          [getLdapLoginTest('ldapID')]: Promise.resolve({ data: { status: 'OK', message: 'some message' } }),
-        },
-      });
+      axiosMock.onPut(getLdapLoginTest('ldapID')).reply(200, { status: 'OK', message: 'some message' });
       store.dispatch(checkLogin('ldapID')).then(() => {
         const actions = store.getActions();
         const [{ type: firstActionType }, { type: secondActionType }] = actions;
@@ -740,11 +663,7 @@ describe('ldapConfigSliceActions', () => {
     });
 
     it('fires ldapConfig/checkLogin/reject because of service failure', (done) => {
-      mockAxiosCalls({
-        put: {
-          [getLdapLoginTest('ldapID')]: () => Promise.reject('error'),
-        },
-      });
+      axiosMock.onPut(getLdapLoginTest('ldapID')).reply(500, 'error');
       store.dispatch(checkLogin('ldapID')).then(() => {
         const [
           { type: firstActionType },
@@ -752,17 +671,13 @@ describe('ldapConfigSliceActions', () => {
         ] = store.getActions();
         expect(firstActionType).toBe('ldapConfig/checkLogin/pending');
         expect(secondActionType).toBe('ldapConfig/checkLogin/rejected');
-        expect(secondActionPayload).toBe('error');
+        expect(secondActionPayload.message).toBe('Request failed with status code 500');
         done();
       });
     });
 
     it('fires ldapConfig/checkLogin/reject due to data failures', (done) => {
-      mockAxiosCalls({
-        put: {
-          [getLdapLoginTest('ldapID')]: Promise.resolve({ data: { message: 'some error', status: 'failure' } }),
-        },
-      });
+      axiosMock.onPut(getLdapLoginTest('ldapID')).reply(200, { message: 'some error', status: 'failure' });
       store.dispatch(checkLogin('ldapID')).then(() => {
         const [
           { type: firstActionType },
@@ -818,11 +733,7 @@ describe('ldapConfigSliceActions', () => {
 
     it('fires ldapConfig/loadUserMapping/fulfilled', (done) => {
       const responseData = [];
-      mockAxiosCalls({
-        put: {
-          [getLdapUserMappingTest('serverID')]: Promise.resolve({ data: responseData }),
-        },
-      });
+      axiosMock.onPut(getLdapUserMappingTest('serverID')).reply(200, responseData);
       store.dispatch(loadUserMapping()).then(() => {
         const actions = store.getActions();
         const [{ type: firstActionType }, { type: secondActionType }] = actions;
@@ -833,17 +744,13 @@ describe('ldapConfigSliceActions', () => {
     });
     it('fires ldapConfig/loadUserMapping/rejected due to server error response', (done) => {
       const errorMsg = 'error';
-      mockAxiosCalls({
-        put: {
-          [getLdapUserMappingTest('serverID')]: () => Promise.reject(errorMsg),
-        },
-      });
+      axiosMock.onPut(getLdapUserMappingTest('serverID')).reply(500, errorMsg);
       store.dispatch(loadUserMapping()).then(() => {
         const actions = store.getActions();
         const [{ type: firstActionType }, { type: secondActionType, payload: secondActionPayload }] = actions;
         expect(firstActionType).toBe('ldapConfig/loadUserMapping/pending');
         expect(secondActionType).toBe('ldapConfig/loadUserMapping/rejected');
-        expect(secondActionPayload).toBe(errorMsg);
+        expect(secondActionPayload.message).toBe('Request failed with status code 500');
         done();
       });
     });

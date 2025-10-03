@@ -39,9 +39,9 @@ describe('SAMLConfigurationPage', () => {
   };
 
   beforeEach(() => {
-    spyOn(samlConfigurationSelectors, 'selectSAMLConfigurationSlice').and.returnValue(samlConfigurationSlice);
+    jest.spyOn(samlConfigurationSelectors, 'selectSAMLConfigurationSlice').mockReturnValue(samlConfigurationSlice);
 
-    loadSAMLConfigurationSpy = spyOn(samlConfigurationActions, 'loadSAMLConfiguration').and.callThrough();
+    loadSAMLConfigurationSpy = jest.spyOn(samlConfigurationActions, 'loadSAMLConfiguration');
 
     renderComponent = () => render(<SAMLConfigurationPage />);
   });
@@ -68,7 +68,7 @@ describe('SAMLConfigurationPage', () => {
   it('renders a disabled download IQ server metadata button', () => {
     renderComponent();
 
-    expect(screen.getByRole('button', { name: 'Download IQ Server Metadata' })).toHaveClassName('disabled');
+    expect(screen.getByRole('button', { name: 'Download IQ Server Metadata' })).toHaveClass('disabled');
   });
 
   it('renders the "not configured" message', () => {
@@ -85,7 +85,7 @@ describe('SAMLConfigurationPage', () => {
     const deleteButton = screen.getByRole('button', { name: 'Delete Configuration' });
 
     expect(saveButton).toBeVisible();
-    expect(saveButton).toHaveClassName('disabled');
+    expect(saveButton).toHaveClass('disabled');
     expect(deleteButton).toBeVisible();
     expect(deleteButton).toHaveAttribute('disabled');
     expect(cancelButton).toBeVisible();

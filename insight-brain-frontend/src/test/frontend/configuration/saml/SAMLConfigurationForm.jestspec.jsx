@@ -41,10 +41,10 @@ describe('SAMLConfigurationForm', () => {
     loadedConfigurationValues: null,
   };
 
-  onCancelSpy = jasmine.createSpy('onCancel');
-  onSubmitSpy = jasmine.createSpy('onSubmit');
-  deleteConfigurationSpy = jasmine.createSpy('deleteConfiguration');
-  toggleDeleteModalSpy = jasmine.createSpy('toggleDeleteModal');
+  onCancelSpy = jest.fn();
+  onSubmitSpy = jest.fn();
+  deleteConfigurationSpy = jest.fn();
+  toggleDeleteModalSpy = jest.fn();
 
   props = {
     onCancel: onCancelSpy,
@@ -78,7 +78,7 @@ describe('SAMLConfigurationForm', () => {
       const download = screen.getByRole('button', { name: 'Download IQ Server Metadata' });
 
       expect(saveButton).toBeVisible();
-      expect(saveButton).toHaveClassName('disabled');
+      expect(saveButton).toHaveClass('disabled');
 
       expect(deleteButton).toBeVisible();
       expect(deleteButton).toHaveAttribute('disabled');
@@ -86,7 +86,7 @@ describe('SAMLConfigurationForm', () => {
       expect(deleteConfigurationSpy).not.toHaveBeenCalled();
 
       expect(download).toBeVisible();
-      expect(download).toHaveClassName('disabled');
+      expect(download).toHaveClass('disabled');
 
       expect(cancelButton).toBeVisible();
       fireEvent.click(cancelButton);
@@ -119,7 +119,7 @@ describe('SAMLConfigurationForm', () => {
       const download = screen.getByRole('button', { name: 'Download IQ Server Metadata' });
 
       expect(saveButton).toBeVisible();
-      expect(saveButton).not.toHaveClassName('disabled');
+      expect(saveButton).not.toHaveClass('disabled');
       fireEvent.click(saveButton);
       expect(onSubmitSpy).toHaveBeenCalled();
 
@@ -129,7 +129,7 @@ describe('SAMLConfigurationForm', () => {
       expect(toggleDeleteModalSpy).toHaveBeenCalled();
 
       expect(download).toBeVisible();
-      expect(download).not.toHaveClassName('disabled');
+      expect(download).not.toHaveClass('disabled');
 
       expect(cancelButton).toBeVisible();
       fireEvent.click(cancelButton);

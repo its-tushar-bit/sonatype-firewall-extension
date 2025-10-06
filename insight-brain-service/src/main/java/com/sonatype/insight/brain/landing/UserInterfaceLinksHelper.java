@@ -81,6 +81,9 @@ public class UserInterfaceLinksHelper
   public static final String FIREWALL_CONTAINER_IMAGE_EVALUATION_REPORT_PATH =
       "firewall/containerReport/{containerImagePublicId}/report/{scanId}";
 
+  public static final String MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH =
+      "malware-defense/containerReport/{containerImagePublicId}/report/{scanId}";
+
   private static String buildStableUrl(String path) {
     return UriBuilder.fromPath(RESOURCE_PATH).path(path).build().toString();
   }

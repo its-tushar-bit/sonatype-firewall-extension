@@ -432,6 +432,15 @@ public class UserInterfaceLinksResource
     return redirect(uriBuilder, containerImagePublicId, scanId);
   }
 
+  @GET
+  @Path(MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH)
+  public Response linkToMalwareDefenseContainerReportPolicy(
+      @PathParam("containerImagePublicId") String containerImagePublicId,
+      @PathParam("scanId") String scanId)
+  {
+    return linkToMalwareDefenseContainerEvaluationReport(containerImagePublicId, scanId);
+  }
+
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {
     final UriBuilder uriBuilder = baseUrl.redirect();
     uriBuilder.path(ASSET_INDEX_PATH).fragment(PRIORITIES_PATH);

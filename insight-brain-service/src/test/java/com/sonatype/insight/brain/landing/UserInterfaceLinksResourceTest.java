@@ -439,6 +439,13 @@ public class UserInterfaceLinksResourceTest
     assertRedirect(response, "assets/index.html#/firewall/containerReport/container-public-id/scan-id/policy");
   }
 
+  @Test
+  public void testLinkToMalwareDefenseContainerReportPolicy() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH,
+        "container-public-id", "scan-id");
+    assertRedirect(response, "assets/index.html#/firewall/containerReport/container-public-id/scan-id/policy");
+  }
+
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(
       final Map<ByteArrayDataSource, Integer> responses)
       throws MessagingException, IOException

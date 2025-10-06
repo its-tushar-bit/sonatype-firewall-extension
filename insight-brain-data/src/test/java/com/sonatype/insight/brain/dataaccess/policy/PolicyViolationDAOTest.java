@@ -2319,4 +2319,79 @@ public class PolicyViolationDAOTest
 
   private record PolicyViolationDefinition(PolicyViolationState violationState, Created created, Resolved resolved) {
   }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainerAggregate_ViolationStateFilters() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    // Create applications for different violation states
+    Application app1 = tempEntity.newApplication("app1", org1.getId()); // Open violation
+    Application app2 = tempEntity.newApplication("app2", org1.getId()); // Quarantined violation
+    Application app3 = tempEntity.newApplication("app3", org1.getId()); // Waived violation
+    
+    Policy policy = tempEntity.newPolicy(organization);
+
+    // Create policy evaluations
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+    PolicyEvaluation policyEvaluation2 = tempEntity.newPolicyEvaluation(app2.getId(), ProxyStageType.ID, "scan-2");  
+    PolicyEvaluation policyEvaluation3 = tempEntity.newPolicyEvaluation(app3.getId(), ProxyStageType.ID, "scan-3");
+
+    // App1: Create open violation (not waived, not quarantined)
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 5, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id1", "v1", "test-hash", "warn");
+    
+    // App2: Create quarantined violation (fail action, not waived)
+    tempEntity.newPolicyViolation(policyEvaluation2, policy, 7, PolicyThreatCategory.OTHER, "test-group-id",
+        "test-artifact-id2", "v1", "test-hash", "fail");
+
+    // App3: Create waived violation
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    ComponentIdentifier componentIdentifier = 
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "Version1");
+    PolicyViolation waivedViolation = new PolicyViolation(policyEvaluation3, policy.getId(), policy.getName(), 6,
+        PolicyThreatCategory.OTHER, "hash3", componentIdentifier, List.of(constraintFact), "filename");
+    waivedViolation.setWaiveTime(new Date());
+    waivedViolation.setActionTypeId("fail");
+    dao.insert(waivedViolation);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Arrays.asList(app1.getId(), app2.getId(), app3.getId());
+
+    // Test VIOLATION_STATE_OPEN - should return only open violations (not waived, not legacy)
+    RepositoryResultsForImageContainerFilter filterOpen = getDetailsFilter();
+    filterOpen.violationStateFilters = Collections.singleton("VIOLATION_STATE_OPEN");
+    List<RepositoryResultsForImageContainer> resultOpen = 
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, filterOpen);
+    assertThat(resultOpen)
+        .extracting(result -> result.applicationPublicId)
+        .containsExactlyInAnyOrder(app1.getPublicId(), app2.getPublicId());
+    // app1 (open) and app2 (quarantined but still open)
+    
+    // Test VIOLATION_STATE_QUARANTINED - should return only quarantined violations (fail action, not waived)
+    RepositoryResultsForImageContainerFilter filterQuarantined = getDetailsFilter();
+    filterQuarantined.violationStateFilters = Collections.singleton("VIOLATION_STATE_QUARANTINED");
+    List<RepositoryResultsForImageContainer> resultQuarantined = 
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, filterQuarantined);
+    assertThat(resultQuarantined)
+        .extracting(result -> result.applicationPublicId)
+        .containsExactly(app2.getPublicId()); // only app2 has quarantined violation (fail action, not waived)
+
+    // Test VIOLATION_STATE_WAIVED - should return only waived violations  
+    RepositoryResultsForImageContainerFilter filterWaived = getDetailsFilter();
+    filterWaived.violationStateFilters = Collections.singleton("VIOLATION_STATE_WAIVED");
+    List<RepositoryResultsForImageContainer> resultWaived = 
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, filterWaived);
+    assertThat(resultWaived)
+        .extracting(result -> result.applicationPublicId)
+        .containsExactly(app3.getPublicId()); // only app3 has waived violation
+    
+    // Verify the waived violation has null quarantine time
+    RepositoryResultsForImageContainer waivedResult = resultWaived.get(0);
+    assertThat(waivedResult.quarantineTime).isNull();
+
+  }
 }

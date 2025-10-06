@@ -481,7 +481,7 @@ public class PolicyViolationDAO
           case "VIOLATION_STATE_QUARANTINED":
             query.append(filterCount > 1 ? " OR" : " AND (");
             query.append(
-                " (pv.open_time IS NOT NULL AND pv.action_type_id = 'fail')");
+                " (pv.open_time IS NOT NULL AND pv.action_type_id = 'fail' AND pv.waive_time IS NULL)");
             break;
           case "VIOLATION_STATE_WAIVED":
             query.append(filterCount > 1 ? " OR" : " AND (");

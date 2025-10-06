@@ -45,11 +45,11 @@ public class ApiRoleMembershipResource
 {
   private MembershipMappingService membershipMappingService;
 
-  public static final String APPLICATION_OR_ORGANIZATION =
-      "{ownerType: application|organization}/{internalOwnerId}/role/{roleId}/{memberType: user|group}/{memberName}";
+  public static final String APPLICATION_OR_ORGANIZATION = "{ownerType: application|organization}/{internalOwnerId}" +
+      "/role/{roleId}/{memberType: (?i:user|group)}/{memberName}";
 
   static final String GLOBAL_OR_REPOSITORY_CONTAINER =
-      "{ownerType: global|repository_container}/role/{roleId}/{memberType: user|group}/{memberName}";
+      "{ownerType: global|repository_container}/role/{roleId}/{memberType: (?i:user|group)}/{memberName}";
 
   @Inject
   public ApiRoleMembershipResource(MembershipMappingService membershipMappingService) {

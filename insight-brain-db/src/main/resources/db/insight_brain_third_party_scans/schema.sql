@@ -45,7 +45,7 @@ CREATE TABLE file_coordinate (
   version VARCHAR(200) NOT NULL,
   third_party_file_id VARCHAR(50) NOT NULL,
   package_url VARCHAR(1000)  NULL,
-  cpe VARCHAR(255) NULL,
+  cpe VARCHAR(1000) NULL,
   swid TEXT NULL,
   dependency_type        VARCHAR(2)   NULL,
   identification_sources VARCHAR(100) NULL,

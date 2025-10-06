@@ -23,7 +23,6 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 
 import com.codahale.metrics.annotation.Timed;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -39,7 +38,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Timed
 @Path(PublicApiPaths.FIREWALL_CASCADE_REEVALUATE_PATH)
 @Tag(name = ApiFirewallResource.SWAGGER_UI_API_LABEL)
-@Hidden
 public class ApiFirewallCascadeResource
 {
   private final ApiFirewallCascadeService apiFirewallCascadeService;

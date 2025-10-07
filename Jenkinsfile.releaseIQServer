@@ -11,13 +11,27 @@ properties(
             [
                 booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
                 string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
-                run(name:'saasBuild', filter: 'STABLE', projectName: 'insight/MTIQ/production/prod-us-1', description: 'The Saas Build to release from.')
+                run(name:'saasBuild', filter: 'STABLE', projectName: 'insight/MTIQ/production/prod-us-1', description: 'The Saas Build to release from.'),
+                string (name: 'branchName', defaultValue: '', description: 'Optional - a branch to build from - overrides SaaS Build'),
+                string (name: 'buildNumber', defaultValue: '', description: 'Optional - a build number for the branch - overrides SaaS Build')
             ]
         )
     ]
 )
 
+String getBranchName() {
+  if (params.branchName && params.branchName != '') {
+    return params.branchName
+  }
+
+  return 'main'
+}
+
 String getSnapshotBuildNumber() {
+  if (params.buildNumber && params.buildNumber != '') {
+    return params.buildNumber
+  }
+
   Map<String, String> buildNameElements = parseBuildName(env.saasBuild_NAME)
   String version = buildNameElements.version
   if (version.contains('-')) {
@@ -28,6 +42,7 @@ String getSnapshotBuildNumber() {
   }
 }
 
+String branch = getBranchName()
 String buildNumber = getSnapshotBuildNumber()
 
 pipeline {
@@ -51,7 +66,7 @@ pipeline {
         build(job: 'insight/insight-brain/release',
               parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
                             string(name: 'version', value: params.releaseVersion),
-                            run(name: 'snapshotBuild', runId: "insight/insight-brain/feature-snapshots/main#${buildNumber}")])
+                            run(name: 'snapshotBuild', runId: "insight/insight-brain/feature-snapshots/${branch}#${buildNumber}")])
       }
     }
     stage('Release Jira Version - IQ') {

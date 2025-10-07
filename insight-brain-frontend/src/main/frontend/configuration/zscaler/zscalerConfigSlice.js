@@ -97,7 +97,7 @@ function setFormStateFromServerData(state) {
 
 function computeHasAllRequiredData(state) {
   const {
-      formState: { username, password, hostname, apiKey, configuredFormatState },
+      formState: { username, password, hostname, apiKey, configuredFormatState, eula },
     } = state,
     // Check if hostname has value AND no validation errors
     isHostnameValid = hostname.value && (!hostname.validationErrors || hostname.validationErrors.length === 0),
@@ -106,7 +106,8 @@ function computeHasAllRequiredData(state) {
       password.value &&
       isHostnameValid &&
       apiKey.value &&
-      configuredFormatState.formats.size > 0
+      configuredFormatState.formats.size > 0 &&
+      eula.value
     ),
     hasAllRequiredDataForTestConfig = !!(username.value && password.value && isHostnameValid && apiKey.value);
 
@@ -283,14 +284,20 @@ function testConfigFailed(state) {
   };
 }
 
-function setEulaCheckbox(state) {
-  const checkboxValue = state.formState.eula.value;
-  state.formState.eula = {
-    value: !checkboxValue,
-    isPristine: false,
-    validationErrors: validateCheckbox(!checkboxValue),
-    disabled: false,
+function setEulaCheckbox(state, { payload }) {
+  const stateWithUpdatedValue = {
+    ...state,
+    formState: {
+      ...state.formState,
+      eula: {
+        value: payload,
+        isPristine: false,
+        validationErrors: validateCheckbox(payload),
+        disabled: false,
+      },
+    },
   };
+  return updatedComputedProps(stateWithUpdatedValue);
 }
 
 const setConfiguredFormats = (state, { payload }) => {

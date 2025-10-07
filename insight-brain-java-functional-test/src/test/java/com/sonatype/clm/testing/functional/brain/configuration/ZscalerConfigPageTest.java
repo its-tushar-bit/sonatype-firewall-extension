@@ -145,7 +145,8 @@ public class ZscalerConfigPageTest
     page.formatDropdownButton().click();
 
     saveConfiguration();
-    assertValidationError("Review the highlighted fields for missing information.");
+    assertValidationError("Username, Password, Hostname, Zscaler API Key, Configured format and " +
+        "End User License Agreement are required details.");
   }
 
   @Test
@@ -222,8 +223,8 @@ public class ZscalerConfigPageTest
   public void testAllFieldsRequiredFormValidationErrors() {
     refreshOrOpen(ZscalerConfigPage.url());
     saveConfiguration();
-    assertValidationError("Username, Password, Hostname, Zscaler API Key and at least one format " +
-        "are required details.");
+    assertValidationError("Username, Password, Hostname, Zscaler API Key, Configured format and " +
+        "End User License Agreement are required details.");
   }
 
   @Test

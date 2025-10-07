@@ -408,6 +408,7 @@ describe('zscalerConfigSlice', () => {
 
       const newState = reducer(state, {
         type: 'zscalerConfig/setEulaCheckbox',
+        payload: true,
       });
 
       expect(newState.formState.eula.value).toBe(true);

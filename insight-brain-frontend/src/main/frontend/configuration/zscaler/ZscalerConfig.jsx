@@ -48,7 +48,7 @@ const TEST_CONFIG_ERROR_MESSAGE =
 const TEST_CONFIG_SUCCESS_MESSAGE = 'Connection to Zscaler successful.';
 
 const REQUIRED_DETAILS_MESSAGE =
-  'Username, Password, Hostname, Zscaler API Key and at least one format are required details.';
+  'Username, Password, Hostname, Zscaler API Key, Configured format and End User License Agreement are required details.';
 
 const REQUIRED_DETAILS_TEST_CONFIG_MESSAGE = 'Username, Password, Hostname and Zscaler API Key are required details.';
 
@@ -161,7 +161,6 @@ export default function ZscalerConfig(props) {
   const formValidationErrors = reject(isNil, [
     mustReenterPassword ? PASSWORD_REENTER_MESSAGE : null,
     hasAllRequiredData ? null : REQUIRED_DETAILS_MESSAGE,
-    eulaState.value ? null : 'Review the highlighted fields for missing information.',
     isDirty ? null : MSG_NO_CHANGES_TO_SAVE,
   ]);
 

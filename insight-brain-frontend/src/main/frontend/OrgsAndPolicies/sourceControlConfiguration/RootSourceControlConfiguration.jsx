@@ -65,17 +65,19 @@ const RootSourceControlConfiguration = () => {
         return 'Github';
       case 'gitlab':
         return 'Gitlab';
+      case 'azure':
+        return 'Azure DevOps';
       default:
         return 'Git';
     }
   };
 
   const mapSourceControlOptionToToggle = (id, title, description, optionName) => {
-    const isGitlabOrGithub =
-      sourceControl?.provider?.rscValue?.value === 'github' || sourceControl?.provider?.rscValue?.value === 'gitlab';
+    const scmProvider = sourceControl?.provider?.rscValue?.value;
+    const isAllowedProvider = scmProvider === 'github' || scmProvider === 'gitlab' || scmProvider === 'azure';
     if (
       id === 'source-control-remediation-pull-requests' &&
-      isGitlabOrGithub &&
+      isAllowedProvider &&
       sourceControl?.ownerId === 'ROOT_ORGANIZATION_ID'
     ) {
       return (
@@ -92,23 +94,23 @@ const RootSourceControlConfiguration = () => {
               className="iq-source-control-toggle"
               onChange={() => toggleValue(optionName)}
               isChecked={sourceControl?.[optionName].value ?? false}
-              disabled={
-                !sourceControl?.provider.rscValue.value || (!isAutomationSupported && optionName !== 'sshEnabled')
-              }
+              disabled={!scmProvider || (!isAutomationSupported && optionName !== 'sshEnabled')}
             >
               <span className="iq-source-control-toggle__title">{title}</span>
               <RenderMarkdown className="iq-source-control-toggle__text">{description}</RenderMarkdown>
             </NxToggle>
             <div className="git-advanced-options">
               <h5>Advanced {getSCMProvider()} Options</h5>
-              <NxCheckbox
-                name="failed-checks-advanced-option"
-                onChange={() => toggleValue('closePrOnFailedChecksEnabled')}
-                isChecked={sourceControl?.closePrOnFailedChecksEnabled?.value}
-                disabled={!sourceControl?.remediationPullRequestsEnabled?.value}
-              >
-                Close AutoPRs when one or more required checks fail
-              </NxCheckbox>
+              {(scmProvider === 'github' || scmProvider === 'gitlab') && (
+                <NxCheckbox
+                  name="failed-checks-advanced-option"
+                  onChange={() => toggleValue('closePrOnFailedChecksEnabled')}
+                  isChecked={sourceControl?.closePrOnFailedChecksEnabled?.value}
+                  disabled={!sourceControl?.remediationPullRequestsEnabled?.value}
+                >
+                  Close AutoPRs when one or more required checks fail
+                </NxCheckbox>
+              )}
               <NxCheckbox
                 name="after-days-open-advanced-option"
                 onChange={() => toggleValue('closePrAfterDaysOpenEnabled')}

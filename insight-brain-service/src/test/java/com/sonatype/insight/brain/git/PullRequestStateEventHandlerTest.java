@@ -18,6 +18,7 @@ import javax.inject.Inject;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.CLOSE_PULL_REQUEST_EVENT;
+import static com.sonatype.nexus.scm.SourceControlProvider.AZURE;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITHUB;
 import static com.sonatype.nexus.scm.SourceControlProvider.GITLAB;
 import static org.mockito.Mockito.mock;
@@ -1306,6 +1307,38 @@ public class PullRequestStateEventHandlerTest
   }
 
   @Test
+  public void testCloseAutoPullRequestIfEnabled_TriggerAutoClose_oldPR_Azure() {
+    Application azureApp = tempEntity.newApplicationWithParent();
+
+    SourceControlPullRequest pullRequest =
+        setupSourceControlAndPullRequestForAutoPrClosing(azureApp, AZURE, false, true, 5);
+
+    PullRequestLifecycleInfo prLifecycleInfo = createGitlabPullRequestLifecycleInfo(false);
+
+    // when:
+    handler.closeAutoPullRequestIfEnabled(azureApp.getId(), pullRequest, prLifecycleInfo);
+
+    // then:
+    List<SourceControlEvent> events = sourceControlEventDAO.getAllByApplicationId(azureApp.getId());
+    assertThat(events).isNotEmpty();
+    SourceControlEvent firstEvent = events.get(0);
+    assertThat(firstEvent.getEventType()).isEqualTo(CLOSE_PULL_REQUEST_EVENT);
+    assertThat(firstEvent.getPullRequestNumber()).isEqualTo(1);
+    assertThat(firstEvent.getPullRequestContents()).isEqualTo(
+        "**This pull request was automatically closed.**  \n" +
+            "This automated pull request was not merged and has been closed after 5 days of inactivity, " +
+            "per Lifecycle configuration.");
+
+    // and when:
+    handler.updateSourceControlPullRequest(pullRequest, prLifecycleInfo, true);
+
+    // then:
+    SourceControlPullRequest updatedPullRequest =
+        sourceControlPullRequestDAO.getByApplicationIdAndPullRequestId(azureApp.getId(), 1);
+    assertThat(updatedPullRequest.getState()).isEqualTo(PullRequestState.AUTO_CLOSED);
+  }
+
+  @Test
   public void testHandle_TelemetrySent_PrOpenToOpen_NoTelemetryEmitted() throws Exception {
     int prNumber = 103;
 
@@ -1544,9 +1577,11 @@ public class PullRequestStateEventHandlerTest
       int closePrAfterDays
   )
   {
-    String repoUrl = provider == GITHUB ?
-        "https://github.com/test-org/test-repo.git"
-        : "https://gitlab.com/test-org/test-repo.git";
+    String repoUrl = switch (provider) {
+      case GITLAB -> "https://gitlab.com/test-org/test-repo.git";
+      case AZURE -> "https://dev.azure.com/org/prj/_git/app";
+      default -> "https://github.com/test-org/test-repo.git";
+    };
     SourceControlPullRequest pullRequest = tempEntity.newSourceControlPullRequest(
         repoUrl,
         1,
@@ -1561,8 +1596,9 @@ public class PullRequestStateEventHandlerTest
     pullRequest.setCreateTime(Date.from(tenDaysAgo));
     sourceControlPullRequestDAO.update(pullRequest);
 
-    SourceControl rootOrgSourceControl =
-        tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, provider);
+    SourceControl rootOrgSourceControl = provider == AZURE
+        ? tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, "username",null, provider)
+        : tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, null, provider);
     rootOrgSourceControl.setClosePrOnFailedChecksEnabled(closePrOnFailedChecks);
     rootOrgSourceControl.setClosePrAfterDaysOpenEnabled(closePrAfterDaysOpen);
     rootOrgSourceControl.setClosePrAfterDays(closePrAfterDays);
@@ -1571,6 +1607,7 @@ public class PullRequestStateEventHandlerTest
     tempEntity.newSourceControl(
         app.getId(),
         repoUrl,
+        provider == AZURE ? "username" : null,
         passwordHandler.encryptPassword(TOKEN),
         provider
     );

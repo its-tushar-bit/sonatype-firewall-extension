@@ -318,9 +318,9 @@ public class PullRequestStateEventHandler
 
     if (isClosePrAfterDaysOpenEnabled
         && isPrOlderThanDays(pullRequest, sourceControl.getClosePrAfterDays())) {
-      String codeRequest = sourceControl.getProvider() == SourceControlProvider.GITHUB
-          ? "pull request"
-          : "merge request";
+      String codeRequest = sourceControl.getProvider() == SourceControlProvider.GITLAB
+          ? "merge request"
+          : "pull request";
       closeReason = String.format("**This %s was automatically closed.**  \n" +
         "This automated %s was not merged and has been closed after %s days of inactivity, " +
         "per Lifecycle configuration.", codeRequest, codeRequest, sourceControl.getClosePrAfterDays());
@@ -338,7 +338,7 @@ public class PullRequestStateEventHandler
       return false;
     }
     return switch (sourceControl.getProvider()) {
-      case GITHUB, GITLAB -> true;
+      case GITHUB, GITLAB, AZURE -> true;
       default -> false;
     };
   }

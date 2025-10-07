@@ -560,7 +560,7 @@ describe('sourceControlConfiguration', () => {
         expect(daysInput).toBeInTheDocument();
       });
 
-      it('hides advanced options for Azure', async () => {
+      it('shows advanced options for Azure', async () => {
         renderComponent();
         await selectProvider('azure');
 
@@ -569,10 +569,10 @@ describe('sourceControlConfiguration', () => {
         const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
         const daysInput = screen.queryByPlaceholderText('Ex. 7');
 
-        expect(advancedOptionsSection).not.toBeInTheDocument();
+        expect(advancedOptionsSection).toBeInTheDocument();
         expect(failedChecksCheckbox).not.toBeInTheDocument();
-        expect(afterDaysCheckbox).not.toBeInTheDocument();
-        expect(daysInput).not.toBeInTheDocument();
+        expect(afterDaysCheckbox).toBeInTheDocument();
+        expect(daysInput).toBeInTheDocument();
       });
 
       it('hides advanced options for Bitbucket', async () => {

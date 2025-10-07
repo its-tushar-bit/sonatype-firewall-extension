@@ -64,8 +64,8 @@ public class UserInterfaceLinksResource
 
   public static final String DEFAULT_CDX_BOM_SPECIFICATION = ExportSpecification.DEFAULT.getVersion();
 
-  public static final String MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH = 
-      "/malware-defense/repository/{repositoryId}/result";
+  public static final String FIREWALL_REPOSITORY_RESULTS_PATH =
+      "/firewall/repository/{repositoryId}/result";
 
   private final BaseUrl baseUrl;
 
@@ -291,7 +291,7 @@ public class UserInterfaceLinksResource
     }
 
     UriBuilder uriBuilder = baseUrl.redirect();
-    uriBuilder.path(ASSET_INDEX_PATH).fragment(MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH);
+    uriBuilder.path(ASSET_INDEX_PATH).fragment(FIREWALL_REPOSITORY_RESULTS_PATH);
     return redirect(uriBuilder, repositoryId);
   }
 
@@ -439,6 +439,12 @@ public class UserInterfaceLinksResource
       @PathParam("scanId") String scanId)
   {
     return linkToMalwareDefenseContainerEvaluationReport(containerImagePublicId, scanId);
+  }
+
+  @GET
+  @Path(MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH)
+  public Response linkToMalwareDefenseRepositoryResults(@PathParam("repositoryId") String repositoryId) {
+    return linkToRepositoryReport(repositoryId);
   }
 
   private Response linkToPrioritiesReportRedirect(final String applicationPublicId, final String scanId) {

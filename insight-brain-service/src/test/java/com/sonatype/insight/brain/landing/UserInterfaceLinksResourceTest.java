@@ -338,7 +338,7 @@ public class UserInterfaceLinksResourceTest
     String url = UserInterfaceLinksHelper.getRepositoryReportUrl("repo id");
     assertThat(url).isEqualTo(UserInterfaceLinksHelper.RESOURCE_PATH + "/repository/repo%20id/result");
     HttpResponse response = get(UserInterfaceLinksHelper.REPO_RESULT_PATH, "repo id");
-    assertRedirect(response, "assets/index.html#/malware-defense/repository/repo%20id/result");
+    assertRedirect(response, "assets/index.html#/firewall/repository/repo%20id/result");
   }
 
   @Test
@@ -444,6 +444,12 @@ public class UserInterfaceLinksResourceTest
     HttpResponse response = get(UserInterfaceLinksHelper.MALWARE_DEFENSE_CONTAINER_IMAGE_EVALUATION_REPORT_PATH,
         "container-public-id", "scan-id");
     assertRedirect(response, "assets/index.html#/firewall/containerReport/container-public-id/scan-id/policy");
+  }
+
+  @Test
+  public void testLinkToMalwareDefenseRepositoryResults_redirectsToFirewall() throws Exception {
+    HttpResponse response = get(UserInterfaceLinksHelper.MALWARE_DEFENSE_REPOSITORY_RESULTS_PATH, "repo id");
+    assertRedirect(response, "assets/index.html#/firewall/repository/repo%20id/result");
   }
 
   private Map<TelemetryPurpose, List<TelemetryItem>> getTelemetryItemsByPurpose(

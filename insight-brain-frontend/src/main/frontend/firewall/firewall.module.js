@@ -933,6 +933,11 @@ function routes($stateProvider, $urlServiceProvider) {
   $urlServiceProvider.rules.when('/malware-defense/management/tree', (matchValues, _urlParts, router) =>
     router.stateService.go('firewall.management.tree', matchValues)
   );
+
+  $urlServiceProvider.rules.when(
+    '/malware-defense/repository/{repositoryId}/result',
+    (matchValues, _urlParts, router) => router.stateService.go('firewall.repository-report', matchValues)
+  );
 }
 
 routes.$inject = ['$stateProvider', '$urlServiceProvider'];

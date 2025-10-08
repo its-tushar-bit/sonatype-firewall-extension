@@ -35,6 +35,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
@@ -84,7 +85,7 @@ public class ScanTaskStateTest
     File binFile = new File("path/any");
     Application application = new Application("any", "MyApp", null);
     application.setId("appId");
-    task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "");
+    task.init(application, binFile, "any", new Stage(Stage.ID_BUILD), false, "", "", false);
     when(scanner.scan(any(), any(), any(), any())).thenReturn(
         new ScanResult(new FileScanEntity(binFile.toPath()), false));
   }
@@ -108,7 +109,7 @@ public class ScanTaskStateTest
   public void uploading() throws IOException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
-        any())).then(captureState).thenReturn(scanReciept);
+        any(), anyBoolean())).then(captureState).thenReturn(scanReciept);
 
     task.run();
 
@@ -119,7 +120,7 @@ public class ScanTaskStateTest
   public void waitingForReport() throws IOException, InterruptedException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
-        any())).thenReturn(scanReciept);
+        any(), anyBoolean())).thenReturn(scanReciept);
 
     doAnswer(captureState).when(scanReciept).waitForReport();
 
@@ -132,7 +133,7 @@ public class ScanTaskStateTest
   public void evaluating() throws IOException {
     ScanReceipt scanReciept = mock(ScanReceipt.class);
     when(scanUploadService.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), any(), any(),
-        any())).thenReturn(scanReciept);
+        any(), anyBoolean())).thenReturn(scanReciept);
 
     when(scanPolicyEvaluator.evaluate(any(), any(), any(), eq(ScanTriggerType.WEB_UI),
         eq(ClientScanType.SONATYPE), eq(false))).then(captureState);

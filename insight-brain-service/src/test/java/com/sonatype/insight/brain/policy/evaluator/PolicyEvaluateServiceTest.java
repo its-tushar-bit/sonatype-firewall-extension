@@ -598,10 +598,7 @@ public class PolicyEvaluateServiceTest
 
     when(mockScanHandler.createTempScanFile(eq(mockHttpServletRequest), any(Application.class)))
         .thenReturn(mock(ScanEntity.class));
-    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(mockScanHandler
-        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
-            anyString(), clientUserAgentArgCaptor.capture(), anyString(), eq(null)))
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
         .thenReturn(scanReceipt);
 
     // evaluate policy
@@ -619,8 +616,6 @@ public class PolicyEvaluateServiceTest
 
     assertEvaluate(scanId, stage, scanTriggerType, policyEvaluationResult, policy1, mockJiraClient,
         appComponentDAO, mailA, mailB);
-
-    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -631,11 +626,9 @@ public class PolicyEvaluateServiceTest
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
     when(mockScanHandler.createTempScanFile(any(HttpServletRequest.class), any(Application.class)))
         .thenReturn(mock(ScanEntity.class));
-    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE_THIRD_PARTY),
-        telemetryDataArgumentCaptor.capture(), anyString(), anyString(), anyString(), eq(null)))
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
         .thenReturn(scanReceipt);
 
     HttpServletRequest req = mock(HttpServletRequest.class);
@@ -646,7 +639,9 @@ public class PolicyEvaluateServiceTest
 
     policyEvaluationHelper.awaitEvaluationCompleted(app.getId(), policyEvaluationReceipt.getStatusId());
 
-    TelemetryData telemetryData = telemetryDataArgumentCaptor.getAllValues().get(0);
+    ArgumentCaptor<ScanHandler.ScanRequest> scanRequestCaptor = ArgumentCaptor.forClass(ScanHandler.ScanRequest.class);
+    verify(mockScanHandler).handle(scanRequestCaptor.capture());
+    TelemetryData telemetryData = scanRequestCaptor.getValue().getThirdPartyScanTelemetryData();
     assertThat(telemetryData).isNotNull();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
 
@@ -672,9 +667,7 @@ public class PolicyEvaluateServiceTest
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
 
-    when(mockScanHandler
-        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
-            anyString(), eq(null), anyString(), eq(null)))
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
         .thenReturn(scanReceipt);
 
     // using the spy to put a delay into the real service so we make sure the Polling Result does not
@@ -734,8 +727,7 @@ public class PolicyEvaluateServiceTest
     lenient().doAnswer(invocation -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(mockScanHandler).handle(any(), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-        anyString(), anyString());
+    }).when(mockScanHandler).handle(any(ScanHandler.ScanRequest.class));
 
     PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI, app.getPublicId(),
         ClientScanType.SONATYPE, null, new Stage(Stage.ID_BUILD));
@@ -765,8 +757,7 @@ public class PolicyEvaluateServiceTest
     lenient().doAnswer(invocation -> {
       countDownLatch.await(1, TimeUnit.MINUTES);
       return null;
-    }).when(mockScanHandler).handle(any(), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-        anyString(), anyString());
+    }).when(mockScanHandler).handle(any(ScanHandler.ScanRequest.class));
 
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
 
@@ -873,10 +864,10 @@ public class PolicyEvaluateServiceTest
 
     Application app = tempEntity.newApplicationWithParent();
 
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     doThrow(new IOException("HDS Upload Scan Failure!!!"))
         .when(mockScanHandler)
-        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-            anyString(), anyString());
+        .handle(any(ScanHandler.ScanRequest.class));
 
     PolicyEvaluationReceipt receipt = policyEvaluateService
         .evaluateWithPolling(IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, null,
@@ -904,9 +895,7 @@ public class PolicyEvaluateServiceTest
     scanReceipt.setScanId(scanId);
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
-    when(mockScanHandler
-        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
-            anyString(), eq(null), anyString(), eq(null)))
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
         .thenReturn(scanReceipt);
 
     PolicyEvaluationReceipt receipt = policyEvaluateService
@@ -969,9 +958,7 @@ public class PolicyEvaluateServiceTest
     scanReceipt.setScanId(scanId);
 
     when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
-    when(mockScanHandler
-        .handle(any(ScanEntity.class), any(Application.class), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
-            anyString(), eq(null), anyString(), eq(null)))
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
         .thenReturn(scanReceipt);
 
     PolicyEvaluationReceipt receipt = policyEvaluateService.evaluateWithPolling(IntegrationType.CLI,
@@ -1123,9 +1110,7 @@ public class PolicyEvaluateServiceTest
 
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    ArgumentCaptor<String> clientUserAgentArgCaptor = ArgumentCaptor.forClass(String.class);
-    when(mockScanHandler.handle(eq(scanEntity), eq(app), eq(ClientScanType.SONATYPE), any(TelemetryData.class),
-        eq(stage.getStageTypeId()), clientUserAgentArgCaptor.capture())).thenReturn(scanReceipt);
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class))).thenReturn(scanReceipt);
 
     // evaluate policy
     String testClientUserAgent = "testClientUserAgent";
@@ -1156,8 +1141,6 @@ public class PolicyEvaluateServiceTest
     List<Message> notifications = Mailbox.get(mail);
     assertNotifications(notifications, 1, 5000);
     assertThat(notifications.get(0).getSubject()).contains("Policy");
-
-    assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
   @Test
@@ -1392,9 +1375,10 @@ public class PolicyEvaluateServiceTest
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
 
+    when(mockScanHandler.createTempScanFile(eq(null), any(Application.class))).thenReturn(mock(ScanEntity.class));
     doReturn(scanReceipt)
         .when(mockScanHandler)
-        .handle(any(), any(), any(), any(), any(), any(), any(), any());
+        .handle(any(ScanHandler.ScanRequest.class));
     doNothing()
         .when(mockTelemetrySender)
         .send(telemetryDataArgumentCaptor.capture());
@@ -1443,8 +1427,7 @@ public class PolicyEvaluateServiceTest
     scanReceipt.setScanId(scanId);
     doReturn(scanReceipt)
         .when(mockScanHandler)
-        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-            anyString(), anyString(), anyString(), eq(null));
+        .handle(any(ScanHandler.ScanRequest.class));
 
     PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(
         IntegrationType.CLI, app.getPublicId(), ClientScanType.SONATYPE, httpRequest, new Stage(Stage.ID_BUILD));

@@ -18,6 +18,9 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
+import javax.servlet.http.HttpServletRequest;
+
+import static com.sonatype.insight.brain.scan.ScanResource.WEB_UI_REQUEST_ATTRIBUTE;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -124,7 +127,8 @@ public class ScanService
       Stage stage,
       boolean sendNotifications,
       String userAgent,
-      String scanType) throws IOException
+      String scanType,
+      HttpServletRequest request) throws IOException
   {
     log.debug("Request to scan binary '{}' for application public id '{}'", filename, appPublicId);
 
@@ -138,9 +142,13 @@ public class ScanService
     if (!Stage.isValidStageTypeId(stage.getStageTypeId())) {
       throw new InvalidStageException(stage.getStageTypeId());
     }
+
+    boolean isWebUIRequest = request != null && Boolean.TRUE.equals(request.getAttribute(WEB_UI_REQUEST_ATTRIBUTE));
+
     File binFile = saveBinary(is, filename);
 
-    ScanTask scanTask = newScanTask(appPublicId, binFile, filename, stage, sendNotifications, userAgent, scanType);
+    ScanTask scanTask = newScanTask(appPublicId, binFile, filename, stage, sendNotifications, userAgent, scanType,
+        isWebUIRequest);
     return toScanTicket(scanTask);
   }
 
@@ -200,11 +208,12 @@ public class ScanService
       Stage stage,
       boolean sendNotifications,
       String userAgent,
-      String scanType)
+      String scanType,
+      boolean isWebUIRequest)
   {
     Application app = applicationDAO.getByPublicIdNotNull(appPublicId);
     ScanTask scanTask = scanTaskProvider.get();
-    scanTask.init(app, binFile, filename, stage, sendNotifications, userAgent, scanType);
+    scanTask.init(app, binFile, filename, stage, sendNotifications, userAgent, scanType, isWebUIRequest);
     persistedScanTicketDAO.insert(scanTask.toPersistedScanTicket());
     log.debug("Scheduling scan task {}", scanTask.getId());
     AuditData.get().continueAsync(new OneTimeSystemRunnable(scanTask), executors.get()::submit);

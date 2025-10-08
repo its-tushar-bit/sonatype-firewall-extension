@@ -32,9 +32,11 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -65,6 +67,9 @@ public class ScanUploaderTest
 
   @Override
   public void configure(Binder binder) {
+    // Setup default mock behavior to skip integration version validation (lenient for tests that don't use it)
+    lenient().when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(null);
+
     binder.bind(HdsClient.class).toInstance(mockHdsClient);
     binder.bind(InsightConfig.class).toInstance(insightConfig);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
@@ -130,7 +135,7 @@ public class ScanUploaderTest
         any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
     HdsClientAnalytics analytics = analyticsArg.getValue();
     assertThat(analytics).isEqualTo(expectedAnalyticsData);
   }
@@ -148,7 +153,7 @@ public class ScanUploaderTest
         .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, null, testClientUserAgent, thirdPartyScanContext, false );
     assertThat(clientUserAgentArgCaptor.getValue()).isEqualTo(testClientUserAgent);
   }
 
@@ -166,7 +171,7 @@ public class ScanUploaderTest
         .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
 
     assertThat(metadataArgs.getValue()).containsAllEntriesOf(matcherConfigs);
   }
@@ -186,7 +191,7 @@ public class ScanUploaderTest
         .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -210,7 +215,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
@@ -236,7 +241,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -263,7 +268,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -289,7 +294,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -316,7 +321,7 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, ProxyStageType.ID, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isFalse();
@@ -343,10 +348,166 @@ public class ScanUploaderTest
             .thenReturn(receipt);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
-    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext);
+    scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false );
 
     assertThat(queryParamsCaptor.getValue().get("uploadId")).isNotBlank();
     assertThat(queryParamsCaptor.getValue().get("enableCpeDataMatching")).asBoolean().isTrue();
     verify(mockCpeMatchingConfigurationService, never()).isCpeDataMatchingEnabled(app.getId());
+  }
+
+  @Test
+  public void testUpload_SkipsValidation_WhenSupportedVersionCountNotConfigured() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(null);
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class),
+        eq("Maven_Plugin/1.0.0 (Java 11.0.13; Linux)"),
+        any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+    ScanReceipt result = scanUploader.upload(scanEntity, app, null, "Maven_Plugin/1.0.0 (Java 11.0.13; Linux)",
+        thirdPartyScanContext, false);
+
+    assertThat(result).isEqualTo(receipt);
+    assertThat(result.getScanId()).isEqualTo(receipt.getScanId());
+  }
+
+  @Test
+  public void testUpload_SkipsValidation_WhenWebUIRequest() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class),
+        eq("Maven_Plugin/1.0.0 (Java 11.0.13; Linux)"),
+        any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+    ScanReceipt result = scanUploader.upload(scanEntity, app, null, "Maven_Plugin/1.0.0 (Java 11.0.13; Linux)",
+        thirdPartyScanContext, true);
+
+    assertThat(result).isEqualTo(receipt);
+    assertThat(result.getScanId()).isEqualTo(receipt.getScanId());
+  }
+
+  @Test
+  public void testUpload_ValidatesIntegrationVersion_ForExternalIntegration() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
+
+    IqIntegrationVersion[] supportedVersions = {
+        new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
+        new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
+    };
+    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
+        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(supportedVersions);
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class),
+        eq("Maven_Plugin/1.2.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)"),
+        any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+    ScanReceipt result = scanUploader.upload(scanEntity, app, null,
+        "Maven_Plugin/1.2.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)", thirdPartyScanContext, false);
+
+    assertThat(result).isEqualTo(receipt);
+    assertThat(result.getScanId()).isEqualTo(receipt.getScanId());
+  }
+
+  @Test
+  public void testUpload_ThrowsException_ForUnsupportedIntegrationVersion() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
+
+    IqIntegrationVersion[] supportedVersions = {
+        new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
+        new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
+        new IqIntegrationVersion("Maven_Plugin", "1.1.0")
+    };
+    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
+        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(supportedVersions);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> scanUploader.upload(scanEntity, app, null,
+            "Maven_Plugin/1.0.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)", thirdPartyScanContext, false))
+        .withMessageContaining("The integration version 1.0.0 of Maven_Plugin is not supported")
+        .withMessageContaining("Supported versions are: 1.3.0, 1.2.0, 1.1.0");
+  }
+
+  @Test
+  public void testUpload_ThrowsException_ForMissingClientUserAgent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> scanUploader.upload(scanEntity, app, null, null, thirdPartyScanContext, false))
+        .withMessageContaining("Client user agent is required for integration version validation");
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> scanUploader.upload(scanEntity, app, null, "", thirdPartyScanContext, false))
+        .withMessageContaining("Client user agent is required for integration version validation");
+  }
+
+  @Test
+  public void testUpload_ThrowsException_ForInvalidClientUserAgent() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> scanUploader.upload(scanEntity, app, null, "invalid-user-agent",
+            thirdPartyScanContext, false))
+        .withMessageContaining("Cannot parse client user agent: invalid-user-agent");
+  }
+
+  @Test
+  public void testUpload_ThrowsException_ForInvalidSupportedVersionCount() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(-1);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+
+    assertThatExceptionOfType(IllegalStateException.class)
+        .isThrownBy(() -> scanUploader.upload(scanEntity, app, null, "Maven_Plugin/1.2.0 (Java 11.0.13; Linux)",
+            thirdPartyScanContext, false))
+        .withMessageContaining("Invalid supported version count: -1");
+  }
+
+  @Test
+  public void testUpload_SkipsVersionValidation_WhenNoIntegrationVersionsReturnedFromHDS() throws Exception {
+    Application app = tempEntity.newApplicationWithParent("test-app-id");
+    when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
+
+    IqIntegrationVersion[] emptyVersions = {};
+    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
+        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(emptyVersions);
+
+    ScanReceipt receipt = new ScanReceipt();
+    receipt.setScanId("scanId");
+
+    when(mockHdsClient.put(any(HdsClientAnalytics.class), eq(ScanReceipt.class),
+        eq("Maven_Plugin/1.2.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)"),
+        any(String.class), any(ScanEntity.class), anyMap(), any(String[].class))).thenReturn(receipt);
+
+    ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
+
+    ScanReceipt result = scanUploader.upload(scanEntity, app, null,
+        "Maven_Plugin/1.2.0 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)", thirdPartyScanContext, false);
+
+    assertThat(result).isEqualTo(receipt);
+    assertThat(result.getScanId()).isEqualTo(receipt.getScanId());
   }
 }

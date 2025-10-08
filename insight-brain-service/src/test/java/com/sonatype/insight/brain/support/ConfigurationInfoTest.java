@@ -289,7 +289,8 @@ public class ConfigurationInfoTest
         "zScaler",
         "thirdPartyKevLookup",
         "userManagementPages",
-        "epssDataEnabled"
+        "epssDataEnabled",
+        "integrationsSupportedVersionCount"
     );
 
     // Properties included in the config.json in support zip

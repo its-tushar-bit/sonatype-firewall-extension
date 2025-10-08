@@ -310,7 +310,7 @@ public class PolicyEvaluateService
 
     evaluateWithPolling(statusId, app, clientScanType, stage,
         EvaluationUtils.getScanTriggerType(integrationType), tempScanEntity, thirdPartyScanType,
-        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), null);
+        HdsClient.getClientUserAgent(req), HdsClient.getClientInstanceId(req), (ScanContext) null);
 
     PolicyEvaluationReceipt policyEvaluationReceipt = new PolicyEvaluationReceipt();
     policyEvaluationReceipt.setStatusId(statusId);
@@ -391,7 +391,7 @@ public class PolicyEvaluateService
         thirdPartyScanType,
         clientUserAgent,
         clientInstanceId,
-        null
+        (ScanContext) null
     );
   }
 
@@ -423,6 +423,34 @@ public class PolicyEvaluateService
       String clientInstanceId,
       ScanContext scanContext)
   {
+    evaluateWithPolling(
+        statusId,
+        app,
+        clientScanType,
+        stage,
+        scanTriggerType,
+        tempScanEntity,
+        thirdPartyScanType,
+        clientUserAgent,
+        clientInstanceId,
+        scanContext,
+        null
+    );
+  }
+
+  public void evaluateWithPolling(
+      String statusId,
+      Application app,
+      ClientScanType clientScanType,
+      Stage stage,
+      ScanTriggerType scanTriggerType,
+      ScanEntity tempScanEntity,
+      String thirdPartyScanType,
+      String clientUserAgent,
+      String clientInstanceId,
+      ScanContext scanContext,
+      HttpServletRequest request)
+  {
     if (stageTypeService.getLicensedStageTypes().stream()
         .anyMatch(stageType -> stageType.getId().equals(stage.getStageTypeId())))
     {
@@ -441,7 +469,7 @@ public class PolicyEvaluateService
       AuditData.get().continueAsync(
           new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity,
               thirdPartyScanTelemetryData, persistedPolicyEvaluationPollingResult, clientUserAgent,
-              clientInstanceId, scanContext, null), executor::submit);
+              clientInstanceId, scanContext, null, request), executor::submit);
     }
     else {
       throw new BadRequestException("Invalid stage: " + stage.getStageTypeId());
@@ -632,6 +660,8 @@ public class PolicyEvaluateService
 
     private final VulnerabilitySignatureAnalysisDTO analysisDTO;
 
+    private final HttpServletRequest request;
+
     private static final String DOCKER_FORMAT = "docker";
 
     CompleteEvaluationTask(
@@ -648,6 +678,25 @@ public class PolicyEvaluateService
         final ScanContext scanContext,
         final VulnerabilitySignatureAnalysisDTO analysisDTO)
     {
+      this(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity, thirdPartyScanTelemetryData,
+          persistedPolicyEvaluationPollingResult, clientUserAgent, clientInstanceId, scanContext, analysisDTO, null);
+    }
+
+    CompleteEvaluationTask(
+        final Application app,
+        final ClientScanType clientScanType,
+        final String statusId,
+        final Stage stage,
+        final ScanTriggerType scanTriggerType,
+        final ScanEntity tempScanEntity,
+        final TelemetryData thirdPartyScanTelemetryData,
+        final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult,
+        final String clientUserAgent,
+        final String clientInstanceId,
+        final ScanContext scanContext,
+        final VulnerabilitySignatureAnalysisDTO analysisDTO,
+        final HttpServletRequest request)
+    {
       this.app = app;
       this.clientScanType = clientScanType;
       this.statusId = statusId;
@@ -660,6 +709,7 @@ public class PolicyEvaluateService
       this.clientInstanceId = clientInstanceId;
       this.scanContext = scanContext;
       this.analysisDTO = analysisDTO;
+      this.request = request;
     }
 
     @Override
@@ -774,8 +824,17 @@ public class PolicyEvaluateService
     ) throws IOException
     {
       ScanReceipt scanReceipt =
-          scanHandler.handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
-              clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
+          scanHandler.handle(ScanHandler.ScanRequest.builder()
+              .scanEntity(tempScanEntity)
+              .application(app)
+              .clientScanType(clientScanType)
+              .thirdPartyScanTelemetryData(thirdPartyScanTelemetryData)
+              .stageTypeId(stage.getStageTypeId())
+              .clientUserAgent(clientUserAgent)
+              .scanRequestId(persistedPolicyEvaluationPollingResult.getStatusId())
+              .scanContext(scanContext)
+              .httpRequest(request)
+              .build());
 
       String scanId = scanReceipt.getScanId();
 
@@ -909,8 +968,14 @@ public class PolicyEvaluateService
       TelemetryData thirdPartyScanTelemetryData =
           telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
               null /* thirdPartyScanType */, scanTriggerType, clientUserAgent);
-      ScanReceipt scanReceipt = scanHandler.handle(scanEntity, application, clientScanType, thirdPartyScanTelemetryData,
-          stage.getStageTypeId(), clientUserAgent);
+      ScanReceipt scanReceipt = scanHandler.handle(ScanHandler.ScanRequest.builder()
+          .scanEntity(scanEntity)
+          .application(application)
+          .clientScanType(clientScanType)
+          .thirdPartyScanTelemetryData(thirdPartyScanTelemetryData)
+          .stageTypeId(stage.getStageTypeId())
+          .clientUserAgent(clientUserAgent)
+          .build());
       scanId = scanReceipt.getScanId();
 
       log.debug("Evaluating policy for app public id {}, scan id {}, stageTypeId {}.", application.getPublicId(),

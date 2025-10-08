@@ -287,6 +287,9 @@ public class SystemConfigurationProperty
 
   public static final String ENABLE_FEDRAMP_AUDIT = "enableFedRAMPAudit";
 
+  // Number of supported integration versions to validate against. If not configured, validation is disabled.
+  public static final String INTEGRATIONS_SUPPORTED_VERSION_COUNT = "integrationsSupportedVersionCount";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

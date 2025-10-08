@@ -76,7 +76,8 @@ public class ScanUploadService
       ClientScanType clientScanType,
       String clientUserAgent,
       TelemetryData thirdPartyScanTelemetryData,
-      String scanRequestId) throws IOException
+      String scanRequestId,
+      boolean isWebUIRequest) throws IOException
   {
     return upload(
         scanEntity,
@@ -86,7 +87,8 @@ public class ScanUploadService
         clientUserAgent,
         thirdPartyScanTelemetryData,
         scanRequestId,
-        null
+        null,
+        isWebUIRequest
     );
   }
 
@@ -98,7 +100,8 @@ public class ScanUploadService
       String clientUserAgent,
       TelemetryData thirdPartyScanTelemetryData,
       String scanRequestId,
-      ScanContext scanContext) throws IOException
+      ScanContext scanContext,
+      boolean isWebUIRequest) throws IOException
   {
     if (scanEntity == null || app == null) {
       throw new IllegalArgumentException("scanFile and application is required for scan uploads");
@@ -112,10 +115,11 @@ public class ScanUploadService
     if (ClientScanType.SONATYPE_THIRD_PARTY.equals(clientScanType)) {
       scanReceipt =
           filterAndUpload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
-              thirdPartyScanTelemetryData);
+              thirdPartyScanTelemetryData, isWebUIRequest);
     }
     else {
-      scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
+      scanReceipt = uploader.upload(scanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext,
+          isWebUIRequest);
       if (ComplianceStageType.ID.equals(stageTypeId) && StringUtils.isNotEmpty(scanRequestId)) {
         thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
         saveFilteredScanFileIfNeeded(thirdPartyScanContext, scanEntity);
@@ -132,7 +136,8 @@ public class ScanUploadService
       String stageTypeId,
       String clientUserAgent,
       ThirdPartyScanContext thirdPartyScanContext,
-      TelemetryData thirdPartyScanTelemetryData)
+      TelemetryData thirdPartyScanTelemetryData,
+      boolean isWebUIRequest)
       throws IOException
   {
     ScanEntity tempScanEntity = scanPersistenceService.createTempScan(app.getId());
@@ -140,7 +145,8 @@ public class ScanUploadService
     String scanRequestId =
         scanResultsProcessor.filterAndSaveData(scanEntity, tempScanEntity, thirdPartyScanContext,
             thirdPartyScanTelemetryData);
-    ScanReceipt scanReceipt = uploader.upload(tempScanEntity, app, stageTypeId, clientUserAgent, thirdPartyScanContext);
+    ScanReceipt scanReceipt = uploader.upload(tempScanEntity, app, stageTypeId, clientUserAgent,
+        thirdPartyScanContext, isWebUIRequest);
     thirdPartyScanDAO.updateScanIdForScanRequest(scanRequestId, scanReceipt.getScanId());
     saveContainerUriPaths(stageTypeId, thirdPartyScanContext);
     saveFilteredScanFileIfNeeded(thirdPartyScanContext, tempScanEntity);

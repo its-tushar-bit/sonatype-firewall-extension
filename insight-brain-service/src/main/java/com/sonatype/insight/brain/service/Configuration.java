@@ -215,7 +215,8 @@ public class Configuration
         SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
         SystemConfigurationProperty.ZSCALER,
         SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP,
-        SystemConfigurationProperty.EPSS_DATA
+        SystemConfigurationProperty.EPSS_DATA,
+        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());
@@ -707,6 +708,10 @@ public class Configuration
 
   public Integer getZScalerUpdateTaskPeriod() {
     return configCache.get(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD);
+  }
+
+  public Integer getIntegrationsSupportedVersionCount() {
+    return configCache.get(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT);
   }
 
   /**

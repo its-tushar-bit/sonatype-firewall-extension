@@ -297,9 +297,16 @@ public class ComponentAnalysisService
           persistedPolicyEvaluationPollingResult.getPolicyEvaluationPollingResult();
 
       try {
-        ScanReceipt scanReceipt =
-            scanHandler.handle(tempScanEntity, app, clientScanType, thirdPartyScanTelemetryData, stage.getStageTypeId(),
-                clientUserAgent, persistedPolicyEvaluationPollingResult.getStatusId(), scanContext);
+        ScanReceipt scanReceipt = scanHandler.handle(ScanHandler.ScanRequest.builder()
+            .scanEntity(tempScanEntity)
+            .application(app)
+            .clientScanType(clientScanType)
+            .thirdPartyScanTelemetryData(thirdPartyScanTelemetryData)
+            .stageTypeId(stage.getStageTypeId())
+            .clientUserAgent(clientUserAgent)
+            .scanRequestId(persistedPolicyEvaluationPollingResult.getStatusId())
+            .scanContext(scanContext)
+            .build());
         scanId = scanReceipt.getScanId();
 
         policyEvaluationPollingResult.setScanReceipt(scanReceipt);

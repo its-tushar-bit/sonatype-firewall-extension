@@ -19,15 +19,12 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.utils.ScanHelper;
-import com.sonatype.insight.scan.model.ClientScanType;
-import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
@@ -102,8 +99,7 @@ public class SourceControlScanServiceAuditTest
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), anyString(),  anyString(), anyString(), eq(null))) //
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
             .thenReturn(scanReceipt);
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);
@@ -125,8 +121,7 @@ public class SourceControlScanServiceAuditTest
         .setUserAgent("testUserAgent") //
         .setScanTriggerType(ScanTriggerType.SOURCE_CONTROL_API);
 
-    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), any(String.class), any(String.class))) //
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
             .thenThrow(new RuntimeException("test error"));
 
     sourceControlScanService.onSourceControlScan(sourceControlEvent);
@@ -147,8 +142,7 @@ public class SourceControlScanServiceAuditTest
     ScanHelper.createDummyScanFile(lookup(InsightWork.class), app.getId(), scanId);
     ScanReceipt scanReceipt = new ScanReceipt();
     scanReceipt.setScanId(scanId);
-    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), any(String.class), eq(null))) //
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
             .thenReturn(scanReceipt);
 
     sourceControlScanService.doSynchronousSourceControlScan(app.getId(), new Stage(Stage.ID_BUILD), "testBranchName");
@@ -162,8 +156,7 @@ public class SourceControlScanServiceAuditTest
     createRootOrgSourceControl();
     tempEntity.newSourceControl(app.getId(), "http://localhost/testorg/testproject");
 
-    when(mockScanHandler.handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class),
-        any(TelemetryData.class), any(String.class), eq(null))) //
+    when(mockScanHandler.handle(any(ScanHandler.ScanRequest.class)))
             .thenThrow(new RuntimeException("test error"));
 
     assertThatExceptionOfType(RuntimeException.class)

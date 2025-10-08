@@ -130,6 +130,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
@@ -1279,7 +1280,8 @@ public class ReportServiceTest
         any(),
         eq(clientUserAgent),
         any(),
-        any()
+        any(),
+        anyBoolean()
     );
     // Mock the new report so we don't have to get it from the real HDS
     ReportHelper.saveMockReport(insightWork, tempDir,
@@ -1300,6 +1302,44 @@ public class ReportServiceTest
         .getReportEntity(app.getId(), scanId, INDEX_HTML.getName());
     assertThat(getEntityContents(bomFileAfterReUpload)).isEqualTo("{}\n");
     assertThat(getEntityContents(indexFileAfterReUpload)).isEqualTo("<html></html>");
+  }
+
+  @Test
+  public void testReUploadScanReport_skipsIntegrationVersionValidation() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId);
+    ReportService reportService = createReportService();
+
+    String browserUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:143.0) Gecko/20100101 Firefox/143.0";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(browserUserAgent),
+        any(),
+        any(),
+        eq(true)
+    );
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+
+    reportService.reUploadScanToHds(app.getId(), scanId, browserUserAgent);
+
+    verify(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(browserUserAgent),
+        any(),
+        any(),
+        eq(true)
+    );
   }
 
   @Test

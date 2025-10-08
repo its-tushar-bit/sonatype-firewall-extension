@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -28,7 +30,9 @@ import com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +43,8 @@ public class ScanUploader
   private static final Logger log = LoggerFactory.getLogger(ScanUploader.class);
 
   public static final String HDS_PATH = "rest/application/analysis";
+
+  private static final String HDS_INTEGRATION_VERSIONS_PATH = "rest/iqIntegrations/versions";
 
   private final HdsClient client;
 
@@ -71,10 +77,14 @@ public class ScanUploader
       Application application,
       String stageTypeId,
       String clientUserAgent,
-      ThirdPartyScanContext thirdPartyScanContext)
+      ThirdPartyScanContext thirdPartyScanContext,
+      boolean isWebUIRequest)
       throws IOException
   {
     HdsClientAnalytics analytics = HdsClientAnalytics.forOwner(application);
+
+    validateIntegrationVersion(clientUserAgent, isWebUIRequest);
+
     String uploadId = UUID.randomUUID().toString().replace("-", "");
     Map<String, String> uploadMetadata = new HashMap<>();
     // enable HDS to reason about retries
@@ -145,5 +155,79 @@ public class ScanUploader
         thirdPartyScanContext.getApplicationVersion());
     receipt.setReportUrl(bomPath);
     receipt.setPdfUrl(bomPath + "/pdf");
+  }
+
+  /**
+   * Validates that the client integration version is supported according to configuration.
+   * Skips validation for web UI requests or when validation is not configured.
+   *
+   * @param clientUserAgent the client user agent string containing integration name/version
+   * @param isWebUIRequest true if this is a web UI scan request
+   * @throws IllegalArgumentException if validation fails
+   * @throws IllegalStateException if configuration is invalid
+   */
+  private void validateIntegrationVersion(final String clientUserAgent, final boolean isWebUIRequest) {
+    // Skip validation for IQ server itself (web UI scans)
+    if (isWebUIRequest) {
+      log.debug("Skipping integration version validation for web UI request");
+      return;
+    }
+
+    Integer supportedVersionCount = getSupportedVersionCount();
+    if (supportedVersionCount == null) {
+      return;
+    }
+
+    SonatypeUserAgentUtil.UserAgent userAgent = parseAndValidateUserAgent(clientUserAgent);
+    String name = userAgent.product;
+    String version = userAgent.version;
+
+    validateVersionSupport(name, version, supportedVersionCount);
+    log.debug("Integration version {} of {} is supported", version, name);
+  }
+
+  private Integer getSupportedVersionCount() {
+    Integer supportedVersionCount = configuration.getIntegrationsSupportedVersionCount();
+    if (supportedVersionCount == null) {
+      log.debug("Integration version validation not configured");
+      return null;
+    }
+    if (supportedVersionCount <= 0) {
+      throw new IllegalStateException("Invalid supported version count: " + supportedVersionCount +
+          ". Must be a positive integer.");
+    }
+    return supportedVersionCount;
+  }
+
+  private SonatypeUserAgentUtil.UserAgent parseAndValidateUserAgent(final String clientUserAgent) {
+    if (StringUtils.isBlank(clientUserAgent)) {
+      throw new IllegalArgumentException("Client user agent is required for integration version validation");
+    }
+
+    SonatypeUserAgentUtil.UserAgent userAgent = SonatypeUserAgentUtil.parse(clientUserAgent);
+    if (userAgent == null) {
+      throw new IllegalArgumentException("Cannot parse client user agent: " + clientUserAgent);
+    }
+
+    if (StringUtils.isBlank(userAgent.product) || StringUtils.isBlank(userAgent.version)) {
+      throw new IllegalArgumentException("Integration name/version not found in client user agent: " + clientUserAgent);
+    }
+    return userAgent;
+  }
+
+  private void validateVersionSupport(final String name, final String version, final Integer supportedVersionCount) {
+    List<IqIntegrationVersion> sortedReleases = Arrays.asList(client.get(IqIntegrationVersion[].class,
+        HDS_INTEGRATION_VERSIONS_PATH, Map.of("name", name, "limit", String.valueOf(supportedVersionCount))));
+
+    if (sortedReleases.isEmpty()) {
+      log.warn("No integration versions found for {}", name);
+      return;
+    }
+
+    if (sortedReleases.stream().noneMatch(release -> version.equals(release.version()))) {
+      throw new IllegalArgumentException("The integration version " + version + " of " + name
+          + " is not supported. Supported versions are: "
+          + sortedReleases.stream().map(IqIntegrationVersion::version).reduce((a, b) -> a + ", " + b).orElse(""));
+    }
   }
 }

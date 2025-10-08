@@ -44,6 +44,7 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.entry;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
@@ -111,11 +112,11 @@ public class ScanTaskTest
     tmpScanEntity = new FileScanEntity(file.toPath());
     when(work.getScanDir(eq(app.getId()))).thenReturn(scanDir);
     when(uploadService.upload(eq(tmpScanEntity), eq(app), anyString(), any(ClientScanType.class), eq(null), any(),
-        any())).thenReturn(scanReceipt);
+        any(), anyBoolean())).thenReturn(scanReceipt);
     ScanResult scanResult = new ScanResult(tmpScanEntity, false);
     when(scanner.scan(eq(bundleFile), eq(bundleFilename), eq(app.getId()), eq(null))).thenReturn(scanResult);
     when(uploadService.upload(any(ScanEntity.class), any(Application.class), any(), eq(ClientScanType.SONATYPE),
-        any(), any(), any())).thenReturn(scanReceipt);
+        any(), any(), any(), any(), anyBoolean())).thenReturn(scanReceipt);
   }
 
   private static Stage match(Stage stage) {
@@ -132,13 +133,13 @@ public class ScanTaskTest
   public void stateForScheduledTaskIsPending() {
     assertThat(task.getState()).as("New task state").isEqualTo(State.PENDING);
 
-    task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false, null, null);
+    task.init(newApp("any"), new File("any"), "any", new Stage(Stage.ID_BUILD), false, null, null, false);
     assertThat(task.getState()).as("Initialized task state").isEqualTo(State.PENDING);
   }
 
   @Test
   public void savedApplicationBinaryIsScanned() throws IOException {
-    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
 
     assertThat(tmpScanEntity.path()).isRegularFile();
     assertThat(scanFile).doesNotExist();
@@ -159,7 +160,7 @@ public class ScanTaskTest
    */
   @Test
   public void successfulTaskHasIdsForUiToRouteToReport() {
-    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
     task.run();
 
     assertThatTaskCompletedSuccessfully(task);
@@ -172,12 +173,12 @@ public class ScanTaskTest
 
   @Test
   public void erorredTaskHasErrorMessage() throws IOException {
-    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
 
     when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
         .thenThrow(RuntimeException.class);
 
-    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -191,7 +192,7 @@ public class ScanTaskTest
   @Test
   public void policyEvaluationConsidersStageParameter() throws IOException {
     stage = new Stage(Stage.ID_RELEASE);
-    task.init(app, bundleFile, bundleFilename, stage, false, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, false, null, null, false);
 
     task.run();
 
@@ -205,7 +206,7 @@ public class ScanTaskTest
         .thenThrow(RuntimeException.class);
 
     File appBinary = new File("any");
-    task.init(app, appBinary, bundleFilename, stage, false, null, null);
+    task.init(app, appBinary, bundleFilename, stage, false, null, null, false);
     task.run();
 
     assertThatTaskCompletedUnsuccessfully(task);
@@ -214,7 +215,7 @@ public class ScanTaskTest
 
   @Test
   public void sendsNotifications() throws Exception {
-    task.init(app, bundleFile, bundleFilename, stage, true, null, null);
+    task.init(app, bundleFile, bundleFilename, stage, true, null, null, false);
 
     ScanPolicyEvaluatorResults results = new ScanPolicyEvaluatorResults();
     results.evaluation = new PolicyEvaluation();
@@ -234,18 +235,18 @@ public class ScanTaskTest
     FileScanEntity scanBinaryEntity = new FileScanEntity(scanBinary.toPath());
     ScanReceipt receipt = mock(ScanReceipt.class);
     when(uploadService.upload(scanBinaryEntity, app, stage.getStageTypeId(), ClientScanType.SONATYPE_THIRD_PARTY,
-        null, null, null)).thenReturn(scanReceipt);
+        null, null, null, false )).thenReturn(scanReceipt);
 
-    task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui");
+    task.init(app, scanBinary, bundleFilename, stage, false, "agent", "ui", false);
     when(scanner.scan(any(File.class), any(String.class), any(String.class), eq(null)))
         .thenReturn(new ScanResult(scanBinaryEntity, true));
 
     when(uploadService.upload(any(ScanEntity.class), eq(app), anyString(), any(ClientScanType.class), any(), any(),
-        any())).thenReturn(receipt);
+        any(), any(), anyBoolean())).thenReturn(receipt);
     task.run();
     ArgumentCaptor<TelemetryData> arg = ArgumentCaptor.forClass(TelemetryData.class);
     verify(uploadService).upload(eq(scanBinaryEntity), eq(app), eq(stage.getStageTypeId()),
-        eq(ClientScanType.SONATYPE_THIRD_PARTY), eq("agent"), arg.capture(), eq(null));
+        eq(ClientScanType.SONATYPE_THIRD_PARTY), eq("agent"), arg.capture(), eq(null), eq(false));
 
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);

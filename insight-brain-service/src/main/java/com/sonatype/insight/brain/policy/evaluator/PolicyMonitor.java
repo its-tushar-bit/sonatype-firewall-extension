@@ -435,7 +435,7 @@ public class PolicyMonitor
   {
     ScanReceipt scanReceipt =
         scanUploadService.upload(filteredScanEntity, app, ComplianceStageType.ID, ClientScanType.SONATYPE, null, null,
-            null);
+            null, false );
     scanReceipt.waitForReport();
     return scanReceipt.getScanId();
   }
@@ -450,7 +450,7 @@ public class PolicyMonitor
     ClientScanType clientScanType =
         hasThirdPartyContent ? ClientScanType.SONATYPE_THIRD_PARTY : ClientScanType.SONATYPE;
     ScanReceipt scanReceipt =
-        scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, null, null, null);
+        scanUploadService.upload(tempScanEntity, app, stageTypeId, clientScanType, null, null, null, false );
     scanReceipt.waitForReport();
     String scanId = scanReceipt.getScanId();
     scanPersistenceService.moveTempScan(tempScanEntity, app.getId(), scanId);

@@ -37,7 +37,6 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
-import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
@@ -57,8 +56,6 @@ import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.lenient;
@@ -176,8 +173,7 @@ public class ComponentAnalysisServiceTest
     scanReceipt.setScanId(scanId);
     doReturn(scanReceipt)
         .when(scanHandler)
-        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-            anyString(), anyString(), anyString(), eq(null));
+        .handle(any(ScanHandler.ScanRequest.class));
 
     PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, STAGE);
@@ -206,10 +202,13 @@ public class ComponentAnalysisServiceTest
 
   @Test
   public void testAnalyzeComponentsWithPolling_Failure() throws Exception {
+    final FileScanEntity fileScanEntity = new FileScanEntity(new File("test-file.xml").toPath(), app.getId());
+    doReturn(fileScanEntity)
+        .when(scanHandler)
+        .createTempScanFile(any(HttpServletRequest.class), any(Application.class));
     doThrow(IOException.class)
         .when(scanHandler)
-        .handle(any(ScanEntity.class), any(Application.class), any(ClientScanType.class), any(TelemetryData.class),
-            anyString(), anyString(), anyString(), eq(null));
+        .handle(any(ScanHandler.ScanRequest.class));
 
     final PolicyEvaluationReceipt receipt = componentAnalysisService.analyzeComponentsWithPolling(INTEGRATION_TYPE,
         app.getPublicId(), ClientScanType.SONATYPE, httpRequest, STAGE);

@@ -65,7 +65,8 @@ public class ScanResourceUnitTest
         .uploadBinary(appPublicId, is, formDataContentDisposition, filename, "csrfToken", null, Stage.ID_BUILD,
             false, false, httpServletRequest);
 
-    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"));
+    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"),
+        eq(httpServletRequest));
   }
 
   @Test
@@ -82,6 +83,7 @@ public class ScanResourceUnitTest
         .uploadBinary(appPublicId, is, formDataContentDisposition, null, "csrfToken", null, Stage.ID_BUILD,
             false, false, httpServletRequest);
 
-    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"));
+    verify(scanService).scanBinary(eq(appPublicId), eq(is), eq(filename), any(), eq(false), eq("userAgent"), eq("ui"),
+        eq(httpServletRequest));
   }
 }

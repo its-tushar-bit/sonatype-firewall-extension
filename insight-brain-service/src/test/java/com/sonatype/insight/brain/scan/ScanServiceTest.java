@@ -56,6 +56,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -117,8 +118,8 @@ public class ScanServiceTest
     app = tempEntity.newApplication(tempEntity.newOrganization().getId());
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scan-id");
-    lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any()))
-        .thenReturn(receipt);
+    lenient().when(scanUploader.upload(any(), any(Application.class), anyString(), any(), eq(null), any(), any(),
+        anyBoolean())).thenReturn(receipt);
     lenient().when(reportDownloader.downloadReport(any(ApplicationReport.class), anyInt(), anyInt())).then(
         (Answer<Boolean>) invocation -> {
           ApplicationReport reportFile = (ApplicationReport) invocation.getArguments()[0];
@@ -154,8 +155,8 @@ public class ScanServiceTest
   @Test
   public void testScanBinary() throws Exception {
     InputStream appBundle = getBundle("app01.zip");
-    scanTicket =
-        scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false,
+        null, null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
     
@@ -172,7 +173,7 @@ public class ScanServiceTest
     InputStream appBundle = getBundle("app1-bom.xml");
     scanTicket =
         scanService.scanBinary(app.getPublicId(), appBundle, "app1-bom.xml", new Stage(Stage.ID_BUILD), false, null,
-            null);
+            null, null);
     assertThat(scanTicket).isNotNull();
     assertThat(scanTicket.ticketId).isNotNull();
 
@@ -192,7 +193,7 @@ public class ScanServiceTest
     // Setup mock scan uploader so that it blocks on tenant 1 scans
     Mockito.reset(scanUploader);
     when(scanUploader.upload(any(), any(Application.class), anyString(), any(ClientScanType.class), eq(null),
-        any(), any()))
+        any(), any(), anyBoolean()))
         .thenAnswer(invocation -> {
           String appPublicId = ((Application) invocation.getArgument(1)).getPublicId();
           if (appPublicId.startsWith("t1") &&
@@ -224,14 +225,14 @@ public class ScanServiceTest
 
         ScanTicket scanTicket1 =
             scanService.scanBinary(t1App1.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
-                false, null, null);
+                false, null, null, null);
         assertThat(scanTicket1).isNotNull();
         assertThat(scanTicket1.ticketId).isNotNull();
         t1TicketIds.add(scanTicket1.ticketId);
 
         ScanTicket scanTicket2 =
             scanService.scanBinary(t1App2.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
-                false, null, null);
+                false, null, null, null);
         assertThat(scanTicket2).isNotNull();
         assertThat(scanTicket2.ticketId).isNotNull();
         t1TicketIds.add(scanTicket2.ticketId);
@@ -244,7 +245,7 @@ public class ScanServiceTest
 
         ScanTicket scanTicket3 =
             scanService.scanBinary(t2App1.getPublicId(), getBundle("app01.zip"), "app01.zip", new Stage(Stage.ID_BUILD),
-                false, null, null);
+                false, null, null, null);
         assertThat(scanTicket3).isNotNull();
         assertThat(scanTicket3.ticketId).isNotNull();
 
@@ -296,7 +297,7 @@ public class ScanServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       InputStream appBundle = getBundle("app01.zip");
       scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
-              null, null);
+              null, null, null);
     }).withMessage("Filename must not be a directory: " + filePath);
   }
 
@@ -307,15 +308,15 @@ public class ScanServiceTest
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> {
       InputStream appBundle = getBundle("app01.zip");
       scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, filePath, new Stage(Stage.ID_BUILD), false,
-              null, null);
+              null, null, null);
     }).withMessage("Filename must not be a directory: " + filePath);
   }
 
   @Test
   public void testGetTicket() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
-    scanTicket =
-        scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    scanTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false,
+        null, null, null);
 
     ScanTicket statusTicket = scanService.getTicket(app.getPublicId(), scanTicket.ticketId);
     assertThat(statusTicket.ticketId).isEqualTo(scanTicket.ticketId);
@@ -329,7 +330,7 @@ public class ScanServiceTest
   public void testGetTicketUntilTaskComplete() throws IOException {
     InputStream appBundle = getBundle("app01.zip");
     ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(
-        Stage.ID_BUILD), false, null, null);
+        Stage.ID_BUILD), false, null, null, null);
 
     ScanTicket statusTicket = originalTicket;
     while (statusTicket.currentStep != statusTicket.totalSteps) {
@@ -344,7 +345,7 @@ public class ScanServiceTest
   public void testFailEarlyOnInvalidStage() {
     InputStream appBundle = getBundle("app01.zip");
     assertThatExceptionOfType(InvalidStageException.class).isThrownBy(() -> scanService
-        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null))
+        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage("invalid-stage-id"), false, null, null, null))
         .withMessageContaining("invalid-stage-id");
   }
 
@@ -373,7 +374,7 @@ public class ScanServiceTest
     InputStream appBundle = getBundle("app01.zip");
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(() -> scanService
-        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null))
+        .scanBinary(app.getPublicId(), appBundle, "app01.zip", new Stage(Stage.ID_BUILD), false, null, null, null))
         .withMessage("Your IQ Server license does not enable this feature.");
   }
 }

@@ -51,6 +51,12 @@ public class ScanResource
 {
   public static final String RESOURCE_PATH = "rest/scan/{applicationPublicId}";
 
+  /**
+   * Request attribute key used to mark requests originating from the IQ Server Web UI.
+   * External integrations (CLI, Jenkins, etc.) will not have this attribute set.
+   */
+  public static final String WEB_UI_REQUEST_ATTRIBUTE = "com.sonatype.iq.webUIRequest";
+
   private final ScanService scanService;
 
   private final ErrorResponseGenerator errorResponseGenerator;
@@ -83,7 +89,11 @@ public class ScanResource
                                @Context HttpServletRequest request) throws Exception
   {
     try {
+      // Mark this request as coming from the Web UI (not an external integration)
+      request.setAttribute(WEB_UI_REQUEST_ATTRIBUTE, Boolean.TRUE);
+
       antiCsrfFilter.validate(csrfToken, headers);
+
       // Browsers submit the Content-Disposition header with an UTF-8 encoded filename, Jersey however decodes that
       // header using Latin-1, messing up non-ASCII filenames.
       // We therefore transmit the filename in the body part of a separate form parameter for modern browsers ...
@@ -92,7 +102,7 @@ public class ScanResource
         filename = fileDetail.getFileName();
       }
       ScanTicket result = scanService.scanBinary(appPublicId, is, filename, new Stage(stageId), sendNotifications,
-          HdsClient.getClientUserAgent(request), "ui");
+          HdsClient.getClientUserAgent(request), "ui", request);
       if (noFormData) {
         return Response.ok(JsonUtils.generate(result), ErrorResponse.CONTENT_TYPE).build();
       }

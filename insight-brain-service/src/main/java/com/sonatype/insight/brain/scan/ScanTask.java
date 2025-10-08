@@ -115,6 +115,8 @@ class ScanTask
 
   private volatile String scanId;
 
+  private boolean isWebUIRequest;
+
   @Inject
   public ScanTask(
       Scanner scanner,
@@ -149,7 +151,8 @@ class ScanTask
       Stage stage,
       boolean sendNotifications,
       String userAgent,
-      String scanType)
+      String scanType,
+      boolean isWebUIRequest)
   {
     this.app = app;
     this.binFile = binFile;
@@ -158,6 +161,7 @@ class ScanTask
     this.sendNotifications = sendNotifications;
     this.userAgent = userAgent;
     this.scanType = scanType;
+    this.isWebUIRequest = isWebUIRequest;
   }
 
   public String getId() {
@@ -220,7 +224,7 @@ class ScanTask
           scanResult.getClientScanType(),
           userAgent,
           telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
-              userAgent), null);
+              userAgent), null, isWebUIRequest);
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {
         scanPersistenceService.moveTempScan(scanResult.getScanEntity(), app.getId(), scanReceipt.getScanId());

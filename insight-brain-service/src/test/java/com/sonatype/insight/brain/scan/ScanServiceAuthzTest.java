@@ -31,20 +31,22 @@ public class ScanServiceAuthzTest
 
   @Test(expected = UnauthenticatedException.class)
   public void testScanBinary_Anon() throws Exception {
-    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false, null, null,
+        null);
   }
 
   @Test(expected = UnauthorizedException.class)
   public void testScanBinary_Unauthorized() throws Exception {
     login();
-    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false, null, null,
+        null);
   }
 
   @Test(timeout = 15 * 1000)
   public void testScanBinary_Authorized() throws Exception {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    ScanTicket originalTicket =
-        scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip", new Stage(Stage.ID_BUILD), false, null, null);
+    ScanTicket originalTicket = scanService.scanBinary(app.getPublicId(), getBundle(), "app.zip",
+        new Stage(Stage.ID_BUILD), false, null, null, null);
     // Wait for the policy evaluation to finish, so we don't leak persisted entities from this test.
     ScanTicket statusTicket = originalTicket;
     while (statusTicket.currentStep != statusTicket.totalSteps) {

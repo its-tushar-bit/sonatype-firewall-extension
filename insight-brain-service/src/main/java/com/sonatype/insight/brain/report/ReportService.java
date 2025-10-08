@@ -1373,7 +1373,7 @@ public class ReportService
         clientScanType,
         clientUserAgent,
         telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage, stageTypeId,
-            scanTriggerType, clientUserAgent), null /* scanRequestId */);
+            scanTriggerType, clientUserAgent), null /* scanRequestId */, true );
     // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
     AuditData.get().setScanId(scanId);
 

@@ -55,6 +55,11 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
+    stage('Confirm Start') {
+      steps {
+        input message: 'This will start the release process. Continue?', ok: 'Yes, Continue'
+      }
+    }
     stage('Send Release Starting Notification') {
       steps {
         build(job: 'insight/insight-brain/Release Starting',

@@ -55,7 +55,7 @@ make(
       }
     },
     releaseFromCommit: true,
-    snapshotProjectName: 'insight/insight-brain/feature-snapshots/main',
+    snapshotProjectName: "insight/insight-brain/feature-snapshots/${env.snapshotBuild_JOBNAME}",
     githubProjectUrl: 'git@github.com:sonatype/insight-brain.git',
     runFeatureBranchPolicyEvaluations: true,
     iqPolicyEvaluation: { stage ->

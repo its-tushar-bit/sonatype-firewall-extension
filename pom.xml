@@ -141,7 +141,7 @@
     <jdks-maven-plugin.base-url>https://github.com/adoptium/temurin17-binaries/releases/download</jdks-maven-plugin.base-url>
     <jdks-maven-plugin.jdk-file-version>17.0.12_7</jdks-maven-plugin.jdk-file-version>
     <gitlab4j-api.version>5.8.0</gitlab4j-api.version>
-    <micrometer.version>1.14.9</micrometer.version>
+    <micrometer.version>1.15.4</micrometer.version>
   </properties>
 
   <scm>

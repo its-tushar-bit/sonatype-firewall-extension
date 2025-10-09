@@ -153,6 +153,18 @@ public final class RepositoryPathnameSerializer
         String version = componentIdentifier.get(ComponentIdentifier.VERSION);
         return String.join("/", "crates", name, version, "download");
       }
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_REPO: {
+        String repoId = componentIdentifier.get(ComponentIdentifier.HUGGING_FACE_REPO_ID);
+        String version = componentIdentifier.get(ComponentIdentifier.VERSION);
+        return String.join("/", repoId, "resolve", version);
+      }
+      case ComponentIdentifier.FORMAT_HUGGINGFACE_MODEL: {
+        String repoId = componentIdentifier.get(ComponentIdentifier.HUGGING_FACE_REPO_ID);
+        String version = componentIdentifier.get(ComponentIdentifier.VERSION);
+        String model = componentIdentifier.get(ComponentIdentifier.HUGGING_FACE_MODEL);
+        String extension = componentIdentifier.get(ComponentIdentifier.HUGGING_FACE_EXTENSION);
+        return String.join("/", repoId, "resolve", version, model + "." + extension);
+      }
       default: {
         throw new BadRequestException(
             String.format("Unsupported format %s.", componentIdentifier.getFormat()));

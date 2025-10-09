@@ -145,6 +145,20 @@ public class RepositoryPathnameSerializerTest
         .isEqualTo("com/sonatype/test/1.0/test-1.0-uber.jar");
   }
 
+  @Test
+  public void testToPathname_HuggingfaceRepo() {
+    assertThat(toPathname(
+        ComponentIdentifier.createHuggingfaceRepoCoordinates("org/name", "version1")))
+        .isEqualTo("org/name/resolve/version1");
+  }
+
+  @Test
+  public void testToPathname_HuggingfaceModel() {
+    assertThat(toPathname(
+        ComponentIdentifier.createHuggingfaceModelCoordinates("org/name", "model", "version1", "fmt", "extension")))
+        .isEqualTo("org/name/resolve/version1/model.extension");
+  }
+
   private Map<String, String> createMap(String... keysAndValues) {
     Map<String, String> result = new HashMap<>();
     for (int i = 0; i < keysAndValues.length; i += 2) {

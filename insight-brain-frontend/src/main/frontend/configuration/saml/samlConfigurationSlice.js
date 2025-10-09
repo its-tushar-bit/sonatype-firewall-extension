@@ -186,7 +186,7 @@ const loadSAMLConfigurationFulfilled = (state, { payload: { data } }) => {
 };
 
 const loadSAMLConfigurationFailed = (state, { payload }) => {
-  state.loadError = payload.response.status === 404 ? null : Messages.getHttpErrorMessage(payload);
+  state.loadError = payload?.response?.status === 404 ? null : Messages.getHttpErrorMessage(payload);
   state.isConfigured = false;
   state.isLoading = false;
 };

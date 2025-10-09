@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.common.io.FileCleaner;
@@ -41,6 +43,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Backend for persisting file-based parts of an application report to the local filesystem
  */
+@Named
+@Singleton
 public class FileApplicationReportPersistenceService
     extends ApplicationReportPersistenceService
 {

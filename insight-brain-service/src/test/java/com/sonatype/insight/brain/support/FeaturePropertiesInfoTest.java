@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(28);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -62,6 +62,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EPSS_DATA).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS).asBoolean()).isFalse();
   }
 
   @Test
@@ -72,10 +73,11 @@ public class FeaturePropertiesInfoTest
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SBOM_POLICIES, "false");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.ALP_FOR_SBOM_MANAGER, "true");
     tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.SCHEMA_MIGRATION_ENABLED, "false");
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(27);
+    assertThat(sysConfigNode.size()).isEqualTo(28);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -107,6 +109,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.USER_MANAGEMENT_PAGES).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EPSS_DATA).asBoolean()).isFalse();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS).asBoolean()).isTrue();
   }
 
   @Test

@@ -277,6 +277,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, Integer.class,
           (p, s) -> NumberUtils.createInteger(s),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

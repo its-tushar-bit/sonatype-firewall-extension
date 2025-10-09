@@ -290,7 +290,8 @@ public class ConfigurationInfoTest
         "thirdPartyKevLookup",
         "userManagementPages",
         "epssDataEnabled",
-        "integrationsSupportedVersionCount"
+        "integrationsSupportedVersionCount",
+        "warnOnNonPrimaryStorageAccess"
     );
 
     // Properties included in the config.json in support zip

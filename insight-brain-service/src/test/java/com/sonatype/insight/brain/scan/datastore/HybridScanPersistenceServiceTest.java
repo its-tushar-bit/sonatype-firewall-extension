@@ -9,19 +9,24 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -47,6 +52,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HybridScanPersistenceServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(HybridScanPersistenceService.class);
+
   private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
@@ -342,6 +350,39 @@ public class HybridScanPersistenceServiceTest
 
     assertThat(s3ScanEntity.exists()).isFalse();
     assertThat(fileScanEntity.exists()).isFalse();
+  }
+
+  @Test
+  public void testDoGetScan_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testDoGetScan_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  }
+
+  private void assertWarning(final Callable<?> callable) throws Exception {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
+    hybridScanPersistenceService.configurationChanged(
+        Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
+    ScanPersistenceService nonPrimaryStorage =
+        scanPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createScan(nonPrimaryStorage.getScan(APP_ID, SCAN_ID));
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
+  }
+
+  private void assertNoWarning(final Callable<?> callable) throws Exception {
+    ScanPersistenceService nonPrimaryStorage =
+        scanPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createScan(nonPrimaryStorage.getScan(APP_ID, SCAN_ID));
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().doesNotContain("Non-primary storage access");
   }
 
   private ScanEntity createScan(final ScanPersistenceService scanPersistenceService) throws Exception {

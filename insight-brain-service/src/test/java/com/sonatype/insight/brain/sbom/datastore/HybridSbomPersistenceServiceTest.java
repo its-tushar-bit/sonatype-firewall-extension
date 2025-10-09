@@ -10,25 +10,32 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -54,6 +61,9 @@ import static org.mockito.Mockito.verify;
 public class HybridSbomPersistenceServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(HybridSbomPersistenceService.class);
+
   private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
@@ -84,7 +94,7 @@ public class HybridSbomPersistenceServiceTest
   private FileSbomPersistenceService fileSbomPersistenceService;
 
   private FileSbomPersistenceService fileSbomPersistenceServiceSpy;
-  
+
   @Inject
   private InsightConfig insightConfig;
 
@@ -93,6 +103,9 @@ public class HybridSbomPersistenceServiceTest
 
   @Inject
   private SbomPersistenceServiceProvider sbomPersistenceServiceProvider;
+
+  @Inject
+  private ApiConfigurationService apiConfigurationService;
 
   @Parameters
   public static List<Object[]> dataStoreTypes() {
@@ -147,7 +160,7 @@ public class HybridSbomPersistenceServiceTest
     // Create spies of the services
     s3SbomPersistenceServiceSpy = spy(s3SbomPersistenceService);
     fileSbomPersistenceServiceSpy = spy(fileSbomPersistenceService);
-    
+
     // Create a custom provider that returns the spies
     SbomPersistenceServiceProvider spiedProvider = new SbomPersistenceServiceProvider(
         insightConfig,
@@ -155,11 +168,12 @@ public class HybridSbomPersistenceServiceTest
         () -> fileSbomPersistenceServiceSpy,
         () -> hybridSbomPersistenceService
     );
-    
+
     // Create a new HybridSbomPersistenceService with the spied provider
     hybridSbomPersistenceService = new HybridSbomPersistenceService(
         insightConfig,
-        () -> spiedProvider
+        () -> spiedProvider,
+        apiConfigurationService
     );
   }
 
@@ -397,6 +411,50 @@ public class HybridSbomPersistenceServiceTest
     // Verify that the method was called on both spied services with the correct parameter
     verify(s3SbomPersistenceServiceSpy).deleteTransientSbomsOlderThan(instant);
     verify(fileSbomPersistenceServiceSpy).deleteTransientSbomsOlderThan(instant);
+  }
+
+  @Test
+  public void testDoGetSbom_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  }
+
+  @Test
+  public void testDoGetSbom_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  }
+
+  @Test
+  public void testGetTemporarySbom_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  }
+
+  @Test
+  public void testGetTemporarySbom_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  }
+
+  private void assertWarning(final Callable<?> callable) throws Exception {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
+    hybridSbomPersistenceService.configurationChanged(
+        Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
+    SbomPersistenceService nonPrimaryStorage =
+        sbomPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createSbom(nonPrimaryStorage, APP_ID, FILE_NAME);
+    createSbom(nonPrimaryStorage.getTemporarySbom(APP_ID, "prefix"));
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
+  }
+
+  private void assertNoWarning(final Callable<?> callable) throws Exception {
+    SbomPersistenceService nonPrimaryStorage =
+        sbomPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createSbom(nonPrimaryStorage, APP_ID, FILE_NAME);
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().doesNotContain("Non-primary storage access");
   }
 
   private SbomPersistenceService getPrimaryPersistenceService() {

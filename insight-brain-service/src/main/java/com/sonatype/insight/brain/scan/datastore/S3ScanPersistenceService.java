@@ -11,7 +11,10 @@ import java.security.SecureRandom;
 import java.text.DecimalFormat;
 import java.util.Random;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.aws.s3.S3Utils;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -25,6 +28,8 @@ import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
 import static java.util.Objects.requireNonNull;
 
+@Named
+@Singleton
 public class S3ScanPersistenceService
     extends ScanPersistenceService
 {
@@ -38,13 +43,16 @@ public class S3ScanPersistenceService
 
   @Inject
   public S3ScanPersistenceService(
-      final S3Client s3Client,
+      @Nullable final S3Client s3Client,
       final InsightConfig config)
   {
+    this.s3Client = s3Client;
     this.s3DataStoreConfig = config.getStorage().getS3Config();
-    this.s3Client = requireNonNull(s3Client);
-    requireNonNull(s3DataStoreConfig.getBucketName());
-    requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
+    if (s3DataStoreConfig != null) {
+      requireNonNull(s3Client);
+      requireNonNull(s3DataStoreConfig.getBucketName());
+      requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
+    }
   }
 
   @Override

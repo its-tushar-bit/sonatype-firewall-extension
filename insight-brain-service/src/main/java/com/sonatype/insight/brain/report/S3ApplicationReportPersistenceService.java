@@ -17,7 +17,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import javax.annotation.Nullable;
 import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.api.experimental.ApiVulnerabilitySignatureService;
 import com.sonatype.insight.brain.aws.s3.S3OutputStream;
@@ -44,6 +47,8 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
 import static java.util.Objects.requireNonNull;
 
+@Named
+@Singleton
 public class S3ApplicationReportPersistenceService
     extends ApplicationReportPersistenceService
 {
@@ -212,13 +217,16 @@ public class S3ApplicationReportPersistenceService
 
   @Inject
   public S3ApplicationReportPersistenceService(
-      final S3Client s3Client,
+      @Nullable final S3Client s3Client,
       final InsightConfig insightConfig)
   {
+    this.s3Client = s3Client;
     this.s3DataStoreConfig = insightConfig.getStorage().getS3Config();
-    this.s3Client = requireNonNull(s3Client);
-    requireNonNull(s3DataStoreConfig.getBucketName());
-    requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
+    if (s3DataStoreConfig != null) {
+      requireNonNull(s3Client);
+      requireNonNull(s3DataStoreConfig.getBucketName());
+      requireNonNull(s3DataStoreConfig.getObjectKeyPrefix());
+    }
   }
 
   @Override

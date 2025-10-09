@@ -14,10 +14,17 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 
@@ -25,8 +32,11 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class HybridSbomPersistenceService
     extends SbomPersistenceService
+    implements ConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(HybridSbomPersistenceService.class);
 
@@ -34,13 +44,20 @@ public class HybridSbomPersistenceService
 
   private final Map<Class<? extends SbomPersistenceService>, SbomPersistenceService> sbomPersistenceServiceByClass;
 
+  private final ApiConfigurationService apiConfigurationService;
+
+  private volatile boolean warnOnNonPrimaryStorageAccess;
+
   @Inject
   public HybridSbomPersistenceService(
       final InsightConfig config,
-      final Provider<SbomPersistenceServiceProvider> sbomPersistenceServiceProviderProvider)
+      final Provider<SbomPersistenceServiceProvider> sbomPersistenceServiceProviderProvider,
+      final ApiConfigurationService apiConfigurationService)
   {
-    HybridDataStoreConfig hybridDataStoreConfig = config.getStorage().getHybridConfig();
-    LinkedHashSet<DataStoreType> types = hybridDataStoreConfig.getTypes();
+    StorageConfig storageConfig = config.getStorage();
+    HybridDataStoreConfig hybridDataStoreConfig = storageConfig == null ? null : storageConfig.getHybridConfig();
+    LinkedHashSet<DataStoreType> types =
+        hybridDataStoreConfig == null ? new LinkedHashSet<>() : hybridDataStoreConfig.getTypes();
     /*
      * The order of this collection is significant:
      * 1. The first element is the default storage mechanism.
@@ -59,12 +76,19 @@ public class HybridSbomPersistenceService
     for (SbomPersistenceService sbomPersistenceService : sbomPersistenceServices) {
       sbomPersistenceServiceByClass.put(sbomPersistenceService.getClass(), sbomPersistenceService);
     }
+    this.apiConfigurationService = apiConfigurationService;
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
   @Override
   public SbomEntity doGetSbom(final String appId, final String fileName) {
     SbomEntity sbomEntity = hybridDoGetSbom(appId, fileName);
     log.trace("Getting SBOM by app id and file name from {}.", sbomEntity.getLocation());
+    if (warnOnNonPrimaryStorageAccess &&
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getScanPersistenceServiceClass())) {
+      log.warn("Non-primary storage access for SBOM by app id and file name from {}.", sbomEntity.getLocation());
+    }
     return sbomEntity;
   }
 
@@ -82,6 +106,11 @@ public class HybridSbomPersistenceService
   public SbomEntity getTemporarySbom(final String fileName, @Nullable final String prefix) {
     SbomEntity sbomEntity = hybridGetTemporarySbom(fileName, prefix);
     log.trace("Getting temporary SBOM by file name and prefix from {}.", sbomEntity.getLocation());
+    if (warnOnNonPrimaryStorageAccess &&
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getScanPersistenceServiceClass())) {
+      log.warn("Non-primary storage access for temporary SBOM by file name and prefix from {}.",
+          sbomEntity.getLocation());
+    }
     return sbomEntity;
   }
 
@@ -97,13 +126,7 @@ public class HybridSbomPersistenceService
 
   @Override
   public SbomEntity getTransientSbom(final String fileName) throws IOException {
-    return hybridGetTransientSbom(fileName);
-  }
-
-  private SbomEntity hybridGetTransientSbom(final String fileName) throws IOException {
-    SbomEntity transientEntity = sbomPersistenceServices.get(0).getTransientSbom(fileName);
-    log.trace("Getting transient SBOM by file name from {}.", transientEntity.getLocation());
-    return transientEntity;
+    return sbomPersistenceServices.get(0).getTransientSbom(fileName);
   }
 
   @Override
@@ -173,6 +196,14 @@ public class HybridSbomPersistenceService
   private void copy(final SbomEntity source, final SbomEntity target) throws IOException {
     try (InputStream inputStream = source.getInputStream(); OutputStream outputStream = target.getOutputStream()) {
       inputStream.transferTo(outputStream);
+    }
+  }
+
+  @Override
+  public void configurationChanged(final Set<String> propertyNames) {
+    if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+          SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }
 }

@@ -12,13 +12,18 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -28,11 +33,13 @@ import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -56,6 +63,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class HybridApplicationReportPersistenceServiceTest
     extends AbstractComponentTest
 {
+  @Rule
+  public LogOutput logOutput = new LogOutput(HybridApplicationReportPersistenceService.class);
+
   private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
@@ -94,6 +104,9 @@ public class HybridApplicationReportPersistenceServiceTest
 
   @Inject
   private InsightWork insightWork;
+
+  @Inject
+  private SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   @Parameters
   public static List<Object[]> dataStoreTypes() {
@@ -213,6 +226,70 @@ public class HybridApplicationReportPersistenceServiceTest
     assertThat(reportEntity).isInstanceOf(expectedReportEntity.getClass());
     assertThat(reportEntity.exists()).isTrue();
     assertThat(readReportEntity(reportEntity)).isEqualTo(readReportEntity(expectedReportEntity));
+  }
+
+  @Test
+  public void testDoGetReportEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  }
+
+  @Test
+  public void testDoGetReportEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  }
+
+  @Test
+  public void testGetAllReportEntities_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetAllReportEntities_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetPdfEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetPdfEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetVulnerabilitySignaturesEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
+    assertWarning(() -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetVulnerabilitySignaturesEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(() -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  }
+
+  private void assertWarning(final Callable<?> callable) throws Exception {
+    systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
+    hybridApplicationReportPersistenceService.configurationChanged(
+        Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
+    ApplicationReportPersistenceService nonPrimaryStorage =
+        applicationReportPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createReportEntity(nonPrimaryStorage, APP_ID, SCAN_ID, NAME);
+    createReportEntity(nonPrimaryStorage.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
+  }
+
+  private void assertNoWarning(final Callable<?> callable) throws Exception {
+    ApplicationReportPersistenceService nonPrimaryStorage =
+        applicationReportPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
+    createReportEntity(nonPrimaryStorage, APP_ID, SCAN_ID, NAME);
+
+    callable.call();
+
+    logOutput.assertThat().atWarnLevel().doesNotContain("Non-primary storage access");
   }
 
   @Test

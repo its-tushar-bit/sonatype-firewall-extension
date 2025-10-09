@@ -12,19 +12,29 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Named
+@Singleton
 public class HybridScanPersistenceService
     extends ScanPersistenceService
+    implements ConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(HybridScanPersistenceService.class);
 
@@ -32,13 +42,20 @@ public class HybridScanPersistenceService
 
   private final Map<Class<? extends ScanPersistenceService>, ScanPersistenceService> scanPersistenceServiceByClass;
 
+  private final ApiConfigurationService apiConfigurationService;
+
+  private volatile boolean warnOnNonPrimaryStorageAccess;
+
   @Inject
   public HybridScanPersistenceService(
       final InsightConfig config,
-      final Provider<ScanPersistenceServiceProvider> scanPersistenceServiceProviderProvider)
+      final Provider<ScanPersistenceServiceProvider> scanPersistenceServiceProviderProvider,
+      final ApiConfigurationService apiConfigurationService)
   {
-    HybridDataStoreConfig hybridDataStoreConfig = config.getStorage().getHybridConfig();
-    LinkedHashSet<DataStoreType> types = hybridDataStoreConfig.getTypes();
+    StorageConfig storageConfig = config.getStorage();
+    HybridDataStoreConfig hybridDataStoreConfig = storageConfig == null ? null : storageConfig.getHybridConfig();
+    LinkedHashSet<DataStoreType> types =
+        hybridDataStoreConfig == null ? new LinkedHashSet<>() : hybridDataStoreConfig.getTypes();
     /*
      * The order of this collection is significant:
      * 1. The first element is the default storage mechanism.
@@ -55,12 +72,19 @@ public class HybridScanPersistenceService
     for (ScanPersistenceService scanPersistenceService : scanPersistenceServices) {
       scanPersistenceServiceByClass.put(scanPersistenceService.getClass(), scanPersistenceService);
     }
+    this.apiConfigurationService = apiConfigurationService;
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
   @Override
   protected ScanEntity doGetScan(final String appId, final String scanId) {
     ScanEntity scanEntity = hybridDoGetScan(appId, scanId);
     log.trace("Getting scan by id from {}.", scanEntity.getLocation());
+    if (warnOnNonPrimaryStorageAccess &&
+        !scanPersistenceServices.get(0).getScanEntityClass().equals(scanEntity.getClass())) {
+      log.warn("Non-primary storage access for scan by id from {}.", scanEntity.getLocation());
+    }
     return scanEntity;
   }
 
@@ -158,6 +182,14 @@ public class HybridScanPersistenceService
   private static void copy(final ScanEntity source, final ScanEntity target) throws IOException {
     try (InputStream inputStream = source.getInputStream(); OutputStream outputStream = target.getOutputStream()) {
       inputStream.transferTo(outputStream);
+    }
+  }
+
+  @Override
+  public void configurationChanged(final Set<String> propertyNames) {
+    if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+          SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }
 }

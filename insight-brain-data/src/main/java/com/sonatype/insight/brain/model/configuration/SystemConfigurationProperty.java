@@ -290,6 +290,8 @@ public class SystemConfigurationProperty
   // Number of supported integration versions to validate against. If not configured, validation is disabled.
   public static final String INTEGRATIONS_SUPPORTED_VERSION_COUNT = "integrationsSupportedVersionCount";
 
+  public static final String WARN_ON_NON_PRIMARY_STORAGE_ACCESS = "warnOnNonPrimaryStorageAccess";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

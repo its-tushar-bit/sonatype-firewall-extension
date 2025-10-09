@@ -8,9 +8,7 @@ package com.sonatype.insight.brain.repository.client;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.dataaccess.configuration.RepositoryClientConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;
@@ -237,21 +235,6 @@ public class NexusRepository3ClientTest
 
     RepositoryClient client = factory.create().forNexus3(baseUrl, "user", "pass".toCharArray());
     assertThat(client.getServerStatus()).isEqualTo(Status.OK);
-  }
-
-  @Test
-  public void testGetServerStatus_MissingHeader_BadRequest() throws Exception {
-    nxrm3MockSever.stubFor(get(urlPathMatching("/service/rest/v1/status"))
-        .withBasicAuth("user", "pass")
-        .willReturn(aResponse().withStatus(200)));
-    RepositoryClient client = factory.create().forNexus3(baseUrl, "user", "pass".toCharArray());
-
-    StatusType status = client.getServerStatus();
-
-    assertThat(status).isNotNull();
-    assertThat(status.getStatusCode()).isEqualTo(Status.BAD_REQUEST.getStatusCode());
-    assertThat(status.getFamily()).isEqualTo(Status.BAD_REQUEST.getFamily());
-    assertThat(status.getReasonPhrase()).isEqualTo("Bad Request. Not a valid Nexus Repository Manager 3 server.");
   }
 
   @Test

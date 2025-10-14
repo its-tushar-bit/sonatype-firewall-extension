@@ -41,6 +41,8 @@ public abstract class SisuApplication<T extends Configuration>
 {
   private static final Logger logger = LoggerFactory.getLogger(SisuApplication.class);
 
+  private static volatile SpaceModule spaceModule;
+
   private GuiceBundle guiceBundle;
 
   private boolean initialized = false;
@@ -130,10 +132,13 @@ public abstract class SisuApplication<T extends Configuration>
    * Visible so it can be used by BrainInjectedTest to get the same SpaceModule in testing as in the app
    */
   @VisibleForTesting
-  public static SpaceModule getSpaceModule() {
-    ClassSpace space = new URLClassSpace(SisuApplication.class.getClassLoader());
-    return new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*"),
-        false /* isStrict */);
+  public static synchronized SpaceModule getSpaceModule() {
+    if (spaceModule == null) {
+      ClassSpace space = new URLClassSpace(SisuApplication.class.getClassLoader());
+      spaceModule = new SpaceModule(space, new MultiPackageClassFinder("org.sonatype.*", "com.sonatype.*"),
+          false /* isStrict */);
+    }
+    return spaceModule;
   }
 
   protected DropwizardAwareModule<T> wire(final List<Module> modules) {

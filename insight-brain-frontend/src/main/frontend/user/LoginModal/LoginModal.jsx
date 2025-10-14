@@ -24,6 +24,7 @@ import {
 import { selectLoginModalState, selectLoginModalSubmitState, selectSystemNoticeServerData } from './userLoginSelectors';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as sbomManagerUtil from 'MainRoot/sbomManager/sbomManagerUtil';
+import { isFirewallOnlyLicenseProduct } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   // State selectors
@@ -40,10 +41,12 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     isUnauthenticatedPagesEnabled,
   } = useSelector(selectLoginModalState);
   const { loginSubmitError, loginSubmitMaskState } = useSelector(selectLoginModalSubmitState);
+  const isFirewallOnlyLicense = isFirewallOnlyLicenseProduct(products);
+  const resolvedVulnState = isFirewallOnlyLicense ? 'firewall.vulnerabilitySearch' : 'vulnerabilitySearch';
 
   const uiRouterState = useRouterState();
 
-  const vulnSearchHref = uiRouterState.href('vulnerabilitySearch');
+  const vulnSearchHref = uiRouterState.href(resolvedVulnState);
 
   const { userInput } = nxTextInputStateHelpers;
 

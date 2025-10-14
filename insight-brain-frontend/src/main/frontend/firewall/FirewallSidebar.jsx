@@ -6,7 +6,14 @@
 
 import React from 'react';
 import { NxGlobalSidebar2, useToggle, NxGlobalSidebar2NavigationLink } from '@sonatype/react-shared-components';
-import { faArrowToLeft, faArrowToRight, faStars, faHouse, faSitemap } from '@fortawesome/pro-regular-svg-icons';
+import {
+  faArrowToLeft,
+  faArrowToRight,
+  faStars,
+  faHouse,
+  faSitemap,
+  faMicroscope,
+} from '@fortawesome/pro-regular-svg-icons';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import * as PropTypes from 'prop-types';
 
@@ -16,12 +23,15 @@ export default function FirewallSidebar(props) {
   const firewallState = 'firewall.firewallPage';
   const firewallRepositoriesState = 'firewall.management.view';
   const apiState = 'firewall.api';
+  const vulnSearchState = 'firewall.vulnerabilitySearch';
+  const vulnSearchDetailState = 'firewall.vulnerabilitySearchDetail';
 
   const [sidebarOpen, onToggleCollapse] = useToggle(true);
 
   const firewallHref = uiRouterState.href(firewallState);
   const firewallRepositoriesHref = uiRouterState.href(firewallRepositoriesState);
   const apiHref = uiRouterState.href(apiState);
+  const vulnSearchHref = uiRouterState.href(vulnSearchState);
 
   const isSelected = (entryName) => uiRouterState.includes(entryName);
 
@@ -48,6 +58,13 @@ export default function FirewallSidebar(props) {
             icon={faSitemap}
             text="Repos and Policies"
             href={firewallRepositoriesHref}
+          />
+          <NxGlobalSidebar2NavigationLink
+            isSelected={isSelected(vulnSearchState) || isSelected(vulnSearchDetailState)}
+            id="vulnerability-navigation-button"
+            icon={faMicroscope}
+            text="Vulnerability Lookup"
+            href={vulnSearchHref}
           />
           {isApiPageEnabled && (
             <NxGlobalSidebar2NavigationLink

@@ -38,6 +38,14 @@ export default angular
   .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$ngRedux', '$state']))
   .config(routes);
 
+const vulnerabilitiesRouteCommonProps = {
+  component: 'vulnerabilitySearch',
+  data: {
+    title: 'Vulnerability Lookup',
+    authenticationRequired: ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE,
+  },
+};
+
 function routes($stateProvider, $urlServiceProvider) {
   var ownerTypesForFirewall = [
     {
@@ -137,6 +145,14 @@ function routes($stateProvider, $urlServiceProvider) {
         title: 'Dashboard - ROI',
         activeTab: ROI,
       },
+    })
+    .state('firewall.vulnerabilitySearch', {
+      url: '/vulnerabilities',
+      ...vulnerabilitiesRouteCommonProps,
+    })
+    .state('firewall.vulnerabilitySearchDetail', {
+      url: '/vulnerabilities/{id}',
+      ...vulnerabilitiesRouteCommonProps,
     })
     .state('firewall.waiver', {
       abstract: true,

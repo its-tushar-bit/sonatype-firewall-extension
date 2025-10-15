@@ -50,7 +50,7 @@ public class S3SbomPersistenceService
 
   private static final String TEMPORARY_SBOM_FORMAT = "sboms/temp/persistent/%s%s%s";
 
-  private static final String TRANSIENT_SBOM_FORMAT = "sboms/temp/transient/%s%s";
+  private static final String TRANSIENT_SBOM_FORMAT = "sboms/temp/transient/%s%s%s";
 
   private final S3Client s3Client;
 

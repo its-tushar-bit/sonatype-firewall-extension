@@ -14,7 +14,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -179,7 +178,9 @@ public class S3SbomPersistenceServiceTest
     assertThat(entity.getAppId()).isNull();
     assertThat(entity.getName()).isNotEqualTo(FILE_NAME);
     assertThat(entity.getName()).startsWith("sbom-");
-    assertThat(entity.getLocation()).contains("sboms/temp/transient/");
+    assertThat(entity.getLocation()).isEqualTo(
+        "s3://" + BUCKET_NAME + "/" + (prefix == null ? "" : prefix) + "sboms/temp/transient/" + entity.getName()
+    );
   }
 
   @Test

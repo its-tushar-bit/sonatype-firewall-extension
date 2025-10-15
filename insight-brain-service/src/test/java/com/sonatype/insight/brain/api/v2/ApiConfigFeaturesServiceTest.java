@@ -62,6 +62,8 @@ public class ApiConfigFeaturesServiceTest
         INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThat(service.getPropertyNameForFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED)).isEqualTo(
         SAAS_LIFECYCLE_SCM_ENABLED);
+    assertThat(service.getPropertyNameForFeature(FEATURE_USER_ACTIVITY_TRACKING)).isEqualTo(
+        USER_ACTIVITY_TRACKING);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
   }
 
@@ -90,6 +92,8 @@ public class ApiConfigFeaturesServiceTest
         FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
     assertThat(service.getFeatureForPropertyName(SAAS_LIFECYCLE_SCM_ENABLED)).isEqualTo(
         FEATURE_SAAS_LIFECYCLE_SCM_ENABLED);
+    assertThat(service.getFeatureForPropertyName(USER_ACTIVITY_TRACKING)).isEqualTo(
+        FEATURE_USER_ACTIVITY_TRACKING);
     assertThat(service.getFeatureForPropertyName("default-value")).isEqualTo("default-value");
   }
 
@@ -148,6 +152,8 @@ public class ApiConfigFeaturesServiceTest
         .isEqualTo(SystemConfigurationPropertyFeature.ENABLE_UNAUTHENTICATED_PAGES);
     assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS))
         .isEqualTo(SystemConfigurationPropertyFeature.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS);
+    assertThat(service.getSystemConfigurationPropertyFeature(FEATURE_USER_ACTIVITY_TRACKING))
+        .isEqualTo(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING);
 
     assertThatThrownBy(() -> service.getSystemConfigurationPropertyFeature(FEATURE_SAAS_LIFECYCLE_SCM_ENABLED))
         .isInstanceOf(BadRequestException.class)
@@ -1440,6 +1446,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("epssDataEnabled", false);
     expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
     expectedFeatureConfigMap.put("saasLifecycleScmPrsEnabled", true);
+    expectedFeatureConfigMap.put("userActivityTracking", false);
 
     return expectedFeatureConfigMap;
   }
@@ -1521,35 +1528,35 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testFeatureDefaultValue_UserManagementPages_WithFips() {
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-    
+
     assertThat(SystemConfigurationPropertyFeature.USER_MANAGEMENT_PAGES.isEnabled()).isTrue();
   }
 
   @Test
   public void testFeatureDefaultValue_SamlEnabled_WithFips() {
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-    
+
     assertThat(SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()).isTrue();
   }
 
   @Test
   public void testFeatureDefaultValue_LogoutAuth0OnLogout_WithFips() {
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-    
+
     assertThat(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.isEnabled()).isFalse();
   }
 
   @Test
   public void testFeatureDefaultValue_Oauth2Enabled_WithFips() {
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-    
+
     assertThat(SystemConfigurationPropertyFeature.OAUTH2_ENABLED.isEnabled()).isFalse();
   }
 
   @Test
   public void testFeatureDefaultValue_EnableSsoOnly_WithFips() {
     environmentVariables.set(FIPSConfig.FIPS_MODE_ENABLED_ENV, "true");
-    
+
     assertThat(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.isEnabled()).isFalse();
   }
 
@@ -1576,5 +1583,74 @@ public class ApiConfigFeaturesServiceTest
   @Test
   public void testFeatureDefaultValue_EnableSsoOnly() {
     assertThat(SystemConfigurationPropertyFeature.ENABLE_SSO_ONLY.isEnabled()).isFalse();
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_UserActivityTracking() {
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("userActivityTracking"),
+        service.getSystemConfigurationPropertyFeature("user-activity-tracking"),
+        service.getSystemConfigurationPropertyFeature("User-Activity-Tracking"),
+        service.getSystemConfigurationPropertyFeature("USER-ACTIVITY-TRACKING")
+    );
+
+    // Assert all map to USER_ACTIVITY_TRACKING
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING));
+  }
+
+  @Test
+  public void testEnableFeature_UserActivityTracking() {
+    service.enableFeature(SystemConfigurationProperty.USER_ACTIVITY_TRACKING);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_UserActivityTracking_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.USER_ACTIVITY_TRACKING);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.USER_ACTIVITY_TRACKING))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_UserActivityTracking() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.USER_ACTIVITY_TRACKING);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING))
+        .isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_UserActivityTracking() {
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_UserActivityTracking_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.USER_ACTIVITY_TRACKING))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_UserActivityTracking_DisabledByDefault() {
+    // Disabled by default
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING)).isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING)).isFalse();
+  }
+
+  @Test
+  public void testIsEnabled_UserActivityTracking() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING).getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING)).isTrue();
   }
 }

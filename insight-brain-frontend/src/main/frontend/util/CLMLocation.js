@@ -1038,6 +1038,18 @@ export function getSessionUrl() {
   return uriTemplate`/rest/user/session`;
 }
 
+export function getUserActivityUrl() {
+  return uriTemplate`/api/v2/userActivity`;
+}
+
+export function getUserActivityExportUrl() {
+  return uriTemplate`/api/v2/userActivity/export`;
+}
+
+export function getUserActivityFilterOptionsUrl() {
+  return uriTemplate`/api/v2/userActivity/filterOptions`;
+}
+
 export function getComponentLabels(ownerId, componentHash, ownerType = 'application') {
   return uriTemplate`/rest/label/component/${ownerType}/${ownerId}/${componentHash}`;
 }

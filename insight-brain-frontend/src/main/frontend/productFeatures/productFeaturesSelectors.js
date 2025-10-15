@@ -251,6 +251,11 @@ export const selectIsDeveloperDashboardEnabled = createSelector(
 );
 
 export const selectIsSbomManagerEnabled = createSelector(selectProductFeatures, propOr(false, 'sbom-manager'));
+
+export const selectIsUserActivityTrackingEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'user-activity-tracking')
+);
 export const selectIsAlpForSbomManagerEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'alp-for-sbom-manager')

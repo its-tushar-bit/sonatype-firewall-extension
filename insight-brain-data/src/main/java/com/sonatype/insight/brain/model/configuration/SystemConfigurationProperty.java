@@ -292,6 +292,8 @@ public class SystemConfigurationProperty
 
   public static final String WARN_ON_NON_PRIMARY_STORAGE_ACCESS = "warnOnNonPrimaryStorageAccess";
 
+  public static final String USER_ACTIVITY_TRACKING = "userActivityTracking";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

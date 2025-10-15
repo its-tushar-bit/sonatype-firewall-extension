@@ -280,6 +280,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null)),
       };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

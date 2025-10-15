@@ -36,49 +36,44 @@ export default function UserList(props) {
   };
 
   return (
-    <main id="user-management" className="nx-page-main">
-      <div className="nx-page-title">
-        <h1 className="nx-h1">Users</h1>
-      </div>
-      <LoadWrapper loading={loading} error={loadError} retryHandler={loadListPage}>
-        <section className="nx-tile">
-          <header className="nx-tile-header">
-            <div className="nx-tile-header__title">
-              <h2 className="nx-h2">Configure Users</h2>
-            </div>
-            <div className="nx-tile__actions">
-              {isMultiTenant && !isUserManagementEnabled ? (
-                <NxButton id="invite-user" onClick={createUser}>
-                  <NxFontAwesomeIcon icon={faPlus} />
-                  <span>Invite User</span>
-                </NxButton>
-              ) : (
-                <NxButton variant="tertiary" id="create-user" onClick={createUser}>
-                  <NxFontAwesomeIcon icon={faPlus} />
-                  <span>Create User</span>
-                </NxButton>
-              )}
-            </div>
-          </header>
-          <div className="nx-tile-content">
-            <NxList
-              id="user-management-list"
-              emptyMessage="There are no users configured. Click the Invite button to add more users."
-            >
-              {users.map((user) => (
-                <UserListItem
-                  key={user.id}
-                  user={user}
-                  currentUsername={currentUsername}
-                  editable={tenantMode !== 'multi-tenant'}
-                  {...{ deleteUser, deleteError, deleteMaskState }}
-                />
-              ))}
-            </NxList>
+    <LoadWrapper loading={loading} error={loadError} retryHandler={loadListPage}>
+      <section className="nx-tile">
+        <header className="nx-tile-header">
+          <div className="nx-tile-header__title">
+            <h2 className="nx-h2">Configure Users</h2>
           </div>
-        </section>
-      </LoadWrapper>
-    </main>
+          <div className="nx-tile__actions">
+            {isMultiTenant && !isUserManagementEnabled ? (
+              <NxButton id="invite-user" onClick={createUser}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>Invite User</span>
+              </NxButton>
+            ) : (
+              <NxButton variant="tertiary" id="create-user" onClick={createUser}>
+                <NxFontAwesomeIcon icon={faPlus} />
+                <span>Create User</span>
+              </NxButton>
+            )}
+          </div>
+        </header>
+        <div className="nx-tile-content">
+          <NxList
+            id="user-management-list"
+            emptyMessage="There are no users configured. Click the Invite button to add more users."
+          >
+            {users.map((user) => (
+              <UserListItem
+                key={user.id}
+                user={user}
+                currentUsername={currentUsername}
+                editable={tenantMode !== 'multi-tenant'}
+                {...{ deleteUser, deleteError, deleteMaskState }}
+              />
+            ))}
+          </NxList>
+        </div>
+      </section>
+    </LoadWrapper>
   );
 }
 

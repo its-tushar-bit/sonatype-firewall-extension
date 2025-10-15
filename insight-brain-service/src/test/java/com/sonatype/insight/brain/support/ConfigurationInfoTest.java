@@ -291,7 +291,8 @@ public class ConfigurationInfoTest
         "userManagementPages",
         "epssDataEnabled",
         "integrationsSupportedVersionCount",
-        "warnOnNonPrimaryStorageAccess"
+        "warnOnNonPrimaryStorageAccess",
+        "userActivityTracking"
     );
 
     // Properties included in the config.json in support zip

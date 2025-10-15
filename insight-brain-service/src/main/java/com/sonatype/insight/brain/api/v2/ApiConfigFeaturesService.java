@@ -68,6 +68,8 @@ public class ApiConfigFeaturesService
 
   public static final String FEATURE_SCM_UX_IMPROVEMENTS = "scmUxImprovements";
 
+  static final String FEATURE_USER_ACTIVITY_TRACKING = "userActivityTracking";
+
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
       new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
   );
@@ -213,6 +215,7 @@ public class ApiConfigFeaturesService
       case FEATURE_SCM_UX_IMPROVEMENTS -> SystemConfigurationProperty.SCM_UX_IMPROVEMENTS;
       case FEATURE_SAAS_LIFECYCLE_SCM_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
       case FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED;
+      case FEATURE_USER_ACTIVITY_TRACKING -> SystemConfigurationProperty.USER_ACTIVITY_TRACKING;
       default -> feature;
     };
   }
@@ -271,6 +274,7 @@ public class ApiConfigFeaturesService
       case SystemConfigurationProperty.SCM_UX_IMPROVEMENTS -> FEATURE_SCM_UX_IMPROVEMENTS;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED;
+      case SystemConfigurationProperty.USER_ACTIVITY_TRACKING -> FEATURE_USER_ACTIVITY_TRACKING;
       default -> propertyName;
     };
   }

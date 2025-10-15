@@ -379,7 +379,9 @@ public enum SystemConfigurationPropertyFeature
         super.setEnabled(tx, enabled);
       }
     }
-  };
+  },
+
+  USER_ACTIVITY_TRACKING(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

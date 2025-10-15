@@ -133,6 +133,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.ENABLE_FEDRAMP_AUDIT.getId(),
           SystemConfigurationPropertyFeature.SAML_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.getId(),
+          SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getId(),
       }
   )).toArray(String[]::new);
 

@@ -14,6 +14,8 @@ export const STANDARD_DATE_TIME_FORMAT_NO_TZ = 'YYYY-MM-DD HH:mm:ss';
 
 export const FIREWALL_TIME_DATE_FORMAT = 'h:mm:ss A YYYY-MM-DD';
 export const FIREWALL_DATE_TIME_FORMAT = STANDARD_DATE_TIME_FORMAT_NO_TZ;
+
+export const USER_ACTIVITY_DATE_FORMAT = 'M/D/YYYY, h:mm:ss A';
 export const formatDate = (date, format = STANDARD_DATE_TIME_FORMAT) => {
   if (typeof date === 'undefined' || date === null) {
     return '';
@@ -73,4 +75,17 @@ export const reduceStringDateToDay = (timeAgoDateInString) => {
     return 'Less than a day ago';
   }
   return timeAgoDateInString;
+};
+
+/**
+ * Formats a Date object as YYYY-MM-DD string.
+ *
+ * @param {Date} date - The date to format
+ * @returns {string} Date formatted as YYYY-MM-DD
+ */
+export const formatDateAsYYYYMMDD = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 };

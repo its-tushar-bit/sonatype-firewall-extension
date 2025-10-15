@@ -116,7 +116,7 @@ public class AuthenticationAuditTest
     restRequest().auth("user", "pass").path(RESTRICTED_PATH).get();
 
     AuditDTO log = awaitLogEntries(AuditEvent.AUTHENTICATION_FAILURE, 1).get(0);
-    assertAuditLog(log, "GET", RESTRICTED_PATH, AuditRecorder.SERVER_ERROR);
+    assertAuditLog(log, "GET", RESTRICTED_PATH, AuditErrorType.SERVER_ERROR.getValue());
   }
 
   private void assertAuditLog(

@@ -191,6 +191,8 @@ public class PublicApiPaths
 
   public static final String AUDIT_LOGS_RESOURCE_PATH = API_VERSION_PATH_V2 + "auditLogs";
 
+  public static final String USER_ACTIVITY_RESOURCE_PATH = API_VERSION_PATH_V2 + "userActivity";
+
   public static final String LICENSED_SOLUTIONS_RESOURCE_PATH = API_VERSION_PATH_V2 + "solutions/licensed";
 
   public static final String EXTERNAL_PATH = API_VERSION_PATH_V2 + "external";

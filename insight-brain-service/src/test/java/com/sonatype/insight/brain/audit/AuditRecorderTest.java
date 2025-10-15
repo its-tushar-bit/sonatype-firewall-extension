@@ -29,7 +29,6 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
-import static com.sonatype.insight.brain.audit.AuditRecorder.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -124,7 +123,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         AuditEvent.AUTHENTICATION_FAILURE,
-        UNAUTHENTICATED);
+        AuditErrorType.UNAUTHENTICATED.getValue());
   }
 
   @Test
@@ -137,7 +136,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         AuditEvent.AUTHENTICATION_FAILURE,
-        BAD_AUTHENTICATION);
+        AuditErrorType.BAD_AUTHENTICATION.getValue());
   }
 
   @Test
@@ -147,7 +146,7 @@ public class AuditRecorderTest
         httpServletRequest -> when(httpServletRequest.getCookies()).thenReturn(
             new Cookie[]{new Cookie(SecurityModule.SESSION_COOKIE_NAME, "AuthCookie")}),
         AuditEvent.AUTHENTICATION_FAILURE,
-        BAD_SESSION);
+        AuditErrorType.BAD_SESSION.getValue());
   }
 
   @Test
@@ -157,7 +156,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        BAD_REQUEST);
+        AuditErrorType.BAD_REQUEST.getValue());
   }
 
   @Test
@@ -167,7 +166,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        UNLICENSED);
+        AuditErrorType.UNLICENSED.getValue());
   }
 
   @Test
@@ -177,7 +176,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        UNAUTHORIZED);
+        AuditErrorType.UNAUTHORIZED.getValue());
   }
 
   @Test
@@ -187,7 +186,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        NOT_FOUND);
+        AuditErrorType.NOT_FOUND.getValue());
   }
 
   @Test
@@ -197,7 +196,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        SERVICE_UNAVAILABLE);
+        AuditErrorType.SERVICE_UNAVAILABLE.getValue());
   }
 
   @Test
@@ -207,7 +206,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        GATEWAY_TIMEOUT);
+        AuditErrorType.GATEWAY_TIMEOUT.getValue());
   }
 
   @Test
@@ -217,7 +216,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        SERVER_ERROR);
+        AuditErrorType.SERVER_ERROR.getValue());
   }
 
   @Test
@@ -227,7 +226,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         null,
-        CLIENT_ERROR);
+        AuditErrorType.CLIENT_ERROR.getValue());
   }
 
   @Test
@@ -253,7 +252,7 @@ public class AuditRecorderTest
         httpServletRequest -> {
         },
         AuditEvent.LOGIN,
-        SERVER_ERROR);
+        AuditErrorType.SERVER_ERROR.getValue());
   }
 
   @Test

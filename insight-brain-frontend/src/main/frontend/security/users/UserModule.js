@@ -6,11 +6,11 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import UserAddContainer from './userConfiguration/UserAddContainer';
 import UserEditContainer from './userConfiguration/UserEditContainer';
-import UserListContainer from './userList/UserListContainer';
+import UserManagementContainer from './UserManagementContainer';
 
 export const UserModule = angular
   .module('UserModule', [])
-  .component('users', iqReact2Angular(UserListContainer, [], ['$ngRedux', '$state']))
+  .component('users', iqReact2Angular(UserManagementContainer, [], ['$ngRedux', '$state']))
   .component('createUser', iqReact2Angular(UserAddContainer, [], ['$ngRedux', '$state']))
   .component('editUser', iqReact2Angular(UserEditContainer, [], ['$ngRedux', '$state']))
   .config(routes);
@@ -22,6 +22,13 @@ function routes($stateProvider) {
       component: 'users',
       data: {
         title: 'Users',
+      },
+    })
+    .state('users.activity', {
+      url: '/activity',
+      data: {
+        title: 'User Activity',
+        activeTab: 'activity',
       },
     })
     .state('createUser', {

@@ -63,7 +63,8 @@ public class TenantConfigurationService
       ZSCALER,
       THIRD_PARTY_KEV_LOOKUP,
       EPSS_DATA,
-      SESSION_TIMEOUT_MINUTES
+      SESSION_TIMEOUT_MINUTES,
+      USER_ACTIVITY_TRACKING
   );
 
   // Visible for testing

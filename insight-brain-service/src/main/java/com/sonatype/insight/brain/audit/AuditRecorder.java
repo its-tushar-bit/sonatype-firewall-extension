@@ -34,30 +34,6 @@ public class AuditRecorder
 
   static final ObjectMapper AUDIT_OBJECT_MAPPER = new ObjectMapper();
 
-  static final String BAD_REQUEST = "bad-request";
-
-  static final String BAD_AUTHENTICATION = "bad-authentication";
-
-  static final String BAD_SESSION = "bad-session";
-
-  static final String UNAUTHENTICATED = "unauthenticated";
-
-  static final String UNLICENSED = "unlicensed";
-
-  static final String UNAUTHORIZED = "unauthorized";
-
-  static final String NOT_FOUND = "not-found";
-
-  static final String BAD_GATEWAY = "bad-gateway";
-
-  static final String SERVICE_UNAVAILABLE = "service-unavailable";
-
-  static final String GATEWAY_TIMEOUT = "gateway-timeout";
-
-  static final String SERVER_ERROR = "server-error";
-
-  static final String CLIENT_ERROR = "client-error";
-
   private final ErrorResponseGenerator errorResponseGenerator;
 
   @Inject
@@ -95,38 +71,38 @@ public class AuditRecorder
   private String getHttpStatusString(final RecordingAuditData auditData, final int httpStatus) {
     switch (httpStatus) {
       case 400:
-        return BAD_REQUEST;
+        return AuditErrorType.BAD_REQUEST.getValue();
       case 401:
         if (auditData.getUsername() != null) {
-          return BAD_AUTHENTICATION;
+          return AuditErrorType.BAD_AUTHENTICATION.getValue();
         }
         else {
           RequestData requestData = auditData.getRequestData();
           if (requestData != null && requestData.getSessionId() != null) {
-            return BAD_SESSION;
+            return AuditErrorType.BAD_SESSION.getValue();
           }
         }
-        return UNAUTHENTICATED;
+        return AuditErrorType.UNAUTHENTICATED.getValue();
       case 402:
-        return UNLICENSED;
+        return AuditErrorType.UNLICENSED.getValue();
       case 403:
-        return UNAUTHORIZED;
+        return AuditErrorType.UNAUTHORIZED.getValue();
       case 404:
-        return NOT_FOUND;
+        return AuditErrorType.NOT_FOUND.getValue();
       case 502:
-        return BAD_GATEWAY;
+        return AuditErrorType.BAD_GATEWAY.getValue();
       case 503:
-        return SERVICE_UNAVAILABLE;
+        return AuditErrorType.SERVICE_UNAVAILABLE.getValue();
       case 504:
-        return GATEWAY_TIMEOUT;
+        return AuditErrorType.GATEWAY_TIMEOUT.getValue();
       default:
         // fallthrough
     }
     if (httpStatus >= 500) {
-      return SERVER_ERROR;
+      return AuditErrorType.SERVER_ERROR.getValue();
     }
     if (httpStatus >= 400) {
-      return CLIENT_ERROR;
+      return AuditErrorType.CLIENT_ERROR.getValue();
     }
     return null;
   }

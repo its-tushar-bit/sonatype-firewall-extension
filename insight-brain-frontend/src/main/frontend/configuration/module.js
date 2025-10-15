@@ -25,6 +25,7 @@ import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
 import WaivedComponentUpgradesConfiguration from './waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
 import RoiConfigurationPage from './roiConfiguration/RoiConfigurationPage';
 import EditRoiConfigurationPage from './editRoiConfiguration/EditRoiConfigurationPage';
+import UserActivityDetailsContainer from './userActivityOverview/UserActivityDetailsContainer';
 import { submitData, DEPARTED_ACTION } from './gettingStarted/gettingStartedTelemetryServiceHelper';
 import { isAuthorized } from '../util/permissionService';
 
@@ -63,6 +64,10 @@ export default angular
   .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$ngRedux', '$state']))
   .component('roiConfiguration', iqReact2Angular(RoiConfigurationPage, [], ['$ngRedux', '$state']))
   .component('editRoiConfiguration', iqReact2Angular(EditRoiConfigurationPage, [], ['$ngRedux', '$state']))
+  .component(
+    'userActivityDetails',
+    iqReact2Angular(UserActivityDetailsContainer, ['isAuthorized'], ['$ngRedux', '$state'])
+  )
   .factory('scmOnboardingActions', scmOnboardingActions)
   .value('routerListener', routerListener) // add to angular so we can test it
   .config(routes)
@@ -185,6 +190,18 @@ function routes($stateProvider) {
       url: '/roiConfiguration/edit',
       data: {
         title: 'Edit ROI Configuration',
+      },
+    })
+    .state('userActivityDetails', {
+      component: 'userActivityDetails',
+      url: '/users/activity/{username}',
+      data: {
+        title: 'User Activity Details',
+      },
+      resolve: {
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM', 'ACCESS_AUDIT_LOG']);
+        },
       },
     });
 }

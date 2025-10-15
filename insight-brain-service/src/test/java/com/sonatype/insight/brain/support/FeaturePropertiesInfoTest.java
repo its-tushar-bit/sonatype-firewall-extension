@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(28);
+    assertThat(sysConfigNode.size()).isEqualTo(29);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -77,7 +77,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(28);
+    assertThat(sysConfigNode.size()).isEqualTo(29);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -115,7 +115,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(59);
+    assertThat(featureConfigNode.size()).isEqualTo(60);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -177,7 +177,8 @@ public class FeaturePropertiesInfoTest
               "thirdPartyKevLookup": true,
               "SAML_ENABLED": true,
               "userManagementPages": true,
-              "epssDataEnabled": false
+              "epssDataEnabled": false,
+              "userActivityTracking": false
             }"""));
   }
 
@@ -192,7 +193,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(59);
+    assertThat(featureConfigNode.size()).isEqualTo(60);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -254,7 +255,8 @@ public class FeaturePropertiesInfoTest
               "thirdPartyKevLookup": true,
               "SAML_ENABLED": true,
               "userManagementPages": true,
-              "epssDataEnabled": false
+              "epssDataEnabled": false,
+              "userActivityTracking": false
             }"""));
   }
 
@@ -275,7 +277,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(49)
+        .hasSize(50)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

@@ -121,6 +121,7 @@ import logoutWarningModalSlice from 'MainRoot/modals/logoutWarningModal/logoutWa
 import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
+import userActivitySlice from '../configuration/userActivityOverview/userActivitySlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -240,4 +241,5 @@ export default combineReducers({
   externalLinkModal: externalLinkModalSlice,
   unsavedChangesModal: unsavedChangesModalSlice,
   addContainerImageWaiverPage: addContainerImageWaiverPageSlice,
+  userActivity: userActivitySlice,
 });

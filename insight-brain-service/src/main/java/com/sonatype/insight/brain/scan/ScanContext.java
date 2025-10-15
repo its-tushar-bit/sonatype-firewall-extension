@@ -5,12 +5,17 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+
 /**
  * This class is intended to allow us to pass any information along for a scan without having to add extra method
  * parameters everywhere. It is similar to {@link com.sonatype.insight.brain.thirdparty.ThirdPartyScanContext} but is
  * intended to be usable for any scan.
  */
-public record ScanContext(String applicationVersion, boolean isValid, String sbomMetadataId)
+public record ScanContext(String applicationVersion,
+                          boolean isValid,
+                          String sbomMetadataId,
+                          SbomSpecification containerImageSbomSpecification)
 {
   /**
    * This builder is intended to make constructing a {@link ScanContext} easier by not having to set all fields.
@@ -22,6 +27,8 @@ public record ScanContext(String applicationVersion, boolean isValid, String sbo
     private String sbomMetadataId;
 
     private boolean isValid;
+
+    private SbomSpecification containerImageSbomSpecification;
 
     public Builder applicationVersion(final String applicationVersion) {
       this.applicationVersion = applicationVersion;
@@ -38,8 +45,13 @@ public record ScanContext(String applicationVersion, boolean isValid, String sbo
       return this;
     }
 
+    public Builder containerImageSbomSpecification(final SbomSpecification containerImageSbomSpecification) {
+      this.containerImageSbomSpecification = containerImageSbomSpecification;
+      return this;
+    }
+
     public ScanContext build() {
-      return new ScanContext(applicationVersion, isValid, sbomMetadataId);
+      return new ScanContext(applicationVersion, isValid, sbomMetadataId, containerImageSbomSpecification);
     }
   }
 }

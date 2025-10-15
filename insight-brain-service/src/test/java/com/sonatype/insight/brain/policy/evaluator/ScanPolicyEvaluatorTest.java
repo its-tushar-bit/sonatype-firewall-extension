@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.AiModelContentType;
@@ -353,32 +352,20 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
     Stage stage = new Stage(Stage.ID_PROXY);
+    ScanTriggerType scanTriggerType = ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API;
 
     String scanId = simulateReportIsAvailable("report");
 
     ScanPolicyEvaluatorResults results =
-        scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
-            ClientScanType.SONATYPE, false);
+        scanPolicyEvaluator.evaluate(application, scanId, stage, scanTriggerType, ClientScanType.SONATYPE, false);
 
     assertThat(results.evaluation).isNotNull();
     assertThat(results.evaluation.getApplicationId()).isEqualTo(application.getId());
     assertThat(results.evaluation.getStageTypeId()).isEqualTo(stage.getStageTypeId());
     assertThat(results.evaluation.getScanId()).isEqualTo(scanId);
     assertThat(results.evaluation.getCommitHash()).isEqualTo("testCommitHash");
-    assertThat(results.evaluation.getScanTriggerType()).isEqualTo(ScanTriggerType.CLI);
+    assertThat(results.evaluation.getScanTriggerType()).isEqualTo(scanTriggerType);
     assertThat(results.evaluation.getBranchName()).isEqualTo("testBranchName");
-  }
-
-  @Test
-  public void testEvaluate_Results_ContainerImageEvaluation_NotCLI() throws Exception {
-    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
-    testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
-    Stage stage = new Stage(Stage.ID_PROXY);
-
-    assertThatExceptionOfType(InvalidStageException.class)
-        .isThrownBy(() -> scanPolicyEvaluator.evaluate(application, "test-scan", stage,
-            ScanTriggerType.CONTINUOUS_INTEGRATION, ClientScanType.SONATYPE, false))
-        .withMessage("Invalid stage id=proxy");
   }
 
   @Test
@@ -5271,10 +5258,8 @@ public class ScanPolicyEvaluatorTest
   @Test
   public void testGetPolicyOwnerIdForEvaluation_ReturnsApplicationId() {
     Stage buildStage = new Stage(Stage.ID_BUILD);
-    ScanTriggerType cliTrigger = ScanTriggerType.CLI;
 
-    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(
-        application, cliTrigger, buildStage);
+    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(application, buildStage);
 
     assertThat(result).isEqualTo(application.getId());
   }
@@ -5285,13 +5270,11 @@ public class ScanPolicyEvaluatorTest
     testProductLicense.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
     Stage proxyStage = new Stage(Stage.ID_PROXY);
-    ScanTriggerType cliTrigger = ScanTriggerType.CLI;
 
     organization.setRelatedRepositoryId("test-repo-id");
     organizationDAO.update(organization);
 
-    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(
-        application, cliTrigger, proxyStage);
+    String result = scanPolicyEvaluator.getPolicyOwnerIdForEvaluation(application, proxyStage);
 
     assertThat(result).isEqualTo("test-repo-id");
   }

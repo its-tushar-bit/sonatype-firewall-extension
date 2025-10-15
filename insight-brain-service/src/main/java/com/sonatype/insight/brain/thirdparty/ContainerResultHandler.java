@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.thirdparty;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,13 +27,14 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinat
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
-import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
@@ -46,9 +48,9 @@ import com.neuvector.model.ScanModule;
 import com.neuvector.model.ScanRepoReportData;
 import com.neuvector.model.Vulnerability;
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cyclonedx.exception.ParseException;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.Component.Type;
@@ -56,6 +58,7 @@ import org.cyclonedx.model.vulnerability.Vulnerability.Affect;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating;
 import org.cyclonedx.model.vulnerability.Vulnerability.Rating.Severity;
 import org.cyclonedx.model.vulnerability.Vulnerability.Source;
+import org.cyclonedx.parsers.JsonParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -130,6 +133,20 @@ public class ContainerResultHandler
 
   @Override
   Pair<Bom, Boolean> parseBom(final ThirdPartyScanContent content) throws RuntimeException {
+    if (thirdPartyScanContext != null && thirdPartyScanContext.getContainerImageSbomSpecification() == CYCLONEDX) {
+      if (StringUtils.isBlank(content.getContent())) {
+        throw new BadRequestException("Empty content for container image");
+      }
+      try {
+        Bom bom = new JsonParser().parse(content.getContent().getBytes(StandardCharsets.UTF_8));
+        componentInfoTelemetry.setContentType(SbomFormat.JSON.name());
+        return Pair.of(bom, true);
+      }
+      catch (ParseException e) {
+        throw new BadRequestException("Invalid content for container image", e);
+      }
+    }
+
     ScanRepoReportData scanRepoReportData = new Gson().fromJson(content.getContent(), ScanRepoReportData.class);
     componentInfoTelemetry.setContentType(SbomFormat.JSON.name());
 
@@ -138,7 +155,7 @@ public class ContainerResultHandler
 
     Map<String, Vulnerability> cveVulnerabilityMap = new HashMap<>();
     Vulnerability[] vulnerabilities =
-        ObjectUtils.defaultIfNull(scanRepoReportData.getReport().getVulnerabilities(), new Vulnerability[]{});
+        ArrayUtils.nullToEmpty(scanRepoReportData.getReport().getVulnerabilities(), Vulnerability[].class);
     for (Vulnerability vulnerability : vulnerabilities) {
       String name = vulnerability.getName();
       cveVulnerabilityMap.put(name, vulnerability);

@@ -32,6 +32,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
+import com.sonatype.insight.telemetry.SonatypeUserAgentUtil;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -125,8 +126,19 @@ public class ApplicationForContainerImageFirewallService
         application = createApplicationHierarchy(tx, repositoryManager, repository, applicationPublicId);
       }
 
+      boolean needToUpdateRepositoryManager = false;
+
       if (!dto.getBaseUrl().equals(repositoryManager.getBaseUrl())) {
         repositoryManager.setBaseUrl(dto.getBaseUrl());
+        needToUpdateRepositoryManager = true;
+      }
+      if (StringUtils.isNotBlank(dto.getClientUserAgent())
+          && !dto.getClientUserAgent().equals(repositoryManager.getUserAgent())
+          && SonatypeUserAgentUtil.parse(dto.getClientUserAgent()) != null) {
+        repositoryManager.setUserAgent(dto.getClientUserAgent());
+        needToUpdateRepositoryManager = true;
+      }
+      if (needToUpdateRepositoryManager) {
         repositoryManagerDAO.update(tx, repositoryManager);
       }
 

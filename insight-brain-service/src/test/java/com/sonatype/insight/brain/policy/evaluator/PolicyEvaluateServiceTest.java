@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -87,6 +88,9 @@ import com.sonatype.insight.brain.report.MockReportDownloader;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.report.ReportService;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.scan.ScanContext;
+import com.sonatype.insight.brain.scan.ScanResult;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -101,6 +105,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.scan.application.ScannerDriver;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
@@ -745,7 +750,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void testEvaluateWithPolling_PollEvaluationResult_ContainerImage_Success() throws Exception {
+  public void testEvaluateWithPolling_PollEvaluationResult_ContainerImage_Success_CLI() throws Exception {
     Organization organization = tempEntity.newOrganization();
     organization.setRelatedRepositoryId("repositoryId");
     organizationDAO.update(organization);
@@ -1354,7 +1359,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
-  public void test_evaluateWithPolling_SendRepositoryComponentTelemetryDataForContainer() throws Exception {
+  public void test_evaluateWithPolling_SendRepositoryComponentTelemetryDataForContainer_CLI() throws Exception {
     // Arrange
     productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
@@ -1389,6 +1394,69 @@ public class PolicyEvaluateServiceTest
             ClientScanType.SONATYPE_THIRD_PARTY, null, stage);
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), receipt.getStatusId());
+
+    List<TelemetryData> telemetryDataValues = telemetryDataArgumentCaptor.getAllValues();
+    TelemetryData telemetryDataForContainer = telemetryDataValues.stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT))
+        .findFirst()
+        .orElse(null);
+
+    // Assert
+    verify(mockTelemetrySender, atLeastOnce()).send(any(TelemetryData.class));
+
+    assertThat(pollingResult).isNotNull();
+    assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+
+    assertThat(telemetryDataValues).isNotEmpty();
+    assertThat(telemetryDataForContainer).isNotNull();
+    assertThat(telemetryDataForContainer.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
+    assertThat(telemetryDataForContainer.getAttributes())
+        .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
+        .containsKey(POLICY_VIOLATION_TELEMETRY);
+  }
+
+  @Test
+  public void test_evaluateWithPolling_SendRepositoryComponentTelemetryDataForContainer_Api() throws Exception {
+    // Arrange
+    productLicenseManager.setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    String scanId = simulateReportIsAvailable();
+    Stage stage = new Stage(Stage.ID_PROXY);
+    Repository repository = tempEntity.newRepository();
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(scanId);
+    repository.setRepositoryType(RepositoryType.proxy);
+    repository.setFormat("docker");
+    repositoryDAO.update(repository);
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+    Application app = tempEntity.newApplication("app", organization.getId());
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), scanId);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+    doReturn(scanReceipt)
+        .when(mockScanHandler)
+        .handle(any());
+    doNothing()
+        .when(mockTelemetrySender)
+        .send(telemetryDataArgumentCaptor.capture());
+
+    // Act
+    ScanResult scanResult = new ScanResult();
+    scanResult.setScanEntity(mock(ScanEntity.class));
+
+    String scanRequestId = UUID.randomUUID().toString().replace("-", "");
+
+    policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
+        new Stage(Stage.ID_PROXY), ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API, scanResult.getScanEntity(),
+        ScannerDriver.THIRD_PARTY_API.getValue(), null, null,
+        new ScanContext.Builder().containerImageSbomSpecification(SbomSpecification.CYCLONEDX).build());
+
+    PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
+        .awaitEvaluationCompleted(app.getId(), scanRequestId);
 
     List<TelemetryData> telemetryDataValues = telemetryDataArgumentCaptor.getAllValues();
     TelemetryData telemetryDataForContainer = telemetryDataValues.stream()

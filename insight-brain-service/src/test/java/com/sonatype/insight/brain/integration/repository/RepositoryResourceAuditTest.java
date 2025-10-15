@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration.repository;
 
 import java.util.Collections;
 
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
@@ -15,8 +16,18 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.cyclonedx.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.junit.Test;
+
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
 
 public class RepositoryResourceAuditTest
     extends AbstractRepositoryResourceAuditTest
@@ -92,6 +103,62 @@ public class RepositoryResourceAuditTest
     AuditDTO auditDTO = assertAuditLog(AuditEvent.REMOVE_PROPRIETARY_COMPONENT_NAMES, "unauthorized");
     assertCustomData(auditDTO, "repositoryManagerInstanceId", repoManager.getInstanceId());
     assertCustomData(auditDTO, "repositoryPublicId", repo.getPublicId());
+  }
+
+  @Test
+  public void testEvaluateContainerImage() throws Exception {
+    Repository repository = tempEntity.newRepository(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    String bomJson = buildTestBom();
+
+    mockReport("SCAN-ID", "/" + getClass().getSimpleName() + "/report");
+
+    evaluateContainerImageRequest(bomJson).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, null);
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  @Test
+  public void testEvaluateContainerImage_Unauthorized() throws Exception {
+    Repository repository = tempEntity.newRepository(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID);
+    String bomJson = buildTestBom();
+
+    evaluateContainerImageRequest(bomJson).with(unauthorizedUser()).post();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.EVALUATE_REPOSITORY, "unauthorized");
+    assertRepositoryData(auditDTO, repository);
+  }
+
+  private HttpRequest evaluateContainerImageRequest(String bomJson) {
+    return restRequest()
+        .path(getResourcePath())
+        .path(RepositoryResource.EVALUATE_CONTAINER_IMAGE_PATH)
+        .parameter(REPOSITORY_MANAGER_INSTANCE_ID, REPOSITORY_PUBLIC_ID)
+        .body(bomJson);
+  }
+
+  private String buildTestBom() {
+    Bom bom = new Bom();
+    Metadata metadata = new Metadata();
+    bom.setMetadata(metadata);
+
+    Component containerImageComponent = new Component();
+    containerImageComponent.setType(Type.CONTAINER);
+    containerImageComponent.setPurl(PackageUrlIdentifier.toPackageUrl(
+        ComponentIdentifier.createContainerCoordinates("test-namespace", "test-image", "1.0.0")));
+    metadata.setComponent(containerImageComponent);
+
+    Property baseUrlProperty = new Property();
+    baseUrlProperty.setName(SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME);
+    baseUrlProperty.setValue("https://test.repository-manager.com");
+    metadata.addProperty(baseUrlProperty);
+
+    try {
+      return BomGeneratorFactory.createJson(Version.VERSION_16, bom).toJsonString();
+    }
+    catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   @Override

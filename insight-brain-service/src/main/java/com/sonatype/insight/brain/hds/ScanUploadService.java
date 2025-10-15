@@ -230,6 +230,7 @@ public class ScanUploadService
     if (scanContext != null) {
       thirdPartyScanContext.setApplicationVersion(scanContext.applicationVersion());
       thirdPartyScanContext.setIsValid(scanContext.isValid());
+      thirdPartyScanContext.setContainerImageSbomSpecification(scanContext.containerImageSbomSpecification());
 
       var sbomMetadataId = scanContext.sbomMetadataId();
       if (sbomMetadataId != null) {

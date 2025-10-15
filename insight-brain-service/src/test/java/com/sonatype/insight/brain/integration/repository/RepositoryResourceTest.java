@@ -15,31 +15,49 @@ import java.util.List;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationResponse;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PersistedPolicyEvaluationPollingResultDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PersistedPolicyEvaluationPollingResult;
 import com.sonatype.insight.brain.model.repository.ProprietaryComponentNamePattern;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.repository.RepositoryPolicyEvaluator;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
+import org.cyclonedx.Version;
+import org.cyclonedx.generators.json.BomJsonGenerator;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.ADHOC;
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,11 +66,17 @@ public class RepositoryResourceTest
 {
   private RepositoryComponentDAO repositoryComponentDAO;
 
+  private OrganizationDAO organizationDAO;
+
+  private PersistedPolicyEvaluationPollingResultDAO persistedPolicyEvaluationPollingResultDAO;
+
   @Before
   @Override
   public void setUp() {
     super.setUp();
     repositoryComponentDAO = lookup(RepositoryComponentDAO.class);
+    organizationDAO = lookup(OrganizationDAO.class);
+    persistedPolicyEvaluationPollingResultDAO = lookup(PersistedPolicyEvaluationPollingResultDAO.class);
   }
 
   @Override
@@ -210,6 +234,193 @@ public class RepositoryResourceTest
 
     assertResponseStatus(200, response);
     assertThat(response.getBody(Boolean.class)).isFalse();
+  }
+
+  @Test
+  public void testEvaluateContainerImage_noFeatureFlag() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_CONTAINER_IMAGE_PATH)
+        .parameter("test-repo-manager", "test-repo")
+        .body(createValidBomJson())
+        .post();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testEvaluateContainerImage_noLicensedFeature() throws Exception {
+    setMissingFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_CONTAINER_IMAGE_PATH)
+        .parameter("test-repo-manager", "test-repo")
+        .body(createValidBomJson())
+        .post();
+
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testEvaluateContainerImage_success() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("https://nexus.example.com");
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-proxy", RepositoryType.proxy, "docker");
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATE_CONTAINER_IMAGE_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(createValidBomJson())
+        .post();
+
+    assertResponseStatus(200, response);
+    FirewallContainerImageEvaluationResponse responseBody =
+        response.getBody(FirewallContainerImageEvaluationResponse.class);
+
+    assertThat(responseBody).isNotNull();
+    assertThat(responseBody.getStatusId()).isNotBlank();
+    assertThat(responseBody.getStatusUrl()).isNotBlank();
+    assertThat(responseBody.getContainerImagePublicId()).isNotBlank();
+    assertThat(responseBody.getStatusUrl()).contains(responseBody.getContainerImagePublicId());
+    assertThat(responseBody.getStatusUrl()).contains(responseBody.getStatusId());
+  }
+
+  @Test
+  public void testPollContainerImageEvaluationResult_noFeatureFlag() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATION_STATUS_CONTAINER_IMAGE_PATH)
+        .parameter("test-image-id", "test-status-id")
+        .get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testPollContainerImageEvaluationResult_noLicensedFeature() throws Exception {
+    setMissingFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATION_STATUS_CONTAINER_IMAGE_PATH)
+        .parameter("test-image-id", "test-status-id")
+        .get();
+
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testPollContainerImageEvaluationResult_success() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+
+    Organization organization = tempEntity.newOrganization();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    String containerImagePublicId = application.getPublicId();
+    String statusId = "test-status-id";
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = new PolicyEvaluationPollingResult();
+    policyEvaluationPollingResult.setReason("reason");
+    policyEvaluationPollingResult.setStatus(PolicyEvaluationStatus.COMPLETED);
+    PersistedPolicyEvaluationPollingResult expected =
+        new PersistedPolicyEvaluationPollingResult(application.getId(), statusId, policyEvaluationPollingResult);
+    persistedPolicyEvaluationPollingResultDAO.insert(expected);
+
+    HttpResponse response = restRequest().path(RepositoryResource.EVALUATION_STATUS_CONTAINER_IMAGE_PATH)
+        .parameter(containerImagePublicId, statusId)
+        .get();
+
+    assertResponseStatus(200, response);
+    PolicyEvaluationPollingResult responseBody = response.getBody(PolicyEvaluationPollingResult.class);
+
+    assertThat(responseBody).isNotNull();
+    assertThat(responseBody.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+  }
+
+  @Test
+  public void testGetContainerImageReportUrl_noFeatureFlag() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+
+    HttpResponse response = restRequest().path(RepositoryResource.CONTAINER_IMAGE_REPORT_PATH)
+        .parameter("test-repo-manager", "test-repo", "test-image")
+        .get();
+
+    assertResponseStatus(404, response);
+  }
+
+  @Test
+  public void testGetContainerImageReportUrl_noLicensedFeature() throws Exception {
+    setMissingFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    HttpResponse response = restRequest().path(RepositoryResource.CONTAINER_IMAGE_REPORT_PATH)
+        .parameter("test-repo-manager", "test-repo", "test-image")
+        .get();
+
+    assertResponseStatus(402, response);
+  }
+
+  @Test
+  public void testGetContainerImageReportUrl_success() throws Exception {
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    Application application = tempEntity.newApplicationWithParent();
+    repository.setRelatedOrganizationId(application.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    String scanId = "scan-123";
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_PROXY, scanId);
+
+    HttpResponse response = restRequest().path(RepositoryResource.CONTAINER_IMAGE_REPORT_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId(), application.getPublicId())
+        .get();
+
+    assertResponseStatus(200, response);
+    PolicyEvaluationSummary summary = response.getBody(PolicyEvaluationSummary.class);
+
+    assertThat(summary).isNotNull();
+    assertThat(summary.getReportUrl()).isNotNull();
+    assertThat(summary.getReportUrl()).contains(application.getPublicId());
+    assertThat(summary.getReportUrl()).contains(scanId);
+  }
+
+  private String createValidBomJson() {
+    Bom bom = new Bom();
+    Metadata metadata = new Metadata();
+
+    Component component = new Component();
+    component.setType(Component.Type.CONTAINER);
+    component.setPurl(PackageUrlIdentifier.toPackageUrl(
+        ComponentIdentifier.createContainerCoordinates("test-namespace", "test-image", "1.0.0")));
+
+    metadata.setComponent(component);
+
+    Property property = new Property();
+    property.setName(SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME);
+    property.setValue("https://nexus.example.com");
+    metadata.setProperties(Collections.singletonList(property));
+
+    bom.setMetadata(metadata);
+
+    try {
+      return new BomJsonGenerator(bom, Version.VERSION_16).toJsonString();
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Failed to generate BOM JSON", e);
+    }
   }
 
   @Override

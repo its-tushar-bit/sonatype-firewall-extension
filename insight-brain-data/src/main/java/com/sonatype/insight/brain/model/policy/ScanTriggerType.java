@@ -25,6 +25,7 @@ public enum ScanTriggerType
   IDE("IDE"), //
   SBOM_UI("SBOM Manager UI", true), //
   SBOM_API("SBOM Manager API", true), //
+  SONATYPE_CONTAINER_IMAGE_SCANNER_API("Container Image Scanner API", true), //
   // The Unknown trigger type is only for policy evaluations created before scan trigger type was introduced.
   // It should never be used in new code anywhere.
   UNKNOWN("Unknown", null);

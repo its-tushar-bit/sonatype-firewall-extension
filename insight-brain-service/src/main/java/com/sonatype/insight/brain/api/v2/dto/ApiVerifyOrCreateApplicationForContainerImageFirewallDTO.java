@@ -19,6 +19,8 @@ public class ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
 
   private String containerImageVersion;
 
+  private String clientUserAgent;
+
   public ApiVerifyOrCreateApplicationForContainerImageFirewallDTO() {
     // Default constructor
   }
@@ -37,6 +39,24 @@ public class ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
     this.containerImageNamespace = containerImageNamespace;
     this.containerImageName = containerImageName;
     this.containerImageVersion = containerImageVersion;
+  }
+
+  public ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+      final String repositoryManagerInstanceId,
+      final String repositoryPublicId,
+      final String baseUrl,
+      final String containerImageNamespace,
+      final String containerImageName,
+      final String containerImageVersion,
+      final String clientUserAgent)
+  {
+    this.repositoryManagerInstanceId = repositoryManagerInstanceId;
+    this.repositoryPublicId = repositoryPublicId;
+    this.baseUrl = baseUrl;
+    this.containerImageNamespace = containerImageNamespace;
+    this.containerImageName = containerImageName;
+    this.containerImageVersion = containerImageVersion;
+    this.clientUserAgent = clientUserAgent;
   }
 
   public String getRepositoryManagerInstanceId() {
@@ -85,5 +105,13 @@ public class ApiVerifyOrCreateApplicationForContainerImageFirewallDTO
 
   public void setContainerImageVersion(final String containerImageVersion) {
     this.containerImageVersion = containerImageVersion;
+  }
+
+  public String getClientUserAgent() {
+    return clientUserAgent;
+  }
+
+  public void setClientUserAgent(final String clientUserAgent) {
+    this.clientUserAgent = clientUserAgent;
   }
 }

@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.thirdparty;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.scan.model.ItemContentType;
 
@@ -42,6 +43,8 @@ public class ThirdPartyScanContext
   private final List<String> containerUriPaths = new ArrayList<>();
 
   private ItemContentType containerItemContentType;
+
+  private SbomSpecification containerImageSbomSpecification;
 
   public ThirdPartyScanContext(
       final String scanRequestId,
@@ -153,5 +156,13 @@ public class ThirdPartyScanContext
 
   public void setContainerItemContentType(ItemContentType containerItemContentType) {
     this.containerItemContentType = containerItemContentType;
+  }
+
+  public SbomSpecification getContainerImageSbomSpecification() {
+    return containerImageSbomSpecification;
+  }
+
+  public void setContainerImageSbomSpecification(final SbomSpecification containerImageSbomSpecification) {
+    this.containerImageSbomSpecification = containerImageSbomSpecification;
   }
 }

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -755,10 +754,7 @@ public class PolicyEvaluateService
 
         // Send REPOSITORY_COMPONENT telemetry for container image
         Repository containerRepository = repositoryDAO.getByContainerImageId(app.getId());
-        boolean isContainerImageApp =
-            stage.getStageTypeId().equals(Stage.ID_PROXY) &&
-                scanTriggerType.equals(ScanTriggerType.CLI) &&
-                containerRepository != null;
+        boolean isContainerImageApp = stage.getStageTypeId().equals(Stage.ID_PROXY) && containerRepository != null;
         boolean isPolicyEvaluationCompleted =
             policyEvaluationPollingResult.getStatus().equals(PolicyEvaluationStatus.COMPLETED);
         if (isContainerImageApp && isPolicyEvaluationCompleted) {

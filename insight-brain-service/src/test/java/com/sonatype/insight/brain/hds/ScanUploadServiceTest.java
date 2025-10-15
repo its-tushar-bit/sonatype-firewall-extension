@@ -23,6 +23,8 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyScan;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.datastore.FileScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
@@ -305,6 +307,34 @@ public class ScanUploadServiceTest
     assertThat(thirdPartyScanTelemetryData.getAttributes()).extracting("scan_file_type")
         .isEqualTo(SbomScanType.BINARY.name());
     verify(telemetrySender, never()).send(thirdPartyScanTelemetryData);
+  }
+
+  @Test
+  public void testUpload_WithScanContext() throws Exception {
+    ScanEntity scanEntity = createScanFile(app, TemporaryEntity.uuid().substring(0, 10));
+    String stageTypeId = ComplianceStageType.ID;
+    String scanId = TemporaryEntity.uuid().substring(0, 10);
+    String scanRequestId = TemporaryEntity.uuid().substring(0, 10);
+
+    ScanReceipt mockReceipt = new ScanReceipt();
+    mockReceipt.setScanId(scanId);
+
+    ArgumentCaptor<ThirdPartyScanContext> contextCaptor = ArgumentCaptor.forClass(ThirdPartyScanContext.class);
+    when(scanUploader.upload(any(ScanEntity.class), eq(app), eq(stageTypeId), eq(null), contextCaptor.capture(),
+        eq(false))).thenReturn(mockReceipt);
+
+    ScanContext scanContext = new ScanContext.Builder()
+        .containerImageSbomSpecification(SbomSpecification.CYCLONEDX)
+        .build();
+
+    ScanReceipt uploadReceipt =
+        service.upload(scanEntity, app, stageTypeId, null, null, thirdPartyScanTelemetryData, scanRequestId,
+            scanContext, false);
+
+    verify(scanUploader, times(1)).upload(any(ScanEntity.class), eq(app), eq(stageTypeId), eq(null), any(), eq(false));
+    assertThat(uploadReceipt).isEqualTo(mockReceipt);
+    assertThat(contextCaptor.getValue().getContainerImageSbomSpecification())
+        .isEqualTo(SbomSpecification.CYCLONEDX);
   }
 
   @Test

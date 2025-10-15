@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.integration.repository;
 
 import java.util.List;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -27,10 +26,13 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataLis
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationResponse;
 import com.sonatype.insight.brain.api.v2.HasFeature;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryDTO;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -40,6 +42,7 @@ import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
+
 import com.codahale.metrics.annotation.Timed;
 
 /**
@@ -61,6 +64,14 @@ public class RepositoryResource
 
   static final String IS_QUARANTINED_CONTAINER_IMAGE_PATH =
       REPOSITORY_PATH + "containerImage/{containerImagePublicId}/isQuarantined";
+
+  static final String EVALUATE_CONTAINER_IMAGE_PATH = REPOSITORY_PATH + "evaluate/containerImage";
+
+  static final String EVALUATION_STATUS_CONTAINER_IMAGE_PATH =
+      "containerImage/{containerImagePublicId}/evaluation/status/{statusId}";
+
+  static final String CONTAINER_IMAGE_REPORT_PATH =
+      REPOSITORY_PATH + "containerImage/{containerImageIdOrPublicId}/report";
 
   private final RepositoryService repositoryService;
 
@@ -397,5 +408,51 @@ public class RepositoryResource
   {
     return repositoryContainerImageService.isContainerImageQuarantined(repositoryManagerInstanceId, repositoryPublicId,
         containerImagePublicId);
+  }
+
+  @POST
+  @Path(EVALUATE_CONTAINER_IMAGE_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  @Audited(AuditEvent.EVALUATE_REPOSITORY)
+  @Timed
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  public FirewallContainerImageEvaluationResponse evaluateContainerImage(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      String cycloneDxBomJson,
+      @Context HttpServletRequest request)
+  {
+    return repositoryContainerImageService.evaluateContainerImage(repositoryManagerInstanceId, repositoryPublicId,
+        cycloneDxBomJson, HdsClient.getClientUserAgent(request));
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(EVALUATION_STATUS_CONTAINER_IMAGE_PATH)
+  @Timed
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  public PolicyEvaluationPollingResult pollContainerImageEvaluationResult(
+      @PathParam("containerImagePublicId") String containerImagePublicId,
+      @PathParam("statusId") String statusId)
+  {
+    return repositoryContainerImageService.pollContainerImageEvaluationResult(containerImagePublicId, statusId);
+  }
+
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path(CONTAINER_IMAGE_REPORT_PATH)
+  @Timed
+  @ProductLicenseEnforcementPoint(LicensedFeature.CONTAINER_IMAGES_EVALUATION)
+  @HasFeature(SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED)
+  public PolicyEvaluationSummary getContainerImageReportUrl(
+      @PathParam("repositoryManagerInstanceId") String repositoryManagerInstanceId,
+      @PathParam("repositoryPublicId") String repositoryPublicId,
+      @PathParam("containerImageIdOrPublicId") String containerImageIdOrPublicId)
+  {
+    return repositoryContainerImageService.getContainerImageReportUrl(repositoryManagerInstanceId, repositoryPublicId,
+        containerImageIdOrPublicId);
   }
 }

@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.application.ApplicationSummary;
 import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.insight.brain.client.ConfigurationClient;
@@ -402,6 +403,54 @@ public class RestClientFactoryTest
         client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
 
     assertThat(repository.isContainerImageQuarantined(containerImagePublicId)).isTrue();
+  }
+
+  @Test
+  public void testRestClientRepository_evaluateContainerImageWithPolling() throws Exception {
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+    final String bomJson = "{\"bomFormat\": \"CycloneDX\"}";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.evaluateContainerImageWithPolling(bomJson)).thenReturn(null);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+    repository.evaluateContainerImageWithPolling(bomJson);
+
+    verify(firewallClient).evaluateContainerImageWithPolling(bomJson);
+    verifyNoMoreInteractions(firewallClient);
+  }
+
+  @Test
+  public void testRestClientRepository_getContainerImageReportUrl() throws Exception {
+    PolicyEvaluationSummary summary = new PolicyEvaluationSummary();
+    String reportUrl = "ui/links/repository/containerImage/test-public-id/report";
+    summary.setReportUrl(reportUrl);
+
+    final String repositoryManagerInstanceId = "repositoryManagerInstanceId";
+    final String repositoryPublicId = "repositoryPublicId";
+    final String containerImagePublicId = "test-public-id";
+
+    final FirewallClient firewallClient = mock(FirewallClient.class);
+    when(firewallClient.getContainerImageReportUrl(containerImagePublicId)).thenReturn(summary);
+
+    final RestClientFactory factory = spy(new RestClientFactory());
+    doReturn(firewallClient).when(factory).newFirewallClient(any(Configuration.class), eq(repositoryManagerInstanceId),
+        eq(repositoryPublicId), eq(RepositoryManagerType.NEXUS));
+
+    final RestClient.Base client = factory.forConfiguration(new RestClientConfiguration());
+    final Repository repository =
+        client.forRepository(repositoryManagerInstanceId, repositoryPublicId, RepositoryManagerType.NEXUS);
+
+    assertThat(repository.getContainerImageReportUrl(containerImagePublicId)).isSameAs(summary);
+    verify(firewallClient).getContainerImageReportUrl(containerImagePublicId);
+    verifyNoMoreInteractions(firewallClient);
   }
 
   @Test

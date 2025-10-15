@@ -376,11 +376,96 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(repository.getFormat()).isEqualTo("docker");
   }
 
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_withValidClientUserAgent() {
+    String newBaseUrl = "https://repo-test.sonatype.com/" + IdUtil.newUUID();
+    String clientUserAgent = "Nexus/3.50.0-SNAPSHOT (PRO; Mac OS X; 10.11.5; x86_64; 1.8.0_92)";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            newBaseUrl,
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion",
+            clientUserAgent);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(repository, dto);
+    assertHierarchy(result, repositoryManager, repository, newBaseUrl, clientUserAgent);
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_withInvalidClientUserAgent() {
+    String newBaseUrl = "https://repo-test.sonatype.com/" + IdUtil.newUUID();
+    String invalidClientUserAgent = "invalid-user-agent";
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManagerWithBaseUrl("base-url");
+    Repository repository =
+        tempEntity.newRepository(repositoryManager, "proxy-docker-repository", RepositoryType.proxy, "docker");
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            repositoryManager.getInstanceId(),
+            repository.getPublicId(),
+            newBaseUrl,
+            "containerImageNamespace",
+            "containerImageName",
+            "containerImageVersion",
+            invalidClientUserAgent);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(repository, dto);
+    assertHierarchy(result, repositoryManager, repository, newBaseUrl);
+
+    // User agent should not be set since it's invalid
+    RepositoryManager updatedRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(updatedRepositoryManager.getUserAgent()).isNull();
+  }
+
+  @Test
+  public void testVerifyOrCreateApplicationForContainerImage_updateBaseUrlAndUserAgent() {
+    HierarchyHolder hierarchyHolder = new HierarchyHolder();
+    String newBaseUrl = "https://new-repo-url.sonatype.com/" + IdUtil.newUUID();
+    String clientUserAgent = "Nexus/3.50.0-SNAPSHOT (PRO; Mac OS X; 10.11.5; x86_64; 1.8.0_92)";
+
+    ApiVerifyOrCreateApplicationForContainerImageFirewallDTO dto =
+        new ApiVerifyOrCreateApplicationForContainerImageFirewallDTO(
+            hierarchyHolder.repositoryManager.getInstanceId(),
+            hierarchyHolder.repository.getPublicId(),
+            newBaseUrl,
+            hierarchyHolder.containerImageNamespace,
+            hierarchyHolder.containerImageName,
+            hierarchyHolder.containerImageVersion,
+            clientUserAgent);
+
+    String result = service.verifyOrCreateApplicationForContainerImage(hierarchyHolder.repository, dto);
+    assertThat(result).isEqualTo(NameHelper.convertContainerImageToApplicationPublicIdAndName(newBaseUrl,
+        hierarchyHolder.repository.getPublicId(), hierarchyHolder.containerImageNamespace,
+        hierarchyHolder.containerImageName, hierarchyHolder.containerImageVersion));
+
+    RepositoryManager updatedRepositoryManager =
+        repositoryManagerDAO.getById(hierarchyHolder.repositoryManager.getId());
+    assertThat(updatedRepositoryManager.getBaseUrl()).isEqualTo(newBaseUrl);
+    assertThat(updatedRepositoryManager.getUserAgent()).isEqualTo(clientUserAgent);
+  }
+
   private void assertHierarchy(
       String applicationPublicIdResult,
       RepositoryManager repositoryManager,
       Repository repository,
       String baseUrl)
+  {
+    assertHierarchy(applicationPublicIdResult, repositoryManager, repository, baseUrl, null);
+  }
+
+  private void assertHierarchy(
+      String applicationPublicIdResult,
+      RepositoryManager repositoryManager,
+      Repository repository,
+      String baseUrl,
+      String userAgent)
   {
     assertThat(applicationPublicIdResult).isNotBlank();
 
@@ -435,28 +520,30 @@ public class ApplicationForContainerImageFirewallServiceTest
     assertThat(membershipsInOrganizationForRepositoryContainerResult)
         .containsExactlyInAnyOrderEntriesOf(membershipsInRepositoryContainer);
 
-    assertThat(repositoryManagerDAO.getById(repositoryManager.getId()).getBaseUrl()).isEqualTo(baseUrl);
+    RepositoryManager updatedRepositoryManager = repositoryManagerDAO.getById(repositoryManager.getId());
+    assertThat(updatedRepositoryManager.getBaseUrl()).isEqualTo(baseUrl);
+    if (userAgent != null) {
+      assertThat(updatedRepositoryManager.getUserAgent()).isEqualTo(userAgent);
+    }
   }
 
   private class HierarchyHolder
   {
-    private String containerImageNamespace;
+    private final String containerImageNamespace;
 
-    private String containerImageName;
+    private final String containerImageName;
 
-    private String containerImageVersion;
+    private final String containerImageVersion;
 
-    private RepositoryManager repositoryManager;
+    private final RepositoryManager repositoryManager;
 
-    private Repository repository;
+    private final Repository repository;
 
-    private Organization organizationForRepoContainer;
+    private final Organization organizationForRepoManager;
 
-    private Organization organizationForRepoManager;
+    private final Organization organizationForRepository;
 
-    private Organization organizationForRepository;
-
-    private Application application;
+    private final Application application;
 
     private HierarchyHolder() {
       this("containerImageNamespace", "containerImageName", "containerImageVersion");
@@ -487,7 +574,7 @@ public class ApplicationForContainerImageFirewallServiceTest
       Role roleRepository = tempEntity.newRole("test-repository", false, Permission.EVALUATE_COMPONENT);
       tempEntity.newMembershipMapping(repository.getId(), roleRepository.getId(), USERNAME);
 
-      organizationForRepoContainer = tempEntity.newOrganization(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
+      Organization organizationForRepoContainer = tempEntity.newOrganization(ORGANIZATION_NAME_FIREWALL_FOR_DOCKER);
       organizationForRepoContainer.setRelatedRepositorContainerId(RepositoryContainer.REPOSITORY_CONTAINER_ID);
       organizationDAO.update(organizationForRepoContainer);
       repositoryContainerDAO.setRelatedOrganizationIdNotNull(organizationForRepoContainer.getId());

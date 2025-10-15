@@ -25,21 +25,25 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyVulnerabilityExploitabilityExchangeDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.stages.ProxyStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyCoordinateSecurity;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFileCoordinate;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.sbom.SbomComponentInfoTelemetry;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.SbomTestHelper;
 import com.sonatype.insight.brain.sbom.utils.SbomCycloneDxUtils;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
+import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ItemContentType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.cyclonedx.model.Bom;
 import org.junit.Before;
 import org.junit.Test;
@@ -49,6 +53,7 @@ import org.mockito.Mock;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 
 public class ContainerResultsHandlerTest
@@ -383,6 +388,85 @@ public class ContainerResultsHandlerTest
 
     assertThatCode(() -> containerResultHandler.handleAndFilterContents(content, thirdPartyFile))
         .doesNotThrowAnyException();
+  }
+
+  @Test
+  public void testParseBom_ContainerScannerCycloneDx_NullContent() {
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
+        "app-id", null, null, ProxyStageType.ID);
+    scanContext.setContainerImageSbomSpecification(SbomSpecification.CYCLONEDX);
+
+    ContainerResultHandler firewallContainerResultHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, scanContext, testProductLicense);
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI_SONATYPE, null, null, null);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> firewallContainerResultHandler.parseBom(content))
+        .withMessage("Empty content for container image");
+  }
+
+  @Test
+  public void testParseBom_ContainerScannerCycloneDx_InvalidContent() throws Exception {
+    String invalidJson = "invalid json";
+
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
+        "app-id", null, null, ProxyStageType.ID);
+    scanContext.setContainerImageSbomSpecification(SbomSpecification.CYCLONEDX);
+
+    ContainerResultHandler firewallContainerResultHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, scanContext, testProductLicense);
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI_SONATYPE, null, null, invalidJson);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> firewallContainerResultHandler.parseBom(content))
+        .withMessage("Invalid content for container image");
+  }
+
+  @Test
+  public void testParseBom_ContainerScannerCycloneDx() throws Exception {
+    String json = loadResource("container-scanner-cyclonedx.json");
+
+    ThirdPartyScanContext scanContext = new ThirdPartyScanContext("scan-request-id",
+        "app-id", null, null, ProxyStageType.ID);
+    scanContext.setContainerImageSbomSpecification(SbomSpecification.CYCLONEDX);
+
+    ContainerResultHandler firewallContainerResultHandler =
+        new ContainerResultHandler(thirdPartyFileDAO, fileCoordinatePersister, thirdPartyCoordinateSecurityDAO,
+            thirdPartyCoordinateLicenseDAO, thirdPartySbomMetadataDAO, multiLicenseDAO, thirdPartyVexDAO,
+            telemetryUtils, telemetrySender, scanContext, testProductLicense);
+
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("image:tag", ItemContentType.CONTAINER_URI_SONATYPE, null, null, json);
+
+    Pair<Bom, Boolean> result = firewallContainerResultHandler.parseBom(content);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getRight()).isTrue();
+    assertThat(result.getLeft()).isNotNull();
+
+    Bom bom = result.getLeft();
+    assertThat(bom.getComponents()).hasSize(2);
+    assertThat(bom.getVulnerabilities()).isNullOrEmpty();
+
+    assertThat(bom.getComponents().get(0).getGroup()).isEqualTo("alpine:3.4.6");
+    assertThat(bom.getComponents().get(0).getName()).isEqualTo("alpine-baselayout");
+    assertThat(bom.getComponents().get(0).getVersion()).isEqualTo("3.0.3-r0");
+    assertThat(bom.getComponents().get(0).getPurl()).isEqualTo(
+        "pkg:generic/alpine%3A3.4.6/alpine-baselayout@3.0.3-r0?nexustype=container");
+
+    assertThat(bom.getComponents().get(1).getGroup()).isEqualTo("alpine:3.4.6");
+    assertThat(bom.getComponents().get(1).getName()).isEqualTo("zlib");
+    assertThat(bom.getComponents().get(1).getVersion()).isEqualTo("1.2.11-r0");
+    assertThat(bom.getComponents().get(1).getPurl()).isEqualTo(
+        "pkg:generic/alpine%3A3.4.6/zlib@1.2.11-r0?nexustype=container");
   }
 
   private void assertCoordinateSecurity(

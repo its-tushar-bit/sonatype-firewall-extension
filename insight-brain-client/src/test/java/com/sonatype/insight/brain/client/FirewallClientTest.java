@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.concurrent.TimeUnit;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
@@ -23,9 +24,13 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList.RepositoryComponentEvaluationDataRequest;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
+import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationWithPollingResponse;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.model.Application;
@@ -40,13 +45,22 @@ import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.SimpleAuthentication;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.http.client.HttpResponseException;
+import org.cyclonedx.Version;
+import org.cyclonedx.generators.BomGeneratorFactory;
+import org.cyclonedx.model.Bom;
+import org.cyclonedx.model.Component;
+import org.cyclonedx.model.Component.Type;
+import org.cyclonedx.model.Metadata;
+import org.cyclonedx.model.Property;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
+import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assumptions.assumeThat;
@@ -56,6 +70,8 @@ public class FirewallClientTest
     extends AbstractBrainServiceIntegrationTest
 {
   private static final String REPOSITORY_PUBLIC_ID = "central";
+
+  private static final String SCAN_ID = "test-scan-id";
 
   private String rmInstanceId;
 
@@ -523,5 +539,110 @@ public class FirewallClientTest
         .isThrownBy(() -> client.isContainerImageQuarantined("fake-container-public-id"))
         .withMessage(RepositoryDAO.getErrMsgMissingRepo(rmInstanceId, "fake-repo-public-id"))
         .satisfies(e -> assertThat(e.getStatusCode()).isEqualTo(404));
+  }
+
+  @Test
+  public void testEvaluateContainerImageWithPolling() throws Exception {
+    assumeThat(resourcePath)
+        .as("evaluateContainerImage is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(SCAN_ID);
+    scanReceipt.setTimeToReport(1L);
+
+    mockScanReceipt(scanReceipt);
+    mockReport(SCAN_ID, "/" + getClass().getSimpleName() + "/report");
+
+    FirewallClient client =
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
+
+    Bom bom = new Bom();
+    Metadata metadata = new Metadata();
+    bom.setMetadata(metadata);
+
+    Component containerImageComponent = new Component();
+    containerImageComponent.setType(Type.CONTAINER);
+    containerImageComponent.setPurl(PackageUrlIdentifier.toPackageUrl(
+        ComponentIdentifier.createContainerCoordinates("test-namespace", "test-image", "1.0.0")));
+    metadata.setComponent(containerImageComponent);
+
+    Property baseUrlProperty = new Property();
+    baseUrlProperty.setName(SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME);
+    baseUrlProperty.setValue("https://test.repository-manager.com");
+    metadata.addProperty(baseUrlProperty);
+
+    String bomJson = BomGeneratorFactory.createJson(Version.VERSION_16, bom).toJsonString();
+
+    FirewallContainerImageEvaluationWithPollingResponse result = client.evaluateContainerImageWithPolling(bomJson);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getContainerImageId()).isNotNull();
+    assertThat(result.getContainerImagePublicId()).isNotNull();
+    assertThat(result.getPollingResult()).isNotNull();
+    assertThat(result.getPollingResult().getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
+    assertThat(result.getPollingResult().getScanReceipt()).isNotNull();
+    assertThat(result.getPollingResult().getScanReceipt().getScanId()).isEqualTo(SCAN_ID);
+    assertThat(result.getPollingResult().getScanReceipt().getReportUrl()).isNotNull();
+    assertThat(result.getPollingResult().getResult()).isNotNull();
+  }
+
+  @Test
+  public void testGetContainerImageReportUrl_usingId() throws Exception {
+    assumeThat(resourcePath)
+        .as("getContainerImageReportUrl is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    Application application = tempEntity.newApplicationWithParent();
+    repository.setRelatedOrganizationId(application.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    String scanId = "scan-123";
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_PROXY, scanId);
+
+    FirewallClient client =
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
+
+    PolicyEvaluationSummary summary = client.getContainerImageReportUrl(application.getId());
+
+    assertThat(summary).isNotNull();
+    assertThat(summary.getReportUrl()).contains(application.getPublicId());
+    assertThat(summary.getReportUrl()).contains(scanId);
+  }
+
+  @Test
+  public void testGetContainerImageReportUrl_usingPublicId() throws Exception {
+    assumeThat(resourcePath)
+        .as("getContainerImageReportUrl is not available for Artifactory")
+        .isEqualTo(FirewallClient.NEXUS_RESOURCE_PATH);
+
+    setFeatures(LicensedFeature.CONTAINER_IMAGES_EVALUATION);
+    SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(true);
+
+    Repository repository = tempEntity.newRepository(repositoryManager, "docker-repo", RepositoryType.proxy, "docker");
+    Application application = tempEntity.newApplicationWithParent();
+    repository.setRelatedOrganizationId(application.getOrganizationId());
+    repositoryDAO.update(repository);
+
+    String scanId = "scan-123";
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_PROXY, scanId);
+
+    FirewallClient client =
+        new FirewallClient(getConfiguration(), rmInstanceId, repository.getPublicId(), resourcePath);
+
+    PolicyEvaluationSummary summary = client.getContainerImageReportUrl(application.getPublicId());
+
+    assertThat(summary).isNotNull();
+    assertThat(summary.getReportUrl()).contains(application.getPublicId());
+    assertThat(summary.getReportUrl()).contains(scanId);
   }
 }

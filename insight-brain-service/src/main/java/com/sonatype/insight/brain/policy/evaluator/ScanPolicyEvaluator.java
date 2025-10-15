@@ -378,7 +378,7 @@ public class ScanPolicyEvaluator
         "Evaluating policies for application ID {}, scan ID {}, stage {}, scan trigger type {}, for monitoring {}.",
         application.getId(), scanId, stage.getStageTypeId(), scanTriggerType.name(), forMonitoring);
 
-    boolean isContainerImageEval = isEvaluationForContainerImage(scanTriggerType, stage);
+    boolean isContainerImageEval = isEvaluationForContainerImage(stage);
 
     // Only validate stage type when it is not a container image evaluation
     if (!isContainerImageEval && !Stage.isValidStageTypeId(stage.getStageTypeId())) {
@@ -1491,7 +1491,7 @@ public class ScanPolicyEvaluator
         clientUserAgent, clientInstanceId);
 
     String appId = application.getId();
-    String ownerId = getPolicyOwnerIdForEvaluation(application, scanTriggerType, stage);
+    String ownerId = getPolicyOwnerIdForEvaluation(application, stage);
     List<Policy> policies = policyDAO.getApplicableByOwnerIdWithHierarchy(ownerId);
     PolicyResults policyResults =
         componentPolicyEvaluator.evaluate(appId, stage, policies, reportComponentData.components,
@@ -1526,13 +1526,8 @@ public class ScanPolicyEvaluator
     return scanPolicyEvaluatorResults;
   }
 
-  String getPolicyOwnerIdForEvaluation(
-      final Application application,
-      final ScanTriggerType scanTriggerType,
-      final Stage stage)
-  {
-
-    boolean isContainerImageEval = isEvaluationForContainerImage(scanTriggerType, stage);
+  String getPolicyOwnerIdForEvaluation(final Application application, final Stage stage) {
+    boolean isContainerImageEval = isEvaluationForContainerImage(stage);
 
     if (isContainerImageEval) {
       return organizationDAO.getById(application.getOrganizationId()).getRelatedRepositoryId();
@@ -1541,10 +1536,9 @@ public class ScanPolicyEvaluator
     return application.getId();
   }
 
-  private boolean isEvaluationForContainerImage(final ScanTriggerType scanTriggerType, final Stage stage) {
+  private boolean isEvaluationForContainerImage(final Stage stage) {
     return (
-        scanTriggerType.equals(ScanTriggerType.CLI) &&
-            stage.getStageTypeId().equals(Stage.ID_PROXY) &&
+        stage.getStageTypeId().equals(Stage.ID_PROXY) &&
             productLicense.hasFeature(LicensedFeature.CONTAINER_IMAGES_EVALUATION) &&
             SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.isEnabled()
       );

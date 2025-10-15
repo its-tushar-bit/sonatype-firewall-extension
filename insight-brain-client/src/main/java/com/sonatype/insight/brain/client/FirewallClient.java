@@ -6,24 +6,37 @@
 package com.sonatype.insight.brain.client;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.Date;
 
+import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ProprietaryComponentNames;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataRequestList;
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationResponse;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationWithPollingResponse;
 import com.sonatype.insight.client.utils.HttpClientUtils.Configuration;
 import com.sonatype.insight.client.utils.Result;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.ContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FirewallClient
     extends AbstractRequestClient
 {
+  private static final Logger log = LoggerFactory.getLogger(FirewallClient.class);
+
   public static final String NEXUS_RESOURCE_PATH = "rest/integration/repositories";
 
   public static final String ARTIFACTORY_RESOURCE_PATH =  "rest/integration/artifactory/repositories";
@@ -53,6 +66,8 @@ public class FirewallClient
   static final String QUARANTINED_COMPONENT_REPORT_URL_PATH =  "quarantinedComponentReportUrl";
 
   private static final String REMOVE_EXTRA_COMPONENTS_PATH = "removeExtraComponents";
+
+  private static final String EVALUATE_CONTAINER_IMAGE_PATH = "evaluate/containerImage";
 
   private final String repositoryManagerInstanceId;
 
@@ -209,5 +224,79 @@ public class FirewallClient
         "isQuarantined")
             .get();
     return parseResult(result, Boolean.class);
+  }
+
+  public FirewallContainerImageEvaluationWithPollingResponse evaluateContainerImageWithPolling(String bomJson)
+      throws IOException
+  {
+    long start = System.currentTimeMillis();
+
+    ByteArrayEntity entity =
+        new ByteArrayEntity(bomJson.getBytes(StandardCharsets.UTF_8), ContentType.APPLICATION_JSON);
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, EVALUATE_CONTAINER_IMAGE_PATH)
+        .post(entity);
+
+    FirewallContainerImageEvaluationResponse evaluationResponse =
+        parseResult(result, FirewallContainerImageEvaluationResponse.class);
+    String containerImagePublicId = evaluationResponse.getContainerImagePublicId();
+    String statusId = evaluationResponse.getStatusId();
+    String statusUrl = evaluationResponse.getStatusUrl();
+
+    log.debug("Assigned evaluation status ID {} for container image {}", statusId, containerImagePublicId);
+    log.info("Waiting for container image evaluation to complete...");
+
+    PolicyEvaluationPollingResult policyEvaluationPollingResult = pollContainerImageEvaluationResult(statusUrl);
+
+    log.info("Container image evaluation completed in {} seconds.", (System.currentTimeMillis() - start) / 1000);
+
+    FirewallContainerImageEvaluationWithPollingResponse response =
+        new FirewallContainerImageEvaluationWithPollingResponse();
+    response.setContainerImageId(evaluationResponse.getContainerImageId());
+    response.setContainerImagePublicId(evaluationResponse.getContainerImagePublicId());
+    response.setPollingResult(policyEvaluationPollingResult);
+
+    return response;
+  }
+
+  public PolicyEvaluationSummary getContainerImageReportUrl(String containerImageIdOrPublicId) throws IOException {
+    Result result = path(resourcePath, repositoryManagerInstanceId, repositoryPublicId, "containerImage",
+        containerImageIdOrPublicId, "report").get();
+    return parseResult(result, PolicyEvaluationSummary.class);
+  }
+
+  private PolicyEvaluationPollingResult pollContainerImageEvaluationResult(String statusUrl) throws IOException {
+    PolicyEvaluationPollingResult pollingStatus;
+    ScanReceipt scanReceipt = null;
+
+    do {
+      log.debug("Checking container image evaluation status at {}", new Date());
+      pollingStatus = parseResult(path(statusUrl).get(), PolicyEvaluationPollingResult.class);
+
+      if (scanReceipt == null && pollingStatus.getScanReceipt() != null) {
+        scanReceipt = pollingStatus.getScanReceipt();
+        log.info("Assigned scan ID {} for container image evaluation", scanReceipt.getScanId());
+      }
+
+      if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.PENDING)) {
+        sleepForPolling(pollingStatus);
+      }
+    }
+    while (PolicyEvaluationStatus.PENDING.equals(pollingStatus.getStatus()));
+
+    if (pollingStatus.getStatus().equals(PolicyEvaluationStatus.FAILED)) {
+      throw new IOException("Container image evaluation could not be completed: " + pollingStatus.getReason());
+    }
+
+    return pollingStatus;
+  }
+
+  private static void sleepForPolling(PolicyEvaluationPollingResult pollingStatus) throws IOException {
+    try {
+      Thread.sleep(Duration.ofSeconds(pollingStatus.getNextPollingIntervalInSeconds()).toMillis());
+    }
+    catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      throw new IOException("Container image evaluation interrupted.", e);
+    }
   }
 }

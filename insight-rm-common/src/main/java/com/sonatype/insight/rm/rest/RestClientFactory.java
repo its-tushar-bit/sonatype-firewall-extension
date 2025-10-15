@@ -23,9 +23,11 @@ import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataReq
 import com.sonatype.clm.dto.model.component.RepositoryComponentPathnames;
 import com.sonatype.clm.dto.model.component.UnquarantinedComponentList;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationResult;
+import com.sonatype.clm.dto.model.policy.PolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.RepositoryPolicyEvaluationSummary;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.QuarantinedComponentReport;
+import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationWithPollingResponse;
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.insight.brain.client.ConfigurationClient;
 import com.sonatype.insight.brain.client.FirewallClient;
@@ -326,6 +328,20 @@ public class RestClientFactory
     public boolean isContainerImageQuarantined(String containerImagePublicId) throws IOException {
       return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId, repositoryManagerType)
           .isContainerImageQuarantined(containerImagePublicId);
+    }
+
+    @Override
+    public FirewallContainerImageEvaluationWithPollingResponse evaluateContainerImageWithPolling(String bomJson)
+        throws IOException
+    {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId,
+          repositoryManagerType).evaluateContainerImageWithPolling(bomJson);
+    }
+
+    @Override
+    public PolicyEvaluationSummary getContainerImageReportUrl(String containerImageIdOrPublicId) throws IOException {
+      return newFirewallClient(config, repositoryManagerInstanceId, repositoryPublicId,
+          repositoryManagerType).getContainerImageReportUrl(containerImageIdOrPublicId);
     }
   }
 

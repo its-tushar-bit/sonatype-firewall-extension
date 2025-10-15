@@ -1,0 +1,48 @@
+{
+  "bomFormat" : "CycloneDX",
+  "specVersion" : "1.6",
+  "version" : 1,
+  "metadata" : {
+    "timestamp" : "2025-10-07T02:55:22Z",
+    "tools" : {
+      "components" : [
+        {
+          "publisher" : "Sonatype",
+          "group" : "com.sonatype.insight.scan",
+          "name" : "insight-scanner-container-image"
+        }
+      ]
+    },
+    "component" : {
+      "type" : "container",
+      "group" : "library",
+      "name" : "alpine",
+      "version" : "3.4",
+      "purl" : "pkg:generic/library/alpine@3.4?nexustype=container"
+    },
+    "properties" : [
+      {
+        "name" : "Sonatype.NexusRepository.BaseUrl",
+        "value" : "http://localhost:8081/"
+      }
+    ]
+  },
+  "components" : [
+    {
+      "type" : "file",
+      "bom-ref" : "49b54ab0-1a07-4fb8-9e41-6d06131f4e80",
+      "group" : "alpine:3.4.6",
+      "name" : "alpine-baselayout",
+      "version" : "3.0.3-r0",
+      "purl" : "pkg:generic/alpine%3A3.4.6/alpine-baselayout@3.0.3-r0?nexustype=container"
+    },
+    {
+      "type" : "file",
+      "bom-ref" : "dfdf272c-2621-4bb1-a810-48f3777772f7",
+      "group" : "alpine:3.4.6",
+      "name" : "zlib",
+      "version" : "1.2.11-r0",
+      "purl" : "pkg:generic/alpine%3A3.4.6/zlib@1.2.11-r0?nexustype=container"
+    }
+  ]
+}

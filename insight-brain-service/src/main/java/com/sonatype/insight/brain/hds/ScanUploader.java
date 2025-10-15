@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,8 +43,6 @@ public class ScanUploader
 
   public static final String HDS_PATH = "rest/application/analysis";
 
-  private static final String HDS_INTEGRATION_VERSIONS_PATH = "rest/iqIntegrations/versions";
-
   private final HdsClient client;
 
   private final Configuration configuration;
@@ -54,17 +51,21 @@ public class ScanUploader
 
   private final ProductLicense productLicense;
 
+  private final IntegrationVersionCache integrationVersionCache;
+
   @Inject
   public ScanUploader(
       final HdsClient client,
       final Configuration configuration,
       final CpeMatchingConfigurationService cpeMatchingConfigurationService,
-      final ProductLicense productLicense)
+      final ProductLicense productLicense,
+      final IntegrationVersionCache integrationVersionCache)
   {
     this.client = client;
     this.configuration = configuration;
     this.cpeMatchingConfigurationService = cpeMatchingConfigurationService;
     this.productLicense = productLicense;
+    this.integrationVersionCache = integrationVersionCache;
   }
 
   /**
@@ -216,8 +217,7 @@ public class ScanUploader
   }
 
   private void validateVersionSupport(final String name, final String version, final Integer supportedVersionCount) {
-    List<IqIntegrationVersion> sortedReleases = Arrays.asList(client.get(IqIntegrationVersion[].class,
-        HDS_INTEGRATION_VERSIONS_PATH, Map.of("name", name, "limit", String.valueOf(supportedVersionCount))));
+    List<IqIntegrationVersion> sortedReleases = integrationVersionCache.get(name, supportedVersionCount);
 
     if (sortedReleases.isEmpty()) {
       log.warn("No integration versions found for {}", name);

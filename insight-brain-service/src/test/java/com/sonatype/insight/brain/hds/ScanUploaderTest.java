@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
+import java.util.List;
 import java.util.Map;
 
 import javax.inject.Inject;
@@ -65,6 +66,9 @@ public class ScanUploaderTest
   @Mock
   private CpeMatchingConfigurationService mockCpeMatchingConfigurationService;
 
+  @Mock
+  private IntegrationVersionCache mockIntegrationVersionCache;
+
   @Override
   public void configure(Binder binder) {
     // Setup default mock behavior to skip integration version validation (lenient for tests that don't use it)
@@ -75,6 +79,7 @@ public class ScanUploaderTest
     binder.bind(Configuration.class).toInstance(mockConfiguration);
     binder.bind(ThirdPartyScanContext.class).toInstance(thirdPartyScanContext);
     binder.bind(CpeMatchingConfigurationService.class).toInstance(mockCpeMatchingConfigurationService);
+    binder.bind(IntegrationVersionCache.class).toInstance(mockIntegrationVersionCache);
     super.configure(binder);
   }
 
@@ -399,13 +404,12 @@ public class ScanUploaderTest
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
 
-    IqIntegrationVersion[] supportedVersions = {
+    List<IqIntegrationVersion> supportedVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    };
-    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
-        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(supportedVersions);
+    );
+    when(mockIntegrationVersionCache.get("Maven_Plugin", 3)).thenReturn(supportedVersions);
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");
@@ -427,13 +431,12 @@ public class ScanUploaderTest
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
 
-    IqIntegrationVersion[] supportedVersions = {
+    List<IqIntegrationVersion> supportedVersions = List.of(
         new IqIntegrationVersion("Maven_Plugin", "1.3.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.2.0"),
         new IqIntegrationVersion("Maven_Plugin", "1.1.0")
-    };
-    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
-        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(supportedVersions);
+    );
+    when(mockIntegrationVersionCache.get("Maven_Plugin", 3)).thenReturn(supportedVersions);
 
     ScanEntity scanEntity = new FileScanEntity(tempDir.newFile().toPath(), app.getId());
 
@@ -491,9 +494,8 @@ public class ScanUploaderTest
     Application app = tempEntity.newApplicationWithParent("test-app-id");
     when(mockConfiguration.getIntegrationsSupportedVersionCount()).thenReturn(3);
 
-    IqIntegrationVersion[] emptyVersions = {};
-    when(mockHdsClient.get(IqIntegrationVersion[].class, "rest/iqIntegrations/versions",
-        Map.of("name", "Maven_Plugin", "limit", "3"))).thenReturn(emptyVersions);
+    List<IqIntegrationVersion> emptyVersions = List.of();
+    when(mockIntegrationVersionCache.get("Maven_Plugin", 3)).thenReturn(emptyVersions);
 
     ScanReceipt receipt = new ScanReceipt();
     receipt.setScanId("scanId");

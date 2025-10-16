@@ -13,9 +13,11 @@ import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import com.google.inject.Binder;
+import org.apache.shiro.lang.util.LifecycleUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.web.mgt.DefaultWebSecurityManager;
+import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +27,12 @@ public class SecurityModuleTest
 {
   @Inject
   private SecurityManager securityManager;
+
+  @After
+  @Override
+  public void tearDown() throws Exception {
+    LifecycleUtils.destroy(securityManager);
+  }
 
   @Override
   public void configure(Binder binder) {

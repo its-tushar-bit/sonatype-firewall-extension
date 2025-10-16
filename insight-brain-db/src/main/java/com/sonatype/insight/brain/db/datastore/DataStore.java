@@ -120,4 +120,11 @@ public interface DataStore
    * Does this data store use an embedded database (i.e. H2)?
    */
   boolean isDatabaseEmbedded();
+
+  /**
+   * Close and cleanup all resources associated with this data store, including the EntityManagerFactory
+   * and any DataSource connections. This method should be called when the data store is no longer needed,
+   * particularly when switching between different database types in tests.
+   */
+  void close() throws Exception;
 }

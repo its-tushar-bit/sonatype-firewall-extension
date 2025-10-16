@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.google.inject.Binder;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.guice.ShiroModule;
+import org.apache.shiro.lang.util.LifecycleUtils;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.subject.Subject;
 import org.apache.shiro.util.ThreadContext;
@@ -74,6 +75,10 @@ public class AbstractServiceAuthzTest
 
   @Override
   protected void tearDownSecurity() {
+    // Destroy the security manager to properly clean up session validation scheduler
+    if (securityManager != null) {
+      LifecycleUtils.destroy(securityManager);
+    }
     if (shiroModule != null) {
       // stop worker threads
       shiroModule.destroy();

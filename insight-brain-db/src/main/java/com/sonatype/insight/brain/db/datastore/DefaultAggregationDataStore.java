@@ -77,4 +77,9 @@ public class DefaultAggregationDataStore
   public boolean isDatabaseEmbedded() {
     return isDatabaseEmbedded;
   }
+
+  @Override
+  protected void setInitializedFalse() {
+    isInitialized = false;
+  }
 }

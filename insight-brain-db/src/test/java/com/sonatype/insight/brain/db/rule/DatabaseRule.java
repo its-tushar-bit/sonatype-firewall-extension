@@ -233,6 +233,28 @@ public class DatabaseRule
     }
   }
 
+  @Override
+  protected void beforeCloseFixture() {
+    // Close all data stores before closing the database fixture
+    // This ensures EntityManagerFactory instances are properly closed, preventing JDBCConfigurationImpl memory leaks
+    log.info("Closing all data stores before closing database fixture");
+    closeDataStore(operationalDataStore);
+    closeDataStore(aggregationDataStore);
+    closeDataStore(dataMartDataStore);
+    closeDataStore(thirdPartyScansDataStore);
+  }
+
+  private void closeDataStore(final DataStore dataStore) {
+    if (dataStore != null) {
+      try {
+        dataStore.close();
+      }
+      catch (Exception e) {
+        log.warn("Error closing data store {}: {}", dataStore.getID(), e.getMessage(), e);
+      }
+    }
+  }
+
   protected void createNewDataStores() {
     this.operationalDataStore =
         new DefaultOperationalDataStore(getDataSourceProvider(), getDatabaseConfig(DatabaseName.ods));

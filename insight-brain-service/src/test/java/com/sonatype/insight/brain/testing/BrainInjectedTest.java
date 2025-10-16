@@ -107,10 +107,13 @@ public abstract class BrainInjectedTest
   {
     @Override
     public void configure(final Binder binder) {
-      binder.bind(OperationalDataStore.class).toInstance(databaseContainerRule.getOperationalDataStore());
-      binder.bind(AggregationDataStore.class).toInstance(databaseContainerRule.getAggregationDataStore());
-      binder.bind(DataMartDataStore.class).toInstance(databaseContainerRule.getDataMartDataStore());
-      binder.bind(ThirdPartyScansDataStore.class).toInstance(databaseContainerRule.getThirdPartyScansDataStore());
+      // Use toProvider instead of toInstance to ensure we always get the current DataStore instance
+      // This is critical when database fixtures switch types (H2 <-> Postgres) - the old DataStore
+      // instances must be released to prevent memory leaks of JDBCConfigurationImpl
+      binder.bind(OperationalDataStore.class).toProvider(() -> databaseContainerRule.getOperationalDataStore());
+      binder.bind(AggregationDataStore.class).toProvider(() -> databaseContainerRule.getAggregationDataStore());
+      binder.bind(DataMartDataStore.class).toProvider(() -> databaseContainerRule.getDataMartDataStore());
+      binder.bind(ThirdPartyScansDataStore.class).toProvider(() -> databaseContainerRule.getThirdPartyScansDataStore());
       binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
       binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
     }

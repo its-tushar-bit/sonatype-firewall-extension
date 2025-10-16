@@ -228,12 +228,23 @@ public abstract class InsightFixtureRule<T, F extends InsightTestFixture>
   private void closePreviousFixture() {
     if (fixture != null) {
       try {
+        // Allow subclasses to perform cleanup before closing the fixture
+        beforeCloseFixture();
+
         fixture.close();
       }
       catch (Exception e) {
         throw new RuntimeException("Unable to close previous fixture", e);
       }
     }
+  }
+
+  /**
+   * Provides an opportunity for the implementer to perform operations before the fixture is closed.
+   * This is called right before closing the fixture when switching database types or cleaning up resources.
+   */
+  protected void beforeCloseFixture() {
+    // default no-op
   }
 
   private void initializeNewFixture() {

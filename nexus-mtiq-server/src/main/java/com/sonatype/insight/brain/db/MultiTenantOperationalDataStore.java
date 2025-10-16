@@ -89,4 +89,27 @@ public class MultiTenantOperationalDataStore
     // multi-tenant is not compatible with H2
     return false;
   }
+
+  @Override
+  public void close() throws Exception {
+    log.info("Closing {} data store and releasing resources for all tenants.", getID());
+
+    // First close all tenant EntityManagerFactories via parent
+    super.close();
+
+    // Then close the locks data source if it exists
+    if (locksDataSource != null) {
+      try {
+        if (locksDataSource instanceof AutoCloseable) {
+          ((AutoCloseable) locksDataSource).close();
+          log.debug("Closed locksDataSource for {} data store.", getID());
+        }
+      }
+      catch (Exception e) {
+        log.warn("Error closing locksDataSource for {} data store: {}", getID(), e.getMessage(), e);
+      }
+    }
+
+    log.info("Successfully closed {} data store for all tenants.", getID());
+  }
 }

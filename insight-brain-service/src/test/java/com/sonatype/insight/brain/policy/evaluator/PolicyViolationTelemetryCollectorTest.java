@@ -22,6 +22,7 @@ import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.experimental.PurlIdentifiersWithVulnerabilities;
 import com.sonatype.insight.brain.api.experimental.ReachableComponentVulnerabilities.PresentReachableComponentVulnerabilities;
+import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlEventDAO;
 import com.sonatype.insight.brain.license.LicenseNameProvider;
@@ -52,6 +53,8 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.callflow.PolicyViolationReachabilityHelper.hasPolicyViolationByComponentIdentifier;
@@ -112,6 +115,26 @@ public class PolicyViolationTelemetryCollectorTest
 
   @Inject
   private LicenseNameProvider licenseNameProvider;
+
+  @Override
+  @Before
+  public void beforeTest() {
+    // Call parent's beforeTest first to ensure proper initialization
+    super.beforeTest();
+
+    // Clear the LicenseDataUpdater singleton before each test to prevent it from holding references
+    // to DAOs with closed EntityManagerFactory instances from previous tests.
+    // This is necessary because tests extending AbstractComponentTest may close the EntityManagerFactory
+    // in their @After methods, but the singleton may still hold a reference to it.
+    LicenseDataUpdater.setUpdater(null);
+  }
+
+  @After
+  public void cleanUpLicenseDataUpdater() {
+    // Clear the LicenseDataUpdater singleton to prevent it from holding references
+    // to DAOs with closed EntityManagerFactory instances from previous tests
+    LicenseDataUpdater.setUpdater(null);
+  }
 
   @Test
   public void testAddTelemetryForConditionTypeViolation() {

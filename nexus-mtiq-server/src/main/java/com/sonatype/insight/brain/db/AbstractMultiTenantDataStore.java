@@ -86,4 +86,36 @@ public abstract class AbstractMultiTenantDataStore
   public EntityManagerFactory getJPAEntityManagerFactory() {
     return entityManagerFactoryMap.get(TenantThreadLocal.getTenant());
   }
+
+  @Override
+  public void close() throws Exception {
+    log.info("Closing {} data store and releasing resources for all tenants.", getID());
+
+    // Close all EntityManagerFactory instances for all tenants
+    for (Map.Entry<Tenant, EntityManagerFactory> entry : entityManagerFactoryMap.entrySet()) {
+      Tenant tenant = entry.getKey();
+      EntityManagerFactory emf = entry.getValue();
+      if (emf != null && emf.isOpen()) {
+        try {
+          emf.close();
+          log.debug("Closed EntityManagerFactory for {} data store, tenant: {}", getID(), tenant.databaseSchema);
+        }
+        catch (Exception e) {
+          log.warn("Error closing EntityManagerFactory for {} data store, tenant {}: {}",
+              getID(), tenant.databaseSchema, e.getMessage(), e);
+        }
+      }
+    }
+
+    // Clear the maps
+    entityManagerFactoryMap.clear();
+    setInitializedFalse();
+
+    log.info("Successfully closed {} data store for all tenants.", getID());
+  }
+
+  @Override
+  protected void setInitializedFalse() {
+    isInitializedMap.clear();
+  }
 }

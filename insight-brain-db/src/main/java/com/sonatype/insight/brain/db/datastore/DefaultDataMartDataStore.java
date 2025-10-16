@@ -74,4 +74,9 @@ public class DefaultDataMartDataStore
   public boolean isDatabaseEmbedded() {
     return isDatabaseEmbedded;
   }
+
+  @Override
+  protected void setInitializedFalse() {
+    isInitialized = false;
+  }
 }

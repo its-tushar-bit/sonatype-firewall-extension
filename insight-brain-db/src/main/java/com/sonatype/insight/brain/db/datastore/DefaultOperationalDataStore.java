@@ -124,4 +124,25 @@ public class DefaultOperationalDataStore
   public boolean isDatabaseEmbedded() {
     return isDatabaseEmbedded;
   }
+
+  @Override
+  public void close() throws Exception {
+    // Close the dataSourceForLocks BasicDataSource
+    if (dataSourceForLocks != null && dataSourceForLocks instanceof BasicDataSource) {
+      try {
+        ((BasicDataSource) dataSourceForLocks).close();
+        log.debug("Closed dataSourceForLocks for {} data store.", getID());
+      }
+      catch (Exception e) {
+        log.warn("Error closing dataSourceForLocks for {} data store: {}", getID(), e.getMessage(), e);
+      }
+    }
+
+    super.close();
+  }
+
+  @Override
+  protected void setInitializedFalse() {
+    isInitialized = false;
+  }
 }

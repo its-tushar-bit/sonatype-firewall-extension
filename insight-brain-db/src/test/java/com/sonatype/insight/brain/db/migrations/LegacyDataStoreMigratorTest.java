@@ -343,6 +343,11 @@ public class LegacyDataStoreMigratorTest
     public boolean isDatabaseEmbedded() {
       return true;
     }
+
+    @Override
+    public void close() throws Exception {
+      // No-op for test data store
+    }
   }
 
   static class PostIncrementalMigratorVersionMinus1

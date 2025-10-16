@@ -32,6 +32,10 @@ public class InsightSessionManager
   {
     setSessionDAO(shiroSessionDAO);
     setSessionListeners(sessionListeners);
+
+    // Disable Shiro's default ExecutorServiceSessionValidationScheduler to prevent memory leaks in tests.
+    // In production, QuartzShiroSessionValidationScheduler is used instead (configured separately).
+    setSessionValidationSchedulerEnabled(false);
   }
 
   public void setTenantSessionTimeout(Long sessionTimeout) {

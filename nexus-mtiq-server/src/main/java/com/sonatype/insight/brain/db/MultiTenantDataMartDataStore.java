@@ -89,4 +89,9 @@ public class MultiTenantDataMartDataStore
     // multi-tenant is not compatible with H2
     return false;
   }
+
+  @Override
+  protected void setInitializedFalse() {
+    isGlobalDataMartInitialized = false;
+  }
 }

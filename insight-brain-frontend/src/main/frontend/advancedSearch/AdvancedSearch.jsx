@@ -7,7 +7,7 @@
 import React, { useEffect } from 'react';
 import LoadWrapper from '../react/LoadWrapper';
 import * as PropTypes from 'prop-types';
-import { NxButtonBar, NxTextLink } from '@sonatype/react-shared-components';
+import { NxButtonBar, NxH1, NxPageTitle, NxTextLink } from '@sonatype/react-shared-components';
 
 import AdvancedSearchForm from './AdvancedSearchForm';
 import AdvancedSearchResultCard from './AdvancedSearchResultCard';
@@ -64,17 +64,16 @@ export default function AdvancedSearch(props) {
   return (
     <main id="advanced-search-page" className="nx-page-main nx-page-main--advanced-search">
       <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
-        <div className="nx-page-title">
-          <h1 className="nx-h1" id="advanced-search-page-title">
-            Advanced Search
-          </h1>
+        <NxPageTitle>
+          <NxH1 id="advanced-search-page-title">Advanced Search</NxH1>
+
           <NxButtonBar>
             <AdvancedSearchExportButton {...exportButtonProps} />
           </NxButtonBar>
-        </div>
+        </NxPageTitle>
         <AdvancedSearchForm {...props} />
         <LoadWrapper loading={waitingSearchResponse} error={queryError} retryHandler={() => searchFormSubmit()}>
-          {groupingByDTOS.map(advancedSearchResultsGroupedBy)}
+          <div className="iq-adv-search__results-container">{groupingByDTOS.map(advancedSearchResultsGroupedBy)}</div>
         </LoadWrapper>
       </LoadWrapper>
     </main>
@@ -126,8 +125,12 @@ AdvancedSearch.propTypes = {
   loadError: PropTypes.object,
   isEnabled: PropTypes.bool.isRequired,
   searchResult: PropTypes.object,
+  searchedQuery: PropTypes.string,
+  searchIncludedAllComponents: PropTypes.bool,
   isSbomManager: PropTypes.bool,
   noSbomManagerEnabledError: PropTypes.string,
   queryError: PropTypes.object,
+  setCurrentQuery: PropTypes.func.isRequired,
+  routerCurrentParams: PropTypes.object,
   $state: PropTypes.object.isRequired,
 };

@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, screen, userEvent, within } from 'TestRoot/SpecUtil';
 import AdvancedSearchContainer from 'MainRoot/advancedSearch/AdvancedSearchContainer';
 import { assocPath, mergeDeepRight } from 'ramda';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -28,14 +28,23 @@ describe('AdvancedSearch', function () {
           groupingByDTOS: [],
         },
       },
+      easyQueryBuilder: {
+        searchItems: [],
+      },
     },
   };
   const mockRouterState = {
     get: () => ({}),
     href: () => '#',
   };
-  const renderComponent = (preloadedState = initialState) =>
-    render(<AdvancedSearchContainer $state={mockRouterState} />, { preloadedState });
+  let user;
+  let renderComponent;
+
+  beforeEach(() => {
+    user = userEvent.setup();
+    renderComponent = (preloadedState = initialState) =>
+      render(<AdvancedSearchContainer $state={mockRouterState} />, { preloadedState });
+  });
 
   describe('help', function () {
     it('has a "Craft your search terms…" toggle', function () {
@@ -54,30 +63,30 @@ describe('AdvancedSearch', function () {
       expect(vulnHelp).not.toBeInTheDocument();
     });
 
-    it('displays the help when the toggle is toggled', function () {
+    it('displays the help when the toggle is toggled', async function () {
       renderComponent();
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       const vulnHelp = screen.getByText('Find a specific vulnerability');
       expect(vulnHelp).toBeInTheDocument();
 
-      fireEvent.click(toggle);
+      await user.click(toggle);
       expect(screen.queryByText('Find a specific vulnerability')).not.toBeInTheDocument();
     });
 
-    it('displays additional help when not in SBOM Manager', function () {
+    it('displays additional help when not in SBOM Manager', async function () {
       renderComponent();
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       const vulnHelp = screen.getByText('Search by application name focused on security vulnerabilities');
       expect(vulnHelp).toBeInTheDocument();
     });
 
-    it('does not display additional help when in SBOM Manager', function () {
+    it('does not display additional help when in SBOM Manager', async function () {
       const sbomManagerState = {
         ...initialState,
         router: {
@@ -88,27 +97,27 @@ describe('AdvancedSearch', function () {
       renderComponent(sbomManagerState);
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       const vulnHelp = screen.queryByText('Search by application name focused on security vulnerabilities');
       expect(vulnHelp).not.toBeInTheDocument();
     });
 
-    it('displays a help doc link when not in SBOM Manager', function () {
+    it('displays a help doc link when not in SBOM Manager', async function () {
       renderComponent();
 
       let helpLink = screen.queryByRole('link', { name: 'documentation' });
       expect(helpLink).not.toBeInTheDocument();
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       helpLink = screen.getByRole('link', { name: 'documentation' });
       expect(helpLink).toBeInTheDocument();
       expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/nxiq/doc/advanced-search');
     });
 
-    it('displays additional help when in SBOM Manager', function () {
+    it('displays additional help when in SBOM Manager', async function () {
       const sbomManagerState = {
         ...initialState,
         router: {
@@ -122,7 +131,7 @@ describe('AdvancedSearch', function () {
       expect(helpLink).not.toBeInTheDocument();
 
       const toggle = screen.getByText('Craft your search terms for the best results.');
-      fireEvent.click(toggle);
+      await user.click(toggle);
 
       helpLink = screen.queryByRole('link', { name: 'documentation' });
       expect(helpLink).toBeInTheDocument();

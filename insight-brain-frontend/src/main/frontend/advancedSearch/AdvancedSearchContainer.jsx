@@ -21,6 +21,7 @@ function mapStateToProps(state) {
     ...advancedSearch.viewState,
     ...advancedSearch.configurationState,
     ...advancedSearch.formState,
+    ...advancedSearch.easyQueryBuilder,
     isSbomManager,
     noSbomManagerEnabledError,
     routerCurrentParams,

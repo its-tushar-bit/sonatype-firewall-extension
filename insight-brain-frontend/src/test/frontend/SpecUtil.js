@@ -13,6 +13,7 @@ import JasmineDOM from '@testing-library/jasmine-dom';
 import MockAdapter from 'axios-mock-adapter';
 import axios from 'axios';
 import { faker } from '@faker-js/faker';
+import userEvent from '@testing-library/user-event';
 
 export const WAIVER_CREATE_TIME = '2022-08-18';
 export const WAIVER_EXPIRATION_TIME = '2023-08-18';
@@ -443,6 +444,8 @@ function render(
 export * from '@testing-library/react';
 // override render method
 export { render };
+// export userEvent
+export { userEvent };
 
 let mock;
 

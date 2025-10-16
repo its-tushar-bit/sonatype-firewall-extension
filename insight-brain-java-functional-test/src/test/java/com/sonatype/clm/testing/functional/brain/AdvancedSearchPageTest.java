@@ -27,6 +27,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
+import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.cssClass;
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.empty;
@@ -256,26 +257,26 @@ public class AdvancedSearchPageTest
     refreshOrOpen(AdvancedSearchPage.url());
 
     // initial state
-    page.queryBuilderContainer().shouldNotBe(visible);
+    page.queryBuilderSearchTermsContainer().shouldNotBe(visible);
 
     // test toggle
-    page.queryBuilderButton().click();
-    page.queryBuilderContainer().shouldBe(visible);
-    page.queryBuilderButton().click();
-    page.queryBuilderContainer().shouldNotBe(visible);
+    page.searchTermsToggleButton().click();
+    page.queryBuilderSearchTermsContainer().shouldBe(visible);
+    page.searchTermsToggleButton().click();
+    page.queryBuilderSearchTermsContainer().shouldNotBe(visible);
 
     // test add prefix using pills
-    page.queryBuilderButton().click();
+    page.searchTermsToggleButton().click();
     page.prefixTagWithId("organizationId").shouldNotHave(cssClass("nx-tag--selected")).click();
     // when I click on the pill it should get an additional class which fills the pill with green background
     page.prefixTagWithId("organizationId").shouldHave(cssClass("nx-tag--selected"));
-    page.queryBuilderContainer().shouldBe(visible);  // query builder must remain open
+    page.queryBuilderSearchTermsContainer().shouldBe(visible);  // query builder must remain open
     page.searchInput().shouldHave(value("organizationId:"));
 
     // test upon search query builder is closed
     page.searchInput().sendKeys("ROOT*");
     page.searchButton().click();
-    page.queryBuilderContainer().shouldNotBe(visible);
+    page.queryBuilderSearchTermsContainer().shouldNotBe(visible);
   }
 
   @Test
@@ -319,5 +320,305 @@ public class AdvancedSearchPageTest
     page.secondResultCardAppName().shouldBe(text(application.getName()));
 
     eyesWatcher.eyesCheck("Show all components radio buttons");
+  }
+
+  @Test
+  public void testQueryBuilderToggle() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // Initial state - query builder should be hidden
+    page.queryBuilderEasyContainer().shouldNotBe(visible);
+    page.queryBuilderToggleButton().shouldBe(visible);
+
+    // Test toggle to show query builder
+    page.queryBuilderToggleButton().click();
+    page.queryBuilderEasyContainer().shouldBe(visible);
+    page.searchRow(1).shouldBe(visible); // Should have one empty search item initially
+
+    // Test toggle to hide query builder
+    page.queryBuilderToggleButton().click();
+    page.queryBuilderEasyContainer().shouldNotBe(visible);
+
+    // Test that search terms builder can be toggled independently
+    page.searchTermsToggleButton().click();
+    page.queryBuilderEasyContainer().shouldNotBe(visible); // Should still be hidden
+
+    // Close search terms and open query builder again
+    page.searchTermsToggleButton().click();
+    page.queryBuilderToggleButton().click();
+    page.queryBuilderEasyContainer().shouldBe(visible);
+  }
+
+  @Test
+  public void testQueryBuilderAddAndRemoveSearchItems() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Initially should have one empty search item (automatically added)
+    page.searchRow(1).shouldBe(visible);
+    page.addSearchItemButton().shouldBe(visible);
+    page.queryBuilderEmptyState().shouldNotBe(visible); // Empty state not visible yet
+
+    // Add a second search item and set a value to identify it
+    page.addSearchItemButton().click();
+    page.searchRowValueInput(2).setValue("second-item");
+    page.searchRow(2).shouldBe(visible);
+
+    // Add a third search item and set a value to identify it
+    page.addSearchItemButton().click();
+    page.searchRowValueInput(3).setValue("third-item");
+    page.searchRow(3).shouldBe(visible);
+
+    // Verify we have 3 rows total
+    page.searchRow(1).shouldBe(visible);
+    page.searchRow(2).shouldBe(visible);
+    page.searchRow(3).shouldBe(visible);
+    page.searchRow(4).shouldNotBe(visible); // No fourth row
+
+    // Remove the second search item (index 2)
+    page.searchRowRemoveButton(2).click();
+    // Verify we now have 2 rows and the third item moved to position 2
+    page.searchRow(1).shouldBe(visible);
+    page.searchRow(2).shouldBe(visible);
+    page.searchRow(3).shouldNotBe(visible);
+    page.searchRowValueInput(2).shouldHave(value("third-item")); // Original third item is now at position 2
+
+    // Remove the first search item (index 1)
+    page.searchRowRemoveButton(1).click();
+    // Verify we now have 1 row and the remaining item is at position 1
+    page.searchRow(1).shouldBe(visible);
+    page.searchRow(2).shouldNotBe(visible);
+    page.searchRowValueInput(1).shouldHave(value("third-item")); // Remaining item is now at position 1
+
+    // Remove the last search item - should show empty state
+    page.searchRowRemoveButton(1).click();
+    page.queryBuilderEmptyState().shouldBe(visible);
+  }
+
+  @Test
+  public void testQueryBuilderFieldSelection() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Test field dropdown functionality
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Organization ID").shouldBe(visible);
+    page.fieldOption("Application Name").shouldBe(visible);
+    page.fieldOption("Component Name").shouldBe(visible);
+
+    // Select Organization ID
+    page.fieldOption("Organization ID").click();
+    page.searchRowFieldDropdown(1).shouldHave(text("Organization ID"));
+
+    // Test that value input placeholder updates
+    page.searchRowValueInput(1).shouldHave(attribute("placeholder", "ROOT_ORGANIZATION_ID"));
+
+    // Select Application Name
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Application Name").click();
+    page.searchRowFieldDropdown(1).shouldHave(text("Application Name"));
+    page.searchRowValueInput(1).shouldHave(attribute("placeholder", "My Application Name"));
+  }
+
+  @Test
+  public void testQueryBuilderOperatorSelection() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Add a second search item to test operators
+    page.addSearchItemButton().click();
+
+    // First row should not have operator dropdown
+    page.searchRowOperatorDropdown(1).shouldNotBe(visible);
+
+    // Second row should have operator dropdown with default OR
+    page.searchRowOperatorDropdown(2).shouldBe(visible);
+    page.searchRowOperatorDropdown(2).shouldHave(text("OR"));
+
+    // Test changing operator to AND
+    page.searchRowOperatorDropdown(2).click();
+    page.operatorOption("AND").click();
+    page.searchRowOperatorDropdown(2).shouldHave(text("AND"));
+
+    // Test changing back to OR
+    page.searchRowOperatorDropdown(2).click();
+    page.operatorOption("OR").click();
+    page.searchRowOperatorDropdown(2).shouldHave(text("OR"));
+  }
+
+  @Test
+  public void testQueryBuilderMatchTypeSelection() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Test match type dropdown
+    page.searchRowMatchDropdown(1).shouldBe(visible);
+    page.searchRowMatchDropdown(1).shouldHave(text("Partial Match"));
+
+    // Change to Exact Match
+    page.searchRowMatchDropdown(1).click();
+    page.matchOption("Exact Match").click();
+    page.searchRowMatchDropdown(1).shouldHave(text("Exact Match"));
+
+    // Change back to Partial Match
+    page.searchRowMatchDropdown(1).click();
+    page.matchOption("Partial Match").click();
+    page.searchRowMatchDropdown(1).shouldHave(text("Partial Match"));
+  }
+
+  @Test
+  public void testQueryBuilderValueInput() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Test value input functionality
+    page.searchRowValueInput(1).shouldBe(visible);
+    page.searchRowValueInput(1).setValue("test-value");
+    page.searchRowValueInput(1).shouldHave(value("test-value"));
+
+    // Test that value persists when changing other fields
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Application Name").click();
+    page.searchRowValueInput(1).shouldHave(value("test-value"));
+
+    // Test clearing value
+    page.searchRowValueInput(1).clear();
+    page.searchRowValueInput(1).shouldBe(empty);
+  }
+
+  @Test
+  public void testQueryBuilderSearchExecution() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Set up a simple query
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Item Type").click();
+    page.searchRowValueInput(1).setValue("ORGANIZATION");
+
+    // Execute search
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Verify search was executed and query builder is closed
+    page.queryBuilderEasyContainer().shouldNotBe(visible);
+    page.searchInput().shouldHave(value("itemType:\"ORGANIZATION\"*"));
+    page.resultCount().shouldBe(text("1"));
+  }
+
+  @Test
+  public void testQueryBuilderComplexQuery() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Set up first search item
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Item Type").click();
+    page.searchRowValueInput(1).setValue("ORGANIZATION");
+
+    // Add second search item
+    page.addSearchItemButton().click();
+    page.searchRowFieldDropdown(2).click();
+    page.fieldOption("Item Type").click();
+    page.searchRowValueInput(2).setValue("APPLICATION");
+
+    // Change operator to AND
+    page.searchRowOperatorDropdown(2).click();
+    page.operatorOption("AND").click();
+
+    // Add third search item
+    page.addSearchItemButton().click();
+    page.searchRowFieldDropdown(3).click();
+    page.fieldOption("Component Name").click();
+    page.searchRowValueInput(3).setValue("test-component");
+
+    // Change operator to OR
+    page.searchRowOperatorDropdown(3).click();
+    page.operatorOption("OR").click();
+
+    // Execute search
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Verify complex query was built correctly
+    page.searchInput().shouldHave(
+        value("itemType:\"ORGANIZATION\"* AND itemType:\"APPLICATION\"* OR componentName:\"test-component\"*"));
+  }
+
+  @Test
+  public void testQueryBuilderWithExactMatch() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.queryBuilderToggleButton().click();
+
+    // Set up query with exact match
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Item Type").click();
+    page.searchRowMatchDropdown(1).click();
+    page.matchOption("Exact Match").click();
+    page.searchRowValueInput(1).setValue("ORGANIZATION");
+
+    // Execute search
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Verify exact match query (no wildcard)
+    page.searchInput().shouldHave(value("itemType:\"ORGANIZATION\""));
+  }
+
+  @Test
+  public void testQueryBuilderIntegrationWithSearchTerms() {
+    enableAdvancedSearch();
+    indexService.createSearchIndex();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+
+    // Start with search terms builder
+    page.searchTermsToggleButton().click();
+    page.searchInput().setValue("itemType:ORGANIZATION");
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Switch to query builder
+    page.queryBuilderToggleButton().click();
+    page.queryBuilderEasyContainer().shouldBe(visible);
+
+    // Add a new search item in query builder
+    page.searchRowFieldDropdown(1).click();
+    page.fieldOption("Item Type").click();
+    page.searchRowValueInput(1).setValue("APPLICATION");
+
+    // Execute search from query builder
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    // Verify query was updated
+    page.searchInput().shouldHave(value("itemType:\"APPLICATION\"*"));
   }
 }

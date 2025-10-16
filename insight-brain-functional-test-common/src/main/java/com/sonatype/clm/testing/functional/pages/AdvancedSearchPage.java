@@ -11,6 +11,7 @@ import com.sonatype.clm.testing.functional.utils.BaseUrl;
 import com.codeborne.selenide.SelenideElement;
 
 import static com.codeborne.selenide.Selenide.$;
+import static com.codeborne.selenide.Condition.text;
 
 public class AdvancedSearchPage
     extends BasicElement<AdvancedSearchPage>
@@ -78,16 +79,16 @@ public class AdvancedSearchPage
     return $("#advanced-search-help-container");
   }
 
-  public SelenideElement queryBuilderButton() {
-    return child("#advanced-search-query-builder-toggle-button");
+  public SelenideElement queryBuilderSearchTermsContainer() {
+    return child("#iq-adv-search__query-builder-search-terms");
   }
 
-  public SelenideElement queryBuilderContainer() {
-    return child("#advanced-search-query-builder-container");
+  public SelenideElement queryBuilderEasyContainer() {
+    return child("#iq-adv-search__query-builder-easy");
   }
 
   public SelenideElement prefixTagWithId(String id) {
-    return child("#advanced-search-query-builder-tag-" +  id);
+    return child("#advanced-search-query-builder-tag-" + id);
   }
 
   public SelenideElement componentSearchRadioButtons() {
@@ -99,18 +100,85 @@ public class AdvancedSearchPage
   }
 
   public SelenideElement firstResultCardOrgName() {
-    return child("section:nth-child(6) > div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+    return child(
+        ".iq-adv-search__results-container > section:nth-child(1) >" +
+        " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
   }
 
   public SelenideElement firstResultCardAppName() {
-    return child("section:nth-child(6) > div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+    return child(
+        ".iq-adv-search__results-container > section:nth-child(1) >" + 
+        " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
   }
 
   public SelenideElement secondResultCardOrgName() {
-    return child("section:nth-child(7) > div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
+    return child(
+        ".iq-adv-search__results-container > section:nth-child(2) >" + 
+        " div > table > tbody > tr:nth-child(1) > td:nth-child(3) > a");
   }
 
   public SelenideElement secondResultCardAppName() {
-    return child("section:nth-child(7) > div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+    return child(
+        ".iq-adv-search__results-container > section:nth-child(2) >" + 
+        " div > table > tbody > tr:nth-child(2) > td:nth-child(3) > a");
+  }
+
+  // Query Builder Elements
+  public SelenideElement queryBuilderToggleButton() {
+    return child(".iq-adv-search__query-builder-button");
+  }
+
+  public SelenideElement searchTermsToggleButton() {
+    return child(".iq-adv-search__search-terms-button");
+  }
+
+  public SelenideElement addSearchItemButton() {
+    return child(".iq-adv-search__query-builder .nx-btn--primary");
+  }
+
+  public SelenideElement queryBuilderEmptyState() {
+    return child(".iq-adv-search__query-builder-content-empty");
+  }
+
+  public SelenideElement searchRow(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")");
+  }
+
+  public SelenideElement searchRowOperatorDropdown(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")").find(
+        ".iq-adv-search__operator .nx-dropdown");
+  }
+
+  public SelenideElement searchRowFieldDropdown(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")").find(
+        ".iq-adv-search__field .nx-dropdown");
+  }
+
+  public SelenideElement searchRowMatchDropdown(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")").find(
+        ".iq-adv-search__match .nx-dropdown");
+  }
+
+  public SelenideElement searchRowValueInput(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")").find(
+        ".iq-adv-search__value input");
+  }
+
+  public SelenideElement searchRowRemoveButton(int index) {
+    return child(".iq-adv-search__query-builder-content > :nth-child(" + index + ")").find(
+        ".iq-adv-search__trash button");
+  }
+
+  // Dropdown option selectors
+  public SelenideElement operatorOption(String operator) {
+    return child(".nx-dropdown-menu").$$("button").findBy(text(operator));
+  }
+
+  public SelenideElement fieldOption(String fieldValue) {
+    return child(".nx-dropdown-menu").$$("button").findBy(text(fieldValue));
+  }
+
+  public SelenideElement matchOption(String matchType) {
+    return child(".nx-dropdown-menu").$$("button").findBy(text(matchType));
   }
 }

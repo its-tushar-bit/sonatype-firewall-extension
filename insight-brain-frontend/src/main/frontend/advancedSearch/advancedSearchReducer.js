@@ -17,8 +17,14 @@ import {
   ADVANCED_SEARCH_RESET_QUERY,
   ADVANCED_SEARCH_TOGGLE_HELP,
   ADVANCED_SEARCH_RESET_SEARCH_AFTERS,
+  ADVANCED_SEARCH_ADD_SEARCH_ITEM,
+  ADVANCED_SEARCH_SET_EASY_QUERY_VALUE,
+  ADVANCED_SEARCH_SET_EASY_QUERY_FIELD,
+  ADVANCED_SEARCH_REMOVE_SEARCH_ITEM,
 } from './advancedSearchActions';
 import { pathSet } from '../util/jsUtil';
+import { addIndex, filter, map } from 'ramda';
+import { buildSearchQuery } from './utils';
 
 const initialState = {
   viewState: {
@@ -44,6 +50,9 @@ const initialState = {
     isShowingAllComponentResults: false,
     isToggleComponentResultsEnabled: false,
     searchAfters: [],
+  },
+  easyQueryBuilder: {
+    searchItems: [],
   },
 };
 
@@ -77,6 +86,87 @@ function setCurrentQuery(payload, state) {
       ...state.formState,
       currentQuery: payload,
       isToggleComponentResultsEnabled: componentToggleCriteria.some((criterion) => payload.includes(criterion)),
+    },
+  };
+}
+
+function addSearchItem(payload, state) {
+  const newSearchItem = {
+    operator: 'OR',
+    field: '',
+    value: '',
+    isExactMatch: false,
+  };
+  const searchItems = [...state.easyQueryBuilder.searchItems, newSearchItem];
+  const currentQuery = buildSearchQuery(searchItems);
+  return {
+    ...state,
+    easyQueryBuilder: {
+      ...state.easyQueryBuilder,
+      searchItems,
+    },
+    formState: {
+      ...state.formState,
+      currentQuery,
+    },
+  };
+}
+
+function setEasyQueryField(payload, state) {
+  const { index, value } = payload;
+  const mapIndexed = addIndex(map);
+  const searchItems = mapIndexed(
+    (item, i) => (i === index ? { ...item, field: { ...value } } : item),
+    state.easyQueryBuilder.searchItems
+  );
+  const currentQuery = buildSearchQuery(searchItems);
+  return {
+    ...state,
+    easyQueryBuilder: {
+      ...state.easyQueryBuilder,
+      searchItems,
+    },
+    formState: {
+      ...state.formState,
+      currentQuery,
+    },
+  };
+}
+
+function setEasyQueryValue(payload, state) {
+  const { index, value, key } = payload;
+  const mapIndexed = addIndex(map);
+  const searchItems = mapIndexed(
+    (item, i) => (i === index ? { ...item, [key]: value } : item),
+    state.easyQueryBuilder.searchItems
+  );
+  const currentQuery = buildSearchQuery(searchItems);
+  return {
+    ...state,
+    easyQueryBuilder: {
+      ...state.easyQueryBuilder,
+      searchItems,
+    },
+    formState: {
+      ...state.formState,
+      currentQuery,
+    },
+  };
+}
+
+function removeSearchItem(payload, state) {
+  const filterIndexed = addIndex(filter);
+  const searchItems = filterIndexed((_, i) => i !== payload, state.easyQueryBuilder.searchItems);
+  const currentQuery = buildSearchQuery(searchItems);
+  return {
+    ...state,
+    easyQueryBuilder: {
+      ...state.easyQueryBuilder,
+      searchItems,
+    },
+    formState: {
+      ...state.formState,
+      currentQuery,
     },
   };
 }
@@ -202,6 +292,10 @@ const reducerActionMap = {
   [ADVANCED_SEARCH_RESET_QUERY]: resetQuery,
   [ADVANCED_SEARCH_RESET_SEARCH_AFTERS]: resetSearchAfters,
   [ADVANCED_SEARCH_TOGGLE_HELP]: toggleHelp,
+  [ADVANCED_SEARCH_ADD_SEARCH_ITEM]: addSearchItem,
+  [ADVANCED_SEARCH_REMOVE_SEARCH_ITEM]: removeSearchItem,
+  [ADVANCED_SEARCH_SET_EASY_QUERY_FIELD]: setEasyQueryField,
+  [ADVANCED_SEARCH_SET_EASY_QUERY_VALUE]: setEasyQueryValue,
 };
 
 const reducer = createReducerFromActionMap(reducerActionMap, initialState);

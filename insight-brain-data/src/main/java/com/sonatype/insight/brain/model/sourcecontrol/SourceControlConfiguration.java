@@ -77,6 +77,12 @@ public class SourceControlConfiguration
   @Column(name = "pull_request_monitoring_interval_seconds")
   private int pullRequestMonitoringIntervalSeconds = DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
 
+  @Column(name = "gpg_signing_key")
+  private String gpgSigningKey;
+
+  @Column(name = "gpg_passphrase")
+  private String gpgPassphrase;
+
   @Transient
   private LocalTime defaultBranchMonitoringStartTime;
 
@@ -211,5 +217,21 @@ public class SourceControlConfiguration
 
   public void setPullRequestMonitoringIntervalSeconds(int pullRequestMonitoringIntervalSeconds) {
     this.pullRequestMonitoringIntervalSeconds = pullRequestMonitoringIntervalSeconds;
+  }
+
+  public String getGpgSigningKey() {
+    return gpgSigningKey;
+  }
+
+  public void setGpgSigningKey(String gpgSigningKey) {
+    this.gpgSigningKey = gpgSigningKey;
+  }
+
+  public String getGpgPassphrase() {
+    return gpgPassphrase;
+  }
+
+  public void setGpgPassphrase(String gpgPassphrase) {
+    this.gpgPassphrase = gpgPassphrase;
   }
 }

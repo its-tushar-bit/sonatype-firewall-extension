@@ -92,6 +92,8 @@ public class SourceControlConfigurationDAO
     return getById(SINGLETON_ENTITY_ID);
   }
 
+  // Use this method when you need to access the SourceControlConfiguration internally (as opposed to
+  // for a REST GET response). Decrypt the gpgPassphrase using PasswordHandler#decryptPassword
   public SourceControlConfiguration getNotNull() {
     SourceControlConfiguration config = get();
     if (config == null) {

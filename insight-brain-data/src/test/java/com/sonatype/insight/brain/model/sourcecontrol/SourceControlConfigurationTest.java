@@ -27,6 +27,8 @@ public class SourceControlConfigurationTest
         SourceControlConfiguration.DEFAULT_BRANCH_MONITORING_INTERVAL_HOURS);
     assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(
         SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+    assertThat(sourceControlConfiguration.getGpgSigningKey()).isNull();
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNull();
   }
 
   @Test
@@ -69,5 +71,31 @@ public class SourceControlConfigurationTest
 
     assertThatExceptionOfType(DateTimeException.class).isThrownBy(
         () -> sourceControlConfiguration.setDefaultBranchMonitoringStartTimeString("bad"));
+  }
+
+  @Test
+  public void testGetSetGpgSigningKey() {
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+
+    assertThat(sourceControlConfiguration.getGpgSigningKey()).isNull();
+
+    sourceControlConfiguration.setGpgSigningKey("test-key");
+    assertThat(sourceControlConfiguration.getGpgSigningKey()).isEqualTo("test-key");
+
+    sourceControlConfiguration.setGpgSigningKey(null);
+    assertThat(sourceControlConfiguration.getGpgSigningKey()).isNull();
+  }
+
+  @Test
+  public void testGetSetGpgPassphrase() {
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNull();
+
+    sourceControlConfiguration.setGpgPassphrase("test-passphrase");
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isEqualTo("test-passphrase");
+
+    sourceControlConfiguration.setGpgPassphrase(null);
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNull();
   }
 }

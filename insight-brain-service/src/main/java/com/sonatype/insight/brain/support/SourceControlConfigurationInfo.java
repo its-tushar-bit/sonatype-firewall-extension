@@ -41,6 +41,8 @@ public class SourceControlConfigurationInfo
     entries.put("defaultBranchMonitoringStartTime", sourceControlConfig.getDefaultBranchMonitoringStartTimeString());
     entries.put("defaultBranchMonitoringIntervalHours", sourceControlConfig.getDefaultBranchMonitoringIntervalHours());
     entries.put("pullRequestMonitoringIntervalSeconds", sourceControlConfig.getPullRequestMonitoringIntervalSeconds());
+    entries.put("gpgSigningKey", sourceControlConfig.getGpgSigningKey());
+    entries.put("gpgPassphrase", sourceControlConfig.getGpgPassphrase() != null ? "****" : null);
 
     return JsonUtils.format(entries);
   }

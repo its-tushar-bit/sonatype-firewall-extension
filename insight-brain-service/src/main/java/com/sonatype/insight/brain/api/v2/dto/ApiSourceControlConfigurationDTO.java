@@ -37,4 +37,8 @@ public class ApiSourceControlConfigurationDTO
 
   public int pullRequestMonitoringIntervalSeconds =
       SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
+
+  public String gpgSigningKey;
+
+  public String gpgPassphrase;
 }

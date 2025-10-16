@@ -804,6 +804,8 @@ CREATE TABLE source_control_configuration (
   default_branch_monitoring_start_time varchar(5),
   default_branch_monitoring_interval_hours int NOT NULL DEFAULT 24,
   pull_request_monitoring_interval_seconds int NOT NULL DEFAULT 60,
+  gpg_signing_key varchar(1024),
+  gpg_passphrase varchar(1024),
   CONSTRAINT source_control_configuration_pk PRIMARY KEY (source_control_configuration_id)
 );
 
@@ -1064,7 +1066,7 @@ CREATE TABLE persisted_promote_scan_result (
 CREATE INDEX persisted_promote_scan_result_create_time_idx ON persisted_promote_scan_result(create_time);
 
 CREATE TABLE inner_source_application (
-  -- Represents the fact that an IQ application produces an InnerSource package 
+  -- Represents the fact that an IQ application produces an InnerSource package
   -- with the specified versionless purl.  See `inner_source_version` for the package
   -- version in each IQ stage.
   inner_source_application_id varchar(50) NOT NULL,

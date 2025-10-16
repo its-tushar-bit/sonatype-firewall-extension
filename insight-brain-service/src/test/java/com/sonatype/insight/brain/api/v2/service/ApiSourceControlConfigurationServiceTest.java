@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -49,6 +50,9 @@ public class ApiSourceControlConfigurationServiceTest
   @Inject
   private SourceControlConfigurationDAO dao;
 
+  @Inject
+  private PasswordHandler passwordHandler;
+
   @Mock
   private TaskScheduler mockTaskScheduler;
 
@@ -74,8 +78,8 @@ public class ApiSourceControlConfigurationServiceTest
 
     ApiSourceControlConfigurationDTO configuration = service.getConfiguration();
 
-    assertThat(configuration).usingRecursiveComparison().ignoringFields("defaultBranchMonitoringStartTime")
-        .isEqualTo(config);
+    assertThat(configuration).usingRecursiveComparison()
+        .ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(config);
     assertThat(configuration.defaultBranchMonitoringStartTime).isEqualTo(
         config.getDefaultBranchMonitoringStartTimeString());
   }
@@ -135,14 +139,19 @@ public class ApiSourceControlConfigurationServiceTest
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 4;
     dto.pullRequestMonitoringIntervalSeconds = 5;
+    dto.gpgSigningKey = "some-gpg-key";
+    dto.gpgPassphrase = "some-passphrase";
 
     spy.setConfiguration(JsonUtils.asTree(dto));
 
     SourceControlConfiguration sourceControlConfiguration = dao.get();
     assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(dto);
+        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase").isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotNull();
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotEqualTo("some-passphrase");
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).hasSize(46);
     verify(spy).updateAllClusterNodesFromConfiguration();
   }
 
@@ -230,6 +239,21 @@ public class ApiSourceControlConfigurationServiceTest
     assertThat(dao.get().getPullRequestMonitoringIntervalSeconds()).isEqualTo(2);
   }
 
+  @Test
+  public void testSetConfiguration_Update_GpgSigningKey() {
+    testSetConfiguration_Update_Field(
+        new ObjectMapper().createObjectNode().put("gpgSigningKey", "updated-gpg-key"));
+    assertThat(dao.get().getGpgSigningKey()).isEqualTo("updated-gpg-key");
+  }
+
+  @Test
+  public void testSetConfiguration_Update_GpgPassphrase() {
+    testSetConfiguration_Update_Field(
+        new ObjectMapper().createObjectNode().put("gpgPassphrase", "updated-passphrase"));
+    assertThat(dao.get().getGpgPassphrase()).isNotNull();
+    assertThat(dao.get().getGpgPassphrase()).isNotEqualTo("updated-passphrase");
+  }
+
   private void testSetConfiguration_Update_Field(ObjectNode objectNode) {
     ApiSourceControlConfigurationService spy = spy(service);
     SourceControlConfiguration existing = tempEntity.newSourceControlConfiguration();
@@ -265,14 +289,19 @@ public class ApiSourceControlConfigurationServiceTest
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 40;
     dto.pullRequestMonitoringIntervalSeconds = 50;
+    dto.gpgSigningKey = "updated-gpg-key";
+    dto.gpgPassphrase = "updated-passphrase";
 
     spy.setConfiguration(JsonUtils.asTree(dto));
 
     SourceControlConfiguration sourceControlConfiguration = dao.get();
     assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS)
-        .ignoringExpectedNullFields().ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(dto);
+        .ignoringExpectedNullFields().ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase")
+        .isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotNull();
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotEqualTo("updated-passphrase");
     verify(spy).updateAllClusterNodesFromConfiguration();
   }
 
@@ -329,5 +358,43 @@ public class ApiSourceControlConfigurationServiceTest
   public void testDisallowConcurrentExecution() {
     assertThat(JobBuilder.newJob(ApiSourceControlConfigurationService.class).build()
         .isConcurrentExectionDisallowed()).isTrue();
+  }
+
+  @Test
+  public void testGetConfiguration_WithGpgPassphrase_ReturnsMasked() {
+    SourceControlConfiguration config = tempEntity.newSourceControlConfiguration();
+    config.setGpgPassphrase("encrypted-passphrase");
+    dao.set(config);
+
+    ApiSourceControlConfigurationDTO configuration = service.getConfiguration();
+
+    assertThat(configuration.gpgPassphrase).isEqualTo("****");
+  }
+
+  @Test
+  public void testGetConfiguration_WithoutGpgPassphrase_ReturnsNull() {
+    SourceControlConfiguration config = tempEntity.newSourceControlConfiguration();
+    config.setGpgPassphrase(null);
+    dao.set(config);
+
+    ApiSourceControlConfigurationDTO configuration = service.getConfiguration();
+
+    assertThat(configuration.gpgPassphrase).isNull();
+  }
+
+  @Test
+  public void testSetConfiguration_GpgPassphrase_EncryptsAndDecryptsSuccessfully() {
+    String originalPassphrase = "my-secret-passphrase";
+    ApiSourceControlConfigurationDTO dto = new ApiSourceControlConfigurationDTO();
+    dto.gpgPassphrase = originalPassphrase;
+
+    service.setConfiguration(JsonUtils.asTree(dto));
+
+    SourceControlConfiguration storedConfig = dao.getNotNull();
+    assertThat(storedConfig.getGpgPassphrase()).isNotNull();
+    assertThat(storedConfig.getGpgPassphrase()).isNotEqualTo(originalPassphrase);
+
+    String decryptedPassphrase = passwordHandler.decryptPassword(storedConfig.getGpgPassphrase());
+    assertThat(decryptedPassphrase).isEqualTo(originalPassphrase);
   }
 }

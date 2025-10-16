@@ -49,6 +49,8 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setDefaultBranchMonitoringStartTime(LocalTime.of(2, 22));
     sourceControlConfiguration.setDefaultBranchMonitoringIntervalHours(4);
     sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(0);
+    sourceControlConfiguration.setGpgSigningKey("test-gpg-key");
+    sourceControlConfiguration.setGpgPassphrase("encrypted-passphrase");
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
     configuration.sourceControlConfigurationChanged();
 
@@ -66,6 +68,8 @@ public class SourceControlConfigurationInfoTest
     assertThat(configNode.get("defaultBranchMonitoringStartTime").asText()).isEqualTo("2:22");
     assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asInt()).isEqualTo(4);
     assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asInt()).isEqualTo(0);
+    assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-gpg-key");
+    assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("****");
   }
 
   @Test
@@ -88,5 +92,35 @@ public class SourceControlConfigurationInfoTest
     assertThat(configNode.get("useUsernameInRepositoryCloneUrl").asText()).isEqualTo("false");
     assertThat(configNode.get("defaultBranchMonitoringStartTime").asText()).isEqualTo("null");
     assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asInt()).isEqualTo(24);
+    assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("null");
+    assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("null");
+  }
+
+  @Test
+  public void testGetSourceControlConfigurationInfo_WithGpgPassphrase_ReturnsMasked() throws Exception {
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setGpgSigningKey("test-key");
+    sourceControlConfiguration.setGpgPassphrase("encrypted-value");
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    configuration.sourceControlConfigurationChanged();
+
+    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+
+    assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
+    assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("****");
+  }
+
+  @Test
+  public void testGetSourceControlConfigurationInfo_WithoutGpgPassphrase_ReturnsNull() throws Exception {
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setGpgSigningKey("test-key");
+    sourceControlConfiguration.setGpgPassphrase(null);
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    configuration.sourceControlConfigurationChanged();
+
+    JsonNode configNode = JsonUtils.parse(sourceControlConfigurationInfo.getSourceControlConfigurationInfo());
+
+    assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-key");
+    assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("null");
   }
 }

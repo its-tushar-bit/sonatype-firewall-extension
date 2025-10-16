@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.Authorize;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -57,15 +58,19 @@ public class ApiSourceControlConfigurationService
 
   private final TaskScheduler taskScheduler;
 
+  private final PasswordHandler passwordHandler;
+
   @Inject
   public ApiSourceControlConfigurationService(
       SourceControlConfigurationDAO sourceControlConfigurationDAO,
       List<SourceControlConfigurationListener> sourceControlConfigurationListeners,
-      TaskScheduler taskScheduler)
+      TaskScheduler taskScheduler,
+      PasswordHandler passwordHandler)
   {
     this.sourceControlConfigurationDAO = sourceControlConfigurationDAO;
     this.sourceControlConfigurationListeners = sourceControlConfigurationListeners;
     this.taskScheduler = taskScheduler;
+    this.passwordHandler = passwordHandler;
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
@@ -127,6 +132,8 @@ public class ApiSourceControlConfigurationService
     dto.defaultBranchMonitoringStartTime = config.getDefaultBranchMonitoringStartTimeString();
     dto.defaultBranchMonitoringIntervalHours = config.getDefaultBranchMonitoringIntervalHours();
     dto.pullRequestMonitoringIntervalSeconds = config.getPullRequestMonitoringIntervalSeconds();
+    dto.gpgSigningKey = config.getGpgSigningKey();
+    dto.gpgPassphrase = config.getGpgPassphrase() != null ? "****" : null;
     return dto;
   }
 
@@ -189,6 +196,12 @@ public class ApiSourceControlConfigurationService
         existingSourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(
             sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds());
       }
+      if (jsonNode.has("gpgSigningKey")) {
+        existingSourceControlConfiguration.setGpgSigningKey(sourceControlConfiguration.getGpgSigningKey());
+      }
+      if (jsonNode.has("gpgPassphrase")) {
+        existingSourceControlConfiguration.setGpgPassphrase(sourceControlConfiguration.getGpgPassphrase());
+      }
       result = existingSourceControlConfiguration;
     }
     return result;
@@ -213,6 +226,13 @@ public class ApiSourceControlConfigurationService
     }
     config.setDefaultBranchMonitoringIntervalHours(dto.defaultBranchMonitoringIntervalHours);
     config.setPullRequestMonitoringIntervalSeconds(dto.pullRequestMonitoringIntervalSeconds);
+    config.setGpgSigningKey(dto.gpgSigningKey);
+    if (dto.gpgPassphrase != null) {
+      config.setGpgPassphrase(passwordHandler.encryptPassword(dto.gpgPassphrase));
+    }
+    else {
+      config.setGpgPassphrase(null);
+    }
     return config;
   }
 
@@ -229,7 +249,9 @@ public class ApiSourceControlConfigurationService
         .setData("useUsernameInRepositoryCloneUrl", configuration.isUseUsernameInRepositoryCloneUrl())
         .setData("defaultBranchMonitoringStartTime", configuration.getDefaultBranchMonitoringStartTimeString())
         .setData("defaultBranchMonitoringIntervalHours", configuration.getDefaultBranchMonitoringIntervalHours())
-        .setData("pullRequestMonitoringIntervalSeconds", configuration.getPullRequestMonitoringIntervalSeconds());
+        .setData("pullRequestMonitoringIntervalSeconds", configuration.getPullRequestMonitoringIntervalSeconds())
+        .setData("gpgSigningKey", configuration.getGpgSigningKey())
+        .setData("gpgPassphrase", configuration.getGpgPassphrase());
   }
 
   public void applySourceControlConfigurationToClients() {

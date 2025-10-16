@@ -70,15 +70,18 @@ public class ApiSourceControlConfigurationResourceTest
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 4;
     dto.pullRequestMonitoringIntervalSeconds = 5;
+    dto.gpgSigningKey = "some-gpg-key";
+    dto.gpgPassphrase = "some-passphrase";
 
     HttpResponse response = restRequest().body(dto).put();
 
     assertResponseStatus(204, response);
     SourceControlConfiguration sourceControlConfiguration = dao.get();
     assertThat(sourceControlConfiguration).usingRecursiveComparison().ignoringExpectedNullFields()
-        .ignoringFields("defaultBranchMonitoringStartTime").isEqualTo(dto);
+        .ignoringFields("defaultBranchMonitoringStartTime", "gpgPassphrase").isEqualTo(dto);
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringStartTimeString()).isEqualTo(
         dto.defaultBranchMonitoringStartTime);
+    assertThat(sourceControlConfiguration.getGpgPassphrase()).isNotEqualTo("some-passphrase").hasSize(46);
   }
 
   @Test
@@ -105,5 +108,31 @@ public class ApiSourceControlConfigurationResourceTest
 
     assertResponseStatus(404, response);
     assertThat(response.getBodyText()).contains(SourceControlConfigurationDAO.NOT_FOUND_ERROR_MSG);
+  }
+
+  @Test
+  public void testGetConfiguration_WithGpgPassphrase_ReturnsMasked() throws Exception {
+    SourceControlConfiguration config = tempEntity.newSourceControlConfiguration();
+    config.setGpgPassphrase("encrypted-passphrase");
+    dao.set(config);
+
+    HttpResponse response = restRequest().get();
+
+    assertResponseStatus(200, response);
+    ApiSourceControlConfigurationDTO dto = response.getBody(ApiSourceControlConfigurationDTO.class);
+    assertThat(dto.gpgPassphrase).isEqualTo("****");
+  }
+
+  @Test
+  public void testGetConfiguration_WithoutGpgPassphrase_ReturnsNull() throws Exception {
+    SourceControlConfiguration config = tempEntity.newSourceControlConfiguration();
+    config.setGpgPassphrase(null);
+    dao.set(config);
+
+    HttpResponse response = restRequest().get();
+
+    assertResponseStatus(200, response);
+    ApiSourceControlConfigurationDTO dto = response.getBody(ApiSourceControlConfigurationDTO.class);
+    assertThat(dto.gpgPassphrase).isNull();
   }
 }

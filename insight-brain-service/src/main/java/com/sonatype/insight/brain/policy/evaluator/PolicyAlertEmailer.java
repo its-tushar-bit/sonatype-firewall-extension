@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -60,6 +61,8 @@ public class PolicyAlertEmailer
   private final ShutdownHandler shutdownHandler;
 
   private final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+  
+  private final OrganizationDAO organizationDAO;
 
   @Inject
   public PolicyAlertEmailer(
@@ -70,7 +73,9 @@ public class PolicyAlertEmailer
       final AuditRecorder auditRecorder,
       final ProductLicense productLicense,
       final ShutdownHandler shutdownHandler,
-      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO)
+      final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
+      final OrganizationDAO organizationDAO
+  )
   {
     super(mail, policyAlertEmailResolver);
     this.baseUrl = baseUrl;
@@ -79,6 +84,7 @@ public class PolicyAlertEmailer
     this.productLicense = productLicense;
     this.shutdownHandler = shutdownHandler;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   public void sendNotifications(
@@ -179,8 +185,15 @@ public class PolicyAlertEmailer
       baseModel.put("applicationContactEmail", appContact.getEmail());
       baseModel.put("applicationContactName", appContact.getDisplayName());
     }
-    baseModel.put("detailedReportUrl",
-        baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
+    
+    if (organizationDAO.getById(app.getOrganizationId()).getRelatedRepositoryId() != null) {
+      baseModel.put("detailedReportUrl", baseUrl.getConfigured() +
+          UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(app.getPublicId(), scanId));
+    } 
+    else {
+      baseModel.put("detailedReportUrl",
+          baseUrl.getConfigured() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
+    }
     baseModel.put("ownerIdLabel", "APP ID");
     baseModel.put("legacyViolationCount", legacyViolationCount);
 

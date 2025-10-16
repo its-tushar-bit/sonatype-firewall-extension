@@ -26,6 +26,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.configuration.ldap.TestLdapServer;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
@@ -172,6 +173,9 @@ public class PolicyAlertEmailerTest
 
   @Inject
   ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+  
+  @Inject
+  OrganizationDAO organizationDAO;
 
   @Override
   public void configure(Binder binder) {
@@ -553,7 +557,8 @@ public class PolicyAlertEmailerTest
         new AuditRecorder(null),
         testProductLicense,
         mockShutdownHandler,
-        thirdPartySbomMetadataDAO
+        thirdPartySbomMetadataDAO,
+        organizationDAO
     );
 
     undertest.sendNotifications(app, scanId, stage, policyNotifications, 0, eval.isForMonitoring());
@@ -857,6 +862,39 @@ public class PolicyAlertEmailerTest
         .contains("Failed &amp; Constraint Name 1", "Failed Constraint Name 2")
         .contains("Failed Condition &lt;Reason&gt; 1", "Failed Condition Reason 2") //
         .contains("7 Legacy Violations");
+  }
+  
+  @Test
+  public void testNotificationEmailBody_ContainerImageEvaluation() throws Exception {
+    // Create an organization with a related repository ID to simulate container image evaluation
+    Organization org = tempEntity.newOrganization();
+    org.setRelatedRepositoryId("test-repository-id");
+    organizationDAO.update(org);
+
+    Application app = tempEntity.newApplication(org.getId());
+    String scanId = "some-scan-id";
+    Policy policy = tempEntity.newPolicy(app.getId(), "Container Policy");
+
+    List<PolicyFact> policyFacts = new ArrayList<>();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", "c1", "e1");
+    String hash = "hash123";
+    policyFacts.add(newPolicyFact(policy, componentIdentifier, hash));
+
+    ContactDTO appContact =
+        ApplicationContactLoader.getInstance(userDirectory).getContact(app.getContactInternalName());
+
+    Map<String, Object> baseModel =
+        policyAlertEmailer.createPolicyMailModel(mailer.getCdnUrl(), app, StageTypes.PROXY, policyFacts);
+    Map<String, Object> model =
+        policyAlertEmailer.createPolicyMailModel(app, appContact, scanId, 0, baseModel);
+
+    String emailBody = policyAlertEmailer.createPolicyMailBody(model);
+
+    // Verify that the email body contains the container image evaluation report URL
+    assertThat(emailBody)
+        .contains(getBaseUrl() + UserInterfaceLinksHelper.getFirewallContainerImageEvaluationReportUrl(
+            app.getPublicId(), scanId))
+        .doesNotContain(getBaseUrl() + UserInterfaceLinksHelper.getReportUrl(app.getPublicId(), scanId));
   }
 
   @Test

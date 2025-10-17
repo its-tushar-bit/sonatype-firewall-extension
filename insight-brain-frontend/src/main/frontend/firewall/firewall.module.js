@@ -954,6 +954,15 @@ function routes($stateProvider, $urlServiceProvider) {
     '/malware-defense/repository/{repositoryId}/result',
     (matchValues, _urlParts, router) => router.stateService.go('firewall.repository-report', matchValues)
   );
+
+  $urlServiceProvider.rules.when(
+    '/malware-defense/containerReport/{containerImagePublicId}/{scanId}/policy',
+    (matchValues, _urlParts, router) =>
+      router.stateService.go('firewall.containerReport', {
+        publicId: matchValues.containerImagePublicId,
+        scanId: matchValues.scanId,
+      })
+  );
 }
 
 routes.$inject = ['$stateProvider', '$urlServiceProvider'];

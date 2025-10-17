@@ -9,7 +9,7 @@ export const getSCMProviderTokenUrl = (scmProvider) => {
     case 'github':
       return 'https://github.com/settings/tokens';
     case 'gitlab':
-      return 'https://gitlab.com/-/profile/personal_access_tokens';
+      return 'https://gitlab.com/-/user_settings/personal_access_tokens';
     case 'azure devops':
       return 'https://dev.azure.com/{organization}/_usersSettings/tokens';
     case 'bitbucket':

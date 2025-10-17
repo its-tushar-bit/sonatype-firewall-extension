@@ -17,7 +17,7 @@ describe('scmWizardUtils', () => {
     });
 
     it('should return the correct url for gitlab', () => {
-      expect(getSCMProviderTokenUrl('gitlab')).toBe('https://gitlab.com/-/profile/personal_access_tokens');
+      expect(getSCMProviderTokenUrl('gitlab')).toBe('https://gitlab.com/-/user_settings/personal_access_tokens');
     });
 
     it('should return the correct url for azure devops', () => {

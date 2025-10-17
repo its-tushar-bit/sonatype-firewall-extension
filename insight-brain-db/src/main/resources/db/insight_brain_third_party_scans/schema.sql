@@ -134,6 +134,8 @@ CREATE TABLE vulnerability_exploitability (
       REFERENCES coordinate_security (coordinate_security_id)
 );
 
+CREATE INDEX vulnerability_exploitability_coord_security_id_ref_id_idx ON vulnerability_exploitability (coordinate_security_id, ref_id);
+
 -- In SBOM Manager: in conjunction with third_party_file, represents an upload
 -- In Lifecycle: unused
 CREATE TABLE sbom_metadata (

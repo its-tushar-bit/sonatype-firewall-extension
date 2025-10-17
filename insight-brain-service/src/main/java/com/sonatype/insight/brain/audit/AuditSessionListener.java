@@ -30,7 +30,6 @@ public class AuditSessionListener
   }
 
   private void audit(AuditEvent event) {
-    // record event independently from current request and its corresponding REST operation
     try (AuditSession auditSession = AuditData.get().recordSubEvent(event, true)) {
       // no additional data to collect, just close the session and commit the audit data
     }

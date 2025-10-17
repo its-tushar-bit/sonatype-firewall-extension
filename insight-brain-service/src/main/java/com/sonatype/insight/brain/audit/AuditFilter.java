@@ -29,7 +29,7 @@ import com.google.common.annotations.VisibleForTesting;
 public class AuditFilter
     implements Filter
 {
-  public static final String[] URL_PATTERNS = {"/rest/*", "/api/*"};
+  public static final String[] URL_PATTERNS = {"/rest/*", "/api/*", "/saml/*", "/oidc/*"};
 
   /**
    * Audits the HTTP status code of a response.

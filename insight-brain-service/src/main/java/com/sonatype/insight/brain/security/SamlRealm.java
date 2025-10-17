@@ -16,6 +16,9 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.audit.AuditData;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.model.security.SamlUser;
@@ -78,6 +81,10 @@ public class SamlRealm
     SsoUser ssoUser = new SsoUser(username, firstName, lastName, email, ID, groups);
 
     ssoUserService.updateSsoUserAndGroups(ssoUser, groups);
+
+    try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.LOGIN, true)) {
+      AuditData.get().setUsername(username);
+    }
 
     return new SimpleAuthenticationInfo(
         new UserPrincipal(ssoUser.getUsername(), ssoUser.calculateDisplayName(), ID, ssoUser.getGroups()), null,

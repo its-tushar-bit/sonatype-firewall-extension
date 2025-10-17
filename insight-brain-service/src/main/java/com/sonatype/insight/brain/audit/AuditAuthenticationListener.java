@@ -7,6 +7,9 @@ package com.sonatype.insight.brain.audit;
 
 import javax.inject.Named;
 
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.sonatype.insight.brain.security.oauth2.ShiroJsonWebToken;
+
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationListener;
@@ -40,6 +43,36 @@ class AuditAuthenticationListener
 
   private void auditUsername(AuthenticationToken token) {
     Object principal = token.getPrincipal();
-    AuditData.get().setUsername(principal != null ? principal.toString() : null);
+    String username = extractUsername(token, principal);
+    AuditData.get().setUsername(username);
+  }
+
+  private String extractUsername(AuthenticationToken token, Object principal) {
+    if (principal == null) {
+      return null;
+    }
+
+    if (token instanceof ShiroJsonWebToken) {
+      JWTClaimsSet claimsSet = (JWTClaimsSet) principal;
+
+      try {
+        String email = claimsSet.getStringClaim("email");
+        if (email != null && !email.isEmpty()) {
+          return email;
+        }
+
+        String nickname = claimsSet.getStringClaim("nickname");
+        if (nickname != null && !nickname.isEmpty()) {
+          return nickname;
+        }
+
+        return claimsSet.getSubject();
+      }
+      catch (Exception e) {
+        return claimsSet.getSubject();
+      }
+    }
+
+    return principal.toString();
   }
 }

@@ -357,7 +357,7 @@ function UserActivityDetailRow({ activity }) {
       <NxTableCell className="method-cell">{method}</NxTableCell>
       <NxTableCell className="ip-address-cell">{ipAddress}</NxTableCell>
       <NxTableCell className="user-agent-cell" title={userAgent}>
-        {userAgent && userAgent.length > 50 ? `${userAgent.substring(0, 50)}...` : userAgent}
+        {userAgent}
       </NxTableCell>
     </NxTableRow>
   );

@@ -286,7 +286,9 @@ function UserActivityRow({ user, onUserClick }) {
 
   return (
     <NxTableRow className="user-activity-row" isClickable onClick={handleRowClick}>
-      <NxTableCell className="username-cell">{username}</NxTableCell>
+      <NxTableCell className="username-cell" title={username}>
+        {username}
+      </NxTableCell>
       <NxTableCell className="login-count-cell">{loginCount}</NxTableCell>
       <NxTableCell className="last-active-cell">
         {lastActive ? moment(lastActive).format('MMM DD, YYYY HH:mm') : 'Never'}

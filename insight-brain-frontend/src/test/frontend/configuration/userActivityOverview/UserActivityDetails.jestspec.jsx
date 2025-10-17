@@ -342,7 +342,7 @@ describe('UserActivityDetails', () => {
       }
     });
 
-    it('should truncate long user agent strings', () => {
+    it('should display long user agent strings with title attribute', () => {
       const longUserAgent =
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36';
       const activitiesWithLongUserAgent = [
@@ -358,8 +358,9 @@ describe('UserActivityDetails', () => {
       };
       render(<UserActivityDetails {...propsWithLongUserAgent} />);
 
-      const truncatedText = screen.getByText(/Mozilla.*\.\.\./);
-      expect(truncatedText).toBeInTheDocument();
+      const userAgentCell = screen.getByText(longUserAgent);
+      expect(userAgentCell).toBeInTheDocument();
+      expect(userAgentCell).toHaveAttribute('title', longUserAgent);
     });
   });
 

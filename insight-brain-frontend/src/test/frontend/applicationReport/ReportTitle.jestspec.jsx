@@ -52,6 +52,10 @@ describe('ReportTitle', () => {
       .spyOn(applicationReportSelectors, 'selectApplicationReportMetaData')
       .mockReturnValue(metadataDetails);
 
+    jest
+      .spyOn(applicationReportSelectors, 'selectIsContainerImagesEvaluationEnabledAndProxyStage')
+      .mockReturnValue(false);
+
     selectIsLatestReportForStageRequestPendingSpy = jest
       .spyOn(latestReportSelectors, 'selectIsLatestReportForStageRequestPending')
       .mockReturnValue(false);
@@ -114,6 +118,24 @@ describe('ReportTitle', () => {
     });
     expect(viewVulnerabilitiesLink).toBeVisible();
     expect(viewVulnerabilitiesLink).toHaveTextContent(/view vulnerabilities/i);
+  });
+
+  it('options dropdown renders 6 links if developer dashboard is enabled and firewall for docker product', async () => {
+    productFeaturesSelectors.selectIsDeveloperDashboardEnabled.mockReturnValue(true);
+    applicationReportSelectors.selectIsContainerImagesEvaluationEnabledAndProxyStage.mockReturnValue(true);
+
+    renderComponent();
+    const options = screen.getByRole('button', { name: 'Options' });
+    expect(options).toBeInTheDocument();
+
+    fireEvent.click(options);
+
+    expect(screen.getByRole('link', { name: 'Export PDF' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export CycloneDX' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'Export SPDX' })).toBeVisible();
+    expect(screen.getByRole('link', { name: 'View raw data' })).toBeVisible();
+    expect(screen.queryByRole('link', { name: 'Priorities' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'View Latest Evaluations' })).toBeVisible();
   });
 
   it('options dropdown renders 7 links if developer dashboard is enabled', async () => {

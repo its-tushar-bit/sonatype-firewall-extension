@@ -16,7 +16,11 @@ import {
   NxFontAwesomeIcon,
   NxTextLink,
 } from '@sonatype/react-shared-components';
-import { selectApplicationReportMetaData, selectSelectedReport } from './applicationReportSelectors';
+import {
+  selectApplicationReportMetaData,
+  selectSelectedReport,
+  selectIsContainerImagesEvaluationEnabledAndProxyStage,
+} from './applicationReportSelectors';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsDeveloperDashboardEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
@@ -53,6 +57,7 @@ export default function ReportTitle() {
   const uiRouterState = useRouterState();
 
   const isDeveloperDashboardEnabled = useSelector(selectIsDeveloperDashboardEnabled);
+  const isFirewallForDocker = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
   const pdfUrl = getDownloadPdfUrl(publicId, scanId);
   const sbomUrl = getExportCycloneDxUrl(metadataDetails.application.id, scanId);
@@ -97,7 +102,7 @@ export default function ReportTitle() {
             <NxFontAwesomeIcon icon={faFilePdf} />
             <span>Export SPDX</span>
           </a>
-          {isDeveloperDashboardEnabled && (
+          {isDeveloperDashboardEnabled && !isFirewallForDocker && (
             <NxTextLink
               className="nx-dropdown-button iq-developer-priorities-link-from-options-dropdown"
               external

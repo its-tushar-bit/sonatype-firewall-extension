@@ -9,9 +9,10 @@ import ReportFilterPopover from 'MainRoot/applicationReport/ReportFilterPopover'
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
 
 import { render, screen, fireEvent, within, getAllByRole, setupPortalContainer } from 'TestRoot/SpecUtil';
+import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 describe('ReportFilterPopover', () => {
-  let renderComponent, selectShowFilterPopoverSpy, renderPopoverAndWaitForAnimation;
+  let renderComponent, selectShowFilterPopoverSpy, renderPopoverAndWaitForAnimation, selectIsBulkWaivePageSpy;
 
   beforeAll(() => setupPortalContainer());
 
@@ -20,6 +21,7 @@ describe('ReportFilterPopover', () => {
       .spyOn(applicationReportSelectors, 'selectShowFilterPopover')
       .mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectIsPolicyTypeFilterEnabled').mockReturnValue(true);
+    selectIsBulkWaivePageSpy = jest.spyOn(routerSelectors, 'selectIsBulkWaivePage').mockReturnValue(false);
     renderComponent = (props) => render(<ReportFilterPopover {...props} />);
     renderPopoverAndWaitForAnimation = () => {
       renderComponent();
@@ -317,6 +319,56 @@ describe('ReportFilterPopover', () => {
       const policyThreatSliders = getAllByRole(policyThreat, 'slider');
       expect(policyThreatSliders[0]).toHaveTextContent('0');
       expect(policyThreatSliders[1]).toHaveTextContent('10');
+    });
+  });
+
+  describe('bulk waive page context', () => {
+    it('does not display violation state filter when on bulk waive page', () => {
+      selectIsBulkWaivePageSpy.mockReturnValue(true);
+      renderPopoverAndWaitForAnimation();
+
+      // Verify that violation state filter is not present
+      expect(screen.queryByRole('button', { name: /Violation State/ })).not.toBeInTheDocument();
+
+      // Verify other filters are still present
+      expect(screen.getByRole('button', { name: /Proprietary/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /InnerSource/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Match State/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Dependency Type/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Policy Type/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Policy Threat Level/ })).toBeInTheDocument();
+    });
+
+    it('displays violation state filter when not on bulk waive page', () => {
+      selectIsBulkWaivePageSpy.mockReturnValue(false);
+      renderPopoverAndWaitForAnimation();
+
+      // Verify that violation state filter is present
+      expect(screen.getByRole('button', { name: /Violation State/ })).toBeInTheDocument();
+
+      // Verify other filters are also present
+      expect(screen.getByRole('button', { name: /Proprietary/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /InnerSource/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Match State/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Dependency Type/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Policy Type/ })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Policy Threat Level/ })).toBeInTheDocument();
+    });
+
+    it('cannot access violation state filter options when on bulk waive page', () => {
+      selectIsBulkWaivePageSpy.mockReturnValue(true);
+      renderPopoverAndWaitForAnimation();
+
+      // Verify that violation state filter button is not present, so we can't click it
+      const violationStateButton = screen.queryByRole('button', { name: /Violation State/ });
+      expect(violationStateButton).not.toBeInTheDocument();
+
+      // Should not find any violation state options like "Open", "Waived", "Not Violating", "Legacy"
+      // These would normally be accessible if the violation state filter was present
+      const violationStateOptionTexts = ['Open', 'Waived', 'Not Violating', 'Legacy'];
+      violationStateOptionTexts.forEach((optionText) => {
+        expect(screen.queryByText(optionText)).not.toBeInTheDocument();
+      });
     });
   });
 });

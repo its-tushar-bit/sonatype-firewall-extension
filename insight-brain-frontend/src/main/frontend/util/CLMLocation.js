@@ -710,6 +710,10 @@ export function getAddPolicyViolationWaiverUrl(waiverScope, ownerId, policyViola
   return uriTemplate`/api/v2/policyWaivers/${waiverScope}/${ownerId}/${policyViolationId}`;
 }
 
+export function getBulkWaiverUrl(ownerType, ownerId) {
+  return uriTemplate`/api/v2/policyWaivers/${ownerType}/${ownerId}`;
+}
+
 /**
  * @param {string} ownerType
  * @param {string} ownerId

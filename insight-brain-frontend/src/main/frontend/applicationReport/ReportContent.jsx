@@ -34,6 +34,7 @@ import {
 import {
   selectIsAggregated,
   selectDisplayedComponentList,
+  selectAllComponentsList,
   selectSubstringFilters,
   selectSortConfiguration,
   selectDependencyTreeIsAvailable,
@@ -41,6 +42,8 @@ import {
   selectIsContainerImagesEvaluationEnabledAndProxyStage,
   selectActiveProxyFailedViolationCount,
 } from 'MainRoot/applicationReport/applicationReportSelectors';
+import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import BulkWaiveButton from 'MainRoot/waivers/BulkWaiveButton';
 
 const policyThreatLevelSettings = {
   key: 'policyThreatLevel',
@@ -83,6 +86,8 @@ export default function ReportContent() {
   const dependencyTreeUnavailableMessage = useSelector(selectDependencyTreeUnavailableMessage);
   const isContainerImagesEvaluation = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
   const activeProxyFailedViolationCount = useSelector(selectActiveProxyFailedViolationCount);
+  const allComponentsList = useSelector(selectAllComponentsList);
+  const { publicId } = useSelector(selectRouterCurrentParams);
 
   const getSubstringFiltersProp = (propName) => propOr('', propName, substringFilters);
   const policyNameFilter = getSubstringFiltersProp('policyName');
@@ -137,6 +142,10 @@ export default function ReportContent() {
     dispatch(goToAddContainerImageWaiverPage());
   };
 
+  const isBulkWaiveDisabled = !(
+    allComponentsList?.length > 0 && allComponentsList?.some((component) => component.derivedViolationState === 'open')
+  );
+
   return (
     <section className="nx-tile iq-app-report__results-table-tile">
       <div className="nx-tile-header">
@@ -168,6 +177,7 @@ export default function ReportContent() {
 
         {!isContainerImagesEvaluation ? (
           <div className="nx-tile__actions">
+            <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={publicId} />
             <NxButton
               onClick={redirectToDependencyTree}
               variant="tertiary"

@@ -8,6 +8,7 @@ import * as PropTypes from 'prop-types';
 import { NxLoadWrapper, NxButton } from '@sonatype/react-shared-components';
 
 import PolicyViolationsTable from './PolicyViolationsTable';
+import BulkWaiveButton from 'MainRoot/waivers/BulkWaiveButton';
 
 export const ViewAllComponentWaiversButton = ({ toggleComponentWaiversPopover }) => (
   <NxButton id="component-details-view-waivers" variant="tertiary" onClick={() => toggleComponentWaiversPopover()}>
@@ -64,6 +65,13 @@ export default function ViolationsTableTile({
 
   const loading = isLoadingComponentDetails || !tableProps.componentName;
 
+  const isBulkWaiveDisabled = !(
+    tableProps.violations?.length > 0 &&
+    tableProps.violations?.some(
+      (violation) => !violation.waived && !violation.legacyViolation && !violation.waivedWithAutoWaiver
+    )
+  );
+
   return (
     <section className="nx-tile">
       <header className="nx-tile-header">
@@ -74,6 +82,7 @@ export default function ViolationsTableTile({
         </div>
         {(showViewAllComponents || showViewTransitiveViolations) && (
           <div className="nx-tile__actions">
+            <BulkWaiveButton disabled={isBulkWaiveDisabled} publicId={ownerId} />
             {showViewTransitiveViolations && (
               <ViewTransitiveViolationsButton
                 stateGo={stateGo}

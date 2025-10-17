@@ -436,6 +436,25 @@ export const goToAddContainerImageWaiverPage = () => {
   };
 };
 
+export const goToBulkWaivePage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.bulkWaive`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.cdpBulkWaive', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.bulkWaive', { publicId, scanId }));
+    }
+  };
+};
+
 export const goToComponentDetailsPage = (hash, isContainerImagesEvaluation = false) => {
   return (dispatch, getState) => {
     const { publicId, scanId } = selectRouterCurrentParams(getState());
@@ -497,5 +516,6 @@ export default function applicationReportActions() {
     goToComponentDetailsPage,
     goToDependencyTreePage,
     goToAddContainerImageWaiverPage,
+    goToBulkWaivePage,
   };
 }

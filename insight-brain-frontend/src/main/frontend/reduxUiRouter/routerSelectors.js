@@ -259,3 +259,7 @@ export const selectPrevStateIsRepositoryManagerView = createSelector(selectRoute
 );
 
 export const selectHideBackButtonParam = createSelector(selectRouterCurrentParams, propOr(false, 'hideBackButton'));
+
+export const selectIsBulkWaivePage = createSelector(selectCurrentRouteName, (currentRouteName) =>
+  currentRouteName?.toLowerCase().includes('bulkwaive')
+);

@@ -95,6 +95,7 @@ function makeViolationEntriesV3Plus(policyResult, bomDataByKey) {
           legacyViolation: legacyViolationStatus,
           derivedComponentName: deriveComponentName(bomComponent),
           derivedViolationState: deriveViolationState(waived, legacyViolationStatus),
+          constraintName: deriveConstraintName(violation),
         };
       };
 
@@ -116,10 +117,11 @@ function makeViolationEntriesV1V2(policyResult, bomDataByKey) {
         return {
           waived,
           legacyViolation: false,
-          ...pick(['policyThreatLevel', 'policyName'], violation),
+          ...pick(['policyThreatLevel', 'policyName', 'constraints'], violation),
           ...bomComponent,
           derivedComponentName: deriveComponentName(bomComponent),
           derivedViolationState: deriveViolationState(waived, false),
+          constraintName: deriveConstraintName(violation),
         };
       };
 
@@ -142,10 +144,11 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
     return {
       waived: false,
       legacyViolation: false,
-      ...pick(['policyThreatLevel', 'policyName'], violation),
+      ...pick(['policyThreatLevel', 'policyName', 'constraints'], violation),
       ...bomComponent,
       derivedComponentName: deriveComponentName(bomComponent),
       derivedViolationState: deriveViolationState(false, false),
+      constraintName: deriveConstraintName(violation),
     };
   }
 
@@ -153,6 +156,10 @@ function makeViolationEntriesNoVersion(policyResult, bomDataByKey) {
 }
 
 const deriveComponentName = pipe(getComponentName, toLower);
+
+const deriveConstraintName = (violation) => {
+  return violation?.constraints?.[0]?.constraintName || '';
+};
 
 const getLicenseSortKey = (licenseObj) => {
   if (!licenseObj) {

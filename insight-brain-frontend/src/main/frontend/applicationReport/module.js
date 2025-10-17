@@ -11,6 +11,9 @@ import selectedComponentServiceModule from '../services/selectedComponentService
 import waiversModule from '../waivers/module';
 
 import ReportPage from './ReportPage';
+import BulkWaivePage from 'MainRoot/waivers/BulkWaivePage';
+import WaiverConfigurationPage from 'MainRoot/waivers/WaiverConfigurationPage';
+import WaiverConfirmationPage from 'MainRoot/waivers/WaiverConfirmationPage';
 import applicationReportActions from './applicationReportActions';
 import applicationReportRoot from './applicationReportRoot';
 import applicationReportVulnerabilities from './vulnerabilities/ApplicationReportVulnerabilities';
@@ -26,6 +29,9 @@ export default angular
   ])
   .component('applicationReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .component('applicationReportRoot', applicationReportRoot)
+  .component('bulkWaive', iqReact2Angular(BulkWaivePage, [], ['$ngRedux', '$state']))
+  .component('waiverConfigurationPage', iqReact2Angular(WaiverConfigurationPage, [], ['$ngRedux', '$state']))
+  .component('waiverConfirmationPage', iqReact2Angular(WaiverConfirmationPage, [], ['$ngRedux', '$state']))
   .component('applicationReportRawData', iqReact2Angular(ApplicationReportRawDataContainer, [], ['$ngRedux', '$state']))
   .component(
     'applicationReportVulnerabilities',
@@ -56,6 +62,48 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'applicationReport',
       data: {
         title: 'Application Report',
+      },
+    })
+    .state('applicationReport.bulkWaive', {
+      url: '/bulkWaive',
+      component: 'bulkWaive',
+      data: {
+        title: 'Bulk Waive',
+      },
+    })
+    .state('applicationReport.cdpBulkWaive', {
+      url: '/{hash}/bulkWaive',
+      component: 'bulkWaive',
+      data: {
+        title: 'Bulk Waive',
+      },
+    })
+    .state('applicationReport.waiverConfiguration', {
+      url: '/waiverConfiguration',
+      component: 'waiverConfigurationPage',
+      data: {
+        title: 'Waiver Configuration',
+      },
+    })
+    .state('applicationReport.cdpWaiverConfiguration', {
+      url: '/{hash}/waiverConfiguration',
+      component: 'waiverConfigurationPage',
+      data: {
+        title: 'Waiver Configuration',
+      },
+    })
+    .state('applicationReport.waiverConfirmation', {
+      url: '/waiverConfirmation',
+      component: 'waiverConfirmationPage',
+      data: {
+        title: 'Waiver Confirmation',
+      },
+    })
+    .state('applicationReport.cdpWaiverConfirmation', {
+      url: '/{hash}/waiverConfirmation',
+      component: 'waiverConfirmationPage',
+      data: {
+        title: 'Waiver Confirmation',
       },
     })
     .state('applicationReport.rawData', {

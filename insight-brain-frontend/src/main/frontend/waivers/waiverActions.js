@@ -36,6 +36,8 @@ import {
   selectRouterCurrentParams,
   selectCurrentRouteName,
   selectIsStandaloneFirewall,
+  selectIsPrioritiesPageContainer,
+  selectPrioritiesPageContainerName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsFirewallOrRepositoryAndNotContainerImagesEval } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { gotoWaiver, setSidebarNavListData } from 'MainRoot/sidebarNav/sidebarNavListActions';
@@ -469,3 +471,81 @@ export function loadSimilarWaivers(id) {
       .catch(compose(dispatch, loadSimilarWaiversFailed, Messages.getHttpErrorMessage));
   };
 }
+
+export const cancelBulkWaive = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails.violations`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.componentDetails.violations', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.policy', { publicId, scanId }));
+    }
+
+    dispatch(waiverActions.resetWaiverConfiguration());
+  };
+};
+
+export const goToBulkWaivePage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.bulkWaive`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.cdpBulkWaive', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.bulkWaive', { publicId, scanId }));
+    }
+  };
+};
+
+export const goToWaiverConfigurationPage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.waiverConfiguration`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.cdpWaiverConfiguration', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.waiverConfiguration', { publicId, scanId }));
+    }
+  };
+};
+
+export const goToWaiverConfirmationPage = () => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const { publicId, scanId, hash } = selectRouterCurrentParams(state);
+    const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
+    const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
+
+    if (hash) {
+      if (isPrioritiesPageContainer) {
+        dispatch(stateGo(`${prioritiesPageContainerName}.waiverConfirmation`, { publicId, scanId, hash }));
+      } else {
+        dispatch(stateGo('applicationReport.cdpWaiverConfirmation', { publicId, scanId, hash }));
+      }
+    } else {
+      dispatch(stateGo('applicationReport.waiverConfirmation', { publicId, scanId }));
+    }
+  };
+};

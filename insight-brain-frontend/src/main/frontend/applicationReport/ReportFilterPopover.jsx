@@ -18,6 +18,7 @@ import {
   selectShowFilterPopover,
   selectIsPolicyTypeFilterEnabled,
 } from './applicationReportSelectors';
+import { selectIsBulkWaivePage } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const proprietaryFilterOptions = [
   { id: 'nonProprietary', name: 'Non-Proprietary' },
@@ -62,6 +63,7 @@ export default function ReportFilterPopover() {
   const exactValueFilters = useSelector(selectExactValueFilters);
   const showFilterPopover = useSelector(selectShowFilterPopover);
   const isPolicyTypeFilterEnabled = useSelector(selectIsPolicyTypeFilterEnabled);
+  const isBulkWaivePage = useSelector(selectIsBulkWaivePage);
 
   if (!showFilterPopover) return null;
 
@@ -180,15 +182,17 @@ export default function ReportFilterPopover() {
           <span>Component Match State</span>
         </NxStatefulTreeViewMultiSelect>
 
-        <NxStatefulTreeViewMultiSelect
-          options={violationStateFilterOptions}
-          selectedIds={violationStateCheckedIds}
-          onChange={setSelectedViolationStateOptions}
-          name="violation-state-filter"
-          id="violation-state-filter"
-        >
-          <span>Violation State</span>
-        </NxStatefulTreeViewMultiSelect>
+        {!isBulkWaivePage && (
+          <NxStatefulTreeViewMultiSelect
+            options={violationStateFilterOptions}
+            selectedIds={violationStateCheckedIds}
+            onChange={setSelectedViolationStateOptions}
+            name="violation-state-filter"
+            id="violation-state-filter"
+          >
+            <span>Violation State</span>
+          </NxStatefulTreeViewMultiSelect>
+        )}
 
         <NxStatefulTreeViewMultiSelect
           options={dependencyTypeFilterOptions}

@@ -134,6 +134,27 @@ function routes($stateProvider, $urlServiceProvider) {
         title: 'Component - Legal Overview',
       },
     })
+    .state(`${cdpFromDashboard}.bulkWaive`, {
+      url: '/{hash}/bulkWaive',
+      component: 'bulkWaive',
+      data: {
+        title: 'Bulk Waive',
+      },
+    })
+    .state(`${cdpFromDashboard}.waiverConfiguration`, {
+      url: '/{hash}/waiverConfiguration',
+      component: 'waiverConfigurationPage',
+      data: {
+        title: 'Waiver Configuration',
+      },
+    })
+    .state(`${cdpFromDashboard}.waiverConfirmation`, {
+      url: '/{hash}/waiverConfirmation',
+      component: 'waiverConfirmationPage',
+      data: {
+        title: 'Waiver Confirmation',
+      },
+    })
 
     // Standalone Developer Reports Page -> Priorities Page -> Component Details Page
     .state(cdpFromReports, {
@@ -221,6 +242,27 @@ function routes($stateProvider, $urlServiceProvider) {
         title: 'Component - Legal Overview',
       },
     })
+    .state(`${cdpFromReports}.bulkWaive`, {
+      url: '/{hash}/bulkWaive',
+      component: 'bulkWaive',
+      data: {
+        title: 'Bulk Waive',
+      },
+    })
+    .state(`${cdpFromReports}.waiverConfiguration`, {
+      url: '/{hash}/waiverConfiguration',
+      component: 'waiverConfigurationPage',
+      data: {
+        title: 'Waiver Configuration',
+      },
+    })
+    .state(`${cdpFromReports}.waiverConfirmation`, {
+      url: '/{hash}/waiverConfirmation',
+      component: 'waiverConfirmationPage',
+      data: {
+        title: 'Waiver Confirmation',
+      },
+    })
 
     // Integrations -> Priorities Page -> Component Details Page
     .state(cdpFromIntegrations, {
@@ -236,6 +278,13 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'dependencyTree',
       data: {
         title: 'Dependency Tree',
+      },
+    })
+    .state(`${cdpFromIntegrations}.bulkWaive`, {
+      url: '/{hash}/bulkWaive',
+      component: 'bulkWaive',
+      data: {
+        title: 'Bulk Waive',
       },
     })
     .state(`${cdpFromIntegrations}.componentDetails`, {
@@ -306,6 +355,20 @@ function routes($stateProvider, $urlServiceProvider) {
       component: 'componentLegalOverview',
       data: {
         title: 'Component - Legal Overview',
+      },
+    })
+    .state(`${cdpFromIntegrations}.waiverConfiguration`, {
+      url: '/{hash}/waiverConfiguration',
+      component: 'waiverConfigurationPage',
+      data: {
+        title: 'Waiver Configuration',
+      },
+    })
+    .state(`${cdpFromIntegrations}.waiverConfirmation`, {
+      url: '/{hash}/waiverConfirmation',
+      component: 'waiverConfirmationPage',
+      data: {
+        title: 'Waiver Confirmation',
       },
     });
 

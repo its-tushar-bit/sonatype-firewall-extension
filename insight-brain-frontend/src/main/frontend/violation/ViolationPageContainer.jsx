@@ -96,7 +96,7 @@ function mapStateToProps(state, props) {
     stageTypesError: stageData.error,
     selectedViolationId: selectSelectedViolationId(state),
     isFirewallContext: isFirewallOrRepository && !!selectPolicyId,
-    policyViolations: isFirewallOrRepository ? firewallPolicyViolations : applicationPolicyViolations,
+    policyViolations: isFirewallOrRepository ? firewallPolicyViolations : [],
     selectPolicyId: selectPolicyId,
     componentHash: isFirewallOrRepository
       ? firewallComponentDetailsPage?.componentDetails?.hash

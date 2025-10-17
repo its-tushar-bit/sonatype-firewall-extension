@@ -13,7 +13,11 @@ import * as applicationReportActions from 'MainRoot/applicationReport/applicatio
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import { fireEvent, render, screen, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ReportPage from 'MainRoot/applicationReport/ReportPage';
-import { getLatestReportInformation } from 'MainRoot/util/CLMLocation';
+import {
+  getApplicationSummaryUrl,
+  getLatestReportInformation,
+  getPermissionContextTestUrl,
+} from 'MainRoot/util/CLMLocation';
 import { act } from '@testing-library/react';
 import { SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components/components/NxSubmitMask/NxSubmitMask';
 import ReevaluationStatusModal from 'MainRoot/applicationReport/ReevaluationStatusModal';
@@ -79,6 +83,11 @@ describe('Report Page component', () => {
       includes: jest.fn(() => false),
     };
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
+
+    axiosMock.onGet(getApplicationSummaryUrl(router.currentParams.publicId)).reply(200, { id: 'internal-id-123' });
+    axiosMock
+      .onPut(getPermissionContextTestUrl('application', 'internal-id-123'))
+      .reply(200, ['WAIVE_POLICY_VIOLATIONS']);
   });
 
   it('renders an alert and retry button if there is an issue while loading information', () => {
@@ -461,8 +470,9 @@ describe('Report Page component', () => {
     let warning = screen.queryAllByTestId('new-report-available-warning');
     expect(warning.length).toBe(0);
 
-    expect(axiosMock.history.get.length).toEqual(1);
-    expect(axiosMock.history.get[0].url).toEqual('/rest/application/publicId/build/latestReportInformation');
+    expect(axiosMock.history.get.length).toEqual(2);
+    expect(axiosMock.history.get[0].url).toEqual('/rest/application/services/summary/publicId');
+    expect(axiosMock.history.get[1].url).toEqual('/rest/application/publicId/build/latestReportInformation');
 
     warning = await screen.findByTestId('new-report-available-warning');
     expect(warning).toBeVisible();

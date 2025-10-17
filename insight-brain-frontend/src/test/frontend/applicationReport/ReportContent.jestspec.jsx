@@ -5,7 +5,7 @@
  */
 import React from 'react';
 
-import { render, screen, fireEvent, within } from 'TestRoot/SpecUtil';
+import { render, screen, fireEvent, within, axiosMockAdapter } from 'TestRoot/SpecUtil';
 import ReportContent from 'MainRoot/applicationReport/ReportContent';
 import * as applicationReportActions from 'MainRoot/applicationReport/applicationReportActions';
 import * as applicationReportSelectors from 'MainRoot/applicationReport/applicationReportSelectors';
@@ -13,6 +13,7 @@ import * as applicationReportSelectors from 'MainRoot/applicationReport/applicat
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
+import { getApplicationSummaryUrl, getPermissionContextTestUrl } from 'MainRoot/util/CLMLocation';
 const mockComponentIdentifier = {
   coordinates: {
     artifactId: 'guava-gwt',
@@ -31,10 +32,29 @@ const displayedEntries = [
     policyName: 'Security-High',
     hash: 'hash1',
     componentIdentifier: mockComponentIdentifier,
+    derivedViolationState: 'open',
   },
-  { filename: 'Component 2', policyThreatLevel: 9, policyName: 'Security-High', hash: 'hash2' },
-  { filename: 'Component 3', policyThreatLevel: 8, policyName: 'Security-Medium', hash: 'hash3' },
-  { filename: 'Component 4', policyThreatLevel: 7, policyName: 'Security-Medium', hash: 'hash4' },
+  {
+    filename: 'Component 2',
+    policyThreatLevel: 9,
+    policyName: 'Security-High',
+    hash: 'hash2',
+    derivedViolationState: 'open',
+  },
+  {
+    filename: 'Component 3',
+    policyThreatLevel: 8,
+    policyName: 'Security-Medium',
+    hash: 'hash3',
+    derivedViolationState: 'open',
+  },
+  {
+    filename: 'Component 4',
+    policyThreatLevel: 7,
+    policyName: 'Security-Medium',
+    hash: 'hash4',
+    derivedViolationState: 'open',
+  },
 ];
 
 const routerCurrentParams = {
@@ -57,20 +77,29 @@ const selectedReport = {
 };
 
 describe('ReportContent component', function () {
-  let renderComponent, stateGoSpy;
+  let renderComponent, stateGoSpy, axiosMock;
 
   beforeEach(function () {
     jest.spyOn(applicationReportActions, 'goToDependencyTreePage').mockReturnValue({ type: 'type' });
+    jest.spyOn(applicationReportActions, 'goToBulkWaivePage').mockReturnValue({ type: 'type' });
     jest.spyOn(applicationReportSelectors, 'selectIsAggregated').mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectDisplayedComponentList').mockReturnValue(displayedEntries);
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeUnavailableMessage').mockReturnValue('');
     jest.spyOn(applicationReportSelectors, 'selectDependencyTreeIsAvailable').mockReturnValue(true);
     jest.spyOn(applicationReportSelectors, 'selectSelectedReport').mockReturnValue(selectedReport);
+    jest.spyOn(applicationReportSelectors, 'selectAllComponentsList').mockReturnValue(displayedEntries);
     jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(routerCurrentParams);
 
     stateGoSpy = jest.spyOn(RouterActions, 'stateGo');
 
     renderComponent = (additionalProps = {}) => render(<ReportContent {...additionalProps} />);
+
+    axiosMock = axiosMockAdapter();
+
+    axiosMock.onGet(getApplicationSummaryUrl(routerCurrentParams.publicId)).reply(200, { id: 'internal-id-123' });
+    axiosMock
+      .onPut(getPermissionContextTestUrl('application', 'internal-id-123'))
+      .reply(200, ['WAIVE_POLICY_VIOLATIONS']);
   });
 
   it('renders aggregate by component toggle', function () {
@@ -104,6 +133,32 @@ describe('ReportContent component', function () {
 
     fireEvent.click(aggregateByComponentToggle);
     expect(applicationReportActions.toggleAggregateReportEntries).toHaveBeenCalled();
+  });
+
+  it('renders bulk waive button', async function () {
+    renderComponent();
+    const bulkWaiveButton = await screen.findByRole('button', { name: 'Bulk Waive' });
+
+    expect(bulkWaiveButton).toBeVisible();
+    expect(bulkWaiveButton).not.toBeDisabled();
+  });
+
+  it('dispatches action when bulk waive button is clicked', async function () {
+    renderComponent();
+
+    const bulkWaiveButton = await screen.findByRole('button', { name: 'Bulk Waive' });
+    fireEvent.click(bulkWaiveButton);
+    expect(applicationReportActions.goToBulkWaivePage).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables bulk waive button when there are no open violations', async function () {
+    applicationReportSelectors.selectAllComponentsList.mockReturnValue([
+      { derivedViolationState: 'waived' },
+      { derivedViolationState: 'legacy' },
+    ]);
+    renderComponent();
+    const bulkWaiveButton = await screen.findByRole('button', { name: 'Bulk Waive' });
+    expect(bulkWaiveButton).toBeDisabled();
   });
 
   it('renders entries from selected report', function () {

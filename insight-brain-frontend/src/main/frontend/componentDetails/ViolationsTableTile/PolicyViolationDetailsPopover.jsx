@@ -65,19 +65,23 @@ export default function PolicyViolationDetailsPopover() {
 
   const redirectToAddWaiver = () => {
     if (isStandaloneDeveloper) {
-      return dispatch(stateGo('developer.addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+      return dispatch(stateGo('developer.addWaiver', { violationId: violationDetails.policyViolationId }));
     }
-    return dispatch(stateGo('addWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+    return dispatch(stateGo('addWaiver', { violationId: violationDetails.policyViolationId }));
   };
   const redirectToRequestWaiver = () => {
     if (isStandaloneDeveloper) {
-      return dispatch(stateGo('developer.requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+      return dispatch(stateGo('developer.requestWaiver', { violationId: violationDetails.policyViolationId }));
     }
-    return dispatch(stateGo('requestWaiver', { violationId: selectedPolicyViolation.policyViolationId }));
+    return dispatch(stateGo('requestWaiver', { violationId: violationDetails.policyViolationId }));
   };
 
   const titleThreatLevelCategory =
-    categoryByPolicyThreatLevel[selectedPolicyViolation?.policyThreatLevel || selectedPolicyViolation?.threatLevel];
+    categoryByPolicyThreatLevel[
+      selectedPolicyViolation?.policyThreatLevel ||
+        selectedPolicyViolation?.threatLevel ||
+        violationDetails?.threatLevel
+    ];
   const getPolicyExists = policyExists || violationIsLoading;
 
   useEffect(() => {
@@ -102,7 +106,7 @@ export default function PolicyViolationDetailsPopover() {
         <NxDrawer.HeaderTitle className="nx-h2" id="policy-violation-details-popover-title">
           <ViolationName
             policyExists={getPolicyExists}
-            policyName={selectedPolicyViolation?.policyName}
+            policyName={selectedPolicyViolation?.policyName || violationDetails?.policyName}
           ></ViolationName>
         </NxDrawer.HeaderTitle>
         {getPolicyExists ? <NxPolicyViolationIndicator threatLevelCategory={titleThreatLevelCategory} /> : <div></div>}

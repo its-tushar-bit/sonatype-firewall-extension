@@ -529,6 +529,7 @@ public class SbomResultHandler
 
     component.setType(sourceComponent.getType());
     component.setBomRef(sourceComponent.getBomRef());
+    SbomCycloneDxUtils.addSonatypeOriginalPurl(sourceComponent.getPurl(), component);
 
     String cpe = sourceComponent.getCpe();
     if (StringUtils.isNotBlank(cpe)) {

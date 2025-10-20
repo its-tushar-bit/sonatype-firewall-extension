@@ -23,6 +23,10 @@
       },
       "properties" : [
         {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.50?type=jar"
+        },
+        {
           "name" : "sonatype:truncated_sha1",
           "value" : "abc123abc123abc123ab"
         },
@@ -45,6 +49,10 @@
         "version" : "9.0.51"
       },
       "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.51?type=jar"
+        },
         {
           "name" : "componentRef",
           "value" : "246c95631d8c6032f1b07ef742d7cd4213c3079b"
@@ -162,6 +170,10 @@
       },
       "properties" : [
         {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.57?type=jar"
+        },
+        {
           "name" : "sonatype:truncated_sha1",
           "value" : "cbc123abc123abc123ab"
         },
@@ -206,6 +218,10 @@
       "cpe" : "cpe:2.3:a:org.apache.tomcat:tomcat:9.0.59:*:*:*:*:*:*:*",
       "purl" : "pkg:maven/org.apache.tomcat/tomcat@9.0.59?type=jar",
       "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.apache.tomcat/tomcat@9.0.59?type=jar"
+        },
         {
           "name" : "componentRef",
           "value" : "e346725d2552e1a57d3e18611903e09cec8f9712"

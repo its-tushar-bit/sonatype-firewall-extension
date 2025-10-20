@@ -49,6 +49,10 @@
       "purl" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar",
       "properties" : [
         {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/org.acme/genericdep@1.0.0?nexustype=rar"
+        },
+        {
           "name" : "componentRef",
           "value" : "41c0fc4528a3f3699273b340ab78efb842b89831"
         }
@@ -62,6 +66,10 @@
       "purl" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win",
       "properties" : [
         {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:pypi/pydep@3.1.0?extension=tgz&qualifier=cp27_win"
+        },
+        {
           "name" : "componentRef",
           "value" : "5d5d44c9a4406633e4dbbf53e3ace13c0b0b9f4c"
         }
@@ -74,6 +82,10 @@
       "version" : "3.0.0",
       "purl" : "pkg:cran/crandep@3.0.0",
       "properties" : [
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:cran/crandep@3.0.0"
+        },
         {
           "name" : "componentRef",
           "value" : "dec676bef29c6530fd7f03c1139c6461a9c47d47"

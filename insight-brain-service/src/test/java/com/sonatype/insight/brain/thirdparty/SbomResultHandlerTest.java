@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -58,6 +57,7 @@ import com.sonatype.insight.scan.model.ProjectScanItem;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.util.SbomUtils;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -240,7 +240,7 @@ public class SbomResultHandlerTest
             "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library",
             "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 1, 2);
+        .containsOnly(3, 3, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -296,7 +296,7 @@ public class SbomResultHandlerTest
         "pkg:generic/django@1.2.3?sbom_type=library",
         "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 2, 1, 2);
+        .containsOnly(3, 3, 2, 2, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -330,7 +330,7 @@ public class SbomResultHandlerTest
         "pkg:generic/joda-time/joda-time@2.1.0?sbom_type=library",
         "pkg:generic/django@1.2.3?sbom_type=library");
     assertThat(components).extracting("properties.size")
-        .containsOnly(2, 2, 2, 1, 2);
+        .containsOnly(3, 3, 2, 1, 2);
     assertThat(components.get(1).getProperties())
         .flatExtracting(Property::getValue)
         .contains("e6b1000b94e835ffd37f");
@@ -360,7 +360,7 @@ public class SbomResultHandlerTest
         .containsOnly("pkg:generic/org.apache.tomcat/tomcat-catalina@9.0.14?publisher=Apache&sbom_type=library",
             "pkg:generic/com.fasterxml.jackson.core/jackson-databind@2.9.9?sbom_type=library");
     assertThat(components.get(0).getHashes()).extracting(Hash::getAlgorithm)
-        .containsOnly("MD5", "SHA-1", "SHA-256","SHA-512");
+        .containsOnly("MD5", "SHA-1", "SHA-256", "SHA-512");
     assertThat(components.get(0).getHashes()).extracting(Hash::getValue)
         .containsOnly("3942447fac867ae5cdb3229b658f4d48", "e6b1000b94e835ffd37f4c6dcbdad43f4b48a02a",
             "f498a8ff2dd007e29c2074f5e4b01a9a01775c3ff3aeaf6906ea503bc5791b7b",
@@ -523,7 +523,7 @@ public class SbomResultHandlerTest
         thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
     assertThat(coordinates).hasSize(2);
     assertThat(coordinates).extracting(ThirdPartyFileCoordinate::getComponentRef)
-            .containsExactlyInAnyOrder("621aa65ba425b9713382367e8491dc8f43f0d72d",
+        .containsExactlyInAnyOrder("621aa65ba425b9713382367e8491dc8f43f0d72d",
             "ec9df88dda81aefdf115081b9b297eebbaa142fd");
   }
 
@@ -2176,7 +2176,10 @@ public class SbomResultHandlerTest
             "1884bdffab4f9426b7ee11fccd074eeda0634d71697d6f88a460dce0ac8d627a29f7d1282");
 
     assertThat(component3.getHashes()).isNull();
-    assertThat(component1.getProperties()).hasSize(1);
+    assertThat(component1.getProperties()).hasSize(2);
+    assertThat(component1.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME);
+    assertThat(component1.getProperties().get(0).getValue()).isEqualTo(
+        "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar");
     assertThat(component2.getProperties()).hasSize(2);
     assertThat(component2.getProperties().get(0).getName()).isEqualTo(SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME);
     assertThat(component2.getProperties().get(0).getValue()).isEqualTo("e6b1000b94e835ffd37f");
@@ -2347,7 +2350,7 @@ public class SbomResultHandlerTest
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
 
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
-    List <Boolean> hasHashes = List.of(true, true, true, true, true, true);
+    List<Boolean> hasHashes = List.of(true, true, true, true, true, true);
     assertFilteredSbomFile(filteredContent, 5, false, hasHashes);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
@@ -2759,7 +2762,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     Application app = tempEntity.newApplicationWithParent();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename );
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename);
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     assertFilteredSbomFile(filteredContent, 4);
     ThirdPartySbomMetadata sbomMetadata = thirdPartySbomMetadataDAO.getByThirdPartyFileId(thirdPartyFile.getId());
@@ -2791,7 +2794,7 @@ public class SbomResultHandlerTest
     ThirdPartyScanContent content = new ThirdPartyScanContent(ingestedFilename, null, null, null, sbomContent);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
     Application app = tempEntity.newApplicationWithParent();
-    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename );
+    tempEntity.newThirdPartySbomMetadata(thirdPartyFile.getId(), app.getId(), ACTIVE, ingestedFilename);
     String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
     List<Boolean> hasHashes = List.of(true);
     assertFilteredSbomFile(filteredContent, 1, false, hasHashes);
@@ -3090,6 +3093,155 @@ public class SbomResultHandlerTest
       assertThat(coordinateSecurity.getAttackVector()).isNull();
       assertThat(coordinateSecurity.getDescription()).isNull();
     }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_withValidPurl() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-purl-hashes-coordinates-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Verify that components with valid purls have the originalPurl property
+    Component tomcatComponent = components.stream()
+        .filter(c -> "tomcat-catalina".equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(tomcatComponent.getProperties()).isNotNull();
+    assertThat(tomcatComponent.getProperties().stream()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+        .findFirst())
+        .isPresent()
+        .hasValueSatisfying(property ->
+            assertThat(property.getValue()).isEqualTo("pkg:maven/org.apache.tomcat/tomcat-catalina@9.0.14?type=jar"));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_withInvalidPurl() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-purl-hashes-coordinates-components.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Django component has invalid purl "pkg:pypi" but should still have originalPurl property
+    Component djangoComponent = components.stream()
+        .filter(c -> "django".equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(djangoComponent.getProperties()).isNotNull();
+    assertThat(djangoComponent.getProperties().stream()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+        .findFirst())
+        .isPresent()
+        .hasValueSatisfying(property ->
+            assertThat(property.getValue()).isEqualTo("pkg:pypi"));
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_withHashPrioritized() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-cpe-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Verify that components have the originalPurl property where applicable
+    Component django = components.stream()
+        .filter(c -> "django".equals(c.getName()) && "1.2.3".equals(c.getVersion()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(django.getProperties()).isNotNull();
+    assertThat(django.getProperties().stream()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+        .findFirst())
+        .isPresent();
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_withSwidConversion() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-purl-swid-hash-coords.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Verify that components have the originalPurl property where applicable
+    Component log4j = components.stream()
+        .filter(c -> "Apache Log4J".equals(c.getName()) && "2.11.2".equals(c.getVersion()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(log4j.getPurl()).isNotNull().startsWith("pkg:swid");
+    assertThat(log4j.getProperties()).isNotNull();
+    assertThat(SbomUtils.getPropertyForPropertyName(log4j, SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+        .startsWith("pkg:log4j");
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_notIncluded() throws Exception {
+    String sbomContent = getSbomXmlFile("scan-with-sbom-coords-no-purl.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Components without purls should NOT have the originalPurl property
+    for (Component component : components) {
+      if (component.getProperties() != null) {
+        assertThat(component.getProperties().stream()
+            .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+            .findFirst())
+            .isEmpty();
+      }
+    }
+  }
+
+  @Test
+  public void testHandleAndFilterContents_originalPurlProperty_preservedThroughProcessing() throws Exception {
+    String sbomContent = getSbomXmlFile("sbom-component-license-vulnerability.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("sbom-component-license-vulnerability.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    Bom bom = SbomTestHelper.parseToCycloneDxBom(filteredContent);
+    List<Component> components = bom.getComponents();
+
+    // Verify components with purls have originalPurl property
+    Component jacksonComponent = components.stream()
+        .filter(c -> "jackson-databind".equals(c.getName()))
+        .findFirst()
+        .orElseThrow();
+
+    assertThat(jacksonComponent.getPurl()).isNotNull();
+    assertThat(jacksonComponent.getProperties()).isNotNull();
+    assertThat(jacksonComponent.getProperties().stream()
+        .filter(p -> p.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+        .findFirst())
+        .isPresent()
+        .hasValueSatisfying(property ->
+            assertThat(property.getValue()).isEqualTo(
+                "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar"));
   }
 
   private void assertDebugLogOutput(final String message) {

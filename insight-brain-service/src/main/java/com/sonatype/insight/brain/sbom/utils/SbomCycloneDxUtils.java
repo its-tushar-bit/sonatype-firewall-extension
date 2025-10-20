@@ -462,4 +462,13 @@ public class SbomCycloneDxUtils
     }
     return null;
   }
+
+  public static void addSonatypeOriginalPurl(final String originalPurl, final Component component) {
+    if (StringUtils.isNotBlank(originalPurl)) {
+      Property property = new Property();
+      property.setName(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME);
+      property.setValue(originalPurl);
+      component.addProperty(property);
+    }
+  }
 }

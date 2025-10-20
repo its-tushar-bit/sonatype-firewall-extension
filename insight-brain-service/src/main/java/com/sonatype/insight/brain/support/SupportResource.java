@@ -19,6 +19,7 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
@@ -56,12 +57,19 @@ public class SupportResource
   {
     final String requestUrl = request.getRequestURL().toString();
 
-    final File supportZip = supportService.createSupportZip(includeDb, requestUrl, noLimit);
+    try {
+      final File supportZip = supportService.createSupportZip(includeDb, requestUrl, noLimit);
 
-    final ResponseBuilder response = Response.ok();
-    response.entity(supportZip);
-    response.header(HttpHeaders.CONTENT_DISPOSITION,
-        HttpHeaderUtils.buildContentDispositionHeaderValue(supportZip.getName()));
-    return response.build();
+      final ResponseBuilder response = Response.ok();
+      response.entity(supportZip);
+      response.header(HttpHeaders.CONTENT_DISPOSITION,
+          HttpHeaderUtils.buildContentDispositionHeaderValue(supportZip.getName()));
+      return response.build();
+    }
+    catch (SupportZipInProgressException e) {
+      return Response.status(Status.TOO_MANY_REQUESTS)
+          .entity(e.getMessage())
+          .build();
+    }
   }
 }

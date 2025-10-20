@@ -38,6 +38,8 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.configuration.ldap.LdapService;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapServerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapUserMapping;
@@ -93,6 +95,8 @@ public class SupportService
    */
   static final String TRUNCATED_TOKEN = "** TRUNCATED **";
 
+  static final String FILENAME_PREFIX = "support-";
+
   private final InsightConfig config;
 
   private final Configuration configuration;
@@ -123,6 +127,8 @@ public class SupportService
 
   private final Set<String> clusterLogFileNames;
 
+  private final ClusterLockManager clusterLockManager;
+
   @Inject
   public SupportService(final InsightConfig config,
                         final Configuration configuration,
@@ -137,7 +143,8 @@ public class SupportService
                         final InsightWork work,
                         final DbDiagnostics dbDiagnostics,
                         final LdapServerDAO ldapServerDAO,
-                        final LdapUserMappingDAO ldapUserMappingDAO)
+                        final LdapUserMappingDAO ldapUserMappingDAO,
+                        final ClusterLockManager clusterLockManager)
   {
     this.config = config;
     this.configuration = configuration;
@@ -162,6 +169,7 @@ public class SupportService
     this.dbDiagnostics = dbDiagnostics;
     this.ldapServerDAO = ldapServerDAO;
     this.ldapUserMappingDAO = ldapUserMappingDAO;
+    this.clusterLockManager = clusterLockManager;
     this.clusterLogFileNames = Sets.newHashSet(
         "audit.log",
         "request.log",
@@ -293,110 +301,112 @@ public class SupportService
   /**
    * Generate a unique file prefix.
    */
-  private String uniqueName(final String prefix) {
-    return prefix + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + "-" + COUNTER.incrementAndGet();
+  private String uniqueName() {
+    return FILENAME_PREFIX + new SimpleDateFormat("yyyyMMdd-HHmmss").format(new Date()) + "-" +
+        COUNTER.incrementAndGet();
   }
 
   @Authorize(permission = Permission.CONFIGURE_SYSTEM)
-  synchronized File createSupportZip(final boolean includeDb, final String requestUrl, final boolean noLimit)
+  File createSupportZip(final boolean includeDb, final String requestUrl, final boolean noLimit)
       throws IOException
   {
-    final File workDir = getWorkDir();
-    Files.createDirectories(workDir.toPath());
+    try (ClusterLock clusterLock = clusterLockManager.createForSupportZip()) {
+      // Try to acquire the lock without waiting. If another thread/node is already generating a support zip,
+      // return an error immediately rather than waiting.
+      if (!clusterLock.tryLock()) {
+        throw new SupportZipInProgressException("Support zip generation is already in progress. " +
+            "Please wait for the current operation to complete.");
+      }
 
-    final String prefix = uniqueName("support-");
-    final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
-    log.info("Creating support.zip: {}", supportZip);
-    if (!supportZip.createNewFile()) {
-      throw new IOException("Failed to create new support.zip: " + supportZip);
+      final File workDir = getWorkDir();
+      Files.createDirectories(workDir.toPath());
+
+      final String prefix = uniqueName();
+      final File supportZip = new File(workDir, prefix + ".zip").getCanonicalFile();
+      log.info("Creating support.zip: {}", supportZip);
+      if (!supportZip.createNewFile()) {
+        throw new IOException("Failed to create new support.zip: " + supportZip);
+      }
+
+      final List<SupportFile> filesToZip = new ArrayList<>();
+      addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
+      addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
+      addLogFileIfExists(filesToZip, new File("stderr.log"), "stderr.log");
+
+      // audit and policy violation log files might have sensitive information, using this flag to control adding
+      if (includeDb) {
+        addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
+        addLogFileIfExists(filesToZip, getPolicyViolationLog(config), "policy-violation.log");
+      }
+
+      addClusterLogFiles(filesToZip);
+
+      addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
+          SupportFileType.CONFIG, true);
+
+      addFileIfExists(filesToZip,
+          writeTextToFile(systemInfo.getSystemInfoJson(requestUrl), new File(workDir, "sysinfo.json")), "sysinfo.json",
+          SupportFileType.INFO, true);
+
+      addFileIfExists(filesToZip,
+          writeTextToFile(systemInfo.getPropertiesJson(versionService.getProperties(), "product-version"),
+              new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
+
+      addFileIfExists(filesToZip,
+          writeTextToFile(systemInfo.getProductLicense(), new File(workDir, "product-license.json")), "product-license",
+          SupportFileType.INFO, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(systemInfo.getThreadDump(), new File(workDir, "threads.txt")),
+          "threads", SupportFileType.INFO, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(jmxInfo.getJmxInfoJson(), new File(workDir, "jmx.json")), "jmx",
+          SupportFileType.INFO, true);
+
+      final List<LdapConfig> ldapServers = new ArrayList<>();
+      for (final LdapServer ldapServer : ldapServerDAO.getAll()) {
+        final LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
+        final LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
+        ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
+      }
+      addFileIfExists(filesToZip,
+          writeTextToFile(systemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
+          SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip,
+          writeTextToFile(systemInfo.getProxyServerConfiguration(), new File(workDir, "proxy-server.json")),
+          "proxy-server", SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip, writeTextToFile(systemInfo.getSamlInfo(), new File(workDir, "saml.json")), "saml",
+          SupportFileType.CONFIG, true);
+      addFileIfExists(filesToZip, writeTextToFile(systemInfo.getMailConfig(), new File(workDir, "mail.json")), "mail",
+          SupportFileType.CONFIG, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(dbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
+          "dbFileInfo", SupportFileType.INFO, true);
+
+      addFileIfExists(filesToZip,
+          writeTextToFile(configurationInfo.getConfigurationInfo(), new File(workDir, "config.json")), "config",
+          SupportFileType.CONFIG, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(sourceControlConfigurationInfo.getSourceControlConfigurationInfo(),
+          new File(workDir, "scm.json")), "scm", SupportFileType.CONFIG, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getSystemConfigPropertiesJson(),
+              new File(workDir, "systemConfigurationProperties.json")), "system-config-properties",
+          SupportFileType.CONFIG, true);
+
+      addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getFeatureConfigPropertiesJson(),
+              new File(workDir, "featuresConfigurationProperties.json")), "features-config-properties",
+          SupportFileType.CONFIG, true);
+
+      addDbData(filesToZip, workDir, dbData.getMigrationTracker());
+      addDbData(filesToZip, workDir, dbData.getSystemConfiguration());
+      addDbData(filesToZip, workDir, dbData.getDataRetentionPolicy());
+      if (includeDb) {
+        addAllDbData(filesToZip, workDir);
+      }
+
+      populateZip(prefix, supportZip, filesToZip, noLimit);
+      return supportZip;
     }
-
-    final List<SupportFile> filesToZip = new ArrayList<>();
-    addLogFileIfExists(filesToZip, getServerLog(config), "clm-server.log");
-    addLogFileIfExists(filesToZip, getRequestLog(config), "request.log");
-    addLogFileIfExists(filesToZip, new File("stderr.log"), "stderr.log");
-
-    // audit and policy violation log files might have sensitive information, using this flag to control adding
-    if (includeDb) {
-      addLogFileIfExists(filesToZip, getAuditLog(config), "audit.log");
-      addLogFileIfExists(filesToZip, getPolicyViolationLog(config), "policy-violation.log");
-    }
-
-    addClusterLogFiles(filesToZip);
-
-    addFileIfExists(filesToZip, createFilteredYml(InsightBrainService.getConfigFile(), workDir), "config.yml",
-        SupportFileType.CONFIG, true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getSystemInfoJson(requestUrl), new File(workDir, "sysinfo.json")),
-        "sysinfo.json", SupportFileType.INFO, true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getPropertiesJson(versionService.getProperties(), "product-version"),
-            new File(workDir, "product-version.json")), "product-version", SupportFileType.INFO, true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getProductLicense(),
-            new File(workDir, "product-license.json")), "product-license", SupportFileType.INFO, true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getThreadDump(), new File(workDir, "threads.txt")), "threads", SupportFileType.INFO,
-        true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(jmxInfo.getJmxInfoJson(), new File(workDir, "jmx.json")), "jmx", SupportFileType.INFO,
-        true);
-
-    final List<LdapConfig> ldapServers = new ArrayList<>();
-    for (final LdapServer ldapServer : ldapServerDAO.getAll()) {
-      final LdapConnection ldapConnection = ldapService.getLdapConnection(ldapServer.getId());
-      final LdapUserMapping ldapUserMapping = ldapUserMappingDAO.getByServerId(ldapServer.getId());
-      ldapServers.add(new LdapConfig(ldapServer, ldapConnection, ldapUserMapping));
-    }
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getLdapConfig(ldapServers), new File(workDir, "ldap.json")), "ldap",
-        SupportFileType.CONFIG,
-        true);
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getProxyServerConfiguration(), new File(workDir, "proxy-server.json")),
-        "proxy-server", SupportFileType.CONFIG, true);
-    addFileIfExists(filesToZip,
-        writeTextToFile(systemInfo.getSamlInfo(), new File(workDir, "saml.json")), "saml",
-        SupportFileType.CONFIG,
-        true);
-    addFileIfExists(filesToZip, writeTextToFile(systemInfo.getMailConfig(), new File(workDir, "mail.json")), "mail",
-        SupportFileType.CONFIG, true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(dbDiagnostics.getDBFileInfo(), new File(workDir, "dbFileInfo.txt")),
-        "dbFileInfo",
-        SupportFileType.INFO,
-        true);
-
-    addFileIfExists(filesToZip,
-        writeTextToFile(configurationInfo.getConfigurationInfo(), new File(workDir, "config.json")),
-        "config", SupportFileType.CONFIG, true);
-
-    addFileIfExists(filesToZip, writeTextToFile(sourceControlConfigurationInfo.getSourceControlConfigurationInfo(),
-        new File(workDir, "scm.json")), "scm", SupportFileType.CONFIG, true);
-
-    addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getSystemConfigPropertiesJson(),
-            new File(workDir, "systemConfigurationProperties.json")), "system-config-properties",
-        SupportFileType.CONFIG, true);
-
-    addFileIfExists(filesToZip, writeTextToFile(featurePropertiesInfo.getFeatureConfigPropertiesJson(),
-            new File(workDir, "featuresConfigurationProperties.json")), "features-config-properties",
-        SupportFileType.CONFIG, true);
-
-    addDbData(filesToZip, workDir, dbData.getMigrationTracker());
-    addDbData(filesToZip, workDir, dbData.getSystemConfiguration());
-    addDbData(filesToZip, workDir, dbData.getDataRetentionPolicy());
-    if (includeDb) {
-      addAllDbData(filesToZip, workDir);
-    }
-
-    populateZip(prefix, supportZip, filesToZip, noLimit);
-    return supportZip;
   }
 
   void populateZip(final String prefix,

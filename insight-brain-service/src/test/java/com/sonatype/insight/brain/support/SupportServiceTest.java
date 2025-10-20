@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -385,6 +386,69 @@ public class SupportServiceTest
 
     assertThat(dirFilter.accept(insightWork.getClusterCacheDir())).isFalse();
     assertThat(dirFilter.accept(new File(insightWork.getClusterCacheDir() + "/test"))).isFalse();
+  }
+
+  @Test
+  public void testCreateSupportZip_ThrowsExceptionWhenAlreadyInProgress() throws Exception {
+    // This test verifies that when a support zip generation is already in progress,
+    // a second concurrent request will fail with SupportZipInProgressException.
+    // We use two threads to simulate concurrent requests.
+
+    final Thread[] threads = new Thread[2];
+    final Exception[] exceptions = new Exception[2];
+    final File[] results = new File[2];
+    final CountDownLatch firstThreadStarted = new CountDownLatch(1);
+    final CountDownLatch secondThreadCanStart = new CountDownLatch(1);
+
+    // First thread: signals when it starts, then waits briefly before creating support zip
+    threads[0] = new Thread(() -> {
+      try {
+        firstThreadStarted.countDown();
+        secondThreadCanStart.await();
+        results[0] = supportService.createSupportZip(false, null, false);
+      }
+      catch (Exception e) {
+        exceptions[0] = e;
+      }
+    });
+
+    // Second thread: waits for first thread to start, then creates support zip
+    threads[1] = new Thread(() -> {
+      try {
+        firstThreadStarted.await();
+        secondThreadCanStart.countDown();
+        results[1] = supportService.createSupportZip(false, null, false);
+      }
+      catch (Exception e) {
+        exceptions[1] = e;
+      }
+    });
+
+    // Start both threads
+    threads[0].start();
+    threads[1].start();
+
+    // Wait for both threads to complete
+    threads[0].join();
+    threads[1].join();
+
+    // One thread should succeed, the other should fail with SupportZipInProgressException
+    boolean success = (results[0] != null && exceptions[0] == null) || (results[1] != null && exceptions[1] == null);
+    boolean failure = (exceptions[0] instanceof SupportZipInProgressException) ||
+        (exceptions[1] instanceof SupportZipInProgressException);
+
+    assertThat(success).isTrue();
+    assertThat(failure).isTrue();
+
+    // Verify the exception message
+    SupportZipInProgressException exception = null;
+    if (exceptions[0] != null && exceptions[0] instanceof SupportZipInProgressException) {
+      exception = (SupportZipInProgressException) exceptions[0];
+    }
+    else if (exceptions[1] != null && exceptions[1] instanceof SupportZipInProgressException) {
+      exception = (SupportZipInProgressException) exceptions[1];
+    }
+    assertThat(exception.getMessage()).contains("Support zip generation is already in progress");
   }
 
   private File createFile(int sizeInBytes) throws Exception {

@@ -35,6 +35,10 @@ public sealed interface ClusterLockId
     return SimpleId.INACTIVE_REPOSITORY_VIOLATION_CLEANER;
   }
 
+  static ClusterLockId forSupportZip() {
+    return SimpleId.SUPPORT_ZIP;
+  }
+
   static ClusterLockId forPolicyViolations(String applicationId) {
     return new CompoundId(CompoundIdClass.POLICY_VIOLATIONS, applicationId);
   }
@@ -85,12 +89,14 @@ public sealed interface ClusterLockId
      */
     // 0 - 16777215
     SCHEMA_MIGRATION,
-    // 16777216 - 3355443
+    // 16777216 - 33554431
     DATA_MIGRATION,
     // 33554432 - 50331647
     NEW_INSTANCE_POPULATION,
     // 50331648 - 67108863
-    INACTIVE_REPOSITORY_VIOLATION_CLEANER;
+    INACTIVE_REPOSITORY_VIOLATION_CLEANER,
+    // 67108864 - 83886079 (4 * 16777216 - 5 * 16777216)
+    SUPPORT_ZIP;
     // MTIQ note: due to the use of ordinals in the values sent to the db, new values should always be added to
     // the end of the enum (or reuse old now-unused ordinal positions) and no-longer-used values cannot be deleted but
     // only marked unused (unless they are the last ordinal)

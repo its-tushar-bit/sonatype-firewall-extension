@@ -34,4 +34,6 @@ public interface ClusterLockManager
   ClusterLock createForPdfGeneration(Application application, String scanId);
 
   ClusterLock createForInactiveRepositoryViolationCleaner();
+
+  ClusterLock createForSupportZip();
 }

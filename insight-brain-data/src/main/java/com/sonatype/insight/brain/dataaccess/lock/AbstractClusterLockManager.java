@@ -67,4 +67,9 @@ public abstract class AbstractClusterLockManager
   public ClusterLock createForInactiveRepositoryViolationCleaner() {
     return createClusterLock(ClusterLockId.forInactiveRepositoryViolationCleaner());
   }
+
+  @Override
+  public ClusterLock createForSupportZip() {
+    return createClusterLock(ClusterLockId.forSupportZip());
+  }
 }

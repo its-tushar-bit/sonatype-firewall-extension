@@ -29,7 +29,10 @@ import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
@@ -41,6 +44,7 @@ import org.assertj.core.util.Maps;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobDataMap;
@@ -53,6 +57,7 @@ import static org.junit.Assert.assertThrows;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -78,6 +83,9 @@ public class ApiConfigurationServiceTest
   @Mock
   private ConfigurationListener mockConfigurationListener;
 
+  @Mock
+  private TelemetrySender mockTelemetrySender;
+
   @Inject
   private InsightConfig insightConfig;
 
@@ -96,6 +104,7 @@ public class ApiConfigurationServiceTest
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(ConfigurationListener.class).toInstance(mockConfigurationListener);
     binder.bind(TestConfigurationListener.class).toInstance(spy(new TestConfigurationListener()));
+    binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     super.configure(binder);
   }
 
@@ -1827,6 +1836,74 @@ public class ApiConfigurationServiceTest
     assertThat(service.getConfigurationNoAuthz(
         SetUtils.hashSet(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS))).containsEntry(
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS, 1234);
+  }
+
+  @Test
+  public void testSendTelemetryForIntegrationsSupportedVersionCount_OnEnable() {
+    ApiConfigurationService spy = spy(service);
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+    spy.setConfigurationInDatabaseNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, 5));
+
+    verify(spy).sendTelemetryForIntegrationsSupportedVersionCount(
+        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, 5, "enable");
+    verify(mockTelemetrySender).send(telemetryCaptor.capture());
+
+    TelemetryData capturedData = telemetryCaptor.getValue();
+    assertThat(capturedData.getPurpose()).isEqualTo(TelemetryPurpose.INTEGRATIONS_SUPPORTED_VERSION_COUNT_USAGE);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.SUPPORTED_VERSION_COUNT, 5);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.ACTION, "enable");
+  }
+
+  @Test
+  public void testSendTelemetryForIntegrationsSupportedVersionCount_OnDisable() {
+    dao.set(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, "5");
+    ApiConfigurationService spy = spy(service);
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+    spy.deleteConfigurationInDatabaseNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT));
+
+    verify(spy).sendTelemetryForIntegrationsSupportedVersionCount(
+        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, 5, "disable");
+    verify(mockTelemetrySender).send(telemetryCaptor.capture());
+
+    TelemetryData capturedData = telemetryCaptor.getValue();
+    assertThat(capturedData.getPurpose()).isEqualTo(TelemetryPurpose.INTEGRATIONS_SUPPORTED_VERSION_COUNT_USAGE);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.SUPPORTED_VERSION_COUNT, 5);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.ACTION, "disable");
+  }
+
+  @Test
+  public void testSendTelemetryForIntegrationsSupportedVersionCount_OnUpdate() {
+    dao.set(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, "5");
+    ApiConfigurationService spy = spy(service);
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+
+    spy.setConfigurationInDatabaseNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, 10));
+
+    verify(spy).sendTelemetryForIntegrationsSupportedVersionCount(
+        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT, 10, "update");
+    verify(mockTelemetrySender).send(telemetryCaptor.capture());
+
+    TelemetryData capturedData = telemetryCaptor.getValue();
+    assertThat(capturedData.getPurpose()).isEqualTo(TelemetryPurpose.INTEGRATIONS_SUPPORTED_VERSION_COUNT_USAGE);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.SUPPORTED_VERSION_COUNT, 10);
+    assertThat(capturedData.getAttributes()).containsEntry(ApiConfigurationService.ACTION, "update");
+  }
+
+  @Test
+  public void testSendTelemetryForIntegrationsSupportedVersionCount_OnDisableNonExistent() {
+    // Property does not exist in the database
+    ApiConfigurationService spy = spy(service);
+
+    spy.deleteConfigurationInDatabaseNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT));
+
+    // Verify that telemetry was never sent because currentValue was null
+    verify(mockTelemetrySender, never()).send(any(TelemetryData.class));
   }
 
   private void assertMinAndMax(String name, int min, int max) {

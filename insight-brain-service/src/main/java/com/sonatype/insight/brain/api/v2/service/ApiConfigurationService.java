@@ -18,6 +18,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.migration.ScanFileCleaner;
@@ -32,9 +33,12 @@ import com.sonatype.insight.brain.security.Authorize;
 import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.ClassUtils;
@@ -60,10 +64,10 @@ public class ApiConfigurationService
 {
   private static final Logger log = LoggerFactory.getLogger(ApiConfigurationService.class);
 
-  // Visible for testing
+  @VisibleForTesting
   static final String INVALID_PROPERTY_NAME_ERROR_MSG = "Invalid property name %s.";
 
-  // Visible for testing
+  @VisibleForTesting
   static final String INVALID_PROPERTY_VALUE_TYPE_ERROR_MSG =
       "Invalid property value type for %s, expected %s but got %s.";
 
@@ -84,6 +88,12 @@ public class ApiConfigurationService
 
   private static final String CONFIG_APPLY_ERROR = "Error when applying config";
 
+  // Visible for testing
+  static final String SUPPORTED_VERSION_COUNT = "supported_version_count";
+
+  // Visible for testing
+  static final String ACTION = "action";
+
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
   private final List<ConfigurationListener> configurationListeners;
@@ -100,6 +110,8 @@ public class ApiConfigurationService
 
   private final StageTypeService stageTypeService;
 
+  private final Provider<TelemetrySender> telemetrySenderProvider;
+
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
@@ -109,7 +121,8 @@ public class ApiConfigurationService
       ProductLicense productLicense,
       Provider<ScanFileCleaner> scanFileCleanerProvider,
       PermissionService permissionService,
-      StageTypeService stageTypeService)
+      StageTypeService stageTypeService,
+      Provider<TelemetrySender> telemetrySenderProvider)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
     this.configurationListeners = configurationListeners;
@@ -119,6 +132,7 @@ public class ApiConfigurationService
     this.scanFileCleanerProvider = scanFileCleanerProvider;
     this.permissionService = permissionService;
     this.stageTypeService = stageTypeService;
+    this.telemetrySenderProvider = telemetrySenderProvider;
   }
 
   public Map<String, Object> getConfiguration(Set<String> propertyNames) {
@@ -232,10 +246,16 @@ public class ApiConfigurationService
     for (Entry<String, Object> property : properties.entrySet()) {
       validatePropertyName(property.getKey());
       validatePropertyValue(property.getKey(), property.getValue());
+
+      // Check for existing value before setting (for telemetry action determination)
+      String existingValue = systemConfigurationPropertyDAO.get(tx, property.getKey());
+      String action = (existingValue == null) ? "enable" : "update";
+
       AuditData.get().setData(property.getKey(), property.getValue());
       systemConfigurationPropertyDAO.set(tx, property.getKey(),
           ConfigurationProperty.PROPERTY_BY_NAME.get(property.getKey()).getValueToString()
               .apply(new Object[]{tx}, property.getValue()));
+      sendTelemetryForIntegrationsSupportedVersionCount(property.getKey(), property.getValue(), action);
     }
   }
 
@@ -268,11 +288,15 @@ public class ApiConfigurationService
     for (String propertyName : propertyNames) {
       validatePropertyName(propertyName);
       ConfigurationProperty property = ConfigurationProperty.PROPERTY_BY_NAME.get(propertyName);
-      AuditData.get().setData(propertyName,
-          property.getStringToValue()
-              .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName)));
+      Object currentValue = property.getStringToValue()
+          .apply(new Object[]{insightConfig}, systemConfigurationPropertyDAO.get(tx, propertyName));
+      AuditData.get().setData(propertyName, currentValue);
       systemConfigurationPropertyDAO.set(tx, propertyName, null);
       scheduleTaskForConfigurationDeletion(propertyName);
+      // Only send telemetry if there was actually a value to delete
+      if (currentValue != null) {
+        sendTelemetryForIntegrationsSupportedVersionCount(propertyName, currentValue, "disable");
+      }
     }
   }
 
@@ -331,6 +355,26 @@ public class ApiConfigurationService
             validStageIds
         ));
       }
+    }
+  }
+
+  @VisibleForTesting
+  void sendTelemetryForIntegrationsSupportedVersionCount(
+      final String propertyName,
+      final Object propertyValue,
+      final String action)
+  {
+    if (!SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT.equals(propertyName)) {
+      return;
+    }
+    try {
+      TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.INTEGRATIONS_SUPPORTED_VERSION_COUNT_USAGE);
+      telemetryData.getAttributes().put(SUPPORTED_VERSION_COUNT, propertyValue);
+      telemetryData.getAttributes().put(ACTION, action);
+      telemetrySenderProvider.get().send(telemetryData);
+    }
+    catch (Exception e) {
+      log.debug("Failed to send telemetry for integrations supported version count configuration", e);
     }
   }
 

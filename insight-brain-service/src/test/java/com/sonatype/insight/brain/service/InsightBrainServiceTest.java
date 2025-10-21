@@ -624,7 +624,7 @@ public class InsightBrainServiceTest
 
   @Test
   @ManualIqServerInit
-  public void testInitialize_FIPSEnabledByEnvironmentVariable_LogDebug() throws Exception {
+  public void testInitialize_FIPSEnabledByEnvironmentVariable_LogTrace() throws Exception {
     insertBouncyCastleFipsProvider();
 
     environmentVariables.set("FIPS_MODE_ENABLED", "true");
@@ -633,7 +633,7 @@ public class InsightBrainServiceTest
     });
 
     assertThat(logOutputFIPSModeDetector)
-        .atDebugLevel()
+        .atTraceLevel()
         .contains("FIPS mode is enabled through environment variable FIPS_MODE_ENABLED");
 
     // still assert that the error log is printed
@@ -644,14 +644,14 @@ public class InsightBrainServiceTest
 
   @Test
   @ManualIqServerInit
-  public void testInitialize_FIPSDisabledByEnvironmentVariable_LogDebug() throws Exception {
+  public void testInitialize_FIPSDisabledByEnvironmentVariable_LogTrace() throws Exception {
     environmentVariables.set("FIPS_MODE_ENABLED", "false");
 
     startIqTestServer(config -> {
     });
 
     assertThat(logOutputFIPSModeDetector)
-        .atDebugLevel()
+        .atTraceLevel()
         .contains("FIPS mode is disabled through environment variable FIPS_MODE_ENABLED");
 
     assertThat(logOutput)

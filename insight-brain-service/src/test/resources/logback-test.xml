@@ -28,5 +28,6 @@
   <logger name="net.sf.ehcache" level="WARN" />
   <logger name="org.apache.directory" level="WARN" />
   <logger name="com.sonatype.insight.brain.concurrent.PerpetualLockManager" level="TRACE" />
+  <logger name="com.sonatype.insight.brain.security.FIPSModeDetector" level="TRACE" />
   <logger name="com.sonatype.insight.brain.git.event.orchestrate" level="DEBUG" />
 </configuration>

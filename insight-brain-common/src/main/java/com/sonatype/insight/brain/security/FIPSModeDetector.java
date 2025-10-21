@@ -29,10 +29,10 @@ public class FIPSModeDetector
   public static boolean isEnabled() {
     if (isFipsModeEnabledVariableSet()) {
       if (isFipsEnabledByEnvironment()) {
-        log.debug("FIPS mode is enabled through environment variable FIPS_MODE_ENABLED");
+        log.trace("FIPS mode is enabled through environment variable FIPS_MODE_ENABLED");
         return true;
       }
-      log.debug("FIPS mode is disabled through environment variable FIPS_MODE_ENABLED");
+      log.trace("FIPS mode is disabled through environment variable FIPS_MODE_ENABLED");
       return false;
     }
     return false;

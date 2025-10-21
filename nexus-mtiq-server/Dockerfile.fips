@@ -15,32 +15,15 @@
 # -e "NXIQ_ENABLE_SSO_ONLY=false" -e "USING_DEFAULT_ENCRYPTION_KEY_STORE=true" -e "DELETE_BUILT_IN_ADMIN=false" \
 # -e "NXIQ_ENABLE_LOCAL_JWK_PROVIDER=true" -e "FIPS_MODE_ENABLED=true" -e "AWS_REGION=us-east-1" docker-all.repo.sonatype.com/mtiq/server:local-dev
 
-ARG JEMALLOC_VERSION=5.3.0
-ARG JEMALLOC_VERSION_CHECKSUM=ef6f74fd45e95ee4ef7f9e19ebe5b075ca6b7fbe0140612b2a161abafb7ee179
-
 ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
 
 FROM $SONATYPE_PRIVATE_REGISTRY/chainguard/wolfi-base AS builder
 
 ARG IQ_SERVER_VERSION
-ARG JEMALLOC_VERSION
-ARG JEMALLOC_VERSION_CHECKSUM
 
 # Prepare os dependencies to be copied to runtime stage
 COPY ./package-copy.sh /tmp/
-RUN /tmp/package-copy.sh curl tini
-
-# Built libjemalloc2 from source
-RUN apk add --no-cache wget autoconf build-base \
-    && wget https://github.com/jemalloc/jemalloc/archive/refs/tags/${JEMALLOC_VERSION}.tar.gz -q -O /tmp/jemalloc.tar.gz \
-    && echo "${JEMALLOC_VERSION_CHECKSUM} /tmp/jemalloc.tar.gz" | sha256sum -c - \
-    && tar -xzf /tmp/jemalloc.tar.gz -C /tmp/ \
-    && cd /tmp/jemalloc-* \
-    && autoconf ./configure.ac > ./configure \
-    && chmod +x ./configure \
-    && ./configure --prefix=/tmp/package-content/usr/ --enable-prof --enable-stats --enable-prof-frameptr \
-    && make -j$(nproc) \
-    && make install
+RUN /tmp/package-copy.sh curl tini jemalloc
 
 RUN touch /tmp/empty.log \
   && mkdir -p /sonatype-work

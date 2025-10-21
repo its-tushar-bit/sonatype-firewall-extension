@@ -14,7 +14,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/utilAngular/CommonServices';
 import { getExpiryTime, waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
-import { prop } from 'ramda';
+import { equals, prop } from 'ramda';
 import { selectBulkWaiverSelectedViolations, selectBulkWaiverConfiguration } from './bulkWaiverSelectors';
 
 const REDUCER_NAME = 'waivers';
@@ -196,7 +196,25 @@ const clearBulkWaiveCheckboxes = (state) => {
 };
 
 const setSelectedViolations = (state, action) => {
-  state.bulkWaive.selectedViolations = action.payload;
+  // Check if the selected violations have changed
+  if (!equals(state.bulkWaive.selectedViolations, action.payload)) {
+    state.bulkWaive.selectedViolations = action.payload;
+
+    // Reset waiver configuration ONLY if it has been modified from initial state
+    // This handles the case where user configured a waiver, then goes back and changes selections
+    // We don't want to reset while they're initially building their selection
+    const isConfigurationModified = !equals(
+      state.bulkWaive.waiverConfiguration,
+      initialState.bulkWaive.waiverConfiguration
+    );
+
+    if (isConfigurationModified) {
+      // Create a fresh copy to avoid shared references with initialState
+      state.bulkWaive.waiverConfiguration = {
+        ...initialState.bulkWaive.waiverConfiguration,
+      };
+    }
+  }
 };
 
 const toggleSelectAllCheckbox = (state, action) => {

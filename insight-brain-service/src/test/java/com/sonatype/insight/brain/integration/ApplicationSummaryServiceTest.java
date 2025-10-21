@@ -193,7 +193,7 @@ public class ApplicationSummaryServiceTest
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(goal, null);
+    ApplicationSummaryList applicationListDTO = service.getApplications(goal, null, null);
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId(), app2.getId());
@@ -321,7 +321,7 @@ public class ApplicationSummaryServiceTest
     Application app0 = tempEntity.newApplicationWithParent("z", "a b");
     Application app2 = tempEntity.newApplicationWithParent("x", "c");
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null);
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null, null);
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId(), app2.getId());
@@ -336,7 +336,7 @@ public class ApplicationSummaryServiceTest
     Organization orgWithRelatedRepo = tempEntity.newOrganizationWithRepositoryManager("org-with-repo");
     tempEntity.newApplication(orgWithRelatedRepo.getId());
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null);
+    ApplicationSummaryList applicationListDTO = service.getApplications(Goal.EVALUATE_APPLICATION, null, null);
 
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries())
@@ -349,7 +349,7 @@ public class ApplicationSummaryServiceTest
     testProductLicense.setMissingFeatures(LicensedFeature.ENFORCEMENT);
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> service.getApplications(Goal.EVALUATE_COMPONENT, null));
+        () -> service.getApplications(Goal.EVALUATE_COMPONENT, null, null));
   }
 
   @Test
@@ -379,7 +379,7 @@ public class ApplicationSummaryServiceTest
     Organization org = tempEntity.newOrganization("A");
 
     assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
-        () -> service.getApplications(Goal.EVALUATE_COMPONENT, org.getId()));
+        () -> service.getApplications(Goal.EVALUATE_COMPONENT, org.getId(), null));
   }
 
   @Test
@@ -413,7 +413,7 @@ public class ApplicationSummaryServiceTest
     tempEntity.newApplication("z", org1.getId());
     tempEntity.newApplication("z1", org1.getId());
 
-    ApplicationSummaryList applicationListDTO = service.getApplications(goal, org0.getId());
+    ApplicationSummaryList applicationListDTO = service.getApplications(goal, org0.getId(), null);
     assertThat(applicationListDTO).isNotNull();
     assertThat(applicationListDTO.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId());

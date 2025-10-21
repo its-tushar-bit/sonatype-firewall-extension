@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.integration;
 
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletRequest;
@@ -76,15 +77,17 @@ public class ApplicationSummaryResource
    *          1.0.2, Nexus plugins <= 3.0.0).
    * @param organizationId The organization Id for getting the list of applications. If null or empty, no filtering
    *          is applied
+   * @param applicationPublicIds The set of public ids to filter on (cannot be null)
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
   public ApplicationSummaryList getApplications(
       @QueryParam("goal") Goal goal,
-      @QueryParam("organizationId") String organizationId)
+      @QueryParam("organizationId") String organizationId,
+      @QueryParam("applicationPublicIds") final Set<String> applicationPublicIds)
   {
     log.debug("Received request to get applications for goal {} and organization id {}", goal, organizationId);
-    return applicationSummaryService.getApplications(goal, organizationId);
+    return applicationSummaryService.getApplications(goal, organizationId, applicationPublicIds);
   }
 
   /**

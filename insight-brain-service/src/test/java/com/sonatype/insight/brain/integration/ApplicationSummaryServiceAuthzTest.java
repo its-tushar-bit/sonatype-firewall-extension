@@ -47,7 +47,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_NullGoal() {
     grantReadPermission(app.getId());
-    ApplicationSummaryList list = service.getApplications(null /* goal */, null);
+    ApplicationSummaryList list = service.getApplications(null /* goal */, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -55,7 +55,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_EVALUATE_COMPONENT() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -63,7 +63,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_EVALUATE_APPLICATION() {
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -71,7 +71,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_SUMMARIZE_EVALUATION() {
     grantPermission(app.getId(), Permission.READ);
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null);
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -79,7 +79,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Authorized_VIEW_CIP() {
     grantPermission(app.getId(), Permission.EVALUATE_COMPONENT);
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null);
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId).containsExactly(app.getId());
   }
@@ -87,7 +87,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_NullGoal() {
     login();
-    ApplicationSummaryList list = service.getApplications(null /* goal */, null);
+    ApplicationSummaryList list = service.getApplications(null /* goal */, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -95,7 +95,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -103,7 +103,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_EVALUATE_COMPONENT() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null);
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -111,7 +111,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null);
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -119,7 +119,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplications_Unauthorized_VIEW_CIP() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null);
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, null, null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -132,7 +132,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantReadPermission(app0.getId());
     grantReadPermission(app1.getId());
 
-    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId());
+    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId(), app1.getId());
@@ -144,7 +144,7 @@ public class ApplicationSummaryServiceAuthzTest
     Application app0 = tempEntity.newApplication("x", "x", org.getId());
     grantPermission(app0.getId(), Permission.EVALUATE_COMPONENT);
 
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
             .containsExactly(app0.getId());
@@ -156,7 +156,7 @@ public class ApplicationSummaryServiceAuthzTest
     Application app0 = tempEntity.newApplication("x", "x", org.getId());
     grantPermission(app0.getId(), Permission.EVALUATE_APPLICATION);
 
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId());
@@ -169,7 +169,7 @@ public class ApplicationSummaryServiceAuthzTest
     grantPermission(app.getId(), Permission.READ);
     grantPermission(app0.getId(), Permission.READ);
 
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app.getId(), app0.getId());
@@ -181,7 +181,7 @@ public class ApplicationSummaryServiceAuthzTest
     Application app0 = tempEntity.newApplication("x", "x", org.getId());
     grantPermission(app0.getId(), Permission.EVALUATE_COMPONENT);
 
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).extracting(ApplicationSummary::getId)
         .containsExactly(app0.getId());
@@ -190,7 +190,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplicationsByOrganization_Unauthorized_NullGoal() {
     login();
-    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId());
+    ApplicationSummaryList list = service.getApplications(null /* goal */, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -198,7 +198,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplicationsByOrganization_Unauthorized_EVALUATE_APPLICATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_APPLICATION, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -206,7 +206,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplicationsByOrganization_Unauthorized_EVALUATE_COMPONENT() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.EVALUATE_COMPONENT, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -214,7 +214,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplicationsByOrganization_Unauthorized_SUMMARIZE_EVALUATION() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.SUMMARIZE_EVALUATION, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }
@@ -222,7 +222,7 @@ public class ApplicationSummaryServiceAuthzTest
   @Test
   public void testGetApplicationsByOrganization_Unauthorized_VIEW_CIP() {
     login();
-    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId());
+    ApplicationSummaryList list = service.getApplications(Goal.VIEW_CIP, org.getId(), null);
     assertThat(list).isNotNull();
     assertThat(list.getApplicationSummaries()).isEmpty();
   }

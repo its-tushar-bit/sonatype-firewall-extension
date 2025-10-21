@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.integration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -94,56 +95,67 @@ public class ApplicationSummaryService
     this.telemetryUtils = telemetryUtils;
   }
 
-  public ApplicationSummaryList getApplications(Goal goal, String organizationId) {
+  public ApplicationSummaryList getApplications(Goal goal, String organizationId, Set<String> applicationPublicIds) {
     if (!productLicense.hasFeature(LicensedFeature.ENFORCEMENT) && Goal.EVALUATE_COMPONENT.equals(goal)) {
       log.debug("License does not support IDE plugins.");
       throw new InvalidLicenseException();
     }
-    return toApplicationSummaryList(getApplicationsForGoal(goal, organizationId));
+    return toApplicationSummaryList(getApplicationsForGoal(goal, organizationId, applicationPublicIds));
   }
 
-  private List<Application> getApplicationsForGoal(Goal goal, String organizationId) {
+  private List<Application> getApplicationsForGoal(Goal goal, String organizationId, Set<String> applicationPublicIds) {
     if (goal == null) {
       // For back compatibility only
-      return getApplicationsForRead(organizationId);
+      return getApplicationsForRead(organizationId, applicationPublicIds);
     }
     switch (goal) {
       case EVALUATE_APPLICATION:
-        return getApplicationsForEvaluateApplication(organizationId);
+        return getApplicationsForEvaluateApplication(organizationId, applicationPublicIds);
       case EVALUATE_COMPONENT:
       case VIEW_CIP:
-        return getApplicationsForEvaluateComponent(organizationId);
+        return getApplicationsForEvaluateComponent(organizationId, applicationPublicIds);
       default:
-        return getApplicationsForRead(organizationId);
+        return getApplicationsForRead(organizationId, applicationPublicIds);
     }
   }
 
   @AuthzFilter(permission = Permission.READ, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForRead(String organizationId) {
-    return getApplications(organizationId);
+  protected List<Application> getApplicationsForRead(String organizationId, Set<String> applicationPublicIds) {
+    return getApplications(organizationId, applicationPublicIds);
   }
 
   /**
    * @since 1.14.0
    */
   @AuthzFilter(permission = Permission.EVALUATE_APPLICATION, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForEvaluateApplication(String organizationId) {
-    return getApplications(organizationId);
+  protected List<Application> getApplicationsForEvaluateApplication(
+      String organizationId,
+      Set<String> applicationPublicIds)
+  {
+    return getApplications(organizationId, applicationPublicIds);
   }
 
   /**
    * @since 1.14.0
    */
   @AuthzFilter(permission = Permission.EVALUATE_COMPONENT, context = AuthzFilter.Context.APPLICATION)
-  protected List<Application> getApplicationsForEvaluateComponent(String organizationId) {
-    return getApplications(organizationId);
+  protected List<Application> getApplicationsForEvaluateComponent(
+      String organizationId,
+      Set<String> applicationPublicIds)
+  {
+    return getApplications(organizationId, applicationPublicIds);
   }
 
-  private List<Application> getApplications(String organizationId) {
+  private List<Application> getApplications(String organizationId, Set<String> applicationPublicIds) {
     if (StringUtils.isNotEmpty(organizationId)) {
       return applicationDAO.getByOrganizationId(organizationId);
     }
-    return applicationDAO.getAllWithoutRelatedRepositories();
+    if (applicationPublicIds != null && !applicationPublicIds.isEmpty()) {
+      return applicationDAO.getByPublicIds(applicationPublicIds);
+    }
+    else {
+      return applicationDAO.getAllWithoutRelatedRepositories();
+    }
   }
 
   private ApplicationSummaryList toApplicationSummaryList(List<Application> apps) {

@@ -571,6 +571,13 @@ public class ScanPolicyEvaluator
       allPolicyAlerts.addAll(policyResults.getWaivedAlerts());
       Map<String, Owner> policyIdPolicyOwnerMap = new HashMap<>();
 
+      List<PolicyViolation> existingViolationsForReachability = Collections.emptyList();
+      if (isReevaluation && reachablePurlIdentifiersWithVulnerabilities == null) {
+        existingViolationsForReachability = policyViolationDAO.getUnfixedByApplicationIdAndStageId(tx, appId,
+            stage.getStageTypeId());
+        policyViolationDAO.loadConstraintFacts(existingViolationsForReachability);
+      }
+
       for (PolicyAlert policyAlert : allPolicyAlerts) {
         PolicyFact policyFact = policyAlert.getTrigger();
         Policy policy = policyDAO.getByIdNotNull(policyFact.getPolicyId());
@@ -609,6 +616,15 @@ public class ScanPolicyEvaluator
               findComponentByComponentIdentifier(components, policyViolation.getComponentIdentifier());
 
           updateReachabilityStatus(policyViolation, reachablePurlIdentifiersWithVulnerabilities);
+
+          if (!existingViolationsForReachability.isEmpty()) {
+            existingViolationsForReachability.stream()
+                .filter(oldViolation ->
+                    PolicyViolationComparator.COMPARATOR.compare(oldViolation, policyViolation) == 0)
+                .findFirst()
+                .ifPresent(oldViolation -> policyViolation.setReachabilityStatus(
+                    determineReachabilityStatus(oldViolation, policyViolation, isReevaluation)));
+          }
 
           // send telemetry information only after we updated the status, this will provide accurate
           // reporting on how well call flow information for reachability is available.
@@ -813,7 +829,6 @@ public class ScanPolicyEvaluator
                 results.waivedViolations.remove(oldPolicyViolation);
                 results.autoWaivedViolations.add(newPolicyViolation);
                 results.allViolations.remove(oldPolicyViolation);
-                results.allViolations.add(newPolicyViolation);
                 keepExistingViolation = false;
               }
               else {
@@ -844,7 +859,6 @@ public class ScanPolicyEvaluator
                 results.autoWaivedViolations.remove(oldPolicyViolation);
                 results.waivedViolations.add(newPolicyViolation);
                 results.allViolations.remove(oldPolicyViolation);
-                results.allViolations.add(newPolicyViolation);
                 keepExistingViolation = false;
               }
               else if (oldPolicyViolation.isWaived()) {
@@ -877,15 +891,16 @@ public class ScanPolicyEvaluator
             if (!isLegacyViolationApplicable) {
               oldPolicyViolation.setLegacyViolationTime(null);
             }
-            policyViolationDAO.update(tx, oldPolicyViolation);
 
             if (keepExistingViolation) {
               // CLM-35315 - make sure after replacement to keep the latest reachability status
-              oldPolicyViolation.setReachabilityStatus(newPolicyViolation.getReachabilityStatus());
-
+              oldPolicyViolation.setReachabilityStatus(
+                  determineReachabilityStatus(oldPolicyViolation, newPolicyViolation, isReevaluation));
               results.allViolations.remove(newPolicyViolation);
               results.allViolations.add(oldPolicyViolation);
             }
+
+            policyViolationDAO.update(tx, oldPolicyViolation);
           }
         }
         logPolicyViolations(existing, "previously seen");
@@ -1578,7 +1593,7 @@ public class ScanPolicyEvaluator
       final boolean hasReachabilityData)
   {
     final boolean isReachabilityConfigured =
-        violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver);
+        violationMeetsReachabilityConfigurationCriteria(hasReachabilityData, autoPolicyWaiver, policyViolation);
     boolean isNotReachable = false;
     if (isReachabilityConfigured) {
       isNotReachable = violationIsNonReachable(policyViolation);
@@ -1614,9 +1629,22 @@ public class ScanPolicyEvaluator
   }
 
   private boolean violationMeetsReachabilityConfigurationCriteria(
-      final boolean hasReachabilityData, final AutoPolicyWaiver autoPolicyWaiver)
+      final boolean hasReachabilityData,
+      final AutoPolicyWaiver autoPolicyWaiver,
+      final PolicyViolation policyViolation)
   {
-    return hasReachabilityData && autoPolicyWaiver.hasReachability();
+    if (!autoPolicyWaiver.hasReachability()) {
+      return false;
+    }
+
+    if (hasReachabilityData) {
+      return true;
+    }
+
+    // CLM-37144 - Allow reachability-based auto-waivers even when there's no new reachability data
+    // if the violation already has reachability data from a previous evaluation
+    ReachabilityStatus existingStatus = policyViolation.getReachabilityStatus();
+    return existingStatus != null && existingStatus != ReachabilityStatus.UNKNOWN;
   }
 
   private boolean violationIsNonReachable(final PolicyViolation policyViolation) {
@@ -1707,5 +1735,23 @@ public class ScanPolicyEvaluator
     aggregateTelemetryDataList.addAll(policyViolationTelemetryCollector.getTelemetryData());
     aggregateTelemetryDataList.addAll(autoPolicyWaiverTelemetryCollector.getTelemetryData());
     telemetrySender.send(aggregateTelemetryDataList);
+  }
+
+  private ReachabilityStatus determineReachabilityStatus(
+      final PolicyViolation oldViolation,
+      final PolicyViolation newViolation,
+      final boolean isReevaluation)
+  {
+    if (!isReevaluation) {
+      return newViolation.getReachabilityStatus();
+    }
+
+    // During reevaluations, preserve old reachability data if it exists (not null and not UNKNOWN)
+    ReachabilityStatus oldStatus = oldViolation.getReachabilityStatus();
+    if (oldStatus != null && oldStatus != ReachabilityStatus.UNKNOWN) {
+      return oldStatus;
+    }
+
+    return newViolation.getReachabilityStatus();
   }
 }

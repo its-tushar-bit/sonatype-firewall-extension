@@ -81,6 +81,7 @@ import com.sonatype.insight.brain.model.policy.PolicyThreatCategory;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolationConstraintFacts;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
+import com.sonatype.insight.brain.model.policy.ReachabilityStatus;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AiModelContentConditionType;
@@ -5428,6 +5429,334 @@ public class ScanPolicyEvaluatorTest
     }
 
     return null;
+  }
+
+  @Test
+  public void testEvaluate_PreservesReachabilityStatus_DuringReevaluation() throws Exception {
+    // Setup: Create security policy and auto-waiver
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // Initial evaluation with reachability data
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap<>();
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23"
+    );
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // First evaluation: with reachability data
+    ScanPolicyEvaluatorResults initialResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO, false);
+
+    assertThat(initialResults.autoWaivedViolations).hasSize(36);
+    Optional<PolicyViolation> initialViolation =
+        findPolicyViolationByVulnerabilityIdentifier(initialResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(initialViolation).isPresent();
+    assertThat(initialViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+
+    // Reevaluation WITHOUT reachability data (analysisDTO = null)
+    // This simulates a policy reevaluation where no new scan data is available
+    ScanPolicyEvaluatorResults reevaluationResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, null, false);
+
+    // Verify reachability status is preserved
+    assertThat(reevaluationResults.autoWaivedViolations).hasSize(36);
+    Optional<PolicyViolation> reevaluatedViolation =
+        findPolicyViolationByVulnerabilityIdentifier(reevaluationResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(reevaluatedViolation).isPresent();
+    assertThat(reevaluatedViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+
+    // Verify all auto-waived violations preserve their reachability status
+    reevaluationResults.autoWaivedViolations.forEach(violation ->
+        assertThat(violation.getReachabilityStatus()).isNotNull()
+    );
+  }
+
+  @Test
+  public void testEvaluate_UsesNewReachabilityData_WhenAvailable() throws Exception {
+    // Setup: Create security policy and auto-waiver
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // Initial evaluation: vulnerability is NON_REACHABLE
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> initialReachableVulnMap = new HashMap<>();
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23"
+    );
+    addReachabilityMap(unreachableComponentList, initialReachableVulnMap);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", initialReachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // First evaluation
+    ScanPolicyEvaluatorResults initialResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO, false);
+
+    assertThat(initialResults.autoWaivedViolations).hasSize(36);
+    assertThat(initialResults.activeViolations).isEmpty();
+
+    // Second evaluation: new reachability data shows vulnerability is REACHABLE
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> newReachableVulnMap = new HashMap<>();
+    newReachableVulnMap.put(
+        new PackageUrlIdentifier("pkg:maven/tomcat/tomcat-util@5.5.23"),
+        new PresentReachableComponentVulnerabilities(Set.of(vulnerabilityIdentifier))
+    );
+    // Other components remain unreachable
+    List<String> stillUnreachableComponents = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23"
+    );
+    addReachabilityMap(stillUnreachableComponents, newReachableVulnMap);
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", newReachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // Second evaluation with NEW reachability data
+    ScanPolicyEvaluatorResults newResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO, false);
+
+    // New reachability data takes precedence
+    // The previously auto-waived violation should now be active because it's REACHABLE
+    assertThat(newResults.activeViolations).hasSize(1);
+    assertThat(newResults.autoWaivedViolations).hasSize(35);
+
+    Optional<PolicyViolation> activeViolation =
+        findPolicyViolationByVulnerabilityIdentifier(newResults.activeViolations, vulnerabilityIdentifier);
+    assertThat(activeViolation).isPresent();
+    assertThat(activeViolation.get().getReachabilityStatus()).isEqualTo(REACHABLE);
+  }
+
+  @Test
+  public void testEvaluate_PreservesReachabilityBasedAutoWaiversDuringReevaluation() throws Exception {
+    // Setup: Create security policy and reachability-based auto-waiver
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    // Create auto-waiver with reachability scope (non-reachable vulnerabilities)
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String scanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // Initial evaluation with reachability data showing vulnerability is non-reachable
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap<>();
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23"
+    );
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    VulnerabilitySignatureAnalysisDTO analysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        scanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), "scanId", reachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // First evaluation: violations should be auto-waived due to NON_REACHABLE status
+    ScanPolicyEvaluatorResults initialResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, analysisDTO, false);
+
+    assertThat(initialResults.autoWaivedViolations).hasSize(36);
+    assertThat(initialResults.activeViolations).isEmpty();
+    Optional<PolicyViolation> autoWaivedViolation =
+        findPolicyViolationByVulnerabilityIdentifier(initialResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(autoWaivedViolation).isPresent();
+    assertThat(autoWaivedViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(autoWaivedViolation.get().isAutoWaived()).isTrue();
+
+    // Reevaluation WITHOUT new reachability data
+    // Auto-waiver should be maintained because reachability data is preserved
+    ScanPolicyEvaluatorResults reevaluationResults = scanPolicyEvaluator.evaluate(
+        application, scanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, null, false);
+
+    // Verify auto-waiver is maintained due to preserved reachability data
+    assertThat(reevaluationResults.autoWaivedViolations).hasSize(36);
+    assertThat(reevaluationResults.activeViolations).isEmpty();
+    Optional<PolicyViolation> stillAutoWaivedViolation =
+        findPolicyViolationByVulnerabilityIdentifier(reevaluationResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(stillAutoWaivedViolation).isPresent();
+    assertThat(stillAutoWaivedViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(stillAutoWaivedViolation.get().isAutoWaived()).isTrue();
+
+    // Verify all auto-waived violations maintained their reachability status
+    reevaluationResults.autoWaivedViolations.forEach(violation ->
+        assertThat(violation.getReachabilityStatus()).isEqualTo(NON_REACHABLE)
+    );
+  }
+
+  @Test
+  public void testEvaluate_DoesNotPreserveReachabilityStatus_ForNewScan() throws Exception {
+    // Setup: Create security policy and auto-waiver
+    Policy securityPolicy = new Policy(null, "Security Policy");
+    securityPolicy.setThreatLevel(8);
+    securityPolicy.setOwnerId(application.getId());
+    Constraint constraint = new Constraint(null, "TestConstraint", LogicalOperator.AND);
+    constraint.addCondition(new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    securityPolicy.addConstraint(constraint);
+    tempEntity.newPolicy(securityPolicy);
+
+    tempEntity.newAutoPolicyWaiver(application.getId(), 10, true, false);
+
+    Stage stage = new Stage(Stage.ID_BUILD);
+    String firstScanId = simulateReportIsAvailable("AutoWaiverRevocations");
+
+    ComponentIdentifier componentIdentifier = ComponentIdentifier
+        .createMavenCoordinates("tomcat", "tomcat-util", "5.5.23");
+    String vulnerabilityIdentifier = "CVE-2012-0022";
+
+    // First scan: with reachability data showing vulnerability is NON_REACHABLE
+    Map<PackageUrlIdentifier, ReachableComponentVulnerabilities> reachableVulnMap = new HashMap<>();
+    List<String> unreachableComponentList = List.of(
+        "pkg:maven/commons-httpclient/commons-httpclient@3.1",
+        "pkg:maven/org.apache.geronimo.framework/geronimo-security@2.1",
+        "pkg:maven/tomcat/catalina-host-manager@5.5.23",
+        "pkg:maven/org.mortbay.jetty/jetty@6.1.15",
+        "pkg:maven/tomcat/servlets-default@5.5.4",
+        "pkg:maven/org.openid4java/openid4java@0.9.5",
+        "pkg:maven/tomcat/tomcat-util@5.4.23",
+        "pkg:maven/tomcat/tomcat-util@5.5.23"
+    );
+    addReachabilityMap(unreachableComponentList, reachableVulnMap);
+
+    VulnerabilitySignatureAnalysisDTO firstAnalysisDTO = createTestAnalysisDTO(
+        application.getId(),
+        firstScanId,
+        componentIdentifier,
+        vulnerabilityIdentifier,
+        insightWork
+    );
+
+    doReturn(new PurlIdentifiersWithVulnerabilities(application.getId(), firstScanId, reachableVulnMap))
+        .when(apiVulnerabilityReachabilityStatusService)
+        .getPurlIdentifiersWithVulnerabilities(anyString(), anyString(), any(VulnerabilitySignatureAnalysisDTO.class));
+
+    // First evaluation: violations should be auto-waived due to NON_REACHABLE status
+    ScanPolicyEvaluatorResults firstResults = scanPolicyEvaluator.evaluate(
+        application, firstScanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, firstAnalysisDTO, false);
+
+    assertThat(firstResults.autoWaivedViolations).hasSize(36);
+    Optional<PolicyViolation> firstViolation =
+        findPolicyViolationByVulnerabilityIdentifier(firstResults.autoWaivedViolations, vulnerabilityIdentifier);
+    assertThat(firstViolation).isPresent();
+    assertThat(firstViolation.get().getReachabilityStatus()).isEqualTo(NON_REACHABLE);
+    assertThat(firstViolation.get().isAutoWaived()).isTrue();
+
+    // NEW scan with DIFFERENT scanId and NO reachability data
+    // This simulates a fresh scan, NOT a reevaluation
+    String secondScanId = simulateReportIsAvailable("AutoWaiverRevocations");
+    assertThat(secondScanId).isNotEqualTo(firstScanId); // Verify different scan IDs
+
+    // Second evaluation WITHOUT reachability data (analysisDTO = null)
+    // This is a new primary scan, so it should not preserve old reachability data
+    ScanPolicyEvaluatorResults secondResults = scanPolicyEvaluator.evaluate(
+        application, secondScanId, stage, ScanTriggerType.CLI, ClientScanType.SONATYPE, null, false);
+
+    // Reachability status should be UNKNOWN (or null), NOT preserved from first scan
+    // Since there's no reachability data in the new scan, and reachability-based auto-waivers
+    // require reachability data, the violations should be ACTIVE (not auto-waived)
+    assertThat(secondResults.activeViolations).hasSize(36);
+    assertThat(secondResults.autoWaivedViolations).isEmpty();
+
+    Optional<PolicyViolation> secondViolation =
+        findPolicyViolationByVulnerabilityIdentifier(secondResults.activeViolations, vulnerabilityIdentifier);
+    assertThat(secondViolation).isPresent();
+
+    // Reachability status should NOT be preserved from first scan
+    // It should be null or UNKNOWN, NOT NON_REACHABLE
+    ReachabilityStatus secondStatus = secondViolation.get().getReachabilityStatus();
+    assertThat(secondStatus)
+        .isIn(null, ReachabilityStatus.UNKNOWN)
+        .isNotEqualTo(NON_REACHABLE);
   }
 
   private File createScanFile(Application app, String scanId) {

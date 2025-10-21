@@ -172,13 +172,18 @@ public abstract class AbstractCycloneDxExporter
     }
 
     MultiValuedMap<String, Vulnerability> newBomVulnerabilities = new ArrayListValuedHashMap<>();
-    if (sonatypeComponents != null) {
+    if (CollectionUtils.isNotEmpty(sonatypeComponents)) {
+      Map<String, List<ThirdPartyCoordinateSecurity>> vulnerabilities = thirdPartyCoordinateSecurityDAO
+          .getByFileCoordinateIds(sonatypeComponents.stream().map(ThirdPartyFileCoordinate::getId).toList())
+          .stream().collect(Collectors.groupingBy(ThirdPartyCoordinateSecurity::getFileCoordinateId));
+      Application app = applicationDAO.getByIdNotNull(exportParams.sbomMetadata.getApplicationId());
+
       for (ThirdPartyFileCoordinate sonatypeComponent : sonatypeComponents) {
-        List<ThirdPartyCoordinateSecurity> sonatypeComponentVulnerabilities = thirdPartyCoordinateSecurityDAO
-            .getByFileCoordinateId(sonatypeComponent.getId());
+        List<ThirdPartyCoordinateSecurity> sonatypeComponentVulnerabilities = vulnerabilities
+            .getOrDefault(sonatypeComponent.getId(), Collections.emptyList());
         Set<ResolvedLicenseDTO> resolvedLicenseDTOS =
             thirdPartyLicenseResolver.resolveLicenseOverridesOrThirdPartyLicenses(
-                exportParams.sbomMetadata.getApplicationId(), sonatypeComponent);
+                app, sonatypeComponent);
 
         Optional<Component> bomComponentFound = Optional.empty();
         Component componentByComponentRef = componentRefToBomComponentsMap.get(sonatypeComponent.getComponentRef());

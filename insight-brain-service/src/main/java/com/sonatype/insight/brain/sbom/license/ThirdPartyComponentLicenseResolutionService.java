@@ -121,14 +121,27 @@ public class ThirdPartyComponentLicenseResolutionService
       String appInternalId,
       ThirdPartyFileCoordinate thirdPartyFileCoordinate)
   {
-    Application app = applicationDAO.getByIdNotNull(appInternalId);
+    return resolveLicenseOverridesOrThirdPartyLicenses(applicationDAO.getByIdNotNull(appInternalId),
+        thirdPartyFileCoordinate);
+  }
+
+  public Set<ResolvedLicenseDTO> resolveLicenseOverridesOrThirdPartyLicenses(
+      Application app,
+      ThirdPartyFileCoordinate thirdPartyFileCoordinate)
+  {
+    return resolveLicenses(app, thirdPartyFileCoordinate);
+  }
+
+  private Set<ResolvedLicenseDTO> resolveLicenses(Application application,
+                                                  ThirdPartyFileCoordinate thirdPartyFileCoordinate)
+  {
     ComponentIdentifier componentId = getCompleteIdentifier(thirdPartyFileCoordinate.getPackageUrl());
 
     // Try to find license overrides if component identifier is valid
     // and the product belongs to lifecycle products or products with ALP add-on
     if (componentId != null && shouldConsiderLicenseOverrides()) {
       LicenseOverride licenseOverride =
-          licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(app, componentId);
+          licenseOverrideDAO.getAppliedByOwnerIdAndComponentIdentifierWithHierarchy(application, componentId);
 
       if (licenseOverride != null && LICENSE_OVERRIDE_STATUSES.contains(licenseOverride.getStatus())) {
         return licenseOverride.getLicenseIds().stream()
@@ -139,8 +152,7 @@ public class ThirdPartyComponentLicenseResolutionService
 
     // If no overrides found, look for third party licenses
     Set<ThirdPartyCoordinateLicense> thirdPartyLicenses = new HashSet<>(
-        thirdPartyCoordinateLicenseDAO.getByFileCoordinateIds(
-            Collections.singleton(thirdPartyFileCoordinate.getId())));
+        thirdPartyCoordinateLicenseDAO.getByFileCoordinateIds(Collections.singleton(thirdPartyFileCoordinate.getId())));
 
     if (!thirdPartyLicenses.isEmpty()) {
       return thirdPartyLicenses.stream()

@@ -13,6 +13,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import com.sonatype.insight.brain.concurrent.LazyInitThreadPoolExecutor;
 import com.sonatype.insight.brain.concurrent.SemaphorePool;
 import com.sonatype.insight.brain.git.GitCommitStatusService;
@@ -36,8 +38,8 @@ import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.assertj.core.api.Assertions;
 import org.assertj.core.groups.Tuple;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -99,6 +101,8 @@ public class SourceControlEventProcessorTest
 
   private SourceControlEventProcessor sourceControlEventProcessor;
 
+  private Level originalLogLevel;
+
   public SourceControlEventProcessorTest() {
     super(SourceControlEventProcessor.class);
   }
@@ -123,6 +127,21 @@ public class SourceControlEventProcessorTest
         mockShutdownHandler
     ));
     sourceControlEventProcessor.setRepoAccessController(poolTenantReference);
+
+    // Set logger to DEBUG level to ensure all log messages are captured
+    // This prevents flakiness when previous tests may have changed the logger level
+    Logger log =
+        (Logger) org.slf4j.LoggerFactory.getLogger(SourceControlEventProcessor.class);
+    originalLogLevel = log.getLevel();
+    log.setLevel(Level.DEBUG);
+  }
+
+  @After
+  public void teardown() {
+    // Restore original logger level to avoid affecting other tests
+    Logger log =
+        (Logger) org.slf4j.LoggerFactory.getLogger(SourceControlEventProcessor.class);
+    log.setLevel(originalLogLevel);
   }
 
   @Test
@@ -223,7 +242,6 @@ public class SourceControlEventProcessorTest
         "SourceControlEvent with ID " + event.getId() + " processed as user 'JohnDoe' instead of 'system'");
   }
 
-  @Ignore("CLM-36266")
   @Test
   public void testProcessEvents_interruptOnAcquireRepoAccessControl() throws Exception {
     // given: DAO setup to throw an exception
@@ -244,7 +262,6 @@ public class SourceControlEventProcessorTest
     );
   }
 
-  @Ignore("CLM-36266")
   @Test
   public void testProcessEvents_interruptOnReleaseRepoAccessControl() throws Exception {
     // given: DAO setup to throw an exception

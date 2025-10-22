@@ -41,8 +41,10 @@ import com.sonatype.insight.scan.model.ScanMetadata;
 import com.sonatype.nexus.git.utils.api.GitApi;
 import com.sonatype.nexus.git.utils.api.GitException;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -135,6 +137,8 @@ public class SourceControlScanServiceTest
   // subject
   private SourceControlScanService service;
 
+  private Level originalLogLevel;
+
   public SourceControlScanServiceTest() {
     super(SourceControlScanService.class);
   }
@@ -179,6 +183,21 @@ public class SourceControlScanServiceTest
         .thenReturn(proprietaryConfig);
 
     when(mockGitRepositoryInfo.getSourceControlEvaluationsEnabled()).thenReturn(true);
+
+    // Set logger to DEBUG level to ensure all log messages are captured
+    // This prevents flakiness when previous tests may have changed the logger level
+    Logger log =
+        (Logger) org.slf4j.LoggerFactory.getLogger(SourceControlScanService.class);
+    originalLogLevel = log.getLevel();
+    log.setLevel(Level.DEBUG);
+  }
+
+  @After
+  public void teardown() {
+    // Restore original logger level to avoid affecting other tests
+    Logger log =
+        (Logger) org.slf4j.LoggerFactory.getLogger(SourceControlScanService.class);
+    log.setLevel(originalLogLevel);
   }
 
   @Test
@@ -406,7 +425,6 @@ public class SourceControlScanServiceTest
     verifyNoInteractions(sourceControlSshService);
   }
 
-  @Ignore("CLM-36266")
   @Test
   public void testDoSynchronousSourceControlScan_Unlicensed() throws Exception {
     // given a product license without the automation and notifications features

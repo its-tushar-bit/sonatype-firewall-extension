@@ -51,7 +51,7 @@
     <bc-fips-util.version>2.1.4</bc-fips-util.version>
     <bcpkix-fips.version>2.1.9</bcpkix-fips.version>
     <bctls-fips.version>2.1.20</bctls-fips.version>
-    <bouncycastle.version>1.82</bouncycastle.version>
+    <bouncycastle.version>1.81</bouncycastle.version>
 
     <!--
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.
@@ -74,7 +74,7 @@
     <drools.version>10.1.0</drools.version>
     <selenium.version>4.23.1</selenium.version>
     <httpcomponents.version>4.5.14</httpcomponents.version>
-    <nexus-scm-client.version>1.62.0-01</nexus-scm-client.version>
+    <nexus-scm-client.version>1.61.0-01</nexus-scm-client.version>
     <nexus-dependency-management.version>2.2.12-01</nexus-dependency-management.version>
     <!-- byte-buddy version should match whichever version mockito-core depends on in its pom.xml file. -->
     <mockito-core.version>5.18.0</mockito-core.version>

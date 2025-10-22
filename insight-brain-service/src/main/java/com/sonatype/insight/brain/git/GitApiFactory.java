@@ -11,6 +11,7 @@ import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -25,6 +26,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
 @Named
 @Singleton
 public class GitApiFactory 
@@ -35,12 +38,15 @@ public class GitApiFactory
 
   private final InsightWork insightWork;
 
+  private final PasswordHandler passwordHandler;
+
   private final NativeGitUtilsProvider nativeGitUtilsProvider = new NativeGitUtilsProvider();
 
   @Inject
-  public GitApiFactory(Configuration configuration, InsightWork insightWork) {
+  public GitApiFactory(Configuration configuration, InsightWork insightWork, PasswordHandler passwordHandler) {
     this.configuration = configuration;
     this.insightWork = insightWork;
+    this.passwordHandler = passwordHandler;
   }
 
   public GitApi createGitApi(final GitRepositoryInfo gitInfo) {
@@ -48,20 +54,22 @@ public class GitApiFactory
     GitImplementation gitImplFromConfig = sourceControlConfiguration.getGitImplementation();
     String gitExecutable = sourceControlConfiguration.getGitExecutable();
     int gitTimeoutSeconds = sourceControlConfiguration.getGitTimeoutSeconds();
+    String gpgSigningKey = sourceControlConfiguration.getGpgSigningKey();
+    String gpgPassphrase = decryptGpgPassphrase(sourceControlConfiguration.getGpgPassphrase());
     String cloneUrl = getCloneUrl(gitInfo);
     boolean isSsh = Boolean.TRUE.equals(gitInfo.getSshEnabled());
     if (gitImplFromConfig != null) {
       if (GitImplementation.JAVA.equals(gitImplFromConfig)) {
-        return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh);
+        return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh, gpgSigningKey, gpgPassphrase);
       }
       else if (GitImplementation.NATIVE.equals(gitImplFromConfig)) {
         if (!isNativeGitAvailable(gitExecutable)) {
           String messageSuffix = gitExecutable != null ? "at configured path: " + gitExecutable : "on the path";
           log.warn("System is configured to use native git, but the git executable was not found {}. Defaulting to " +
               "use {} implementation", messageSuffix, GitImplementation.JAVA);
-          return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh);
+          return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh, gpgSigningKey, gpgPassphrase);
         }
-        return creatNativeGitApi(gitTimeoutSeconds, gitInfo, cloneUrl, gitExecutable);
+        return creatNativeGitApi(gitTimeoutSeconds, gitInfo, cloneUrl, gitExecutable, gpgSigningKey, gpgPassphrase);
       }
       else {
         log.error("Unknown option '{}' for configuration 'sourceControl.gitImplementation'. Available options: {}, {}",
@@ -70,39 +78,55 @@ public class GitApiFactory
     }
 
     if (isNativeGitAvailable(gitExecutable)) {
-      return creatNativeGitApi(gitTimeoutSeconds, gitInfo, cloneUrl, gitExecutable);
+      return creatNativeGitApi(gitTimeoutSeconds, gitInfo, cloneUrl, gitExecutable, gpgSigningKey, gpgPassphrase);
     }
-    return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh);
+    return creatJGitIfAllowed(gitTimeoutSeconds, gitInfo, cloneUrl, isSsh, gpgSigningKey, gpgPassphrase);
   }
 
   private NativeGitApi creatNativeGitApi(
       int gitTimeoutSeconds,
       GitRepositoryInfo gitInfo,
       String cloneUrl,
-      String gitExecutable)
+      String gitExecutable,
+      String gpgSigningKey,
+      String gpgPassphrase)
   {
     NativeGitApi nativeGitApi;
     if (gitTimeoutSeconds > 0) {
-      nativeGitApi = new NativeGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
+      nativeGitApi = new NativeGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username, gitExecutable,
+          gpgSigningKey, gpgPassphrase);
     }
     else {
-      nativeGitApi = new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable);
+      nativeGitApi = new NativeGitApi(cloneUrl, gitInfo.token, gitInfo.username, gitExecutable,
+          gpgSigningKey, gpgPassphrase);
     }
     nativeGitApi.setTempDirectory(insightWork.getTemporaryDirectory());
     return nativeGitApi;
   }
 
-  private JGitApi creatJGitIfAllowed(int gitTimeoutSeconds, GitRepositoryInfo gitInfo, String cloneUrl, boolean isSsh) {
+  private JGitApi creatJGitIfAllowed(
+      int gitTimeoutSeconds,
+      GitRepositoryInfo gitInfo,
+      String cloneUrl,
+      boolean isSsh,
+      String gpgSigningKey,
+      String gpgPassphrase)
+  {
     if (isSsh) {
       throw new IllegalArgumentException(String.format("Application with URL %s is configured to use SSH with JGit " +
           "which is not a supported combination. Update the system to use native git or disable SSH for this " +
           "application", cloneUrl));
     }
+
+    char[] passphrase = Optional.ofNullable(gpgPassphrase)
+        .map(String::toCharArray)
+        .orElse(null);
+
     if (gitTimeoutSeconds > 0) {
-      return new JGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username);
+      return new JGitApi(gitTimeoutSeconds, cloneUrl, gitInfo.token, gitInfo.username, gpgSigningKey, passphrase);
     }
     else {
-      return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username);
+      return new JGitApi(cloneUrl, gitInfo.token, gitInfo.username, gpgSigningKey, passphrase);
     }
   }
 
@@ -114,6 +138,13 @@ public class GitApiFactory
   boolean isNativeGitAvailable(String gitExecutable) {
     NativeGitUtils nativeGitUtils = nativeGitUtilsProvider.get();
     return nativeGitUtils.isNativeGitAvailable(gitExecutable);
+  }
+
+  private String decryptGpgPassphrase(String encryptedGpgPassphrase) {
+    if (encryptedGpgPassphrase == null) {
+      return null;
+    }
+    return passwordHandler.decryptPassword(encryptedGpgPassphrase);
   }
 
   private String getCloneUrl(final GitRepositoryInfo gitRepositoryInfo) {

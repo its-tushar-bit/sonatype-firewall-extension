@@ -76,7 +76,9 @@ import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportType;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.Authorize;
@@ -1368,12 +1370,17 @@ public class ReportService
     final Stage stage = new Stage(stageTypeId);
     final ScanTriggerType scanTriggerType = policyEvaluation.getScanTriggerType();
     final ClientScanType clientScanType = policyEvaluation.getClientScanType();
+    final SbomSpecification sbomSpecification = scanTriggerType == ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API
+        ? SbomSpecification.CYCLONEDX
+        : null;
+    final ScanContext scanContext =
+        new ScanContext.Builder().containerImageSbomSpecification(sbomSpecification).build();
 
     ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, application, stage.getStageTypeId(),
         clientScanType,
         clientUserAgent,
         telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage, stageTypeId,
-            scanTriggerType, clientUserAgent), null /* scanRequestId */, true );
+            scanTriggerType, clientUserAgent), null /* scanRequestId */, scanContext, true );
     // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
     AuditData.get().setScanId(scanId);
 

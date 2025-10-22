@@ -62,6 +62,7 @@ import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -69,6 +70,7 @@ import com.sonatype.insight.brain.hds.ComponentDetailsLoader.HostedDataServicesS
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.ReportMetadataDTO;
@@ -137,6 +139,8 @@ public class ReportResource
 
   private final ApplicationDAO applicationDAO;
 
+  private final OrganizationDAO organizationDAO;
+
   private final ReportService reportService;
 
   private final ScanPolicyEvaluator scanPolicyEvaluator;
@@ -168,6 +172,7 @@ public class ReportResource
   @Inject
   public ReportResource(
       final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO,
       final ReportService reportService,
       final ScanPolicyEvaluator scanPolicyEvaluator,
       final ComponentDetailsLoaderFactory componentDetailsLoaderFactory,
@@ -181,6 +186,7 @@ public class ReportResource
       final ClusterLockManager clusterLockManager)
   {
     this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
     this.reportService = reportService;
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
@@ -329,7 +335,6 @@ public class ReportResource
    */
   @POST
   @Path("{scanId}/reevaluatePolicy")
-  @Authorize(permission = Permission.EVALUATE_APPLICATION)
   @Audited(AuditEvent.EVALUATE_APPLICATION)
   @ProductLicenseEnforcementPoint(LicensedFeature.APPLICATION_EVALUATION)
   public Response reevaluatePolicy(
@@ -340,12 +345,35 @@ public class ReportResource
       @Context HttpServletRequest request) throws IOException
   {
     Application application = applicationDAO.getByPublicIdNotNull(applicationPublicId);
+    Organization organization = organizationDAO.getById(application.getOrganizationId());
+
+    if (organization.getRelatedRepositoryId() == null) {
+      checkEvaluateApplicationPermission(application);
+    }
+    else {
+      checkEvaluateComponentPermission(application);
+    }
+
     String clientUserAgent = HdsClient.getClientUserAgent(request);
     PolicyEvaluation policyEvaluation = reportService.reUploadScanToHds(application.getId(), scanId, clientUserAgent);
     Stage stage = new Stage(policyEvaluation.getStageTypeId());
     scanPolicyEvaluator.evaluate(application, scanId, stage, policyEvaluation.getScanTriggerType(),
         policyEvaluation.getClientScanType(), skipAutoWaivers);
     return Response.ok().build();
+  }
+
+  @Authorize(permission = Permission.EVALUATE_APPLICATION)
+  void checkEvaluateApplicationPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
+  }
+
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(
+      @SuppressWarnings("unused") @AuthzContext(Key.APPLICATION) Application application)
+  {
+    // actual work done by AOP interceptor
   }
 
   @GET

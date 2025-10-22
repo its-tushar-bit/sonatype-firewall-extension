@@ -69,6 +69,7 @@ import com.sonatype.insight.brain.organization.ReportMetadataDTO;
 import com.sonatype.insight.brain.policy.evaluator.PolicyThreats;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.proprietary.ProprietaryConfigService;
+import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.sbom.utils.SbomMetadataUtils;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.security.CurrentUser;
@@ -1281,6 +1282,7 @@ public class ReportServiceTest
         eq(clientUserAgent),
         any(),
         any(),
+        any(),
         anyBoolean()
     );
     // Mock the new report so we don't have to get it from the real HDS
@@ -1323,6 +1325,7 @@ public class ReportServiceTest
         eq(browserUserAgent),
         any(),
         any(),
+        any(),
         eq(true)
     );
     ReportHelper.saveMockReport(insightWork, tempDir,
@@ -1338,6 +1341,91 @@ public class ReportServiceTest
         eq(browserUserAgent),
         any(),
         any(),
+        any(),
+        eq(true)
+    );
+  }
+
+  @Test
+  public void testReUploadScanReport_containerImageScannerApiSetsCycloneDxSbomSpecification() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId, false, false, false,
+        new Date(), null, ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any(),
+        any(),
+        eq(true)
+    );
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    verify(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any(),
+        argThat(scanContext -> scanContext != null &&
+            scanContext.containerImageSbomSpecification() == SbomSpecification.CYCLONEDX),
+        eq(true)
+    );
+  }
+
+  @Test
+  public void testReUploadScanReport_nonContainerScannerApiSetsNullSbomSpecification() throws IOException {
+    ScanHelper.createDummyScanFile(insightWork, app.getId(), scanId);
+    ReportHelper.saveMockReport(insightWork, tempDir, "/ReportServiceTest/report", app.getId(), scanId);
+    tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId, false, false, false,
+        new Date(), null, ScanTriggerType.CLI);
+    ReportService reportService = createReportService();
+
+    String clientUserAgent = "userAgent";
+    String newScanId = "newScanId";
+    ScanReceipt scanReceipt = new ScanReceipt();
+    scanReceipt.setScanId(newScanId);
+    doReturn(scanReceipt).when(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any(),
+        any(),
+        eq(true)
+    );
+    ReportHelper.saveMockReport(insightWork, tempDir,
+        "/ApplicationReportPersistenceServiceTest/report", app.getId(), newScanId);
+
+    reportService.reUploadScanToHds(app.getId(), scanId, clientUserAgent);
+
+    verify(mockScanUploadService).upload(
+        any(),
+        any(),
+        eq(StageTypes.BUILD.getId()),
+        any(),
+        eq(clientUserAgent),
+        any(),
+        any(),
+        argThat(scanContext -> scanContext != null &&
+            scanContext.containerImageSbomSpecification() == null),
         eq(true)
     );
   }

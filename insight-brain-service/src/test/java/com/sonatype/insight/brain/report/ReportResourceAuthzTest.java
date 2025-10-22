@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.report;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.ScanTriggerType;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.policy.evaluator.ScanPolicyEvaluator;
@@ -63,7 +65,7 @@ public class ReportResourceAuthzTest
   }
 
   @Test
-  public void testReevaluatePolicy() throws Exception {
+  public void testReevaluatePolicy_application() throws Exception {
     String scanId = "scanId";
     createScanFile(app.getId(), scanId);
     mockReport(scanId, "/ReportResourceTest/report");
@@ -73,6 +75,23 @@ public class ReportResourceAuthzTest
     createReportFile(app.getId(), scanId);
     grantPermission(app.getId(), Permission.EVALUATE_APPLICATION);
     HttpRequest request = restRequest().path("{scanId}/reevaluatePolicy").parameter(app.getPublicId(), "scanId");
+    testAuthzPost(request);
+  }
+
+  @Test
+  public void testReevaluatePolicy_containerImageForFirewall() throws Exception {
+    Organization organization = tempEntity.newOrganizationWithRepositoryManager("test-org-for-firewall");
+    Application application = tempEntity.newApplicationWithParent(organization);
+
+    String scanId = "scanId";
+    createScanFile(application.getId(), scanId);
+    mockReport(scanId, "/ReportResourceTest/report");
+    // Mock the HDS report for the new scan
+    mockReport(SCAN_ID, "/ReportResourceTest/report");
+    tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_PROXY, scanId);
+    createReportFile(application.getId(), scanId);
+    grantPermission(application.getId(), Permission.EVALUATE_COMPONENT);
+    HttpRequest request = restRequest().path("{scanId}/reevaluatePolicy").parameter(application.getPublicId(), scanId);
     testAuthzPost(request);
   }
 

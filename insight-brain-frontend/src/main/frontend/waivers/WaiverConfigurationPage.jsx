@@ -252,7 +252,7 @@ export default function WaiverConfigurationPage() {
 
             <NxFieldset label="Waiver Expiration" isRequired>
               <div className="iq-bulk-waiver-form__select-block">
-                <NxFormSelect value={expiryTime} onChange={onExpiryTimeChange}>
+                <NxFormSelect id="iq-bulk-waiver-expiry-select" value={expiryTime} onChange={onExpiryTimeChange}>
                   <option value="" disabled>
                     Select
                   </option>
@@ -278,7 +278,7 @@ export default function WaiverConfigurationPage() {
             </NxFieldset>
 
             <NxFieldset label="Reason">
-              <NxFormSelect value={waiverReasonId} onChange={onReasonChange}>
+              <NxFormSelect id="iq-bulk-waiver-reason-select" value={waiverReasonId} onChange={onReasonChange}>
                 <option value="" disabled>
                   Select
                 </option>

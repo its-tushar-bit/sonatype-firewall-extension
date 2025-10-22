@@ -51,7 +51,7 @@ export default function BulkWaiveTableRow({
           </div>
         </NxTableCell>
       )}
-      <NxTableCell>
+      <NxTableCell className="iq-bulk-waive__condition-name-cell">
         <p>{condition}</p>
       </NxTableCell>
       <NxTableCell chevron />

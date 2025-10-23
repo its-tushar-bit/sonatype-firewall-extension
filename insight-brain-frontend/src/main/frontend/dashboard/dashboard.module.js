@@ -5,7 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import ComponentDisplayModule from '../ComponentDisplay/module';
 import template from './dashboard.view.html';
 import DashboardHeaderContainer from './results/DashboardHeaderContainer';
 
@@ -18,7 +17,7 @@ import DashboardWaivers from './results/waivers/DashboardWaivers';
 import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/DashboardFilter';
 
 export default angular
-  .module('dashboard.module', ['ui.router', ComponentDisplayModule.name])
+  .module('dashboard.module', ['ui.router'])
   .component('dashboardResultsContainer', dashboardResultsContainer)
   .component('dashboardHeader', iqReact2Angular(DashboardHeaderContainer, [], ['$ngRedux', '$state']))
   .component('violations', iqReact2Angular(DashboardViolationsContainer, [], ['$ngRedux']))

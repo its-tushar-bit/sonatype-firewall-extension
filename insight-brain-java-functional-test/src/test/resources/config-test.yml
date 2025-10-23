@@ -12,7 +12,13 @@ logging:
   level: INFO
   loggers:
     "com.sonatype": DEBUG
-    "com.sonatype.insight.audit": "OFF"
+    "com.sonatype.insight.audit":
+      appenders:
+        - type: console
+        - type: file
+          currentLogFilename: ./log/audit.log
+          archivedLogFilenamePattern: ./log/audit-%d.log.gz
+          archivedFileCount: 50
     "com.sonatype.insight.test.reverseproxy.jetty": INFO
     "com.spotify.docker.client": DEBUG
     "org.apache.directory": ERROR

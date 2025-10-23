@@ -12,6 +12,7 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
+import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;
@@ -46,6 +47,9 @@ public class GitApiFactoryTest
   
   @Inject
   private Configuration configuration;
+
+  @Inject
+  private PasswordHandler passwordHandler;
 
   private GitApiFactory spyGitApiFactory;
 
@@ -210,5 +214,79 @@ public class GitApiFactoryTest
     assertThatThrownBy(() -> spyGitApiFactory.createGitApi(sshGitRepositoryInfo))
         .isInstanceOf(IllegalArgumentException.class)
         .hasMessageContaining("Application with URL " + sshUrl + " is configured to use SSH with JGit");
+  }
+
+  @Test
+  public void test_JGit_gpgSigningKeyViaConfig() {
+    lenient().when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setGpgSigningKey("test-gpg-key-id");
+    sourceControlConfiguration.setGpgPassphrase(passwordHandler.encryptPassword("test-passphrase"));
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    configuration.sourceControlConfigurationChanged();
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgSigningKey").isEqualTo("test-gpg-key-id");
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgPassphrase").isEqualTo("test-passphrase".toCharArray());
+  }
+
+  @Test
+  public void test_NativeGit_gpgSigningKeyViaConfig() {
+    lenient().when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setGpgSigningKey("test-gpg-key-id");
+    sourceControlConfiguration.setGpgPassphrase(passwordHandler.encryptPassword("test-passphrase"));
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    configuration.sourceControlConfigurationChanged();
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .extracting("gpgSigningKey").isEqualTo("test-gpg-key-id");
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .extracting("gpgPassphrase").isEqualTo("test-passphrase");
+  }
+
+  @Test
+  public void test_JGit_nullGpgPassphraseViaConfig() {
+    lenient().when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+    SourceControlConfiguration sourceControlConfiguration = tempEntity.newSourceControlConfiguration();
+    sourceControlConfiguration.setGpgSigningKey("test-gpg-key-id");
+    sourceControlConfigurationDAO.set(sourceControlConfiguration);
+    configuration.sourceControlConfigurationChanged();
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgSigningKey").isEqualTo("test-gpg-key-id");
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgPassphrase").isNull();
+  }
+
+  @Test
+  public void test_JGit_nullGpgInfoViaConfig() {
+    lenient().when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(false);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
+
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgSigningKey").isNull();
+    assertThat(gitApi).isInstanceOf(JGitApi.class)
+        .extracting("gpgPassphrase").isNull();
+  }
+
+  @Test
+  public void test_NativeGit_nullGpgInfoViaConfig() {
+    lenient().when(spyGitApiFactory.isNativeGitAvailable(null)).thenReturn(true);
+
+    GitApi gitApi = spyGitApiFactory.createGitApi(GIT_REPOSITORY_INFO);
+
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .extracting("gpgSigningKey").isNull();
+    assertThat(gitApi).isInstanceOf(NativeGitApi.class)
+        .extracting("gpgPassphrase").isNull();
   }
 }

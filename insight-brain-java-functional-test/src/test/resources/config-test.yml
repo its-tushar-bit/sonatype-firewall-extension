@@ -16,8 +16,8 @@ logging:
       appenders:
         - type: console
         - type: file
-          currentLogFilename: ./log/audit.log
-          archivedLogFilenamePattern: ./log/audit-%d.log.gz
+          currentLogFilename: ./target/log/audit.log
+          archivedLogFilenamePattern: ./target/log/audit-%d.log.gz
           archivedFileCount: 50
     "com.sonatype.insight.test.reverseproxy.jetty": INFO
     "com.spotify.docker.client": DEBUG

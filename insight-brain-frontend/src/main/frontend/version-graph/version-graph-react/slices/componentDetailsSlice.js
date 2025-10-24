@@ -7,7 +7,7 @@ import axios from 'axios';
 import { prop } from 'ramda';
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 
-import { getComponentDetailsUrl } from 'MainRoot/util/CLMLocationNoAngular';
+import { getComponentDetailsUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet } from 'MainRoot/util/jsUtil';
 
 const NAME = 'componentDetails';

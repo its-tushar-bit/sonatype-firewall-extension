@@ -29,7 +29,7 @@ import {
   VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FULFILLED,
   VIOLATION_FETCH_APPLICABLE_AUTO_WAIVER_FAILED,
 } from 'MainRoot/violation/violationActions';
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 
 // Import SpecUtil for jasmine compatibility layer

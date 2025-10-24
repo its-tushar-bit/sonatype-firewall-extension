@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getLicensedSolutionsUrl } from '../../../util/CLMLocation';
 
 const REDUCER_NAME = 'solutionSwitcher';

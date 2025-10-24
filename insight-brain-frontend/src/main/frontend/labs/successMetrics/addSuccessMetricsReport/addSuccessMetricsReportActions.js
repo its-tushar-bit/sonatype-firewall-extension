@@ -7,7 +7,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import axios from 'axios';
 import { compose } from 'ramda';
 import { getApplicationsUrl, getOrganizationsUrl, getSuccessMetricsReportsUrl } from '../../../util/CLMLocation';
-import { Messages } from '../../../utilAngular/CommonServices';
+import { Messages } from '../../../util/CommonServices';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../../util/reduxUtil';
 

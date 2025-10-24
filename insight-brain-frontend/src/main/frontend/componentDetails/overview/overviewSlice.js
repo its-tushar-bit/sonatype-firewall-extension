@@ -14,7 +14,7 @@ import {
   getCreatePullRequestUrl,
 } from '../../util/CLMLocation';
 import { BASE_URL } from '../../util/urlUtil';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import {
   selectComponentDetailsRequestData,
   selectVersionExplorerRequestData,

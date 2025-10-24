@@ -7,7 +7,7 @@ import axios from 'axios';
 import { batch } from 'react-redux';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getApplicationsUrl, getOrganizationsUrl, getRepositoryManagerById } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { actions as ownerSideNavActions } from '../ownerSideNav/ownerSideNavSlice';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {

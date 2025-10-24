@@ -8,7 +8,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 import axios from 'axios';
 import { compose } from 'ramda';
 import { getLicenseUploadUrl } from '../../util/CLMLocation';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { getDaysFromNow } from '../../util/jsUtil';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';

@@ -17,7 +17,7 @@ import {
 import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import DashboardMask from '../dashboardMask/DashboardMask';
 import DashboardWaiverRequestsTableRow from './DashboardWaiverRequestsTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';

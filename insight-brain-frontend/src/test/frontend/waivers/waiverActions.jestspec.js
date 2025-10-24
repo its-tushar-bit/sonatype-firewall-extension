@@ -20,7 +20,7 @@ import {
   getRepositoryPolicyViolationUrl,
   getPolicyWaiverReasonsUrl,
 } from 'MainRoot/util/CLMLocation';
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import {
   deleteWaiver,
   hideDeleteWaiverModal,

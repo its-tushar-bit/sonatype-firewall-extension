@@ -13,7 +13,7 @@ import { validateZScalerHostName } from './utils/validators';
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
 import { getZScalerConfigUrl, getZScalerTestConfigUrl } from '../../util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
 const SUBMIT_MASK_DELETING_MESSAGE = 'Deleting';

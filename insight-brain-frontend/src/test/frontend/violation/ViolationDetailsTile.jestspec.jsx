@@ -7,7 +7,7 @@ import React from 'react';
 import { screen, render, fireEvent, within } from 'TestRoot/SpecUtil';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import ViolationDetailsTile from 'MainRoot/violation/ViolationDetailsTile';
-import * as commonServices from 'MainRoot/utilAngular/CommonServices';
+import * as commonServices from 'MainRoot/util/CommonServices';
 
 describe('ViolationDetailsTile', function () {
   let mockTimeAgo, stateGetMock, stateHrefMock, minimalProps, stateGoMock, goToWaiversMock, renderComponent;

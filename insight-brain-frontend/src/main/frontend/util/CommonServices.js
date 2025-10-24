@@ -3,9 +3,6 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { getBaseUrl } from '../util/urlUtil';
-
-var services = angular.module('CommonServices', []);
 
 export const Messages = {
   getHttpErrorMessage: function (args) {
@@ -159,43 +156,3 @@ function ElapsedTimeFunctionFactory(rules) {
     };
   };
 }
-
-services.service('BaseUrl', [
-  function () {
-    return {
-      get: () => getBaseUrl(window.location.href),
-    };
-  },
-]);
-
-services.service('ApplicationId', [
-  '$state',
-  function ($state) {
-    return {
-      encoded: function () {
-        var applicationPublicId = $state.params.applicationPublicId;
-        return applicationPublicId ? encodeURI(applicationPublicId) : null;
-      },
-      raw: function () {
-        return $state.params.applicationPublicId;
-      },
-    };
-  },
-]);
-
-services.service('OrganizationId', [
-  '$state',
-  function ($state) {
-    return {
-      encoded: function () {
-        var organizationId = $state.params.organizationId;
-        return organizationId ? encodeURI(organizationId) : null;
-      },
-      raw: function () {
-        return $state.params.organizationId;
-      },
-    };
-  },
-]);
-
-export default services;

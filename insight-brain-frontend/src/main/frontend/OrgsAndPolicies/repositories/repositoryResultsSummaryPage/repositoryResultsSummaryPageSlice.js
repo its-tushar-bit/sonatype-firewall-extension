@@ -8,7 +8,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getAuditReportSummary, getRepositoryInfoUrl, getRepositoryEvaluateUrl } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import { getRepositoryComponentsUrl } from 'MainRoot/util/CLMLocation';
 import {

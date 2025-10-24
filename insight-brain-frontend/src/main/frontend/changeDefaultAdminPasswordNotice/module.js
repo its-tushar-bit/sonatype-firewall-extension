@@ -4,13 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import changeDefaultAdminPasswordNotice from './changeDefaultAdminPasswordNotice';
-import telemetryServiceModule from '../services/telemetryService';
-import CLMLocationModule from '../util/CLMLocation';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 
 export default angular
-  .module('changeDefaultAdminPasswordNoticeModule', [telemetryServiceModule.name, CLMLocationModule.name])
+  .module('changeDefaultAdminPasswordNoticeModule', [])
   .component('changeDefaultAdminPasswordNotice', changeDefaultAdminPasswordNotice)
   .factory('userActions', userActions)
   .value('userReducer', userReducer);

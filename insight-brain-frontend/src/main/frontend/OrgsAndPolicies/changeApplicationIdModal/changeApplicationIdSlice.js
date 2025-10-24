@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { any } from 'ramda';
 import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
 import { validateNonEmpty, validateUsernameCharacters, validateMaxLength } from 'MainRoot/util/validationUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
 import { selectOwnerProperties, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';

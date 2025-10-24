@@ -17,7 +17,7 @@ import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectSelectedOwnerId, selectSelectedOwnerPublicId } from '../orgsAndPoliciesSelectors';
 import { selectImportSbomModalSlice, selectSelectedFile } from './importSbomModalSelectors';
 import { selectCurrentRouteName, selectRouterCurrentParams } from '../../reduxUiRouter/routerSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { validateMaxLength, validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
 import { actions as sbomTileActions } from 'MainRoot/OrgsAndPolicies/ownerSummary/sbomsTile/sbomsTileSlice';

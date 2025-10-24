@@ -39,7 +39,7 @@ import {
   validateEmailPatternMatch,
 } from 'MainRoot/util/validationUtil';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import {
   selectIsOrganization,
   selectIsRootOrganization,

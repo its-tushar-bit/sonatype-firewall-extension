@@ -29,8 +29,6 @@ import './mock.data/sidebar.resource.mock.data';
 import './assets/MockData';
 import customMatchers from './customMatchers';
 
-import '../../main/frontend/utilAngular/Globals';
-
 importAll(require.context('.', true, /(?<!(jest))[sS]pec.jsx?$/));
 
 // explicitly import all of our implementation code to ensure accurate code coverage numbers

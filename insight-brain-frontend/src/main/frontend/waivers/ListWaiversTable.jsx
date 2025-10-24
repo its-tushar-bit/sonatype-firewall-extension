@@ -18,7 +18,7 @@ import {
 } from '@sonatype/react-shared-components';
 import { violationDetailsPropTypes } from '../violation/ViolationDetailsTile';
 import { constraintViolationsPropType } from '../violation/PolicyViolationConstraintInfo';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 import { setWaiverToDelete } from 'MainRoot/waivers/waiverActions';
 import DeleteWaiverModalContainer from 'MainRoot/waivers/deleteWaiverModal/DeleteWaiverModalContainer';
 import { selectWaiverToDelete } from 'MainRoot/waivers/deleteWaiverModal/deleteWaiverSelector';

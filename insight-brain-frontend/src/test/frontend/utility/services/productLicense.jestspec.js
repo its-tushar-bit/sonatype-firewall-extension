@@ -3,10 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import ProductLicense, {
-  clearLoadedProductLicensePromise,
-  loadIfNotYetLoaded,
-} from 'MainRoot/utility/services/ProductLicense';
+import { clearLoadedProductLicensePromise, loadIfNotYetLoaded } from 'MainRoot/utility/services/ProductLicense';
 import * as authorizationUtil from 'MainRoot/util/authorizationUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { getLicenseDetailsUrl, getLicenseSummaryUrl } from 'MainRoot/util/CLMLocation';
@@ -185,24 +182,6 @@ describe('productLicense', () => {
 
         const response = await loadIfNotYetLoaded();
         expect(response).toEqual(expectedResponse);
-      });
-    });
-  });
-
-  describe('ProductLicense service', () => {
-    let load, productLicenseResponse;
-
-    beforeEach(() => {
-      authorizationUtil.getPermissions.mockReturnValue({ length: 1 });
-      axiosMock.onGet(licenseDetailsUrl).replyOnce(() => [200, productLicenseResponse]);
-
-      ({ load: load } = ProductLicense());
-    });
-
-    describe('load is called', () => {
-      it(`calls loadIfNotYetLoaded and returns response`, async () => {
-        productLicenseResponse = { expected: 123 };
-        expect(await load()).toEqual(productLicenseResponse);
       });
     });
   });

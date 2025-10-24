@@ -19,7 +19,7 @@ import DashboardMask from '../dashboardMask/DashboardMask';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { equals, prop } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import DashboardWaiversTableRow from './DashboardWaiversTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 

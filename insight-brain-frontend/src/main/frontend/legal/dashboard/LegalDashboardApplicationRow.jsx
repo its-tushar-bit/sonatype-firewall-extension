@@ -8,7 +8,7 @@ import { NxTableCell, NxTableRow } from '@sonatype/react-shared-components';
 import { join } from 'ramda';
 import * as PropTypes from 'prop-types';
 import { applicationPropType } from '../advancedLegalPropTypes';
-import { terseAgo } from '../../utilAngular/CommonServices';
+import { terseAgo } from '../../util/CommonServices';
 import LegalBinaryDonutChart from '../shared/LegalBinaryDonutChart';
 import { LEGAL_PARENT_ROUTE, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 

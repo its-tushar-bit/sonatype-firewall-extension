@@ -5,7 +5,7 @@
  */
 
 import { createReducerFromActionMap, propSetConst } from '../../util/reduxUtil';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE } from '../obligation/advancedLegalObligationActions';
 import {
   ORIGINAL_SOURCES_OVERRIDE_FAILED,

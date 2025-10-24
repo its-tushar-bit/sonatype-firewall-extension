@@ -6,7 +6,7 @@
 import React from 'react';
 import NotificationsMenu from 'MainRoot/mainHeader/MenuBar/NotificationsMenu/NotificationsMenu';
 import { screen, render, fireEvent, within } from 'TestRoot/SpecUtil';
-import { timeAgo } from 'MainRoot/utilAngular/CommonServices';
+import { timeAgo } from 'MainRoot/util/CommonServices';
 
 describe('NotificationsMenu', () => {
   let renderComponent,

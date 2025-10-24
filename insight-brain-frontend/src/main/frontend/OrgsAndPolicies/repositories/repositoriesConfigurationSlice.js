@@ -13,7 +13,7 @@ import {
   getRepositoryManagerUrl,
 } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import {
   selectDeleteModalInfo,
   selectEditRepositoryManagerNameModalInfo,

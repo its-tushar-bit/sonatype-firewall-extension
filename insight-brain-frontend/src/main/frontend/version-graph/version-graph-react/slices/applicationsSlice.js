@@ -8,7 +8,7 @@ import { findIndex, map, pipe, prop, propEq, sortBy, toLower, toPairs } from 'ra
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 
 import { fetchComponentData } from './componentsSlice';
-import { getApplicationNamesUrl } from 'MainRoot/util/CLMLocationNoAngular';
+import { getApplicationNamesUrl } from 'MainRoot/util/CLMLocation';
 
 const NAME = 'applications';
 

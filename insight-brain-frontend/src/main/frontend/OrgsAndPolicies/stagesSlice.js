@@ -7,7 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { fromPairs, keys, map, pair, path, __ } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getDashboardStageUrl, getActionStageUrl, getCliStageUrl, getSbomStageUrl } from 'MainRoot/util/CLMLocation';
 
 const REDUCER_NAME = 'stages';

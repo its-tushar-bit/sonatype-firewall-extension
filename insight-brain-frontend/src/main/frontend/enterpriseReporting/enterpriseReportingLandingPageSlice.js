@@ -8,7 +8,7 @@ import axios from 'axios';
 import { applySpec, path, prop, compose, nth } from 'ramda';
 
 import { getEnterpriseReportingDashboardsUrl, getIqVersion } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 
 const REDUCER_NAME = 'enterpriseReportingLandingPage';

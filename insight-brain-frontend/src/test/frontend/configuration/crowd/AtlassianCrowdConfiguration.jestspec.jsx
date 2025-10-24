@@ -10,7 +10,7 @@ import AtlassianCrowdConfiguration from 'MainRoot/configuration/crowd/AtlassianC
 import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as atlassianCrowdConfigurationSelectors from 'MainRoot/configuration/crowd/atlassianCrowdConfigurationSelectors';
 import { getCrowdConfigurationTestUrl, getCrowdConfigurationUrl } from 'MainRoot/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 
 describe('AtlassianCrowdConfiguration', () => {
   let renderComponent;

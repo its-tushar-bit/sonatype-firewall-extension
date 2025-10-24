@@ -14,7 +14,7 @@ import {
   getLicensesWithSyntheticFilterUrl,
   getSaveLegalFileUrl,
 } from '../../util/CLMLocation';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { isScopeOverride } from '../legalUtility';
 import { saveObligation } from '../obligation/advancedLegalObligationActions';

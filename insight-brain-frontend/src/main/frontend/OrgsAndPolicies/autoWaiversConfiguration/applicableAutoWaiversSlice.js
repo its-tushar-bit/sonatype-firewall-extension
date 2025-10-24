@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicableAutoWaiversURL, getAutoWaiversConfigurationURLWaiver } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { selectSelectedOwnerTypeAndId } from '../orgsAndPoliciesSelectors';

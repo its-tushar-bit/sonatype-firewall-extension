@@ -6,7 +6,7 @@
 import { defaultTo, map, pipe, prop } from 'ramda';
 import axios from 'axios';
 
-import { getComponentDetailsUrl, getApplicationNamesUrl } from 'MainRoot/util/CLMLocationNoAngular';
+import { getComponentDetailsUrl, getApplicationNamesUrl } from 'MainRoot/util/CLMLocation';
 
 import { transformPolicyAlerts } from '../utils/policyUtils';
 import { processSecurityVulnerabilities } from '../utils/securityUtils';

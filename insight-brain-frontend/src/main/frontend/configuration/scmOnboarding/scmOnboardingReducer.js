@@ -39,7 +39,7 @@ import { propSet } from 'MainRoot/util/jsUtil';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import ownerConstant from 'MainRoot/utility/services/owner.constant';
 import { valueFromHierarchy, tokenForOrg } from './utils/providers';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const initialState = {
   permissionsState: {

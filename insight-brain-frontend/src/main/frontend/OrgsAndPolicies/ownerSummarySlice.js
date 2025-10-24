@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';

@@ -9,7 +9,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { getSuccessMetricsConfigUrl } from '../../util/CLMLocation';
 
 export const SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED = 'SUCCESS_METRICS_CONFIGURATION_LOAD_REQUESTED';

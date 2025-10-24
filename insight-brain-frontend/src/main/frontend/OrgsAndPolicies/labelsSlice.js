@@ -8,7 +8,7 @@ import { prop, curryN, isEmpty, isNil, any, reject, propEq, find, findIndex, equ
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
 import { selectRouterSlice, selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicableLabelsUrl, getLabelsUrl, getDeleteLabelsUrl } from 'MainRoot/util/CLMLocation';
 import { pathSet, propSet } from 'MainRoot/util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';

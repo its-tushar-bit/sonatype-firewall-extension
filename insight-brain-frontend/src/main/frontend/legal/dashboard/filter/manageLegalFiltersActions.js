@@ -8,7 +8,7 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../../util/reduxUtil';
 import { getLegalDashboardDeleteFilterUrl, getLegalDashboardSavedFilters } from '../../../util/CLMLocation';
-import { Messages } from '../../../utilAngular/CommonServices';
+import { Messages } from '../../../util/CommonServices';
 import { LEGAL_DASHBOARD_SET_DISPLAY_SAVE_FILTER_MODAL } from './legalDashboardFilterActions';
 import { filterToJson } from './legalDashboardFilterService';
 

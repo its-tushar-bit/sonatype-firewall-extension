@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { NxTable, NxIndeterminatePagination, NxTableContainer } from '@sonatype/react-shared-components';
 import { equals } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import DashboardWaiversTableRow, { waiverPropTypes } from './DashboardWaiversTableRow';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 

@@ -9,7 +9,7 @@ import {
   getValidPermissions,
   isFeatureEnabled,
 } from 'MainRoot/util/permissionService';
-import { getPermissionContextTestUrl, getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl, getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 import { getProductFeaturesUrl } from 'MainRoot/util/CLMLocation';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 

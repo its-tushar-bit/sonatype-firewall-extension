@@ -24,7 +24,7 @@ import {
   removeLabel,
 } from '../util/CLMLocation';
 import { selectComponentDetailsRequestData } from './overview/overviewSelectors';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 import { toggleBooleanProp } from '../util/reduxUtil';
 import { processOwnerHierarchy } from 'MainRoot/util/hierarchyUtil';
 import { pathSet, pathSetConst, propSet } from 'MainRoot/util/reduxToolkitUtil';

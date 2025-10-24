@@ -24,7 +24,7 @@ import {
   selectIsRepositoryContainer,
   selectIsRepositoryManager,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'orgsAndPolicies';
 

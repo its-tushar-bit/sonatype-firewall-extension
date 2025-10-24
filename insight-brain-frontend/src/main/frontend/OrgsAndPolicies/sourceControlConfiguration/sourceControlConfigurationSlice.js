@@ -13,7 +13,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import axios from 'axios';
 import { selectIsApplication, selectIsRootOrganization } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import {
   compositeSourceControlToModel,
   getDataFromSourceControl,

@@ -14,7 +14,7 @@ import {
   getRepositoryInfoUrl,
 } from 'MainRoot/util/CLMLocation';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 import selectContainerRepositoryResultsPage from './containerRepositoryResultsPageSelectors';
 

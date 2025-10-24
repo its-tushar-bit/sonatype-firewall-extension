@@ -6,7 +6,7 @@
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { curryN, pick, prop } from 'ramda';
 import { pathSet } from 'MainRoot/util/jsUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getConfigurationUrl } from 'MainRoot/util/CLMLocation';

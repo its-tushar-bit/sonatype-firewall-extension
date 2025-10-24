@@ -8,7 +8,7 @@ import * as R from 'ramda';
 import { axiosMockAdapter, render, waitFor, screen } from 'TestRoot/SpecUtil';
 import RoiConfigurationPage from 'MainRoot/configuration/roiConfiguration/RoiConfigurationPage';
 
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import { getRoiConfigurationUrl } from 'MainRoot/util/CLMLocation';
 
 describe('roiConfigurationPage', () => {

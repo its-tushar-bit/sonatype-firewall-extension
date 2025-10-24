@@ -8,7 +8,7 @@ import axios from 'axios';
 import { isNil, keys, propEq } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getCreatePullRequestUrl, getPrioritiesPageTableData, getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectPrioritiesPageSlice } from 'MainRoot/development/prioritiesPage/selectors/prioritiesPageSelectors';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';

@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { selectOwnerTypeAndOwnerId } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryConfigurationModalSelectors';
 import axios from 'axios';
 import { getArtifactoryConnectionUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectFormState } from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryBaseConfigurationsSelectors';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import {

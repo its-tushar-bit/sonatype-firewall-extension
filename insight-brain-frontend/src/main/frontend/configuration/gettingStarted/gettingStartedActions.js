@@ -8,7 +8,7 @@ import { compose } from 'ramda';
 
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { getIsHdsReachable } from '../../util/CLMLocation';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { getPermissions } from '../../util/authorizationUtil';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
 

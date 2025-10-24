@@ -16,7 +16,7 @@ import {
 import { payloadParamActionCreator } from '../../util/reduxUtil';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { find, pick, propEq } from 'ramda';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { isScopeOverride } from '../legalUtility';
 import { OBLIGATION_STATUS_OPEN } from '../advancedLegalConstants';
 

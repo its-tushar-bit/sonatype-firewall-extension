@@ -10,7 +10,7 @@ import * as R from 'ramda';
 
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getRoiConfigurationUrl, getRoiConfigurationRestoreDefaultsUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 import { selectEditRoiConfigurationPageSlice } from './editRoiConfigurationPageSelectors';
 

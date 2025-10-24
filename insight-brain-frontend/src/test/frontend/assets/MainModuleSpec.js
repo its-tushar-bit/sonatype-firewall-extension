@@ -8,6 +8,8 @@ import * as RouteProductLicenseValidator from 'MainRoot/routeProductLicenseValid
 import { axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
 import * as userSession from 'MainRoot/user/userSession';
 import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
+import * as ProductLicense from 'MainRoot/utility/services/ProductLicense';
+import { getSessionUrl } from 'MainRoot/util/CLMLocation';
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
@@ -62,13 +64,13 @@ describe('mainModuleSpec', function () {
     });
   });
 
-  beforeEach(inject(function ($q, $rootScope, _$ngRedux_, _ProductLicense_) {
+  beforeEach(inject(function ($q, $rootScope, _$ngRedux_) {
     scope = $rootScope.$new();
     $ngRedux = _$ngRedux_;
     $ngRedux.dispatch = jasmine.createSpy('dispatch').and.returnValue({ payload: [] });
 
     productLicenseLoadDefer = $q.defer();
-    _ProductLicense_.load = jasmine.createSpy('load').and.returnValue(productLicenseLoadDefer.promise);
+    spyOn(ProductLicense, 'loadIfNotYetLoaded').and.returnValue(productLicenseLoadDefer.promise);
 
     spyOn(RouteProductLicenseValidator, 'default').and.returnValue(true);
   }));
@@ -87,7 +89,7 @@ describe('mainModuleSpec', function () {
     }));
 
     describe('Validates requests made', function () {
-      let $rootScope, $state, $window, CLMLocations, initService;
+      let $rootScope, $state, $window, initService;
 
       beforeEach(function () {
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
@@ -102,8 +104,7 @@ describe('mainModuleSpec', function () {
         });
       });
 
-      beforeEach(inject(function (_CLMLocations_, _initService_, _$rootScope_, _$window_, _$state_) {
-        CLMLocations = _CLMLocations_;
+      beforeEach(inject(function (_initService_, _$rootScope_, _$window_, _$state_) {
         initService = _initService_;
         $rootScope = _$rootScope_;
         $window = _$window_;
@@ -113,7 +114,7 @@ describe('mainModuleSpec', function () {
       it('validate state after all requests succeed', async function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.$digest();
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
         productLicenseLoadDefer.resolve({});
 
         initService.start();
@@ -132,7 +133,7 @@ describe('mainModuleSpec', function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.$digest();
         productLicenseLoadDefer.reject({ response: { status: 402 } });
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -151,7 +152,7 @@ describe('mainModuleSpec', function () {
         $rootScope.error = undefined;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(500);
+        axiosMock.onGet(getSessionUrl()).reply(500);
 
         initService.start();
 
@@ -172,7 +173,7 @@ describe('mainModuleSpec', function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.error = undefined;
         $rootScope.$digest();
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -195,7 +196,7 @@ describe('mainModuleSpec', function () {
         $rootScope.error = undefined;
         $rootScope.$digest();
         const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -218,7 +219,7 @@ describe('mainModuleSpec', function () {
         $rootScope.$digest();
         const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(403, errorMsg);
+        axiosMock.onGet(getSessionUrl()).reply(403, errorMsg);
 
         initService.start();
 
@@ -238,7 +239,7 @@ describe('mainModuleSpec', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -268,7 +269,7 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -301,7 +302,7 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -333,7 +334,7 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -366,7 +367,7 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -384,7 +385,7 @@ describe('mainModuleSpec', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
@@ -401,15 +402,7 @@ describe('mainModuleSpec', function () {
     describe('on beforeunload event', function () {
       let $window, $rootScope, initService, $state;
 
-      beforeEach(inject(function (
-        _$httpBackend_,
-        CLMLocations,
-        _$window_,
-        _$rootScope_,
-        _$ngRedux_,
-        _initService_,
-        _$state_
-      ) {
+      beforeEach(inject(function (_$httpBackend_, _$window_, _$rootScope_, _$ngRedux_, _initService_, _$state_) {
         $window = _$window_;
         $rootScope = _$rootScope_;
         $ngRedux = _$ngRedux_;
@@ -432,7 +425,7 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.isAllowExternalHyperlinks = true;
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
       }));
 
       it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted', async function () {
@@ -456,11 +449,10 @@ describe('mainModuleSpec', function () {
   });
 
   describe('pendoService calls', function () {
-    let initService, CLMLocations, $rootScope;
+    let initService, $rootScope;
 
-    beforeEach(inject(function (_initService_, _CLMLocations_, _$rootScope_) {
+    beforeEach(inject(function (_initService_, _$rootScope_) {
       initService = _initService_;
-      CLMLocations = _CLMLocations_;
       $rootScope = _$rootScope_;
     }));
 
@@ -468,7 +460,7 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
@@ -480,7 +472,7 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
@@ -495,7 +487,7 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.reject({ response: { status: 402 } });
-      axiosMock.onGet(CLMLocations.getSessionUrl()).reply(200, { username: 'myname' });
+      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
@@ -510,7 +502,7 @@ describe('mainModuleSpec', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(CLMLocations.getSessionUrl()).replyOnce(401);
+      axiosMock.onGet(getSessionUrl()).replyOnce(401);
 
       initService.start();
 

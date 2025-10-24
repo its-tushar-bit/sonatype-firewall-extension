@@ -9,7 +9,7 @@ import { equals, isEmpty, omit, reject, clone, dissoc, propEq, curry } from 'ram
 import debounce from 'debounce';
 
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getOwnerListUrl } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH, stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { actions as repositoriesActions } from 'MainRoot/OrgsAndPolicies/repositories/repositoriesConfigurationSlice';

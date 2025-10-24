@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { always, compose, cond, equals, findIndex, includes, is, T, trim, values, when, without } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getSbomApplicationsUrl } from 'MainRoot/util/CLMLocation';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { selectSbomApplicationsTable } from './sbomApplicationsTableSelectors';

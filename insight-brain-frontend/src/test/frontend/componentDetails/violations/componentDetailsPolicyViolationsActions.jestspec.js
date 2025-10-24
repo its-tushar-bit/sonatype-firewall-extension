@@ -12,7 +12,7 @@ import {
   getReportPolicyThreatsUrl,
 } from '../../../../main/frontend/util/CLMLocation';
 import { omit } from 'ramda';
-import { getPermissionContextTestUrl } from '../../../../main/frontend/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from '../../../../main/frontend/util/CLMContextLocation';
 
 // Import SpecUtil for jasmine compatibility layer
 import 'TestRoot/SpecUtil';

@@ -6,7 +6,7 @@
 
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { deriveEditRoute, deriveViewRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { pathSet, propSet, eqValues } from 'MainRoot/util/jsUtil';

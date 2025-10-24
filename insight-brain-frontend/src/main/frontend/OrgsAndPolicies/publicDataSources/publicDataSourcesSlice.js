@@ -8,7 +8,7 @@ import { selectOwnerProperties, selectSelectedOwnerId } from 'MainRoot/OrgsAndPo
 import { getCpeConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import axios from 'axios';
 import { equals, prop } from 'ramda';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 

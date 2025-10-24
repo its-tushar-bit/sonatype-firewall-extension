@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getAutoWaiverExclusionsUrl } from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectApplicableAutoWaiver, selectViolationDetails } from 'MainRoot/violation/violationSelectors';

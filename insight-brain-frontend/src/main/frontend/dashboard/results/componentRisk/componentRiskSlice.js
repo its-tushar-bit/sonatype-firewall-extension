@@ -8,7 +8,7 @@ import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getComponentRiskDetailsUrl, getComponentNameUrl } from 'MainRoot/util/CLMLocation';
 import { getComponentName } from 'MainRoot/util/componentNameUtils';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { setAppRiskAndSortViolationsByThreat } from './componentRiskUtils';
 import { prop } from 'ramda';
 

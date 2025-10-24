@@ -14,7 +14,7 @@ import {
 } from '../../util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { checkPermissions } from '../../util/authorizationUtil';
 
 export const EDIT_WEBHOOK_LOAD_REQUESTED = 'EDIT_WEBHOOK_LOAD_REQUESTED';

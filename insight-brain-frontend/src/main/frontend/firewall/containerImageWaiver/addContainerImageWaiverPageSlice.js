@@ -22,7 +22,7 @@ import {
   pathOr,
 } from 'ramda';
 import { getActiveViolationsWithActionFailUrl, getAddContainerImagePolicyWaiverUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import {
   nxDateInputStateHelpers,
   nxTextInputStateHelpers,

@@ -5,7 +5,7 @@
  */
 import { any, compose, curryN, map, pick, prop } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { validateNonEmpty } from 'MainRoot/util/validationUtil';
 import { pathSet } from 'MainRoot/util/jsUtil';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';

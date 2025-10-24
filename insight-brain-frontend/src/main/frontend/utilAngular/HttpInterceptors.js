@@ -3,11 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import CLMLocationModule from '../util/CLMLocation';
-import utilityServicesModule from '../utility/services/utility.services.module';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 
-import isIqIframe from './isIqFrame';
+import isIqIframe from '../util/isIqFrame';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 export var httpInterceptors = angular.module('HttpInterceptors', []);
@@ -77,13 +75,7 @@ httpInterceptors.config([
 // ui.bootstrap (for $modal) has a dependency on $http, therefore putting modal code in an http interceptor
 // creates a circular dependency
 export var unauthenticatedResponseHttpInterceptor = angular
-  .module('UnauthenticatedResponseHttpInterceptor', [
-    httpInterceptors.name,
-    //'ui.bootstrap',
-    CLMLocationModule.name,
-    utilityServicesModule.name,
-    loginModalModule.name,
-  ])
+  .module('UnauthenticatedResponseHttpInterceptor', [httpInterceptors.name, loginModalModule.name])
   .run([
     '$rootScope',
     '$q',

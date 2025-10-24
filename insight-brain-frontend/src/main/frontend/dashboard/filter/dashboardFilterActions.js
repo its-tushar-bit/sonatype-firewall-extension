@@ -19,7 +19,7 @@ import {
 } from '../../util/CLMLocation';
 import { filterToJson } from './dashboardFilterService';
 import defaultFilter from './defaultFilter';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { actions as waiverActions } from 'MainRoot/waivers/waiverSlice';
 
 export const LOAD_FILTER_REQUESTED = 'LOAD_FILTER_REQUESTED';

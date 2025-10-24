@@ -7,7 +7,7 @@ import React from 'react';
 import * as PropTypes from 'prop-types';
 import { NxLoadWrapper } from '@sonatype/react-shared-components';
 
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 
 /**
  * A wrapper component that renders either a loading spinner, an error message, or if neither of those apply,

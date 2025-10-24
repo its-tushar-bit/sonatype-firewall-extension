@@ -5,7 +5,7 @@
  */
 
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getSastScanUrl } from 'MainRoot/util/CLMLocation';
 import axios from 'axios';
 

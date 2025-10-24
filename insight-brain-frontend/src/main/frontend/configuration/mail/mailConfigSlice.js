@@ -19,7 +19,7 @@ import {
 import { pathSet } from '../../util/jsUtil';
 import { propSet, propSetConst } from '../../util/reduxToolkitUtil';
 import { getMailConfigUrl, getTestMailUrl, getFipsStatusUrl } from '../../util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const SUBMIT_MASK_SAVING_MESSAGE = 'Saving';
 const SUBMIT_MASK_SENDING_TEST_MAIL_MESSAGE = 'Sending Test Email';

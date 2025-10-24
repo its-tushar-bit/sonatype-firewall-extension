@@ -8,7 +8,7 @@ import React from 'react';
 import { render, waitFor, fireEvent, screen, axiosMockAdapter, within } from '../../SpecUtil';
 import SuccessMetricsConfiguration from 'MainRoot/configuration/successMetricsConfiguration/SuccessMetricsConfiguration';
 import { getSuccessMetricsConfigUrl } from 'MainRoot/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 
 describe('SuccessMetricsConfigurationSpec', () => {
   const selectValidationErrorVisibility = 'form.nx-form--show-validation-errors';

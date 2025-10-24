@@ -5,7 +5,7 @@
  */
 import { always, curry, lensPath, lensProp, set } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 /*
  * like `./jsUtil.js#propSet` but is meant to be partially applied in 2 args.
  * The payload is ignored and is only an argument to conform to the interface needed by reducerActionMap

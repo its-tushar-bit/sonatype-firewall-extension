@@ -33,7 +33,7 @@ import {
 } from '../../util/CLMLocation';
 import { selectRouterCurrentParams, selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectIsEditMode, selectCurrentCategory } from './createEditApplicationCategoriesSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet, propSet } from '../../util/jsUtil';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';

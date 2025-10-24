@@ -11,7 +11,7 @@ import { axiosMockAdapter, render, waitFor, screen } from 'TestRoot/SpecUtil';
 import EditRoiConfigurationPage from 'MainRoot/configuration/editRoiConfiguration/EditRoiConfigurationPage';
 import { instantiateNumericState } from 'MainRoot/configuration/editRoiConfiguration/editRoiConfigurationPageSlice';
 
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import { getRoiConfigurationUrl } from 'MainRoot/util/CLMLocation';
 
 describe('editRoiConfigurationPage', () => {

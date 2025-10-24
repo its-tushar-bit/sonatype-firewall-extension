@@ -7,7 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { always, ascend, cond, descend, equals, findIndex, inc, prop, sortWith, T, values } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { getRecentlyImportedSbomsUrl } from 'MainRoot/util/CLMLocation';
 

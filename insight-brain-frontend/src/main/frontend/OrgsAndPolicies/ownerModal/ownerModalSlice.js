@@ -18,7 +18,7 @@ import {
   validateMaxLength,
   validateDoubleWhitespace,
 } from 'MainRoot/util/validationUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';

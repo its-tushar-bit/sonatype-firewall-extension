@@ -11,7 +11,7 @@ import { selectCreatePRModal } from 'MainRoot/manualPullRequest/createPRModalSel
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectApplicationReportMetaData } from 'MainRoot/applicationReport/applicationReportSelectors';
 import { getCreatePullRequestUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 export const CREATE_PR_MODAL_REDUCER_NAME = 'createPRModal';
 

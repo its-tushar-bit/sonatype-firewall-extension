@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { NxH1, NxPageTitle, NxLoadWrapper, NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
-import { getOwnerImageUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getOwnerImageUrl } from 'MainRoot/util/CLMContextLocation';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
 import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';

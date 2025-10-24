@@ -11,7 +11,7 @@ import { categoryByPolicyThreatLevel } from '@sonatype/react-shared-components/u
 import { NxH2, NxH3, NxPolicyViolationIndicator, NxTextLink, NxTile } from '@sonatype/react-shared-components';
 
 import ActiveWaiversIndicator from 'MainRoot/violation/ActiveWaiversIndicator';
-import { timeAgo } from '../utilAngular/CommonServices';
+import { timeAgo } from '../util/CommonServices';
 import { capitalizeFirstLetter } from '../util/jsUtil';
 import ViolationDetailsSubtitle from './ViolationDetailsSubtitle';
 import StageDisplay from './StageDisplay';

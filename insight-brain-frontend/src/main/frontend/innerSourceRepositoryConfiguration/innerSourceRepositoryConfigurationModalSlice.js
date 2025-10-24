@@ -9,7 +9,7 @@ import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@s
 import { always, compose, curryN } from 'ramda';
 import axios from 'axios';
 import { getRepositoryConnectionUrl, getTestRepositoryConnectionUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 import {
   selectFormState,

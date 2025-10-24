@@ -5,8 +5,7 @@
  */
 
 import loginModalModule from 'MainRoot/user/LoginModal/module';
-import * as isIqIframeUtil from 'MainRoot/utilAngular/isIqFrame';
-import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
+import * as isIqIframeUtil from 'MainRoot/util/isIqFrame';
 import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, clearRequests, getRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
@@ -32,7 +31,7 @@ describe('axiosConfig', () => {
   describe('attachAxiosInterceptors', () => {
     let $rootScope, $window, loginModalService, attachInterceptors;
     beforeEach(
-      angular.mock.module(utilityServicesModule.name, loginModalModule.name, function ($provide) {
+      angular.mock.module(loginModalModule.name, function ($provide) {
         mockSessionExpired = jasmine.createSpy('mockSessionExpired');
         const $window = {
           location: {

@@ -5,8 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import CLMLocationsModule from '../util/CLMLocation';
-import utilityModule from '../utility/utility.module';
 import selectedComponentServiceModule from '../services/selectedComponentService';
 import waiversModule from '../waivers/module';
 
@@ -20,13 +18,7 @@ import applicationReportVulnerabilities from './vulnerabilities/ApplicationRepor
 import ApplicationReportRawDataContainer from './rawData/ApplicationReportRawDataContainer';
 
 export default angular
-  .module('applicationReportModule', [
-    CLMLocationsModule.name,
-    utilityModule.name,
-    selectedComponentServiceModule.name,
-    waiversModule.name,
-    'ngRedux',
-  ])
+  .module('applicationReportModule', ['ui.router', selectedComponentServiceModule.name, waiversModule.name, 'ngRedux'])
   .component('applicationReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
   .component('applicationReportRoot', applicationReportRoot)
   .component('bulkWaive', iqReact2Angular(BulkWaivePage, [], ['$ngRedux', '$state']))

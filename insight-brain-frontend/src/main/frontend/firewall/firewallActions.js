@@ -29,7 +29,7 @@ import {
   getFirewallContainerQuarantineListUrl,
   getFirewallContainerWaiverListUrl,
 } from '../util/CLMLocation';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
 import { actions as componentDetailsLicenseDetectionsTileActions } from 'MainRoot/componentDetails/ComponentDetailsLegalTab/LicenseDetectionsTile/licenseDetectionsTileSlice';
 import { selectRepositoryId, selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';

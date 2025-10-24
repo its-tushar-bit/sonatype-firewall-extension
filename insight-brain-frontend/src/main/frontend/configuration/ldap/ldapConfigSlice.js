@@ -7,7 +7,7 @@ import axios from 'axios';
 import { nxTextInputStateHelpers, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { compose, clone, always, curryN, pick, any, complement, eqProps, __, omit, isNil } from 'ramda';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { isNilOrEmpty, pathSet } from '../../util/jsUtil';
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import {

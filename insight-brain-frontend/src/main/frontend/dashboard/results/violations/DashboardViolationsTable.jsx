@@ -18,7 +18,7 @@ import { equals } from 'ramda';
 
 import DashboardViolationsTableRow, { violationPropTypes } from './DashboardViolationsTableRow';
 import { extractSortFieldName } from '../../../util/sortUtils';
-import { Messages } from '../../../utilAngular/CommonServices';
+import { Messages } from '../../../util/CommonServices';
 import NeedsAcknowledgementInfoRow from '../NeedsAcknowledgementInfoRow';
 import { isNilOrEmpty } from '../../../util/jsUtil';
 

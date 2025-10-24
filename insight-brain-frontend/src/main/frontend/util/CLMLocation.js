@@ -20,20 +20,8 @@ import {
   toPairs,
 } from 'ramda';
 
-import commonServicesModule from '../utilAngular/CommonServices';
-import { toURIParams, uriTemplate } from './urlUtil';
+import { BASE_URL, toURIParams, uriTemplate } from './urlUtil';
 import { isNilOrEmpty } from './jsUtil';
-
-import { getUserTelemetryConfig, getUserTelemetryJavascript, getUserTelemetryProxy } from './CLMLocationNoAngular';
-
-export {
-  getComponentDetailsUrl,
-  getApplicationNamesUrl,
-  getVersionGraphUrl,
-  getUserTelemetryConfig,
-  getUserTelemetryJavascript,
-  getUserTelemetryProxy,
-} from './CLMLocationNoAngular';
 
 /**
  * Generates the url to fetch the vulnerability details of a given refId.
@@ -1740,281 +1728,85 @@ export function getDeleteContainerImagePolicyWaiverUrl(containerImageId) {
 
 export const getFipsStatusUrl = () => uriTemplate`/rest/security/fipsMode`;
 
-export default angular.module('CLMLocation', [commonServicesModule.name]).factory('CLMLocations', [
-  'BaseUrl',
-  '$window',
-  function (baseUrl, $window) {
-    return {
-      getLicensesUrl: function () {
-        return baseUrl.get() + '/rest/license';
-      },
-
-      getConditionTypeUrl,
-      getActionStageUrl,
-      getDashboardStageUrl,
-      getCliStageUrl,
-      getApplicationsUrl,
-
-      getApplicationUrl: function (applicationPublicId) {
-        return baseUrl.get() + '/rest/application/' + encodeURIComponent(applicationPublicId);
-      },
-
-      getApplicationSummariesUrl,
-
-      getApplicationSummaryUrl,
-
-      getOrganizationsUrl,
-
-      getApplicationReportsUrl,
-
-      getLicenseSummaryUrl,
-      getLicenseDetailsUrl,
-
-      getLicenseUploadUrl,
-
-      evaluatePolicyUrl: function (applicationPublicId, scanId) {
-        return baseUrl.get() + '/rest/policy/' + encodeURIComponent(applicationPublicId) + '/evaluate?scanId=' + scanId;
-      },
-
-      getUserTelemetryConfig,
-
-      getUserTelemetryJavascript,
-
-      getUserTelemetryProxy,
-
-      getProprietaryConfig: function () {
-        return baseUrl.get() + '/rest/config/proprietary';
-      },
-
-      getLdapPriority,
-
-      getReportUrl: (applicationPublicId, scanId) =>
-        getBaseReportUrl(applicationPublicId, scanId) + '/browseReport/index.html',
-
-      getSessionUrl,
-
-      getSessionLogoutUrl,
-
-      getUserUrl,
-
-      getRoleByIdUrl,
-
-      getRoleForNewUrl,
-
-      getRoleListUrl,
-
-      getPermissionUrl: function () {
-        return baseUrl.get() + '/rest/user/permissions';
-      },
-
-      getChangeMyPasswordUrl: function () {
-        return baseUrl.get() + '/rest/user/password';
-      },
-
-      getChangePasswordUrl: function (userId) {
-        return baseUrl.get() + '/rest/user/' + userId + '/password';
-      },
-
-      getReportMetadataUrl: (applicationPublicId, scanId) =>
-        getBaseReportUrl(applicationPublicId, scanId) + '/metadata',
-
-      getBundleUploadUrl: function (applicationPublicId, stageId, sendNotifications) {
-        return (
-          baseUrl.get() +
-          '/rest/scan/' +
-          encodeURIComponent(applicationPublicId) +
-          '?stageId=' +
-          stageId +
-          '&sendNotifications=' +
-          sendNotifications +
-          (!$window.FormData ? '&noFormData=true' : '')
-        );
-      },
-
-      getEvaluationStatusUrl: function (applicationPublicId, ticketId) {
-        return baseUrl.get() + '/rest/scan/' + encodeURIComponent(applicationPublicId) + '/' + ticketId;
-      },
-
-      getOrganizationAppliedTagUrl: function (organizationId) {
-        return this.getCategoriesUrl('organization', organizationId) + '/applied';
-      },
-      getCategoriesUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + '/api/v2/applicationCategories/' + ownerType + '/' + encodeURIComponent(ownerId);
-      },
-
-      getApplicationTagUrl: function (applicationPublicId) {
-        return baseUrl.get() + '/rest/appliedTag/application/' + encodeURIComponent(applicationPublicId);
-      },
-      getApplicableOrganizationTags: function (applicationPublicId) {
-        return (
-          baseUrl.get() +
-          '/api/v2/applicationCategories/application/' +
-          encodeURIComponent(applicationPublicId) +
-          '/applicable'
-        );
-      },
-
-      getProductFeaturesUrl,
-
-      getEnableUnauthenticatedPages,
-
-      getEnableSsoOnly,
-
-      getQuarantinedComponentViewAnonymousAccessEnabledState,
-
-      getComponentRisksUrl,
-
-      getComponentRisksExportUrl,
-
-      getApplicationRisksUrl,
-
-      getApplicationRisksExportUrl,
-
-      getNewestRisksUrl,
-
-      getNewestRisksExportUrl,
-
-      getApplicationTagsUrl,
-
-      getDashboardFilters,
-
-      getDashboardSavedFilters,
-
-      getDashboardComponentMatchSummaryUrl: function () {
-        return baseUrl.get() + '/rest/dashboard/components/summary';
-      },
-
-      getComponentDetailsUrl: getComponentRiskDetailsUrl,
-
-      getComponentNameUrl,
-
-      getNotificationUrl,
-
-      getNotificationViewedUrl,
-
-      /**
-       * @Since 1.17
-       */
-      getAuditReportSummary: function (repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + encodeURIComponent(repositoryId) + '/report/summary';
-      },
-
-      /**
-       * @Since 1.18
-       */
-      getRootOrganizationConfigMigrationUrl: function (organizationId) {
-        return baseUrl.get() + '/rest/migrate/root' + (organizationId ? '/' + organizationId : '');
-      },
-
-      /**
-       * @since 1.18
-       */
-      getRepositoryReportUrl: function (repositoryId) {
-        return baseUrl.get() + '/assets/audit-report/index.html?repositoryId=' + repositoryId;
-      },
-
-      /**
-       * @since 1.18
-       */
-      getRepositoryInfoUrl: function (repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + repositoryId;
-      },
-
-      /**
-       * @since 1.18
-       */
-      getRepositoryEvaluateUrl: function (repositoryId) {
-        return baseUrl.get() + '/rest/repositories/' + repositoryId + '/evaluate';
-      },
-
-      /**
-       * @since 1.19.0
-       */
-      getRepositoriesUrl,
-
-      /**
-       * @since 1.20.0
-       */
-      getOwnerListUrl: function () {
-        return baseUrl.get() + '/rest/sidebar';
-      },
-
-      getRequestWaiverUrl,
-      getWebhooksUrl,
-
-      getWebhookEventTypesUrl,
-
-      getSystemNoticeUrl,
-
-      getSystemNoticeFetchUrl,
-
-      getGrantLegacyViolationsStatusUrl: function (applicationPublicId) {
-        const appId = encodeURIComponent(applicationPublicId);
-        return `${baseUrl.get()}/rest/legacyViolations/grant/${appId}`;
-      },
-
-      getSuccessMetricsConfigUrl,
-
-      getSuccessMetricsChartDataUrl,
-
-      getSuccessMetricsComponentCountsUrl,
-
-      getSuccessMetricsReportsUrl,
-
-      getSuccessMetricsReportUrl,
-
-      getAutomaticApplicationsConfigurationUrl,
-      getAdvancedSearchConfigUrl: () => `${baseUrl.get()}/rest/search/advanced/status`,
-
-      getShouldDisplayDefaultPasswordWarning: () => `${baseUrl.get()}/rest/user/shouldDisplayDefaultPasswordWarning`,
-
-      getIsHdsReachable,
-
-      getTelemetryUrl,
-
-      getReportPolicyThreatsUrl: getBrowseReportUrl('policythreats.json'),
-
-      getReportAuditLogUrl,
-
-      getReportReevaluateUrl: (applicationPublicId, scanId) =>
-        getBaseReportUrl(applicationPublicId, scanId) + '/reevaluatePolicy',
-
-      getReportPdfDownloadUrl: (applicationPublicId, scanId) =>
-        getBaseReportUrl(applicationPublicId, scanId) + '/printReport',
-
-      getExportCycloneDxUrl,
-
-      getExportSpdxUrl,
-
-      getClaimComponentUrl,
-
-      getVulnerabilityJsonDetailUrl,
-
-      getSourceControlUrl,
-
-      getCompositeSourceControlUrl,
-
-      getValidateScmConfigUrl: function (ownerType, ownerId) {
-        return baseUrl.get() + `/api/v2/compositeSourceControlConfigValidator/${ownerType}/${ownerId}`;
-      },
-
-      /**
-       * @since 1.97.0
-       */
-      getSourceControlMetricsUrl: (ownerType, ownerId) => getSourceControlMetricsUrl(ownerType, ownerId),
-
-      /**
-       * @since 1.102.0
-       */
-      getAbsoluteUrl: function (url) {
-        return baseUrl.get() + `/${url}`;
-      },
-
-      getInnerSourceComponentLatestVersionUrl,
-
-      /**
-       * @since 1.128.0
-       */
-    };
-  },
-]);
+export function getShouldDisplayDefaultPasswordWarning() {
+  return uriTemplate`/rest/user/shouldDisplayDefaultPasswordWarning`;
+}
+
+export function getChangeMyPasswordUrl() {
+  return uriTemplate`/rest/user/password`;
+}
+
+export function getAbsoluteUrl(url) {
+  return uriTemplate`/${url}`;
+}
+
+export const getComponentDetailsUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+  dependencyType,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+    dependencyType,
+  });
+  return uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}?` + params;
+};
+
+export const getVersionGraphUrl = ({
+  clientType,
+  ownerType,
+  ownerId,
+  componentIdentifier,
+  hash,
+  matchState,
+  proprietary,
+  pathname,
+  identificationSource,
+  scanId,
+  stageId,
+  dependencyType,
+}) => {
+  const params = toURIParams({
+    componentIdentifier,
+    hash,
+    matchState,
+    proprietary,
+    pathname,
+    identificationSource,
+    scanId,
+    stageId,
+    dependencyType,
+  });
+  return (
+    uriTemplate`/rest/${clientType}/componentDetails/${ownerType}/${encodeURIComponent(ownerId)}/allVersions?` + params
+  );
+};
+
+export function getApplicationNamesUrl() {
+  return uriTemplate`/rest/application/services/names`;
+}
+
+function getUserTelemetryPrefix() {
+  const isRM = BASE_URL.includes('rest/healthcheck/clm');
+
+  // use the RM proxy endpoint if we are in RM.  The normal one will get blocked
+  return isRM ? uriTemplate`/rest/rm/user-telemetry` : uriTemplate`/rest/user-telemetry`;
+}
+
+export const getUserTelemetryConfig = () => `${getUserTelemetryPrefix()}/config`;
+export const getUserTelemetryJavascript = () => `${getUserTelemetryPrefix()}/javascript`;
+export const getUserTelemetryProxy = () => `${getUserTelemetryPrefix()}/events`;

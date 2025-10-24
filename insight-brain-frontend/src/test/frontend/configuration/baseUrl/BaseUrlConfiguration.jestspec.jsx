@@ -12,7 +12,7 @@ import * as RouterStateContext from 'MainRoot/react/RouterStateContext';
 import * as baseUrlConfigurationSelectors from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import { render, fireEvent, screen, waitFor } from 'TestRoot/SpecUtil';
 import { getConfigurationUrl } from 'MainRoot/util/CLMLocation';
-import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 
 describe('BaseUrlConfiguration', () => {
   let renderComponent;

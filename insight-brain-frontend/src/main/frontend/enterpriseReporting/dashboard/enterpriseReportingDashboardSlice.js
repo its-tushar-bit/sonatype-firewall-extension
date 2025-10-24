@@ -8,7 +8,7 @@ import axios from 'axios';
 import { always, applySpec, compose, find, findIndex, nth, prop, propEq } from 'ramda';
 
 import { getEnterpriseReportingBaseUrl, getEnterpriseReportingDashboardsUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';

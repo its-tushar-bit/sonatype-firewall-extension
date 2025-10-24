@@ -142,7 +142,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from '../../../main/frontend/firewall/config/firewallConfigurationModalReducer';
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 import {
   VIOLATION_FETCH_APPLICABLE_WAIVERS_FULFILLED,
   VIOLATION_FETCH_APPLICABLE_WAIVERS_REQUESTED,

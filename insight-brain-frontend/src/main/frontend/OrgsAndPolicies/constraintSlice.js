@@ -8,7 +8,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getConditionTypeUrl, getConditionValueTypeUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from './orgsAndPoliciesSelectors';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'constraint';
 

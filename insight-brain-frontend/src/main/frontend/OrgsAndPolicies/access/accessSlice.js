@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { compose, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectOwnerProperties } from '../orgsAndPoliciesSelectors';
 import {
   getAccessPageRolesUrl,

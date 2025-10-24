@@ -8,9 +8,9 @@ import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-comp
 
 import { capitalize, getISODateFromDateInput } from '../util/jsUtil';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../util/reduxUtil';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 import { stateGo } from '../reduxUiRouter/routerActions';
-import { getPermissionContextTestUrl } from '../utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from '../util/CLMContextLocation';
 import {
   getApplicationSummaryUrl,
   getAddPolicyViolationWaiverUrl,

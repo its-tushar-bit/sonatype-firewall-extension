@@ -7,7 +7,7 @@ import { pick } from 'ramda';
 import { connect } from 'react-redux';
 
 import { saveFilter, cancelSaveFilter } from './manageLegalFiltersActions';
-import { Messages } from '../../../utilAngular/CommonServices';
+import { Messages } from '../../../util/CommonServices';
 import SaveFilterModalContent from '../../../dashboard/filter/saveFilterModal/SaveFilterModalContent';
 
 const mapDispatchToProps = {

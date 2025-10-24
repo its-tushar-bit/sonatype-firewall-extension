@@ -13,7 +13,7 @@ import {
   getReviewPolicyWaiverRequestUrl,
   getViewOrUpdatePolicyWaiverRequestUrl,
 } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectViolationId } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectSelectedWaiverScope,

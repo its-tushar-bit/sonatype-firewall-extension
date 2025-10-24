@@ -8,7 +8,7 @@ import * as PropTypes from 'prop-types';
 import { faExclamationCircle, faExclamationTriangle, faSquare } from '@fortawesome/free-solid-svg-icons';
 import { NxFontAwesomeIcon, NxTextLink } from '@sonatype/react-shared-components';
 
-import { terseAgo } from '../utilAngular/CommonServices';
+import { terseAgo } from '../util/CommonServices';
 
 const iconByActionTypeId = {
   fail: faExclamationCircle,

@@ -4,8 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
-import utilityServicesModule from '../utility/services/utility.services.module';
-import telemetryServiceModule from '../services/telemetryService';
 import userActions from '../user/userActions';
 import userReducer from '../user/userReducer';
 import reactComponentsModule from '../react/module.js';
@@ -13,12 +11,7 @@ import MenuBar from './MenuBar/MenuBar.jsx';
 import mainHeader from './mainHeader';
 
 export default angular
-  .module('mainHeader', [
-    'ui.router',
-    utilityServicesModule.name,
-    telemetryServiceModule.name,
-    reactComponentsModule.name,
-  ])
+  .module('mainHeader', ['ui.router', reactComponentsModule.name])
   .factory('userActions', userActions)
   .value('userReducer', userReducer)
   .component('mainHeader', mainHeader)

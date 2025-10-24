@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import isIqIframe from '../utilAngular/isIqFrame';
+import isIqIframe from '../util/isIqFrame';
 import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 

@@ -5,8 +5,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 /* global angularDebug */
-import commonServicesModule, { Messages } from './utilAngular/CommonServices';
-import CLMLocationModule from './util/CLMLocation';
+import { Messages } from './util/CommonServices';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
@@ -23,12 +22,12 @@ import dashboardModule from './dashboard/dashboard.module';
 import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
 import pendoService, { setUrlService } from './pendo/mainBundlePendoService';
-import utilityServicesModule from './utility/services/utility.services.module';
 import {
   initialize as initializeRouteStateUtilService,
   stateRequiresAuthenticationSync,
   stateRequiresAuthentication,
 } from './utility/services/routeStateUtilService';
+import * as ProductLicense from './utility/services/ProductLicense';
 import loginModalModule from './user/LoginModal/module';
 import legalModule from './legal/legal.module';
 import toastContainerModule from './toastContainer/module';
@@ -67,8 +66,6 @@ export const InitModule = angular
     'InitModule',
     [
       'ui.router',
-      CLMLocationModule.name,
-      commonServicesModule.name,
       ReportModule.name,
       Report.name,
       mainHeaderModule.name,
@@ -77,7 +74,6 @@ export const InitModule = angular
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
-      utilityServicesModule.name,
       legalModule.name,
       reduxConfigModule.name,
       configurationModule.name,
@@ -194,7 +190,6 @@ export const InitModule = angular
     '$timeout',
     '$urlService',
     'LoginModalService',
-    'ProductLicense',
     '$ngRedux',
     '$transitions',
     function (
@@ -206,7 +201,6 @@ export const InitModule = angular
       $timeout,
       $urlService,
       LoginModalService,
-      ProductLicense,
       $ngRedux,
       $transitions
     ) {
@@ -316,7 +310,7 @@ export const InitModule = angular
         let savedStateDuringLicenseFetch = null,
           cancelPreLicenseFetchStateHandler = $rootScope.$on('$stateChangeStart', preLicenseFetchStateHandler);
 
-        return ProductLicense.load()
+        return ProductLicense.loadIfNotYetLoaded()
           .finally(cancelPreLicenseFetchStateHandler)
           .finally(registerPreLoginStateHandler)
           .then(onLicenseSuccess, onLicenseFailure);

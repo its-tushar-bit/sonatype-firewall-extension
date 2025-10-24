@@ -9,7 +9,7 @@ import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectApplicationId } from '../../reduxUiRouter/routerSelectors';
 import { getApplicationSummaryUrl } from 'MainRoot/util/CLMLocation.js';
 import { includes, prop } from 'ramda';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectOwnerProperties, selectSelectedOwnerId } from '../orgsAndPoliciesSelectors';
 import { getPermissions } from 'MainRoot/util/authorizationUtil';
 

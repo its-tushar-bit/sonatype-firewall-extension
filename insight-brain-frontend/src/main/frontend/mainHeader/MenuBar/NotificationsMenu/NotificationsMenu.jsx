@@ -7,7 +7,7 @@ import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
 import { faBell, faExclamationCircle } from '@fortawesome/pro-regular-svg-icons';
-import { timeAgo } from 'MainRoot/utilAngular/CommonServices';
+import { timeAgo } from 'MainRoot/util/CommonServices';
 import {
   NxButtonBar,
   NxFontAwesomeIcon,

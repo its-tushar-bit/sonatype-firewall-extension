@@ -5,9 +5,6 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import CLMLocationModule from '../util/CLMLocation';
-import utilityServicesModule from '../utility/services/utility.services.module';
-import utilityModule from '../utility/utility.module';
 import OwnerSideNav from 'MainRoot/OrgsAndPolicies/ownerSideNav/OwnerSideNav';
 import OwnersTreePage from 'MainRoot/OrgsAndPolicies/ownersTreePage/OwnersTreePage';
 import InsufficientPermissionOwnerHierarchyTree from 'MainRoot/OrgsAndPolicies/insufficientPermissionOwnerHierarchyTree/InsufficientPermissionOwnerHierarchyTree';
@@ -39,7 +36,7 @@ import PublicDataSourcesEditor from 'MainRoot/OrgsAndPolicies/publicDataSources/
 import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatefulBreadcrumb';
 
 export default angular
-  .module('owner.manager.module', ['ui.router', utilityModule.name, CLMLocationModule.name, utilityServicesModule.name])
+  .module('owner.manager.module', ['ui.router'])
   .component('ownerSideNav', iqReact2Angular(OwnerSideNav, [], ['$ngRedux', '$state']))
   .component('ownersTreePage', iqReact2Angular(OwnersTreePage, [], ['$ngRedux', '$state']))
   .component(

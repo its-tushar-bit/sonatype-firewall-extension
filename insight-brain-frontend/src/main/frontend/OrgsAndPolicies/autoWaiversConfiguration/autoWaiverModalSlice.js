@@ -15,7 +15,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { selectWaiver } from './autoWaiverModalSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { propSet } from 'MainRoot/util/jsUtil';
 import { actions as applicableAutoWaiversActions } from 'MainRoot/OrgsAndPolicies/autoWaiversConfiguration/applicableAutoWaiversSlice';
 

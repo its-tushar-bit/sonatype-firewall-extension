@@ -5,15 +5,13 @@
  */
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
-import commonServicesModule from '../../utilAngular/CommonServices';
-import CLMLocationModule from '../../util/CLMLocation';
 import CreateLdapContainer from '../ldap/CreateLdapContainer';
 import EditLdapConnectionContainer from '../ldap/EditLdapConnectionContainer';
 import EditLdapUsermappingContainer from '../ldap/EditLdapUsermappingContainer';
 import LdapListContainer from './ldapServersList/LdapListContainer';
 
 export default angular
-  .module('ldap.module', [CLMLocationModule.name, 'ui.router', commonServicesModule.name], ldapModuleConfiguration)
+  .module('ldap.module', ['ui.router'], ldapModuleConfiguration)
   .component('ldapList', iqReact2Angular(LdapListContainer, [], ['$ngRedux', '$state']))
   .component('createLdap', iqReact2Angular(CreateLdapContainer, [], ['$ngRedux', '$state']))
   .component('editLdapConnection', iqReact2Angular(EditLdapConnectionContainer, [], ['$ngRedux', '$state']))

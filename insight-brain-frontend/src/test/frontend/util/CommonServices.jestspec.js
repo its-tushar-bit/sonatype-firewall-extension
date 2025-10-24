@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { Messages } from '../../../main/frontend/utilAngular/CommonServices';
+import { Messages } from '../../../main/frontend/util/CommonServices';
 
 describe('CommonServices', () => {
   describe('Messages.getHttpErrorMessage', function () {

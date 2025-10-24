@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getLegacyViolationModalUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';

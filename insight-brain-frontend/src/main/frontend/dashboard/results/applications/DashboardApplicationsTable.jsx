@@ -17,7 +17,7 @@ import {
 } from '@sonatype/react-shared-components';
 
 import DashboardApplicationsTableRow, { applicationPropTypes } from './DashboardApplicationsTableRow';
-import { Messages } from '../../../utilAngular/CommonServices';
+import { Messages } from '../../../util/CommonServices';
 import { heatMapColorStylerPropTypes } from '../DashboardHeatMapCell';
 import { sortColumn, getColumnDirection, extractSortFieldName } from '../../../util/sortUtils';
 import { isNilOrEmpty } from '../../../util/jsUtil';

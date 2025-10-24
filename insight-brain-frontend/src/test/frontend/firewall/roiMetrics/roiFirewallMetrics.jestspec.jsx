@@ -7,7 +7,7 @@ import React from 'react';
 import { axiosMockAdapter, render, waitFor, screen, fireEvent } from 'TestRoot/SpecUtil';
 import RoiFirewallMetrics from 'MainRoot/firewall/roiMetrics/RoiFirewallMetrics';
 
-import { getPermissionContextTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl } from 'MainRoot/util/CLMContextLocation';
 
 describe('roiFirewallMetrics', () => {
   let axiosMock;

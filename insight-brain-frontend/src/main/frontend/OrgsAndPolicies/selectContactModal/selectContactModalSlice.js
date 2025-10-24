@@ -11,7 +11,7 @@ import { NX_STANDARD_DEBOUNCE_TIME } from '@sonatype/react-shared-components';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
 import { propSet, isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { formatMembersForTransferList } from 'MainRoot/util/formatGroupUsers';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { getUsersRoleMappingUrl, getApplicationsUrl } from 'MainRoot/util/CLMLocation';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';

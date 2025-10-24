@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getWaiverDetailsUrl } from 'MainRoot/util/CLMLocation';
 import { prop } from 'ramda';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';

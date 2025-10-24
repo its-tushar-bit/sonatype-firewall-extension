@@ -23,7 +23,7 @@ import {
   TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from './transitiveViolationsActions';
-import { Messages } from '../utilAngular/CommonServices';
+import { Messages } from '../util/CommonServices';
 import { caseInsensitiveComparator, defaultComparator, sortItemsByFieldsWithComparator } from '../util/sortUtils';
 
 const initialState = {

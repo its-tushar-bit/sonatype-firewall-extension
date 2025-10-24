@@ -40,7 +40,7 @@ import {
 } from 'MainRoot/util/CLMLocation';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, propSetConst } from 'MainRoot/util/reduxToolkitUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectSbomComponentDetails } from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSelector';
 import { COMPONENTS_PER_PAGE } from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 

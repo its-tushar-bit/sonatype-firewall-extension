@@ -24,7 +24,7 @@ import {
   TRANSITIVE_VIOLATIONS_TOGGLE_VIEW_WAIVERS,
   TRANSITIVE_VIOLATIONS_TOGGLE_WAIVE,
 } from '../../../main/frontend/violation/transitiveViolationsActions';
-import { Messages } from '../../../main/frontend/utilAngular/CommonServices';
+import { Messages } from '../../../main/frontend/util/CommonServices';
 
 describe('transitiveViolationsReducer', function () {
   describe('initial state', function () {

@@ -22,7 +22,7 @@ import {
   without,
 } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getBillOfMaterialsComponentsUrl } from 'MainRoot/util/CLMLocation';
 
 import { selectBillOfMaterialsComponentsTile } from './billOfMaterialsComponentsTileSelectors';

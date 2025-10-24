@@ -9,7 +9,7 @@ import * as R from 'ramda';
 
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
 import { getRoiConfigurationUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'roiConfigurationPage';
 

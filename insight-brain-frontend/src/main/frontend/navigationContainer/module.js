@@ -3,16 +3,9 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import utilityServicesModule from '../utility/services/utility.services.module';
-import telemetryServiceModule from '../services/telemetryService';
 import navigationContainer from './navigationContainer';
 import reactComponentsModule from '../react/module.js';
 
 export default angular
-  .module('navigationContainer', [
-    'ui.router',
-    utilityServicesModule.name,
-    telemetryServiceModule.name,
-    reactComponentsModule.name,
-  ])
+  .module('navigationContainer', ['ui.router', reactComponentsModule.name])
   .component('navigationContainer', navigationContainer);

@@ -5,7 +5,7 @@
  */
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getPermissions } from 'MainRoot/util/authorizationUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'roiFirewallMetrics';
 

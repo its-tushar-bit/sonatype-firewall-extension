@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { prop } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectSelectedOwnerTypeAndId } from './orgsAndPoliciesSelectors';
 import { getCompositeSourceControlUrl } from 'MainRoot/util/CLMLocation';
 

@@ -5,11 +5,7 @@
  */
 import axios from 'axios';
 
-import {
-  getUserTelemetryConfig,
-  getUserTelemetryProxy,
-  getUserTelemetryJavascript,
-} from 'MainRoot/util/CLMLocationNoAngular';
+import { getUserTelemetryConfig, getUserTelemetryProxy, getUserTelemetryJavascript } from 'MainRoot/util/CLMLocation';
 
 export default function PendoService(sanitizeUrlService) {
   /* eslint-disable */

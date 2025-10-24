@@ -24,7 +24,7 @@ import NoAvailableToMoveOrgsWarning from 'MainRoot/OrgsAndPolicies/moveOwner/NoA
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import FetchCSVButton from './FetchCSVButton';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectOwnerById } from '../ownerSideNav/ownerSideNavSelectors';
 
 const MoveOwnerModal = () => {

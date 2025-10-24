@@ -7,14 +7,6 @@ import axios from 'axios';
 import { getPermissions } from 'MainRoot/util/authorizationUtil';
 import { getLicenseDetailsUrl, getLicenseSummaryUrl } from 'MainRoot/util/CLMLocation';
 
-export default function ProductLicense() {
-  return {
-    load() {
-      return loadIfNotYetLoaded();
-    },
-  };
-}
-
 let licenseInfoPromise = null;
 // if licenseLoadedWithoutLoginOrWithError is true re-fetch the license data on next loadIfNotYetLoaded call, the
 // license data was loaded while logged out or an error occurred

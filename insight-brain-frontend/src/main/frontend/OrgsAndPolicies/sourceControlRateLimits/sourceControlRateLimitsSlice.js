@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getSourceControlRateLimitsUrl } from 'MainRoot/util/CLMLocation';
 import { ascend, clone, descend, prop, sortWith } from 'ramda';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 import moment from 'moment';
 const REDUCER_NAME = 'sourceControlRateLimits';

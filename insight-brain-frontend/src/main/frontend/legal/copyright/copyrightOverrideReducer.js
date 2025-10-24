@@ -12,7 +12,7 @@ import {
   COPYRIGHT_OVERRIDE_SUBMIT_MASK_DONE,
   SET_DISPLAY_COPYRIGHT_OVERRIDE_MODAL,
 } from './copyrightOverrideFormActions';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { ADVANCED_LEGAL_SAVE_OBLIGATION_SUBMIT_MASK_DONE } from '../obligation/advancedLegalObligationActions';
 
 const initialState = Object.freeze({

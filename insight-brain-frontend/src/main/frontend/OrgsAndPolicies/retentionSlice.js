@@ -10,7 +10,7 @@ import { deriveEditRoute } from 'MainRoot/OrgsAndPolicies/utility/util';
 import { selectRouterSlice } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectEntityId, selectSelectedOwnerParentId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRetentionSlice } from 'MainRoot/OrgsAndPolicies/retentionSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { getParentRetentionPoliciesUrl, getRetentionPoliciesUrl } from 'MainRoot/util/CLMLocation';
 import {

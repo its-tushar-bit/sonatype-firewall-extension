@@ -7,7 +7,7 @@ import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { nxFileUploadStateHelpers } from '@sonatype/react-shared-components';
 import { selectEvaluateApplicationSlice } from 'MainRoot/OrgsAndPolicies/evaluateApplicationModal/evaluateApplicationSelectors';
 import axios from 'axios';

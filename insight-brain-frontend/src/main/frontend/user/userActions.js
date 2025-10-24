@@ -6,10 +6,16 @@
 import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { waitForLogin } from 'MainRoot/user/userSession';
 import { isAuthorized } from 'MainRoot/util/permissionService';
+import {
+  getShouldDisplayDefaultPasswordWarning,
+  getSessionLogoutUrl,
+  getChangeMyPasswordUrl,
+} from 'MainRoot/util/CLMLocation';
 import pendoService from '../pendo/mainBundlePendoService';
+import { submitTelemetryData } from 'MainRoot/util/telemetryUtils';
 
 export const LOAD_USER_REQUESTED = 'LOAD_USER_REQUESTED';
 export const LOAD_USER_FULFILLED = 'LOAD_USER_FULFILLED';
@@ -23,9 +29,9 @@ export const CHANGE_PASSWORD_FAILED = 'CHANGE_PASSWORD_FAILED';
 export const CHANGE_PASSWORD_STATUS_RESET = 'CHANGE_PASSWORD_STATUS_RESET';
 export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 
-function userActions($rootScope, $q, $http, CLMLocations, telemetryService, $window) {
+function userActions($rootScope, $q, $http, $window) {
   function fetchUser() {
-    const warningPromiseUrl = CLMLocations.getShouldDisplayDefaultPasswordWarning(),
+    const warningPromiseUrl = getShouldDisplayDefaultPasswordWarning(),
       shouldDisplayWarningPromise = isAuthorized(['CONFIGURE_SYSTEM'])
         .then(function (isAdmin) {
           if (isAdmin) {
@@ -87,7 +93,7 @@ function userActions($rootScope, $q, $http, CLMLocations, telemetryService, $win
       function onLogoutConfirmation() {
         return (dispatch) => {
           dispatch({ type: USER_LOGGED_OUT });
-          const serverLogout = () => $http.delete(CLMLocations.getSessionLogoutUrl());
+          const serverLogout = () => $http.delete(getSessionLogoutUrl());
           pendoService
             .flush()
             // continue the logout whether the pendo flush succeeds or fails
@@ -114,7 +120,7 @@ function userActions($rootScope, $q, $http, CLMLocations, telemetryService, $win
     return (dispatch) => {
       dispatch({ type: CHANGE_PASSWORD_REQUESTED });
       $http
-        .put(CLMLocations.getChangeMyPasswordUrl(), { oldPassword, newPassword })
+        .put(getChangeMyPasswordUrl(), { oldPassword, newPassword })
         .then(() => {
           dispatch({ type: CHANGE_PASSWORD_FULFILLED });
           dispatch(passwordChanged());
@@ -165,13 +171,13 @@ function userActions($rootScope, $q, $http, CLMLocations, telemetryService, $win
   }
 
   function fireTelemetryEventWarningShown() {
-    telemetryService.submitData('ADMIN_PASSWORD_CHANGE', {
+    submitTelemetryData('ADMIN_PASSWORD_CHANGE', {
       action: 'WARNING_SHOWN',
     });
   }
 
   function fireTelemetryEventPasswordChanged() {
-    telemetryService.submitData('ADMIN_PASSWORD_CHANGE', {
+    submitTelemetryData('ADMIN_PASSWORD_CHANGE', {
       action: 'PASSWORD_CHANGED_FROM_DEFAULT',
     });
   }
@@ -185,5 +191,5 @@ function userActions($rootScope, $q, $http, CLMLocations, telemetryService, $win
     resetChangedPasswordStatus,
   };
 }
-userActions.$inject = ['$rootScope', '$q', '$http', 'CLMLocations', 'telemetryService', '$window'];
+userActions.$inject = ['$rootScope', '$q', '$http', '$window'];
 export default userActions;

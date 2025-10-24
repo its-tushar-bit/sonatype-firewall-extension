@@ -32,7 +32,6 @@ import Fuse from 'fuse.js';
 import ClassyBrew from 'classybrew/src/classybrew';
 
 import './utility/Polyfills';
-import './utilAngular/Globals';
 import './ManagementApp';
 
 import Base64 from './lib/Base64';

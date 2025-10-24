@@ -16,7 +16,7 @@ import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSi
 import { actions as policyMonitoringActions } from 'MainRoot/OrgsAndPolicies/policyMonitoringSlice';
 import { actions as ownerSummaryActions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { startSaveMaskSuccessTimer } from 'MainRoot/util/reduxUtil';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { OWNER_ACTIONS } from 'MainRoot/OrgsAndPolicies/utility/constants';
 import { selectIsApplication } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnersMap } from '../ownerSideNav/ownerSideNavSelectors';

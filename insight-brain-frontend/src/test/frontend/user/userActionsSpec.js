@@ -6,21 +6,14 @@
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
 import * as userSession from 'MainRoot/user/userSession';
 import mainBundlePendoService, { setUrlService } from 'MainRoot/pendo/mainBundlePendoService';
-import { getGlobalPermissionTestUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
+import { getSessionLogoutUrl, getShouldDisplayDefaultPasswordWarning } from 'MainRoot/util/CLMLocation';
+import * as telemetryUtils from 'MainRoot/util/telemetryUtils';
 
 describe('userActions', function () {
-  let userActions,
-    initialState,
-    currentState,
-    CLMLocations,
-    telemetryService,
-    $httpBackend,
-    $rootScope,
-    loginDeferred,
-    pendoDeferred,
-    axiosMock;
+  let userActions, initialState, currentState, $httpBackend, $rootScope, loginDeferred, pendoDeferred, axiosMock;
 
   beforeAll(function () {
     const mockUrlService = { match: () => null };
@@ -35,18 +28,16 @@ describe('userActions', function () {
     })
   );
 
-  beforeEach(inject(($q, _$httpBackend_, _CLMLocations_, _userActions_, _telemetryService_, _$rootScope_) => {
+  beforeEach(inject(($q, _$httpBackend_, _userActions_, _$rootScope_) => {
     $httpBackend = _$httpBackend_;
-    CLMLocations = _CLMLocations_;
     userActions = _userActions_;
-    telemetryService = _telemetryService_;
     $rootScope = _$rootScope_;
 
     loginDeferred = $q.defer();
     pendoDeferred = $q.defer();
     axiosMock = new MockAdapter(axios);
 
-    spyOn(telemetryService, 'submitData');
+    spyOn(telemetryUtils, 'submitTelemetryData');
     spyOn(userSession, 'waitForLogin').and.returnValue(loginDeferred.promise);
     spyOn($rootScope, '$broadcast').and.callThrough();
     spyOn($rootScope, '$emit').and.callThrough();
@@ -133,7 +124,7 @@ describe('userActions', function () {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChanged());
 
-      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
+      expect(telemetryUtils.submitTelemetryData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
         action: 'PASSWORD_CHANGED_FROM_DEFAULT',
       });
     });
@@ -147,7 +138,7 @@ describe('userActions', function () {
         const store = SpecUtil.mockReduxStore(initialState);
         store.dispatch(userActions.passwordChanged());
 
-        expect(telemetryService.submitData).not.toHaveBeenCalled();
+        expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
       }
     );
 
@@ -156,7 +147,7 @@ describe('userActions', function () {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChanged());
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
     });
 
     it(
@@ -258,7 +249,7 @@ describe('userActions', function () {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChangedForUser(selectedUser));
 
-      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
+      expect(telemetryUtils.submitTelemetryData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
         action: 'PASSWORD_CHANGED_FROM_DEFAULT',
       });
     });
@@ -272,7 +263,7 @@ describe('userActions', function () {
         const store = SpecUtil.mockReduxStore(initialState);
         store.dispatch(userActions.passwordChangedForUser(selectedUser));
 
-        expect(telemetryService.submitData).not.toHaveBeenCalled();
+        expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
       }
     );
 
@@ -282,12 +273,12 @@ describe('userActions', function () {
       const store = SpecUtil.mockReduxStore(initialState);
       store.dispatch(userActions.passwordChangedForUser(selectedUser));
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
 
       selectedUser = { username: 'admin' };
       store.dispatch(userActions.passwordChangedForUser(selectedUser));
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
     });
 
     it(
@@ -399,7 +390,7 @@ describe('userActions', function () {
         ' accordingly',
       function () {
         axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
-        $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
+        $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond('true');
 
         const store = SpecUtil.mockReduxStore(initialState);
         const successSpy = jasmine.createSpy('successSpy');
@@ -429,7 +420,7 @@ describe('userActions', function () {
 
     it('sets shouldDisplayWarning to false if the shouldDisplayDefaultPasswordWarning endpoint returns false', function () {
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('false');
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond('false');
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -459,7 +450,7 @@ describe('userActions', function () {
     it('should dispatch error if the call to get the current user does not resolve', () => {
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond('true');
 
       const store = SpecUtil.mockReduxStore(initialState);
       const errorSpy = jasmine.createSpy('errorSpy');
@@ -515,9 +506,7 @@ describe('userActions', function () {
 
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
 
-      $httpBackend
-        .expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning())
-        .respond(500, 'Some server error message');
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond(500, 'Some server error message');
 
       const store = SpecUtil.mockReduxStore(initialState);
       const errorSpy = jasmine.createSpy('errorSpy');
@@ -544,7 +533,7 @@ describe('userActions', function () {
     it('should submit telemetry data when the display flag is shown', () => {
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond('true');
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond('true');
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -552,13 +541,13 @@ describe('userActions', function () {
 
       $httpBackend.flush();
 
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
 
       loginDeferred.resolve({ username: 'admin', internalUser: true });
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
-      expect(telemetryService.submitData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
+      expect(telemetryUtils.submitTelemetryData).toHaveBeenCalledWith('ADMIN_PASSWORD_CHANGE', {
         action: 'WARNING_SHOWN',
       });
     });
@@ -566,7 +555,7 @@ describe('userActions', function () {
     it('should not submit telemetry data when the display flag is not shown', () => {
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond(false);
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond(false);
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -577,7 +566,7 @@ describe('userActions', function () {
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
     });
 
     it('should not submit telemetry data when the permissions call fails', () => {
@@ -592,7 +581,7 @@ describe('userActions', function () {
       $rootScope.$digest();
 
       expect(successSpy).toHaveBeenCalled();
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
     });
 
     it('should not submit telemetry data when the flag call fails', () => {
@@ -601,7 +590,7 @@ describe('userActions', function () {
 
       axiosMock.onPut(getGlobalPermissionTestUrl(), ['CONFIGURE_SYSTEM']).reply(200, ['CONFIGURE_SYSTEM']);
 
-      $httpBackend.expectGET(CLMLocations.getShouldDisplayDefaultPasswordWarning()).respond(500);
+      $httpBackend.expectGET(getShouldDisplayDefaultPasswordWarning()).respond(500);
 
       const store = SpecUtil.mockReduxStore(initialState);
       const successSpy = jasmine.createSpy('successSpy');
@@ -610,7 +599,7 @@ describe('userActions', function () {
       $httpBackend.flush();
 
       expect(successSpy).toHaveBeenCalled();
-      expect(telemetryService.submitData).not.toHaveBeenCalled();
+      expect(telemetryUtils.submitTelemetryData).not.toHaveBeenCalled();
     });
   });
 
@@ -618,7 +607,7 @@ describe('userActions', function () {
     it('provides the ability to log out by hitting a logout api endpoint with a delete request', function () {
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
-      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+      $httpBackend.expectDELETE(getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
       $rootScope.$digest();
@@ -630,7 +619,7 @@ describe('userActions', function () {
     it('still logs out if the pendo promise is rejected', function () {
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
-      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+      $httpBackend.expectDELETE(getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
       $rootScope.$digest();
@@ -642,7 +631,7 @@ describe('userActions', function () {
     it(`doesn't log out from the server before the pendo promise completes`, function () {
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
-      $httpBackend.expectDELETE(CLMLocations.getSessionLogoutUrl()).respond(204);
+      $httpBackend.expectDELETE(getSessionLogoutUrl()).respond(204);
 
       store.dispatch(userActions.logout());
       $rootScope.$digest();
@@ -656,7 +645,7 @@ describe('userActions', function () {
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
       var headers = { Location: 'http://localhost/logout' };
-      $httpBackend.whenDELETE(CLMLocations.getSessionLogoutUrl()).respond(204, '', headers);
+      $httpBackend.whenDELETE(getSessionLogoutUrl()).respond(204, '', headers);
       store.dispatch(userActions.logout());
       pendoDeferred.resolve();
       $rootScope.$digest();

@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import axios from 'axios';
-import { getPermissionContextTestUrl, getGlobalPermissionTestUrl } from '../utilAngular/CLMContextLocation';
+import { getPermissionContextTestUrl, getGlobalPermissionTestUrl } from '../util/CLMContextLocation';
 import { getProductFeaturesUrl } from './CLMLocation';
 
 export async function isContextAuthorized(permissions, ownerType, ownerId) {

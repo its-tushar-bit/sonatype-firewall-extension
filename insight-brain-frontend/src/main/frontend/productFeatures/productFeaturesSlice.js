@@ -14,7 +14,7 @@ import {
   getOAuth2Enabled,
 } from 'MainRoot/util/CLMLocation';
 import { selectProductFeatures } from './productFeaturesSelectors';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 
 const REDUCER_NAME = 'productFeatures';
 

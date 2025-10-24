@@ -7,7 +7,7 @@ import axios from 'axios';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { curryN, isNil, mergeRight, pick, prop } from 'ramda';
 
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getApplicablePolicyMonitoringUrl, getPolicyMonitoringUrl } from 'MainRoot/util/CLMLocation';
 import { selectOwnerProperties } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import {

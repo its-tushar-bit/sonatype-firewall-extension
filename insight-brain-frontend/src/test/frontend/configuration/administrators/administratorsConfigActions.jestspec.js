@@ -12,7 +12,7 @@ jest.mock('MainRoot/util/authorizationUtil', () => ({
 import '../../SpecUtil';
 import { axiosMockAdapter } from 'TestRoot/SpecUtil';
 import { checkPermissions } from 'MainRoot/util/authorizationUtil';
-import { getGlobalRoleMappingUrl } from 'MainRoot/utilAngular/CLMContextLocation';
+import { getGlobalRoleMappingUrl } from 'MainRoot/util/CLMContextLocation';
 import { getFindUsersUrl, getRoleMappingUrl } from 'MainRoot/util/CLMLocation';
 import { loadRolesIfNeeded, actions } from 'MainRoot/configuration/administrators/administratorsSlice';
 import * as administratorsSelectors from 'MainRoot/configuration/administrators/administratorsSelectors';

@@ -8,7 +8,7 @@ import { find, path, pathEq, prop } from 'ramda';
 import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 
 import { fetchComponentDetails } from './componentDetailsSlice';
-import { getVersionGraphUrl } from 'MainRoot/util/CLMLocationNoAngular';
+import { getVersionGraphUrl } from 'MainRoot/util/CLMLocation';
 
 const NAME = 'components';
 

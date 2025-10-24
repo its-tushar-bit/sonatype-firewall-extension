@@ -3,12 +3,11 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import utilityModule from '../../utility/utility.module';
 import SAMLConfigurationPage from './SAMLConfigurationPage';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 export default angular
-  .module('samlModule', [utilityModule.name])
+  .module('samlModule', [])
   .component('samlConfigurationPage', iqReact2Angular(SAMLConfigurationPage, [], ['$ngRedux', '$state']))
   .config([
     '$stateProvider',

@@ -8,7 +8,7 @@ import axios from 'axios';
 import { head as first, path } from 'ramda';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { next, prev, steps, updateRepositories } from './firewallOnboardingUtils';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { setLeftNavigationOpen } from 'MainRoot/util/preferenceStore';
 import { setShowWelcomeModalToTrueInStore } from 'MainRoot/firewall/firewallWelcomeModalStore';

@@ -4,14 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { unauthenticatedResponseHttpInterceptor } from 'MainRoot/utilAngular/HttpInterceptors';
-import utilityServicesModule from 'MainRoot/utility/services/utility.services.module';
 
 /* Further test coverage for this interceptor will be added with CLM-20631 */
 describe('HttpInterceptors.js', function () {
   beforeEach(
     angular.mock.module(
       unauthenticatedResponseHttpInterceptor.name,
-      utilityServicesModule.name,
       'legacyConfiguration',
       'reduxConfig',
       function ($provide) {

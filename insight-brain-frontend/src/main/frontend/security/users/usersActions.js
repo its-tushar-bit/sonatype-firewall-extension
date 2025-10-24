@@ -6,7 +6,7 @@
 import axios from 'axios';
 import { compose, mapObjIndexed, prop, pick, find, map } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { Messages } from '../../utilAngular/CommonServices';
+import { Messages } from '../../util/CommonServices';
 import { noPayloadActionCreator, payloadParamActionCreator } from '../../util/reduxUtil';
 import { checkPermissions } from '../../util/authorizationUtil';
 import {

@@ -30,8 +30,3 @@ Number.isInteger =
   function (value) {
     return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
   };
-
-// angular.extend does exactly what Object.assign does
-if (!Object.assign) {
-  Object.assign = angular.extend;
-}

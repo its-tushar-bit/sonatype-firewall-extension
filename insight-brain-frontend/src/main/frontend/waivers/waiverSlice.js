@@ -12,7 +12,7 @@ import {
   getApplicationSummaryUrl,
   getPermissionContextTestUrl,
 } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { getExpiryTime, waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
 import { equals, prop } from 'ramda';
 import { selectBulkWaiverSelectedViolations, selectBulkWaiverConfiguration } from './bulkWaiverSelectors';

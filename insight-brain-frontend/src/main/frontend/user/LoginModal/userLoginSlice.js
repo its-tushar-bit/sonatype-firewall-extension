@@ -7,7 +7,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 import { getSessionUrl } from 'MainRoot/util/CLMLocation';
-import { Messages } from 'MainRoot/utilAngular/CommonServices';
+import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 

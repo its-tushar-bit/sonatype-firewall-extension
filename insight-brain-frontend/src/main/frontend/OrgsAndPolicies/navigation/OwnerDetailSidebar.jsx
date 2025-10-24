@@ -44,6 +44,7 @@ import {
   selectIsSbomManager,
   selectIsWaivers,
   selectIsPublicDataSources,
+  selectIsFirewall,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
   selectIsLegacyViolationSupported,
@@ -120,6 +121,7 @@ export default function OwnerDetailSidebar() {
   const isAutoWaiverEnabled = useSelector(selectIsAutoWaiversEnabled);
   const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
   const isPublicDataSources = useSelector(selectIsPublicDataSources);
+  const isFirewall = useSelector(selectIsFirewall);
 
   const uiRouterState = useRouterState();
 
@@ -435,7 +437,7 @@ export default function OwnerDetailSidebar() {
         ))}
       </NxCollapsibleItems>
       {/* Waivers */}
-      {!isRepositoriesRelated && isDeveloperDashboardEnabled && !isSbomManager && isAutoWaiverEnabled && (
+      {!isRepositoriesRelated && isDeveloperDashboardEnabled && !isSbomManager && !isFirewall && isAutoWaiverEnabled && (
         <NxCollapsibleItems.Child role="menuitem">
           <NxTextLink
             className={`iq-noncollapsible ${isWaivers ? 'selected' : ''}`}
@@ -445,7 +447,7 @@ export default function OwnerDetailSidebar() {
           </NxTextLink>
         </NxCollapsibleItems.Child>
       )}
-      {isCpeMatchingSupported && !isSbomManagerOnlyLicense && (
+      {isCpeMatchingSupported && !isSbomManagerOnlyLicense && !isFirewall && (
         <NxCollapsibleItems.Child>
           <NxTextLink
             id="public-data-sources-link"

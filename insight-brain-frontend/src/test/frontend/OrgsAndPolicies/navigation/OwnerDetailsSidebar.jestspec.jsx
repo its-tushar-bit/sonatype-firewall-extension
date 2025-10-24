@@ -574,4 +574,30 @@ describe('OwnerDetailSidebar', () => {
 
     expect(screen.getByText('Public Data Sources')).toBeInTheDocument();
   });
+
+  it('should not render auto-waivers when in Firewall view', () => {
+    jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
+    jest.spyOn(routerSelectors, 'selectIsSbomManager').mockReturnValue(false);
+
+    renderComponent({
+      ...appsLevelState,
+      productFeatures: {
+        productFeatures: { 'auto-waivers': true, 'developer-dashboard': true },
+      },
+    });
+
+    expect(screen.queryByText('Auto-Waivers')).not.toBeInTheDocument();
+  });
+
+  it('should not render public data sources when in Firewall view', () => {
+    jest.spyOn(routerSelectors, 'selectIsFirewall').mockReturnValue(true);
+    jest.spyOn(productFeaturesSelectors, 'selectIsCpeMatchingSupported').mockReturnValue(true);
+    jest.spyOn(productLicenseSelectors, 'selectIsSbomManagerOnlyLicense').mockReturnValue(false);
+
+    mock.onGet(getOwnerDetailsUrl('organization', 'ROOT_ORGANIZATION_ID', false)).reply(200, ownerDetailMockData);
+
+    renderComponent();
+
+    expect(screen.queryByText('Public Data Sources')).not.toBeInTheDocument();
+  });
 });

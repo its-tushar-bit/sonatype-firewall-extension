@@ -36,6 +36,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "bea74eb2b5af290ae9b7"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/partner/shaded-library@1.0"
         }
       ],
       "components" : [
@@ -62,6 +66,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "a9f7d008c44d7c8a6796"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/acme/library@3.0"
         }
       ]
     },
@@ -122,6 +130,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "aad4c61ddcc5e8a2dabe"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/acme/library@1.0.0"
         }
       ]
     },

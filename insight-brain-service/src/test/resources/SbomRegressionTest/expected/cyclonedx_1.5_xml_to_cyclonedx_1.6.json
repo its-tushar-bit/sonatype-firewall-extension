@@ -36,6 +36,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "bea74eb2b5af290ae9b7"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/partner/shaded-library@1.0"
         }
       ],
       "components" : [
@@ -62,6 +66,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "a9f7d008c44d7c8a6796"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/acme/library@3.0"
         }
       ]
     },
@@ -228,6 +236,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "9188560f22e0b73070d2"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar"
         }
       ],
       "releaseNotes" : {
@@ -354,6 +366,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "68b78babe00a053f9e35"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.example/myapplication@1.0.0?packaging=war"
         }
       ]
     },
@@ -407,6 +423,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "7fbeef2346c45d565c33"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.example/myframework@1.0.0?packaging=war&type=jar"
         }
       ],
       "evidence" : {
@@ -455,6 +475,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "230e09fd610400a07572"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4"
         }
       ]
     }

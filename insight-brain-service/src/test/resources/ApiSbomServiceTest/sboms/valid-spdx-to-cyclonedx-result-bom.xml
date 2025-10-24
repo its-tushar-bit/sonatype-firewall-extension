@@ -38,6 +38,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">7bdade27d8cd197d9b5c</property>
+        <property name="sonatype:original_purl">pkg:maven/apache/axis@1.0?type=jar</property>
       </properties>
     </component>
     <component type="application" bom-ref="16652f86eb91de1d17dcad1db99bbc9253af7c72">

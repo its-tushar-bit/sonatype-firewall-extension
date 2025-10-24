@@ -23,6 +23,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">bea74eb2b5af290ae9b7</property>
+        <property name="sonatype:original_purl">pkg:maven/partner/shaded-library@1.0</property>
       </properties>
       <components>
         <component type="library" bom-ref="pkg:maven/ossproject/library@2.0">
@@ -39,6 +40,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">a9f7d008c44d7c8a6796</property>
+        <property name="sonatype:original_purl">pkg:maven/acme/library@3.0</property>
       </properties>
     </component>
     <component type="application">
@@ -158,6 +160,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">9188560f22e0b73070d2</property>
+        <property name="sonatype:original_purl">pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar</property>
       </properties>
       <releaseNotes>
         <type>major</type>
@@ -243,6 +246,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">68b78babe00a053f9e35</property>
+        <property name="sonatype:original_purl">pkg:maven/com.example/myapplication@1.0.0?packaging=war</property>
       </properties>
     </component>
     <component type="framework">
@@ -275,6 +279,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">7fbeef2346c45d565c33</property>
+        <property name="sonatype:original_purl">pkg:maven/com.example/myframework@1.0.0?packaging=war</property>
       </properties>
       <evidence>
         <licenses>
@@ -303,6 +308,7 @@
       <properties>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">230e09fd610400a07572</property>
+        <property name="sonatype:original_purl">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</property>
       </properties>
     </component>
   </components>

@@ -39,6 +39,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "011bc4cc96b08fabad2b"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/org.springframework.boot/spring-boot-autoconfigure@2.0.3.RELEASE?type=jar"
         }
       ]
     }

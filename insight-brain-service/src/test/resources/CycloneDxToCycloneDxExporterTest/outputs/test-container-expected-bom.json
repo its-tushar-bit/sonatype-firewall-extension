@@ -35,6 +35,10 @@
         {
           "name" : "sonatype:truncated_sha1",
           "value" : "abcdef"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:generic/debian%3A12/pam%2Flibpam-modules-bin@1.5.2-6%2Bdeb12u1?nexustype=container"
         }
       ],
       "evidence" : {

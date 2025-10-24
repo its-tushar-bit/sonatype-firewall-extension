@@ -52,6 +52,10 @@
         {
           "name" : "sonatype:identification_sources",
           "value" : "Sonatype"
+        },
+        {
+          "name" : "sonatype:original_purl",
+          "value" : "pkg:maven/log4j/log4j@1.2.8?type=jar"
         }
       ],
       "type" : "library",

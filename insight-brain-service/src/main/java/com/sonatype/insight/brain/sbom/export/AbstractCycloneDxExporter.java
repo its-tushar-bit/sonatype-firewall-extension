@@ -214,6 +214,13 @@ public abstract class AbstractCycloneDxExporter
           bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
               SbomTaxonomy.CDX_SONATYPE_SHA1_PROPERTY_NAME, sonatypeComponent.getHash()));
 
+          // Add original purl if not set and the original bom component has a purl value
+          Property p = findPropertyWithName(bomComponent, SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME);
+          if (p == null && StringUtils.isNotEmpty(bomComponent.getPurl())) {
+            bomComponent.setProperties(addOrUpdateBomElementProperty(bomComponent.getProperties(),
+                SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME, bomComponent.getPurl()));
+          }
+
           // Merge sonatype vulnerabilities into bom
           mergeSonatypeDataVulnerabilities(bomComponent, sonatypeComponentVulnerabilities, bomVulnerabilitiesList,
               newBomVulnerabilities);

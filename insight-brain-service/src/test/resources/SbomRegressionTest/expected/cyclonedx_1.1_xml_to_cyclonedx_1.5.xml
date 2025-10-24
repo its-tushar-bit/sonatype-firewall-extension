@@ -82,6 +82,7 @@
         <property name="sonatype:match_filenames">pkg:maven/com.acme/tomcat-catalina@9.0.14?type=jar:e6b1000b94e835ffd37f</property>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">e6b1000b94e835ffd37f</property>
+        <property name="sonatype:original_purl">pkg:maven/com.acme/tomcat-catalina@9.0.14?packaging=jar</property>
       </properties>
     </component>
     <component type="library">
@@ -120,6 +121,7 @@
         <property name="sonatype:match_filenames">pkg:maven/com.example/myapplication@1.0.0?type=jar:68b78babe00a053f9e35</property>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">68b78babe00a053f9e35</property>
+        <property name="sonatype:original_purl">pkg:maven/com.example/myapplication@1.0.0?packaging=war</property>
       </properties>
     </component>
     <component type="framework">
@@ -153,6 +155,7 @@
         <property name="sonatype:match_filenames">pkg:maven/com.example/myframework@1.0.0?type=jar:7fbeef2346c45d565c33</property>
         <property name="sonatype:identification_sources">SBOM</property>
         <property name="sonatype:truncated_sha1">7fbeef2346c45d565c33</property>
+        <property name="sonatype:original_purl">pkg:maven/com.example/myframework@1.0.0?packaging=war</property>
       </properties>
     </component>
     <component type="library" bom-ref="123">
@@ -193,6 +196,7 @@
         <property name="sonatype:match_filenames">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</property>
         <property name="sonatype:identification_sources">SBOM,Sonatype</property>
         <property name="sonatype:truncated_sha1">d6eb9817d9c7289a91f0</property>
+        <property name="sonatype:original_purl">pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.9?type=jar</property>
       </properties>
     </component>
   </components>

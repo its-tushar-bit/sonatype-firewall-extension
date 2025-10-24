@@ -34,6 +34,10 @@
         {
           "name": "sonatype:truncated_sha1",
           "value": "7bdade27d8cd197d9b5c"
+        },
+        {
+          "name": "sonatype:original_purl",
+          "value": "pkg:maven/apache/axis@1.0?type=jar"
         }
       ],
       "version" : "1.0",

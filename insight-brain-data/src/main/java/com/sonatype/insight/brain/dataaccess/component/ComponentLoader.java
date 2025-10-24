@@ -359,6 +359,7 @@ public class ComponentLoader
           String hash = JsonUtils.getNullableString(componentJson.get("hash"));
           String sha256 = JsonUtils.getNullableString(componentJson.get("sha256"));
           String packageUrl = JsonUtils.getNullableString(componentJson.get("packageUrl"));
+          String originalPurl = JsonUtils.getNullableString(componentJson.get("originalPurl"));
 
           Component component = new Component();
           component.setHash(hash);
@@ -382,6 +383,10 @@ public class ComponentLoader
 
           if (StringUtils.isNotBlank(packageUrl)) {
             component.setPackageUrl(packageUrl);
+          }
+
+          if (StringUtils.isNotBlank(originalPurl)) {
+            component.setOriginalPurl(originalPurl);
           }
 
           component.setComponentIdentifier(ComponentIdentifierAdapter.getComponentIdentifier(componentJson));

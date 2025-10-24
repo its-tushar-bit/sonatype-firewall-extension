@@ -295,6 +295,7 @@ public class ApiReportDataServiceV2
           component.pathnames = getPathnames(componentJson);
           component.displayName = JsonUtils.getTypeToString(componentJson.path(ComponentLoader.DISPLAY_NAME_FIELD),
               ComponentDisplayName.class);
+          component.originalPurl = JsonUtils.getNullableString(componentJson.get("originalPurl"));
           component.violations = violationsByHash.getOrDefault(component.hash, Collections.emptyList());
           if (isDependencyDataInRestApiSupported()) {
             Boolean directDependency = getBooleanValue(componentJson, "directDependency");
@@ -463,6 +464,8 @@ public class ApiReportDataServiceV2
       component.packageUrl = StringUtils.isNotBlank(comp.getPackageUrl())
           ? comp.getPackageUrl()
           : PackageUrlIdentifier.toPackageUrl(comp.getComponentIdentifier());
+
+      component.originalPurl = comp.getOriginalPurl();
 
       ComponentDisplayName componentDisplayName =
           ComponentDisplayNameUtil.fromIdentifier(comp.getComponentIdentifier());

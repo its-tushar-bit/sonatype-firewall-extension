@@ -14,6 +14,7 @@
       "groupId": "com.sonatype.insight.scan",
       "artifactId": "insight-scanner-archive",
       "version": "1.0.0-SNAPSHOT",
+      "originalPurl" : "pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar",
       "filenames": [
         "insight-scanner-archive-1.0.0-SNAPSHOT.jar"
       ],

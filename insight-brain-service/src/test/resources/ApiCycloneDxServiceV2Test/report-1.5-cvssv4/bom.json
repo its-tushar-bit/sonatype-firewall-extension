@@ -10,6 +10,7 @@
       }
     },
     "packageUrl" : "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+    "originalPurl" : "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
     "groupId" : null,
     "artifactId" : null,
     "version" : null,

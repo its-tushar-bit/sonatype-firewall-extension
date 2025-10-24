@@ -34,4 +34,7 @@ public class ApiComponentDTOV2
 
   @JsonIgnore
   public Integer breakingChangesCount;
+
+  @JsonInclude(Include.NON_NULL)
+  public String originalPurl;
 }

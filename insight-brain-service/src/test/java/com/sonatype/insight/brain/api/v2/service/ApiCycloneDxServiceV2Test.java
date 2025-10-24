@@ -270,9 +270,9 @@ public class ApiCycloneDxServiceV2Test
     String commonPurl1 = "pkg:generic/Apache.NMS.dll@2.0.0.0?nexusnamespace=Apache&nexustype=pecoff";
 
     Component component1 =
-        createComponent(Version.VERSION_14, commonPurl1, "367c5c858d5f3057d93b", "Apache.NMS.dll",
+        createComponent(Version.VERSION_14, commonPurl1, null, "367c5c858d5f3057d93b", "Apache.NMS.dll",
             "Not Provided");
-    Component component2 = createComponent(Version.VERSION_14, commonPurl1, "f19ac613238ca6e4ae77",
+    Component component2 = createComponent(Version.VERSION_14, commonPurl1, null, "f19ac613238ca6e4ae77",
         "Apache.NMS.dll");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
@@ -301,7 +301,7 @@ public class ApiCycloneDxServiceV2Test
             "nexusnamespace=Microsoft%20Corporation%2FMicrosoft%C2%AE%20Visual%20Studio%C2%AE%202017&nexustype=pecoff";
 
     Component component =
-        createComponent(Version.VERSION_16, commonPurl, "7b4fe24321d2b108eda7", "vcruntime140.dll",
+        createComponent(Version.VERSION_16, commonPurl, null, "7b4fe24321d2b108eda7", "vcruntime140.dll",
             "Not Provided");
 
     assertThat(bom.getComponents()).usingRecursiveFieldByFieldElementComparator(
@@ -591,6 +591,7 @@ public class ApiCycloneDxServiceV2Test
       throws Exception
   {
     boolean hasOccurrences = version.compareTo(Version.VERSION_15) >= 0;
+    boolean hasOriginalPurl = version.compareTo(Version.VERSION_14) >= 0;
     byte[] bytes = response.getEntity().toString().getBytes(StandardCharsets.UTF_8);
     Parser parser = BomParserFactory.createParser(bytes);
     Bom bom = parser.parse(bytes);
@@ -606,12 +607,12 @@ public class ApiCycloneDxServiceV2Test
     assertThat(bom.getExternalReferences()).hasSize(1);
 
     Component component1 = createComponent("2fa0ab71b154da29ac134097bc6bbacd90987dd4c4005516159e6494d1d52ea2",
-            version, "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
+            version, "pkg:nuget/jQuery@3.4.1", "pkg:nuget/jQuery@3.4.1", "5408e54a94044d1f1f21", "exact",
         "jquery.3.4.1.nupkg",  "CC0-1.0", "CDDL-1.1", "MIT");
-    Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", "0babbbd2c221d24484f5",
-        "similar", "common.ps1,install.ps1,uninstall.ps1",
+    Component component2 = createComponent(version, "pkg:nuget/jQuery@3.2.1", null,
+        "0babbbd2c221d24484f5", "similar", "common.ps1,install.ps1,uninstall.ps1",
         true, "CC0-1.0", "CDDL-1.1", "MIT");
-    Component component3 = createComponent(version, "pkg:a-name/knockout.validation@2.0.0-Pre",
+    Component component3 = createComponent(version, "pkg:a-name/knockout.validation@2.0.0-Pre", null,
         "7c9933a349f37d5f3131", "jquery-3.4.1.intellisense.js",
         "MPL-1.1", "LGPL-2.1", "Apache-1.1", "Apache-1.0", "LGPL-3.0", "Apache-2.0");
 
@@ -693,6 +694,14 @@ public class ApiCycloneDxServiceV2Test
     else {
       assertThat(bom.getComponents()).allMatch(component -> component.getEvidence() == null);
     }
+
+    if (hasOriginalPurl) {
+      bom.getComponents().get(0).getProperties().stream()
+          .filter(c -> c.getName().equals(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME))
+          .forEach(originalPurlProperty -> {
+            assertThat(originalPurlProperty.getValue()).isEqualTo("pkg:nuget/jQuery@3.4.1");
+          });
+    }
   }
 
   private void assertBomCVSSv4(Response response, Version version, boolean hasVulnerabilities)
@@ -712,6 +721,7 @@ public class ApiCycloneDxServiceV2Test
 
     Component component1 =
         createComponent(version, "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
+            "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
             "db6b61d995de714813ac", "exact",
             "pkg:fake/com.google.guava/guava@30.1-jre?type=jar",
             false, "Apache-2.0");
@@ -818,11 +828,12 @@ public class ApiCycloneDxServiceV2Test
   private Component createComponent(
       Version bomVersion,
       String packageUrl,
+      String originalPurl,
       String hashStr,
       String filenames,
       String... licenses)
   {
-    return createComponent(bomVersion, packageUrl, hashStr, "exact",
+    return createComponent(bomVersion, packageUrl, originalPurl, hashStr, "exact",
         filenames, false, licenses);
   }
 
@@ -830,12 +841,13 @@ public class ApiCycloneDxServiceV2Test
           String sha256,
           Version bomVersion,
           String packageUrl,
+          String originalPurl,
           String hashStr,
           String matchState,
           String filenames,
           String... licenses)
   {
-    Component component = createComponent(bomVersion, packageUrl, hashStr, matchState,
+    Component component = createComponent(bomVersion, packageUrl, originalPurl, hashStr, matchState,
         filenames, false, licenses);
     Hash hash = new Hash(Hash.Algorithm.SHA_256, sha256);
     component.addHash(hash);
@@ -845,6 +857,7 @@ public class ApiCycloneDxServiceV2Test
   private Component createComponent(
       Version bomVersion,
       String packageUrl,
+      String originalPurl,
       String hashStr,
       String matchState,
       String filenames,
@@ -889,6 +902,13 @@ public class ApiCycloneDxServiceV2Test
       filenamesProperty.setName(SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME);
       filenamesProperty.setValue(filenames);
       component.addProperty(filenamesProperty);
+    }
+
+    if (bomVersion.compareTo(Version.VERSION_13) > 0 && originalPurl != null) {
+      Property originalPurlProperty = new Property();
+      originalPurlProperty.setName(SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME);
+      originalPurlProperty.setValue(originalPurl);
+      component.addProperty(originalPurlProperty);
     }
 
     LicenseChoice licenseChoice = new LicenseChoice();

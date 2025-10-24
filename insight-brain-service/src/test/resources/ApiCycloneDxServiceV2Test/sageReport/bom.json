@@ -8,6 +8,7 @@
       }
     },
     "packageUrl" : "pkg:nuget/jQuery@3.4.1",
+    "originalPurl" : "pkg:nuget/jQuery@3.4.1",
     "groupId" : null,
     "artifactId" : null,
     "version" : null,

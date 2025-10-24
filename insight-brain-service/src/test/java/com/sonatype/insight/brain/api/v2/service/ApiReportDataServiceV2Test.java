@@ -183,6 +183,8 @@ public class ApiReportDataServiceV2Test
     assertThat(component.proprietary).isTrue();
     assertThat(ApiComponentIdentifierDTOV2.toComponentIdentifier(component.componentIdentifier))
         .isEqualTo(innerSourceId);
+    assertThat(component.originalPurl)
+        .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
     assertThat(component.packageUrl)
         .isEqualTo("pkg:maven/com.sonatype.insight.scan/insight-scanner-archive@1.0.0-SNAPSHOT?type=jar");
     assertThat(component.pathnames).containsExactlyInAnyOrder(
@@ -208,6 +210,7 @@ public class ApiReportDataServiceV2Test
     assertThat(component.dependencyData.parentComponentPurls).isNull();
     assertThat(component.dependencyData.innerSourceData)
         .containsExactly(new InnerSourceData("insight-scanner-archive", "ccba77f38eba4171a17b603e4ab9d7e5", null));
+
     component = data.components.get(1);
     assertThat(component.hash).isEqualTo("02a8e0aa38a2e21cb39e");
     assertThat(component.matchState).isEqualTo("exact");

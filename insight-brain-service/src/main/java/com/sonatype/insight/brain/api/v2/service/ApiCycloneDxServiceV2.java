@@ -773,6 +773,11 @@ public class ApiCycloneDxServiceV2
         bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
             SbomTaxonomy.CDX_MATCH_FILENAMES_PROPERTY_NAME, StringUtils.join(reportComponent.filenames, ",")));
       }
+      // Add the originalPurl property if available (for CycloneDX 1.4+)
+      if (version.compareTo(Version.VERSION_13) > 0 && StringUtils.isNotBlank(reportComponent.originalPurl)) {
+        bomComponent.setProperties(SbomExportUtils.addOrUpdateBomElementProperty(bomComponent.getProperties(),
+            SbomTaxonomy.CDX_ORIGINAL_PURL_PROPERTY_NAME, reportComponent.originalPurl));
+      }
     }
   }
 }

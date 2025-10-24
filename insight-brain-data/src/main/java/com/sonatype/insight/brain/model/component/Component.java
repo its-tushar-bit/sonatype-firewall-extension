@@ -115,6 +115,8 @@ public class Component
 
   private String packageUrl;
 
+  private String originalPurl;
+
   public Component() {
   }
 
@@ -574,5 +576,13 @@ public class Component
 
   public void setPackageUrl(final String packageUrl) {
     this.packageUrl = packageUrl;
+  }
+
+  public String getOriginalPurl() {
+    return originalPurl;
+  }
+
+  public void setOriginalPurl(final String originalPurl) {
+    this.originalPurl = originalPurl;
   }
 }

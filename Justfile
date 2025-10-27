@@ -1,0 +1,41 @@
+# Justfile for Nexus IQ Server (insight-brain) project
+
+# Variables
+mvn := env_var_or_default("MVN", "mvnd")
+quick_opts := "-DskipTests -Pquick"
+build_cache_dir := "./build-cache"
+local_repo_dir := "./m2-directory"
+
+# Default recipe (runs when you just type 'just')
+default:
+   @echo "By default this will use mvnd for faster builds. Configure environment variable MVN=mvn to use plain Maven"
+   @echo "Note: insight-brain only works with mvnd 1: brew install mvndaemon/mvnd/mvnd@1"
+   @just --list
+
+# Build, install into m2
+install:
+   {{mvn}} install {{quick_opts}}
+
+# Build, install into m2, test
+test:
+   {{mvn}} install
+
+# Build, install into m2, using isolated cache and local repository
+install-isolated:
+    {{mvn}} -pl clean install {{quick_opts}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+
+# Build, install into m2, without frontend, using isolated cache and local repository
+install-be-isolated:
+    {{mvn}} -pl '!insight-brain-frontend' clean install {{quick_opts}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+
+# Process classes for OpenJPA use
+process:
+    {{mvn}} -pl '!insight-brain-frontend' process-classes {{quick_opts}}
+
+# Check for license headers
+license:
+    {{mvn}} license:check
+
+# Check styling
+style:
+    {{mvn}} checkstyle:check pmd:check

@@ -10,7 +10,10 @@ import { useSelector } from 'react-redux';
 
 import UserList from './userList/UserList';
 import UserActivityOverviewContainer from '../../configuration/userActivityOverview/UserActivityOverviewContainer';
-import { selectIsUserActivityTrackingEnabled } from '../../productFeatures/productFeaturesSelectors';
+import {
+  selectIsUserActivityTrackingEnabled,
+  selectIsUserManagementPagesEnabled,
+} from '../../productFeatures/productFeaturesSelectors';
 
 const tabs = ['users', 'activity'];
 const tabNames = new Map([
@@ -29,9 +32,7 @@ export default function UserManagement(props) {
   } = props;
 
   const isUserActivityTrackingEnabled = useSelector(selectIsUserActivityTrackingEnabled);
-
-  // Only show activity tab if feature is enabled
-  const availableTabs = isUserActivityTrackingEnabled ? tabs : [tabs[0]];
+  const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
 
   const handleTabClick = (index) => {
     const selectedTab = availableTabs[index];
@@ -44,40 +45,74 @@ export default function UserManagement(props) {
     stateGo('userActivityDetails', { username });
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'activity':
-        if (!isUserActivityTrackingEnabled) {
-          return null;
-        }
-        return (
-          <UserActivityOverviewContainer
-            onUserClick={handleUserClick}
-            isAuthorized={isAuthorized}
-            isCheckingPermissions={isCheckingPermissions}
-          />
-        );
-      case 'users':
-      default:
-        return <UserList {...userListProps} stateGo={stateGo} />;
+  const shouldShowTabs = isUserActivityTrackingEnabled && isUserManagementEnabled;
+  const showActivityOnly = isUserActivityTrackingEnabled && !isUserManagementEnabled;
+  const showUsersOnly = !isUserActivityTrackingEnabled;
+
+  const availableTabs = shouldShowTabs ? tabs : [tabs[0]];
+
+  const getPageTitle = () => {
+    if (showActivityOnly) {
+      return 'User Activity';
     }
+    if (shouldShowTabs) {
+      return 'User Management';
+    }
+    return 'Users';
+  };
+
+  const renderContent = () => {
+    if (showActivityOnly) {
+      return (
+        <UserActivityOverviewContainer
+          onUserClick={handleUserClick}
+          isAuthorized={isAuthorized}
+          isCheckingPermissions={isCheckingPermissions}
+        />
+      );
+    }
+
+    if (showUsersOnly) {
+      return <UserList {...userListProps} stateGo={stateGo} />;
+    }
+
+    const renderTabContent = () => {
+      switch (activeTab) {
+        case 'activity':
+          return (
+            <UserActivityOverviewContainer
+              onUserClick={handleUserClick}
+              isAuthorized={isAuthorized}
+              isCheckingPermissions={isCheckingPermissions}
+            />
+          );
+        case 'users':
+        default:
+          return <UserList {...userListProps} stateGo={stateGo} />;
+      }
+    };
+
+    return (
+      <>
+        <NxTabs activeTab={availableTabs.indexOf(activeTab)} onTabSelect={handleTabClick}>
+          <NxTabList>
+            {availableTabs.map((tab) => (
+              <NxTab key={tab}>{tabNames.get(tab)}</NxTab>
+            ))}
+          </NxTabList>
+        </NxTabs>
+        {renderTabContent()}
+      </>
+    );
   };
 
   return (
     <main id="user-management" className="nx-page-main">
       <div className="nx-page-title">
-        <h1 className="nx-h1">User Management</h1>
+        <h1 className="nx-h1">{getPageTitle()}</h1>
       </div>
 
-      <NxTabs activeTab={availableTabs.indexOf(activeTab)} onTabSelect={handleTabClick}>
-        <NxTabList>
-          {availableTabs.map((tab) => (
-            <NxTab key={tab}>{tabNames.get(tab)}</NxTab>
-          ))}
-        </NxTabList>
-      </NxTabs>
-
-      {renderTabContent()}
+      {renderContent()}
     </main>
   );
 }

@@ -62,6 +62,73 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.queryByText('Users')).toBeNull();
   });
 
+  it('should display "User Activity" link when user activity tracking is enabled but user management is disabled (SaaS mode)', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-activity-tracking': true,
+          'user-management-pages': false,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('User Activity')).toBeInTheDocument();
+    expect(screen.queryByText('Users')).toBeNull();
+  });
+
+  it('should not display "User Activity" link when user activity tracking is disabled', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-activity-tracking': false,
+          'user-management-pages': false,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('User Activity')).toBeNull();
+  });
+
+  it('should not display "User Activity" link when both user activity and user management are enabled (shows Users instead)', () => {
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-activity-tracking': true,
+          'user-management-pages': true,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={permissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('Users')).toBeInTheDocument();
+    expect(screen.queryByText('User Activity')).toBeNull();
+  });
+
+  it('should not display "User Activity" link when CONFIGURE_SYSTEM permission is false', () => {
+    const noConfigPermissions = { ...permissions, CONFIGURE_SYSTEM: false };
+    const preloadedState = {
+      productLicense: {},
+      productFeatures: {
+        productFeatures: {
+          'user-activity-tracking': true,
+          'user-management-pages': false,
+        },
+      },
+    };
+    render(<SystemPreferencesMenu permissions={noConfigPermissions} />, { preloadedState });
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('User Activity')).toBeNull();
+  });
+
   it('should display the link "Users" if both "isUserManagementEnabled" and "isSsoIdpManagedBySonatype" are enabled', () => {
     const preloadedState = {
       productLicense: {},

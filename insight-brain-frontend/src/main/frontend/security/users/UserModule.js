@@ -31,6 +31,14 @@ function routes($stateProvider) {
         activeTab: 'activity',
       },
     })
+    .state('userActivity', {
+      url: '/user-activity',
+      component: 'users',
+      data: {
+        title: 'User Activity',
+        activeTab: 'activity',
+      },
+    })
     .state('createUser', {
       url: '/users/_new_',
       component: 'createUser',

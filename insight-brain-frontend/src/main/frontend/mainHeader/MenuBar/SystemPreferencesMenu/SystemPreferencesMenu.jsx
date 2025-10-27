@@ -12,7 +12,10 @@ import { selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectProductLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 
 import { NavLink } from '../MenuButton/MenuButton';
-import { selectIsUserManagementPagesEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsUserManagementPagesEnabled,
+  selectIsUserActivityTrackingEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export const SystemPreferencesMenu = ({
   permissions = {},
@@ -48,6 +51,7 @@ export const SystemPreferencesMenu = ({
   const isSbomManager = useSelector(selectIsSbomManager);
   const productLicense = useSelector(selectProductLicense);
   const isUserManagementEnabled = useSelector(selectIsUserManagementPagesEnabled);
+  const isUserActivityTrackingEnabled = useSelector(selectIsUserActivityTrackingEnabled);
   const firewallPrefix = isFirewallOnlyLicense ? 'firewall' : '';
   const sbomManagerPrefix = isSbomManager ? 'sbomManager' : '';
 
@@ -63,6 +67,14 @@ export const SystemPreferencesMenu = ({
         prefix={firewallPrefix}
       >
         Users
+      </NavLink>
+      <NavLink
+        stateName="userActivity"
+        id="system-configuration-user-activity"
+        showIf={CONFIGURE_SYSTEM && isUserActivityTrackingEnabled && !isUserManagementEnabled && productLicense}
+        prefix={firewallPrefix}
+      >
+        User Activity
       </NavLink>
       <NavLink
         stateName="rolesList"

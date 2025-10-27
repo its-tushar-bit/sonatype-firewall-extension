@@ -59,8 +59,8 @@
       <version>${project.version}</version>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -10,7 +10,7 @@ import java.net.HttpCookie;
 import com.sonatype.insight.brain.security.SecurityModule;
 
 public class HttpResponse
-    extends com.sonatype.insight.jaxrs.testing.HttpResponse
+    extends com.sonatype.insight.test.jaxrs.testing.HttpResponse
 {
   HttpResponse(Object delegate) {
     super(delegate);

@@ -6,10 +6,7 @@
 package com.sonatype.insight.brain.concurrent;
 
 import java.util.Date;
-
 import javax.inject.Inject;
-import jakarta.persistence.EntityExistsException;
-import jakarta.persistence.RollbackException;
 
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.model.PerpetualLock;
@@ -17,6 +14,8 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
+import jakarta.persistence.EntityExistsException;
+import jakarta.persistence.RollbackException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;

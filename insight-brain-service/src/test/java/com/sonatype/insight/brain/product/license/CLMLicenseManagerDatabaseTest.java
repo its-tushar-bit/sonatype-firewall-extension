@@ -20,8 +20,8 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.productlicense.ProductLicenseConfig;
-import com.sonatype.insight.productlicense.ProductLicenseSigner;
+import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
+import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
 
 import org.sonatype.licensing.LicensingException;
 

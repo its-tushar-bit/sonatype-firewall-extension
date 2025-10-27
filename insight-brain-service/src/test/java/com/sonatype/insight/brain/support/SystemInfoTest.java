@@ -52,7 +52,7 @@ import com.sonatype.insight.brain.support.SystemInfo.SamlInfo;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
-import com.sonatype.insight.productlicense.ProductLicenseConfig;
+import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
 import org.sonatype.licensing.LicensingException;
 
 import ch.qos.logback.access.spi.IAccessEvent;

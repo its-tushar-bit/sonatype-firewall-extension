@@ -55,6 +55,10 @@
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.portal</groupId>
+      <artifactId>insight-license-model</artifactId>
+    </dependency>
 
   </dependencies>
 

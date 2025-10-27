@@ -61,10 +61,5 @@
       <artifactId>selenium</artifactId>
       <version>${testcontainers.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
-      <scope>compile</scope>
-    </dependency>
   </dependencies>
 </project>

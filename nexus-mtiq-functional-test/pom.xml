@@ -160,11 +160,6 @@
       <artifactId>insight-brain-functional-test-common</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-test-reverse-proxy</artifactId>
     </dependency>
@@ -225,6 +220,10 @@
       <groupId>org.bouncycastle</groupId>
       <artifactId>bctls-fips</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
     </dependency>
   </dependencies>
 

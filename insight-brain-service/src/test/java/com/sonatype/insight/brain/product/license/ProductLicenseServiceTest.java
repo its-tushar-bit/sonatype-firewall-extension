@@ -19,8 +19,8 @@ import com.sonatype.insight.brain.service.HdsMockServerRule;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.productlicense.ProductLicenseConfig;
-import com.sonatype.insight.productlicense.ProductLicenseSigner;
+import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
+import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
 
 import com.google.inject.Binder;
 import org.junit.Before;

@@ -154,6 +154,7 @@
   <modules>
     <module>hds-mock-server</module>
     <module>insight-json-store</module>
+    <module>insight-brain-test</module>
     <module>insight-brain-common</module>
     <module>insight-brain-db</module>
     <module>insight-brain-data</module>
@@ -242,6 +243,12 @@
             <artifactId>h2</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>insight-brain-test</artifactId>
+        <version>1.197.0-SNAPSHOT</version>
+        <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
@@ -666,53 +673,12 @@
 
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-db-common</artifactId>
-        <version>${hds.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.mariadb.jdbc</groupId>
-            <artifactId>mariadb-java-client</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-error-handling</artifactId>
-        <version>${hds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-license-model</artifactId>
         <version>${hds.version}</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-common-model</artifactId>
-        <version>${hds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-license-util</artifactId>
-        <version>${hds.version}</version>
-        <scope>test</scope>
-        <exclusions>
-          <exclusion>
-            <groupId>com.sonatype.insight.portal</groupId>
-            <artifactId>insight-portal-model</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-jaxrs-utils</artifactId>
         <version>${hds.version}</version>
       </dependency>
       <dependency>
@@ -734,20 +700,8 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-test</artifactId>
-        <version>${hds.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
         <artifactId>insight-scan-report-model</artifactId>
         <version>${hds.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sonatype.insight.portal</groupId>
-        <artifactId>insight-jaxrs-testing</artifactId>
-        <version>${hds.version}</version>
-        <scope>test</scope>
       </dependency>
 
       <dependency>

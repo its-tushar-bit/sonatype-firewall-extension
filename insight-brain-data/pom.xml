@@ -126,12 +126,9 @@
     </dependency>
 
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-error-handling</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-db-common</artifactId>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
@@ -151,11 +148,6 @@
           <artifactId>vulnerability-renderer</artifactId>
         </exclusion>
       </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
-      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>com.sonatype.nexus</groupId>

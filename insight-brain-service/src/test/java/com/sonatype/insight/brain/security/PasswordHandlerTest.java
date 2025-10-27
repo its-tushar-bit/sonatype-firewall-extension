@@ -11,8 +11,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.test.InjectedTest;
 
+import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;

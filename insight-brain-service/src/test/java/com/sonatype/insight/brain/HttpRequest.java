@@ -7,7 +7,8 @@ package com.sonatype.insight.brain;
 
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;
-import com.sonatype.insight.jaxrs.testing.AbstractHttpRequest;
+
+import com.sonatype.insight.test.jaxrs.testing.AbstractHttpRequest;
 
 /**
  * Builder-style utility to execute HTTP requests.

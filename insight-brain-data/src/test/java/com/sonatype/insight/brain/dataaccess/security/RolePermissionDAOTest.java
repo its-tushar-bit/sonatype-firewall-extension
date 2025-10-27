@@ -86,7 +86,7 @@ public class RolePermissionDAOTest
 
   @Test
   public void testGetRoleIdsByPermission() {
-    String roleId = tempEntity.newRole("testing", false /* global */).getId();
+    String roleId = tempEntity.newRole("com.sonatype.insight.test.jaxrs.testing", false /* global */).getId();
     for (Permission perm : Permission.values()) {
       assertThat(permDAO.getRoleIdsByPermission(perm)).doesNotContain(roleId);
     }

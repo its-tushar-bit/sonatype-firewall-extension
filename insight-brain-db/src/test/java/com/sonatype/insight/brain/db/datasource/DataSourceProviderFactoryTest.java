@@ -5,14 +5,11 @@
  */
 package com.sonatype.insight.brain.db.datasource;
 
-import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
-import com.sonatype.insight.db.MysqlDatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Test;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertTrue;
 
 public class DataSourceProviderFactoryTest
@@ -29,12 +26,5 @@ public class DataSourceProviderFactoryTest
     DataSourceProvider dataSourceProvider =
         DataSourceProviderFactory.createDataSourceProvider(PostgresDatabaseEngine.INSTANCE);
     assertTrue(dataSourceProvider instanceof PostgresDataSourceProvider);
-  }
-
-  @Test
-  public void testCreateDataSourceProvider_Unknown() {
-    // MySQL is a DatabaseEngine that IQ does not support
-    assertThatExceptionOfType(DatabaseException.class)
-        .isThrownBy(() -> DataSourceProviderFactory.createDataSourceProvider(MysqlDatabaseEngine.INSTANCE));
   }
 }

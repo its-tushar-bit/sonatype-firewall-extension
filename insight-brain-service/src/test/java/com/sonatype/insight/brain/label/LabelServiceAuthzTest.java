@@ -372,7 +372,7 @@ public class LabelServiceAuthzTest
   }
 
   private ApiLabelDTO newInMemoryLabel() {
-    Label label = new Label(null, "testing");
+    Label label = new Label(null, "com.sonatype.insight.test.jaxrs.testing");
 
     ApiLabelDTO dto = new ApiLabelDTO(label.getLabel(), label.getDescription(), label.getColor().name());
     dto.id = label.getId();

@@ -93,11 +93,6 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>insight-brain-db</artifactId>
       <type>test-jar</type>
@@ -129,11 +124,6 @@
     <dependency>
       <groupId>com.sonatype.insight.brain</groupId>
       <artifactId>hds-mock-server</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-jaxrs-testing</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -221,6 +211,10 @@
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit4</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
     </dependency>
   </dependencies>
 

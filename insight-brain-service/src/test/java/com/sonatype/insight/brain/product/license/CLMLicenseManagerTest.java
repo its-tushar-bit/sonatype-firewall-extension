@@ -38,8 +38,8 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
-import com.sonatype.insight.productlicense.ProductLicenseConfig;
-import com.sonatype.insight.productlicense.ProductLicenseSigner;
+import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
+import com.sonatype.insight.test.productlicense.ProductLicenseSigner;
 import com.sonatype.insight.test.LogOutput;
 import org.sonatype.licensing.LicensingException;
 

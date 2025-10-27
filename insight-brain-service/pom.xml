@@ -204,14 +204,6 @@
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-error-handling</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-jaxrs-utils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-telemetry-model</artifactId>
     </dependency>
      <dependency>
@@ -503,17 +495,8 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-test</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>com.sonatype.insight.scan</groupId>
       <artifactId>insight-test-networking</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-license-util</artifactId>
     </dependency>
     <dependency>
       <groupId>com.sonatype.insight.portal</groupId>
@@ -527,11 +510,6 @@
       <groupId>com.sonatype.insight.portal</groupId>
       <artifactId>insight-reference-policies</artifactId>
       <version>${hds.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.sonatype.insight.portal</groupId>
-      <artifactId>insight-jaxrs-testing</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -760,6 +738,12 @@
     <dependency>
       <groupId>org.apache.httpcomponents.client5</groupId>
       <artifactId>httpclient5</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>com.sonatype.insight.brain</groupId>
+      <artifactId>insight-brain-test</artifactId>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

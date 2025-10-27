@@ -138,7 +138,7 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
+    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 14);
     assertThat(reportPdf.exists()).isTrue();
 
     assertSbomPdfCommonSections(pdfContent);
@@ -182,7 +182,7 @@ public class PdfGeneratorTest
         bomPageMetadataDTO
     );
 
-    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 13);
+    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.SBOM, 1, 14);
     assertThat(reportPdf.exists()).isTrue();
 
     assertSbomPdfCommonSections(pdfContent);
@@ -195,24 +195,24 @@ public class PdfGeneratorTest
   private static void assertSbomPdfCommonSections(final String pdfContent) {
     List<String> headerSection = List.of("Policy Violations for appName Build Report", "Created on:",
         "Analyzed on:");
-    List<String> pageCount = List.of("Page 1 of 13", "Page 2 of 13", "Page 3 of 13", "Page 4 of 13",
-        "Page 5 of 13", "Page 6 of 13", "Page 7 of 13", "Page 8 of 13", "Page 9 of 13", "Page 10 of 13",
-        "Page 11 of 13", "Page 12 of 13", "Page 13 of 13");
+    List<String> pageCount = List.of("Page 1 of 14", "Page 2 of 14", "Page 3 of 14", "Page 4 of 14",
+        "Page 5 of 14", "Page 6 of 14", "Page 7 of 14", "Page 8 of 14", "Page 9 of 14", "Page 10 of 14",
+        "Page 11 of 14", "Page 12 of 14", "Page 13 of 14", "Page 14 of 14");
     List<String> violationsSection = List.of("26 43 8 77 VIOLATIONS",
         "Affecting 26 components",
-        "THREAT POLICY NAME POLICY TYPE COMPONENT",
-        "10 Security-Critical Security apache-collections : commons-collections : 3.1",
-        "10 Security-Critical Security com.fasterxml.jackson.core : jackson-databind : 2.0.4",
-        "9 Security-High Security apache-taglibs : standard : 1.1.2",
-        "9 Security-High Security axis : axis : 1.2",
-        "7 Security-Medium Security axis : axis : 1.2",
-        "7 Security-Medium Security axis : axis : 1.2",
-        "3 Security-Low Security commons-fileupload : commons-fileupload : 1.2.2",
-        "3 Security-Low Security org.springframework : spring-core : 3.2.4.RELEASE",
-        "2 Component-Unknown Other RegexMatch.dll",
-        "2 Component-Unknown Other WebGoat-6.0.1.war",
-        "1 Architecture-Cleanup Other junit : junit : 4.8.1",
-        "1 Architecture-Quality Quality aopalliance : aopalliance : 1.0");
+        "THREAT POLICY NAME POLICY TYPE WAIVED COMPONENT",
+        "10 Security-Critical Security No apache-collections : commons-collections : 3.1",
+        "10 Security-Critical Security No com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "9 Security-High Security No apache-taglibs : standard : 1.1.2",
+        "9 Security-High Security No axis : axis : 1.2",
+        "7 Security-Medium Security No axis : axis : 1.2",
+        "7 Security-Medium Security No axis : axis : 1.2",
+        "3 Security-Low Security No commons-fileupload : commons-fileupload : 1.2.2",
+        "3 Security-Low Security No org.springframework : spring-core : 3.2.4.RELEASE",
+        "2 Component-Unknown Other No RegexMatch.dll",
+        "2 Component-Unknown Other No WebGoat-6.0.1.war",
+        "1 Architecture-Cleanup Other No junit : junit : 4.8.1",
+        "1 Architecture-Quality Quality No aopalliance : aopalliance : 1.0");
     List<String> vulnerabilitiesSection = List.of("Vulnerabilities for appName Build Report",
         "VULNERABILITY CVSS SCORE COMPONENT", "CVE-2016-1000027 9.8 org.springframework : spring-web : 3.2.4.RELEASE",
         "CVE-2016-1000031 9.8 commons-fileupload : commons-fileupload : 1.2.2",
@@ -261,7 +261,7 @@ public class PdfGeneratorTest
         apiReportDataServiceV2.getRawData(application.getPublicId(), SCAN_ID)
     );
 
-    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.LIFECYCLE, 1, 13);
+    String pdfContent = generatePdfAndStripText(reportPdf, pdfData, Context.LIFECYCLE, 1, 14);
     assertThat(reportPdf.exists()).isTrue();
 
     assertCommonSections(pdfContent);
@@ -277,24 +277,24 @@ public class PdfGeneratorTest
     String timeZoneOffset = ZonedDateTime.now().format(timeZoneFormatter);
     List<String> headerSection = List.of("Policy Violations for appName Build Report", "Created on:",
         "Analyzed on:", "UTC " + timeZoneOffset);
-    List<String> pageCount = List.of("Page 1 of 13", "Page 2 of 13", "Page 3 of 13", "Page 4 of 13",
-        "Page 5 of 13", "Page 6 of 13", "Page 7 of 13", "Page 8 of 13", "Page 9 of 13", "Page 10 of 13",
-        "Page 11 of 13", "Page 12 of 13", "Page 13 of 13");
+    List<String> pageCount = List.of("Page 1 of 14", "Page 2 of 14", "Page 3 of 14", "Page 4 of 14",
+        "Page 5 of 14", "Page 6 of 14", "Page 7 of 14", "Page 8 of 14", "Page 9 of 14", "Page 10 of 14",
+        "Page 11 of 14", "Page 12 of 14", "Page 13 of 14", "Page 14 of 14");
     List<String> violationsSection = List.of("26 43 8 77 VIOLATIONS",
         "Affecting 26 components",
-        "THREAT POLICY NAME POLICY TYPE COMPONENT",
-        "10 Security-Critical Security apache-collections : commons-collections : 3.1",
-        "10 Security-Critical Security com.fasterxml.jackson.core : jackson-databind : 2.0.4",
-        "9 Security-High Security apache-taglibs : standard : 1.1.2",
-        "9 Security-High Security axis : axis : 1.2",
-        "7 Security-Medium Security axis : axis : 1.2",
-        "7 Security-Medium Security axis : axis : 1.2",
-        "3 Security-Low Security commons-fileupload : commons-fileupload : 1.2.2",
-        "3 Security-Low Security org.springframework : spring-core : 3.2.4.RELEASE",
-        "2 Component-Unknown Other RegexMatch.dll",
-        "2 Component-Unknown Other WebGoat-6.0.1.war",
-        "1 Architecture-Cleanup Other junit : junit : 4.8.1",
-        "1 Architecture-Quality Quality aopalliance : aopalliance : 1.0");
+        "THREAT POLICY NAME POLICY TYPE WAIVED COMPONENT",
+        "10 Security-Critical Security No apache-collections : commons-collections : 3.1",
+        "10 Security-Critical Security No com.fasterxml.jackson.core : jackson-databind : 2.0.4",
+        "9 Security-High Security No apache-taglibs : standard : 1.1.2",
+        "9 Security-High Security No axis : axis : 1.2",
+        "7 Security-Medium Security No axis : axis : 1.2",
+        "7 Security-Medium Security No axis : axis : 1.2",
+        "3 Security-Low Security No commons-fileupload : commons-fileupload : 1.2.2",
+        "3 Security-Low Security No org.springframework : spring-core : 3.2.4.RELEASE",
+        "2 Component-Unknown Other No RegexMatch.dll",
+        "2 Component-Unknown Other No WebGoat-6.0.1.war",
+        "1 Architecture-Cleanup Other No junit : junit : 4.8.1",
+        "1 Architecture-Quality Quality No aopalliance : aopalliance : 1.0");
     List<String> vulnerabilitiesSection = List.of("Vulnerabilities for appName Build Report",
         "VULNERABILITY CVSS SCORE COMPONENT", "CVE-2016-1000027 9.8 org.springframework : spring-web : 3.2.4.RELEASE",
         "CVE-2016-1000031 9.8 commons-fileupload : commons-fileupload : 1.2.2",
@@ -632,7 +632,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCountPolicyViolations_ExcludesWaivedAndLegacyStatus() {
+  public void testCountPolicyViolations_ExcludesLegacyStatus() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = newApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -651,7 +651,7 @@ public class PdfGeneratorTest
         new ApiReportRawDataDTOV2()
     );
 
-    assertThat(new PdfGenerator(null, pdfData).countPolicyViolations(0, 10)).isEqualTo(1);
+    assertThat(new PdfGenerator(null, pdfData).countPolicyViolations(0, 10)).isEqualTo(2);
   }
 
   @Test
@@ -678,7 +678,7 @@ public class PdfGeneratorTest
   }
 
   @Test
-  public void testCountAffectedComponents_ExcludesComponentsWithOnlyLowThreatOrWaivedOrLegacyViolations() {
+  public void testCountAffectedComponents_ExcludesComponentsWithOnlyLowThreatOrLegacyViolations() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = newApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -700,7 +700,7 @@ public class PdfGeneratorTest
         new ApiReportRawDataDTOV2()
     );
 
-    assertThat(new PdfGenerator(null, pdfData).countAffectedComponents()).isEqualTo(0);
+    assertThat(new PdfGenerator(null, pdfData).countAffectedComponents()).isEqualTo(1);
   }
 
   @Test
@@ -760,12 +760,12 @@ public class PdfGeneratorTest
 
     assertThat(policyViolationsTable).isNotNull();
     List<Row> rows = policyViolationsTable.getRows();
-    assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(4)).getText())
+    assertThat(rows.subList(1, rows.size())).extracting(row -> ((TextCell) row.getCells().get(5)).getText())
         .containsExactly("comp111", "comp112", "comp121", "comp122", "comp211", "comp212", "comp221", "comp222");
   }
 
   @Test
-  public void testCreatePolicyViolationsTableData_ExcludesWaivedAndLegacyStatus() {
+  public void testCreatePolicyViolationsTableData_ExcludesLegacyStatus() {
     ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
     ApiReportComponentPolicyViolationsDTOV2 component = newApiReportComponentPolicyViolationsDTOV2();
     ApiReportPolicyViolationDTOV2 violation = new ApiReportPolicyViolationDTOV2();
@@ -790,7 +790,40 @@ public class PdfGeneratorTest
     PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
 
     assertThat(pdfGenerator.createPolicyViolationsTableData()).extracting(row -> row.policyName)
-        .containsExactly(violation.policyName);
+        .containsExactly(violation.policyName, waivedViolation.policyName);
+  }
+
+  @Test
+  public void testCreatePolicyViolationsTableData_IncludesWaivedStatus() {
+    ApiReportPolicyDataDTOV2 policyData = new ApiReportPolicyDataDTOV2();
+    ApiReportComponentPolicyViolationsDTOV2 component = newApiReportComponentPolicyViolationsDTOV2();
+
+    ApiReportPolicyViolationDTOV2 activeViolation = new ApiReportPolicyViolationDTOV2();
+    activeViolation.policyName = "policyName1";
+    activeViolation.waived = false;
+    activeViolation.legacyViolation = false;
+    component.violations.add(activeViolation);
+
+    ApiReportPolicyViolationDTOV2 waivedViolation = new ApiReportPolicyViolationDTOV2();
+    waivedViolation.policyName = "policyName2";
+    waivedViolation.waived = true;
+    waivedViolation.legacyViolation = false;
+    component.violations.add(waivedViolation);
+
+    policyData.components.add(component);
+    PdfData pdfData = PdfData.createPdfData(
+        null,
+        "98",
+        policyData,
+        new ApiReportRawDataDTOV2()
+    );
+
+    PdfGenerator pdfGenerator = new PdfGenerator(null, pdfData);
+    List<PolicyViolationsTableRow> tableData = pdfGenerator.createPolicyViolationsTableData();
+
+    assertThat(tableData).hasSize(2);
+    assertThat(tableData.get(0).waived).isFalse();
+    assertThat(tableData.get(1).waived).isTrue();
   }
 
   @Test

@@ -170,8 +170,8 @@ public class PdfGenerator
 
   private final PdfData pdfData;
 
-  private final Predicate<PdfComponentPolicyViolation> isActiveViolation =
-      violation -> !violation.waived && !violation.legacyViolation;
+  private final Predicate<PdfComponentPolicyViolation> isNotLegacyViolation =
+      violation -> !violation.legacyViolation;
 
   private ReportPdfEntity reportPdf;
 
@@ -401,9 +401,10 @@ public class PdfGenerator
   Table createPolicyViolationsTable(PDPage page) {
     float threatLevelColorWidthPercent = 1;
     float threatLevelWidthPercent = 9;
-    float policyNameWidthPercent = 20;
-    float policyTypeWidthPercent = 15;
-    float componentWidthPercent = 55;
+    float policyNameWidthPercent = 18;
+    float policyTypeWidthPercent = 14;
+    float waivedWidthPercent = 8;
+    float componentWidthPercent = 50;
 
     float tableWidthOnePercent = (page.getCropBox().getWidth() - 2 * MARGIN) / 100;
     TableBuilder tableBuilder = Table.builder()
@@ -412,6 +413,7 @@ public class PdfGenerator
             tableWidthOnePercent * threatLevelWidthPercent,
             tableWidthOnePercent * policyNameWidthPercent,
             tableWidthOnePercent * policyTypeWidthPercent,
+            tableWidthOnePercent * waivedWidthPercent,
             tableWidthOnePercent * componentWidthPercent);
 
     // Add policy violations table headers
@@ -419,6 +421,7 @@ public class PdfGenerator
         .add(headerCellBuilder().text("THREAT").colSpan(2).build())
         .add(headerCellBuilder().text("POLICY NAME").build())
         .add(headerCellBuilder().text("POLICY TYPE").build())
+        .add(headerCellBuilder().text("WAIVED").build())
         .add(headerCellBuilder().text("COMPONENT").build())
         .build());
 
@@ -435,6 +438,7 @@ public class PdfGenerator
                   .fontSize((int) threatLevelFontStyle.getFontSize()).textColor(threatLevelFontStyle.getFontColor())),
           new TextCellBuilder(policyViolationsTableRow.policyName, this::cellBuilder),
           new TextCellBuilder(policyViolationsTableRow.policyType, this::cellBuilder),
+          new TextCellBuilder(policyViolationsTableRow.waived ? "Yes" : "No", this::cellBuilder),
           new TextCellBuilder(policyViolationsTableRow.componentName, this::cellBuilder));
       rows.forEach(tableBuilder::addRow);
     }
@@ -447,7 +451,7 @@ public class PdfGenerator
     List<PolicyViolationsTableRow> policyViolationsTableRows = new ArrayList<>();
     for (PdfComponent component : pdfData.components) {
       for (PdfComponentPolicyViolation violation : component.policyViolations) {
-        if (!isActiveViolation.test(violation)) {
+        if (!isNotLegacyViolation.test(violation)) {
           continue;
         }
         PolicyViolationsTableRow policyViolationsTableRow = new PolicyViolationsTableRow();
@@ -455,6 +459,7 @@ public class PdfGenerator
         policyViolationsTableRow.policyName = violation.policyName;
         policyViolationsTableRow.policyType = violation.policyThreatCategory == null ? "" : StringUtils
             .capitalize(violation.policyThreatCategory.toLowerCase(Locale.ROOT));
+        policyViolationsTableRow.waived = violation.waived;
         policyViolationsTableRow.componentName = component.displayName;
         policyViolationsTableRows.add(policyViolationsTableRow);
       }
@@ -992,7 +997,7 @@ public class PdfGenerator
   // Visible for testing
   long countPolicyViolations(int minThreatLevel, int maxThreatLevel) {
     return pdfData.components.stream().flatMap(component -> component.policyViolations.stream())
-        .filter(isActiveViolation)
+        .filter(isNotLegacyViolation)
         .filter(violation -> violation.policyThreatLevel >= minThreatLevel
             && violation.policyThreatLevel <= maxThreatLevel)
         .count();
@@ -1001,7 +1006,7 @@ public class PdfGenerator
   // Visible for testing
   long countAffectedComponents() {
     return pdfData.components.stream().filter(component -> component.policyViolations.stream()
-        .anyMatch(violation -> isActiveViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
+        .anyMatch(violation -> isNotLegacyViolation.test(violation) && violation.policyThreatLevel >= 2)).count();
   }
 
   private TableDrawer createTableDrawer(PDPageContentStream contentStream, float tableStartY, Table table) {

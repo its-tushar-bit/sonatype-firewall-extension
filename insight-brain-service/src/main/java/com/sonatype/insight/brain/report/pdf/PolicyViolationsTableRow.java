@@ -21,6 +21,8 @@ public class PolicyViolationsTableRow
 
   public String policyType;
 
+  public boolean waived;
+
   public String componentName;
 
   @Override

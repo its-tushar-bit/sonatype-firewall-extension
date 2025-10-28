@@ -59,7 +59,7 @@ import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/product
 import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLinkModal/externalLinkModalSlice';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationManager';
-import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
+import { fetchUser, waitForLogin } from 'MainRoot/user/userSessionUtils';
 
 export const InitModule = angular
   .module(
@@ -102,7 +102,7 @@ export const InitModule = angular
                   $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
                   $ngRedux.dispatch(loadProductLicense()),
                   $ngRedux.dispatch(firewallOnboardingActions.loadUnconfiguredRepoManagers()),
-                  waitForLogin(),
+                  waitForLogin($ngRedux),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
@@ -383,7 +383,7 @@ export const InitModule = angular
       }
 
       function attemptLogin() {
-        fetchUser();
+        fetchUser($ngRedux);
       }
 
       function doStart() {
@@ -392,7 +392,7 @@ export const InitModule = angular
         })($rootScope);
         $rootScope.$on('$destroy', unsubscribe);
 
-        $q.all([waitForLogin(), checkLicenseInfo()])
+        $q.all([waitForLogin($ngRedux), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
             $ngRedux.dispatch(loadProductLicense());
             $rootScope.username = authenticationStatus.username;
@@ -510,7 +510,7 @@ export const InitModule = angular
 
         // Try to fetch the current user in order to see if we are already logged in, but do not attempt
         // to initiate a login here (we might be on a page that doesn't require auth)
-        fetchUser(false);
+        fetchUser($ngRedux, false);
 
         pendoService.start();
       }

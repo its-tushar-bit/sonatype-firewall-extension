@@ -40,7 +40,7 @@ import {
   selectIsStandaloneSbomManager,
   selectCurrentRouteName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { fetchUser, waitForLogin } from 'MainRoot/user/userSession';
+import { fetchUser, waitForLogin } from 'MainRoot/user/userSessionUtils';
 import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
 import { getValidPermissions } from 'MainRoot/util/permissionService';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
@@ -84,7 +84,7 @@ function MainHeaderController($rootScope, $scope, $ngRedux) {
       'MANAGE_AUTOMATIC_SCM_CONFIGURATION',
     ];
 
-    waitForLogin().then(function () {
+    waitForLogin($ngRedux).then(function () {
       getValidPermissions(validPermissions).then(function (data) {
         const perms = {};
         angular.forEach(data, function (permission) {
@@ -101,7 +101,7 @@ function MainHeaderController($rootScope, $scope, $ngRedux) {
   }
 
   function login() {
-    fetchUser();
+    fetchUser($ngRedux);
   }
 
   $rootScope.$on('$stateChangeSuccess', checkShowLoginButton);

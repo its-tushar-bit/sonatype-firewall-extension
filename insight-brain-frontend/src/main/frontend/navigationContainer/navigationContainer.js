@@ -36,7 +36,7 @@ import {
   selectLoadingProducts,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { getReleaseVersion } from 'MainRoot/util/versionUtil';
-import { waitForLogin } from 'MainRoot/user/userSession';
+import { waitForLogin } from 'MainRoot/user/userSessionUtils';
 
 /* global clmServerVersion */
 function NavigationContainerController($rootScope, $state, $scope, $ngRedux) {
@@ -75,7 +75,7 @@ function NavigationContainerController($rootScope, $state, $scope, $ngRedux) {
 
   function doLoad() {
     const { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
-    waitForLogin().then(function () {
+    waitForLogin($ngRedux).then(function () {
       $ngRedux.dispatch(loadAdvancedSearchConfig());
       $ngRedux.dispatch(loadSuccessMetricsConfig());
       $ngRedux.dispatch(loadProductLicense());

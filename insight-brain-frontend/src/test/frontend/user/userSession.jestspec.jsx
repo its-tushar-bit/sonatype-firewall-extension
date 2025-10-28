@@ -5,19 +5,25 @@
  */
 
 import { waitFor } from '@testing-library/react';
-import { fetchUser, waitForLogin, _resetForTest } from 'MainRoot/user/userSession';
-import { axiosMockAdapter } from 'TestRoot/SpecUtil';
+import { fetchUser, waitForLogin, _resetForTest } from 'MainRoot/user/userSessionUtils';
+import { axiosMockAdapter, configureStore } from 'TestRoot/SpecUtil';
 import { getSessionUrl } from 'MainRoot/util/CLMLocation';
+import reducers from 'MainRoot/reduxConfig/reducers';
 
-describe('userSession', () => {
-  let axiosMock;
+describe('userSessionUtils', () => {
+  let axiosMock, store;
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
   });
 
+  beforeEach(() => {
+    // Create a new Redux store for each test
+    store = configureStore({ reducer: reducers });
+  });
+
   afterEach(() => {
-    _resetForTest();
+    _resetForTest(store);
   });
 
   describe('fetchUser', () => {
@@ -25,9 +31,9 @@ describe('userSession', () => {
       const mockUserData = { username: 'myname' };
       axiosMock.onGet(getSessionUrl()).reply(200, mockUserData);
 
-      fetchUser();
+      fetchUser(store);
 
-      const userData = await waitForLogin();
+      const userData = await waitForLogin(store);
       expect(userData).toEqual(mockUserData);
     });
 
@@ -35,7 +41,7 @@ describe('userSession', () => {
       const mockUserData = { username: 'myname' };
       axiosMock.onGet(getSessionUrl()).reply(200, mockUserData);
 
-      fetchUser();
+      fetchUser(store);
 
       const request = axiosMock.history.get[0];
       expect(request.waitForLogin).toBeTruthy();
@@ -45,7 +51,7 @@ describe('userSession', () => {
       const mockUserData = { username: 'myname' };
       axiosMock.onGet(getSessionUrl()).reply(200, mockUserData);
 
-      fetchUser(false);
+      fetchUser(store, false);
 
       const request = axiosMock.history.get[0];
       expect(request.waitForLogin).toBeFalsy();
@@ -54,7 +60,7 @@ describe('userSession', () => {
     it('does not reject the promise when a 401 error occurs', async () => {
       axiosMock.onGet(getSessionUrl()).replyOnce(401).onGet(getSessionUrl()).reply(200, { username: 'myname' });
       let isPending = true;
-      waitForLogin()
+      waitForLogin(store)
         .then(() => {
           isPending = false;
         })
@@ -62,7 +68,7 @@ describe('userSession', () => {
           isPending = false;
         });
 
-      fetchUser();
+      fetchUser(store);
 
       await waitFor(() => {
         expect(axiosMock.history.get.length).toEqual(1);
@@ -70,9 +76,9 @@ describe('userSession', () => {
 
       expect(isPending).toBeTruthy();
 
-      fetchUser();
+      fetchUser(store);
 
-      await waitForLogin();
+      await waitForLogin(store);
 
       expect(isPending).toBeFalsy();
     });
@@ -80,10 +86,10 @@ describe('userSession', () => {
     it('rejects the promise when a non-401 error occurs', async () => {
       axiosMock.onGet(getSessionUrl()).reply(500);
 
-      fetchUser();
+      fetchUser(store);
 
       try {
-        await waitForLogin();
+        await waitForLogin(store);
         fail('Promise should have been rejected');
       } catch (e) {
         expect(e.status).toEqual(500);

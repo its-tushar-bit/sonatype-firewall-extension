@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
-import * as userSession from 'MainRoot/user/userSession';
+import * as userSession from 'MainRoot/user/userSessionUtils';
 import mainBundlePendoService, { setUrlService } from 'MainRoot/pendo/mainBundlePendoService';
 import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
 import axios from 'axios';

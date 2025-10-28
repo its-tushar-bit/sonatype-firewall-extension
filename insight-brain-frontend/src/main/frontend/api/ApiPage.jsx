@@ -18,15 +18,16 @@ import {
   NxTabs,
   NxTile,
 } from '@sonatype/react-shared-components';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector, useStore } from 'react-redux';
 import { selectApiPageSlice } from 'MainRoot/api/apiPageSelectors';
 import { actions } from 'MainRoot/api/apiPageSlice';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
-import { fetchUser } from 'MainRoot/user/userSession';
+import { fetchUser } from 'MainRoot/user/userSessionUtils';
 import { selectCurrentUser } from 'MainRoot/user/userSelectors';
 
 export default function ApiPage() {
   const dispatch = useDispatch();
+  const store = useStore();
   const { loading, loadError, publicOpenApi, experimentalOpenApi } = useSelector(selectApiPageSlice);
   const currentUser = useSelector(selectCurrentUser);
   const loadOpenApi = (endpoint) => dispatch(actions.loadOpenApi(endpoint));
@@ -51,7 +52,7 @@ export default function ApiPage() {
     // and doesn't want to be nagged or auto-logged out due to what looks like inactivity
     // but is actually just them sending raw API requests.
     if (currentUser) {
-      setTimeout(() => fetchUser(false), 0);
+      setTimeout(() => fetchUser(store, false), 0);
     }
 
     return request;

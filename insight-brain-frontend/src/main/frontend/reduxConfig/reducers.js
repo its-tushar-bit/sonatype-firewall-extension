@@ -122,6 +122,7 @@ import externalLinkModalSlice from 'MainRoot/modals/externalLinkModal/externalLi
 import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
 import userActivitySlice from '../configuration/userActivityOverview/userActivitySlice';
+import userSessionSlice from '../user/userSessionSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -242,4 +243,5 @@ export default combineReducers({
   unsavedChangesModal: unsavedChangesModalSlice,
   addContainerImageWaiverPage: addContainerImageWaiverPageSlice,
   userActivity: userActivitySlice,
+  userSession: userSessionSlice,
 });

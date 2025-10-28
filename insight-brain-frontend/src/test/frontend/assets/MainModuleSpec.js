@@ -5,22 +5,19 @@
  */
 import * as gettingStartedTelemetryServiceHelper from 'MainRoot/configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import * as RouteProductLicenseValidator from 'MainRoot/routeProductLicenseValidator/RouteProductLicenseValidator';
-import { axiosMockAdapter, waitFor } from 'TestRoot/SpecUtil';
-import * as userSession from 'MainRoot/user/userSession';
+import { waitFor } from 'TestRoot/SpecUtil';
+import * as userSession from 'MainRoot/user/userSessionUtils';
 import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 import * as ProductLicense from 'MainRoot/utility/services/ProductLicense';
-import { getSessionUrl } from 'MainRoot/util/CLMLocation';
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
-  let scope, $ngRedux, productLicenseLoadDefer, axiosMock, mockPendoService, InitModule;
-
-  beforeAll(() => {
-    axiosMock = axiosMockAdapter();
-  });
+  let scope, $ngRedux, productLicenseLoadDefer, mockPendoService, InitModule;
 
   afterEach(() => {
-    userSession._resetForTest();
+    if ($ngRedux) {
+      userSession._resetForTest($ngRedux);
+    }
   });
 
   beforeEach(() => {
@@ -89,7 +86,13 @@ describe('mainModuleSpec', function () {
     }));
 
     describe('Validates requests made', function () {
-      let $rootScope, $state, $window, initService;
+      let $rootScope, $state, $window, initService, waitForLoginDeferred;
+
+      beforeEach(inject(function ($q) {
+        // Mock waitForLogin with a deferred promise (same approach as mainHeaderSpec and primaryNavSpec)
+        waitForLoginDeferred = $q.defer();
+        spyOn(userSession, 'waitForLogin').and.returnValue(waitForLoginDeferred.promise);
+      }));
 
       beforeEach(function () {
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
@@ -111,15 +114,14 @@ describe('mainModuleSpec', function () {
         $state = _$state_;
       }));
 
-      it('validate state after all requests succeed', async function () {
+      it('validate state after all requests succeed', function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.$digest();
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
         productLicenseLoadDefer.resolve({});
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($state.go).not.toHaveBeenCalled();
@@ -129,15 +131,14 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state after license check fails because unlicensed', async function () {
+      it('validate state after license check fails because unlicensed', function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.$digest();
         productLicenseLoadDefer.reject({ response: { status: 402 } });
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toBeFalsy();
         expect($state.go).toHaveBeenCalledTimes(1);
@@ -152,15 +153,10 @@ describe('mainModuleSpec', function () {
         $rootScope.error = undefined;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(500);
 
         initService.start();
 
-        try {
-          await userSession.waitForLogin();
-        } catch (error) {
-          // ignore
-        }
+        waitForLoginDeferred.reject(new Error('Login failed'));
         await waitFor(() => {
           $rootScope.$digest();
           return $rootScope.error;
@@ -173,14 +169,13 @@ describe('mainModuleSpec', function () {
         $rootScope.isAllowExternalHyperlinks = true;
         $rootScope.error = undefined;
         $rootScope.$digest();
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
         $rootScope.$digest();
         productLicenseLoadDefer.reject({ response: { status: 500 } });
         try {
-          await userSession.waitForLogin();
+          waitForLoginDeferred.resolve({ username: 'myname' });
         } catch (error) {
           // ignore
         }
@@ -196,14 +191,13 @@ describe('mainModuleSpec', function () {
         $rootScope.error = undefined;
         $rootScope.$digest();
         const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
         $rootScope.$digest();
         productLicenseLoadDefer.reject(errorMsg);
         try {
-          await userSession.waitForLogin();
+          waitForLoginDeferred.resolve({ username: 'myname' });
         } catch (error) {
           // ignore
         }
@@ -219,15 +213,10 @@ describe('mainModuleSpec', function () {
         $rootScope.$digest();
         const errorMsg = 'Access from this IP is not allowed, please contact an administrator.';
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(403, errorMsg);
 
         initService.start();
 
-        try {
-          await userSession.waitForLogin();
-        } catch (error) {
-          // ignore
-        }
+        waitForLoginDeferred.reject(errorMsg);
         await waitFor(() => {
           $rootScope.$digest();
           return $rootScope.error;
@@ -235,15 +224,14 @@ describe('mainModuleSpec', function () {
         expect($rootScope.error).toEqual(errorMsg);
       });
 
-      it('validate state after external hyperlinks are disabled', async function () {
+      it('validate state after external hyperlinks are disabled', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -251,7 +239,7 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state with only dashboard available', async function () {
+      it('validate state with only dashboard available', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
@@ -269,11 +257,10 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -283,7 +270,7 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state with dashboard unavailable and reports-list available', async function () {
+      it('validate state with dashboard unavailable and reports-list available', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
@@ -302,11 +289,10 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -316,7 +302,7 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state with only reports-list available', async function () {
+      it('validate state with only reports-list available', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
@@ -334,11 +320,10 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -348,7 +333,7 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state with dashboard and reports-list available', async function () {
+      it('validate state with dashboard and reports-list available', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
@@ -367,11 +352,10 @@ describe('mainModuleSpec', function () {
         });
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -381,15 +365,14 @@ describe('mainModuleSpec', function () {
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
-      it('validate state with neither dashboard nor reports-list available', async function () {
+      it('validate state with neither dashboard nor reports-list available', function () {
         $rootScope.isAllowExternalHyperlinks = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $rootScope.$digest();
         expect($rootScope.licensed).toEqual(true);
         expect($rootScope.username).toEqual('myname');
@@ -400,7 +383,13 @@ describe('mainModuleSpec', function () {
     });
 
     describe('on beforeunload event', function () {
-      let $window, $rootScope, initService, $state;
+      let $window, $rootScope, initService, $state, waitForLoginDeferred;
+
+      beforeEach(inject(function ($q) {
+        // Mock waitForLogin with a deferred promise (same approach as mainHeaderSpec and primaryNavSpec)
+        waitForLoginDeferred = $q.defer();
+        spyOn(userSession, 'waitForLogin').and.returnValue(waitForLoginDeferred.promise);
+      }));
 
       beforeEach(inject(function (_$httpBackend_, _$window_, _$rootScope_, _$ngRedux_, _initService_, _$state_) {
         $window = _$window_;
@@ -409,6 +398,7 @@ describe('mainModuleSpec', function () {
         initService = _initService_;
         $state = _$state_;
         spyOn(gettingStartedTelemetryServiceHelper, 'submitData');
+
         $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
           router: {
             currentState: {
@@ -423,25 +413,25 @@ describe('mainModuleSpec', function () {
             },
           },
         });
+
         $rootScope.isAllowExternalHyperlinks = true;
         productLicenseLoadDefer.resolve({});
-        axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
       }));
 
-      it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted', async function () {
+      it('fires synchronous "DEPARTED" telemetry event if current page is gettingStarted', function () {
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $state.current.name = 'gettingStarted';
         scope.$digest();
         $window.dispatchEvent(new Event('beforeunload'));
         expect(gettingStartedTelemetryServiceHelper.submitData).toHaveBeenCalledWith('DEPARTED', null, true);
       });
 
-      it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', async function () {
+      it('does not fire "DEPARTED" telemetry event if current page is not gettingStarted', function () {
         initService.start();
 
-        await userSession.waitForLogin();
+        waitForLoginDeferred.resolve({ username: 'myname' });
         $window.dispatchEvent(new Event('beforeunload'));
         expect(gettingStartedTelemetryServiceHelper.submitData).not.toHaveBeenCalled();
       });
@@ -449,70 +439,85 @@ describe('mainModuleSpec', function () {
   });
 
   describe('pendoService calls', function () {
-    let initService, $rootScope;
+    let initService, $rootScope, waitForLoginDeferred;
+
+    beforeEach(inject(function ($q) {
+      // Mock waitForLogin with a deferred promise (same approach as mainHeaderSpec and primaryNavSpec)
+      waitForLoginDeferred = $q.defer();
+      spyOn(userSession, 'waitForLogin').and.returnValue(waitForLoginDeferred.promise);
+    }));
+
+    beforeEach(function () {
+      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        productFeatures: { productFeatures: {} },
+        firewallOnboarding: {
+          unconfiguredRepoManagers: {
+            repoManagers: [],
+            loading: false,
+            loadError: null,
+          },
+        },
+      });
+    });
 
     beforeEach(inject(function (_initService_, _$rootScope_) {
       initService = _initService_;
       $rootScope = _$rootScope_;
     }));
 
-    it('calls pendoService.start before login', async function () {
+    it('calls pendoService.start before login', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
-      await userSession.waitForLogin();
+      waitForLoginDeferred.resolve({ username: 'myname' });
       expect(mockPendoService.start).toHaveBeenCalled();
     });
 
-    it('calls pendoService a second time after login and license fetch', async function () {
+    it('calls pendoService a second time after login and license fetch', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
       expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
-      await userSession.waitForLogin();
+      waitForLoginDeferred.resolve({ username: 'myname' });
       $rootScope.$digest();
       expect(mockPendoService.start).toHaveBeenCalledTimes(2);
     });
 
-    it('calls pendoService a second time after login if the license is not installed', async function () {
+    it('calls pendoService a second time after login if the license is not installed', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.reject({ response: { status: 402 } });
-      axiosMock.onGet(getSessionUrl()).reply(200, { username: 'myname' });
 
       initService.start();
 
       expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
-      await userSession.waitForLogin();
+      waitForLoginDeferred.resolve({ username: 'myname' });
       $rootScope.$digest();
       expect(mockPendoService.start).toHaveBeenCalledTimes(2);
     });
 
-    it('does not call pendoService a second time after failed login', async function () {
+    it('does not call pendoService a second time after failed login', function () {
       $rootScope.isAllowExternalHyperlinks = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
-      axiosMock.onGet(getSessionUrl()).replyOnce(401);
 
       initService.start();
 
       expect(mockPendoService.start).toHaveBeenCalledTimes(1);
 
-      await waitFor(() => {
-        $rootScope.$digest();
-        return axiosMock.history['get'].length > 0;
-      });
+      // Simulate failed login
+      waitForLoginDeferred.reject(new Error('Login failed'));
       $rootScope.$digest();
+
+      // pendoService.start should still only be called once (not a second time after failed login)
       expect(mockPendoService.start).toHaveBeenCalledTimes(1);
     });
   });

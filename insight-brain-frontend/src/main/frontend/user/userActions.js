@@ -7,7 +7,7 @@ import { always, path, propEq } from 'ramda';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { Messages } from 'MainRoot/util/CommonServices';
-import { waitForLogin } from 'MainRoot/user/userSession';
+import { waitForLogin } from 'MainRoot/user/userSessionUtils';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 import {
   getShouldDisplayDefaultPasswordWarning,
@@ -29,7 +29,7 @@ export const CHANGE_PASSWORD_FAILED = 'CHANGE_PASSWORD_FAILED';
 export const CHANGE_PASSWORD_STATUS_RESET = 'CHANGE_PASSWORD_STATUS_RESET';
 export const DEFAULT_ADMIN_PASSWORD_CHANGED = 'DEFAULT_ADMIN_PASSWORD_CHANGED';
 
-function userActions($rootScope, $q, $http, $window) {
+function userActions($rootScope, $q, $http, $window, $ngRedux) {
   function fetchUser() {
     const warningPromiseUrl = getShouldDisplayDefaultPasswordWarning(),
       shouldDisplayWarningPromise = isAuthorized(['CONFIGURE_SYSTEM'])
@@ -46,7 +46,7 @@ function userActions($rootScope, $q, $http, $window) {
         .catch(always(false));
 
     return $q.all({
-      currentUser: waitForLogin(),
+      currentUser: waitForLogin($ngRedux),
       shouldDisplayWarning: shouldDisplayWarningPromise,
     });
   }
@@ -191,5 +191,5 @@ function userActions($rootScope, $q, $http, $window) {
     resetChangedPasswordStatus,
   };
 }
-userActions.$inject = ['$rootScope', '$q', '$http', '$window'];
+userActions.$inject = ['$rootScope', '$q', '$http', '$window', '$ngRedux'];
 export default userActions;

@@ -6,7 +6,7 @@
 import mainHeaderModule from 'MainRoot/mainHeader/module';
 import legacyConfigurationModule from 'MainRoot/LegacyConfigurationModule';
 import { mapStateToThis } from 'MainRoot/mainHeader/mainHeader';
-import * as userSession from 'MainRoot/user/userSession';
+import * as userSession from 'MainRoot/user/userSessionUtils';
 import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 import * as permissionService from 'MainRoot/util/permissionService';
 

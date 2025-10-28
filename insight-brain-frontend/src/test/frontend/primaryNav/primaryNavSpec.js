@@ -29,6 +29,25 @@ describe('navigationContainerSpec', function () {
 
     $ngRedux.dispatch = jasmine.createSpy('dispatch');
 
+    // Mock getState to return a valid state with userSession
+    // Use callFake to return the same object each time (required for subscribe pattern)
+    $ngRedux.getState.and.callFake(function () {
+      return {
+        userSession: {
+          data: { username: 'testuser' }, // Set data to non-null so waitForLogin resolves immediately
+          loading: false,
+          error: null,
+        },
+      };
+    });
+
+    // Mock subscribe to return a proper unsubscribe function
+    $ngRedux.subscribe.and.callFake(function () {
+      // For navigationContainer, waitForLogin should find data immediately
+      // so the subscription callback never needs to be called
+      return jasmine.createSpy('unsubscribe');
+    });
+
     vm = $componentController('navigationContainer', {
       CurrentUser: mockCurrentUser,
       $scope: $scope,

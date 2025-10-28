@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6" serialNumber="urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79">
+  <components>
+    <component type="library" bom-ref="8934d46d-9543-4b73-8711-7aab6e800833">
+      <name>System.Security.AccessControl.dll</name>
+      <version>4.700.19.56404</version>
+      <licenses>
+        <license>
+          <name>Not Provided</name>
+        </license>
+      </licenses>
+      <purl>pkg:generic/System.Security.AccessControl.dll@4.700.19.56404?nexusnamespace=Microsoft%20Corporation&amp;nexustype=pecoff</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="sonatype:truncated_sha1">26737beb1668549cb090</property>
+        <property name="sonatype:match_state">exact</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
+        <property name="sonatype:match_filenames">System.Security.AccessControl.dll</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/ref/net461/System.Security.AccessControl.dll</location>
+          </occurrence>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/system.security.accesscontrol.4.7.0.nupkg/ref/net461/System.Security.AccessControl.dll</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="bc193d5e-bfd7-4fb0-b1ea-29db3a3433d7">
+      <name>System.Security.AccessControl.dll</name>
+      <version>4.700.19.56404</version>
+      <licenses>
+        <license>
+          <name>Not Provided</name>
+        </license>
+      </licenses>
+      <purl>pkg:generic/System.Security.AccessControl.dll@4.700.19.56404?nexusnamespace=Microsoft%20Corporation&amp;nexustype=pecoff</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="sonatype:truncated_sha1">2fb8bffe9100712bbeed</property>
+        <property name="sonatype:match_state">exact</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
+        <property name="sonatype:match_filenames">System.Security.AccessControl.dll</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/ref/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/system.security.accesscontrol.4.7.0.nupkg/ref/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="9518706c-8979-4545-ae60-a835d6b78546">
+      <name>System.Security.AccessControl.dll</name>
+      <version>4.700.19.56404</version>
+      <licenses>
+        <license>
+          <name>Not Provided</name>
+        </license>
+      </licenses>
+      <purl>pkg:generic/System.Security.AccessControl.dll@4.700.19.56404?nexusnamespace=Microsoft%20Corporation&amp;nexustype=pecoff</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="sonatype:truncated_sha1">7128cada2900416ec336</property>
+        <property name="sonatype:match_state">exact</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
+        <property name="sonatype:match_filenames">System.Security.AccessControl.dll</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/lib/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.7.0/system.security.accesscontrol.4.7.0.nupkg/lib/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+    <component type="library" bom-ref="9518706c-8979-4545-ae60-a835d6b78558">
+      <!-- this component is ignored because it has the same coords as well as the same sonatype sha1 as above -->
+      <name>System.Security.AccessControl.dll</name>
+      <version>4.700.19.56404</version>
+      <licenses>
+        <license>
+          <name>Not Provided</name>
+        </license>
+      </licenses>
+      <purl>pkg:generic/System.Security.AccessControl.dll@4.700.19.56404?nexusnamespace=Microsoft%20Corporation&amp;nexustype=pecoff</purl>
+      <modified>false</modified>
+      <properties>
+        <property name="sonatype:truncated_sha1">7128cada2900416ec336</property>
+        <property name="sonatype:match_state">exact</property>
+        <property name="sonatype:identification_sources">Sonatype</property>
+        <property name="sonatype:match_filenames">System.Security.AccessControl.dll</property>
+      </properties>
+      <evidence>
+        <occurrences>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.8.0/lib/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+          <occurrence>
+            <location>a/1/s/packages/system.security.accesscontrol/4.8.0/system.security.accesscontrol.4.8.0.nupkg/lib/netstandard2.0/System.Security.AccessControl.dll</location>
+          </occurrence>
+        </occurrences>
+      </evidence>
+    </component>
+  </components>
+</bom>

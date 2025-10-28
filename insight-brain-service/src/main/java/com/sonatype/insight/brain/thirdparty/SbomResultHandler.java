@@ -289,10 +289,11 @@ public class SbomResultHandler
   {
     if (CollectionUtils.isNotEmpty(sourceBom.getComponents())) {
       String specVersion = sourceBom.getSpecVersion();
-      Set<ComponentIdentifier> resolvedComponents = new HashSet<>();
+      List<ComponentIdentifier> resolvedComponentsByPurl = new ArrayList<>();
+      Set<String> resolvedComponentByHash = new HashSet<>();
       for (Component component : sourceBom.getComponents()) {
         processComponent(component, thirdPartyFile.getId(), targetBom, thirdPartyIdentificationSource,
-            resolvedComponents, componentRefs, specVersion, tx, isValid);
+            resolvedComponentsByPurl, resolvedComponentByHash, componentRefs, specVersion, tx, isValid);
       }
     }
   }
@@ -379,7 +380,8 @@ public class SbomResultHandler
       final String thirdPartyFileId,
       final Bom targetBom,
       final String thirdPartyIdentificationSource,
-      final Set<ComponentIdentifier> resolvedComponents,
+      final List<ComponentIdentifier> resolvedComponents,
+      final Set<String> resolvedComponentsByHash,
       final Map<String, String> componentRefs,
       final String schemaVersion,
       final TransactionContext tx,
@@ -389,6 +391,7 @@ public class SbomResultHandler
       Pair<ComponentIdentifier, Component> resolvedComponent = getResolvedComponent(sourceComponent);
       if (resolvedComponent != null) {
         String componentRef = SbomIdentityUtils.getComponentRef(sourceComponent);
+        String sonatypeSha1 = SbomUtils.getSonatypeSha1FromProperties(sourceComponent);
         resolvedComponent.getRight()
             .addProperty(SbomExportUtils.createCycloneDxProperty(SbomCycloneDxUtils.PROPERTY_COMPONENT_REF,
                 componentRef));
@@ -397,7 +400,10 @@ public class SbomResultHandler
           targetBom.addComponent(resolvedComponent.getRight());
           log.debug("Component filtered for matching only with hash information {}", resolvedComponent.getRight());
         }
-        else if (resolvedComponents.add(componentIdentifier)) {
+        else if (!resolvedComponents.contains(componentIdentifier) ||
+            //we only allow duplicate purls if they have different sonatype truncated sha1 hashes
+            (StringUtils.isNotBlank(sonatypeSha1) && resolvedComponentsByHash.add(sonatypeSha1))) {
+          resolvedComponents.add(componentIdentifier);
           PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).ensureCompleteIdentifier();
           String coordinateId =
               saveComponent(thirdPartyFileId, thirdPartyIdentificationSource, sourceComponent, componentRef,

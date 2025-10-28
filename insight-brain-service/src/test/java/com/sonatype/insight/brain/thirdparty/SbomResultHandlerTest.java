@@ -2822,6 +2822,27 @@ public class SbomResultHandlerTest
             SbomMetadataUtils.SBOM_IDENTIFICATION_SOURCE));
   }
 
+  @Test
+  public void testHandlerAndFilterContent_LifecycleSbomsWithDuplicateComponentsHavingDifferentSonatypeSha1s()
+      throws Exception
+  {
+    String sbomContent = getSbomXmlFile("sbom-duplicate-components-with-diff-sonatype-sha1.xml");
+    ThirdPartyScanContent content =
+        new ThirdPartyScanContent("lc-bom.xml", null, null, null, sbomContent);
+    ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();
+
+    String filteredContent = sbomResultHandler.handleAndFilterContents(content, thirdPartyFile).getContent();
+    List<Boolean> hasHashes = List.of(false, false, false);
+    assertFilteredSbomFile(filteredContent, 3, false, hasHashes);
+
+    List<ThirdPartyFileCoordinate> coordinates =
+        thirdPartyFileCoordinateDAO.getByThirdPartyFileId(thirdPartyFile.getId());
+    assertThat(coordinates).hasSize(3)
+        .allSatisfy(coord -> assertThat(coord.getPackageUrl()).isEqualTo(
+            "pkg:generic/System.Security.AccessControl.dll@4.700.19.56404?" +
+                "nexusnamespace=Microsoft%20Corporation&nexustype=pecoff"));
+  }
+
   private void assertExtensionVulnerabilities(Component component) {
     Map<String, Extension> extensions = component.getExtensions();
     assertThat(extensions).isNotEmpty().containsKey(ExtensionType.VULNERABILITIES.getTypeName());

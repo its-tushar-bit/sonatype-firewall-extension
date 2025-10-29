@@ -14,11 +14,13 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.tenancy.TenantValidator;
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -85,6 +87,8 @@ public class TenantConfigurationServiceTest
     EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(USER_AGENT_SUFFIX, "userAgentSuffix");
     EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(HISTORICAL_POLICY_VIOLATION_TELEMETRY_HOUR, 12);
     EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "warnOnNonPrimaryStorageAccess");
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(COPY_STORAGE_CONFIG,
+        JsonUtils.convertValue(new CopyStorageConfig(1, 1), Map.class));
   }
 
   @Mock

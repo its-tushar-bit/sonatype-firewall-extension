@@ -13,11 +13,21 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
+import java.time.Duration;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -26,12 +36,15 @@ import javax.inject.Named;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
@@ -48,6 +61,10 @@ import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceProvider;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantScheduledThreadPoolExecutor;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -57,6 +74,7 @@ import org.slf4j.LoggerFactory;
 @Named
 @Singleton
 public class CopyStorageService
+    implements ConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(CopyStorageService.class);
 
@@ -64,9 +82,13 @@ public class CopyStorageService
 
   private static final int DEFAULT_PAGE_SIZE = 10000;
 
-  private static final int DEFAULT_PER_LOG = 100;
+  private static final Duration LOG_FREQUENCY = Duration.ofMinutes(1);
 
   private static final Set<DataStoreType> SUPPORTED = Set.of(DataStoreType.FILE, DataStoreType.S3);
+
+  private static final int PIPE_SIZE = 64 * 1024;
+
+  public static final int MAX_TENANT_THREAD_POOL_THREADS = 200;
 
   private final InsightConfig insightConfig;
 
@@ -84,7 +106,19 @@ public class CopyStorageService
 
   private final ClusterLockManager clusterLockManager;
 
+  private final ApiConfigurationService apiConfigurationService;
+
+  private final TenantThreadPoolExecutor tenantThreadPoolExecutor;
+
   private final ExecutorService zipExecutorService;
+
+  private volatile CopyStorageConfig copyStorageConfig;
+
+  private final TenantReference<DynamicSemaphore> copyLimit;
+
+  private final Set<Phaser> phasers;
+
+  private final TenantReference<AtomicBoolean> active;
 
   @Inject
   public CopyStorageService(
@@ -95,7 +129,9 @@ public class CopyStorageService
       final ApplicationDAO applicationDAO,
       final PolicyEvaluationDAO policyEvaluationDAO,
       final ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO,
-      final ClusterLockManager clusterLockManager)
+      final ClusterLockManager clusterLockManager,
+      final ApiConfigurationService apiConfigurationService,
+      final ShutdownHandler shutdownHandler)
   {
     this.insightConfig = insightConfig;
     this.scanPersistanceProvider = scanPersistanceProvider;
@@ -105,12 +141,223 @@ public class CopyStorageService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.thirdPartySbomMetadataDAO = thirdPartySbomMetadataDAO;
     this.clusterLockManager = clusterLockManager;
-    zipExecutorService = Executors.newSingleThreadExecutor(
-        new ThreadFactoryBuilder().setNameFormat("CopyStorage-ReportZipWriter-%d").build()
+    this.apiConfigurationService = apiConfigurationService;
+    tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+        MAX_TENANT_THREAD_POOL_THREADS,
+        MAX_TENANT_THREAD_POOL_THREADS,
+        5L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat("CopyStorageService-%d").build(),
+        new AbortPolicy(),
+        "copy_storage_service",
+        getClass().getSimpleName()
+    )
+    {
+      @Override
+      public void shutdown() {
+        super.shutdown();
+        getQueue().clear();
+        phasers.forEach(Phaser::forceTermination);
+        phasers.clear();
+      }
+    };
+    tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(tenantThreadPoolExecutor);
+    zipExecutorService = Executors.newCachedThreadPool(
+        new ThreadFactoryBuilder().setNameFormat("CopyStorageService-ReportZipWriter-%d").build()
     );
+    copyStorageConfig = (CopyStorageConfig) apiConfigurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    copyLimit = new TenantReference<>(() -> new DynamicSemaphore(copyStorageConfig.maxCopyThreads()));
+    phasers = ConcurrentHashMap.newKeySet();
+    active = new TenantReference<>(AtomicBoolean::new);
+  }
+
+  @Override
+  public void configurationChanged(final Set<String> propertyNames) {
+    if (propertyNames.contains(SystemConfigurationProperty.COPY_STORAGE_CONFIG)) {
+      CopyStorageConfig oldCopyStorageConfig = copyStorageConfig;
+      copyStorageConfig = (CopyStorageConfig) apiConfigurationService.getConfigurationNoAuthz(
+          SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+
+      if (copyStorageConfig.maxCopyThreads() != oldCopyStorageConfig.maxCopyThreads()) {
+        copyLimit.get().resize(copyStorageConfig.maxCopyThreads());
+        log.debug("Updated 'copyLimit' to {}.", copyStorageConfig.maxCopyThreads());
+      }
+    }
+  }
+
+  private static class DynamicSemaphore
+      extends Semaphore
+  {
+    private volatile int permits;
+
+    public DynamicSemaphore(final int permits) {
+      super(permits);
+      this.permits = permits;
+    }
+
+    public DynamicSemaphore(final int permits, final boolean fair) {
+      super(permits, fair);
+      this.permits = permits;
+    }
+
+    public synchronized void resize(final int permits) {
+      if (this.permits > permits) {
+        reducePermits(this.permits - permits);
+      }
+      else if (this.permits < permits) {
+        release(permits - this.permits);
+      }
+      this.permits = permits;
+    }
+  }
+
+  static final class CopyStorageResult
+  {
+    private final Date start;
+
+    private Date end;
+
+    private final AtomicInteger appsProcessed = new AtomicInteger();
+
+    private final AtomicInteger scansProcessed = new AtomicInteger();
+
+    private final AtomicInteger reportsProcessed = new AtomicInteger();
+
+    private final AtomicInteger sbomsProcessed = new AtomicInteger();
+
+    private final AtomicInteger scansSkipped = new AtomicInteger();
+
+    private final AtomicInteger reportsSkipped = new AtomicInteger();
+
+    private final AtomicInteger sbomsSkipped = new AtomicInteger();
+
+    private final AtomicInteger scansCopied = new AtomicInteger();
+
+    private final AtomicInteger reportsCopied = new AtomicInteger();
+
+    private final AtomicInteger sbomsCopied = new AtomicInteger();
+
+    private final AtomicInteger scansFailed = new AtomicInteger();
+
+    private final AtomicInteger reportsFailed = new AtomicInteger();
+
+    private final AtomicInteger sbomsFailed = new AtomicInteger();
+
+    public CopyStorageResult(final Date start) {
+      this.start = start;
+    }
+
+    public Date getStart() {
+      return start;
+    }
+
+    public Date getEnd() {
+      return end;
+    }
+
+    public AtomicInteger getAppsProcessed() {
+      return appsProcessed;
+    }
+
+    public AtomicInteger getScansProcessed() {
+      return scansProcessed;
+    }
+
+    public AtomicInteger getReportsProcessed() {
+      return reportsProcessed;
+    }
+
+    public AtomicInteger getSbomsProcessed() {
+      return sbomsProcessed;
+    }
+
+    public AtomicInteger getScansSkipped() {
+      return scansSkipped;
+    }
+
+    public AtomicInteger getReportsSkipped() {
+      return reportsSkipped;
+    }
+
+    public AtomicInteger getSbomsSkipped() {
+      return sbomsSkipped;
+    }
+
+    public AtomicInteger getScansCopied() {
+      return scansCopied;
+    }
+
+    public AtomicInteger getReportsCopied() {
+      return reportsCopied;
+    }
+
+    public AtomicInteger getSbomsCopied() {
+      return sbomsCopied;
+    }
+
+    public AtomicInteger getScansFailed() {
+      return scansFailed;
+    }
+
+    public AtomicInteger getReportsFailed() {
+      return reportsFailed;
+    }
+
+    public AtomicInteger getSbomsFailed() {
+      return sbomsFailed;
+    }
+
+    public void setEnd(final Date end) {
+      this.end = end;
+    }
+
+    public Duration getDuration() {
+      if (end == null) {
+        return Duration.ofMillis(System.currentTimeMillis() - start.getTime());
+      }
+      return Duration.ofMillis(end.getTime() - start.getTime());
+    }
+
+    @Override
+    public String toString() {
+      return "CopyStorageResult{" +
+          "start=" + start +
+          ", end=" + end +
+          ", appsProcessed=" + appsProcessed +
+          ", scansProcessed=" + scansProcessed +
+          ", reportsProcessed=" + reportsProcessed +
+          ", sbomsProcessed=" + sbomsProcessed +
+          ", scansSkipped=" + scansSkipped +
+          ", reportsSkipped=" + reportsSkipped +
+          ", sbomsSkipped=" + sbomsSkipped +
+          ", scansCopied=" + scansCopied +
+          ", reportsCopied=" + reportsCopied +
+          ", sbomsCopied=" + sbomsCopied +
+          ", scansFailed=" + scansFailed +
+          ", reportsFailed=" + reportsFailed +
+          ", sbomsFailed=" + sbomsFailed +
+          '}';
+    }
   }
 
   public void execute(final DataStoreType from, final DataStoreType to) {
+    try {
+      if (active.get().getAndSet(true)) {
+        log.info("Request for copy of scans, reports, and SBOMs from '{}' to '{}' is already active.", from, to);
+        return;
+      }
+      doExecute(from, to);
+    }
+    finally {
+      active.get().set(false);
+    }
+  }
+
+  // Visible for testing
+  void doExecute(final DataStoreType from, final DataStoreType to) {
     checkSupported(from);
     checkSupported(to);
     checkPrimaryStorageIsTarget(to);
@@ -127,42 +374,74 @@ public class CopyStorageService
     SbomPersistenceService toSbom = sbomPersistenceProvider.get().get(to);
 
     Iterator<Application> apps = createApplicationIterator();
-    log.info("Starting copy of scans, reports, and SBOMs from '{}' to '{}'.", from, to);
-    long start = System.currentTimeMillis();
-    int count = 0;
-    while (apps.hasNext()) {
-      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
-        log.info("Copy of scans, reports, and SBOMs from '{}' to '{}' completed for {} app(s).", from, to, count);
+    CopyStorageResult copyStorageResult = new CopyStorageResult(new Date());
+    log.info("Starting copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to, copyStorageResult);
+    Phaser tenantPhaser = new Phaser(1);
+    phasers.add(tenantPhaser);
+    TenantScheduledThreadPoolExecutor logScheduler = new TenantScheduledThreadPoolExecutor(1,
+        new ThreadFactoryBuilder().setNameFormat("CopyStorageServiceLogger-%d").build()
+    );
+    try {
+      logScheduler.scheduleAtFixedRate(
+          () -> log.debug("Copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to, copyStorageResult),
+          LOG_FREQUENCY.toMillis(),
+          LOG_FREQUENCY.toMillis(),
+          TimeUnit.MILLISECONDS
+      );
+      String logStart = "Starting copy of {} from '{}' to '{}' for app '{}' with id '{}'.";
+      String logEnd = "Finished copy of {} from '{}' to '{}' for app '{}' with id '{}'.";
+      while (apps.hasNext()) {
+        Application app = apps.next();
+        Phaser appPhaser = createPhaser(tenantPhaser, 1, () -> copyStorageResult.getAppsProcessed().incrementAndGet());
+
+        log.trace(logStart, "scans", from, to, app.getName(), app.getId());
+        Phaser scanPhaser =
+            createPhaser(appPhaser, 1, () -> log.trace(logEnd, "scans", from, to, app.getName(), app.getId()));
+        copyScans(app, fromScan, toScan, copyStorageResult, scanPhaser);
+        scanPhaser.arriveAndDeregister();
+
+        log.trace(logStart, "reports", from, to, app.getName(), app.getId());
+        Phaser reportPhaser =
+            createPhaser(appPhaser, 1, () -> log.trace(logEnd, "reports", from, to, app.getName(), app.getId()));
+        copyReports(app, fromReport, toReport, copyStorageResult, reportPhaser);
+        reportPhaser.arriveAndDeregister();
+
+        log.trace(logStart, "sboms", from, to, app.getName(), app.getId());
+        Phaser sbomPhaser =
+            createPhaser(appPhaser, 1, () -> log.trace(logEnd, "sboms", from, to, app.getName(), app.getId()));
+        copySboms(app, fromSbom, toSbom, copyStorageResult, sbomPhaser);
+        sbomPhaser.arriveAndDeregister();
+
+        appPhaser.arriveAndDeregister();
       }
-
-      Application app = apps.next();
-
-      // Scans
-      log.trace("Starting copy of scans from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-      copyScans(app, fromScan, toScan);
-      log.trace("Finished copy of scans from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-
-      // Reports
-      log.trace("Starting copy of reports from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-      copyReports(app, fromReport, toReport);
-      log.trace("Finished copy of reports from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-
-      // SBOMs
-      log.trace("Starting copy of SBOMs from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-      copySboms(app, fromSbom, toSbom);
-      log.trace("Finished copy of SBOMs from '{}' to '{}' for app '{}' with id '{}'.", from, to, app.getName(),
-          app.getId());
-
-      count++;
+      tenantPhaser.arriveAndAwaitAdvance();
+      copyStorageResult.setEnd(new Date());
+      log.info("Finished copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to, copyStorageResult);
     }
-    long elapsed = System.currentTimeMillis() - start;
-    log.info("Finished copy of scans, reports, and SBOMs from '{}' to '{}' for {} app(s) in '{}' ms.", from, to, count,
-        elapsed);
+    finally {
+      phasers.remove(tenantPhaser);
+      logScheduler.shutdownNow();
+    }
+  }
+
+  private Phaser createPhaser(final Phaser parent, final int parties, final Runnable terminationAction) {
+    parent.register();
+    return new Phaser(parties)
+    {
+      @Override
+      public int arriveAndDeregister() {
+        int value = super.arriveAndDeregister();
+        if (getRegisteredParties() == 0) {
+          try {
+            terminationAction.run();
+          }
+          finally {
+            parent.arriveAndDeregister();
+          }
+        }
+        return value;
+      }
+    };
   }
 
   public void checkSupported(final DataStoreType dataStoreType) {
@@ -189,214 +468,265 @@ public class CopyStorageService
     }
   }
 
-  private void copyScans(final Application app, final ScanPersistenceService from, final ScanPersistenceService to) {
-    try (Stream<ScanEntity> scanEntityStream = from.allScanFilesFor(app.getId())) {
-      scanEntityStream.forEach(sourceScan -> {
-        String appId = sourceScan.getAppId();
-        String scanId = sourceScan.getScanId();
-
-        if (!sourceScan.exists()) {
-          log.trace("Skipping scan copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
-          return;
-        }
-
-        ScanEntity targetScan = to.getScan(appId, scanId);
-        if (targetScan.exists()) {
-          log.trace("Skipping scan copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
-          return;
-        }
-
-        String fromLocation = sourceScan.getLocation();
-        String toLocation = targetScan.getLocation();
-
-        ScanEntity targetTempScan = null;
-        Exception exception = null;
+  private void submit(
+      final Runnable runnable,
+      final Semaphore limit,
+      final Phaser phaser)
+  {
+    try {
+      limit.acquireUninterruptibly();
+      phaser.register();
+      tenantThreadPoolExecutor.submit(() -> {
         try {
-          try {
-            log.trace("Copying scan from '{}' to '{}'.", fromLocation, toLocation);
-            targetTempScan = to.createTempScan(appId);
-            try (InputStream inputStream = sourceScan.getInputStream();
-                 OutputStream outputStream = targetTempScan.getOutputStream()) {
-              inputStream.transferTo(outputStream);
-            }
-            to.moveTempScan(targetTempScan, appId, scanId);
-            log.trace("Copied scan from '{}' to '{}'.", fromLocation, toLocation);
-          }
-          catch (Exception e) {
-            exception = e;
-            throw exception;
-          }
-          finally {
-            try {
-              if (targetTempScan != null && targetTempScan.exists()) {
-                to.deleteScan(targetTempScan);
-              }
-            }
-            catch (Exception e) {
-              if (exception != null) {
-                exception.addSuppressed(e);
-              }
-              else {
-                exception = e;
-              }
-            }
-          }
-          if (exception != null) {
-            throw exception;
-          }
+          runnable.run();
         }
-        catch (Exception e) {
-          log.error("Failed to copy scan from '{}' to '{}'.", fromLocation, toLocation, e);
+        finally {
+          phaser.arriveAndDeregister();
+          limit.release();
         }
       });
+    }
+    catch (Throwable e) {
+      phaser.arriveAndDeregister();
+      limit.release();
+      throw e;
+    }
+  }
+
+  private void copyScans(
+      final Application app,
+      final ScanPersistenceService from,
+      final ScanPersistenceService to,
+      final CopyStorageResult copyStorageResult,
+      final Phaser phaser)
+  {
+    try (Stream<ScanEntity> scanEntityStream = from.allScanFilesFor(app.getId())) {
+      scanEntityStream.forEach(sourceScan -> submit(() -> {
+        copyScan(sourceScan, to, copyStorageResult);
+        copyStorageResult.getScansProcessed().incrementAndGet();
+      }, copyLimit.get(), phaser));
+    }
+  }
+
+  private void copyScan(
+      final ScanEntity sourceScan,
+      final ScanPersistenceService to,
+      final CopyStorageResult copyStorageResult)
+  {
+    String appId = sourceScan.getAppId();
+    String scanId = sourceScan.getScanId();
+
+    ScanEntity targetScan = to.getScan(appId, scanId);
+
+    String fromLocation = sourceScan.getLocation();
+    String toLocation = targetScan.getLocation();
+
+    ScanEntity targetTempScan = null;
+
+    try {
+      if (!sourceScan.exists()) {
+        copyStorageResult.getScansSkipped().incrementAndGet();
+        log.trace("Skipping scan copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
+        return;
+      }
+
+      if (targetScan.exists()) {
+        copyStorageResult.getScansSkipped().incrementAndGet();
+        log.trace("Skipping scan copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
+        return;
+      }
+
+      log.trace("Copying scan from '{}' to '{}'.", fromLocation, toLocation);
+      targetTempScan = to.createTempScan(appId);
+      try (InputStream inputStream = sourceScan.getInputStream();
+           OutputStream outputStream = targetTempScan.getOutputStream()) {
+        inputStream.transferTo(outputStream);
+      }
+      to.moveTempScan(targetTempScan, appId, scanId);
+      targetTempScan = null;
+      copyStorageResult.getScansCopied().incrementAndGet();
+      log.trace("Copied scan from '{}' to '{}'.", fromLocation, toLocation);
+    }
+    catch (Exception e) {
+      try {
+        if (targetTempScan != null && targetTempScan.exists()) {
+          to.deleteScan(targetTempScan);
+        }
+      }
+      catch (Exception ex) {
+        e.addSuppressed(ex);
+      }
+      copyStorageResult.getScansFailed().incrementAndGet();
+      log.error("Failed to copy scan from '{}' to '{}'.", fromLocation, toLocation, e);
     }
   }
 
   private void copyReports(
       final Application app,
       final ApplicationReportPersistenceService from,
-      final ApplicationReportPersistenceService to)
+      final ApplicationReportPersistenceService to,
+      final CopyStorageResult copyStorageResult,
+      final Phaser phaser)
   {
     Iterator<PolicyEvaluation> evals = createPolicyEvaluationIterator(app.getId());
-    int count = 0;
     while (evals.hasNext()) {
-      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
-        log.info("Copy of {} reports from '{}' to '{}' completed for app '{}' with id '{}'.", count, from, to,
-            app.getName(), app.getId());
-      }
       PolicyEvaluation eval = evals.next();
-      String appId = eval.getApplicationId();
-      String scanId = eval.getScanId();
-
-      String fromLocation = from.getReportLocation(appId, scanId);
-      String toLocation = to.getReportLocation(appId, scanId);
-
-      try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(app, scanId)) {
-        if (!clusterLock.tryLock()) {
-          log.trace("Skipping report copying for app id '{}' scan id '{}' since it is in progress.", appId, scanId);
-          continue;
-        }
-        if (to.reportExists(appId, scanId)) {
-          log.trace("Skipping report copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
-          continue;
-        }
-        if (!from.reportExists(appId, scanId)) {
-          log.trace("Skipping report copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
-          continue;
-        }
-        to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, new ByteArrayInputStream(new byte[] {0}));
-        ReportEntity copyMarker = to.getReportEntity(eval.getApplicationId(), eval.getScanId(), COPY_MARKER);
-        log.trace("Copying report from '{}' to '{}'.", fromLocation, toLocation);
-
-        try (InputStream inputStream = createInputStream(from.getOriginalReportEntities(appId, scanId))) {
-          to.saveOriginalReport(appId, scanId, inputStream);
-        }
-        from.getAllReportEntities(appId, scanId).forEach(sourceReportEntity -> {
-          try {
-            ReportFile reportFile = ReportFile.fromName(sourceReportEntity.getName());
-            if (reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-              try (InputStream inputStream = sourceReportEntity.getInputStream()) {
-                to.saveAdditionalReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
-              }
-            }
-            else {
-              try (InputStream inputStream = sourceReportEntity.getInputStream()) {
-                to.saveReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
-              }
-            }
-          }
-          catch (IOException e) {
-            throw new UncheckedIOException(e);
-          }
-        });
-        ReportPdfEntity sourceReportPdfEntity = from.getPdfEntity(appId, scanId);
-        ReportPdfEntity targetReportPdfEntity = to.getPdfEntity(appId, scanId);
-        if (sourceReportPdfEntity.exists()) {
-          try (InputStream inputStream = sourceReportPdfEntity.getInputStream();
-               OutputStream outputStream = targetReportPdfEntity.getOutputStream()) {
-            inputStream.transferTo(outputStream);
-          }
-        }
-        to.deleteReportEntity(copyMarker);
-        log.trace("Copied report from '{}' to '{}'.", fromLocation, toLocation);
-      }
-      catch (Exception e) {
-        log.error("Failed to copy report from '{}' to '{}'.", fromLocation, toLocation, e);
-      }
-      count++;
+      submit(() -> {
+        copyReport(app, from, to, eval, copyStorageResult);
+        copyStorageResult.getReportsProcessed().incrementAndGet();
+      }, copyLimit.get(), phaser);
     }
   }
 
-  private void copySboms(final Application app, final SbomPersistenceService from, final SbomPersistenceService to) {
-    Iterator<ThirdPartySbomMetadata> sboms = createThirdPartySbomMetadataIterator(app.getId());
-    int count = 0;
-    while (sboms.hasNext()) {
-      if (count > 0 && count % DEFAULT_PER_LOG == 0) {
-        log.info("Copy of {} sboms from '{}' to '{}' completed for app '{}' with id '{}'.", count, from, to,
-            app.getName(), app.getId());
+  private void copyReport(
+      final Application app,
+      final ApplicationReportPersistenceService from,
+      final ApplicationReportPersistenceService to,
+      final PolicyEvaluation eval,
+      final CopyStorageResult copyStorageResult)
+  {
+    String appId = eval.getApplicationId();
+    String scanId = eval.getScanId();
+
+    String fromLocation = from.getReportLocation(appId, scanId);
+    String toLocation = to.getReportLocation(appId, scanId);
+
+    try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(app, scanId)) {
+      if (!clusterLock.tryLock()) {
+        copyStorageResult.getReportsSkipped().incrementAndGet();
+        log.trace("Skipping report copying for app id '{}' scan id '{}' since it is in progress.", appId, scanId);
+        return;
       }
-      ThirdPartySbomMetadata sbomMetadata = sboms.next();
-      String appId = sbomMetadata.getApplicationId();
-      String fileName = sbomMetadata.getFilename();
 
-      SbomEntity sourceSbom = from.getPermanentSbom(appId, fileName);
-      SbomEntity targetSbom = to.getPermanentSbom(appId, fileName);
+      if (to.reportExists(appId, scanId)) {
+        copyStorageResult.getReportsSkipped().incrementAndGet();
+        log.trace("Skipping report copying for app id '{}' scan id '{}' since it is already done.", appId, scanId);
+        return;
+      }
 
-      String fromLocation = sourceSbom.getLocation();
-      String toLocation = targetSbom.getLocation();
+      if (!from.reportExists(appId, scanId)) {
+        copyStorageResult.getReportsSkipped().incrementAndGet();
+        log.trace("Skipping report copying for app id '{}' scan id '{}' since it does not exist.", appId, scanId);
+        return;
+      }
 
-      try {
-        if (!sourceSbom.exists()) {
-          log.trace("Skipping sbom copying for app id '{}' file name '{}' since it does not exist.", appId, fileName);
-          continue;
-        }
+      to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, new ByteArrayInputStream(new byte[]{0}));
+      ReportEntity copyMarker = to.getReportEntity(appId, scanId, COPY_MARKER);
+      log.trace("Copying report from '{}' to '{}'.", fromLocation, toLocation);
 
-        if (targetSbom.exists()) {
-          log.trace("Skipping sbom copying for app id '{}' file name '{}' since it is already done.", appId, fileName);
-          continue;
-        }
-
-        SbomEntity targetTempSbom = null;
-        Exception exception = null;
+      try (InputStream inputStream = createInputStream(from.getOriginalReportEntities(appId, scanId))) {
+        to.saveOriginalReport(appId, scanId, inputStream);
+      }
+      from.getAllReportEntities(appId, scanId).forEach(sourceReportEntity -> {
         try {
-          targetTempSbom = to.getTransientSbom(fileName);
-          log.trace("Copying sbom from '{}' to '{}'.", fromLocation, toLocation);
-          try (
-              InputStream inputStream = sourceSbom.getInputStream();
-              OutputStream outputStream = targetTempSbom.getOutputStream()
-          ) {
-            inputStream.transferTo(outputStream);
-          }
-          to.moveSbomEntity(targetTempSbom, targetSbom);
-          log.trace("Copied sbom from '{}' to '{}'.", fromLocation, toLocation);
-        }
-        catch (Exception e) {
-          exception = e;
-          throw exception;
-        }
-        finally {
-          try {
-            if (targetTempSbom != null && targetTempSbom.exists()) {
-              to.deleteSbom(targetTempSbom);
+          ReportFile reportFile = ReportFile.fromName(sourceReportEntity.getName());
+          if (reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
+            try (InputStream inputStream = sourceReportEntity.getInputStream()) {
+              to.saveAdditionalReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
             }
           }
-          catch (Exception e) {
-            if (exception != null) {
-              exception.addSuppressed(e);
-            }
-            else {
-              exception = e;
+          else {
+            try (InputStream inputStream = sourceReportEntity.getInputStream()) {
+              to.saveReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
             }
           }
         }
-        if (exception != null) {
-          throw exception;
+        catch (IOException e) {
+          throw new UncheckedIOException(e);
+        }
+      });
+
+      ReportPdfEntity sourceReportPdfEntity = from.getPdfEntity(appId, scanId);
+      ReportPdfEntity targetReportPdfEntity = to.getPdfEntity(appId, scanId);
+      if (sourceReportPdfEntity.exists()) {
+        try (InputStream inputStream = sourceReportPdfEntity.getInputStream();
+             OutputStream outputStream = targetReportPdfEntity.getOutputStream()) {
+          inputStream.transferTo(outputStream);
         }
       }
-      catch (Exception e) {
-        log.error("Failed to copy sbom from '{}' to '{}'.", fromLocation, toLocation, e);
+
+      to.deleteReportEntity(copyMarker);
+      copyStorageResult.getReportsCopied().incrementAndGet();
+      log.trace("Copied report from '{}' to '{}'.", fromLocation, toLocation);
+    }
+    catch (Exception e) {
+      copyStorageResult.getReportsFailed().incrementAndGet();
+      log.error("Failed to copy report from '{}' to '{}'.", fromLocation, toLocation, e);
+    }
+  }
+
+  private void copySboms(
+      final Application app,
+      final SbomPersistenceService from,
+      final SbomPersistenceService to,
+      final CopyStorageResult copyStorageResult,
+      final Phaser phaser)
+  {
+    Iterator<ThirdPartySbomMetadata> sboms = createThirdPartySbomMetadataIterator(app.getId());
+    while (sboms.hasNext()) {
+      ThirdPartySbomMetadata sbomMetadata = sboms.next();
+      submit(() -> {
+        copySbom(from, to, sbomMetadata, copyStorageResult);
+        copyStorageResult.getSbomsProcessed().incrementAndGet();
+      }, copyLimit.get(), phaser);
+    }
+  }
+
+  private void copySbom(
+      final SbomPersistenceService from,
+      final SbomPersistenceService to,
+      final ThirdPartySbomMetadata sbomMetadata,
+      final CopyStorageResult copyStorageResult)
+  {
+    String appId = sbomMetadata.getApplicationId();
+    String fileName = sbomMetadata.getFilename();
+
+    SbomEntity sourceSbom = from.getPermanentSbom(appId, fileName);
+    SbomEntity targetSbom = to.getPermanentSbom(appId, fileName);
+
+    String fromLocation = sourceSbom.getLocation();
+    String toLocation = targetSbom.getLocation();
+
+    SbomEntity targetTempSbom = null;
+
+    try {
+      if (!sourceSbom.exists()) {
+        copyStorageResult.getSbomsSkipped().incrementAndGet();
+        log.trace("Skipping sbom copying for app id '{}' file name '{}' since it does not exist.", appId,
+            fileName);
+        return;
       }
-      count++;
+
+      if (targetSbom.exists()) {
+        copyStorageResult.getSbomsSkipped().incrementAndGet();
+        log.trace("Skipping sbom copying for app id '{}' file name '{}' since it is already done.", appId,
+            fileName);
+        return;
+      }
+
+      targetTempSbom = to.getTransientSbom(appId + "-" + fileName);
+      log.trace("Copying sbom from '{}' to '{}'.", fromLocation, toLocation);
+      try (
+          InputStream inputStream = sourceSbom.getInputStream();
+          OutputStream outputStream = targetTempSbom.getOutputStream()
+      ) {
+        inputStream.transferTo(outputStream);
+      }
+      to.moveSbomEntity(targetTempSbom, targetSbom);
+      copyStorageResult.getSbomsCopied().incrementAndGet();
+      log.trace("Copied sbom from '{}' to '{}'.", fromLocation, toLocation);
+    }
+    catch (Exception e) {
+      copyStorageResult.getSbomsFailed().incrementAndGet();
+      try {
+        if (targetTempSbom != null && targetTempSbom.exists()) {
+          to.deleteSbom(targetTempSbom);
+        }
+      }
+      catch (Exception ex) {
+        e.addSuppressed(ex);
+      }
+      log.error("Failed to copy sbom from '{}' to '{}'.", fromLocation, toLocation, e);
     }
   }
 
@@ -450,38 +780,55 @@ public class CopyStorageService
   private InputStreamWithAsyncWriter createInputStream(final Stream<ReportEntity> reportEntities)
       throws IOException
   {
-    PipedInputStream pipedInputStream = new PipedInputStream();
+    PipedInputStream pipedInputStream = new PipedInputStream(PIPE_SIZE);
     PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
-    Future<?> future = zipExecutorService.submit(() -> {
-      try (ZipOutputStream zip = new ZipOutputStream(pipedOutputStream)) {
-        reportEntities.forEach(reportEntity -> {
-          try (InputStream inputStream = reportEntity.getInputStream()) {
-            zip.putNextEntry(new ZipEntry(reportEntity.getName()));
-            inputStream.transferTo(zip);
-            zip.closeEntry();
-          }
-          catch (IOException e) {
-            log.error(e.getMessage(), e);
-            throw new UncheckedIOException(e);
-          }
-          catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw e;
-          }
-        });
+    try {
+      Future<?> future = zipExecutorService.submit(() -> {
+        try (ZipOutputStream zip = new ZipOutputStream(pipedOutputStream)) {
+          reportEntities.forEach(reportEntity -> {
+            try (InputStream inputStream = reportEntity.getInputStream()) {
+              zip.putNextEntry(new ZipEntry(reportEntity.getName()));
+              inputStream.transferTo(zip);
+              zip.closeEntry();
+            }
+            catch (IOException e) {
+              log.error(e.getMessage(), e);
+              throw new UncheckedIOException(e);
+            }
+            catch (Exception e) {
+              log.error(e.getMessage(), e);
+              throw e;
+            }
+          });
+        }
+        catch (IOException e) {
+          log.error(e.getMessage(), e);
+          throw new UncheckedIOException(e);
+        }
+        catch (Exception e) {
+          log.error(e.getMessage(), e);
+          throw e;
+        }
+        finally {
+          reportEntities.close();
+        }
+      });
+      return new InputStreamWithAsyncWriter(pipedInputStream, future);
+    }
+    catch (Exception e) {
+      try {
+        pipedInputStream.close();
       }
-      catch (IOException e) {
-        log.error(e.getMessage(), e);
-        throw new UncheckedIOException(e);
+      catch (Exception ex) {
+        e.addSuppressed(ex);
       }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-        throw e;
+      try {
+        pipedOutputStream.close();
       }
-      finally {
-        reportEntities.close();
+      catch (Exception ex) {
+        e.addSuppressed(ex);
       }
-    });
-    return new InputStreamWithAsyncWriter(pipedInputStream, future);
+      throw e;
+    }
   }
 }

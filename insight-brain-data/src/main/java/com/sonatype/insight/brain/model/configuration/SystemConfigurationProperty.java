@@ -294,6 +294,8 @@ public class SystemConfigurationProperty
 
   public static final String USER_ACTIVITY_TRACKING = "userActivityTracking";
 
+  public static final String COPY_STORAGE_CONFIG = "copyStorageConfig";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

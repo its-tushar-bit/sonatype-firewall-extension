@@ -379,6 +379,10 @@ public final class JsonUtils
     }
   }
 
+  public static <T, U> U convertValue(final T input, final Class<U> clazz) {
+    return JSON.getCodec().convertValue(input, clazz);
+  }
+
   private static void iterateJsonSetArrayToEmpty(JsonReader reader, JsonWriter writer, String fieldNameToExclude)
       throws IOException
   {

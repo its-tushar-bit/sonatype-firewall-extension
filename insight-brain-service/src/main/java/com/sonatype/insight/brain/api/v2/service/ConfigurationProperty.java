@@ -23,8 +23,10 @@ import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.FIPSConfig;
+import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
@@ -283,7 +285,21 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
-      };
+      new ConfigurationProperty(SystemConfigurationProperty.COPY_STORAGE_CONFIG, Map.class,
+          (p, s) -> ConfigurationUtils.stringToObject(
+              s,
+              CopyStorageConfig.class,
+              new CopyStorageConfig(1, 1)
+          ),
+          (p, o) -> {
+            CopyStorageConfig copyStorageConfig = JsonUtils.convertValue(o, CopyStorageConfig.class);
+            if (copyStorageConfig == null) {
+              return null;
+            }
+            copyStorageConfig.validate();
+            return ConfigurationUtils.objectToString(copyStorageConfig);
+          })
+  };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(
       Collectors.toMap(ConfigurationProperty::getName, Function.identity()));

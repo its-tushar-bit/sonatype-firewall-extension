@@ -28,12 +28,15 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.AllowedIp;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.CopyStorageConfig;
+import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
-import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
@@ -1904,6 +1907,74 @@ public class ApiConfigurationServiceTest
 
     // Verify that telemetry was never sent because currentValue was null
     verify(mockTelemetrySender, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
+  public void testGetConfiguration_CopyStorageConfig_Null_ReturnsDefault() {
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+
+    assertThat(result).isEqualTo(new CopyStorageConfig(1, 1));
+  }
+
+  @Test
+  public void testGetConfiguration_CopyStorageConfig_Invalid_ReturnsDefault() {
+    dao.set(SystemConfigurationProperty.COPY_STORAGE_CONFIG, "{");
+
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    assertThat(result).isEqualTo(new CopyStorageConfig(1, 1));
+  }
+
+  @Test
+  public void testGetConfiguration_CopyStorageConfig_NotNull() {
+    CopyStorageConfig copyStorageConfig = new CopyStorageConfig(2, 3);
+    dao.set(SystemConfigurationProperty.COPY_STORAGE_CONFIG, JsonUtils.writeUnformatted(copyStorageConfig));
+
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+
+    assertThat(result).isEqualTo(copyStorageConfig);
+  }
+
+  @Test
+  public void testSetConfiguration_CopyStorageConfig_Null() {
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG, null);
+
+    assertThat(dao.get(SystemConfigurationProperty.COPY_STORAGE_CONFIG)).isNull();
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    assertThat(result).isEqualTo(new CopyStorageConfig(1, 1));
+  }
+
+  @Test
+  public void testSetConfiguration_CopyStorageConfig() throws Exception {
+    CopyStorageConfig copyStorageConfig = new CopyStorageConfig(2, 3);
+
+    service.setConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+        JsonUtils.convertValue(copyStorageConfig, Map.class));
+
+    String stored = dao.get(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    assertThat(JsonUtils.parse(stored, CopyStorageConfig.class)).isEqualTo(copyStorageConfig);
+    Object result = service.getConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    assertThat(result).isEqualTo(copyStorageConfig);
+  }
+
+  @Test
+  public void testSetConfiguration_CopyStorageConfig_InvalidValues() {
+    CopyStorageConfig copyStorageConfig = new CopyStorageConfig(0, 3);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() ->
+            service.setConfigurationNoAuthz(Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+                JsonUtils.convertValue(copyStorageConfig, Map.class))))
+        .withMessageContaining("'maxTenantThreads' must be at least 1");
+  }
+
+  @Test
+  public void testSetConfiguration_CopyStorageConfig_TooManyThreads() {
+    CopyStorageConfig copyStorageConfig =
+        new CopyStorageConfig(CopyStorageService.MAX_TENANT_THREAD_POOL_THREADS + 1, 1);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> service.setConfigurationNoAuthz(
+            Maps.newHashMap(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+                JsonUtils.convertValue(copyStorageConfig, Map.class))))
+        .withMessageContaining("Configuration could result in too many threads");
   }
 
   private void assertMinAndMax(String name, int min, int max) {

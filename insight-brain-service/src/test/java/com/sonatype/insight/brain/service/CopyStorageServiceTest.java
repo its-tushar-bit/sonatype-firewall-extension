@@ -14,14 +14,20 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
@@ -39,14 +45,17 @@ import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceServiceProvider;
 import com.sonatype.insight.brain.scan.datastore.ScanEntity;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceService;
 import com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceProvider;
+import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.config.StorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.test.LogOutput;
 
+import ch.qos.logback.classic.Level;
 import com.google.inject.Binder;
 import org.junit.After;
 import org.junit.BeforeClass;
@@ -57,6 +66,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.mockito.Mock;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
@@ -70,6 +80,10 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.spy;
 
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
@@ -109,6 +123,12 @@ public class CopyStorageServiceTest
   @Inject
   private ClusterLockManager clusterLockManager;
 
+  @Inject
+  private ApiConfigurationService apiConfigurationService;
+
+  @Mock
+  private TaskScheduler mockTaskScheduler;
+
   @Parameters
   public static List<Object[]> dataStoreTypes() {
     return Arrays.asList(new Object[][]{
@@ -125,6 +145,7 @@ public class CopyStorageServiceTest
 
   @Override
   public void configure(final Binder binder) {
+    binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
     binder.bind(S3Client.class).toInstance(createS3Client());
   }
@@ -218,7 +239,7 @@ public class CopyStorageServiceTest
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
     logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s' for 0 app(s)",
+        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
             dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name())
     );
   }
@@ -230,7 +251,7 @@ public class CopyStorageServiceTest
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
     logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s' for 1 app(s)",
+        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
             dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name())
     );
   }
@@ -305,7 +326,7 @@ public class CopyStorageServiceTest
         .getPermanentSbom(app1.getId(), pendingSbom.getFilename()).exists()).isFalse();
 
     logOutput.assertThat().atInfoLevel().contains(
-        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s' for 2 app(s)",
+        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
             dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
   }
 
@@ -338,6 +359,385 @@ public class CopyStorageServiceTest
         eval2.getScanId())) {
       assertThat(reportEntities.toList()).isEmpty();
     }
+  }
+
+  @Test
+  public void testExecute_WithConcurrentThreads() throws Exception {
+    logOutput.setLogLevel(Level.TRACE);
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+        JsonUtils.convertValue(new CopyStorageConfig(1, 2), Map.class));
+    copyStorageService.configurationChanged(Set.of(SystemConfigurationProperty.COPY_STORAGE_CONFIG));
+
+    Application app1 = tempEntity.newApplicationWithParent();
+    Application app2 = tempEntity.newApplicationWithParent();
+    Application app3 = tempEntity.newApplicationWithParent();
+    Application app4 = tempEntity.newApplicationWithParent();
+
+    // App 1: 3 scans, reports, and sboms
+    PolicyEvaluation app1Eval1 =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app1Eval1);
+    createReport(app1Eval1);
+    ThirdPartySbomMetadata app1Sbom1 = tempEntity.newThirdPartySbomMetadata(app1.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app1-sbom1.json.gz");
+    createSbom(app1Sbom1);
+
+    PolicyEvaluation app1Eval2 =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app1Eval2);
+    createReport(app1Eval2);
+    ThirdPartySbomMetadata app1Sbom2 = tempEntity.newThirdPartySbomMetadata(app1.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app1-sbom2.json.gz");
+    createSbom(app1Sbom2);
+
+    PolicyEvaluation app1Eval3 =
+        tempEntity.newPolicyEvaluation(app1.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app1Eval3);
+    createReport(app1Eval3);
+    ThirdPartySbomMetadata app1Sbom3 = tempEntity.newThirdPartySbomMetadata(app1.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app1-sbom3.json.gz");
+    createSbom(app1Sbom3);
+
+    // App 2: 3 scans, reports, and sboms
+    PolicyEvaluation app2Eval1 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app2Eval1);
+    createReport(app2Eval1);
+    ThirdPartySbomMetadata app2Sbom1 = tempEntity.newThirdPartySbomMetadata(app2.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app2-sbom1.json.gz");
+    createSbom(app2Sbom1);
+
+    PolicyEvaluation app2Eval2 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app2Eval2);
+    createReport(app2Eval2);
+    ThirdPartySbomMetadata app2Sbom2 = tempEntity.newThirdPartySbomMetadata(app2.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app2-sbom2.json.gz");
+    createSbom(app2Sbom2);
+
+    PolicyEvaluation app2Eval3 =
+        tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app2Eval3);
+    createReport(app2Eval3);
+    ThirdPartySbomMetadata app2Sbom3 = tempEntity.newThirdPartySbomMetadata(app2.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app2-sbom3.json.gz");
+    createSbom(app2Sbom3);
+
+    // App 3: 2 scans, reports, and sboms
+    PolicyEvaluation app3Eval1 =
+        tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app3Eval1);
+    createReport(app3Eval1);
+    ThirdPartySbomMetadata app3Sbom1 = tempEntity.newThirdPartySbomMetadata(app3.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app3-sbom1.json.gz");
+    createSbom(app3Sbom1);
+
+    PolicyEvaluation app3Eval2 =
+        tempEntity.newPolicyEvaluation(app3.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app3Eval2);
+    createReport(app3Eval2);
+    ThirdPartySbomMetadata app3Sbom2 = tempEntity.newThirdPartySbomMetadata(app3.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app3-sbom2.json.gz");
+    createSbom(app3Sbom2);
+
+    // App 4: 2 scans, reports, and sboms
+    PolicyEvaluation app4Eval1 =
+        tempEntity.newPolicyEvaluation(app4.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app4Eval1);
+    createReport(app4Eval1);
+    ThirdPartySbomMetadata app4Sbom1 = tempEntity.newThirdPartySbomMetadata(app4.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app4-sbom1.json.gz");
+    createSbom(app4Sbom1);
+
+    PolicyEvaluation app4Eval2 =
+        tempEntity.newPolicyEvaluation(app4.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(app4Eval2);
+    createReport(app4Eval2);
+    ThirdPartySbomMetadata app4Sbom2 = tempEntity.newThirdPartySbomMetadata(app4.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "app4-sbom2.json.gz");
+    createSbom(app4Sbom2);
+
+    // Execute copy with concurrent threads
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    // Verify all app1 data was copied correctly
+    assertScanCopied(app1Eval1);
+    assertReportCopied(app1Eval1);
+    assertSbomCopied(app1Sbom1);
+    assertScanCopied(app1Eval2);
+    assertReportCopied(app1Eval2);
+    assertSbomCopied(app1Sbom2);
+    assertScanCopied(app1Eval3);
+    assertReportCopied(app1Eval3);
+    assertSbomCopied(app1Sbom3);
+
+    // Verify all app2 data was copied correctly
+    assertScanCopied(app2Eval1);
+    assertReportCopied(app2Eval1);
+    assertSbomCopied(app2Sbom1);
+    assertScanCopied(app2Eval2);
+    assertReportCopied(app2Eval2);
+    assertSbomCopied(app2Sbom2);
+    assertScanCopied(app2Eval3);
+    assertReportCopied(app2Eval3);
+    assertSbomCopied(app2Sbom3);
+
+    // Verify all app3 data was copied correctly
+    assertScanCopied(app3Eval1);
+    assertReportCopied(app3Eval1);
+    assertSbomCopied(app3Sbom1);
+    assertScanCopied(app3Eval2);
+    assertReportCopied(app3Eval2);
+    assertSbomCopied(app3Sbom2);
+
+    // Verify all app4 data was copied correctly
+    assertScanCopied(app4Eval1);
+    assertReportCopied(app4Eval1);
+    assertSbomCopied(app4Sbom1);
+    assertScanCopied(app4Eval2);
+    assertReportCopied(app4Eval2);
+    assertSbomCopied(app4Sbom2);
+
+    // Verify summary log message
+    logOutput.assertThat().atInfoLevel().contains(
+        String.format("Finished copy of scans, reports, and SBOMs from '%s' to '%s': CopyStorageResult",
+            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+  }
+
+  @Test
+  public void testExecute_AlreadyActive() throws Exception {
+    CopyStorageService spyCopyStorageService = spy(copyStorageService);
+    CountDownLatch started = new CountDownLatch(1);
+    CountDownLatch waiting = new CountDownLatch(1);
+    doAnswer(invocation -> {
+      started.countDown();
+      assertThat(waiting.await(5, TimeUnit.SECONDS)).isTrue();
+      return null;
+    }).when(spyCopyStorageService).doExecute(any(), any());
+    new Thread(() -> spyCopyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0))).start();
+    assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
+
+    spyCopyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    waiting.countDown();
+    logOutput.assertThat().atInfoLevel().contains(
+        String.format("Request for copy of scans, reports, and SBOMs from '%s' to '%s' is already active.",
+            dataStoreTypes.get(1).name(), dataStoreTypes.get(0).name()));
+  }
+
+  @Test
+  public void testCheckSupported_ValidDataStoreTypes() {
+    assertThatNoException().isThrownBy(() -> copyStorageService.checkSupported(DataStoreType.FILE));
+    assertThatNoException().isThrownBy(() -> copyStorageService.checkSupported(DataStoreType.S3));
+  }
+
+  @Test
+  public void testCheckSupported_UnsupportedDataStoreType() {
+    assertThatExceptionOfType(IllegalArgumentException.class)
+        .isThrownBy(() -> copyStorageService.checkSupported(DataStoreType.HYBRID))
+        .withMessageContaining("Storage 'HYBRID' is unsupported.");
+  }
+
+  @Test
+  public void testCheckPrimaryStorageIsTarget_ValidTarget() {
+    StorageConfig storageConfig = insightConfig.getStorage();
+    storageConfig.setType(dataStoreTypes.get(0));
+
+    assertThatNoException().isThrownBy(() -> copyStorageService.checkPrimaryStorageIsTarget(dataStoreTypes.get(0)));
+  }
+
+  @Test
+  public void testCheckPrimaryStorageIsTarget_HybridPrimaryStorage() {
+    StorageConfig storageConfig = insightConfig.getStorage();
+    storageConfig.setType(DataStoreType.HYBRID);
+    storageConfig.getHybridConfig().setTypes(new LinkedHashSet<>(dataStoreTypes));
+
+    assertThatNoException().isThrownBy(() -> copyStorageService.checkPrimaryStorageIsTarget(dataStoreTypes.get(0)));
+  }
+
+  @Test
+  public void testCheckPrimaryStorageIsTarget_InvalidTarget() {
+    StorageConfig storageConfig = insightConfig.getStorage();
+    storageConfig.setType(dataStoreTypes.get(0));
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> copyStorageService.checkPrimaryStorageIsTarget(dataStoreTypes.get(1)))
+        .withMessageContaining(("Primary storage type is '%s' but copy is targeting '%s'," +
+            " scans, reports, and/or SBOMs written during copy may be missed.").formatted(dataStoreTypes.get(0),
+            dataStoreTypes.get(1)));
+  }
+
+  @Test
+  public void testCheckFromAndToAreDifferent_Valid() {
+    assertThatNoException().isThrownBy(
+        () -> copyStorageService.checkFromAndToAreDifferent(dataStoreTypes.get(0), dataStoreTypes.get(1)));
+  }
+
+  @Test
+  public void testCheckFromAndToAreDifferent_Invalid() {
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> copyStorageService.checkFromAndToAreDifferent(dataStoreTypes.get(0), dataStoreTypes.get(0)))
+        .withMessageContaining("Not copying from '%s' to '%s', these should be different.".formatted(
+            dataStoreTypes.get(0), dataStoreTypes.get(0)));
+  }
+
+  @Test
+  public void testConfigurationChanged() {
+    CopyStorageConfig newConfig = new CopyStorageConfig(2, 3);
+
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+        JsonUtils.convertValue(newConfig, Map.class));
+    copyStorageService.configurationChanged(Set.of(SystemConfigurationProperty.COPY_STORAGE_CONFIG));
+
+    logOutput.assertThat().atDebugLevel().contains("Updated 'copyLimit' to 3.");
+  }
+
+  @Test
+  public void testConfigurationChanged_UnrelatedProperty() {
+    copyStorageService.configurationChanged(Set.of("SOME_OTHER_PROPERTY"));
+
+    logOutput.assertThat().atDebugLevel().doesNotContain("Updated 'appLimit'");
+    logOutput.assertThat().atDebugLevel().doesNotContain("Updated 'copyLimits'");
+  }
+
+  @Test
+  public void testExecute_MissingScan() {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    // Don't create scan - it doesn't exist in source storage
+
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    // Verify scan was not copied
+    ScanPersistenceService scanPersistenceService = scanPersistenceServiceProvider.get(dataStoreTypes.get(0));
+    ScanEntity scanEntity = scanPersistenceService.getScan(eval.getApplicationId(), eval.getScanId());
+    assertThat(scanEntity.exists()).isFalse();
+  }
+
+  @Test
+  public void testExecute_ScanAlreadyCopied() throws Exception {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createScan(eval);
+    // Copy once
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+    assertScanCopied(eval);
+
+    // Copy again - should skip
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    logOutput.assertThat().atTraceLevel().contains(
+        String.format("Skipping scan copying for app id '%s' scan id '%s' since it is already done.",
+            eval.getApplicationId(), eval.getScanId()));
+  }
+
+  @Test
+  public void testExecute_MissingReport() throws Exception {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    // Don't create report - it doesn't exist in source storage
+
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    // Verify report was not copied
+    ApplicationReportPersistenceService reportPersistenceService =
+        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
+    assertThat(reportPersistenceService.reportExists(eval.getApplicationId(), eval.getScanId())).isFalse();
+
+    logOutput.assertThat().atTraceLevel().contains(
+        String.format("Skipping report copying for app id '%s' scan id '%s' since it does not exist.",
+            eval.getApplicationId(), eval.getScanId()));
+  }
+
+  @Test
+  public void testExecute_ReportAlreadyCopied() throws Exception {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createReport(eval);
+    // Copy once
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+    assertReportCopied(eval);
+
+    // Copy again - should skip
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    logOutput.assertThat().atTraceLevel().contains(
+        String.format("Skipping report copying for app id '%s' scan id '%s' since it is already done.",
+            eval.getApplicationId(), eval.getScanId()));
+  }
+
+  @Test
+  public void testExecute_ReportWithoutPdf() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    // Create report without PDF
+    String reportZipName = "report.zip";
+    Path zipPath = tempDir.getRoot().toPath().resolve(reportZipName);
+    ReportHelper.createEmptyZip(zipPath);
+    for (ReportFile reportFile : ReportFile.values()) {
+      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
+        ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()), reportFile.getName());
+      }
+    }
+    ApplicationReportPersistenceService service =
+        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1));
+    try (InputStream inputStream = new FileInputStream(zipPath.toFile())) {
+      service.saveOriginalReport(eval.getApplicationId(), eval.getScanId(), inputStream);
+    }
+    // Note: NOT creating PDF file
+
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    // Verify report was copied but PDF was not
+    ApplicationReportPersistenceService reportPersistenceService =
+        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
+    assertThat(reportPersistenceService.reportExists(eval.getApplicationId(), eval.getScanId())).isTrue();
+    ReportPdfEntity reportPdfEntity = reportPersistenceService.getPdfEntity(eval.getApplicationId(), eval.getScanId());
+    assertThat(reportPdfEntity.exists()).isFalse();
+  }
+
+  @Test
+  public void testExecute_MissingSbom() {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "missing-sbom.json.gz");
+    // Don't create SBOM - it doesn't exist in source storage
+
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    // Verify SBOM was not copied
+    SbomPersistenceService sbomPersistenceService = sbomPersistenceServiceProvider.get(dataStoreTypes.get(0));
+    SbomEntity sbomEntity = sbomPersistenceService.getPermanentSbom(sbomMetadata.getApplicationId(),
+        sbomMetadata.getFilename());
+    assertThat(sbomEntity.exists()).isFalse();
+
+    logOutput.assertThat().atTraceLevel().contains(
+        String.format("Skipping sbom copying for app id '%s' file name '%s' since it does not exist.",
+            sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
+  }
+
+  @Test
+  public void testExecute_SbomAlreadyCopied() throws Exception {
+    logOutput.setLogLevel(Level.TRACE);
+    Application app = tempEntity.newApplicationWithParent();
+    ThirdPartySbomMetadata sbomMetadata = tempEntity.newThirdPartySbomMetadata(app.getId(),
+        ThirdPartySbomMetadataStatus.ACTIVE, "already-copied-sbom.json.gz");
+    createSbom(sbomMetadata);
+    // Copy once
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+    assertSbomCopied(sbomMetadata);
+
+    // Copy again - should skip
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    logOutput.assertThat().atTraceLevel().contains(
+        String.format("Skipping sbom copying for app id '%s' file name '%s' since it is already done.",
+            sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
   }
 
   private void assertScanCopied(final PolicyEvaluation eval) throws Exception {

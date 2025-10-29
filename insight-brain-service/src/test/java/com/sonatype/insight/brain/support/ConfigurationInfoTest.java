@@ -292,7 +292,8 @@ public class ConfigurationInfoTest
         "epssDataEnabled",
         "integrationsSupportedVersionCount",
         "warnOnNonPrimaryStorageAccess",
-        "userActivityTracking"
+        "userActivityTracking",
+        "copyStorageConfig"
     );
 
     // Properties included in the config.json in support zip

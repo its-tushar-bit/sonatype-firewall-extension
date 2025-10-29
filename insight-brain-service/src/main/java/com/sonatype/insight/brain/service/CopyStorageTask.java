@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
@@ -17,8 +18,12 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
+import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.tenancy.MtiqBatchJob;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -36,7 +41,7 @@ import org.slf4j.LoggerFactory;
 @DisallowConcurrentExecution
 public class CopyStorageTask
     extends Task
-    implements InsightJob, MtiqBatchJob
+    implements InsightJob, MtiqBatchJob, ConfigurationListener
 {
   private static final Logger log = LoggerFactory.getLogger(CopyStorageTask.class);
 
@@ -52,19 +57,44 @@ public class CopyStorageTask
 
   private final CopyStorageService copyStorageService;
 
+  private final ApiConfigurationService apiConfigurationService;
+
   private final TenantThreadPoolExecutor tenantThreadPoolExecutor;
 
   @Inject
   public CopyStorageTask(
       final TaskScheduler taskScheduler,
-      final CopyStorageService copyStorageService)
+      final CopyStorageService copyStorageService,
+      final ApiConfigurationService apiConfigurationService,
+      final ShutdownHandler shutdownHandler)
   {
     super(PATH);
     this.taskScheduler = taskScheduler;
     this.copyStorageService = copyStorageService;
-    tenantThreadPoolExecutor = new TenantThreadPoolExecutor(1, 1, 5L, TimeUnit.SECONDS, new LinkedBlockingQueue<>(),
-        new ThreadFactoryBuilder().setNameFormat("CopyStorage-%d").build(), new AbortPolicy(), "copy_storage",
-        getClass().getSimpleName());
+    this.apiConfigurationService = apiConfigurationService;
+    CopyStorageConfig copyStorageConfig = (CopyStorageConfig) apiConfigurationService.getConfigurationNoAuthz(
+        SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+    int tenantThreads = copyStorageConfig.maxTenantThreads();
+    tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+        tenantThreads,
+        tenantThreads,
+        5L,
+        TimeUnit.SECONDS,
+        new LinkedBlockingQueue<>(),
+        new ThreadFactoryBuilder().setNameFormat("CopyStorageTask-%d").build(),
+        new AbortPolicy(),
+        "copy_storage_task",
+        getClass().getSimpleName()
+    )
+    {
+      @Override
+      public void shutdown() {
+        super.shutdown();
+        getQueue().clear();
+      }
+    };
+    tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+    shutdownHandler.add(tenantThreadPoolExecutor);
   }
 
   @Override
@@ -127,5 +157,27 @@ public class CopyStorageTask
   @Override
   public String getJobName() {
     return JOB_NAME;
+  }
+
+  @Override
+  public void configurationChanged(final Set<String> propertyNames) {
+    if (propertyNames.contains(SystemConfigurationProperty.COPY_STORAGE_CONFIG)) {
+      CopyStorageConfig copyStorageConfig = (CopyStorageConfig) apiConfigurationService.getConfigurationNoAuthz(
+          SystemConfigurationProperty.COPY_STORAGE_CONFIG);
+      int maxTenantThreads = copyStorageConfig.maxTenantThreads();
+      int currentCore = tenantThreadPoolExecutor.getCorePoolSize();
+      int currentMax = tenantThreadPoolExecutor.getMaximumPoolSize();
+      if (currentCore != maxTenantThreads || currentMax != maxTenantThreads) {
+        if (maxTenantThreads > currentMax) {
+          tenantThreadPoolExecutor.setMaximumPoolSize(maxTenantThreads);
+          tenantThreadPoolExecutor.setCorePoolSize(maxTenantThreads);
+        }
+        else {
+          tenantThreadPoolExecutor.setCorePoolSize(maxTenantThreads);
+          tenantThreadPoolExecutor.setMaximumPoolSize(maxTenantThreads);
+        }
+        log.debug("Updated 'tenantLimit' to {}.", maxTenantThreads);
+      }
+    }
   }
 }

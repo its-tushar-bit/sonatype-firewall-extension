@@ -389,6 +389,36 @@ public class ConfigurationUtils
     return NumberUtils.toInt(value, defaultVal);
   }
 
+  public static <T> T stringToObject(
+      final String value,
+      final Class<T> clazz,
+      final T defaultValue)
+  {
+    if (value != null) {
+      try {
+        return JsonUtils.parse(value, clazz);
+      }
+      catch (Exception e) {
+        log.error(
+            "Unable to deserialize configuration '%s' into '%s', using default configuration '%s'.".formatted(value,
+                clazz.getName(), objectToString(defaultValue)), e);
+      }
+    }
+    return defaultValue;
+  }
+
+  public static <T> String objectToString(final T value) {
+    if (value == null) {
+      return null;
+    }
+    try {
+      return JsonUtils.writeUnformatted(value);
+    }
+    catch (Exception e) {
+      throw new BadRequestException("Unable to serialize configuration '%s'.".formatted(value), e);
+    }
+  }
+
   private static int getIntEnvValueOrDefault(@NotNull String env, int defaultVal) {
     String envValue = System.getenv(env);
     return NumberUtils.toInt(envValue, defaultVal);

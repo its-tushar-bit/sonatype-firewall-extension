@@ -16,7 +16,8 @@ import {
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import reduxConfigModule from './reduxConfig/module';
 import mainHeaderModule from './mainHeader/module';
-import navigationContainer from './navigationContainer/module';
+import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
+import NavigationContainer from './navigationContainer/NavigationContainer';
 import ReportModule from './ReportApp';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
@@ -69,7 +70,6 @@ export const InitModule = angular
       ReportModule.name,
       Report.name,
       mainHeaderModule.name,
-      navigationContainer.name,
       unauthenticatedResponseHttpInterceptor.name,
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
@@ -517,7 +517,11 @@ export const InitModule = angular
 
       return { start: doStart };
     },
-  ]);
+  ])
+  .component(
+    'navigationContainer',
+    iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$ngRedux', '$rootScope', '$state'])
+  );
 
 export const mapStateToThis = (state) => ({
   isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),

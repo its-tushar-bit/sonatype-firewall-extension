@@ -58,3 +58,5 @@ export const selectHasAuditorLicense = createSelector(
   selectProducts,
   R.any(R.includes(R.__, PRODUCT_LICENSES.auditor))
 );
+
+export const selectIsLicensed = createSelector(selectProductLicenseSlice, R.prop('installed'));

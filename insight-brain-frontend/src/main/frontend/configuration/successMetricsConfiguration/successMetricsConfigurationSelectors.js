@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { prop } from 'ramda';
+import { path, prop } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 
 export const selectSuccessMetricsConfigurationSlice = prop('successMetricsConfiguration');
@@ -17,4 +17,8 @@ export const selectSuccessMetricsConfigurationViewState = createSelector(
 export const selectSuccessMetricsConfigurationFormState = createSelector(
   selectSuccessMetricsConfigurationSlice,
   prop('formState')
+);
+
+export const selectIsSuccessMetricsEnabled = createSelector(selectSuccessMetricsConfigurationSlice, (state) =>
+  path(['serverData', 'enabled'], state)
 );

@@ -11,7 +11,7 @@ import componentDetailsModule from './componentDetails/module';
 import dependencyTreeModule from './DependencyTree/module';
 import atlassianCrowdConfigurationModule from './configuration/crowd/module';
 import reduxConfigModule from './reduxConfig/module';
-import changeDefaultAdminPasswordModule from './changeDefaultAdminPasswordNotice/module';
+import ChangeDefaultAdminPasswordNotice from './changeDefaultAdminPasswordNotice/ChangeDefaultAdminPasswordNotice';
 import applicationReportModule from './applicationReport/module';
 import ownerManagerModule from './OrgsAndPolicies/owner.manager.module';
 import { MainModule } from './MainModule';
@@ -53,7 +53,6 @@ export default angular
     legacyConfigurationModule.name,
     dashboardModule.name,
     reduxConfigModule.name,
-    changeDefaultAdminPasswordModule.name,
     applicationReportModule.name,
     vulnerabilitySearchModule.name,
     vulnerabilityCustomizeModule.name,
@@ -79,4 +78,5 @@ export default angular
     standaloneFirewallModule.name,
     applicationLatestEvaluationsModule.name,
   ])
-  .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']));
+  .component('systemNotice', iqReact2Angular(SystemNoticeContainer, [], ['$ngRedux']))
+  .component('changeDefaultAdminPasswordNotice', iqReact2Angular(ChangeDefaultAdminPasswordNotice, [], ['$ngRedux']));

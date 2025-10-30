@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+import userModule from '../../../main/frontend/user/userModule';
 import * as userSession from 'MainRoot/user/userSessionUtils';
 import mainBundlePendoService, { setUrlService } from 'MainRoot/pendo/mainBundlePendoService';
 import { getGlobalPermissionTestUrl } from 'MainRoot/util/CLMContextLocation';
@@ -20,7 +20,7 @@ describe('userActions', function () {
     setUrlService(mockUrlService);
   });
 
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
+  beforeEach(angular.mock.module(userModule.name));
 
   beforeEach(
     angular.mock.module(function ($provide) {

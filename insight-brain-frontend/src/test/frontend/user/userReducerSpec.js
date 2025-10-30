@@ -3,12 +3,12 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import changeDefaultAdminPasswordNoticeModule from '../../../main/frontend/changeDefaultAdminPasswordNotice/module';
+import userModule from '../../../main/frontend/user/userModule';
 
 describe('userReducer', function () {
   let reduce;
 
-  beforeEach(angular.mock.module(changeDefaultAdminPasswordNoticeModule.name));
+  beforeEach(angular.mock.module(userModule.name));
 
   beforeEach(inject((userReducer) => {
     reduce = userReducer;

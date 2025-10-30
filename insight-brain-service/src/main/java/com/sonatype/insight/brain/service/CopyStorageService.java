@@ -617,24 +617,26 @@ public class CopyStorageService
       try (InputStream inputStream = createInputStream(from.getOriginalReportEntities(appId, scanId))) {
         to.saveOriginalReport(appId, scanId, inputStream);
       }
-      from.getAllReportEntities(appId, scanId).forEach(sourceReportEntity -> {
-        try {
-          ReportFile reportFile = ReportFile.fromName(sourceReportEntity.getName());
-          if (reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-            try (InputStream inputStream = sourceReportEntity.getInputStream()) {
-              to.saveAdditionalReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
+      try (Stream<ReportEntity> allEntities = from.getAllReportEntities(appId, scanId)) {
+        allEntities.forEach(sourceReportEntity -> {
+          try {
+            ReportFile reportFile = ReportFile.fromName(sourceReportEntity.getName());
+            if (reportFile == null || reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
+              try (InputStream inputStream = sourceReportEntity.getInputStream()) {
+                to.saveAdditionalReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
+              }
+            }
+            else {
+              try (InputStream inputStream = sourceReportEntity.getInputStream()) {
+                to.saveReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
+              }
             }
           }
-          else {
-            try (InputStream inputStream = sourceReportEntity.getInputStream()) {
-              to.saveReportFile(appId, scanId, sourceReportEntity.getName(), inputStream);
-            }
+          catch (IOException e) {
+            throw new UncheckedIOException(e);
           }
-        }
-        catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      });
+        });
+      }
 
       ReportPdfEntity sourceReportPdfEntity = from.getPdfEntity(appId, scanId);
       ReportPdfEntity targetReportPdfEntity = to.getPdfEntity(appId, scanId);

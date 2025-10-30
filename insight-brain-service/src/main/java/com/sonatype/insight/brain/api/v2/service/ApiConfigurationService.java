@@ -34,6 +34,7 @@ import com.sonatype.insight.brain.security.PermissionService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -60,7 +61,7 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 @Singleton
 @DisallowConcurrentExecution
 public class ApiConfigurationService
-    implements InsightJob
+    implements InsightJob, GlobalTenantJob
 {
   private static final Logger log = LoggerFactory.getLogger(ApiConfigurationService.class);
 

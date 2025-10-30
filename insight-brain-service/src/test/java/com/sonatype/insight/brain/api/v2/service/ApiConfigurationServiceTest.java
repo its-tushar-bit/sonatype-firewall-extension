@@ -31,7 +31,9 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.CopyStorageConfig;
 import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.tenancy.GlobalTenantJob;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -109,6 +111,12 @@ public class ApiConfigurationServiceTest
     binder.bind(TestConfigurationListener.class).toInstance(spy(new TestConfigurationListener()));
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
     super.configure(binder);
+  }
+
+  @Test
+  public void testImplementsCorrectInterfaces() {
+    assertThat(service).isInstanceOf(InsightJob.class);
+    assertThat(service).isInstanceOf(GlobalTenantJob.class);
   }
 
   @Test

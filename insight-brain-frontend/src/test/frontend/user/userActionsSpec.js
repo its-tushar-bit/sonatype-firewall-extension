@@ -13,7 +13,15 @@ import { getSessionLogoutUrl, getShouldDisplayDefaultPasswordWarning } from 'Mai
 import * as telemetryUtils from 'MainRoot/util/telemetryUtils';
 
 describe('userActions', function () {
-  let userActions, initialState, currentState, $httpBackend, $rootScope, loginDeferred, pendoDeferred, axiosMock;
+  let userActions,
+    initialState,
+    currentState,
+    $httpBackend,
+    $rootScope,
+    $window,
+    loginDeferred,
+    pendoDeferred,
+    axiosMock;
 
   beforeAll(function () {
     const mockUrlService = { match: () => null };
@@ -25,13 +33,23 @@ describe('userActions', function () {
   beforeEach(
     angular.mock.module(function ($provide) {
       SpecUtil.mockNgRedux($provide);
+
+      const mockLocation = {
+        href: 'http://localhost:9876/',
+        assign: jasmine.createSpy('location.assign'),
+      };
+      const mockWindow = {
+        location: mockLocation,
+      };
+      $provide.value('$window', mockWindow);
     })
   );
 
-  beforeEach(inject(($q, _$httpBackend_, _userActions_, _$rootScope_) => {
+  beforeEach(inject(($q, _$httpBackend_, _userActions_, _$rootScope_, _$window_) => {
     $httpBackend = _$httpBackend_;
     userActions = _userActions_;
     $rootScope = _$rootScope_;
+    $window = _$window_;
 
     loginDeferred = $q.defer();
     pendoDeferred = $q.defer();
@@ -644,14 +662,17 @@ describe('userActions', function () {
     it(`provides the ability to log out for reverse proxy`, function () {
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred.promise);
-      var headers = { Location: 'http://localhost/logout' };
+      const redirectUrl = 'http://localhost/logout';
+      const headers = { Location: redirectUrl };
       $httpBackend.whenDELETE(getSessionLogoutUrl()).respond(204, '', headers);
       store.dispatch(userActions.logout());
       pendoDeferred.resolve();
       $rootScope.$digest();
       $httpBackend.flush();
       $rootScope.$digest();
-      expect($rootScope.$emit).toHaveBeenCalledWith('logout', headers.Location);
+
+      expect($rootScope.username).toBe(null);
+      expect($window.location.href).toBe(redirectUrl);
     });
   });
 });

@@ -96,11 +96,16 @@ function userActions($rootScope, $q, $http, $window, $ngRedux) {
           const serverLogout = () => $http.delete(getSessionLogoutUrl());
           pendoService
             .flush()
-            // continue the logout whether the pendo flush succeeds or fails
             .then(serverLogout, serverLogout)
             .then(function (response) {
               $($window).unbind('beforeunload');
-              $rootScope.$emit('logout', response.headers('Location'));
+              $rootScope.username = null;
+              const toLocation = response.headers('Location');
+              if (toLocation != null) {
+                $window.location.href = toLocation;
+              } else {
+                $window.location.assign('../');
+              }
             });
         };
       }

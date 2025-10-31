@@ -403,15 +403,6 @@ export const InitModule = angular
           })
           .then(initSuccess, initFailure);
 
-        $rootScope.$on('logout', function (event, toLocation) {
-          $rootScope.username = null;
-          if (toLocation != null) {
-            $window.location.href = toLocation;
-          } else {
-            $window.location.assign('../');
-          }
-        });
-
         function clearRootScopeError() {
           if ($rootScope.error) {
             delete $rootScope.error;

@@ -230,13 +230,17 @@ public class ZScalerUpdaterTest
     underTest.deleteAllZScalerMaliciousUrlCategories();
 
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.MAVEN),
-        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.MAVEN.toString().toLowerCase())));
+        eq(List.of(
+            "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
+            "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar"
+        )));
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NUGET),
-        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NUGET.toString().toLowerCase())));
+        eq(List.of("placeholder.com/nuget")));
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NPM),
-        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NPM.toString().toLowerCase())));
+        eq(List.of("registry.npmjs.org/@sonatype/policy-demo/-/policy-demo-2.1.0.tgz")));
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.PYPI),
-        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.PYPI.toString().toLowerCase())));
+        eq(List.of("files.pythonhosted.org/packages/a2/95/" +
+            "d68eb18b5f334265097fc2872446c5dd4589bce3751035ab855bfe3e1e8a/python-policy-demo-1.1.0.tar.gz")));
   }
 
   @Test
@@ -255,7 +259,7 @@ public class ZScalerUpdaterTest
     underTest.deleteZScalerMaliciousUrlCategory(ZScalerSupportedFormat.NPM);
 
     verify(mockApiZScalerService, times(1)).updateCategory(eq(ZScalerSupportedFormat.NPM),
-        eq(List.of("placeholder.com/" + ZScalerSupportedFormat.NPM.toString().toLowerCase())));
+        eq(List.of("registry.npmjs.org/@sonatype/policy-demo/-/policy-demo-2.1.0.tgz")));
     verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.PYPI), any());
     verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.MAVEN), any());
     verify(mockApiZScalerService, never()).updateCategory(eq(ZScalerSupportedFormat.NUGET), any());

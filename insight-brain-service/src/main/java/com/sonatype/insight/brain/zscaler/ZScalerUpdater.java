@@ -167,7 +167,18 @@ public class ZScalerUpdater
 
   private void deleteCategory(ZScalerSupportedFormat format) {
     log.debug("deleting zScaler category: {}", format);
-    apiZScalerService.updateCategory(format, List.of("placeholder.com/" + format.toString().toLowerCase()));
+    List<String> urls = switch (format) {
+      case MAVEN -> List.of(
+          "repo1.maven.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar",
+          "repo.maven.apache.org/maven2/org/sonatype/maven-policy-demo/1.1.0/maven-policy-demo-1.1.0.jar"
+      );
+      case NPM -> List.of("registry.npmjs.org/@sonatype/policy-demo/-/policy-demo-2.1.0.tgz");
+      case PYPI -> List.of(
+          "files.pythonhosted.org/packages/a2/95/d68eb18b5f334265097fc2872446c5dd4589bce3751035ab855bfe3e1e8a/" +
+              "python-policy-demo-1.1.0.tar.gz");
+      default -> List.of("placeholder.com/" + format.toString().toLowerCase());
+    };
+    apiZScalerService.updateCategory(format, urls);
   }
 
   void updateCategory(ZScalerSupportedFormat format) {

@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -34,6 +35,7 @@ import static java.util.Objects.requireNonNull;
  */
 public record S3ScanEntity(
     S3Client s3Client,
+    S3AsyncClient s3AsyncClient,
     String bucketName,
     String objectKey,
     String serverSideEncryption,
@@ -54,6 +56,7 @@ public record S3ScanEntity(
 
   public static S3ScanEntity forScan(
       S3Client s3Client,
+      S3AsyncClient s3AsyncClient,
       String bucketName,
       String objectKeyPrefix,
       String serverSideEncryption,
@@ -61,11 +64,12 @@ public record S3ScanEntity(
       String scanId)
   {
     String scanName = "scan-" + scanId + ".xml.gz";
-    return forScanName(s3Client, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
+    return forScanName(s3Client, s3AsyncClient, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
   }
 
   public static S3ScanEntity forTempScan(
       S3Client s3Client,
+      S3AsyncClient s3AsyncClient,
       String bucketName,
       String objectKeyPrefix,
       String serverSideEncryption,
@@ -73,7 +77,7 @@ public record S3ScanEntity(
       String tempId)
   {
     String scanName = "temp-" + tempId + ".xml.gz";
-    return forScanName(s3Client, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
+    return forScanName(s3Client, s3AsyncClient, bucketName, objectKeyPrefix, serverSideEncryption, appId, scanName);
   }
 
   /**
@@ -81,6 +85,7 @@ public record S3ScanEntity(
    */
   public static S3ScanEntity forScanName(
       S3Client s3Client,
+      S3AsyncClient s3AsyncClient,
       String bucketName,
       String objectKeyPrefix,
       String serverSideEncryption,
@@ -88,7 +93,7 @@ public record S3ScanEntity(
       String scanName)
   {
     String objectKey = objectKeyPrefix + "scan/" + appId + "/" + scanName;
-    return new S3ScanEntity(s3Client, bucketName, objectKey, serverSideEncryption, appId, scanName);
+    return new S3ScanEntity(s3Client, s3AsyncClient, bucketName, objectKey, serverSideEncryption, appId, scanName);
   }
 
   @Override
@@ -101,7 +106,7 @@ public record S3ScanEntity(
 
   @Override
   public OutputStream getOutputStream() throws IOException {
-    return new S3OutputStream(s3Client, objectKey, bucketName, serverSideEncryption);
+    return new S3OutputStream(s3AsyncClient, objectKey, bucketName, serverSideEncryption);
   }
 
   @Override

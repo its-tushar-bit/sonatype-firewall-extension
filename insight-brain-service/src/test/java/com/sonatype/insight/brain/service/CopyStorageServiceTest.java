@@ -9,6 +9,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.SequenceInputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -57,9 +58,12 @@ import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
 import com.google.inject.Binder;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -67,6 +71,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
@@ -84,13 +90,16 @@ import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
+import static software.amazon.awssdk.transfer.s3.SizeConstant.MB;
 
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class CopyStorageServiceTest
     extends AbstractComponentTest
 {
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final Logger log = LoggerFactory.getLogger(CopyStorageServiceTest.class);
+
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
 
@@ -740,6 +749,130 @@ public class CopyStorageServiceTest
             sbomMetadata.getApplicationId(), sbomMetadata.getFilename()));
   }
 
+  @Test
+  public void testExecute_LargeFile() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        app.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createScan(eval, (int) (120 * MB));
+
+    copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+
+    ScanEntity from = scanPersistenceServiceProvider.get(dataStoreTypes.get(1)).getScan(app.getId(), eval.getScanId());
+    ScanEntity to = scanPersistenceServiceProvider.get(dataStoreTypes.get(0)).getScan(app.getId(), eval.getScanId());
+    try (InputStream fromIs = from.getInputStream(); InputStream toIs = to.getInputStream()) {
+      assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
+    }
+  }
+
+  @Test
+  @Category(SlowTest.class)
+  @Ignore // Only for on-demand running
+  // Tune down noisy logging by modifying src/test/resources/logback-test.xml
+  // e.g.
+  // <logger name="com.sonatype" level="WARN" />
+  // <logger name="com.sonatype.insight.brain.service.CopyStorageServiceTest" level="DEBUG" />
+  // <logger name="org.apache.http.headers" level="WARN" />
+  public void testExecute_Stress() throws Exception {
+    if (dataStoreTypes.get(0) == DataStoreType.FILE) {
+      return;
+    }
+
+    apiConfigurationService.setConfigurationNoAuthz(SystemConfigurationProperty.COPY_STORAGE_CONFIG,
+        JsonUtils.convertValue(new CopyStorageConfig(1, 100), Map.class));
+    copyStorageService.configurationChanged(Set.of(SystemConfigurationProperty.COPY_STORAGE_CONFIG));
+
+    int numApps = 10;
+    int reportsPerApp = 60;
+
+    log.info("Creating {} applications with {} reports each for stress test", numApps, reportsPerApp);
+
+    for (int appIdx = 0; appIdx < numApps; appIdx++) {
+      Application app = tempEntity.newApplicationWithParent();
+
+      for (int reportIdx = 0; reportIdx < reportsPerApp; reportIdx++) {
+        PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+            app.getId(),
+            BuildStageType.ID,
+            TemporaryEntity.uuid()
+        );
+        // Create some large files
+        createScan(eval, reportIdx % 20 == 0 ? (int) (20 * MB) : 0);
+        createReport(eval);
+
+        ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
+            app.getId(),
+            ThirdPartySbomMetadataStatus.ACTIVE,
+            String.format("app%d-sbom%d.json.gz", appIdx, reportIdx)
+        );
+        createSbom(sbom);
+      }
+    }
+
+    long maxMemory = Runtime.getRuntime().maxMemory();
+    log.info("Max heap size: {} MB", maxMemory / 1024 / 1024);
+
+    int iterations = 3;
+    for (int iteration = 0; iteration < iterations; iteration++) {
+      long beforeMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+
+      log.info("=== Iteration {} of {} - Memory before: {} MB ===",
+          iteration + 1, iterations, beforeMemory / 1024 / 1024);
+
+      log.info("Starting copy...");
+
+      try {
+        copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
+        log.info("Copy completed successfully");
+      }
+      catch (OutOfMemoryError e) {
+        log.error("OOM during copy execution at iteration {}", iteration + 1, e);
+        log.error("Memory stats - Total: {} MB, Free: {} MB, Used: {} MB",
+            Runtime.getRuntime().totalMemory() / 1024 / 1024,
+            Runtime.getRuntime().freeMemory() / 1024 / 1024,
+            (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / 1024 / 1024);
+        throw e;
+      }
+
+      long afterMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+      log.info("Memory after copy: {} MB (peak spike: +{} MB)",
+          afterMemory / 1024 / 1024, (afterMemory - beforeMemory) / 1024 / 1024);
+
+      long peakUsedPercent = (afterMemory * 100) / maxMemory;
+      if (peakUsedPercent > 85) {
+        log.warn("WARNING: Peak memory reached {}% of heap! This would cause OOM with more load or less heap.",
+            peakUsedPercent);
+      }
+
+      log.info("Cleaning up destination storage for next iteration");
+      deleteAllFromStorage(dataStoreTypes.get(0));
+
+      // GC to show that memory CAN be reclaimed (not a traditional leak)
+      System.gc();
+
+      long afterGcMemory = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+      log.info("Memory after GC: {} MB", afterGcMemory / 1024 / 1024);
+
+      long memoryReclaimed = afterMemory - afterGcMemory;
+      log.info("Memory reclaimed by GC: {} MB", memoryReclaimed / 1024 / 1024);
+    }
+  }
+
+  private void deleteAllFromStorage(DataStoreType dataStoreType) throws Exception {
+    if (dataStoreType == DataStoreType.S3) {
+      s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+          .contents()
+          .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+              .bucket(BUCKET_NAME).key(obj.key()).build()));
+    }
+    else if (dataStoreType == DataStoreType.FILE) {
+      log.debug("Skipping file storage cleanup - not implemented for this test");
+    }
+  }
+
   private void assertScanCopied(final PolicyEvaluation eval) throws Exception {
     ScanPersistenceService scanPersistenceService = scanPersistenceServiceProvider.get(dataStoreTypes.get(0));
     ScanEntity scanEntity = scanPersistenceService.getScan(eval.getApplicationId(), eval.getScanId());
@@ -782,10 +915,15 @@ public class CopyStorageServiceTest
   }
 
   private void createScan(final PolicyEvaluation eval) throws Exception {
+    createScan(eval, 0);
+  }
+
+  private void createScan(final PolicyEvaluation eval, final int additionalContentSizeInBytes) throws Exception {
     String scanFileName = "scan-" + eval.getScanId() + ".xml";
     Path zipPath = tempDir.getRoot().toPath().resolve(scanFileName + ".gz");
     ReportHelper.createEmptyZip(zipPath);
-    ReportHelper.addToZip(zipPath, zipPath.resolve(scanFileName), eval.getScanId());
+    ReportHelper.addToZip(zipPath, zipPath.resolve(scanFileName),
+        generateContent(eval.getScanId(), additionalContentSizeInBytes));
     ScanPersistenceService service = scanPersistenceServiceProvider.get(dataStoreTypes.get(1));
     ScanEntity scanEntity = service.getScan(eval.getApplicationId(), eval.getScanId());
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());
@@ -794,7 +932,11 @@ public class CopyStorageServiceTest
     }
   }
 
-  private void createReport(final PolicyEvaluation eval)
+  private void createReport(final PolicyEvaluation eval) throws Exception {
+    createReport(eval, 0);
+  }
+
+  private void createReport(final PolicyEvaluation eval, final int additionalContentSizeInBytes)
       throws Exception
   {
     String reportZipName = "report.zip";
@@ -802,7 +944,8 @@ public class CopyStorageServiceTest
     ReportHelper.createEmptyZip(zipPath);
     for (ReportFile reportFile : ReportFile.values()) {
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
-        ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()), reportFile.getName());
+        ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()),
+            generateContent(reportFile.getName(), additionalContentSizeInBytes));
       }
     }
     ApplicationReportPersistenceService service =
@@ -815,32 +958,65 @@ public class CopyStorageServiceTest
       // Create report.cache
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
           reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
-        try (InputStream content = new ByteArrayInputStream(reportFile.getName().getBytes(StandardCharsets.UTF_8))) {
+        try (InputStream content = generateContent(reportFile.getName(), additionalContentSizeInBytes)) {
           service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
       // Create additional.files
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-        try (InputStream content = new ByteArrayInputStream(reportFile.getName().getBytes(StandardCharsets.UTF_8))) {
+        try (InputStream content = generateContent(reportFile.getName(), additionalContentSizeInBytes)) {
           service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
     }
     // Create report.pdf
-    try (OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
-        .getOutputStream()) {
-      outputStream.write(PdfGenerator.REPORT_FILE_NAME.getBytes(StandardCharsets.UTF_8));
+    try (InputStream inputStream = generateContent(PdfGenerator.REPORT_FILE_NAME, additionalContentSizeInBytes);
+         OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
+             .getOutputStream()) {
+      inputStream.transferTo(outputStream);
     }
   }
 
-  private void createSbom(final ThirdPartySbomMetadata sbomMetadata)
+  private InputStream generateContent(String name, int additionalBytes) {
+    InputStream prefixStream = new ByteArrayInputStream(name.getBytes(StandardCharsets.UTF_8));
+    InputStream randomStream = new InputStream()
+    {
+      private int remaining = additionalBytes;
+
+      private byte[] buffer = new byte[0];
+
+      private int bufferPos = 0;
+
+      @Override
+      public int read() {
+        if (remaining <= 0 && bufferPos >= buffer.length) {
+          return -1;
+        }
+        if (bufferPos >= buffer.length) {
+          int chunk = Math.min(4096, remaining);
+          String random = RandomStringUtils.random(chunk, true, true);
+          buffer = random.getBytes(StandardCharsets.UTF_8);
+          bufferPos = 0;
+          remaining -= chunk;
+        }
+        return buffer[bufferPos++] & 0xFF;
+      }
+    };
+    return new SequenceInputStream(prefixStream, randomStream);
+  }
+
+  private void createSbom(final ThirdPartySbomMetadata sbomMetadata) throws Exception {
+    createSbom(sbomMetadata, 0);
+  }
+
+  private void createSbom(final ThirdPartySbomMetadata sbomMetadata, final int additionalContentSizeInBytes)
       throws Exception
   {
     String sbomFileName = sbomMetadata.getFilename();
     Path zipPath = tempDir.getRoot().toPath().resolve(sbomFileName);
     ReportHelper.createEmptyZip(zipPath);
     ReportHelper.addToZip(zipPath, zipPath.resolve(sbomFileName.substring(0, sbomFileName.length() - 3)),
-        sbomMetadata.getId());
+        generateContent(sbomMetadata.getId(), additionalContentSizeInBytes));
     SbomPersistenceService service = sbomPersistenceServiceProvider.get(dataStoreTypes.get(1));
     SbomEntity sbomEntity = service.getPermanentSbom(sbomMetadata.getApplicationId(), sbomFileName);
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());

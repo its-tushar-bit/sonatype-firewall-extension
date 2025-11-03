@@ -64,7 +64,7 @@ public class HybridSbomPersistenceServiceTest
   @Rule
   public LogOutput logOutput = new LogOutput(HybridSbomPersistenceService.class);
 
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
 

@@ -28,6 +28,7 @@ import datadog.trace.api.Trace;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -54,11 +55,18 @@ public class S3SbomPersistenceService
 
   private final S3Client s3Client;
 
+  private final S3AsyncClient s3AsyncClient;
+
   private final S3DataStoreConfig s3DataStoreConfig;
 
   @Inject
-  public S3SbomPersistenceService(@Nullable final S3Client s3Client, final InsightConfig insightConfig) {
+  public S3SbomPersistenceService(
+      @Nullable final S3Client s3Client,
+      @Nullable final S3AsyncClient s3AsyncClient,
+      final InsightConfig insightConfig)
+  {
     this.s3Client = s3Client;
+    this.s3AsyncClient = s3AsyncClient;
     this.s3DataStoreConfig = insightConfig.getStorage().getS3Config();
     if (s3DataStoreConfig != null) {
       requireNonNull(s3Client);
@@ -71,14 +79,14 @@ public class S3SbomPersistenceService
   @Trace
   public SbomEntity doGetSbom(final String appId, final String fileName) {
     S3ObjectKey key = getPermanentSbomKey(appId, fileName);
-    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, appId, fileName);
+    return new S3SbomEntity(key, s3Client, s3AsyncClient, s3DataStoreConfig, appId, fileName);
   }
 
   @Override
   @Trace
   public SbomEntity getTemporarySbom(final String fileName, final String prefix) {
     S3ObjectKey key = getTemporarySbomKey(fileName, prefix);
-    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, null, fileName);
+    return new S3SbomEntity(key, s3Client, s3AsyncClient, s3DataStoreConfig, null, fileName);
   }
 
   @Override
@@ -88,7 +96,7 @@ public class S3SbomPersistenceService
     S3ObjectKey key = getTransientSbomKey(uniqueFileName);
 
     log.debug("Created transient SBOM entity in S3: {}", key);
-    return new S3SbomEntity(key, s3Client, s3DataStoreConfig, null, uniqueFileName);
+    return new S3SbomEntity(key, s3Client, s3AsyncClient, s3DataStoreConfig, null, uniqueFileName);
   }
 
   @Override
@@ -101,13 +109,13 @@ public class S3SbomPersistenceService
     S3ObjectKey targetKey = getTemporarySbomKey(fileName, prefix);
 
     try (InputStream inputStream = sbomEntity.getInputStream();
-         OutputStream outputStream = new S3OutputStream(s3Client, targetKey.toString(),
+         OutputStream outputStream = new S3OutputStream(s3AsyncClient, targetKey.toString(),
              s3DataStoreConfig.getBucketName(), s3DataStoreConfig.getServerSideEncryption())) {
       inputStream.transferTo(outputStream);
     }
 
     log.debug("Saved temporary SBOM from {} to {}", sbomEntity.getLocation(), targetKey);
-    return new S3SbomEntity(targetKey, s3Client, s3DataStoreConfig, sbomEntity.getAppId(), fileName);
+    return new S3SbomEntity(targetKey, s3Client, s3AsyncClient, s3DataStoreConfig, sbomEntity.getAppId(), fileName);
   }
 
   @Override

@@ -39,7 +39,7 @@ import static org.testcontainers.containers.localstack.LocalStackContainer.Servi
 public class S3ScanPersistenceServiceMultiTenantTest
     extends AbstractScanPersistenceServiceMultiTenantTest
 {
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-bucket";
 

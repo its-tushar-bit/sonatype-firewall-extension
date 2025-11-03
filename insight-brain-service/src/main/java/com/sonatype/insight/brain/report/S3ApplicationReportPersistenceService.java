@@ -35,6 +35,7 @@ import datadog.trace.api.Trace;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
@@ -78,6 +79,8 @@ public class S3ApplicationReportPersistenceService
       ApiVulnerabilitySignatureService.VULNERABILITY_SIGNATURE_JSON_FILENAME;
 
   private final S3Client s3Client;
+
+  private final S3AsyncClient s3AsyncClient;
 
   private final S3DataStoreConfig s3DataStoreConfig;
 
@@ -160,7 +163,7 @@ public class S3ApplicationReportPersistenceService
     @Trace
     public OutputStream getOutputStream() {
       return new S3OutputStream(
-          s3Client,
+          s3AsyncClient,
           key.toString(),
           s3DataStoreConfig.getBucketName(),
           s3DataStoreConfig.getServerSideEncryption()
@@ -218,9 +221,11 @@ public class S3ApplicationReportPersistenceService
   @Inject
   public S3ApplicationReportPersistenceService(
       @Nullable final S3Client s3Client,
+      @Nullable final S3AsyncClient s3AsyncClient,
       final InsightConfig insightConfig)
   {
     this.s3Client = s3Client;
+    this.s3AsyncClient = s3AsyncClient;
     this.s3DataStoreConfig = insightConfig.getStorage().getS3Config();
     if (s3DataStoreConfig != null) {
       requireNonNull(s3Client);
@@ -495,8 +500,7 @@ public class S3ApplicationReportPersistenceService
   }
 
   private void saveReportFile(final S3ObjectKey key, final InputStream contents) throws IOException {
-    try (OutputStream outputStream = new S3OutputStream(s3Client, key.toString(), s3DataStoreConfig.getBucketName(),
-        s3DataStoreConfig.getServerSideEncryption())) {
+    try (OutputStream outputStream = new S3ReportEntity(key).getOutputStream()) {
       log.debug("Saving report file to S3: {}", key);
       contents.transferTo(outputStream);
     }

@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 
@@ -39,14 +40,18 @@ public class S3ScanPersistenceService
 
   private final S3Client s3Client;
 
+  private final S3AsyncClient s3AsyncClient;
+
   private final S3DataStoreConfig s3DataStoreConfig;
 
   @Inject
   public S3ScanPersistenceService(
       @Nullable final S3Client s3Client,
+      @Nullable final S3AsyncClient s3AsyncClient,
       final InsightConfig config)
   {
     this.s3Client = s3Client;
+    this.s3AsyncClient = s3AsyncClient;
     this.s3DataStoreConfig = config.getStorage().getS3Config();
     if (s3DataStoreConfig != null) {
       requireNonNull(s3Client);
@@ -59,6 +64,7 @@ public class S3ScanPersistenceService
   protected ScanEntity doGetScan(String appId, String scanId) {
     return S3ScanEntity.forScan(
         s3Client,
+        s3AsyncClient,
         s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
@@ -72,6 +78,7 @@ public class S3ScanPersistenceService
     String tempId = generateTempId();
     return S3ScanEntity.forTempScan(
         s3Client,
+        s3AsyncClient,
         s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
@@ -85,6 +92,7 @@ public class S3ScanPersistenceService
     S3ScanEntity tempS3Entity = (S3ScanEntity) tempScanEntity;
     S3ScanEntity targetEntity = S3ScanEntity.forScan(
         s3Client,
+        s3AsyncClient,
         s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
@@ -109,6 +117,7 @@ public class S3ScanPersistenceService
   public ScanEntity getScanByName(String appId, String name) {
     return S3ScanEntity.forScanName(
         s3Client,
+        s3AsyncClient,
         s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getObjectKeyPrefix(),
         s3DataStoreConfig.getServerSideEncryption(),
@@ -151,6 +160,7 @@ public class S3ScanPersistenceService
             String scanName = fullKey.substring(fullKey.lastIndexOf('/') + 1);
             return S3ScanEntity.forScanName(
                 s3Client,
+                s3AsyncClient,
                 s3DataStoreConfig.getBucketName(),
                 s3DataStoreConfig.getObjectKeyPrefix(),
                 s3DataStoreConfig.getServerSideEncryption(),

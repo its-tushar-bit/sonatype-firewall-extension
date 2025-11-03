@@ -248,6 +248,16 @@ public class ReportHelper
     }
   }
 
+  public static void addToZip(final Path zipPath, final Path entryPath, final InputStream inputStream)
+      throws Exception
+  {
+    try (FileSystem fileSystem = createZipFileSystem(zipPath, false)) {
+      Path relative = zipPath.relativize(entryPath);
+      Path zipFile = fileSystem.getPath(relative.toString());
+      Files.copy(inputStream, zipFile, StandardCopyOption.REPLACE_EXISTING);
+    }
+  }
+
   public static void addToZip(final Path zipPath, final Path entryPath, final String content) throws Exception {
     try (FileSystem fileSystem = createZipFileSystem(zipPath, false)) {
       Path relative = zipPath.relativize(entryPath);

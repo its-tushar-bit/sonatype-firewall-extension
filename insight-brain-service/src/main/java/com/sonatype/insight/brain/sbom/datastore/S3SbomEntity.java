@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.report.S3ObjectKey;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
@@ -28,6 +29,7 @@ import static java.util.Objects.requireNonNull;
 public record S3SbomEntity(
     S3ObjectKey key,
     S3Client s3Client,
+    S3AsyncClient s3AsyncClient,
     S3DataStoreConfig s3DataStoreConfig,
     @Nullable String appId,
     String fileName
@@ -53,7 +55,7 @@ public record S3SbomEntity(
   @Override
   public OutputStream getOutputStream() throws IOException {
     return new S3OutputStream(
-        s3Client,
+        s3AsyncClient,
         key.toString(),
         s3DataStoreConfig.getBucketName(),
         s3DataStoreConfig.getServerSideEncryption()

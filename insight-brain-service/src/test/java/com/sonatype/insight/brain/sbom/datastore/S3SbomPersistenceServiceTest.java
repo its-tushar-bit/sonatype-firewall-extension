@@ -23,31 +23,35 @@ import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3SbomPersistenceServiceTest
     extends AbstractComponentTest
 {
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-sbom-bucket";
 
@@ -57,8 +61,35 @@ public class S3SbomPersistenceServiceTest
 
   private static final String FILE_NAME = "test-sbom.json.gz";
 
-  @Rule
-  public LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(S3);
+  @ClassRule
+  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+
+  @BeforeClass
+  public static void createBucket() {
+    try (S3Client s3Client = createS3Client()) {
+      s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    }
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+        .contents()
+        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(BUCKET_NAME).key(obj.key()).build()));
+  }
+
+  private static S3Client createS3Client() {
+    return S3Client.builder()
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+  }
 
   @Inject
   protected InsightConfig insightConfig;
@@ -94,8 +125,6 @@ public class S3SbomPersistenceServiceTest
     s3Config.setEndpoint(localstack.getEndpoint());
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
-
-    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
 
     service = lookup(S3SbomPersistenceService.class);
   }
@@ -160,13 +189,13 @@ public class S3SbomPersistenceServiceTest
     assertThat(entity.getAppId()).isEqualTo(APP_ID);
     assertThat(entity.getName()).isEqualTo(FILE_NAME);
     assertThat(entity.getLocation()).contains("sboms/" + APP_ID + "/" + FILE_NAME);
-    
+
     assertThat(entity.exists()).isFalse();
-    
+
     try (var outputStream = entity.getOutputStream()) {
       outputStream.write("test content".getBytes());
     }
-    
+
     assertThat(entity.exists()).isTrue();
   }
 

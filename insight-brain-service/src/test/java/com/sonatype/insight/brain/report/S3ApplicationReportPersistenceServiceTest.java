@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.report;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -31,15 +30,20 @@ import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
-import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.MINIMUM_PART_SIZE_IN_BYTES;
+import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.THRESHOLD_IN_BYTES;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
@@ -49,7 +53,7 @@ import static org.mockito.Mockito.spy;
 public class S3ApplicationReportPersistenceServiceTest
     extends AbstractApplicationReportPersistenceServiceTest
 {
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-bucket";
 
@@ -85,8 +89,27 @@ public class S3ApplicationReportPersistenceServiceTest
         .build();
   }
 
+  private static S3AsyncClient createS3AsyncClient() {
+    return S3AsyncClient.builder()
+        .multipartEnabled(true)
+        .multipartConfiguration(multipartConfiguration -> multipartConfiguration
+            .minimumPartSizeInBytes(MINIMUM_PART_SIZE_IN_BYTES)
+            .thresholdInBytes(THRESHOLD_IN_BYTES))
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+  }
+
   @Inject
   private S3Client s3Client;
+
+  @Inject
+  private S3AsyncClient s3AsyncClient;
 
   private final String prefix;
 
@@ -129,8 +152,10 @@ public class S3ApplicationReportPersistenceServiceTest
     super.configure(binder);
 
     var s3Client = createS3Client();
+    var s3AsyncClient = createS3AsyncClient();
 
     binder.bind(S3Client.class).toInstance(s3Client);
+    binder.bind(S3AsyncClient.class).toInstance(s3AsyncClient);
   }
 
   @Test
@@ -148,19 +173,15 @@ public class S3ApplicationReportPersistenceServiceTest
 
   @Override
   protected ApplicationReportPersistenceService mockForSaveOriginalReport_cleansUpOnFailure() {
-    var s3Client = spy(this.s3Client);
+    var spyS3AsyncClient = spy(s3AsyncClient);
 
-    ArgumentMatcher<Consumer<CreateMultipartUploadRequest.Builder>> indexHtmlMatcher = builderConsumer -> {
-      var builder = CreateMultipartUploadRequest.builder();
-      builderConsumer.accept(builder);
-      var request = builder.build();
-      return request.key().endsWith("index.html");
-    };
+    ArgumentMatcher<PutObjectRequest> indexHtmlMatcher =
+        putObjectRequest -> putObjectRequest.key().endsWith("index.html");
 
     // lenient because we are only mocking one of several calls to createMultipartUpload
     lenient().doThrow(S3Exception.builder().message("test exception").build())
-        .when(s3Client).createMultipartUpload(argThat(indexHtmlMatcher));
+        .when(spyS3AsyncClient).putObject(argThat(indexHtmlMatcher), any(AsyncRequestBody.class));
 
-    return new S3ApplicationReportPersistenceService(s3Client, insightConfig);
+    return new S3ApplicationReportPersistenceService(s3Client, spyS3AsyncClient, insightConfig);
   }
 }

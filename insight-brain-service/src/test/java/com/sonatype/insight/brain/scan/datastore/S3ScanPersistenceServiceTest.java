@@ -15,46 +15,98 @@ import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.MINIMUM_PART_SIZE_IN_BYTES;
+import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.THRESHOLD_IN_BYTES;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3ScanPersistenceServiceTest
     extends AbstractScanPersistenceServiceTest
 {
-  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:3.5.0");
+  private static final DockerImageName LOCALSTACK_IMAGE = DockerImageName.parse("localstack/localstack:4.10.0");
 
   private static final String BUCKET_NAME = "test-scan-bucket";
 
   private static final String REGION = "us-east-2";
 
-  @Rule
-  public LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(S3);
+  @ClassRule
+  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+
+  @BeforeClass
+  public static void createBucket() {
+    try (S3Client s3Client = createS3Client()) {
+      s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    }
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+        .contents()
+        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(BUCKET_NAME).key(obj.key()).build()));
+  }
+
+  private static S3Client createS3Client() {
+    return S3Client.builder()
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+  }
+
+  private static S3AsyncClient createS3AsyncClient() {
+    return S3AsyncClient.builder()
+        .multipartEnabled(true)
+        .multipartConfiguration(multipartConfiguration -> multipartConfiguration
+            .minimumPartSizeInBytes(MINIMUM_PART_SIZE_IN_BYTES)
+            .thresholdInBytes(THRESHOLD_IN_BYTES))
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+  }
 
   @Inject
   private S3Client s3Client;
+  
+  @Inject
+  private S3AsyncClient s3AsyncClient;
 
   private final String prefix;
 
@@ -86,8 +138,6 @@ public class S3ScanPersistenceServiceTest
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
 
-    s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
-
     var helper = new S3ScanPersistenceServiceTestHelper(insightConfig, s3Client, () -> expectedPrefix);
     setup(helper);
 
@@ -98,17 +148,11 @@ public class S3ScanPersistenceServiceTest
   public void configure(Binder binder) {
     super.configure(binder);
 
-    var s3Client = S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
-        .region(Region.of(REGION))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
-            )))
-        .build();
+    var s3Client = createS3Client();
+    var s3AsyncClient = createS3AsyncClient();
 
     binder.bind(S3Client.class).toInstance(s3Client);
+    binder.bind(S3AsyncClient.class).toInstance(s3AsyncClient);
   }
 
   @Test
@@ -136,8 +180,11 @@ public class S3ScanPersistenceServiceTest
   @Override
   public void testExceptionHandlingAndCleanup() throws Exception {
     var spyS3Client = spy(this.s3Client);
+    var spyS3AsyncClient = spy(this.s3AsyncClient);
 
-    var scanEntity = S3ScanEntity.forScan(spyS3Client, BUCKET_NAME, expectedPrefix, null, APPLICATION_ID, SCAN_ID);
+    var scanEntity =
+        S3ScanEntity.forScan(spyS3Client, spyS3AsyncClient, BUCKET_NAME, expectedPrefix, null, APPLICATION_ID,
+            SCAN_ID);
 
     helper.saveMockScan();
     assertThat(scanEntity.exists()).isTrue();

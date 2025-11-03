@@ -1,289 +1,101 @@
 /*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
  */
-
 package com.sonatype.insight.brain.aws.s3;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.invoke.MethodHandles;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.CompletedPart;
-import software.amazon.awssdk.services.s3.model.UploadPartRequest;
-import software.amazon.awssdk.services.s3.model.UploadPartResponse;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import static com.sonatype.insight.brain.aws.s3.S3ExceptionUtil.wrapS3Exception;
 
-/**
- * Adapted with the PATCH changes listed below from
- * https://github.com/apache/solr/blob/main/solr/modules/s3-repository/src/java/org/apache/solr/s3/S3OutputStream.java
- * which is licensed as ASL 2.0
- */
 public class S3OutputStream
     extends OutputStream
 {
-  // 16 MB. Part sizes must be between 5MB to 5GB.
-  // https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
-  static final int PART_SIZE = 16777216;
-
-  static final int MIN_PART_SIZE = 5242880;
-
-  private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
-
-  private final S3Client s3Client;
-
-  private final String bucketName;
+  private final S3AsyncClient s3AsyncClient;
 
   private final String key;
 
+  private final String bucketName;
+
   private final String serverSideEncryption;
 
-  private final ByteBuffer buffer;
+  private OutputStream outputStream;
 
-  private volatile boolean closed;
+  private CompletableFuture<PutObjectResponse> putObjectResponseCompletableFuture;
 
-  private MultipartUpload multiPartUpload;
-
-  public S3OutputStream(S3Client s3Client, String key, String bucketName, String serverSideEncryption) {
-    this.s3Client = s3Client;
-    this.bucketName = bucketName;
+  public S3OutputStream(
+      final S3AsyncClient s3AsyncClient,
+      final String key,
+      final String bucketName,
+      final String serverSideEncryption)
+  {
+    this.s3AsyncClient = s3AsyncClient;
     this.key = key;
+    this.bucketName = bucketName;
     this.serverSideEncryption = serverSideEncryption;
-    this.closed = false;
-    this.buffer = ByteBuffer.allocate(PART_SIZE);
-    this.multiPartUpload = null;
-
-    if (log.isDebugEnabled()) {
-      log.debug("Created S3OutputStream for bucketName '{}' key '{}'", bucketName, key);
-    }
   }
 
-  private static boolean outOfRange(int off, int len) {
-    return off < 0 || off > len;
-  }
-
-  @Override
-  public void write(int b) throws IOException {
-    if (closed) {
-      throw new IOException("Stream closed");
-    }
-
-    buffer.put((byte) b);
-
-    // If the buffer is now full, push it to remote S3.
-    if (!buffer.hasRemaining()) {
-      uploadPart();
+  private void initializeOutputStreamIfNeeded() {
+    if (outputStream == null) {
+      PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+          .bucket(bucketName)
+          .key(key)
+          .serverSideEncryption(serverSideEncryption)
+          .build();
+      BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
+      putObjectResponseCompletableFuture = s3AsyncClient.putObject(putObjectRequest, body);
+      outputStream = body.outputStream();
     }
   }
 
   @Override
-  public void write(byte[] b, int off, int len) throws IOException {
-    if (closed) {
-      throw new IOException("Stream closed");
-    }
-
-    if (outOfRange(off, b.length) || len < 0 || outOfRange(off + len, b.length)) {
-      throw new IndexOutOfBoundsException();
-    }
-    else if (len == 0) {
-      return;
-    }
-
-    int currentOffset = off;
-    int lenRemaining = len;
-    while (buffer.remaining() < lenRemaining) {
-      int firstPart = buffer.remaining();
-      buffer.put(b, currentOffset, firstPart);
-      uploadPart();
-
-      currentOffset += firstPart;
-      lenRemaining -= firstPart;
-    }
-    if (lenRemaining > 0) {
-      buffer.put(b, currentOffset, lenRemaining);
-    }
+  public void write(final int b) throws IOException {
+    wrapS3Exception(this::initializeOutputStreamIfNeeded);
+    outputStream.write(b);
   }
 
-  private void uploadPart() throws IOException {
-    int size = buffer.position() - buffer.arrayOffset();
+  @Override
+  public void write(final byte[] b) throws IOException {
+    wrapS3Exception(this::initializeOutputStreamIfNeeded);
+    outputStream.write(b);
+  }
 
-    if (size == 0) {
-      // nothing to upload
-      return;
-    }
-
-    if (multiPartUpload == null) {
-      if (log.isDebugEnabled()) {
-        log.debug("New multi-part upload for bucketName '{}' key '{}'", bucketName, key);
-      }
-      multiPartUpload = newMultipartUpload();
-    }
-    try (ByteArrayInputStream inputStream = new ByteArrayInputStream(buffer.array(), buffer.arrayOffset(), size)) {
-      multiPartUpload.uploadPart(inputStream, size);
-    }
-    // PATCH exception handling
-    catch (IOException e) {
-      if (multiPartUpload != null) {
-        try {
-          multiPartUpload.abort();
-        }
-        catch (IOException abortException) {
-          e.addSuppressed(abortException);
-        }
-
-        if (log.isDebugEnabled()) {
-          log.debug("Multipart upload aborted for bucketName '{}' key '{}'.", bucketName, key);
-        }
-      }
-
-      throw e;
-    }
-
-    // reset the buffer for eventual next write operation
-    buffer.clear();
+  @Override
+  public void write(final byte[] b, final int off, final int len)
+      throws IOException
+  {
+    wrapS3Exception(this::initializeOutputStreamIfNeeded);
+    outputStream.write(b, off, len);
   }
 
   @Override
   public void flush() throws IOException {
-    if (closed) {
-      throw new IOException("Stream closed");
+    if (outputStream == null) {
+      return;
     }
-
-    // Flush is possible only if we have more data than the required part size
-    // If buffer size is lower than than, just skip
-    if (buffer.position() - buffer.arrayOffset() >= MIN_PART_SIZE) {
-      uploadPart();
-    }
+    outputStream.flush();
   }
 
   @Override
   public void close() throws IOException {
-    if (closed) {
+    if (outputStream == null) {
       return;
     }
-
-    if (multiPartUpload != null && multiPartUpload.aborted) {
-      multiPartUpload = null;
-      closed = true;
-      return;
+    outputStream.close();
+    try {
+      putObjectResponseCompletableFuture.join();
     }
-
-    // flush first
-    uploadPart();
-
-    if (multiPartUpload != null) {
-      multiPartUpload.complete();
-    }
-    multiPartUpload = null;
-    closed = true;
-  }
-
-  private MultipartUpload newMultipartUpload() throws IOException {
-    // PATCH removed try/catch from SOLR implementation and just wrap in IOException instead
-    return wrapS3Exception(() ->
-        new MultipartUpload(s3Client.createMultipartUpload(
-            b -> b.bucket(bucketName)
-                .key(key)
-                .serverSideEncryption(serverSideEncryption)
-        ).uploadId())
-    );
-  }
-
-  private class MultipartUpload
-  {
-    private final String uploadId;
-
-    private final List<CompletedPart> completedParts;
-
-    private boolean aborted = false;
-
-    public MultipartUpload(String uploadId) {
-      this.uploadId = uploadId;
-      this.completedParts = new ArrayList<>();
-      if (log.isDebugEnabled()) {
-        log.debug("Initiated multi-part upload for bucketName '{}' key '{}' with id '{}'", bucketName, key, uploadId);
-      }
-    }
-
-    void uploadPart(ByteArrayInputStream inputStream, long partSize) throws IOException {
-      if (aborted) {
-        throw new IllegalStateException(
-            "Can't upload new parts on a MultipartUpload that was aborted. id '" + uploadId + "'");
-      }
-      int currentPartNumber = completedParts.size() + 1;
-
-      UploadPartRequest request =
-          UploadPartRequest.builder().key(key).bucket(bucketName).uploadId(uploadId).partNumber(currentPartNumber)
-              .build();
-
-      if (log.isDebugEnabled()) {
-        log.debug("Uploading part {} for id '{}'", currentPartNumber, uploadId);
-      }
-
-      // PATCH wrap exception
-      UploadPartResponse response = wrapS3Exception(() ->
-          s3Client.uploadPart(request, RequestBody.fromInputStream(inputStream, partSize))
-      );
-
-      completedParts.add(CompletedPart.builder().partNumber(currentPartNumber).eTag(response.eTag()).build());
-    }
-
-    /**
-     * To be invoked when closing the stream to mark upload is done.
-     */
-    void complete() throws IOException {
-      if (aborted) {
-        throw new IllegalStateException("Can't complete a MultipartUpload that was aborted. id '" + uploadId + "'");
-      }
-      if (log.isDebugEnabled()) {
-        log.debug("Completing multi-part upload for key '{}', id '{}'", key, uploadId);
-      }
-
-      // PATCH wrap exception
-      wrapS3Exception(() -> s3Client.completeMultipartUpload(
-          b -> b.bucket(bucketName).key(key).uploadId(uploadId).multipartUpload(mub -> mub.parts(completedParts))
-      ));
-    }
-
-    public void abort() throws IOException {
-      if (log.isWarnEnabled()) {
-        log.warn("Aborting multi-part upload with id '{}'", uploadId);
-      }
-
-      // PATCH exception handling
-      try {
-        wrapS3Exception(() -> s3Client.abortMultipartUpload(b -> b.bucket(bucketName).key(key).uploadId(uploadId)));
-      }
-      catch (IOException e) {
-        log.error("Unable to abort multipart upload, you may need to purge uploaded parts: ", e);
-        throw e;
-      }
-      finally {
-        // Even if the abort operation failed, we consider this MultiPartUpload aborted,
-        // and we'll not try to complete it.
-        aborted = true;
-      }
+    catch (Exception e) {
+      throw new IOException(e);
     }
   }
 }

@@ -66,6 +66,14 @@ export default function AdvancedSearch(props) {
       <LoadWrapper loading={loading} error={loadError} retryHandler={load}>
         <NxPageTitle>
           <NxH1 id="advanced-search-page-title">Advanced Search</NxH1>
+          <NxPageTitle.Description>
+            Use "Query Builder" for help building complex queries. Or, use "Add Search Terms" to insert pre-formatted
+            Lucene queries you can manually complete. For more details, see the{' '}
+            <NxTextLink href="https://links.sonatype.com/products/nxiq/doc/advanced-search" external>
+              Advanced Search documentation
+            </NxTextLink>
+            .
+          </NxPageTitle.Description>
 
           <NxButtonBar>
             <AdvancedSearchExportButton {...exportButtonProps} />

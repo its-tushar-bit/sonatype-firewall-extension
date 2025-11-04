@@ -111,6 +111,8 @@ public class PublicApiPaths
 
   public static final String SAML_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/saml";
 
+  public static final String OIDC_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/oidc";
+
   public static final String CROWD_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/crowd";
 
   public static final String REVERSE_PROXY_AUTHENTICATION_CONFIG_RESOURCE_PATH_V2 =

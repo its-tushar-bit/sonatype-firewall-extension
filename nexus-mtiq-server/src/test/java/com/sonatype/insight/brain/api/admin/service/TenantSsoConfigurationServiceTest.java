@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.api.admin.service;
 
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.api.admin.dto.OAuth2ConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.OidcConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OidcConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;

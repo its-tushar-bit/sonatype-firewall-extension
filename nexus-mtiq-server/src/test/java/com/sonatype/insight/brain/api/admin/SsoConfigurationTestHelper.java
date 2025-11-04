@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.admin;
 
-import com.sonatype.insight.brain.api.admin.dto.OAuth2ConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.OidcConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OidcConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 

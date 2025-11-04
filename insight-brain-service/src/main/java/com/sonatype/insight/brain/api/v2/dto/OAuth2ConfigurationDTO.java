@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.admin.dto;
+package com.sonatype.insight.brain.api.v2.dto;
 
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
 
@@ -136,5 +136,20 @@ public class OAuth2ConfigurationDTO
     oAuth2Configuration.setGroupsClaim(oAuth2ConfigurationDTO.groupsClaim);
     oAuth2Configuration.setExactMatchClaimsJson(oAuth2ConfigurationDTO.exactMatchClaimsJson);
     return oAuth2Configuration;
+  }
+
+  public static OAuth2ConfigurationDTO toDTO(OAuth2Configuration oAuth2Configuration) {
+    OAuth2ConfigurationDTO dto = new OAuth2ConfigurationDTO(
+        oAuth2Configuration.getId(),
+        oAuth2Configuration.getIdpJwksUrl(),
+        oAuth2Configuration.getIdpJwsAlgorithm(),
+        oAuth2Configuration.getIdpJwks());
+    dto.setUsernameClaim(oAuth2Configuration.getUsernameClaim());
+    dto.setFirstNameClaim(oAuth2Configuration.getFirstNameClaim());
+    dto.setLastNameClaim(oAuth2Configuration.getLastNameClaim());
+    dto.setEmailClaim(oAuth2Configuration.getEmailClaim());
+    dto.setGroupsClaim(oAuth2Configuration.getGroupsClaim());
+    dto.setExactMatchClaimsJson(oAuth2Configuration.getExactMatchClaimsJson());
+    return dto;
   }
 }

@@ -16,7 +16,7 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.AdminApiPaths;
-import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.api.admin.service.TenantSsoConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;

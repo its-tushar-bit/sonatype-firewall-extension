@@ -128,7 +128,7 @@ public class OidcLoginFilter
 
       // Handles the callback request from the IDP to get the Access and ID tokens
       if (path.contains(OAUTH_CALLBACK)) {
-        String callbackUrl = buildRedirectUrl(INDEX_HTML, encodedHash, true);
+        String callbackUrl = buildRedirectUrl(OAUTH_CALLBACK, encodedHash, true);
         String redirectUrl = buildRedirectUrl(INDEX_HTML, hash, false);
         handleCallbackAndCompleteAuthentication(req, res, oidcConfiguration, callbackUrl, redirectUrl);
       }

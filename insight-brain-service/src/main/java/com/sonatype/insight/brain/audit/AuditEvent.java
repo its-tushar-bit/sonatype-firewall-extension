@@ -324,7 +324,10 @@ public enum AuditEvent
   VIEW_AUDIT_LOG(Domain.AUDIT_LOG, Type.VIEW),
 
   ROI_CONFIG_UPDATE(Domain.ROI_CONFIGURATION, Type.CONFIGURE),
-  ROI_CONFIG_CREATE(Domain.ROI_CONFIGURATION, Type.CONFIGURE);
+  ROI_CONFIG_CREATE(Domain.ROI_CONFIGURATION, Type.CONFIGURE),
+
+  CONFIGURE_OIDC(Domain.SECURITY_OIDC, Type.CONFIGURE),
+  DELETE_OIDC(Domain.SECURITY_OIDC, Type.DELETE),;
 
   private final String domain;
 
@@ -481,6 +484,8 @@ public enum AuditEvent
     String SECURITY_LDAP = join(SECURITY, "ldap");
 
     String SECURITY_SAML = join(SECURITY, "saml");
+
+    String SECURITY_OIDC = join(SECURITY, "oidc");
 
     String SECURITY_CROWD = join(SECURITY, "crowd");
 

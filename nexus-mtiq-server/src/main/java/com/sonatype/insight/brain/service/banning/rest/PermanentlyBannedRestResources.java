@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.api.v2.ApiConfigFeaturesResource;
 import com.sonatype.insight.brain.api.v2.ApiCrowdConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiDataRetentionPolicyResource;
+import com.sonatype.insight.brain.api.v2.ApiOidcConfigurationResource;
 import com.sonatype.insight.brain.api.v2.ApiSourceControlConfigurationResource;
 import com.sonatype.insight.brain.service.banning.BannedImplementation;
 import com.sonatype.insight.brain.support.SupportResource;
@@ -28,7 +29,8 @@ public class PermanentlyBannedRestResources
       ApiDataRetentionPolicyResource.class,
       ApiConfigFeaturesResource.class,
       SupportResource.class,
-      ApiSourceControlConfigurationResource.class
+      ApiSourceControlConfigurationResource.class,
+      ApiOidcConfigurationResource.class
   );
 
   @Override

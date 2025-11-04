@@ -11,9 +11,9 @@ import java.util.Set;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
-import com.sonatype.insight.brain.api.admin.dto.OAuth2ConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.OidcConfigurationDTO;
-import com.sonatype.insight.brain.api.admin.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.OidcConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;

@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.admin.dto;
+package com.sonatype.insight.brain.api.v2.dto;
 
 import com.sonatype.insight.brain.model.configuration.oauth2.OidcConfiguration;
 
@@ -104,5 +104,17 @@ public class OidcConfigurationDTO
     oidcConfiguration.setAuthorizationCustomParamsJson(oidcConfigurationDTO.authorizationCustomParamsJson);
     oidcConfiguration.setTokenRequestCustomParamsJson(oidcConfigurationDTO.tokenRequestCustomParamsJson);
     return oidcConfiguration;
+  }
+
+  public static OidcConfigurationDTO toDTO(OidcConfiguration oidcConfiguration) {
+    OidcConfigurationDTO dto = new OidcConfigurationDTO(
+        oidcConfiguration.getId(),
+        oidcConfiguration.getClientId(),
+        oidcConfiguration.getClientSecret(),
+        oidcConfiguration.getIdpAuthorizationUrl(),
+        oidcConfiguration.getIdpTokenUrl());
+    dto.setAuthorizationCustomParamsJson(oidcConfiguration.getAuthorizationCustomParamsJson());
+    dto.setTokenRequestCustomParamsJson(oidcConfiguration.getTokenRequestCustomParamsJson());
+    return dto;
   }
 }

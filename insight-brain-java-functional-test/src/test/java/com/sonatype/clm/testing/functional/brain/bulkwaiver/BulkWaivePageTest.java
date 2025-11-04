@@ -1010,4 +1010,44 @@ public class BulkWaivePageTest
     bulkWaivePage.nextButton().click();
     WaiverConfigurationPage.waitUntilSpinnersGone();
   }
+
+  @Test
+  public void testPreviousSubmissionErrorClearedOnReEntry() {
+    // Create a user without WAIVE_POLICY_VIOLATIONS permission to trigger submit error
+    createUser();
+    grantPermissions(getUsername(), app.getId(), Permission.READ);
+
+    logout();
+    login();
+
+    refreshOrOpen(BulkWaivePage.url(app.getPublicId(), SCAN_ID));
+    BulkWaivePage.waitUntilSpinnersGone();
+
+    BulkWaivePage bulkWaivePage = new BulkWaivePage();
+    bulkWaivePage.table().row(0).clickCheckbox();
+    bulkWaivePage.nextButton().click();
+    WaiverConfigurationPage.waitUntilSpinnersGone();
+
+    WaiverConfigurationPage configPage = new WaiverConfigurationPage();
+    configPage.expirationSelect().selectOptionContainingText("30 Days");
+    configPage.nextButton().click();
+
+    WaiverConfirmationPage confirmationPage = new WaiverConfirmationPage();
+    confirmationPage.submitButton().click();
+    NxSubmitMask.seeAndWaitForDismissal();
+
+    confirmationPage.submitError().shouldBe(visible);
+    confirmationPage.submitError().shouldHave(text("Insufficient permissions"));
+
+    confirmationPage.backButton().click();
+    configPage.expirationSelect().selectOptionContainingText("60 Days");
+    configPage.nextButton().click();
+
+    confirmationPage.submitError().shouldNotBe(visible);
+
+    // Cleanup: logout and login back as admin
+    logout();
+    refreshOrOpen(DashboardPage.url());
+    loginAsAdmin();
+  }
 }

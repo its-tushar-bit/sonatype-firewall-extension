@@ -466,13 +466,84 @@ describe('WaiverConfirmationPage component', () => {
       });
 
       const requestBody = JSON.parse(axiosMock.history.post[0].data);
-      expect(requestBody.apiWaiverOptionsDTO.expiryTime).toBe(
-        getExpiryTime(
-          'custom',
-          nxDateInputStateHelpers.userInput(() => null, futureDate)
-        )
-      );
+      // custom date is sent correctly as end of day of the selected date
+      const expectedExpiryTime = moment(futureDate).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ');
+      expect(requestBody.apiWaiverOptionsDTO.expiryTime).toBe(expectedExpiryTime);
       expect(requestBody.apiWaiverOptionsDTO.matcherStrategy).toBe('ALL_VERSIONS');
+    });
+
+    it('sends correct custom date (not today) when expiryTime is "custom"', async () => {
+      const user = userEvent.setup();
+      const futureDate = moment().add(5, 'days').format('YYYY-MM-DD');
+
+      const stateWithCustomExpiry = {
+        ...stateWithFullConfiguration,
+        waivers: {
+          ...stateWithFullConfiguration.waivers,
+          bulkWaive: {
+            ...stateWithFullConfiguration.waivers.bulkWaive,
+            waiverConfiguration: {
+              ...stateWithFullConfiguration.waivers.bulkWaive.waiverConfiguration,
+              expiryTime: 'custom',
+              customExpiryTime: nxDateInputStateHelpers.userInput(() => null, futureDate),
+            },
+          },
+        },
+      };
+
+      // Mock successful API response since the date should now be correct
+      axiosMock.onPost(getBulkWaiverUrl('organization', 'org-1')).reply(200, {});
+
+      renderComponent(stateWithCustomExpiry);
+
+      const submitButton = screen.getByRole('button', { name: 'Submit' });
+      await user.click(submitButton);
+
+      // Wait for the request to complete
+      await waitFor(() => {
+        expect(axiosMock.history.post).toHaveLength(1);
+      });
+
+      // The sent expiryTime should now correctly be 5 days in the future based on futureDate
+      const requestBody = JSON.parse(axiosMock.history.post[0].data);
+      const sentDate = moment(requestBody.apiWaiverOptionsDTO.expiryTime, 'YYYY-MM-DDTHH:mm:ss.SSSZZ');
+      const expectedDate = moment(futureDate, 'YYYY-MM-DD').endOf('day');
+      expect(sentDate.format('YYYY-MM-DD')).toBe(expectedDate.format('YYYY-MM-DD'));
+    });
+
+    it('clears previous submission error when re-entering confirmation page', () => {
+      // Simulate state where user navigated back from confirmation page and forward again
+      // After fix, the error should be cleared when navigating forward
+      const stateAfterBackAndForward = {
+        ...stateWithFullConfiguration,
+        waivers: {
+          ...stateWithFullConfiguration.waivers,
+          bulkWaive: {
+            ...stateWithFullConfiguration.waivers.bulkWaive,
+            waiverConfiguration: {
+              ...stateWithFullConfiguration.waivers.bulkWaive.waiverConfiguration,
+              expiryTime: 'custom',
+              customExpiryTime: nxDateInputStateHelpers.userInput(
+                () => null,
+                moment().add(2, 'days').format('YYYY-MM-DD')
+              ),
+            },
+            submitMaskState: null,
+            submitError: null, // Error should be cleared when nextClick dispatches resetBulkWaiverSubmitState
+          },
+        },
+      };
+
+      renderComponent(stateAfterBackAndForward);
+
+      // Error should NOT be visible on page load
+      expect(screen.queryByText(/expiration date must be in the future/i)).not.toBeInTheDocument();
+
+      // Submit button should be present and enabled
+      expect(screen.getByRole('button', { name: 'Submit' })).toBeVisible();
+
+      // No API call should have been made yet
+      expect(axiosMock.history.post).toHaveLength(0);
     });
 
     it('submits bulk waiver with never expiry (null) in request body', async () => {

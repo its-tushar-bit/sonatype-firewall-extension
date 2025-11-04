@@ -176,6 +176,8 @@ export default function WaiverConfigurationPage() {
 
     // Store configuration in redux state
     dispatch(waiverActions.setWaiverConfiguration(waiverConfiguration));
+    // Clear any previous submission errors before navigating to confirmation page
+    dispatch(waiverActions.resetBulkWaiverSubmitState());
     dispatch(goToWaiverConfirmationPage());
   };
 

@@ -13,8 +13,10 @@ import {
   getPermissionContextTestUrl,
 } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
-import { getExpiryTime, waiverMatcherStrategy } from 'MainRoot/util/waiverUtils';
+import { waiverMatcherStrategy, isCustomExpiryTimeSelected } from 'MainRoot/util/waiverUtils';
+import { getFutureDate } from 'MainRoot/util/jsUtil';
 import { equals, prop } from 'ramda';
+import moment from 'moment';
 import { selectBulkWaiverSelectedViolations, selectBulkWaiverConfiguration } from './bulkWaiverSelectors';
 
 const REDUCER_NAME = 'waivers';
@@ -109,7 +111,9 @@ const addBulkWaiver = createAsyncThunk(
       expiryTime:
         waiverConfiguration.expiryTime === null
           ? null
-          : getExpiryTime(waiverConfiguration.expiryTime, waiverConfiguration.customExpiryTime),
+          : isCustomExpiryTimeSelected(waiverConfiguration.expiryTime)
+          ? moment(waiverConfiguration.customExpiryTime.value).endOf('day').format('YYYY-MM-DDTHH:mm:ss.SSSZZ')
+          : getFutureDate(waiverConfiguration.expiryTime),
       waiverReasonId: waiverConfiguration.waiverReasonId,
     };
 

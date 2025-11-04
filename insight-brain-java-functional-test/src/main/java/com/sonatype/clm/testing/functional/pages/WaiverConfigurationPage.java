@@ -49,6 +49,18 @@ public class WaiverConfigurationPage
     return child("#iq-bulk-waiver-expiry-select");
   }
 
+  public SelenideElement customExpirationDateInput() {
+    return child(".iq-bulk-waiver-form__date-input .nx-text-input input");
+  }
+
+  public SelenideElement customExpirationValidationMessage() {
+    return child(".iq-bulk-waiver-form__date-input .nx-text-input__invalid-message");
+  }
+
+  public SelenideElement expirationDaysMessage() {
+    return child(".iq-bulk-waiver-form__expiration-days-diff");
+  }
+
   public SelenideElement reasonSelect() {
     return child("#iq-bulk-waiver-reason-select");
   }

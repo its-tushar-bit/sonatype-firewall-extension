@@ -13,6 +13,7 @@ import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.common.io.FileCleaner;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanUploadService;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksResource;
 import com.sonatype.insight.brain.model.Application;
@@ -251,8 +252,9 @@ public class ScanTaskTest
     TelemetryData telemetryData = arg.getValue();
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
     assertThat(telemetryData.getAttributes()).contains(
-        entry("application_id", "public-app-id"), entry("stage_id", "build"),
-        entry("source", "ui"), entry("user_agent", "agent"));
+        entry("application_id", HdsClientAnalytics.obfuscate(app.getId())),
+        entry("real_application_id", HdsClientAnalytics.obfuscate(app.getId())),
+        entry("stage_id", "build"), entry("source", "ui"), entry("user_agent", "agent"));
   }
 
   private void assertThatTaskCompletedSuccessfully(ScanTask task) {

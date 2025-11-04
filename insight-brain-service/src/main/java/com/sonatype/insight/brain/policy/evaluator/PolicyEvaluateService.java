@@ -463,7 +463,7 @@ public class PolicyEvaluateService
           app.getPublicId(), clientScanType, stage.getStageTypeId(), statusId);
 
       TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
-          app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
+          app.getId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
 
       AuditData.get().continueAsync(
           new CompleteEvaluationTask(app, clientScanType, statusId, stage, scanTriggerType, tempScanEntity,
@@ -962,7 +962,7 @@ public class PolicyEvaluateService
 
     try {
       TelemetryData thirdPartyScanTelemetryData =
-          telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage,
+          telemetryUtils.buildThirdPartyScanTelemetryData(application.getId(), stage,
               null /* thirdPartyScanType */, scanTriggerType, clientUserAgent);
       ScanReceipt scanReceipt = scanHandler.handle(ScanHandler.ScanRequest.builder()
           .scanEntity(scanEntity)

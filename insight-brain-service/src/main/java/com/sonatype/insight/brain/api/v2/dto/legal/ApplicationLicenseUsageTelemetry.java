@@ -13,7 +13,7 @@ public class ApplicationLicenseUsageTelemetry
 {
   public static final String ATTRIBUTE_NAME = "application_license";
 
-  private final String applicationPublicId;
+  private final String applicationId;
 
   private final Set<String> componentHashes;
 
@@ -22,17 +22,17 @@ public class ApplicationLicenseUsageTelemetry
   private String realApplicationId;
 
   public ApplicationLicenseUsageTelemetry(
-      String applicationPublicId,
+      String applicationId,
       Set<String> componentHashes,
       Set<String> licenseIds)
   {
-    this.applicationPublicId = HdsClientAnalytics.obfuscate(applicationPublicId);
+    this.applicationId = HdsClientAnalytics.obfuscate(applicationId);
     this.componentHashes = componentHashes;
     this.licenseIds = licenseIds;
   }
 
-  public String getApplicationPublicId() {
-    return applicationPublicId;
+  public String getApplicationId() {
+    return applicationId;
   }
 
   public Set<String> getComponentHashes() {

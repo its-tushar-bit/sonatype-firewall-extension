@@ -179,7 +179,7 @@ public class ComponentAnalysisService
     final ScanTriggerType scanTriggerType = EvaluationUtils.getScanTriggerType(integrationType);
     final String clientUserAgent = HdsClient.getClientUserAgent(request);
     final TelemetryData thirdPartyScanTelemetryData = telemetryUtils.buildThirdPartyScanTelemetryData(
-        app.getPublicId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
+        app.getId(), stage, thirdPartyScanType, scanTriggerType, clientUserAgent);
     final PersistedPolicyEvaluationPollingResult persistedPolicyEvaluationPollingResult =
         policyEvaluationUtil.createPersistedPolicyEvaluationPollingResultWithSubStatusIfNeeded(app.getId(),
             statusId, disablePollingIntervalForTesting);

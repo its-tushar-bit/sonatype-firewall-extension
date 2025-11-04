@@ -209,7 +209,7 @@ public class UserInterfaceLinksResource
       @QueryParam("source") String source)
   {
     Application application = applicationDAO.getByPublicId(applicationPublicId);
-    sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
+    sendSourceTelemetryData(application != null ? application.getId() : null, scanId, source);
     return linkToReport(applicationPublicId, scanId, false);
   }
 
@@ -223,7 +223,7 @@ public class UserInterfaceLinksResource
       @QueryParam("tab") String tab)
   {
     Application application = applicationDAO.getByPublicId(applicationPublicId);
-    sendSourceTelemetryData(application != null ? application.getId() : applicationPublicId, scanId, source);
+    sendSourceTelemetryData(application != null ? application.getId() : null, scanId, source);
     String fragmentTemplate = "/applicationReport/{applicationPublicId}/{scanId}/componentDetails/{componentScanHash}";
     String reportTab = getApplicationReportTab(tab);
     String fragmentTemplateWithTab = fragmentTemplate.concat("/").concat(reportTab);

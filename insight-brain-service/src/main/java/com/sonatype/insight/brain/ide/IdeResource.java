@@ -61,6 +61,7 @@ import com.codahale.metrics.annotation.Timed;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 
 @Named
 @Timed
@@ -291,12 +292,17 @@ public class IdeResource
       Map<String, Long> componentCounts,
       @Context HttpServletRequest req)
   {
+    String applicationId = null;
+    if (StringUtils.isNotBlank(applicationPublicId)) {
+      Application application = applicationDAO.getByPublicId(applicationPublicId);
+      applicationId = application != null ? application.getId() : null;
+    }
     String userAgent = HdsClient.getClientUserAgent(req);
     String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         null,
-        applicationPublicId,
+        applicationId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,
         userAgent,
@@ -321,12 +327,17 @@ public class IdeResource
       Map<String, Object> telemetryRequest,
       @Context HttpServletRequest req)
   {
+    String applicationId = null;
+    if (StringUtils.isNotBlank(applicationPublicId)) {
+      Application application = applicationDAO.getByPublicId(applicationPublicId);
+      applicationId = application != null ? application.getId() : null;
+    }
     String userAgent = HdsClient.getClientUserAgent(req);
     String instanceId = HdsClient.getClientInstanceId(req);
 
     TelemetryData telemetryData = telemetryUtils.buildApplicationEvaluationTelemetryData(
         null,
-        applicationPublicId,
+        applicationId,
         Stage.ID_DEVELOP,
         ScanTriggerType.IDE,
         userAgent,

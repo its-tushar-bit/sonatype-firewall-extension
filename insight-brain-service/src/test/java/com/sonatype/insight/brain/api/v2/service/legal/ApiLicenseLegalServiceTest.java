@@ -3387,7 +3387,7 @@ public class ApiLicenseLegalServiceTest
     Map<String, Object> expectedAttributes = new HashMap<>();
 
     final ApplicationLicenseUsageTelemetry applicationLicenseUsageTelemetry = new ApplicationLicenseUsageTelemetry(
-        application.getPublicId(),
+        application.getId(),
         rawReport.components.stream()
             .filter(c -> Objects.isNull(c.componentIdentifier) || includeInnerSource
                 || !c.componentIdentifier.toComponentIdentifier().equals(INNER_SOURCE_COMPONENT_IDENTIFIER))

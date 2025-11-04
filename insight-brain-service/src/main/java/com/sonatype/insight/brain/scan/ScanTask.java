@@ -223,7 +223,7 @@ class ScanTask
       ScanReceipt scanReceipt = scanUploadService.upload(scanResult.getScanEntity(), app, stage.getStageTypeId(),
           scanResult.getClientScanType(),
           userAgent,
-          telemetryUtils.buildThirdPartyScanTelemetryData(appPublicId, stage, scanType, null /* scanTriggerType */,
+          telemetryUtils.buildThirdPartyScanTelemetryData(app.getId(), stage, scanType, null /* scanTriggerType */,
               userAgent), null, isWebUIRequest);
 
       if (StringUtils.isNotBlank(scanReceipt.getScanId())) {

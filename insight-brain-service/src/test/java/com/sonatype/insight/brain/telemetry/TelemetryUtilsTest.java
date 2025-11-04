@@ -62,8 +62,11 @@ public class TelemetryUtilsTest
     TelemetryData telemetryData =
         telemetryUtils.buildThirdPartyScanTelemetryData("appId", new Stage(Stage.ID_RELEASE), "cli",
             ScanTriggerType.SBOM_UI, "agent");
-    assertThat(telemetryData.getAttributes()).contains(entry("application_id", "appId"), entry("stage_id", "release"),
-        entry("source", "cli"), entry("scan_type", "SBOM_UI"), entry("user_agent", "agent"));
+    assertThat(telemetryData.getAttributes()).contains(
+        entry("application_id", HdsClientAnalytics.obfuscate("appId")),
+        entry("real_application_id", "appId"),
+        entry("stage_id", "release"), entry("source", "cli"), entry("scan_type", "SBOM_UI"),
+        entry("user_agent", "agent"));
   }
 
   @Test

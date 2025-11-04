@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
 import javax.mail.MessagingException;
 import javax.mail.util.ByteArrayDataSource;
 
@@ -75,6 +74,8 @@ public class IdeResourceTest
 
   private Configuration configurationService;
 
+  private Application app = null;
+
   @Before
   public void setUp() {
     hashComponentIdentifierDAO = lookup(HashComponentIdentifierDAO.class);
@@ -134,7 +135,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Simple() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -158,7 +159,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Simple_ByComponentIdentifier() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -183,7 +184,7 @@ public class IdeResourceTest
   @Test
   public void testDoCoordinatesScan_ExactMatch() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -212,7 +213,7 @@ public class IdeResourceTest
   @Test
   public void testDoCoordinatesScan_UnknownMatch() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -257,7 +258,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Enhanced() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -287,7 +288,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Enhanced_ByComponentIdentifier() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "exact");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -318,10 +319,10 @@ public class IdeResourceTest
   @Test
   public void testDoScan_OverriddenLicense() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(LicenseConditionType.ID, "is", "GPL-2.0");
-    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -339,7 +340,7 @@ public class IdeResourceTest
 
     // Override the license and evaluate the policy again
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
-    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
         null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
@@ -357,11 +358,11 @@ public class IdeResourceTest
   @Test
   public void testDoScan_LicenseStatus() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition =
         new Condition(LicenseStatusConditionType.ID, "is", LicenseOverrideStatus.OVERRIDDEN.toString());
-    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
     mockHdsScanResponse(request, 200, "SimpleMatch_abababababababababab.json");
@@ -379,7 +380,7 @@ public class IdeResourceTest
 
     // Override the license and evaluate the policy again
     ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "v1", null, "jar");
-    tempEntity.newLicenseOverride(application.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
+    tempEntity.newLicenseOverride(app.getId(), componentIdentifier, LicenseOverrideStatus.OVERRIDDEN, "GPL-2.0",
         null /* comment */);
     response = request.get();
     assertResponseStatus(200, response);
@@ -397,11 +398,11 @@ public class IdeResourceTest
   @Test
   public void testDoScan_SecurityStatus() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application application = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED.getId());
-    tempEntity.newPolicy(application, 8, LogicalOperator.AND, condition);
+    tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
 
     // There should be no policy alerts when none of the security vulnerabilities was overridden
     HttpRequest request = simpleScanRequest(applicationPublicId, "abababababababababab");
@@ -420,7 +421,7 @@ public class IdeResourceTest
 
     // Override the security vulnerabilities status for a security vulnerability that does not match and evaluate
     // the policy again. There should be no policy alerts.
-    tempEntity.newSecurityVulnerabilityOverride(application.getId(), ideMatchedComponent.getHash(), "osvdb", "121212",
+    tempEntity.newSecurityVulnerabilityOverride(app.getId(), ideMatchedComponent.getHash(), "osvdb", "121212",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     response = request.get();
     assertResponseStatus(200, response);
@@ -435,7 +436,7 @@ public class IdeResourceTest
     assertThat(policyAlerts).isEmpty();
 
     // Override the security vulnerabilities status and evaluate the policy again. There should be one policy alert.
-    tempEntity.newSecurityVulnerabilityOverride(application.getId(), ideMatchedComponent.getHash(), "osvdb", "36079",
+    tempEntity.newSecurityVulnerabilityOverride(app.getId(), ideMatchedComponent.getHash(), "osvdb", "36079",
         SecurityVulnerabilityOverrideStatus.ACKNOWLEDGED);
     response = request.get();
     assertResponseStatus(200, response);
@@ -453,7 +454,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Age() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(AgeInDaysConditionType.ID, "older than", "365");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -477,7 +478,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -494,7 +495,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_simple_enhancedResponse() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -527,7 +528,7 @@ public class IdeResourceTest
   public void testDoScan_unknown_enhanced() throws Exception {
     String hash = "000babababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(MatchStateConditionType.ID, "is", "unknown");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -559,7 +560,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_Proprietary() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(ProprietaryConditionType.ID, "is true");
     tempEntity.newPolicy(app, 8, LogicalOperator.AND, condition);
@@ -610,7 +611,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_ManuallyIdentifiedComponent() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition1 = new Condition(MatchStateConditionType.ID, "is", "exact");
     Condition condition2 = new Condition(AgeInDaysConditionType.ID, "younger than", "30");
@@ -671,7 +672,7 @@ public class IdeResourceTest
   private void testDoScan_Label(boolean orgLabel, boolean orgComponentLabel) throws Exception {
     String hash = "abababababababababab";
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
     Label label = tempEntity.newLabel(orgLabel ? app.getOrganizationId() : app.getId(), "red");
     tempEntity.newComponentLabel(orgComponentLabel ? app.getOrganizationId() : app.getId(), label.getId(), hash);
 
@@ -697,7 +698,7 @@ public class IdeResourceTest
   @Test
   public void testDoScan_HiddenObservedLicense() throws Exception {
     String applicationPublicId = "IdeResourceTest_AppId";
-    Application app = tempEntity.newApplicationWithParent(applicationPublicId);
+    app = tempEntity.newApplicationWithParent(applicationPublicId);
 
     Condition condition = new Condition(LicenseConditionType.ID, "is", License.NOT_SUPPORTED_ID);
     Policy policy = tempEntity.newPolicy(app, 10, LogicalOperator.AND, condition);
@@ -783,6 +784,7 @@ public class IdeResourceTest
     String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     Integer mavenComponents = 10;
     Integer npmComponents = 5;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -794,7 +796,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
     assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
@@ -805,6 +807,7 @@ public class IdeResourceTest
     String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     Integer mavenComponents = 10;
     Integer npmComponents = 5;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -816,7 +819,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
     assertThat(telemetryAttributes.get("client_instance_id")).isNull();
   }
@@ -827,6 +830,7 @@ public class IdeResourceTest
     String instanceId = "my-unique-id";
     Integer mavenComponents = 10;
     Integer npmComponents = 5;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -838,7 +842,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentDataIsNotSent(telemetryAttributes);
     assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
@@ -850,6 +854,7 @@ public class IdeResourceTest
     String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     Integer mavenComponents = null;
     Integer npmComponents = null;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -861,7 +866,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
     assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
@@ -871,6 +876,7 @@ public class IdeResourceTest
     String appId = "IdeResourceTest_AppId";
     Integer mavenComponents = 10;
     Integer npmComponents = 5;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -882,7 +888,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentDataIsNotSent(telemetryAttributes);
     assertThat(telemetryAttributes.get("client_instance_id")).isNull();
   }
@@ -892,6 +898,7 @@ public class IdeResourceTest
     String appId = "IdeResourceTest_AppId";
     Integer mavenComponents = null;
     Integer npmComponents = null;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributes(
@@ -903,7 +910,7 @@ public class IdeResourceTest
     );
 
     // Assert Result
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentDataIsNotSent(telemetryAttributes);
     assertThat(telemetryAttributes.get("client_instance_id")).isNull();
   }
@@ -917,6 +924,7 @@ public class IdeResourceTest
     Integer npmComponents = 10;
     String attribute = "ide_theme";
     String attributeValue = "dark";
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributesV2(
@@ -931,7 +939,7 @@ public class IdeResourceTest
 
     // Assert Result
     assertThat(telemetryAttributes).containsEntry("ide_theme", "dark");
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
     assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
@@ -943,6 +951,7 @@ public class IdeResourceTest
     String userAgent = "Sonatype_CLM_CI_Jenkins/3.13 (Java 1.8.0_201; Linux 5.4.144; Jenkins 2.319.2)";
     Integer mavenComponents = 15;
     Integer npmComponents = 10;
+    app = tempEntity.newApplicationWithParent(appId);
 
     // Send request
     Map<String, Object> telemetryAttributes = sendTelemetryRequestAndGetTelemetryAttributesV2(
@@ -957,7 +966,7 @@ public class IdeResourceTest
 
     // Assert Result
     assertThat(telemetryAttributes).doesNotContainEntry("ide_theme", "dark");
-    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, appId, mavenComponents, npmComponents);
+    assertApplicationEvaluationComponentTelemetryData(telemetryAttributes, mavenComponents, npmComponents);
     assertUserAgentData(telemetryAttributes, userAgent);
     assertThat(telemetryAttributes).containsEntry("client_instance_id", instanceId);
   }
@@ -974,9 +983,8 @@ public class IdeResourceTest
     final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
 
     // Prepare request
-    Application app = tempEntity.newApplicationWithParent(appId);
     Map<String, Integer> componentCounts = getComponentCounts(mavenComponents, npmComponents);
-    HttpRequest request = sendTelemetryRequest(componentCounts, app.getPublicId(), instanceId, userAgent);
+    HttpRequest request = sendTelemetryRequest(componentCounts, appId, instanceId, userAgent);
 
     // Send request
     HttpResponse response = request.post();
@@ -1000,10 +1008,9 @@ public class IdeResourceTest
     final Map<ByteArrayDataSource, Integer> responses = getHdsTelemetryDataCollection();
 
     // Prepare request
-    Application app = tempEntity.newApplicationWithParent(appId);
     Map<String, Object> telemetryRequest =
         getTelemetryRequestV2(attribute, attributeValue, getComponentCounts(mavenComponents, npmComponents));
-    HttpRequest request = sendTelemetryRequestV2(telemetryRequest, app.getPublicId(), instanceId, userAgent);
+    HttpRequest request = sendTelemetryRequestV2(telemetryRequest, appId, instanceId, userAgent);
 
     // Send request
     HttpResponse response = request.post();
@@ -1087,12 +1094,12 @@ public class IdeResourceTest
 
   private void assertApplicationEvaluationComponentTelemetryData(
       final Map<String, Object> telemetryAttributes,
-      final String appId,
       Integer mavenComponents,
       Integer npmComponents
   )
   {
-    assertThat(telemetryAttributes).containsEntry("application_id", HdsClientAnalytics.obfuscate(appId));
+    assertThat(telemetryAttributes).containsEntry("application_id", HdsClientAnalytics.obfuscate(app.getId()));
+    assertThat(telemetryAttributes).containsEntry("real_application_id", app.getId());
     assertThat(telemetryAttributes).containsEntry("stage_id", Stage.ID_DEVELOP);
     assertThat(telemetryAttributes).containsEntry("scan_trigger_type", ScanTriggerType.IDE.getId());
 

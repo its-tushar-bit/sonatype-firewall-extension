@@ -49,6 +49,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.hds.ScanHandler;
 import com.sonatype.insight.brain.integration.IntegrationType;
 import com.sonatype.insight.brain.jira.JiraClient;
@@ -651,7 +652,8 @@ public class PolicyEvaluateServiceTest
     assertThat(telemetryData.getPurpose()).isEqualTo(TelemetryPurpose.THIRD_PARTY_SCAN_USAGE);
 
     Map<String, Object> expectedAttributes = new HashMap<>();
-    expectedAttributes.put("application_id", app.getPublicId());
+    expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(app.getId()));
+    expectedAttributes.put("real_application_id", app.getId());
     expectedAttributes.put("stage_id", stage.getStageTypeId());
     expectedAttributes.put("source", IntegrationType.CLI.toString());
     expectedAttributes.put("scan_type", ScanTriggerType.CLI.toString());

@@ -669,8 +669,7 @@ public class ApiLicenseLegalService
 
     for (int i = 0; i < applications.size(); ++i) {
       Owner application = applications.get(i);
-      sendApplicationTelemetryData(application.getPublicId(), application.getId(), latestRawReports.get(i),
-          allMultiLicenses);
+      sendApplicationTelemetryData(application.getId(), latestRawReports.get(i), allMultiLicenses);
     }
 
     CompletableFuture<Map<String, LicenseMetadataDTO>> licenseMetadataById =
@@ -1362,7 +1361,6 @@ public class ApiLicenseLegalService
   }
 
   private void sendApplicationTelemetryData(
-      String applicationPublicId,
       final String applicationId,
       ApiReportRawDataDTOV2 latestRawReport,
       Set<ApiLicenseDTO> multiLicenses)
@@ -1370,7 +1368,7 @@ public class ApiLicenseLegalService
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.APPLICATION_LICENSE_USAGE);
 
     final ApplicationLicenseUsageTelemetry applicationLicenseUsageTelemetry = new ApplicationLicenseUsageTelemetry(
-        applicationPublicId,
+        applicationId,
         latestRawReport.components.stream()
             .map(component -> component.hash)
             .filter(StringUtils::isNotBlank)

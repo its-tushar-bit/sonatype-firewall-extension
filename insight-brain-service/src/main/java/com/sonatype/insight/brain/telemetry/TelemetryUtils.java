@@ -49,14 +49,15 @@ public final class TelemetryUtils
   }
 
   public TelemetryData buildThirdPartyScanTelemetryData(
-      final String applicationPublicId,
+      final String applicationId,
       final Stage stage,
       final String thirdPartyScanType,
       final ScanTriggerType scanTriggerType,
       final String userAgent)
   {
     Map<String, Object> attributes = new HashMap<>();
-    attributes.put("application_id", applicationPublicId);
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    includeRealApplicationId(attributes, applicationId);
     attributes.put("stage_id", stage.getStageTypeId());
     attributes.put("source", thirdPartyScanType);
     if (scanTriggerType != null) {

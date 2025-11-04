@@ -1379,7 +1379,7 @@ public class ReportService
     ScanReceipt scanReceipt = scanUploadService.upload(scanEntity, application, stage.getStageTypeId(),
         clientScanType,
         clientUserAgent,
-        telemetryUtils.buildThirdPartyScanTelemetryData(application.getPublicId(), stage, stageTypeId,
+        telemetryUtils.buildThirdPartyScanTelemetryData(application.getId(), stage, stageTypeId,
             scanTriggerType, clientUserAgent), null /* scanRequestId */, scanContext, true );
     // Call again after upload to ensure the scanId is set to the original value, not the temporary new one.
     AuditData.get().setScanId(scanId);

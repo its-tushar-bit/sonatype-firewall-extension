@@ -13,7 +13,25 @@ properties(
                 string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
                 run(name:'saasBuild', filter: 'STABLE', projectName: 'insight/MTIQ/production/prod-us-1', description: 'The Saas Build to release from.'),
                 string (name: 'branchName', defaultValue: '', description: 'Optional - a branch to build from - overrides SaaS Build'),
-                string (name: 'buildNumber', defaultValue: '', description: 'Optional - a build number for the branch - overrides SaaS Build')
+                string (name: 'buildNumber', defaultValue: '', description: 'Optional - a build number for the branch - overrides SaaS Build'),
+
+                // Skip stage parameters
+                booleanParam(name: 'skipReleaseStartingNotification', defaultValue: false, description: 'Skip: Send Release Starting Notification'),
+                booleanParam(name: 'skipStageReleaseBinaries', defaultValue: false, description: 'Skip: Stage Release Binaries'),
+                booleanParam(name: 'skipReleaseJiraVersion', defaultValue: false, description: 'Skip: Release Jira Version - IQ'),
+                booleanParam(name: 'skipDeployToStaging', defaultValue: false, description: 'Skip: Deploy Binaries to Staging'),
+                booleanParam(name: 'skipDeployToProduction', defaultValue: false, description: 'Skip: Deploy Binaries to Production'),
+                booleanParam(name: 'skipCreateProductNotification', defaultValue: false, description: 'Skip: Create Product Notification'),
+                booleanParam(name: 'skipDeployNotificationToStaging', defaultValue: false, description: 'Skip: Deploy Product Notification to Staging'),
+                booleanParam(name: 'skipDeployNotificationToProduction', defaultValue: false, description: 'Skip: Deploy Product Notification to Production'),
+                booleanParam(name: 'skipSendPolicyResults', defaultValue: false, description: 'Skip: Send Policy Results'),
+                booleanParam(name: 'skipPublishSlimDocker', defaultValue: false, description: 'Skip: Publish Slim Docker Image'),
+                booleanParam(name: 'skipPublishAlpineDocker', defaultValue: false, description: 'Skip: Publish Alpine Docker Image'),
+                booleanParam(name: 'skipPublishRedHatDocker', defaultValue: false, description: 'Skip: Publish RedHat Docker Image to quay.io'),
+                booleanParam(name: 'skipPublishStandardDocker', defaultValue: false, description: 'Skip: Publish Standard Docker Image'),
+                booleanParam(name: 'skipPublishCloudFormation', defaultValue: false, description: 'Skip: Publish CloudFormation Templates'),
+                booleanParam(name: 'skipReleaseCompleteNotifications', defaultValue: false, description: 'Skip: Send Release Complete Notifications'),
+                booleanParam(name: 'skipPostReleaseBuild', defaultValue: false, description: 'Skip: Trigger Post-Release Build')
             ]
         )
     ]
@@ -61,12 +79,18 @@ pipeline {
       }
     }
     stage('Send Release Starting Notification') {
+      when {
+        expression { !params.skipReleaseStartingNotification }
+      }
       steps {
         build(job: 'insight/insight-brain/Release Starting',
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Stage Release Binaries') { // Jenkinsfile
+      when {
+        expression { !params.skipStageReleaseBinaries }
+      }
       steps {
         build(job: 'insight/insight-brain/release',
               parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
@@ -75,12 +99,18 @@ pipeline {
       }
     }
     stage('Release Jira Version - IQ') {
+      when {
+        expression { !params.skipReleaseJiraVersion }
+      }
       steps {
         build(job: 'insight/insight-brain/Release JIRA Version',
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Deploy Binaries to Staging') { // Jenkinsfile.deploy
+      when {
+        expression { !params.skipDeployToStaging }
+      }
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Staging'),
@@ -88,6 +118,9 @@ pipeline {
       }
     }
     stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
+      when {
+        expression { !params.skipDeployToProduction }
+      }
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Production'),
@@ -95,42 +128,63 @@ pipeline {
       }
     }
     stage('Create Product Notification') {
+      when {
+        expression { !params.skipCreateProductNotification }
+      }
       steps {
         build(job: 'insight/insight-brain/Update Product Notifications',
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Deploy Product Notification to Staging') {
+      when {
+        expression { !params.skipDeployNotificationToStaging }
+      }
       steps {
         build(job: 'insight/hosted-data-services/product-notifications/Sync Product Notifications',
               parameters: [string(name: 'ENVIRONMENT', value: 'staging')])
       }
     }
     stage('Deploy Product Notification to Production') {
+      when {
+        expression { !params.skipDeployNotificationToProduction }
+      }
       steps {
         build(job: 'insight/hosted-data-services/product-notifications/Sync Product Notifications',
               parameters: [string(name: 'ENVIRONMENT', value: 'production')])
       }
     }
     stage('Send Policy Results') {
+      when {
+        expression { !params.skipSendPolicyResults }
+      }
       steps {
         build(job: 'insight/insight-brain/Send Policy Results',
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Publish Slim Docker Image') {
+      when {
+        expression { !params.skipPublishSlimDocker }
+      }
       steps {
         build(job: 'insight/insight-brain/docker/slim-image/release',
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
     stage('Publish Alpine Docker Image') {
+      when {
+        expression { !params.skipPublishAlpineDocker }
+      }
       steps {
         build(job: 'insight/insight-brain/docker/alpine-image/release',
             parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
     stage('Publish RedHat Docker Image to quay.io') {
+      when {
+        expression { !params.skipPublishRedHatDocker }
+      }
       steps {
         build(job: 'insight/insight-brain/docker/redhat-image/release',
             parameters: [
@@ -140,24 +194,36 @@ pipeline {
       }
     }
     stage ('Publish Standard Docker Image') {
+      when {
+        expression { !params.skipPublishStandardDocker }
+      }
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',
               parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
     stage('Publish CloudFormation Templates') {
+      when {
+        expression { !params.skipPublishCloudFormation }
+      }
       steps {
         build(job: 'integrations/cloud/nexus-iq-ha-reference',
               parameters: [ run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
       }
     }
     stage('Send Release Complete Notifications') {
+      when {
+        expression { !params.skipReleaseCompleteNotifications }
+      }
       steps {
         build(job: 'insight/insight-brain/Release Notification',
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
     stage('Trigger Post-Release Build') {
+      when {
+        expression { !params.skipPostReleaseBuild }
+      }
       steps {
         build(job: 'insight/insight-brain/post-release',
               propagate: false,

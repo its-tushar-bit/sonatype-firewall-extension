@@ -134,6 +134,7 @@ public class ConfigFeaturesResourceTest
           SystemConfigurationPropertyFeature.SAML_ENABLED.getId(),
           SystemConfigurationPropertyFeature.SAAS_LIFECYCLE_SCM_PRS_ENABLED.getId(),
           SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING.getId(),
+          SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.getId(),
       }
   )).toArray(String[]::new);
 

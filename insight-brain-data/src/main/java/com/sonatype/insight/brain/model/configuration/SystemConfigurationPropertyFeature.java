@@ -103,6 +103,8 @@ public enum SystemConfigurationPropertyFeature
   INNER_SOURCE_REPOSITORY_INTEGRATION(SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION, true),
   PR_COMMENTING(SystemConfigurationProperty.PR_COMMENTING, true),
   PR_LINE_COMMENTING(SystemConfigurationProperty.PR_LINE_COMMENTING, true),
+  // CLM-35694: When enabled, Bitbucket PR comments are updated even when policy evaluations haven't changed.
+  PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE(SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE, false),
   ENABLE_UNAUTHENTICATED_PAGES(SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES, true)
   {
     @Override

@@ -56,6 +56,8 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_PR_LINE_COMMENTING = "prLineCommenting";
 
+  static final String FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE = "prLineCommentingBitbucketOnNoChange";
+
   static final String FEATURE_ENABLE_UNAUTHENTICATED_PAGES = "enableUnauthenticatedPages";
 
   static final String FEATURE_ENABLE_SSO_ONLY = "enableSsoOnly";
@@ -208,6 +210,8 @@ public class ApiConfigFeaturesService
           SystemConfigurationProperty.INNER_SOURCE_REPOSITORY_INTEGRATION;
       case FEATURE_PR_COMMENTING -> SystemConfigurationProperty.PR_COMMENTING;
       case FEATURE_PR_LINE_COMMENTING -> SystemConfigurationProperty.PR_LINE_COMMENTING;
+      case FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE ->
+          SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
       case FEATURE_ENABLE_UNAUTHENTICATED_PAGES -> SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES;
       case FEATURE_ENABLE_SSO_ONLY -> SystemConfigurationProperty.ENABLE_SSO_ONLY;
       case FEATURE_INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS ->
@@ -267,6 +271,8 @@ public class ApiConfigFeaturesService
           FEATURE_INNER_SOURCE_REPOSITORY_INTEGRATION;
       case SystemConfigurationProperty.PR_COMMENTING -> FEATURE_PR_COMMENTING;
       case SystemConfigurationProperty.PR_LINE_COMMENTING -> FEATURE_PR_LINE_COMMENTING;
+      case SystemConfigurationProperty.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE ->
+          FEATURE_PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
       case SystemConfigurationProperty.ENABLE_UNAUTHENTICATED_PAGES -> FEATURE_ENABLE_UNAUTHENTICATED_PAGES;
       case SystemConfigurationProperty.ENABLE_SSO_ONLY -> FEATURE_ENABLE_SSO_ONLY;
       case SystemConfigurationProperty.INTERNAL_SOURCE_CONTROL_POLICY_EVALUATIONS ->

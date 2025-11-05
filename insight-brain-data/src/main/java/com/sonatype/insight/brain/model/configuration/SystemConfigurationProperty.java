@@ -89,6 +89,8 @@ public class SystemConfigurationProperty
 
   public static final String PR_LINE_COMMENTING = "PR_LINE_COMMENTING";
 
+  public static final String PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE = "PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE";
+
   public static final String ENABLE_UNAUTHENTICATED_PAGES = "ENABLE_UNAUTHENTICATED_PAGES";
 
   public static final String ENABLE_SSO_ONLY = "ENABLE_SSO_ONLY";

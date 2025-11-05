@@ -24,6 +24,8 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE;
+
 @Named
 @Singleton
 public class PullRequestCommentingService
@@ -45,19 +47,23 @@ public class PullRequestCommentingService
 
   private final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider;
 
+  private final SourceControlComponentLoader sourceControlComponentLoader;
+
   @Inject
   public PullRequestCommentingService(
       final PullRequestCommentCreator pullRequestCommentCreator,
       final Provider<PullRequestCommentingHashBuilder> hashBuilderProvider,
       final PolicyEvaluationDiffService policyEvaluationDiffService,
       final SourceControlPullRequestCommentDAO pullRequestCommentDAO,
-      final PullRequestCommentingRemediationService commentingRemediationService)
+      final PullRequestCommentingRemediationService commentingRemediationService,
+      final SourceControlComponentLoader sourceControlComponentLoader)
   {
     this.pullRequestCommentCreator = pullRequestCommentCreator;
     this.hashBuilderProvider = hashBuilderProvider;
     this.policyEvaluationDiffService = policyEvaluationDiffService;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
     this.commentingRemediationService = commentingRemediationService;
+    this.sourceControlComponentLoader = sourceControlComponentLoader;
   }
 
   public void doCreateOrUpdatePullRequestComment(PullRequestPolicyEvaluationsDTO dto) {
@@ -101,6 +107,13 @@ public class PullRequestCommentingService
           else {
             log.info("Policy evaluations have not changed for application '{}' pull request '{}'.",
                 dto.getApplicationId(), dto.getPullRequestNumber());
+
+            // CLM-35694: handle unchanged content for Bitbucket
+            if (null != dto.getGitRepositoryInfo()
+                && SourceControlProvider.BITBUCKET == dto.getGitRepositoryInfo().getProvider()) {
+              handleBitbucketPullRequestWhenContentUnchanged(dto, existingPullRequestComment,
+                  policyViolationDiff.get(), remediationVersionMap, contentHash);
+            }
           }
         }
       }
@@ -114,6 +127,41 @@ public class PullRequestCommentingService
     }
     catch (Exception e) {
       throw new SourceControlException("Failed to create/update PR comment - reason: " + e.getMessage(), e);
+    }
+  }
+
+  /**
+   * CLM-35694 - handle Bitbucket Code Insights creation when content hash hasn't changed.
+   */
+  private void handleBitbucketPullRequestWhenContentUnchanged(
+      final PullRequestPolicyEvaluationsDTO dto,
+      final SourceControlPullRequestComment existingPullRequestComment,
+      final PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      final SortedMap<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
+      final String contentHash)
+  {
+    try {
+      if (PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE.isEnabled()) {
+        log.debug("Updating pull request comments for Bitbucket pull request");
+        pullRequestCommentCreator.updatePullRequestComment(dto, existingPullRequestComment,
+            policyViolationDiff, remediationVersionMap, contentHash);
+        return;
+      }
+
+      log.debug("Only handling post actions, no comments updated for Bitbucket pull request");
+
+      SourceControlComponentDetails componentDetails = sourceControlComponentLoader
+          .getSourceControlComponentDetails(dto.getApplicationId(),
+              dto.getFeatureBranchPolicyEvaluation().getScanId());
+
+      // Invoke post-comment actions without updating pull request comments
+      pullRequestCommentCreator.handlePostCommentActions( dto, policyViolationDiff, componentDetails, null);
+
+    }
+    catch (Exception e) {
+      log.error(
+          "Failed to handle Bitbucket Code Insights when content unchanged for application '{}' pull request '{}': {}",
+          dto.getApplicationId(), dto.getPullRequestNumber(), e.getMessage(), e);
     }
   }
 }

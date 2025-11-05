@@ -567,6 +567,38 @@ public class ApiConfigFeaturesServiceTest
   }
 
   @Test
+  public void testEnableFeature_PrLineCommentingBitbucketOnNoChange() {
+    service.enableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE).getValue())
+        .isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_PrLineCommentingBitbucketOnNoChange_AlreadyEnabled() {
+    service.enableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE);
+    assertThatThrownBy(() -> service.enableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_PrLineCommentingBitbucketOnNoChange() {
+    tempEntity.newSystemConfigurationProperty(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE, "true");
+    service.disableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE);
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE)).isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_PrLineCommentingBitbucketOnNoChange() {
+    assertThat(systemConfigurationPropertyDAO.getByName(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE)).isNull();
+  }
+
+  @Test
+  public void testDisableFeature_PrLineCommentingBitbucketOnNoChange_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(PR_LINE_COMMENTING_BITBUCKET_ON_NO_CHANGE))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
   public void testEnableFeature_EnableUnauthenticatedPages() {
     tempEntity.newSystemConfigurationProperty(ENABLE_UNAUTHENTICATED_PAGES, "false");
     service.enableFeature(ENABLE_UNAUTHENTICATED_PAGES);
@@ -1424,6 +1456,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("PROXY_CONFIGURATION", true);
     expectedFeatureConfigMap.put("prCommenting", true);
     expectedFeatureConfigMap.put("prLineCommenting", true);
+    expectedFeatureConfigMap.put("prLineCommentingBitbucketOnNoChange", false);
     expectedFeatureConfigMap.put("reportsList", true);
     expectedFeatureConfigMap.put("sbomBinaryScanning", true);
     expectedFeatureConfigMap.put("sbomContinuousMonitoringUi", true);

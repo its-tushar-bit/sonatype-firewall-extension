@@ -119,6 +119,36 @@ public class PullRequestCommentCreator
         remediationVersionMap, contentHash);
   }
 
+  /**
+   * Ability to handle invoke post-comment actions (like Code Insights) without updating PR comments.
+   * This is useful when policy evaluations haven't changed, but we still want to post Code Insights
+   * for a new commit.
+   *
+   * @param prPolicyEvaluationsDTO the PR and policy evaluation context
+   * @param policyViolationDiff the diff between source and target evaluations
+   * @param sourceControlComponentDetails component details needed for Code Insights
+   * @param locationDiscoveryResult location discovery result (can be null if not available)
+   * @see <a href="https://sonatype.atlassian.net/browse/CLM-35694">CLM-35694</a>
+   */
+  public void handlePostCommentActions(
+      PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
+      PolicyViolationDiff<PolicyViolation> policyViolationDiff,
+      SourceControlComponentDetails sourceControlComponentDetails,
+      LocationDiscoveryResult locationDiscoveryResult)
+  {
+    PolicyEvaluation featureBranchPolicyEvaluation = prPolicyEvaluationsDTO.getFeatureBranchPolicyEvaluation();
+    PolicyEvaluation targetPolicyEvaluation = prPolicyEvaluationsDTO.getTargetPolicyEvaluation();
+
+    invokePostCommentActions(
+        prPolicyEvaluationsDTO.getGitRepositoryInfo(),
+        policyViolationDiff,
+        sourceControlComponentDetails,
+        featureBranchPolicyEvaluation,
+        targetPolicyEvaluation,
+        prPolicyEvaluationsDTO.getFeatureBranchName(),
+        locationDiscoveryResult);
+  }
+
   private void doCreateOrUpdateComments(
       PullRequestPolicyEvaluationsDTO prPolicyEvaluationsDTO,
       final SourceControlPullRequestComment existingPullRequestComment,

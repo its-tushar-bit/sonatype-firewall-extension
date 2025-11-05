@@ -115,7 +115,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(60);
+    assertThat(featureConfigNode.size()).isEqualTo(61);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -157,6 +157,7 @@ public class FeaturePropertiesInfoTest
               "PROXY_CONFIGURATION": true,
               "prCommenting": true,
               "prLineCommenting": true,
+              "prLineCommentingBitbucketOnNoChange": false,
               "reportsList": true,
               "saasLifecycleScmPrsEnabled": true,
               "sbomBinaryScanning": true,
@@ -193,7 +194,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(60);
+    assertThat(featureConfigNode.size()).isEqualTo(61);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -235,6 +236,7 @@ public class FeaturePropertiesInfoTest
               "PROXY_CONFIGURATION": true,
               "prCommenting": true,
               "prLineCommenting": false,
+              "prLineCommentingBitbucketOnNoChange": false,
               "reportsList": true,
               "saasLifecycleScmPrsEnabled": true,
               "sbomBinaryScanning": true,
@@ -277,7 +279,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(50)
+        .hasSize(51)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

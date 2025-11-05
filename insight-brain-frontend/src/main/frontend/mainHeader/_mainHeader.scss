@@ -10,6 +10,11 @@
 
 @use './MenuBar/MenuBar';
 
+// Required for React component wrapped with iqReact2Angular
+main-header {
+  display: contents;
+}
+
 .iq-header {
   display: flex;
   align-items: center;

@@ -15,7 +15,9 @@ import {
   submitData,
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
 import reduxConfigModule from './reduxConfig/module';
-import mainHeaderModule from './mainHeader/module';
+import MainHeader from './mainHeader/MainHeader.jsx';
+import userActions from './user/userActions';
+import userReducer from './user/userReducer';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import NavigationContainer from './navigationContainer/NavigationContainer';
 import ReportModule from './ReportApp';
@@ -69,7 +71,6 @@ export const InitModule = angular
       'ui.router',
       ReportModule.name,
       Report.name,
-      mainHeaderModule.name,
       unauthenticatedResponseHttpInterceptor.name,
       httpInterceptors.name,
       IqHttpInterceptorsModule.name,
@@ -509,6 +510,9 @@ export const InitModule = angular
       return { start: doStart };
     },
   ])
+  .factory('userActions', userActions)
+  .value('userReducer', userReducer)
+  .component('mainHeader', iqReact2Angular(MainHeader, [], ['$ngRedux', 'userActions', '$state']))
   .component(
     'navigationContainer',
     iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$ngRedux', '$rootScope', '$state'])

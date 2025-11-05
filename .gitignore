@@ -32,3 +32,6 @@ dependency_tree.txt
 
 # MCP configuration file
 .mcp.json
+
+# Claude Code local settings
+.claude/settings.local.json

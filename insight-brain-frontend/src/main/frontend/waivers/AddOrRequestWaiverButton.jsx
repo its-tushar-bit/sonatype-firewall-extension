@@ -11,11 +11,12 @@ export default function AddOrRequestWaiverButton({
   variant,
   hasPermissionForAppWaivers,
   isFirewallOrRepository,
+  isWaiverRequestWorkflowEnabled,
   onClickAddWaiver,
   onClickRequestWaiver,
 }) {
   return hasPermissionForAppWaivers ? (
-    isFirewallOrRepository ? (
+    isFirewallOrRepository || !isWaiverRequestWorkflowEnabled ? (
       <NxButton type="button" variant={variant} id="violation-page-add-waiver" onClick={onClickAddWaiver}>
         Add Waiver
       </NxButton>
@@ -37,7 +38,7 @@ export default function AddOrRequestWaiverButton({
         </button>
       </NxStatefulSegmentedButton>
     )
-  ) : !isFirewallOrRepository ? (
+  ) : !isFirewallOrRepository && isWaiverRequestWorkflowEnabled ? (
     <NxButton type="button" variant={variant} id="violation-page-request-waiver" onClick={onClickRequestWaiver}>
       Request Waiver
     </NxButton>
@@ -48,12 +49,14 @@ AddOrRequestWaiverButton.defaultProps = {
   variant: 'primary',
   hasPermissionForAppWaivers: false,
   isFirewallOrRepository: false,
+  isWaiverRequestWorkflowEnabled: true,
 };
 
 AddOrRequestWaiverButton.propTypes = {
   variant: PropTypes.string.isRequired,
   hasPermissionForAppWaivers: PropTypes.bool.isRequired,
   isFirewallOrRepository: PropTypes.bool,
+  isWaiverRequestWorkflowEnabled: PropTypes.bool,
   onClickRequestWaiver: PropTypes.func.isRequired,
   onClickAddWaiver: PropTypes.func.isRequired,
 };

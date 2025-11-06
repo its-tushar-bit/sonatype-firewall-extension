@@ -263,6 +263,8 @@ public class SystemConfigurationProperty
 
   public static final String EXPIRE_WAIVER_WHEN_REMEDIATION_AVAILABLE = "expireWaiverWhenRemediationAvailable";
 
+  public static final String WAIVER_REQUEST_WORKFLOW_ENABLED = "waiverRequestWorkflowEnabled";
+
   public static final String COMPONENT_CHANGE_DETECTION_MAX_COMPONENTS = "componentChangeDetectionMaxComponents";
 
   public static final String COMPONENT_CHANGE_DETECTION_BATCH_SIZE = "componentChangeDetectionBatchSize";

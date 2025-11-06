@@ -238,7 +238,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.ZSCALER,
         SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP,
         SystemConfigurationPropertyFeature.SAML_ENABLED,
-        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED
+        SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED,
+        SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

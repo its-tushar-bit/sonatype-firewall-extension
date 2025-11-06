@@ -27,6 +27,7 @@ import {
   selectHasPermissionToAddWaivers,
 } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsStandaloneFirewall } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectIsWaiverRequestWorkflowEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 export default function FirewallPolicyViolationDetailsPopover() {
   const dispatch = useDispatch();
@@ -43,6 +44,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
   const policyViolations = useSelector(selectFirewallPolicyViolations);
   const hasPermissionForAddWaivers = useSelector(selectHasPermissionToAddWaivers);
   const loading = useSelector(selectFirewallIsLoading);
+  const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
 
   const policyDetail = selectedPolicyViolation
     ? policyViolations?.find((item) => item.policyViolationId === selectedPolicyViolation.policyViolationId)
@@ -104,6 +106,7 @@ export default function FirewallPolicyViolationDetailsPopover() {
               variant={activeWaivers?.length ? 'secondary' : 'primary'}
               hasPermissionForAppWaivers={hasPermissionForAddWaivers}
               isFirewallOrRepository
+              isWaiverRequestWorkflowEnabled={isWaiverRequestWorkflowEnabled}
               onClickAddWaiver={redirectToAddWaiverPage}
               onClickRequestWaiver={() => {}}
             />

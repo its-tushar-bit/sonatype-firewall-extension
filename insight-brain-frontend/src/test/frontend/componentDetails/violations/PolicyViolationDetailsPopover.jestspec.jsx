@@ -33,7 +33,28 @@ describe('PolicyViolationDetailsPopover', () => {
         ],
         selectedPolicyViolationId: violationId,
       },
-      violation: { loading: true },
+      violation: {
+        loading: true,
+        activeWaivers: [],
+        expiredWaivers: [],
+        hasPermissionForAppWaivers: false,
+        violationDetails: {
+          policyOwner: { ownerId: 'owner1' },
+        },
+      },
+      productFeatures: {
+        productFeatures: {
+          'waiver-request-workflow-enabled': true,
+        },
+      },
+      applicationReport: {
+        reportData: {
+          report: {
+            isProxyStage: false,
+          },
+        },
+        containerImagesEvaluationEnabled: false,
+      },
     };
 
     renderComponent = (preloadedState = state) =>
@@ -53,7 +74,13 @@ describe('PolicyViolationDetailsPopover', () => {
   });
 
   it('while not loading render add or request waiver button', () => {
-    renderComponent({ ...state, violation: { loading: false } });
+    renderComponent({
+      ...state,
+      violation: {
+        ...state.violation,
+        loading: false,
+      },
+    });
     const requestWaiverButton = screen.getByText('Request Waiver');
     expect(requestWaiverButton).toBeInTheDocument();
   });

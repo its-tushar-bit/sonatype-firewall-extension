@@ -48,6 +48,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.brain.webhook.WaiverRequestEvent;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -58,6 +59,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.inject.Binder;
 import org.apache.commons.lang.time.DateUtils;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -73,10 +75,7 @@ import static com.sonatype.insight.brain.model.policy.PolicyWaiverRequestStatus.
 import static com.sonatype.insight.brain.model.repository.RepositoryContainer.REPOSITORY_CONTAINER_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.clearInvocations;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 public class ApiPolicyWaiverRequestServiceTest
     extends AbstractComponentTest
@@ -380,7 +379,7 @@ public class ApiPolicyWaiverRequestServiceTest
       throws InterruptedException
   {
     // Set up event handler to capture events
-    TestEventHandler<WaiverRequestEvent> handler = 
+    TestEventHandler<WaiverRequestEvent> handler =
         new TestEventHandler<>(new CountDownLatch(1), WaiverRequestEvent.class);
     asyncEventBus.register(handler);
 
@@ -938,7 +937,7 @@ public class ApiPolicyWaiverRequestServiceTest
         "waiver comment", EXACT_COMPONENT, null, null, false, APPROVED.name());
     policyWaiverRequestDTO =
         apiPolicyWaiverRequestService.reviewPolicyWaiverRequest(OwnerType.ORGANIZATION, org.getId(),
-        policyWaiverRequestDTO.policyWaiverRequestId, apiPolicyWaiverRequestReviewDTO);
+            policyWaiverRequestDTO.policyWaiverRequestId, apiPolicyWaiverRequestReviewDTO);
 
     PolicyWaiverRequest policyWaiverRequest =
         policyWaiverRequestDAO.getById(policyWaiverRequestDTO.policyWaiverRequestId);
@@ -1638,5 +1637,38 @@ public class ApiPolicyWaiverRequestServiceTest
     assertPolicyWaiverRequestDTO(updatedPolicyWaiverRequestDTO, updatedPolicyWaiverRequest);
     assertPolicyWaiverRequestTelemetry(policyViolation,
         policyWaiverRequestDAO.getById(updatedPolicyWaiverRequest.getId()));
+  }
+
+  @Test
+  public void testAddPolicyWaiverRequest_DisableWorkflowFeatureDisabled() {
+    // When the config is disabled (default behavior), waiver requests should work with READ permission
+    ApiPolicyWaiverRequestOptionsDTO requestOptions =
+        new ApiPolicyWaiverRequestOptionsDTO("test comment", EXACT_COMPONENT, null, null, false);
+
+    // This should succeed as it uses READ permission when feature is disabled
+    ApiPolicyWaiverRequestDTO result = apiPolicyWaiverRequestService
+        .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+            policyViolation.getId(), requestOptions);
+
+    assertThat(result).isNotNull();
+    assertThat(result.comment).isEqualTo("test comment");
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testAddPolicyWaiverRequest_DisableWorkflowFeatureEnabled() {
+    try {
+      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(false);
+
+      ApiPolicyWaiverRequestOptionsDTO requestOptions =
+          new ApiPolicyWaiverRequestOptionsDTO("test comment", EXACT_COMPONENT, null, null, false);
+
+      apiPolicyWaiverRequestService
+          .addPolicyWaiverRequestByPolicyViolationId(OwnerType.APPLICATION, app.getId(),
+              policyViolation.getId(), requestOptions);
+    }
+    finally {
+      // Clean up - disable the feature flag
+      SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.setEnabled(true);
+    }
   }
 }

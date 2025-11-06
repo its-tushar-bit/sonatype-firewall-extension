@@ -302,3 +302,7 @@ export const selectIsUserManagementPagesEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'user-management-pages')
 );
+
+export const selectIsWaiverRequestWorkflowEnabled = createSelector(selectProductFeatures, (features) => {
+  return propOr(false, 'waiver-request-workflow-enabled')(features);
+});

@@ -40,6 +40,7 @@ export default function ViolationDetailsTile(props) {
       constraintViolations,
       isSbomManager,
       isContainerImagesEvaluationEnabled,
+      isWaiverRequestWorkflowEnabled,
     } = props,
     applicationPublicId = isFirewallContext ? null : violationDetails.applicationPublicId,
     policyName = isFirewallContext ? policyDetail.policyName : violationDetails.policyName,
@@ -136,6 +137,7 @@ export default function ViolationDetailsTile(props) {
                   <AddOrRequestWaiverButton
                     variant={activeWaivers?.length ? 'secondary' : 'primary'}
                     hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+                    isWaiverRequestWorkflowEnabled={isWaiverRequestWorkflowEnabled}
                     onClickAddWaiver={redirectToAddWaiverPage}
                     onClickRequestWaiver={redirectToRequestWaiverPage}
                   />
@@ -286,5 +288,6 @@ ViolationDetailsTile.propTypes = {
   hasPermissionForAppWaivers: PropTypes.bool,
   isSbomManager: PropTypes.bool,
   isContainerImagesEvaluationEnabled: PropTypes.bool,
+  isWaiverRequestWorkflowEnabled: PropTypes.bool,
   constraintViolations: constraintViolationsPropType,
 };

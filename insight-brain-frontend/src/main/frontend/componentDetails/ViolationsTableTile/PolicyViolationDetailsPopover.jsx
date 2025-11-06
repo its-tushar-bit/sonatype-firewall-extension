@@ -33,7 +33,10 @@ import {
   selectHasPermissionForAppWaivers,
   selectApplicableAutoWaiver,
 } from 'MainRoot/violation/violationSelectors';
-import { selectIsAutoWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import {
+  selectIsAutoWaiversEnabled,
+  selectIsWaiverRequestWorkflowEnabled,
+} from 'MainRoot/productFeatures/productFeaturesSelectors';
 import ViolationName from './ViolationName';
 import { selectIsStandaloneDeveloper } from '../../reduxUiRouter/routerSelectors';
 import { loadReportAllData, loadReportIfNeeded } from 'MainRoot/applicationReport/applicationReportActions';
@@ -56,6 +59,7 @@ export default function PolicyViolationDetailsPopover() {
   const hasPermissionForAppWaivers = useSelector(selectHasPermissionForAppWaivers);
   const isStandaloneDeveloper = useSelector(selectIsStandaloneDeveloper);
   const isAutoWaiversEnabled = useSelector(selectIsAutoWaiversEnabled);
+  const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
 
   const isContainerImagesEvaluationEnabled = useSelector(selectIsContainerImagesEvaluationEnabledAndProxyStage);
 
@@ -129,6 +133,7 @@ export default function PolicyViolationDetailsPopover() {
               <AddOrRequestWaiverButton
                 variant={activeWaivers?.length ? 'secondary' : 'primary'}
                 hasPermissionForAppWaivers={hasPermissionForAppWaivers}
+                isWaiverRequestWorkflowEnabled={isWaiverRequestWorkflowEnabled}
                 onClickAddWaiver={redirectToAddWaiver}
                 onClickRequestWaiver={redirectToRequestWaiver}
               />

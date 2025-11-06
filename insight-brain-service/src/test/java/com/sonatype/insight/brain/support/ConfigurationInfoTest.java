@@ -291,9 +291,10 @@ public class ConfigurationInfoTest
         "userManagementPages",
         "epssDataEnabled",
         "integrationsSupportedVersionCount",
-        "warnOnNonPrimaryStorageAccess",
         "userActivityTracking",
-        "copyStorageConfig"
+        "copyStorageConfig",
+        "warnOnNonPrimaryStorageAccess",
+        "waiverRequestWorkflowEnabled"
     );
 
     // Properties included in the config.json in support zip

@@ -5,6 +5,7 @@
  */
 import React, { useEffect, useState } from 'react';
 import * as PropTypes from 'prop-types';
+import { useSelector } from 'react-redux';
 
 import LoadWrapper from '../react/LoadWrapper';
 import ViolationDetailsTile, { violationDetailsPropTypes } from './ViolationDetailsTile';
@@ -28,6 +29,7 @@ import SecurityVulnerabilityDetailsTile from './SecurityVulnerabilityDetailsTile
 import ListWaiversTable from 'MainRoot/waivers/ListWaiversTable';
 import ListSimilarWaiversTable from 'MainRoot/waivers/ListSimilarWaiversTable';
 import MenuBarBackButton from 'MainRoot/mainHeader/MenuBar/MenuBarBackButton';
+import { selectIsWaiverRequestWorkflowEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
 
 // TABS
 const VULNERABILITY_DETAILS = 'VULNERABILITY_DETAILS';
@@ -74,6 +76,8 @@ export default function ViolationPage(props) {
     setFilterIdsSimilarWaivers,
     isAutoWaiversEnabled,
   } = props;
+
+  const isWaiverRequestWorkflowEnabled = useSelector(selectIsWaiverRequestWorkflowEnabled);
 
   if (isAutoWaiversEnabled && autoWaiver) {
     activeWaivers = activeWaivers.concat(autoWaiver);
@@ -172,6 +176,7 @@ export default function ViolationPage(props) {
               constraintViolations,
               isSbomManager,
               isContainerImagesEvaluationEnabled,
+              isWaiverRequestWorkflowEnabled,
             }}
           />
 

@@ -38,6 +38,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.OwnerType;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.AbstractPolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
@@ -66,6 +67,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -158,6 +160,11 @@ public class ApiPolicyWaiverRequestService
   {
     log.debug("Received request to add policy waiver request for ownerType {}, ownerId {}, policy violation ID {}",
         ownerType, ownerId, policyViolationId);
+
+    if (!SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.isEnabled()) {
+      throw new UnauthorizedException("Waiver requests are disabled by system property "
+          + SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getPropertyName());
+    }
 
     String internalOwnerId = idUtils.getInternalOwnerId(ownerType, ownerId);
     // Check permission before any other validation, to avoid giving away extra information to an unauthorized user.

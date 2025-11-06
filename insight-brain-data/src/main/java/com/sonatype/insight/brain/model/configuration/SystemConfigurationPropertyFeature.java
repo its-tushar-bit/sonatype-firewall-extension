@@ -287,6 +287,8 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
+  WAIVER_REQUEST_WORKFLOW_ENABLED(SystemConfigurationProperty.WAIVER_REQUEST_WORKFLOW_ENABLED, true),
+
   COMPONENT_CHANGE_DETECTION_API(SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API, false)
   {
     @Override

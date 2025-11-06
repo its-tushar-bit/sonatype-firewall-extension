@@ -1480,6 +1480,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("enableFedRAMPAudit", false);
     expectedFeatureConfigMap.put("saasLifecycleScmPrsEnabled", true);
     expectedFeatureConfigMap.put("userActivityTracking", false);
+    expectedFeatureConfigMap.put("waiverRequestWorkflowEnabled", true);
 
     return expectedFeatureConfigMap;
   }

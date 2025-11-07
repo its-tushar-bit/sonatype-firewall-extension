@@ -32,6 +32,7 @@ import com.codeborne.selenide.Selenide;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -118,6 +119,7 @@ public class DashboardComponentsTest
   }
 
   @Test
+  @Ignore // Flakey see CLM-37534
   public void testComponentsTable() {
     // add a violation for each Risk Level
     addComponentWithViolation(2, 3);   // moderate

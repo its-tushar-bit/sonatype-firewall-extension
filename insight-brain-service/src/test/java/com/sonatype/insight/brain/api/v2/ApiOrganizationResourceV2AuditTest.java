@@ -12,13 +12,13 @@ import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Organization;
-import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class ApiOrganizationResourceV2AuditTest
-    extends AbstractMembershipMappingAuditTest
+    extends AbstractAuditTest
 {
   private OrganizationDAO organizationDAO;
 

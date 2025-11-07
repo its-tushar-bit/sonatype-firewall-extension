@@ -28,5 +28,5 @@ export function getGlobalPermissionTestUrl() {
 }
 
 export function getGlobalRoleMappingUrl() {
-  return uriTemplate`/rest/membershipMapping/global/global`;
+  return uriTemplate`/api/v2/roleMemberships/global/roles`;
 }

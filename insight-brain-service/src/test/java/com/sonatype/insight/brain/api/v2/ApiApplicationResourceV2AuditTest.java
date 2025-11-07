@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.tag.Tag;
-import com.sonatype.insight.brain.security.AbstractMembershipMappingAuditTest;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -32,7 +32,7 @@ import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApiApplicationResourceV2AuditTest
-    extends AbstractMembershipMappingAuditTest
+    extends AbstractAuditTest
 {
   private ApplicationDAO applicationDAO;
 

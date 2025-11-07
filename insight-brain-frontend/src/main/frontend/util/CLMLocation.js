@@ -1091,23 +1091,26 @@ export function getFindUsersUrl(query) {
 }
 
 export function getRoleMappingUrl(roleId) {
-  return uriTemplate`/rest/membershipMapping/global/global/role/${roleId}`;
+  return uriTemplate`/api/v2/roleMemberships/global/role/${roleId}/members`;
 }
 
 export function getRoleMappingsForRepositories() {
-  return uriTemplate`/rest/membershipMapping/repository_container`;
+  return uriTemplate`/api/v2/roleMemberships/repository_container/roles`;
 }
 
 export function getRoleMappingForCurrentOwnerUrl(ownerType, ownerId) {
-  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId ?? ''}`;
+  if (ownerType === 'global' || ownerType === 'repository_container') {
+    return uriTemplate`/api/v2/roleMemberships/${ownerType}/roles`;
+  }
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/roles`;
 }
 
 export function getAccessPageRolesUrl(ownerType, ownerId) {
-  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId}`;
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/roles`;
 }
 
 export function getRepositoryContainerRoleMappingUrl() {
-  return uriTemplate`/rest/membershipMapping/repository_container`;
+  return uriTemplate`/api/v2/roleMemberships/repository_container/roles`;
 }
 
 export function getUsersRepositoryRoleMappingUrl(query) {
@@ -1121,11 +1124,11 @@ export function getUsersRoleMappingUrl(ownerType, ownerId, query, groups = true)
 }
 
 export function getCreateOrDeleteAccessUrl(ownerType, ownerId, roleId) {
-  return uriTemplate`/rest/membershipMapping/${ownerType}/${ownerId}/role/${roleId}`;
+  return uriTemplate`/api/v2/roleMemberships/${ownerType}/${ownerId}/role/${roleId}/members`;
 }
 
 export function getCreateOrDeleteAccessRepositoryUrl(roleId) {
-  return uriTemplate`/rest/membershipMapping/repository_container/role/${roleId}`;
+  return uriTemplate`/api/v2/roleMemberships/repository_container/role/${roleId}/members`;
 }
 
 export function getSuccessMetricsReportsUrl() {

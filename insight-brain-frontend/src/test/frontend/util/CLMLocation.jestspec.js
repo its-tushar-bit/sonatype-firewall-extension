@@ -223,13 +223,37 @@ describe('clmLocation.js', function () {
 
   it('should return the url to get the role info', function () {
     expect(clmLocation.getRoleMappingUrl('idForTheRole')).toBe(
-      'http://localhost/rest/membershipMapping/global/global/role/idForTheRole'
+      'http://localhost/api/v2/roleMemberships/global/role/idForTheRole/members'
     );
   });
 
   it('should return the url to get the role mapping info for repositories', function () {
     expect(clmLocation.getRoleMappingsForRepositories()).toBe(
-      'http://localhost/rest/membershipMapping/repository_container'
+      'http://localhost/api/v2/roleMemberships/repository_container/roles'
+    );
+  });
+
+  it('should return the url to get the role mapping for current owner - application', function () {
+    expect(clmLocation.getRoleMappingForCurrentOwnerUrl('application', 'appId123')).toBe(
+      'http://localhost/api/v2/roleMemberships/application/appId123/roles'
+    );
+  });
+
+  it('should return the url to get the role mapping for current owner - organization', function () {
+    expect(clmLocation.getRoleMappingForCurrentOwnerUrl('organization', 'orgId456')).toBe(
+      'http://localhost/api/v2/roleMemberships/organization/orgId456/roles'
+    );
+  });
+
+  it('should return the url to get the role mapping for current owner - repository_container', function () {
+    expect(clmLocation.getRoleMappingForCurrentOwnerUrl('repository_container', null)).toBe(
+      'http://localhost/api/v2/roleMemberships/repository_container/roles'
+    );
+  });
+
+  it('should return the url to get the role mapping for current owner - global', function () {
+    expect(clmLocation.getRoleMappingForCurrentOwnerUrl('global', null)).toBe(
+      'http://localhost/api/v2/roleMemberships/global/roles'
     );
   });
 

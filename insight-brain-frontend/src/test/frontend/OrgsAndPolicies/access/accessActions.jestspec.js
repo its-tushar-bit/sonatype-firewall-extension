@@ -174,7 +174,7 @@ describe('access', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionType('access/loadRoles/pending');
         expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenCalledWith('/rest/membershipMapping/application/application');
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/roleMemberships/application/application/roles');
         expect(actions).toHaveActionTypesInOrder(['access/loadRoles/pending', 'access/loadRoles/fulfilled']);
         done();
       });
@@ -190,7 +190,7 @@ describe('access', () => {
         const actions = store.getActions();
         expect(axios.get).toHaveBeenCalledTimes(1);
         expect(actions.length).toBe(2);
-        expect(axios.get).toHaveBeenCalledWith('/rest/membershipMapping/application/application');
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/roleMemberships/application/application/roles');
         expect(actions).toHaveActionTypesInOrder(['access/loadRoles/pending', 'access/loadRoles/rejected']);
         done();
       });
@@ -215,7 +215,7 @@ describe('access', () => {
         expect(actions.length).toBe(2);
         expect(actions).toHaveActionType('access/loadRoles/pending');
         expect(axios.get).toHaveBeenCalledTimes(1);
-        expect(axios.get).toHaveBeenCalledWith('/rest/membershipMapping/repository_container');
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/roleMemberships/repository_container/roles');
         expect(actions).toHaveActionTypesInOrder(['access/loadRoles/pending', 'access/loadRoles/fulfilled']);
         done();
       });
@@ -231,7 +231,7 @@ describe('access', () => {
         const actions = store.getActions();
         expect(axios.get).toHaveBeenCalledTimes(1);
         expect(actions.length).toBe(2);
-        expect(axios.get).toHaveBeenCalledWith('/rest/membershipMapping/repository_container');
+        expect(axios.get).toHaveBeenCalledWith('/api/v2/roleMemberships/repository_container/roles');
         expect(actions).toHaveActionTypesInOrder(['access/loadRoles/pending', 'access/loadRoles/rejected']);
         done();
       });
@@ -352,7 +352,7 @@ describe('access', () => {
         expect(actions).toHaveActionType('access/createOrUpdateRole/pending');
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith(
-          `/rest/membershipMapping/application/application/role/${role.roleId}`,
+          `/api/v2/roleMemberships/application/application/role/${role.roleId}/members`,
           formatedMemberList
         );
         expect(actions).toHaveActionTypesInOrder([
@@ -375,7 +375,7 @@ describe('access', () => {
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(actions.length).toBe(2);
         expect(axios.put).toHaveBeenCalledWith(
-          `/rest/membershipMapping/application/application/role/${role.roleId}`,
+          `/api/v2/roleMemberships/application/application/role/${role.roleId}/members`,
           formatedMemberList
         );
         expect(actions).toHaveActionTypesInOrder([
@@ -407,7 +407,7 @@ describe('access', () => {
         expect(actions).toHaveActionType('access/createOrUpdateRole/pending');
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith(
-          `/rest/membershipMapping/repository_container/role/${role.roleId}`,
+          `/api/v2/roleMemberships/repository_container/role/${role.roleId}/members`,
           formatedMemberList
         );
         expect(actions).toHaveActionTypesInOrder([
@@ -430,7 +430,7 @@ describe('access', () => {
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(actions.length).toBe(2);
         expect(axios.put).toHaveBeenCalledWith(
-          `/rest/membershipMapping/repository_container/role/${role.roleId}`,
+          `/api/v2/roleMemberships/repository_container/role/${role.roleId}/members`,
           formatedMemberList
         );
         expect(actions).toHaveActionTypesInOrder([
@@ -575,7 +575,7 @@ describe('access', () => {
         expect(actions.length).toBe(3);
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith(
-          `/rest/membershipMapping/application/application/role/${role.roleId}`,
+          `/api/v2/roleMemberships/application/application/role/${role.roleId}/members`,
           []
         );
         expect(actions).toHaveActionTypesInOrder([
@@ -591,7 +591,7 @@ describe('access', () => {
       store.dispatch(removeRole()).then(() => {
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith(
-          '/rest/membershipMapping/application/application/role/90c7c98683b4471cb77a916744540bcc',
+          '/api/v2/roleMemberships/application/application/role/90c7c98683b4471cb77a916744540bcc/members',
           []
         );
         const actions = store.getActions();
@@ -619,7 +619,10 @@ describe('access', () => {
         const actions = store.getActions();
         expect(actions.length).toBe(3);
         expect(axios.put).toHaveBeenCalledTimes(1);
-        expect(axios.put).toHaveBeenCalledWith(`/rest/membershipMapping/repository_container/role/${role.roleId}`, []);
+        expect(axios.put).toHaveBeenCalledWith(
+          `/api/v2/roleMemberships/repository_container/role/${role.roleId}/members`,
+          []
+        );
         expect(actions).toHaveActionTypesInOrder([
           'access/removeRole/pending',
           'access/removeRole/fulfilled',
@@ -633,7 +636,7 @@ describe('access', () => {
       store.dispatch(removeRole()).then(() => {
         expect(axios.put).toHaveBeenCalledTimes(1);
         expect(axios.put).toHaveBeenCalledWith(
-          '/rest/membershipMapping/repository_container/role/90c7c98683b4471cb77a916744540bcc',
+          '/api/v2/roleMemberships/repository_container/role/90c7c98683b4471cb77a916744540bcc/members',
           []
         );
         const actions = store.getActions();

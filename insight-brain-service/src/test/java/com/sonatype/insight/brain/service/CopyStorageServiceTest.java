@@ -5,20 +5,24 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.SequenceInputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
@@ -27,6 +31,8 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
@@ -39,7 +45,6 @@ import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceProvider;
 import com.sonatype.insight.brain.report.ReportEntity;
 import com.sonatype.insight.brain.report.ReportPdfEntity;
-import com.sonatype.insight.brain.report.pdf.PdfGenerator;
 import com.sonatype.insight.brain.sbom.datastore.SbomEntity;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceService;
 import com.sonatype.insight.brain.sbom.datastore.SbomPersistenceServiceProvider;
@@ -59,7 +64,6 @@ import com.sonatype.insight.test.LogOutput;
 import ch.qos.logback.classic.Level;
 import com.google.inject.Binder;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -87,6 +91,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
+import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -137,6 +142,12 @@ public class CopyStorageServiceTest
 
   @Mock
   private TaskScheduler mockTaskScheduler;
+
+  @Inject
+  private PolicyEvaluationDAO policyEvaluationDAO;
+
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
 
   @Parameters
   public static List<Object[]> dataStoreTypes() {
@@ -761,11 +772,7 @@ public class CopyStorageServiceTest
 
     copyStorageService.execute(dataStoreTypes.get(1), dataStoreTypes.get(0));
 
-    ScanEntity from = scanPersistenceServiceProvider.get(dataStoreTypes.get(1)).getScan(app.getId(), eval.getScanId());
-    ScanEntity to = scanPersistenceServiceProvider.get(dataStoreTypes.get(0)).getScan(app.getId(), eval.getScanId());
-    try (InputStream fromIs = from.getInputStream(); InputStream toIs = to.getInputStream()) {
-      assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
-    }
+    assertScanCopied(eval);
   }
 
   @Test
@@ -800,15 +807,15 @@ public class CopyStorageServiceTest
             TemporaryEntity.uuid()
         );
         // Create some large files
-        createScan(eval, reportIdx % 20 == 0 ? (int) (20 * MB) : 0);
-        createReport(eval);
+        createScan(eval, reportIdx % 20 == 0 ? (int) (20 * MB) : 1024);
+        createReport(eval, reportIdx % 20 == 0 ? (int) (MB) : 1024);
 
         ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
             app.getId(),
             ThirdPartySbomMetadataStatus.ACTIVE,
             String.format("app%d-sbom%d.json.gz", appIdx, reportIdx)
         );
-        createSbom(sbom);
+        createSbom(sbom, reportIdx % 20 == 0 ? (int) (20 * MB) : 1024);
       }
     }
 
@@ -847,6 +854,15 @@ public class CopyStorageServiceTest
             peakUsedPercent);
       }
 
+      for (PolicyEvaluation policyEvaluation : policyEvaluationDAO.getAll()) {
+        assertScanCopied(policyEvaluation);
+        assertReportCopied(policyEvaluation);
+      }
+
+      for (ThirdPartySbomMetadata thirdPartySbomMetadata : thirdPartySbomMetadataDAO.getAll()) {
+        assertSbomCopied(thirdPartySbomMetadata);
+      }
+
       log.info("Cleaning up destination storage for next iteration");
       deleteAllFromStorage(dataStoreTypes.get(0));
 
@@ -858,6 +874,45 @@ public class CopyStorageServiceTest
 
       long memoryReclaimed = afterMemory - afterGcMemory;
       log.info("Memory reclaimed by GC: {} MB", memoryReclaimed / 1024 / 1024);
+    }
+  }
+
+  @Test
+  public void testInputStreamWithAsyncWriter_ExceptionOnRead() throws Exception {
+    Application app = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
+    createReport(eval, 10 * 1024); // Create a report with files large enough to consume the buffer
+
+    ApplicationReportPersistenceService from =
+        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1));
+
+    AtomicBoolean writeFinished = new AtomicBoolean();
+    AtomicReference<Throwable> exception = new AtomicReference<>();
+    Thread thread = new Thread(() -> {
+      IOException ioException = new IOException("Some read failure");
+      try (InputStream inputStream = copyStorageService.createInputStream(
+          from.getOriginalReportEntities(app.getId(), eval.getScanId()))) {
+        byte[] buffer = new byte[1024];
+        inputStream.read(buffer);
+        throw ioException;
+      }
+      catch (Exception e) {
+        if (e != ioException) {
+          exception.set(e);
+        }
+      }
+      finally {
+        writeFinished.set(true);
+      }
+    });
+    try {
+      thread.start();
+      await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(writeFinished.get()).isTrue());
+      assertThat(exception).hasNullValue();
+    }
+    finally {
+      thread.interrupt();
+      thread.join();
     }
   }
 
@@ -874,56 +929,98 @@ public class CopyStorageServiceTest
   }
 
   private void assertScanCopied(final PolicyEvaluation eval) throws Exception {
-    ScanPersistenceService scanPersistenceService = scanPersistenceServiceProvider.get(dataStoreTypes.get(0));
-    ScanEntity scanEntity = scanPersistenceService.getScan(eval.getApplicationId(), eval.getScanId());
-    assertThat(scanEntity.exists()).isTrue();
-    assertThat(ReportHelper.readFromZipStream(scanEntity.getInputStream(), "scan-" + eval.getScanId() + ".xml"))
-        .isEqualTo(eval.getScanId());
+    ScanPersistenceService from = scanPersistenceServiceProvider.get(dataStoreTypes.get(1));
+    ScanPersistenceService to = scanPersistenceServiceProvider.get(dataStoreTypes.get(0));
+
+    ScanEntity fromScanEntity = from.getScan(eval.getApplicationId(), eval.getScanId());
+    assertThat(fromScanEntity.exists()).isTrue();
+    ScanEntity toScanEntity = to.getScan(eval.getApplicationId(), eval.getScanId());
+    assertThat(toScanEntity.exists()).isTrue();
+
+    try (InputStream fromIs = fromScanEntity.getInputStream(); InputStream toIs = toScanEntity.getInputStream()) {
+      assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
+    }
   }
 
   private void assertReportCopied(final PolicyEvaluation eval) throws Exception {
-    ApplicationReportPersistenceService reportPersistenceService =
-        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
-    assertThat(reportPersistenceService.reportExists(eval.getApplicationId(), eval.getScanId())).isTrue();
+    ApplicationReportPersistenceService from = applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1));
+    ApplicationReportPersistenceService to = applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(0));
+
+    assertReportEntityStreamsEqual(() -> from.getOriginalReportEntities(eval.getApplicationId(), eval.getScanId()),
+        () -> to.getOriginalReportEntities(eval.getApplicationId(), eval.getScanId()));
+    assertReportEntityStreamsEqual(() -> from.getAllReportEntities(eval.getApplicationId(), eval.getScanId()),
+        () -> to.getAllReportEntities(eval.getApplicationId(), eval.getScanId()));
+
     for (ReportFile reportFile : ReportFile.values()) {
-      ReportEntity reportEntity =
-          reportPersistenceService.getReportEntity(eval.getApplicationId(), eval.getScanId(), reportFile.getName());
-      assertThat(reportEntity.exists()).isTrue();
-      String content;
-      try (InputStream inputStream = reportEntity.getInputStream()) {
-        content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+      ReportEntity fromReportEntity =
+          from.getReportEntity(eval.getApplicationId(), eval.getScanId(), reportFile.getName());
+      assertThat(fromReportEntity.exists()).isTrue();
+      ReportEntity toReportEntity =
+          to.getReportEntity(eval.getApplicationId(), eval.getScanId(), reportFile.getName());
+      assertThat(toReportEntity.exists()).isTrue();
+      try (InputStream fromIs = fromReportEntity.getInputStream(); InputStream toIs = toReportEntity.getInputStream()) {
+        assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
       }
-      assertThat(content).isEqualTo(reportFile.getName());
     }
-    ReportPdfEntity reportPdfEntity = reportPersistenceService.getPdfEntity(eval.getApplicationId(), eval.getScanId());
-    assertThat(reportPdfEntity.exists()).isTrue();
-    String content;
-    try (InputStream inputStream = reportPdfEntity.getInputStream()) {
-      content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+
+    ReportPdfEntity fromReportPdfEntity = from.getPdfEntity(eval.getApplicationId(), eval.getScanId());
+    assertThat(fromReportPdfEntity.exists()).isTrue();
+    ReportPdfEntity toReportPdfEntity = to.getPdfEntity(eval.getApplicationId(), eval.getScanId());
+    assertThat(toReportPdfEntity.exists()).isTrue();
+    try (InputStream fromIs = fromReportPdfEntity.getInputStream();
+         InputStream toIs = toReportPdfEntity.getInputStream()) {
+      assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
     }
-    assertThat(content).isEqualTo(PdfGenerator.REPORT_FILE_NAME);
+  }
+
+  private void assertReportEntityStreamsEqual(
+      final Callable<Stream<ReportEntity>> fromStreamSupplier,
+      final Callable<Stream<ReportEntity>> toStreamSupplier) throws Exception
+  {
+    try (Stream<ReportEntity> fromStream = fromStreamSupplier.call();
+         Stream<ReportEntity> toStream = toStreamSupplier.call()) {
+      Map<String, ReportEntity> fromReportEntityByName = fromStream
+          .collect(Collectors.toMap(ReportEntity::getName, Function.identity()));
+      Map<String, ReportEntity> toReportEntityByName = toStream
+          .collect(Collectors.toMap(ReportEntity::getName, Function.identity()));
+
+      assertThat(fromReportEntityByName.keySet()).isEqualTo(toReportEntityByName.keySet());
+
+      for (String key : fromReportEntityByName.keySet()) {
+        ReportEntity fromReportEntity = fromReportEntityByName.get(key);
+        ReportEntity toReportEntity = toReportEntityByName.get(key);
+        try (InputStream fromIs = fromReportEntity.getInputStream();
+             InputStream toIs = toReportEntity.getInputStream()) {
+          assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
+        }
+      }
+    }
   }
 
   private void assertSbomCopied(final ThirdPartySbomMetadata sbomMetadata) throws Exception {
-    SbomPersistenceService sbomPersistenceService = sbomPersistenceServiceProvider.get(dataStoreTypes.get(0));
-    SbomEntity sbomEntity =
-        sbomPersistenceService.getPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
-    assertThat(sbomEntity.exists()).isTrue();
-    assertThat(ReportHelper.readFromZipStream(sbomEntity.getInputStream(),
-        sbomMetadata.getFilename().substring(0, sbomMetadata.getFilename().length() - 3)))
-        .isEqualTo(sbomMetadata.getId());
+    SbomPersistenceService from = sbomPersistenceServiceProvider.get(dataStoreTypes.get(1));
+    SbomPersistenceService to = sbomPersistenceServiceProvider.get(dataStoreTypes.get(0));
+
+    SbomEntity fromSbomEntity = from.getPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
+    assertThat(fromSbomEntity.exists()).isTrue();
+    SbomEntity toSbomEntity = to.getPermanentSbom(sbomMetadata.getApplicationId(), sbomMetadata.getFilename());
+    assertThat(toSbomEntity.exists()).isTrue();
+
+    try (InputStream fromIs = fromSbomEntity.getInputStream();
+         InputStream toIs = toSbomEntity.getInputStream()) {
+      assertThat(IOUtils.contentEquals(fromIs, toIs)).isTrue();
+    }
   }
 
   private void createScan(final PolicyEvaluation eval) throws Exception {
-    createScan(eval, 0);
+    createScan(eval, 1024);
   }
 
-  private void createScan(final PolicyEvaluation eval, final int additionalContentSizeInBytes) throws Exception {
+  private void createScan(final PolicyEvaluation eval, final int contentSizeInBytes) throws Exception {
     String scanFileName = "scan-" + eval.getScanId() + ".xml";
     Path zipPath = tempDir.getRoot().toPath().resolve(scanFileName + ".gz");
     ReportHelper.createEmptyZip(zipPath);
-    ReportHelper.addToZip(zipPath, zipPath.resolve(scanFileName),
-        generateContent(eval.getScanId(), additionalContentSizeInBytes));
+    ReportHelper.addToZip(zipPath, zipPath.resolve(scanFileName), createRandomInputStream(contentSizeInBytes));
     ScanPersistenceService service = scanPersistenceServiceProvider.get(dataStoreTypes.get(1));
     ScanEntity scanEntity = service.getScan(eval.getApplicationId(), eval.getScanId());
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());
@@ -933,10 +1030,10 @@ public class CopyStorageServiceTest
   }
 
   private void createReport(final PolicyEvaluation eval) throws Exception {
-    createReport(eval, 0);
+    createReport(eval, 1024);
   }
 
-  private void createReport(final PolicyEvaluation eval, final int additionalContentSizeInBytes)
+  private void createReport(final PolicyEvaluation eval, final int contentSizeInBytes)
       throws Exception
   {
     String reportZipName = "report.zip";
@@ -945,7 +1042,7 @@ public class CopyStorageServiceTest
     for (ReportFile reportFile : ReportFile.values()) {
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
         ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()),
-            generateContent(reportFile.getName(), additionalContentSizeInBytes));
+            createRandomInputStream(contentSizeInBytes));
       }
     }
     ApplicationReportPersistenceService service =
@@ -958,70 +1055,60 @@ public class CopyStorageServiceTest
       // Create report.cache
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
           reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
-        try (InputStream content = generateContent(reportFile.getName(), additionalContentSizeInBytes)) {
+        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
           service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
       // Create additional.files
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-        try (InputStream content = generateContent(reportFile.getName(), additionalContentSizeInBytes)) {
+        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
           service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
     }
     // Create report.pdf
-    try (InputStream inputStream = generateContent(PdfGenerator.REPORT_FILE_NAME, additionalContentSizeInBytes);
+    try (InputStream inputStream = createRandomInputStream(contentSizeInBytes);
          OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
              .getOutputStream()) {
       inputStream.transferTo(outputStream);
     }
   }
 
-  private InputStream generateContent(String name, int additionalBytes) {
-    InputStream prefixStream = new ByteArrayInputStream(name.getBytes(StandardCharsets.UTF_8));
-    InputStream randomStream = new InputStream()
-    {
-      private int remaining = additionalBytes;
-
-      private byte[] buffer = new byte[0];
-
-      private int bufferPos = 0;
-
-      @Override
-      public int read() {
-        if (remaining <= 0 && bufferPos >= buffer.length) {
-          return -1;
-        }
-        if (bufferPos >= buffer.length) {
-          int chunk = Math.min(4096, remaining);
-          String random = RandomStringUtils.random(chunk, true, true);
-          buffer = random.getBytes(StandardCharsets.UTF_8);
-          bufferPos = 0;
-          remaining -= chunk;
-        }
-        return buffer[bufferPos++] & 0xFF;
-      }
-    };
-    return new SequenceInputStream(prefixStream, randomStream);
-  }
-
   private void createSbom(final ThirdPartySbomMetadata sbomMetadata) throws Exception {
-    createSbom(sbomMetadata, 0);
+    createSbom(sbomMetadata, 1024);
   }
 
-  private void createSbom(final ThirdPartySbomMetadata sbomMetadata, final int additionalContentSizeInBytes)
+  private void createSbom(final ThirdPartySbomMetadata sbomMetadata, final int contentSizeInBytes)
       throws Exception
   {
     String sbomFileName = sbomMetadata.getFilename();
     Path zipPath = tempDir.getRoot().toPath().resolve(sbomFileName);
     ReportHelper.createEmptyZip(zipPath);
     ReportHelper.addToZip(zipPath, zipPath.resolve(sbomFileName.substring(0, sbomFileName.length() - 3)),
-        generateContent(sbomMetadata.getId(), additionalContentSizeInBytes));
+        createRandomInputStream(contentSizeInBytes));
     SbomPersistenceService service = sbomPersistenceServiceProvider.get(dataStoreTypes.get(1));
     SbomEntity sbomEntity = service.getPermanentSbom(sbomMetadata.getApplicationId(), sbomFileName);
     try (InputStream inputStream = new FileInputStream(zipPath.toFile());
          OutputStream outputStream = sbomEntity.getOutputStream()) {
       inputStream.transferTo(outputStream);
     }
+  }
+
+  private InputStream createRandomInputStream(final int numberOfBytes) {
+    return new InputStream()
+    {
+      private final Random random = new Random();
+
+      private int remaining = numberOfBytes;
+
+      @Override
+      public int read() {
+        if (remaining <= 0) {
+          return -1;
+        }
+        remaining--;
+        return random.nextInt(256);
+      }
+    };
   }
 }

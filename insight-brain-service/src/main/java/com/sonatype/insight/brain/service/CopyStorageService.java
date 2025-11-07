@@ -157,9 +157,15 @@ public class CopyStorageService
       @Override
       public void shutdown() {
         super.shutdown();
-        getQueue().clear();
+        // Release a permit to ensure acquireUninterruptibly is not blocking
+        // As soon as a waiting tenant gets this permit, it will
+        // 1. Fail to submit since the executor is shutdown
+        // 2. Release the extra permit
+        // 3. Finish since the exception will propagate up
+        // Also, the limit will now be off, but it doesn't matter because we're shutting down anyway
+        copyLimit.get().release(1);
+        // Force phaser termination to ensure arriveAndAwaitAdvance does not block
         phasers.forEach(Phaser::forceTermination);
-        phasers.clear();
       }
     };
     tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
@@ -418,6 +424,11 @@ public class CopyStorageService
       copyStorageResult.setEnd(new Date());
       log.info("Finished copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to, copyStorageResult);
     }
+    catch (Exception e) {
+      log.error("Unable to finish copy of scans, reports, and SBOMs from '{}' to '{}': {}.", from, to,
+          copyStorageResult, e);
+      throw e;
+    }
     finally {
       phasers.remove(tenantPhaser);
       logScheduler.shutdownNow();
@@ -486,10 +497,10 @@ public class CopyStorageService
         }
       });
     }
-    catch (Throwable e) {
+    catch (Throwable t) {
       phaser.arriveAndDeregister();
       limit.release();
-      throw e;
+      throw t;
     }
   }
 
@@ -759,7 +770,15 @@ public class CopyStorageService
     @Override
     public void close() throws IOException {
       try {
-        asyncWriting.get();
+        if (in.available() == 0) {
+          asyncWriting.get();
+        }
+        else {
+          // All the data should have been read by the time close is called
+          // If data is still available, then the read was interrupted, e.g., by an exception
+          // In this case, we cancel the writing
+          asyncWriting.cancel(true);
+        }
       }
       catch (InterruptedException e) {
         log.error(e.getMessage(), e);
@@ -779,7 +798,8 @@ public class CopyStorageService
     }
   }
 
-  private InputStreamWithAsyncWriter createInputStream(final Stream<ReportEntity> reportEntities)
+  // Visible for testing
+  InputStreamWithAsyncWriter createInputStream(final Stream<ReportEntity> reportEntities)
       throws IOException
   {
     PipedInputStream pipedInputStream = new PipedInputStream(PIPE_SIZE);

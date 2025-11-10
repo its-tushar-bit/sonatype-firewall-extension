@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { prop, pickAll } from 'ramda';
+import { prop, pickAll, pipe } from 'ramda';
 import { createSelector } from '@reduxjs/toolkit';
 import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
 
@@ -77,3 +77,9 @@ export const selectAddWaiverFromFirewallRedirectionProps = createSelector(
     identificationSource: componentDetails?.identificationSource,
   })
 );
+
+export const selectShowLimitedFirewallAccessAlert = pipe(selectFirewall, prop('showLimitedFirewallAccessAlert'));
+
+export const selectFirewallViewState = createSelector(selectFirewall, prop('viewState'));
+
+export const selectFirewallLoadError = createSelector(selectFirewallViewState, prop('loadError'));

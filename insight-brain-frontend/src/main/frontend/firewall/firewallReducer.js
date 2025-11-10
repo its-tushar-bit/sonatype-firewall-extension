@@ -7,6 +7,7 @@
 import { createReducerFromActionMap } from '../util/reduxUtil';
 import {
   FIREWALL_SET_SHOW_WELCOME_MODAL,
+  FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT,
   FIREWALL_AUTO_UNQUARANTINE_DATA_REQUESTED,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_PAGE,
   FIREWALL_AUTO_UNQUARANTINE_GRID_SET_SORTING,
@@ -82,6 +83,7 @@ import { pathSet, propSet } from '../util/jsUtil';
 export const initialState = Object.freeze({
   selectedPolicyId: null,
   showWelcomeModal: false,
+  showLimitedFirewallAccessAlert: false,
   cip: Object.freeze({
     selectedComponent: null,
     selectedComponentIndex: null,
@@ -208,6 +210,13 @@ const setShowWelcomeModal = (payload, state) => {
   return {
     ...state,
     showWelcomeModal: payload,
+  };
+};
+
+const setShowLimitedFirewallAccessAlert = (payload, state) => {
+  return {
+    ...state,
+    showLimitedFirewallAccessAlert: payload,
   };
 };
 
@@ -945,6 +954,7 @@ const setContainerWaiverGridLastUpdated = (payload, state) =>
 
 const reducerActionMap = {
   [FIREWALL_SET_SHOW_WELCOME_MODAL]: setShowWelcomeModal,
+  [FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT]: setShowLimitedFirewallAccessAlert,
   [FIREWALL_LOAD_DATA_REQUESTED]: setFirewallLoadDataRequested,
   [FIREWALL_SET_SHOW_CONFIGURATION_MODAL]: setShowConfigurationModal,
   [FIREWALL_LOAD_CONFIGURATION_REQUESTED]: loadConfigurationRequested,

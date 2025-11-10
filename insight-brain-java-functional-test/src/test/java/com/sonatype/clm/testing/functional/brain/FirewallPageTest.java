@@ -58,7 +58,6 @@ import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.MemberType;
-import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.successmetrics.FirewallMetrics;
@@ -138,6 +137,7 @@ public class FirewallPageTest
         LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
+    
   }
 
   private void setupData() {
@@ -1023,27 +1023,6 @@ public class FirewallPageTest
   }
 
   @Test
-  public void testRoiFirewallMetrics_rendersCorrectDescriptionForNotSystemAdmin() {
-    String roiFirewallMetricsDescriptionNoConfigurePermission = "The metrics below highlights the Return on " +
-        "Investment (ROI) of your organization’s partnership with Sonatype.";
-    User user = tempEntity.newUser("john.doe", "John", "Doe", "john@doe.com");
-    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, Role.POLICY_ADMIN_ROLE_ID, "john.doe",
-        MemberType.USER);
-
-    refreshOrOpen(FirewallPage.url());
-    logout();
-    login(user.getUsername(), user.getPassword());
-    refreshOrOpen(FirewallPage.roiTabUrl());
-    page.roiFirewallMetricsTab().click();
-    RoiFirewallMetrics roiFirewallMetrics = page.roiFirewallMetrics();
-    roiFirewallMetrics.description().shouldHave(text(roiFirewallMetricsDescriptionNoConfigurePermission));
-
-    logout();
-    refreshOrOpen(FirewallPage.url());
-    loginAsAdmin();
-  }
-
-  @Test
   public void testRoiFirewallMetrics_tabDoesNotRenderIfUrlDoesNotHaveQueryParam() {
     refreshOrOpen(FirewallPage.url());
     page.roiFirewallMetricsTab().shouldNot(exist);
@@ -1285,6 +1264,141 @@ public class FirewallPageTest
         .setExpiryTime(threeDaysFromNow)
         .setForContainerImage(true)
         .setForContainerImageComponent(false));
+  }
+
+  @Test
+  public void testFirewallPage_AdminUserSeesFullContent() {
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.limitedFirewallAccessAlert().shouldNotBe(visible);
+    page.firewallStatus().shouldBe(visible);
+    page.firewallMetrics().shouldBe(visible);
+    page.firewallQuarantineTable().shouldBe(visible);
+  }
+
+  @Test
+  public void testFirewallPage_RepositoryUserSeesLimitedAccessAlert() {
+    // Create a non-admin user with repository access
+    User repositoryUser = tempEntity.newUser("repo.user", "Repository", "User", "repo@user.com");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("repo-manager-1");
+    Repository repository = tempEntity.newRepository(repositoryManager, "test-repo", true, false);
+
+    // Grant repository-level permissions to the user
+    tempEntity.newMembershipMapping(repository.getId(), Role.DEVELOPER_ROLE_ID, repositoryUser.getUsername(),
+        MemberType.USER);
+
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+    logout();
+    login(repositoryUser.getUsername(), repositoryUser.getPassword());
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.limitedFirewallAccessAlert().shouldBe(visible);
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("You have limited access to Repository Firewall based on your current permissions."));
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("Some data or settings may not be visible. Contact your administrator to request full " +
+            "access to Repository Firewall."));
+
+    // Verify that the full firewall content is NOT displayed
+    page.firewallStatus().shouldNotBe(visible);
+    page.firewallMetrics().shouldNotBe(visible);
+    page.firewallQuarantineTable().shouldNotBe(visible);
+
+    logout();
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
+  }
+
+  @Test
+  public void testFirewallPage_RepositoryManagerUserSeesLimitedAccessAlert() {
+    // Create a non-admin user with repository manager access
+    User repositoryManagerUser = tempEntity.newUser("repo.manager.user", "Repo Manager", "User",
+        "repomanager@user.com");
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("repo-manager-2");
+
+    // Grant repository manager-level permissions to the user
+    tempEntity.newMembershipMapping(repositoryManager.getId(), Role.DEVELOPER_ROLE_ID,
+        repositoryManagerUser.getUsername(), MemberType.USER);
+
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+    logout();
+    login(repositoryManagerUser.getUsername(), repositoryManagerUser.getPassword());
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.limitedFirewallAccessAlert().shouldBe(visible);
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("You have limited access to Repository Firewall based on your current permissions."));
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("Some data or settings may not be visible. Contact your administrator to request full " +
+            "access to Repository Firewall."));
+
+    // Verify that the full firewall content is NOT displayed
+    page.firewallStatus().shouldNotBe(visible);
+    page.firewallMetrics().shouldNotBe(visible);
+    page.firewallQuarantineTable().shouldNotBe(visible);
+
+    logout();
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
+  }
+
+  @Test
+  public void testFirewallPage_NonRepositoryUserCannotAccessPage() {
+    // Create a user with no permissions at all
+    User nonRepositoryUser = tempEntity.newUser("non.repo.user", "Non Repository", "User", "nonrepo@user.com");
+
+    // Don't grant any permissions - user has no access to anything
+
+    refreshOrOpen(FirewallPage.url());
+    logout();
+    login(nonRepositoryUser.getUsername(), nonRepositoryUser.getPassword());
+    refreshOrOpen(FirewallPage.url());
+
+    // User should see the limited access alert
+    page.limitedFirewallAccessAlert().shouldBe(visible);
+
+    logout();
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
+  }
+
+  @Test
+  public void testFirewallPage_SystemAdminWithoutRepositoryAccessSeesLimitedAccessAlert() {
+    // Create a system admin user who is not a policy admin and has no repository-specific access
+    User systemAdminUser = tempEntity.newUser("system.admin.user", "System Admin", "User", "sysadmin@user.com");
+
+    // Grant system admin role at global level (not repository or repository manager specific)
+    tempEntity.newMembershipMapping("global", Role.SYSTEM_ADMIN_ROLE_ID, systemAdminUser.getUsername(),
+        MemberType.USER);
+
+    setupData();
+    refreshOrOpen(FirewallPage.url());
+    logout();
+    login(systemAdminUser.getUsername(), systemAdminUser.getPassword());
+    refreshOrOpen(FirewallPage.url());
+
+    page.shouldBe(visible);
+    page.limitedFirewallAccessAlert().shouldBe(visible);
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("You have limited access to Repository Firewall based on your current permissions."));
+    page.limitedFirewallAccessAlert()
+        .shouldHave(text("Some data or settings may not be visible. Contact your administrator to request full " +
+            "access to Repository Firewall."));
+
+    // Verify that the full firewall content is NOT displayed
+    page.firewallStatus().shouldNotBe(visible);
+    page.firewallMetrics().shouldNotBe(visible);
+    page.firewallQuarantineTable().shouldNotBe(visible);
+
+    logout();
+    refreshOrOpen(FirewallPage.url());
+    loginAsAdmin();
   }
 }
 

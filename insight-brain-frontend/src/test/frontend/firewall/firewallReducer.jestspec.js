@@ -9,6 +9,7 @@ describe('firewallReducer', function () {
   const defaultState = Object.freeze({
     selectedPolicyId: null,
     showWelcomeModal: false,
+    showLimitedFirewallAccessAlert: false,
     cip: Object.freeze({
       selectedComponent: null,
       selectedComponentIndex: null,
@@ -164,6 +165,26 @@ describe('firewallReducer', function () {
         ...minimumState,
         showWelcomeModal: true,
       });
+    });
+  });
+
+  describe('FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT action', function () {
+    let minimumState = {};
+
+    it('updates the state and sets the showLimitedFirewallAccessAlert to the payload', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT', payload: true })).toEqual({
+        ...minimumState,
+        showLimitedFirewallAccessAlert: true,
+      });
+    });
+
+    it('updates the state and sets the showLimitedFirewallAccessAlert to false', function () {
+      expect(reduce(minimumState, { type: 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT', payload: false })).toEqual(
+        {
+          ...minimumState,
+          showLimitedFirewallAccessAlert: false,
+        }
+      );
     });
   });
 

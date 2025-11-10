@@ -107,4 +107,8 @@ public class FirewallPage
   public FirewallContainerQuarantineTabContent firewallContainerQuarantineTabContent() {
     return new FirewallContainerQuarantineTabContent(ROOT);
   }
+
+  public SelenideElement limitedFirewallAccessAlert() {
+    return child(".iq-limited-firewall-access-alert");
+  }
 }

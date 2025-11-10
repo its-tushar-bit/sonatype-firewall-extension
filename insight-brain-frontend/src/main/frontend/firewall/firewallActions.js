@@ -40,8 +40,12 @@ import { getShowWelcomeModalFromStore, removeShowWelcomeModalFromStore } from '.
 import { loadApplicableWaivers } from 'MainRoot/violation/violationActions';
 
 export const FIREWALL_SET_SHOW_WELCOME_MODAL = 'FIREWALL_SET_SHOW_WELCOME_MODAL';
+export const FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT = 'FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT';
 
 export const setShowWelcomeModal = payloadParamActionCreator(FIREWALL_SET_SHOW_WELCOME_MODAL);
+export const setShowLimitedFirewallAccessAlert = payloadParamActionCreator(
+  FIREWALL_SET_SHOW_LIMITED_FIREWALL_ACCESS_ALERT
+);
 
 export const FIREWALL_LOAD_DATA_REQUESTED = 'FIREWALL_LOAD_DATA_REQUESTED';
 
@@ -279,6 +283,7 @@ export function closeWelcomeModal() {
 export function loadFirewallData() {
   return (dispatch) => {
     dispatch(loadFirewallDataRequested());
+
     dispatch(loadConfiguration());
     dispatch(loadTileMetrics());
     dispatch(loadReleaseQuarantineSummary());
@@ -416,7 +421,12 @@ export function loadConfiguration() {
         dispatch(loadConfigurationFulfilled(data));
       })
       .catch((error) => {
-        dispatch(loadConfigurationFailed(Messages.getHttpErrorMessage(error)));
+        if (error?.response?.status === 403) {
+          dispatch(setShowLimitedFirewallAccessAlert(true));
+        } else {
+          dispatch(setShowLimitedFirewallAccessAlert(false));
+          dispatch(loadConfigurationFailed(Messages.getHttpErrorMessage(error)));
+        }
       });
   };
 }

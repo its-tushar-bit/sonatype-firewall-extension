@@ -10,6 +10,7 @@ import { fireEvent, screen, within } from '@testing-library/react';
 import { render } from 'TestRoot/SpecUtil';
 import FirewallPage from 'MainRoot/firewall/FirewallPage';
 import * as productFeatures from 'MainRoot/productFeatures/productFeaturesSelectors';
+import * as firewallSelectors from 'MainRoot/firewall/firewallSelectors';
 
 describe('FirewallPage', () => {
   const props = {
@@ -61,6 +62,7 @@ describe('FirewallPage', () => {
 
   beforeEach(() => {
     jest.spyOn(productFeatures, 'selectIsContainerImagesEvaluationEnabled').mockReturnValue(true);
+    jest.spyOn(firewallSelectors, 'selectShowLimitedFirewallAccessAlert').mockReturnValue(false);
   });
 
   it('renders tabs and Components tab panel by default', () => {
@@ -112,5 +114,46 @@ describe('FirewallPage', () => {
 
     expect(tabList).not.toBeInTheDocument();
     expect(tabPanels).toHaveLength(0);
+  });
+
+  describe('LimitedFirewallAccessAlert', () => {
+    it('shows LimitedFirewallAccessAlert when showLimitedFirewallAccessAlert is true', () => {
+      jest.spyOn(firewallSelectors, 'selectShowLimitedFirewallAccessAlert').mockReturnValue(true);
+
+      render(<FirewallPage {...props} />);
+
+      expect(
+        screen.getByText('You have limited access to Repository Firewall based on your current permissions.')
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/Some data or settings may not be visible. Contact your administrator to request /i)
+      ).toBeInTheDocument();
+      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    });
+
+    it('hides firewall content when LimitedFirewallAccessAlert is shown', () => {
+      jest.spyOn(firewallSelectors, 'selectShowLimitedFirewallAccessAlert').mockReturnValue(true);
+
+      render(<FirewallPage {...props} />);
+
+      // Alert should be shown
+      expect(
+        screen.getByText('You have limited access to Repository Firewall based on your current permissions.')
+      ).toBeInTheDocument();
+
+      // Firewall content should not be shown
+      expect(screen.queryByRole('tablist')).not.toBeInTheDocument();
+    });
+
+    it('does not show LimitedFirewallAccessAlert when showLimitedFirewallAccessAlert is false', () => {
+      jest.spyOn(firewallSelectors, 'selectShowLimitedFirewallAccessAlert').mockReturnValue(false);
+
+      render(<FirewallPage {...props} />);
+
+      expect(
+        screen.queryByText('You have limited access to Repository Firewall based on your current permissions.')
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('tablist')).toBeInTheDocument();
+    });
   });
 });

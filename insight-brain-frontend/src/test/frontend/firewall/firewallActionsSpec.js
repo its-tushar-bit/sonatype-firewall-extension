@@ -498,9 +498,9 @@ describe('firewallActions', function () {
 
         store.dispatch(loadConfiguration()).then(() => {
           actions = store.getActions();
-          expect(actions.length).toBe(2);
-          expect(actions[1].type).toBe(FIREWALL_LOAD_CONFIGURATION_FAILED);
-          expect(actions[1].payload).toBe('error!');
+          expect(actions.length).toBe(3);
+          expect(actions[2].type).toBe(FIREWALL_LOAD_CONFIGURATION_FAILED);
+          expect(actions[2].payload).toBe('error!');
           done();
         });
 

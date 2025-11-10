@@ -9,7 +9,15 @@ import { useSelector } from 'react-redux';
 
 import { compose } from 'ramda';
 import * as PropTypes from 'prop-types';
-import { NxPageTitle, NxH1, NxTab, NxTabList, NxTabPanel, NxStatefulTabs } from '@sonatype/react-shared-components';
+import {
+  NxPageTitle,
+  NxH1,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
+  NxStatefulTabs,
+  NxInfoAlert,
+} from '@sonatype/react-shared-components';
 
 import FirewallStatus from './FirewallStatus';
 import LoadWrapper from '../react/LoadWrapper';
@@ -20,6 +28,7 @@ import { COMPONENTS, CONTAINERS, QUARANTINE, WAIVERS } from 'MainRoot/constants/
 import FirewallConfigurationModalContainer from './config/FirewallConfigurationModalContainer';
 import { capitalizeFirstLetter } from 'MainRoot/util/jsUtil';
 import { selectIsContainerImagesEvaluationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectShowLimitedFirewallAccessAlert } from 'MainRoot/firewall/firewallSelectors';
 import FirewallContainerTabs from 'MainRoot/firewall/FirewallContainerTabs';
 
 const TABS = [COMPONENTS, CONTAINERS];
@@ -71,6 +80,8 @@ export default function FirewallPage(props) {
 
   const isContainerImagesEvalEnabled = useSelector(selectIsContainerImagesEvaluationEnabled);
 
+  const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
+
   useEffect(() => {
     loadFirewallData();
     initializeWelcomeModal();
@@ -95,6 +106,17 @@ export default function FirewallPage(props) {
   };
 
   const handleTabClick = (index) => stateGo(`firewall.firewallPage.${TABS[index]}`);
+
+  const limitedFirewallAccessAlert = () => {
+    return (
+      <NxInfoAlert className="iq-limited-firewall-access-alert">
+        <strong>You have limited access to Repository Firewall based on your current permissions.</strong>
+        <br />
+        Some data or settings may not be visible. Contact your administrator to request full access to Repository
+        Firewall.
+      </NxInfoAlert>
+    );
+  };
 
   const firewallComponentsTabContent = () => {
     return (
@@ -149,16 +171,23 @@ export default function FirewallPage(props) {
           <NxH1>Repository Firewall</NxH1>
         </NxPageTitle.Headings>
       </NxPageTitle>
-      {!isContainerImagesEvalEnabled && firewallComponentsTabContent()}
-      {isContainerImagesEvalEnabled && (
-        <NxStatefulTabs id="firewall-page-tabs" defaultActiveTab={defaultActiveTab} onTabSelect={handleTabClick}>
-          <NxTabList>
-            <NxTab id={`firewall-${COMPONENTS}-tab`}>{capitalizeFirstLetter(COMPONENTS)}</NxTab>
-            <NxTab id={`firewall-${CONTAINERS}-tab`}>{capitalizeFirstLetter(CONTAINERS)}</NxTab>
-          </NxTabList>
-          <NxTabPanel id={`firewall-${COMPONENTS}-tab-panel`}>{firewallComponentsTabContent()}</NxTabPanel>
-          <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>{firewallContainersTabContent()}</NxTabPanel>
-        </NxStatefulTabs>
+      {showLimitedFirewallAccessAlert ? (
+        limitedFirewallAccessAlert()
+      ) : (
+        <>
+          {isContainerImagesEvalEnabled ? (
+            <NxStatefulTabs id="firewall-page-tabs" defaultActiveTab={defaultActiveTab} onTabSelect={handleTabClick}>
+              <NxTabList>
+                <NxTab id={`firewall-${COMPONENTS}-tab`}>{capitalizeFirstLetter(COMPONENTS)}</NxTab>
+                <NxTab id={`firewall-${CONTAINERS}-tab`}>{capitalizeFirstLetter(CONTAINERS)}</NxTab>
+              </NxTabList>
+              <NxTabPanel id={`firewall-${COMPONENTS}-tab-panel`}>{firewallComponentsTabContent()}</NxTabPanel>
+              <NxTabPanel id={`firewall-${CONTAINERS}-tab-panel`}>{firewallContainersTabContent()}</NxTabPanel>
+            </NxStatefulTabs>
+          ) : (
+            firewallComponentsTabContent()
+          )}
+        </>
       )}
     </main>
   );

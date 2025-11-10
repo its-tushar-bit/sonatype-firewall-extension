@@ -18,8 +18,12 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
   Object.assign(vm, {
     $onInit() {
       const actions = pick(['setReportParameters'], applicationReportActions);
-      vm.unsubscribe = $ngRedux.connect(null, actions)(vm);
-      vm.setReportParameters(
+      const boundActions = {};
+      Object.keys(actions).forEach((key) => {
+        boundActions[key] = (...args) => $ngRedux.dispatch(actions[key](...args));
+      });
+
+      boundActions.setReportParameters(
         $state.params.publicId,
         $state.params.scanId,
         !!$state.params.unknownjs,
@@ -29,10 +33,6 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
         $state.params.tabId,
         true
       );
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
     },
   });
 }

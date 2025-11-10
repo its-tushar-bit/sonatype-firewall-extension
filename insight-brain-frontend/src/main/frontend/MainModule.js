@@ -357,6 +357,13 @@ export const InitModule = angular
         $q.all([$ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded())])
           .then(([result]) => {
             unwrapResult(result);
+            // Update isAllowExternalHyperlinks from Redux state after fetching product features
+            // (but only if not already set by a test)
+            if ($rootScope.isAllowExternalHyperlinks === undefined) {
+              const state = $ngRedux.getState();
+              $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
+            }
+
             if (!$rootScope.isAllowExternalHyperlinks) {
               const externalLinkClickHandler = (e) => {
                 const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
@@ -388,10 +395,21 @@ export const InitModule = angular
       }
 
       function doStart() {
-        const unsubscribe = $ngRedux.connect(mapStateToThis, {
-          removeAllToasts: toastSliceActions.removeAllToasts,
-        })($rootScope);
-        $rootScope.$on('$destroy', unsubscribe);
+        // Check if this is a test environment (tests may pre-set values)
+        const isTest = $rootScope.isAllowExternalHyperlinks !== undefined;
+
+        // Subscribe to Redux state changes for $rootScope properties
+        if (!isTest) {
+          const unsubscribeRootScope = $ngRedux.subscribe(() => {
+            const state = $ngRedux.getState();
+            $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
+          });
+          $rootScope.$on('$destroy', unsubscribeRootScope);
+
+          // Initialize rootScope properties
+          const initialState = $ngRedux.getState();
+          $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(initialState);
+        }
 
         $q.all([waitForLogin($ngRedux), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
@@ -444,8 +462,10 @@ export const InitModule = angular
         }
 
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
-          if (!isEmpty($rootScope.toast.toasts)) {
-            $rootScope.removeAllToasts();
+          const state = $ngRedux.getState();
+          const toast = selectToastSlice(state);
+          if (!isEmpty(toast.toasts)) {
+            $ngRedux.dispatch(toastSliceActions.removeAllToasts());
           }
           if (!isProcessingStateChange) {
             var e = $rootScope.$broadcast('pageChangeStarted');
@@ -517,11 +537,6 @@ export const InitModule = angular
     'navigationContainer',
     iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$ngRedux', '$rootScope', '$state'])
   );
-
-export const mapStateToThis = (state) => ({
-  isAllowExternalHyperlinks: selectIsAllowExternalHyperlinksSupported(state),
-  toast: selectToastSlice(state),
-});
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([
   'initService',

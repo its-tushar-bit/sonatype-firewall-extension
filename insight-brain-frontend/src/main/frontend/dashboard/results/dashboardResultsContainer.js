@@ -11,16 +11,30 @@ export default {
   controllerAs: 'vm',
 };
 
-function dashboardResultsContainerController($ngRedux) {
+function dashboardResultsContainerController($ngRedux, $scope) {
   const vm = this;
+
+  function mapStateToThis(state) {
+    return {
+      filterLoading: state.dashboardFilter.loading,
+      loadFilterError: state.dashboardFilter.loadError,
+    };
+  }
+
+  function updateState() {
+    const state = $ngRedux.getState();
+    const mapped = mapStateToThis(state);
+    Object.assign(vm, mapped);
+  }
 
   Object.assign(vm, {
     $onInit() {
-      vm.unsubscribe = $ngRedux.connect(mapStateToThis)(vm);
-    },
-
-    $onDestroy() {
-      vm.unsubscribe();
+      updateState();
+      const unsubscribe = $ngRedux.subscribe(() => {
+        updateState();
+        $scope.$applyAsync();
+      });
+      $scope.$on('$destroy', unsubscribe);
     },
 
     isFilterLoaded() {
@@ -29,11 +43,4 @@ function dashboardResultsContainerController($ngRedux) {
   });
 }
 
-dashboardResultsContainerController.$inject = ['$ngRedux'];
-
-function mapStateToThis(state) {
-  return {
-    filterLoading: state.dashboardFilter.loading,
-    loadFilterError: state.dashboardFilter.loadError,
-  };
-}
+dashboardResultsContainerController.$inject = ['$ngRedux', '$scope'];

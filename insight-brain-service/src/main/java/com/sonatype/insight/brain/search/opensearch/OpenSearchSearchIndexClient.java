@@ -121,6 +121,8 @@ public class OpenSearchSearchIndexClient
 
   private final AtomicReference<Duration> currentCooldown = new AtomicReference<>(INITIAL_COOLDOWN);
 
+  private final AtomicReference<String> oldRealIndexName = new AtomicReference<>();
+
   @Inject
   public OpenSearchSearchIndexClient(
       final ApplicationDAO applicationDAO,
@@ -167,13 +169,22 @@ public class OpenSearchSearchIndexClient
   public void populateIndex() {
     log.info("creating search index...");
     long start = System.currentTimeMillis();
+    boolean indexRotated = false;
     try {
+      oldRealIndexName.set(getRealIndexName());
       createIndexAndOverwriteIfNeeded();
+      indexRotated = true;
       doPopulateIndex(new OpenSearchIndexingContext(ownerDAO, conversionHelper, indexConfigProvider, getClient()));
       log.info("all indexing complete");
     }
     catch (Exception e) {
       throw new SearchIndexException("Error creating search index", e);
+    }
+    finally {
+      String oldRealIndexNameValue = oldRealIndexName.getAndSet(null);
+      if (indexRotated) {
+        deleteIndex(oldRealIndexNameValue);
+      }
     }
     sendAdvancedSearchIndexingTelemetry(System.currentTimeMillis() - start);
     log.info("index creation exit");
@@ -183,6 +194,9 @@ public class OpenSearchSearchIndexClient
   public void updateIndex() {
     List<SearchIndexChange> searchIndexChanges = getSearchIndexChanges();
     if (searchIndexChanges.isEmpty()) {
+      return;
+    }
+    if (oldRealIndexName.get() != null) {
       return;
     }
     try {
@@ -313,9 +327,11 @@ public class OpenSearchSearchIndexClient
       int maxResultWindow = getMaxResultWindow();
       int newPageSize = Math.min(maxResultWindow, desiredStartIndex + pageSize);
       int currentPageStartIndex = 0;
+      String index = oldRealIndexName.get();
+      index = index == null ? indexConfigProvider.getIndexConfig().getIndexName() : index;
       while (true) {
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-            .index(indexConfigProvider.getIndexConfig().getIndexName())
+            .index(index)
             .query(q -> q
                 .queryString(qs -> qs
                     .query(finalQuery)
@@ -460,11 +476,6 @@ public class OpenSearchSearchIndexClient
       }
 
       log.info("Alias '{}' now points to '{}'", aliasName, newIndex);
-
-      if (oldIndex != null) {
-        deleteIndex(oldIndex);
-        log.info("Deleted old index '{}'", oldIndex);
-      }
     }
     catch (Exception e) {
       log.error("Failed to rotate index for alias '{}'", indexConfigProvider.getIndexConfig().getIndexName(), e);
@@ -481,13 +492,15 @@ public class OpenSearchSearchIndexClient
       if (!deleteIndexResponse.acknowledged()) {
         throw new RuntimeException("Delete not acknowledged.");
       }
+      log.info("Deleted index '{}'", name);
     }
     catch (Exception e) {
       log.error("Failed to delete the index {}.", name, e);
     }
   }
 
-  private String getRealIndexName() throws IOException {
+  // Visible for testing
+  String getRealIndexName() throws IOException {
     return getCurrentIndexNameForAlias(indexConfigProvider.getIndexConfig().getIndexName());
   }
 

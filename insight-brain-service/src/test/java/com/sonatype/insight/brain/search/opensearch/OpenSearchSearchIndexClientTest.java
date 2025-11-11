@@ -9,7 +9,14 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.security.MembershipMapping;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
@@ -21,10 +28,12 @@ import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.json.store.JsonUtils;
 
+import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
-import com.google.inject.Binder;
 import org.opensearch.client.opensearch.OpenSearchClient;
+import org.opensearch.client.opensearch.cat.IndicesResponse;
+import org.opensearch.client.opensearch.cat.indices.IndicesRecord;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexResponse;
@@ -35,11 +44,12 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.mock;
 
 @OpenSearchHttpTest
 public class OpenSearchSearchIndexClientTest
@@ -154,5 +164,65 @@ public class OpenSearchSearchIndexClientTest
 
     assertThat(result).isNotNull();
     assertThat(result.searchQuery).isEqualTo(longQuery);
+  }
+
+  @Test
+  public void testSearchIndex_ReturnsOldIndexResultsDuringFullReindex() throws Exception {
+    UserPrincipal userPrincipal = new UserPrincipal("username", "displayName", InternalRealm.ID);
+    when(currentUser.getUserPrincipal()).thenReturn(userPrincipal);
+    Role role = tempEntity.newRole(true, Permission.READ);
+    tempEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), "username");
+
+    // Create the first org and check search works
+    Organization org1 = tempEntity.newOrganization();
+    openSearchSearchIndexClient.populateIndex();
+    SearchResultDTO result = openSearchSearchIndexClient.searchIndex(
+        "itemType:ORGANIZATION AND organizationId:" + org1.getId(), 10, 1, false, false, null);
+    assertThat(result.totalNumberOfHits).isEqualTo(1);
+
+    // Trigger a full re-index in a new thread
+    OpenSearchSearchIndexClient spy = spy(openSearchSearchIndexClient);
+    CountDownLatch preFullReindexBlock = new CountDownLatch(1);
+    CountDownLatch fullReindexBlock = new CountDownLatch(1);
+    AtomicReference<String> oldRealIndexName = new AtomicReference<>();
+    doAnswer(invocation -> {
+      oldRealIndexName.set(openSearchSearchIndexClient.getRealIndexName());
+      invocation.callRealMethod();
+      preFullReindexBlock.countDown();
+      assertThat(fullReindexBlock.await(5, TimeUnit.SECONDS)).isTrue();
+      return null;
+    }).when(spy).createIndexAndOverwriteIfNeeded();
+    Thread thread = new Thread(spy::populateIndex);
+    thread.start();
+    assertThat(preFullReindexBlock.await(5, TimeUnit.SECONDS)).isTrue();
+
+    // Whilst it's waiting to trigger an update
+    Organization org2 = tempEntity.newOrganization();
+    // Documents before the full re-index should be available
+    result = openSearchSearchIndexClient.searchIndex(
+        "itemType:ORGANIZATION AND organizationId:" + org1.getId(), 10, 1, false, false, null);
+    assertThat(result.totalNumberOfHits).isEqualTo(1);
+    // New org should not be available yet
+    result = openSearchSearchIndexClient.searchIndex(
+        "itemType:ORGANIZATION AND organizationId:" + org2.getId(), 10, 1, false, false, null);
+    assertThat(result.totalNumberOfHits).isZero();
+    // Let the full re-index finish
+    fullReindexBlock.countDown();
+    // Force index updates to be processed
+    openSearchSearchIndexClient.updateIndex();
+    thread.join(5000);
+    assertThat(thread.isAlive()).isFalse();
+    // Force index updates to be processed
+    openSearchSearchIndexClient.updateIndex();
+    // Both orgs should be available just once
+    result = openSearchSearchIndexClient.searchIndex(
+        "itemType:ORGANIZATION AND organizationId:" + org1.getId(), 10, 1, false, false, null);
+    assertThat(result.totalNumberOfHits).isEqualTo(1);
+    result = openSearchSearchIndexClient.searchIndex(
+        "itemType:ORGANIZATION AND organizationId:" + org2.getId(), 10, 1, false, false, null);
+    assertThat(result.totalNumberOfHits).isEqualTo(1);
+    // Check that the old search index is deleted
+    IndicesResponse indicesResponse = openSearchSearchIndexClient.getClient().cat().indices();
+    assertThat(indicesResponse.valueBody()).extracting(IndicesRecord::index).doesNotContain(oldRealIndexName.get());
   }
 }

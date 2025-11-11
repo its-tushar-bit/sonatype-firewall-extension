@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.StreamingOutput;
@@ -24,9 +23,12 @@ import javax.ws.rs.core.StreamingOutput;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
+import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Color;
 import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.label.Label;
@@ -37,6 +39,8 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.tag.Tag;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
+import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductMode;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
@@ -44,6 +48,7 @@ import com.sonatype.insight.brain.report.ReportTestUtils;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 import com.sonatype.insight.brain.search.index.IndexService;
 import com.sonatype.insight.brain.search.index.ItemType;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.index.VulnerabilityDescriptionFetcher;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.search.results.SearchResultItemDTO;
@@ -65,6 +70,7 @@ import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES;
 import static com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryCollector.TOTAL_SEARCHES_BY_FIELD_NAME;
@@ -100,6 +106,15 @@ public abstract class AbstractSearchServiceTest
 
   @Inject
   private TestProductLicense testProductLicense;
+
+  @Inject
+  private ThirdPartySbomMetadataDAO thirdPartySbomMetadataDAO;
+
+  @Inject
+  private SearchIndexManager searchIndexManager;
+
+  @Inject
+  private SearchIndexClient searchIndexClient;
 
   @Override
   public void configure(Binder binder) {
@@ -926,6 +941,51 @@ public abstract class AbstractSearchServiceTest
           Set.of(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT));
       configurationService.applyConfigurationToClients(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
     }
+  }
+
+  @Test
+  public void testSearchIndex_ApplicationVersionBadCharacters() {
+    // Setup the user
+    UserPrincipal userPrincipal = (UserPrincipal) subject.getPrincipal();
+    Role role = tempEntity.newRole(false, Permission.READ);
+    tempEntity.newMembershipMapping(Organization.ROOT_ORGANIZATION_ID, role.getId(), userPrincipal.getUsername());
+    Application application = tempEntity.newApplicationWithParent();
+    indexService.createSearchIndex();
+
+    // Create the SBOM
+    ThirdPartyFile file = tempEntity.newThirdPartyFile("CycloneDX-bom.xml");
+    String applicationVersion = "}-13.7.59d072-20250926-8";
+    ThirdPartySbomMetadata sbomMetadata =
+        tempEntity.newThirdPartySbomMetadata(file.getId(), application.getId(), ACTIVE, file.getFilename());
+    sbomMetadata.setSbomVersion(applicationVersion);
+    thirdPartySbomMetadataDAO.update(sbomMetadata);
+
+    // Manually insert the search index change for the SBOM with characters that need escaping
+    SearchIndexChange searchIndexChange = thirdPartySbomMetadataDAO.newSearchIndexChange(sbomMetadata);
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.setEnabled(true);
+    SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED.setEnabled(true);
+    searchIndexManager.insert(searchIndexChange);
+
+    // Check it shouldn't be indexed until the update is processed
+    SearchResultDTO searchResultDTO =
+        searchService.searchIndex("itemType:SBOM_METADATA", 100, 0, true, ProductMode.SBOM_MANAGER, null);
+    assertThat(searchResultDTO).isNotNull();
+    assertThat(searchResultDTO.groupingByDTOS).isEmpty();
+
+    searchIndexClient.updateIndex();
+
+    // Check it exists after the update
+    searchResultDTO =
+        searchService.searchIndex("itemType:SBOM_METADATA", 100, 0, true, ProductMode.SBOM_MANAGER, null);
+    assertThat(searchResultDTO).isNotNull();
+    assertThat(searchResultDTO.groupingByDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0)).isNotNull();
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS).hasSize(1);
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0)).isNotNull();
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).applicationId).isEqualTo(
+        application.getId());
+    assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).applicationVersion).isEqualTo(
+        applicationVersion);
   }
 
   protected PolicyEvaluation newAppReport(String appId, String stageId, String reportId, String reportResourceName)

@@ -75,6 +75,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.QueryVisitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -380,7 +381,7 @@ public abstract class AbstractSearchIndexClient
     String queryForObsoleteDocs = "(" +
         indexingContext.newQuery(FieldIdentifier.APPLICATION_ID, applicationId) +
         " AND " +
-        indexingContext.newQuery(FieldIdentifier.APPLICATION_VERSION, applicationVersion) +
+        indexingContext.newQuery(FieldIdentifier.APPLICATION_VERSION, QueryParser.escape(applicationVersion)) +
         ")";
     indexingContext.deleteDocuments(queryForObsoleteDocs);
 

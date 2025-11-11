@@ -621,7 +621,9 @@ public class CopyStorageService
         return;
       }
 
-      to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, new ByteArrayInputStream(new byte[]{0}));
+      try (InputStream inputStream = new ByteArrayInputStream(new byte[]{0})) {
+        to.saveAdditionalReportFile(appId, scanId, COPY_MARKER, inputStream);
+      }
       ReportEntity copyMarker = to.getReportEntity(appId, scanId, COPY_MARKER);
       log.trace("Copying report from '{}' to '{}'.", fromLocation, toLocation);
 

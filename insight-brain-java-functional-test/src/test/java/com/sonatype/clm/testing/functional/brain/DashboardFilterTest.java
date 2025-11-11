@@ -1461,7 +1461,6 @@ public class DashboardFilterTest
   }
 
   @Test
-  @Ignore("CLM-36294")
   public void testWaiverReposFilterIncludesRootOrgAndAllRepositories() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();
@@ -1500,6 +1499,7 @@ public class DashboardFilterTest
     DashboardFilters.repositoryFilter().checkboxItem(2).click();
     DashboardFilters.repositoryFilter().checkboxItem(3).click();
     DashboardFilters.apply();
+    DashboardPage.waitUntilSpinnersGone();
 
     DashboardPage.waiversView().results().waivers().shouldHave(size(3));
     waiverTiles = DashboardPage.waiversView().results().allWaivers();

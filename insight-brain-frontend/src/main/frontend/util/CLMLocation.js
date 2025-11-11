@@ -488,14 +488,6 @@ export function getRoleListUrl() {
   return uriTemplate`/rest/security/roles`;
 }
 
-export function getSamlSsoLoginUrl(hash) {
-  return hash ? uriTemplate`/saml/login?hash=${hash}` : uriTemplate`/saml/login`;
-}
-
-export function getOidcLoginUrl(hash) {
-  return hash ? uriTemplate`/oidc/login?hash=${hash}` : uriTemplate`/oidc/login`;
-}
-
 export function getAutomaticApplicationsConfigurationUrl() {
   return uriTemplate`/rest/config/automaticApplications`;
 }

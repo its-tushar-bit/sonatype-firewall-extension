@@ -427,22 +427,6 @@ describe('clmLocation.js', function () {
     );
   });
 
-  it('should return the saml sso login url', function () {
-    expect(clmLocation.getSamlSsoLoginUrl('http://localhost:8080/hola/mundo')).toBe(
-      'http://localhost/saml/login?hash=http%3A%2F%2Flocalhost%3A8080%2Fhola%2Fmundo'
-    );
-  });
-
-  it('should return the oidc sso login url', function () {
-    expect(clmLocation.getOidcLoginUrl('http://localhost:8080/hola/mundo')).toBe(
-      'http://localhost/oidc/login?hash=http%3A%2F%2Flocalhost%3A8080%2Fhola%2Fmundo'
-    );
-  });
-
-  it('should return the oidc sso login url without hash', function () {
-    expect(clmLocation.getOidcLoginUrl()).toBe('http://localhost/oidc/login');
-  });
-
   it('should return the save component obligation attribution url', function () {
     expect(clmLocation.getSaveComponentObligationAttributionUrl('ownerType', 'ownerId')).toBe(
       'http://localhost/api/experimental/licenseLegalMetadata/ownerType/ownerId/component/obligation/attribution'

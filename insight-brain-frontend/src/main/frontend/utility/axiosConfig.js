@@ -44,7 +44,10 @@ export const attachAxiosInterceptors = (rootScope, window, loginModalService) =>
               if (getRequests().length === 1) {
                 (async () => {
                   try {
-                    await loginModalService.authenticate(error.response.headers['www-authenticate'] === 'SAML');
+                    await loginModalService.authenticate(
+                      error.response.headers['www-authenticate'],
+                      error.response.headers['x-sso-login-url']
+                    );
                     // retry failed requests and then clear the queue
                     await settleAll();
                   } catch (e) {

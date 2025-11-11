@@ -16,11 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.UriBuilder;
 
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.landing.LandingService;
-import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -54,6 +51,8 @@ class SamlFilter
   static final String MSG_SAML_INTERNAL_ERROR =
       "Internal error in SAML authentication process initiation. Please contact your IT administrator.";
 
+  public static final String SAML_REQUEST_PATH = "/saml";
+
   private final SamlDeploymentManager samlDeploymentManager;
 
   private final LandingService landingService;
@@ -64,23 +63,19 @@ class SamlFilter
 
   private final Configuration configuration;
 
-  private final SamlConfigurationService samlConfigurationService;
-
   @Inject
   public SamlFilter(
       SamlDeploymentManager samlDeploymentManager,
       LandingService landingService,
       SamlSessionIdMapper samlSessionIdMapper,
       IdPLogoutUrlBuilder idPLogoutUrlBuilder,
-      Configuration configuration,
-      SamlConfigurationService samlConfigurationService)
+      Configuration configuration)
   {
     this.samlDeploymentManager = samlDeploymentManager;
     this.landingService = landingService;
     this.samlSessionIdMapper = samlSessionIdMapper;
     this.idPLogoutUrlBuilder = idPLogoutUrlBuilder;
     this.configuration = configuration;
-    this.samlConfigurationService = samlConfigurationService;
   }
 
   // Visible for testing
@@ -100,7 +95,7 @@ class SamlFilter
     HttpServletResponse httpResponse = (HttpServletResponse) response;
 
     String requestPath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
-    boolean samlEndpoint = requestPath.equals("/saml");
+    boolean samlEndpoint = requestPath.equals(SAML_REQUEST_PATH);
 
     ServletHttpFacade httpFacade = newServletHttpFacade(httpRequest, httpResponse);
     SamlSessionStore samlSessionStore = newSamlSessionStore(httpRequest, httpFacade, samlDeployment);
@@ -147,7 +142,7 @@ class SamlFilter
     AuthChallenge challenge = samlAuthenticator.getChallenge();
     if (challenge != null) {
       // there's no point in sending out a SAML challenge to a client which is not prepared for it
-      if (requestPath.startsWith("/saml") || EcpAuthenticationHandler.canHandle(httpFacade)) {
+      if (requestPath.startsWith(SAML_REQUEST_PATH) || EcpAuthenticationHandler.canHandle(httpFacade)) {
         request.removeAttribute(DefaultSubjectContext.SESSION_CREATION_ENABLED);
 
         if (configuration.isCspEnabled()) {
@@ -172,14 +167,9 @@ class SamlFilter
         }
       }
       else {
-        // let the UI know that SAML SSO should be a login option
-        httpResponse.setHeader("WWW-Authenticate", "SAML");
-        SamlConfiguration samlConfiguration = samlConfigurationService.get();
-        if (samlConfiguration != null) {
-          httpResponse.setHeader("X-SAML-IdP", samlConfiguration.getIdentityProviderName());
-        }
-        LoginErrorResponseHandler.sendError(httpResponse,
-            new ErrorResponse(HttpServletResponse.SC_UNAUTHORIZED, ErrorResponseGenerator.MSG_MISSING_CREDENTIALS));
+        // For non-SAML paths: delegate to MissingAuthenticationFilter to set WWW-Authenticate header
+        // Continue to the next filter in the chain which will handle the 401 response
+        return true;
       }
     }
 

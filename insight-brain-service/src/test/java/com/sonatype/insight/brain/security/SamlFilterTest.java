@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.BaseUrl;
 import com.sonatype.insight.brain.service.BaseUrlConfiguration;
 import com.sonatype.insight.brain.service.Configuration;
-import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.google.inject.Binder;
@@ -225,14 +224,15 @@ public class SamlFilterTest
   }
 
   @Test
-  public void testOnPrehandle_ChallengeNonSamlPath_ReturnsFalse() throws Exception {
-    testOnPrehandle("http://localhost:8070/assets/index.html", "/rest/product/features", "", null, false);
+  public void testOnPrehandle_ChallengeNonSamlPath_ReturnsTrue() throws Exception {
+    // SamlFilter now returns true (continues to next filter) for non-SAML paths with challenge
+    // The MissingAuthenticationFilter will handle setting WWW-Authenticate header
+    testOnPrehandle("http://localhost:8070/assets/index.html", "/rest/product/features", "", null, true);
 
-    verify(mockHttpServletResponse).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-    verify(mockHttpServletResponse).setContentType(ErrorResponse.CONTENT_TYPE);
-    verify(mockHttpServletResponse.getWriter()).print(ErrorResponseGenerator.MSG_MISSING_CREDENTIALS);
-    verify(mockHttpServletResponse).setHeader("WWW-Authenticate", "SAML");
-    verify(mockHttpServletResponse).setHeader("X-SAML-IdP", "identity provider");
+    // Verify that SamlFilter does NOT set these headers anymore
+    verify(mockHttpServletResponse, times(0)).setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+    verify(mockHttpServletResponse, times(0)).setHeader("WWW-Authenticate", "SAML");
+    verify(mockHttpServletResponse, times(0)).setHeader("X-SAML-IdP", "identity provider");
   }
 
   @Test

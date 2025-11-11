@@ -34,7 +34,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   const {
     isLicensed,
     products,
-    showSamlSso,
+    showSso,
     showLoginModal,
     username,
     password,
@@ -54,7 +54,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   const isFormValid =
     username.value.length === 0 || password.value.length === 0 ? 'Username and password are required' : null;
 
-  const samlSsoButtonRef = useConditionalAutoFocus(showSamlSso && isFormValid);
+  const ssoButtonRef = useConditionalAutoFocus(showSso && isFormValid);
 
   const isSbomManagerOnlyLicense = sbomManagerUtil.isSbomManagerOnlyLicenseProduct(products);
 
@@ -68,9 +68,11 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     return val.length ? null : 'Required field';
   };
 
+  // showSso indicates if ANY SSO method (SAML or OIDC) is available
+  // The backend sends WWW-Authenticate header with "SAML" and/or "OIDC" values
   const additionalFooterBtns = () =>
-    showSamlSso && (
-      <NxButton ref={samlSsoButtonRef} type="button" id="iq-login-modal-sso-button" onClick={onClickSSO}>
+    showSso && (
+      <NxButton ref={ssoButtonRef} type="button" id="iq-login-modal-sso-button" onClick={onClickSSO}>
         Single Sign-On (SSO)
       </NxButton>
     );

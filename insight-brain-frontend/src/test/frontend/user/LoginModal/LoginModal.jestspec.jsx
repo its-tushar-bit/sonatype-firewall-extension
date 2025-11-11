@@ -44,7 +44,7 @@ describe('LoginModal', () => {
       password: initialState(''),
       isLicensed: true,
       showLoginModal: true,
-      showSamlSso: false,
+      showSso: false,
       isFormValid: false,
       isUnauthenticatedPagesEnabled: true,
     };
@@ -273,7 +273,7 @@ describe('LoginModal', () => {
 
     it('dismisses the modal when cancel button is clicked and route is vulnerabilitySearch', () => {
       jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
+      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
       renderComponent();
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -284,7 +284,7 @@ describe('LoginModal', () => {
 
     it('dismisses the modal when cancel button is clicked and route is quarantinedComponentReport', () => {
       jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesQuaratineComponent);
-      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
+      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
       renderComponent();
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
@@ -309,22 +309,22 @@ describe('LoginModal', () => {
     });
 
     describe('saml SSO Button tests', () => {
-      it('renders login modal with "single sign-on (sso)" button if showSamlSso is true', () => {
-        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
+      it('renders login modal with "single sign-on (sso)" button if showSso is true', () => {
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
         renderComponent();
         expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(screen.getByText('Single Sign-On (SSO)')).toBeVisible();
       });
 
-      it('renders login modal without the "single sign-on (sso)" button if showSamlSso is false', () => {
-        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: false });
+      it('renders login modal without the "single sign-on (sso)" button if showSso is false', () => {
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: false });
         renderComponent();
         expect(screen.getByRole('heading', { name: 'Sign in' })).toBeVisible();
         expect(() => screen.getByText('Single Sign-On (SSO)')).toThrowError();
       });
 
       it('redirects to sso login when "single sign-on (sso)" button is clicked', () => {
-        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSamlSso: true });
+        useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
         renderComponent();
 
         const ssoButton = screen.getByText('Single Sign-On (SSO)');

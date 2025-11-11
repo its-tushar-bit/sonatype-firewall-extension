@@ -5,7 +5,6 @@
  */
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import { SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS } from '@sonatype/react-shared-components';
-import { getOidcLoginUrl, getSamlSsoLoginUrl } from 'MainRoot/util/CLMLocation';
 import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
@@ -44,39 +43,45 @@ export default function LoginModalService(rootScope, ngRedux, $window) {
   };
 
   const onClickSSO = async () => {
-    const isOAuth2Enabled = await loadOAuth2Enabled();
-    await redirectToIdP(isOAuth2Enabled);
+    // Get SSO login URL provided by backend
+    const state = ngRedux.getState();
+    const ssoLoginUrl = state.userLogin?.loginModalState?.ssoLoginUrl;
+    await redirectToIdP(ssoLoginUrl);
   };
 
-  async function authenticate(showSamlSso) {
+  async function authenticate(wwwAuthenticateHeader, ssoLoginUrl) {
     const isSsoOnlyEnabled = await loadIsSsoOnlyEnabled();
-    const isOAuth2Enabled = await loadOAuth2Enabled();
 
-    if (isSsoOnlyEnabled && (showSamlSso || isOAuth2Enabled) && !isBackupLogin()) {
+    // Parse available SSO methods from WWW-Authenticate header
+    const hasSso =
+      wwwAuthenticateHeader && (wwwAuthenticateHeader.includes('SAML') || wwwAuthenticateHeader.includes('OIDC'));
+
+    // Auto-redirect if SSO-only mode is enabled and at least one SSO method is available
+    if (isSsoOnlyEnabled && hasSso && !isBackupLogin()) {
       clearRequests();
-      return await redirectToIdP(isOAuth2Enabled);
+      return await redirectToIdP(ssoLoginUrl);
     }
 
-    return await open(showSamlSso, isOAuth2Enabled);
+    // Show SSO button if any SSO method is available
+    return await open(hasSso, ssoLoginUrl);
   }
-
-  const loadOAuth2Enabled = () => {
-    return ngRedux.dispatch(productFeaturesActions.loadIsOauth2Enabled()).then(unwrapResult);
-  };
 
   const loadIsSsoOnlyEnabled = () => {
     return ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
   };
 
-  async function redirectToIdP(isOAuth2Enabled) {
-    let destination = isOAuth2Enabled
-      ? getOidcLoginUrl(window.location.hash)
-      : getSamlSsoLoginUrl(window.location.hash);
+  async function redirectToIdP(ssoLoginUrl) {
+    // Backend provides the SSO login URL (e.g., "/saml/login" or "/oidc/login")
+    // Append hash parameter if present to preserve user navigation state
+    // Note: hash must be URL-encoded to handle special characters like '/', '?', '#', etc.
+    const destination = $window.location.hash
+      ? `${ssoLoginUrl}?hash=${encodeURIComponent($window.location.hash)}`
+      : ssoLoginUrl;
 
     redirect(destination);
   }
 
-  async function open(showSamlSso) {
+  async function open(showSsoButton, ssoLoginUrl) {
     if (modalPromise) {
       return modalPromise;
     }
@@ -89,7 +94,8 @@ export default function LoginModalService(rootScope, ngRedux, $window) {
     ngRedux.dispatch(actions.setIsLicensed(rootScope.licensed));
     ngRedux.dispatch(actions.setProducts(rootScope.products));
     ngRedux.dispatch(actions.setShowLoginModal(true));
-    ngRedux.dispatch(actions.setShowSamlSso(showSamlSso));
+    ngRedux.dispatch(actions.setShowSso(showSsoButton));
+    ngRedux.dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
 
     return modalPromise;
   }

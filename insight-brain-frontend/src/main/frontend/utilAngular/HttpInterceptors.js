@@ -104,7 +104,10 @@ export var unauthenticatedResponseHttpInterceptor = angular
           if (getRequests().length === 1) {
             (async () => {
               try {
-                await LoginModalService.authenticate(response.headers['www-authenticate'] === 'SAML');
+                await LoginModalService.authenticate(
+                  response.headers['www-authenticate'],
+                  response.headers['x-sso-login-url']
+                );
                 // retry failed requests and then clear the queue
                 await settleAll();
               } catch (e) {

@@ -117,7 +117,16 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverRequestDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
-import com.sonatype.insight.brain.dataaccess.repository.*;
+import com.sonatype.insight.brain.dataaccess.repository.ProprietaryComponentNamePatternDAO;
+import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeProgressDAO;
+import com.sonatype.insight.brain.dataaccess.repository.ReevaluateCascadeRequestDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryConnectionDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryContainerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryMigrationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
@@ -1903,8 +1912,9 @@ public class TemporaryEntity
     return autoPolicyWaiver;
   }
 
-  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(String ownerId,
-                                                         String autoPolicyWaiverId)
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusion(
+      String ownerId,
+      String autoPolicyWaiverId)
   {
     AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion();
     autoPolicyWaiverExclusion.setOwnerId(ownerId);
@@ -1919,7 +1929,8 @@ public class TemporaryEntity
     return autoPolicyWaiverExclusion;
   }
 
-  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusionForAllVersions(String ownerId,
+  public AutoPolicyWaiverExclusion newAutoPolicyWaiverExclusionForAllVersions(
+      String ownerId,
       String autoPolicyWaiverId, String scanId, String packageUrl)
   {
     AutoPolicyWaiverExclusion autoPolicyWaiverExclusion = new AutoPolicyWaiverExclusion();
@@ -3837,8 +3848,9 @@ public class TemporaryEntity
     return request;
   }
 
-  public ReevaluateCascadeRequest newReevaluateCascadeRequest(String requestId, String componentHash, String username,
-                                                              ReevaluateCascadeRequestStatus status)
+  public ReevaluateCascadeRequest newReevaluateCascadeRequest(
+      String requestId, String componentHash, String username,
+      ReevaluateCascadeRequestStatus status)
   {
     ReevaluateCascadeRequest request =
         new ReevaluateCascadeRequest(componentHash, username, status);
@@ -3847,7 +3859,8 @@ public class TemporaryEntity
     return request;
   }
 
-  public ReevaluateCascadeProgress newReevaluateCascadeProgress(String progressId, String requestId,
+  public ReevaluateCascadeProgress newReevaluateCascadeProgress(
+      String progressId, String requestId,
       String repositoryId, String repositoryComponentId, String status)
   {
     ReevaluateCascadeProgress progress = new ReevaluateCascadeProgress(requestId, repositoryId,
@@ -4152,8 +4165,9 @@ public class TemporaryEntity
     return webhook;
   }
 
-  public Webhook newWebhookWithSecret(String url, Set<WebhookEventType> events,
-                                      String description, String secretKey)
+  public Webhook newWebhookWithSecret(
+      String url, Set<WebhookEventType> events,
+      String description, String secretKey)
   {
     Webhook webhook = new Webhook(url, secretKey, events, description);
     webhookDAO.insert(webhook);
@@ -4510,6 +4524,19 @@ public class TemporaryEntity
 
   public SamlConfiguration newSamlConfiguration() {
     return newSamlConfiguration(validIdentityProviderXml(), null);
+  }
+
+  public SamlConfigurationInternal newSamlConfigurationInternal() {
+    try (TransactionContext tx = samlConfigurationInternalDAO.createTransactionContext()) {
+      tx.begin();
+      SamlConfiguration samlConfiguration = newSamlConfiguration();
+      SamlConfigurationInternal result = new SamlConfigurationInternal();
+      result.setId(samlConfiguration.getId());
+      result.setConfigurationJson(JsonUtils.format(samlConfiguration));
+      samlConfigurationInternalDAO.insert(tx, result);
+      tx.commit();
+      return result;
+    }
   }
 
   private String validIdentityProviderXml() {

@@ -7,13 +7,13 @@ import axios from 'axios';
 import loginModalModule from 'MainRoot/user/LoginModal/module';
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import * as Locations from 'MainRoot/util/CLMLocation';
-import { getEnableSsoOnly, getOAuth2Enabled, getSessionUrl } from 'MainRoot/util/CLMLocation';
+import { getEnableSsoOnly, getSessionUrl } from 'MainRoot/util/CLMLocation';
 
 describe('LoginModalService', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
   let LoginModalService, $ngRedux, $rootScope, $window;
-  let loadOAuth2EnabledWithValue, loadIsSsoOnlyEnabledWithValue;
+  let loadIsSsoOnlyEnabledWithValue;
 
   beforeEach(
     angular.mock.module(loginModalModule.name, ($provide) => {
@@ -37,9 +37,6 @@ describe('LoginModalService', function () {
 
     mockAxiosCalls({
       get: {
-        [getOAuth2Enabled()]: new Promise((resolve) => {
-          loadOAuth2EnabledWithValue = resolve;
-        }),
         [getEnableSsoOnly()]: new Promise((resolve) => {
           loadIsSsoOnlyEnabledWithValue = resolve;
         }),
@@ -55,38 +52,38 @@ describe('LoginModalService', function () {
     };
   }));
 
-  it('authenticate opens the login modal', (done) => {
-    loadOAuth2EnabledWithValue({ data: [] });
+  it('authenticate opens the login modal with no SSO', (done) => {
     loadIsSsoOnlyEnabledWithValue({ data: [] });
 
-    authenticateOpensLoginModalAndAssertItIsOpen(false, done);
+    authenticateOpensLoginModalAndAssertItIsOpen(null, null, null, done);
   });
 
-  it('authenticate opens the login modal if isSsoOnlyEnabled is disabled', (done) => {
-    // The OAUTH2_ENABLED feature is enabled
-    loadOAuth2EnabledWithValue({ data: ['oauth2-enabled'] });
+  it('authenticate opens the login modal if SAML is available but isSsoOnlyEnabled is disabled', (done) => {
     // The isSsoOnlyEnabled feature is not enabled
     loadIsSsoOnlyEnabledWithValue({ data: [] });
 
-    authenticateOpensLoginModalAndAssertItIsOpen(true, done);
+    authenticateOpensLoginModalAndAssertItIsOpen('SAML', true, '/saml/login', done);
   });
 
-  it('authenticate calls redirectToIdP if isSsoOnlyEnabled and showSamlSso is enabled', (done) => {
-    // The OAUTH2_ENABLED feature is not enabled
-    loadOAuth2EnabledWithValue({ data: [] });
+  it('authenticate opens the login modal if OIDC is available but isSsoOnlyEnabled is disabled', (done) => {
+    // The isSsoOnlyEnabled feature is not enabled
+    loadIsSsoOnlyEnabledWithValue({ data: [] });
+
+    authenticateOpensLoginModalAndAssertItIsOpen('OIDC', true, '/oidc/login', done);
+  });
+
+  it('authenticate calls redirectToIdP if isSsoOnlyEnabled and SAML is available', (done) => {
     // The isSsoOnlyEnabled feature is enabled
     loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
 
-    assertAuthenticateCallsRedirectToIdPAndRedirectsUser(true, '/saml/login', done);
+    assertAuthenticateCallsRedirectToIdPAndRedirectsUser('SAML', '/saml/login', done);
   });
 
-  it('authenticate calls redirectToIdP if isSsoOnlyEnabled is enabled and loadOAuth2Enabled', (done) => {
-    // The OAUTH2_ENABLED feature is enabled
-    loadOAuth2EnabledWithValue({ data: ['oauth2-enabled'] });
+  it('authenticate calls redirectToIdP if isSsoOnlyEnabled is enabled and OIDC is available', (done) => {
     // The isSsoOnlyEnabled feature is enabled
     loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
 
-    assertAuthenticateCallsRedirectToIdPAndRedirectsUser(false, '/oidc/login', done);
+    assertAuthenticateCallsRedirectToIdPAndRedirectsUser('OIDC', '/oidc/login', done);
   });
 
   describe('when current route is "backupLogin"', () => {
@@ -94,48 +91,49 @@ describe('LoginModalService', function () {
       $window.location.hash = '#/backupLogin';
     });
 
-    it('authenticate opens the login modal if isSsoOnlyEnabled and showSamlSso is enabled', (done) => {
-      // The OAUTH2_ENABLED feature is not enabled
-      loadOAuth2EnabledWithValue({ data: [] });
+    it('authenticate opens the login modal if isSsoOnlyEnabled and SAML is available', (done) => {
       // The isSsoOnlyEnabled feature is enabled
       loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
 
-      authenticateOpensLoginModalAndAssertItIsOpen(true, done);
+      authenticateOpensLoginModalAndAssertItIsOpen('SAML', true, '/saml/login', done);
     });
 
-    it('authenticate opens the login modal if isSsoOnlyEnabled and loadOAuth2Enabled is enabled', (done) => {
-      // The OAUTH2_ENABLED feature is enabled
-      loadOAuth2EnabledWithValue({ data: ['oauth2-enabled'] });
+    it('authenticate opens the login modal if isSsoOnlyEnabled and OIDC is available', (done) => {
       // The isSsoOnlyEnabled feature is enabled
       loadIsSsoOnlyEnabledWithValue({ data: ['enable-sso-only'] });
 
-      authenticateOpensLoginModalAndAssertItIsOpen(true, done);
+      authenticateOpensLoginModalAndAssertItIsOpen('OIDC', true, '/oidc/login', done);
     });
   });
 
-  it('opens the login modal when open() is called', (done) => {
-    openLoginModalAndAssertItIsOpen(false, done);
+  it('opens the login modal when open() is called without SSO', (done) => {
+    openLoginModalAndAssertItIsOpen(false, null, done);
   });
 
-  it('does open the login modal when open() is called with showSamlSso', (done) => {
-    openLoginModalAndAssertItIsOpen(true, done);
+  it('does open the login modal when open() is called with SSO button visible', (done) => {
+    openLoginModalAndAssertItIsOpen(true, '/saml/login', done);
+  });
+
+  it('does open the login modal when open() is called with OIDC', (done) => {
+    openLoginModalAndAssertItIsOpen(true, '/oidc/login', done);
   });
 
   it('does not open multiple copies of the modal', (done) => {
     // Open the modals
-    const promise1 = LoginModalService.open(false);
-    const promise2 = LoginModalService.open(true);
+    const promise1 = LoginModalService.open(false, null);
+    const promise2 = LoginModalService.open(true, '/oidc/login');
     expect(promise1).toBeDefined();
     expect(promise2).toBeDefined();
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(4);
+      expect($ngRedux.actions.length).toBe(5);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
         'userLogin/setIsLicensed',
         'userLogin/setProducts',
         'userLogin/setShowLoginModal',
-        'userLogin/setShowSamlSso',
+        'userLogin/setShowSso',
+        'userLogin/setSsoLoginUrl',
       ]);
 
       done();
@@ -152,44 +150,59 @@ describe('LoginModalService', function () {
   });
 
   it('redirects to SAML SSO URL', (done) => {
-    assertUserIsRedirectedToSSOUrl('/saml/login', false, done);
+    assertUserIsRedirectedToSSOUrl('/saml/login', '/saml/login', done);
   });
 
   it('redirects to OAuth2 SSO URL', (done) => {
-    assertUserIsRedirectedToSSOUrl('/oidc/login', true, done);
+    assertUserIsRedirectedToSSOUrl('/oidc/login', '/oidc/login', done);
   });
 
   it('redirects to SAML SSO URL when click on SSO button', (done) => {
-    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/saml/login', [], done);
+    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/saml/login', '/saml/login', done);
   });
 
   it('redirects to OAuth2 SSO URL when click on SSO button', (done) => {
-    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/oidc/login', ['oauth2-enabled'], done);
+    assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked('/oidc/login', '/oidc/login', done);
   });
 
-  function authenticateOpensLoginModalAndAssertItIsOpen(showSamlSso, done) {
-    // Open the modal
-    const authenticatePromise = LoginModalService.authenticate(showSamlSso);
+  it('redirects to SAML SSO URL with encoded hash parameter', (done) => {
+    $window.location.hash = '#/applications/app123/report/scanId456';
+    const expectedEncodedHash = encodeURIComponent('#/applications/app123/report/scanId456');
+    assertUserIsRedirectedToSSOUrl(`/saml/login?hash=${expectedEncodedHash}`, '/saml/login', done);
+  });
+
+  it('redirects to OIDC SSO URL with encoded hash parameter', (done) => {
+    $window.location.hash = '#/applications/app123/report/scanId456';
+    const expectedEncodedHash = encodeURIComponent('#/applications/app123/report/scanId456');
+    assertUserIsRedirectedToSSOUrl(`/oidc/login?hash=${expectedEncodedHash}`, '/oidc/login', done);
+  });
+
+  function authenticateOpensLoginModalAndAssertItIsOpen(wwwAuthenticateHeader, expectedShowSso, ssoLoginUrl, done) {
+    // Open the modal - backend provides ssoLoginUrl
+    const authenticatePromise = LoginModalService.authenticate(wwwAuthenticateHeader, ssoLoginUrl);
     expect(authenticatePromise).toBeDefined();
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      assertLoginModalIsOpen(showSamlSso);
+      assertLoginModalIsOpen(expectedShowSso, ssoLoginUrl);
       done();
     }, 0);
   }
 
-  function assertLoginModalIsOpen(showSamlSso) {
+  function assertLoginModalIsOpen(showSsoButton, ssoLoginUrl) {
     expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setIsLicensed($rootScope.licensed));
     expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowLoginModal(true));
-    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSamlSso(showSamlSso));
+    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSso(showSsoButton));
+    if (ssoLoginUrl !== undefined) {
+      expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setSsoLoginUrl(ssoLoginUrl));
+    }
   }
 
-  function assertAuthenticateCallsRedirectToIdPAndRedirectsUser(showSamlSso, expectedUrl, done) {
+  function assertAuthenticateCallsRedirectToIdPAndRedirectsUser(wwwAuthenticateHeader, expectedUrl, done) {
     spyOn(Locations, 'assign').and.stub();
 
-    // Open the modal
-    const authenticatePromise = LoginModalService.authenticate(showSamlSso);
+    // Call authenticate with WWW-Authenticate header and ssoLoginUrl from backend
+    const authenticatePromise = LoginModalService.authenticate(wwwAuthenticateHeader, expectedUrl);
     expect(authenticatePromise).toBeDefined();
 
     // Adding timeout to wait until all the promises to redirect to the SSO is completed
@@ -199,30 +212,31 @@ describe('LoginModalService', function () {
     }, 0);
   }
 
-  function openLoginModalAndAssertItIsOpen(showSamlSso, done) {
+  function openLoginModalAndAssertItIsOpen(showSsoButton, ssoLoginUrl, done) {
     // Open the modal
-    const modalPromise = LoginModalService.open(showSamlSso);
+    const modalPromise = LoginModalService.open(showSsoButton, ssoLoginUrl);
     expect(modalPromise).toBeDefined();
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(4);
+      expect($ngRedux.actions.length).toBe(5);
       expect($ngRedux.actions).toHaveActionTypesInOrder([
         'userLogin/setIsLicensed',
         'userLogin/setProducts',
         'userLogin/setShowLoginModal',
-        'userLogin/setShowSamlSso',
+        'userLogin/setShowSso',
+        'userLogin/setSsoLoginUrl',
       ]);
-      assertLoginModalIsOpen(showSamlSso);
+      assertLoginModalIsOpen(showSsoButton, ssoLoginUrl);
       done();
     }, 0);
   }
 
-  function assertUserIsRedirectedToSSOUrl(expectedUrl, isOAuth2Enabled, done) {
+  function assertUserIsRedirectedToSSOUrl(expectedUrl, ssoLoginUrl, done) {
     spyOn(Locations, 'assign').and.stub();
 
-    // Open the modal
-    const modalPromise = LoginModalService.redirectToIdP(isOAuth2Enabled);
+    // Call redirectToIdP with ssoLoginUrl from backend
+    const modalPromise = LoginModalService.redirectToIdP(ssoLoginUrl);
     expect(modalPromise).toBeDefined();
 
     // Adding timeout to wait until all the promises to redirect to the SSO is completed
@@ -233,27 +247,24 @@ describe('LoginModalService', function () {
     }, 0);
   }
 
-  function assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked(expectedUrl, isOAuth2EnabledData, done) {
+  function assertUserIsRedirectedToSSOUrlWhenSSOButtonIsClicked(expectedUrl, ssoLoginUrl, done) {
     spyOn(Locations, 'assign').and.stub();
 
-    // Open the modal
+    // Set up Redux state to have ssoLoginUrl value from backend
+    $ngRedux.getState = () => ({
+      userLogin: {
+        loginModalState: {
+          ssoLoginUrl: ssoLoginUrl,
+        },
+      },
+    });
+
+    // Click SSO button
     const modalPromise = LoginModalService.onClickSSO();
     expect(modalPromise).toBeDefined();
 
-    // The OAUTH2_ENABLED feature is not enabled
-    loadOAuth2EnabledWithValue({
-      data: isOAuth2EnabledData,
-    });
-
-    // The action to get the OAUTH2_ENABLED flag is dispatched
-    expect($ngRedux.actions.length).toBe(1);
-    expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsOauth2Enabled/pending']);
-    expect(Locations.assign).toHaveBeenCalledTimes(0);
-
-    // Adding timeout to wait until all the promises for the open modal are completed
+    // Adding timeout to wait until all the promises for the redirect are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(2);
-      expect($ngRedux.actions).toHaveActionTypesInOrder(['productFeatures/loadIsOauth2Enabled/fulfilled']);
       expect(Locations.assign).toHaveBeenCalledWith(expectedUrl);
 
       done();

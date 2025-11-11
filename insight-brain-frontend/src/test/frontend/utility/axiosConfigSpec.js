@@ -294,13 +294,13 @@ describe('axiosConfig', () => {
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(false);
+                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(undefined, undefined);
                 done();
               });
               deferred.resolve();
             });
 
-            it('requests the opening of the login modal with SSO if the appropriate header is present', (done) => {
+            it('requests the opening of the login modal with SAML SSO if the SAML header is present', (done) => {
               let deferred;
               const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
                 return new Promise((resolve, reject) => {
@@ -311,14 +311,44 @@ describe('axiosConfig', () => {
               const errorFromRequest = {
                 response: {
                   status: 401,
-                  headers: { 'www-authenticate': 'SAML' },
+                  headers: {
+                    'www-authenticate': 'SAML',
+                    'x-sso-login-url': '/saml/login',
+                  },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(true);
+                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith('SAML', '/saml/login');
+                done();
+              });
+              deferred.resolve();
+            });
+
+            it('requests the opening of the login modal with OIDC SSO if the OIDC header is present', (done) => {
+              let deferred;
+              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
+                return new Promise((resolve, reject) => {
+                  deferred = { resolve, reject };
+                });
+              });
+              const authenticationInterceptor = getAuthenticationInterceptor();
+              const errorFromRequest = {
+                response: {
+                  status: 401,
+                  headers: {
+                    'www-authenticate': 'OIDC',
+                    'x-sso-login-url': '/oidc/login',
+                  },
+                },
+              };
+
+              const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
+
+              interceptorResolution.then(() => {
+                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith('OIDC', '/oidc/login');
                 done();
               });
               deferred.resolve();

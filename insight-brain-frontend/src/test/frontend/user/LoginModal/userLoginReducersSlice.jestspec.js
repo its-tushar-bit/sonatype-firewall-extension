@@ -15,6 +15,17 @@ describe('userLoginReducer', () => {
 
   beforeEach(() => {
     mockState = {
+      loginModalState: {
+        username: { value: '', isPristine: true },
+        password: { value: '', isPristine: true },
+        isLicensed: false,
+        products: [],
+        showLoginModal: false,
+        showSso: false,
+        isFormValid: false,
+        isUnauthenticatedPagesEnabled: undefined,
+        isQuarantinedComponentViewAnonymousAccessEnabled: undefined,
+      },
       loginModalSubmitState: {
         loginSubmitError: null,
         loginSubmitMaskState: null,

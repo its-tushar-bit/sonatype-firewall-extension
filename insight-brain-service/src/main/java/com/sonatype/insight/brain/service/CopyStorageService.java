@@ -6,21 +6,15 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.ByteArrayInputStream;
-import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.UncheckedIOException;
 import java.time.Duration;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.Semaphore;
@@ -29,8 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -86,8 +78,6 @@ public class CopyStorageService
 
   private static final Set<DataStoreType> SUPPORTED = Set.of(DataStoreType.FILE, DataStoreType.S3);
 
-  private static final int PIPE_SIZE = 64 * 1024;
-
   public static final int MAX_TENANT_THREAD_POOL_THREADS = 200;
 
   private final InsightConfig insightConfig;
@@ -109,8 +99,6 @@ public class CopyStorageService
   private final ApiConfigurationService apiConfigurationService;
 
   private final TenantThreadPoolExecutor tenantThreadPoolExecutor;
-
-  private final ExecutorService zipExecutorService;
 
   private volatile CopyStorageConfig copyStorageConfig;
 
@@ -170,9 +158,6 @@ public class CopyStorageService
     };
     tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
     shutdownHandler.add(tenantThreadPoolExecutor);
-    zipExecutorService = Executors.newCachedThreadPool(
-        new ThreadFactoryBuilder().setNameFormat("CopyStorageService-ReportZipWriter-%d").build()
-    );
     copyStorageConfig = (CopyStorageConfig) apiConfigurationService.getConfigurationNoAuthz(
         SystemConfigurationProperty.COPY_STORAGE_CONFIG);
     copyLimit = new TenantReference<>(() -> new DynamicSemaphore(copyStorageConfig.maxCopyThreads()));
@@ -627,8 +612,8 @@ public class CopyStorageService
       ReportEntity copyMarker = to.getReportEntity(appId, scanId, COPY_MARKER);
       log.trace("Copying report from '{}' to '{}'.", fromLocation, toLocation);
 
-      try (InputStream inputStream = createInputStream(from.getOriginalReportEntities(appId, scanId))) {
-        to.saveOriginalReport(appId, scanId, inputStream);
+      try (Stream<ReportEntity> originalReportEntities = from.getOriginalReportEntities(appId, scanId)) {
+        to.saveOriginalReportEntities(appId, scanId, originalReportEntities);
       }
       try (Stream<ReportEntity> allEntities = from.getAllReportEntities(appId, scanId)) {
         allEntities.forEach(sourceReportEntity -> {
@@ -757,102 +742,5 @@ public class CopyStorageService
   private Iterator<ThirdPartySbomMetadata> createThirdPartySbomMetadataIterator(final String applicationId) {
     return new PageIterator<>(1, DEFAULT_PAGE_SIZE,
         (page, pageSize) -> thirdPartySbomMetadataDAO.getActiveByApplicationId(applicationId, page, pageSize));
-  }
-
-  private static class InputStreamWithAsyncWriter
-      extends FilterInputStream
-  {
-    private final Future<?> asyncWriting;
-
-    InputStreamWithAsyncWriter(final InputStream inputStream, final Future<?> asyncWriting) {
-      super(inputStream);
-      this.asyncWriting = asyncWriting;
-    }
-
-    @Override
-    public void close() throws IOException {
-      try {
-        if (in.available() == 0) {
-          asyncWriting.get();
-        }
-        else {
-          // All the data should have been read by the time close is called
-          // If data is still available, then the read was interrupted, e.g., by an exception
-          // In this case, we cancel the writing
-          asyncWriting.cancel(true);
-        }
-      }
-      catch (InterruptedException e) {
-        log.error(e.getMessage(), e);
-        Thread.currentThread().interrupt();
-        throw new IOException(e);
-      }
-      catch (Exception e) {
-        log.error(e.getMessage(), e);
-        if (e.getCause() instanceof IOException ioException) {
-          throw ioException;
-        }
-        throw new IOException(e);
-      }
-      finally {
-        super.close();
-      }
-    }
-  }
-
-  // Visible for testing
-  InputStreamWithAsyncWriter createInputStream(final Stream<ReportEntity> reportEntities)
-      throws IOException
-  {
-    PipedInputStream pipedInputStream = new PipedInputStream(PIPE_SIZE);
-    PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream);
-    try {
-      Future<?> future = zipExecutorService.submit(() -> {
-        try (ZipOutputStream zip = new ZipOutputStream(pipedOutputStream)) {
-          reportEntities.forEach(reportEntity -> {
-            try (InputStream inputStream = reportEntity.getInputStream()) {
-              zip.putNextEntry(new ZipEntry(reportEntity.getName()));
-              inputStream.transferTo(zip);
-              zip.closeEntry();
-            }
-            catch (IOException e) {
-              log.error(e.getMessage(), e);
-              throw new UncheckedIOException(e);
-            }
-            catch (Exception e) {
-              log.error(e.getMessage(), e);
-              throw e;
-            }
-          });
-        }
-        catch (IOException e) {
-          log.error(e.getMessage(), e);
-          throw new UncheckedIOException(e);
-        }
-        catch (Exception e) {
-          log.error(e.getMessage(), e);
-          throw e;
-        }
-        finally {
-          reportEntities.close();
-        }
-      });
-      return new InputStreamWithAsyncWriter(pipedInputStream, future);
-    }
-    catch (Exception e) {
-      try {
-        pipedInputStream.close();
-      }
-      catch (Exception ex) {
-        e.addSuppressed(ex);
-      }
-      try {
-        pipedOutputStream.close();
-      }
-      catch (Exception ex) {
-        e.addSuppressed(ex);
-      }
-      throw e;
-    }
   }
 }

@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
@@ -19,8 +18,6 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,7 +88,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
@@ -874,45 +870,6 @@ public class CopyStorageServiceTest
 
       long memoryReclaimed = afterMemory - afterGcMemory;
       log.info("Memory reclaimed by GC: {} MB", memoryReclaimed / 1024 / 1024);
-    }
-  }
-
-  @Test
-  public void testInputStreamWithAsyncWriter_ExceptionOnRead() throws Exception {
-    Application app = tempEntity.newApplicationWithParent();
-    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, TemporaryEntity.uuid());
-    createReport(eval, 10 * 1024); // Create a report with files large enough to consume the buffer
-
-    ApplicationReportPersistenceService from =
-        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1));
-
-    AtomicBoolean writeFinished = new AtomicBoolean();
-    AtomicReference<Throwable> exception = new AtomicReference<>();
-    Thread thread = new Thread(() -> {
-      IOException ioException = new IOException("Some read failure");
-      try (InputStream inputStream = copyStorageService.createInputStream(
-          from.getOriginalReportEntities(app.getId(), eval.getScanId()))) {
-        byte[] buffer = new byte[1024];
-        inputStream.read(buffer);
-        throw ioException;
-      }
-      catch (Exception e) {
-        if (e != ioException) {
-          exception.set(e);
-        }
-      }
-      finally {
-        writeFinished.set(true);
-      }
-    });
-    try {
-      thread.start();
-      await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> assertThat(writeFinished.get()).isTrue());
-      assertThat(exception).hasNullValue();
-    }
-    finally {
-      thread.interrupt();
-      thread.join();
     }
   }
 

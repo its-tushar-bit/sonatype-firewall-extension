@@ -59,6 +59,11 @@ public abstract class ApplicationReportPersistenceService
       final String scanId,
       final InputStream reportZipContents) throws IOException;
 
+  public abstract void saveOriginalReportEntities(
+      final String applicationId,
+      final String scanId,
+      final Stream<ReportEntity> originalReportEntities) throws IOException;
+
   /**
    * Within the same application, move the report of the source scan ID to that of the destination scan ID,
    * overwriting the destination scan ID's report if it exists.

@@ -16,6 +16,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.FileTime;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -319,6 +321,40 @@ public class FileApplicationReportPersistenceService
     catch (IOException e) {
       try {
         Files.deleteIfExists(finalPath);
+      }
+      catch (IOException e2) {
+        e.addSuppressed(e2);
+      }
+      throw e;
+    }
+  }
+
+  @Override
+  @Trace
+  public void saveOriginalReportEntities(
+      final String applicationId,
+      final String scanId,
+      final Stream<ReportEntity> originalReportEntities) throws IOException
+  {
+    Path zipPath = getZipPath(applicationId, scanId);
+    try {
+      Files.createDirectories(zipPath.getParent());
+      try (ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(zipPath))) {
+        Iterator<ReportEntity> iterator = originalReportEntities.iterator();
+        while (iterator.hasNext()) {
+          ReportEntity originalReportEntity = iterator.next();
+          try (InputStream in = originalReportEntity.getInputStream()) {
+            String entryName = originalReportEntity.getName();
+            zos.putNextEntry(new ZipEntry(entryName));
+            in.transferTo(zos);
+            zos.closeEntry();
+          }
+        }
+      }
+    }
+    catch (IOException e) {
+      try {
+        Files.deleteIfExists(zipPath);
       }
       catch (IOException e2) {
         e.addSuppressed(e2);

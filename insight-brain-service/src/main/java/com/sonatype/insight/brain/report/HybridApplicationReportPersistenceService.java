@@ -150,6 +150,16 @@ public class HybridApplicationReportPersistenceService
   }
 
   @Override
+  public void saveOriginalReportEntities(
+      final String applicationId,
+      final String scanId,
+      final Stream<ReportEntity> originalReportEntities) throws IOException
+  {
+    applicationReportPersistenceServices.get(0)
+        .saveOriginalReportEntities(applicationId, scanId, originalReportEntities);
+  }
+
+  @Override
   public void moveReport(final String appId, final String sourceScanId, final String destinationScanId)
       throws IOException
   {

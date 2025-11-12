@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -307,6 +308,22 @@ public class S3ApplicationReportPersistenceService
         e.addSuppressed(e2);
       }
       throw e;
+    }
+  }
+
+  @Override
+  @Trace
+  public void saveOriginalReportEntities(
+      final String applicationId,
+      final String scanId,
+      final Stream<ReportEntity> originalReportEntities) throws IOException
+  {
+    Iterator<ReportEntity> iterator = originalReportEntities.iterator();
+    while (iterator.hasNext()) {
+      ReportEntity originalReportEntity = iterator.next();
+      try (InputStream inputStream = originalReportEntity.getInputStream()) {
+        saveOriginalReportFile(applicationId, scanId, originalReportEntity.getName(), inputStream);
+      }
     }
   }
 

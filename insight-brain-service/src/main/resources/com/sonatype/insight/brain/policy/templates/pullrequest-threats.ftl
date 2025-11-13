@@ -43,7 +43,7 @@ Current version: ${initialVersionDisplay}
 
 **Violations resolved by new version:**
 <#else>
-## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Sonatype Lifecycle found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -70,7 +70,7 @@ Threat (of 10) | Policy | Violation Details
 </#list>
 </#if>
 
-### Nexus IQ Scan Detail
+### Sonatype Lifecycle Scan Detail
 **Application**: ${applicationName}<#if provider.name() == "GITLAB">\</#if>
 **Organization**: ${organizationName}<#if provider.name() == "GITLAB">\</#if>
 **Date**: ${date}<#if provider.name() == "GITLAB">\</#if>

@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found multiple policy violations introduced by this PR:
+### :thinking: Sonatype Lifecycle found multiple policy violations introduced by this PR:
 
 &#8192;
 
@@ -61,7 +61,7 @@
 
 &#8192;
 
-### Nexus IQ Report Details
+### Sonatype Lifecycle Report Details
 **Application**: TEST APP   
 **Organization**: TEST ORG   
 **Date**: 2020-06-21 09:15:32 UTC

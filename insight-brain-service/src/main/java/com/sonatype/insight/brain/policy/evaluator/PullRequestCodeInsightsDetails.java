@@ -129,12 +129,12 @@ public class PullRequestCodeInsightsDetails
     StringBuilder stringBuilder = new StringBuilder();
     if (policiesViolatedCount > 0) {
       stringBuilder.append(String
-          .format("On %s, Nexus IQ found %d new policy %s affecting %d %s.", timestamp, policiesViolatedCount,
+          .format("On %s, Sonatype Lifecycle found %d new policy %s affecting %d %s.", timestamp, policiesViolatedCount,
               violationsSuffix(policiesViolatedCount), componentCountForPolicyViolated,
               componentsSuffix(componentCountForPolicyViolated)));
     }
     else {
-      stringBuilder.append(String.format("Nexus IQ found no new policy violations on %s.", timestamp));
+      stringBuilder.append(String.format("Sonatype Lifecycle found no new policy violations on %s.", timestamp));
     }
     if (fixedPolicyViolationsCount > 0) {
       stringBuilder.append(" ");

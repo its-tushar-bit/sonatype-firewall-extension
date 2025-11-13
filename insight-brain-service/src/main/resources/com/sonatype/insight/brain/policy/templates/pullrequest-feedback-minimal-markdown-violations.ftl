@@ -1,6 +1,6 @@
 <#include "iq-for-scm-common.ftl">
 <#if ( policiesViolatedCount > 0 )><#t>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
+### :thinking: Sonatype Lifecycle found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this PR:
 
 &#8192;<#-- spacer -->
 
@@ -40,16 +40,16 @@
 
 </#list><#t>
 <#else>
-  ### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this PR<#lt>
+  ### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this PR<#lt>
 
-  Well done. The committed code does not violate any of your organization's Nexus IQ policies.<#lt>
+  Well done. The committed code does not violate any of your organization's Sonatype Lifecycle policies.<#lt>
 </#if>
 
 &#8192;<#-- spacer -->
 
 <#if ( fixedPolicyViolationsCount > 0 )>
 ---<#lt>
-### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:
+### :sunglasses: Sonatype Lifecycle determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:
 
 <#list fixedComponentList as component>
   :white_check_mark: **${component.componentNameAndVersion}**<#lt>
@@ -68,7 +68,7 @@
 
 </#list>
 </#if>
-### Nexus IQ Report Details<#lt>
+### Sonatype Lifecycle Report Details<#lt>
 **Application**: ${applicationName}   <#lt><#-- 3 spaces before a newline renders as a br -->
 **Organization**: ${organizationName}   <#lt>
 **Date**: ${date}<#lt>

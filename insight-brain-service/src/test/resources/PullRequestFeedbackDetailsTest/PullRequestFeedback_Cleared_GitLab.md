@@ -1,8 +1,8 @@
-### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this MR
-Well done. The committed code does not violate any of your organization's Nexus IQ policies.
+### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this MR
+Well done. The committed code does not violate any of your organization's Sonatype Lifecycle policies.
 
 ---
-### :sunglasses: Nexus IQ determined that you fixed outstanding policy violations:
+### :sunglasses: Sonatype Lifecycle determined that you fixed outstanding policy violations:
 
 <details>
 <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"> 
@@ -42,7 +42,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 ----
-### Nexus IQ Report Detail
+### Sonatype Lifecycle Report Detail
 **Application**: TEST APP\
 **Organization**: TEST ORG\
 **Date**: 2020-06-21 09:15:32 UTC\

@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found policy violations introduced by this change.
+### :thinking: Sonatype Lifecycle found policy violations introduced by this change.
 
 :shield: **Bumping to version 123** will resolve all policy violations for this component (as of _Jul 03, 2020_)
   - Few breaking changes - This version upgrade may require moderate effort.

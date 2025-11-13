@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found multiple policy violations introduced by this MR:
+### :thinking: Sonatype Lifecycle found multiple policy violations introduced by this MR:
 
 <details>
 <summary title="Threat Level: 10 of 10"><a href="#;"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16"></a> 
@@ -87,7 +87,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 ----
-### Nexus IQ Report Detail
+### Sonatype Lifecycle Report Detail
 **Application**: TEST APP\
 **Organization**: TEST ORG\
 **Date**: 2020-06-21 09:15:32 UTC\

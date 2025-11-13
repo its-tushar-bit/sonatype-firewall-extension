@@ -1,7 +1,7 @@
 
 
 
-# <a href="#;"> <img title="Moderate" alt="Moderate" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="20" height="20"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/></a> Sonatype IQ found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1
+# <a href="#;"> <img title="Moderate" alt="Moderate" src="https://cdn.sonatype.com/iq-for-scm/1.0/yellow-bar.png" width="20" height="20"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="20" height="20"/></a> Sonatype Lifecycle found issues introduced by com.fasterxml.jackson.core.jackson-databind:2.13.1
 <details>
 <br/>
 

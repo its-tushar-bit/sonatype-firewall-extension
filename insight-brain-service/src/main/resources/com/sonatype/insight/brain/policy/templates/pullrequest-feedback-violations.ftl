@@ -1,7 +1,7 @@
 <#include "iq-for-scm-common.ftl">
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
 <#if ( policiesViolatedCount > 0 )>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if>:<#lt>
+### :thinking: Sonatype Lifecycle found <#if ( policiesViolatedCount > 1 )>multiple policy violations<#else>a policy violation</#if> introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if>:<#lt>
 
 <#list componentList as component>
 <details>
@@ -52,15 +52,15 @@ https://sonatype.atlassian.net/browse/SDEV-154
 
 </#list>
 <#else>
-  ### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if><#lt>
+  ### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this <#if provider.name() == "GITLAB">MR<#else>PR</#if><#lt>
   <#if hasNoViolationsInPR>
-  Well done. The committed code does not violate any of your organization's Nexus IQ policies.<#lt>
+  Well done. The committed code does not violate any of your organization's Sonatype Lifecycle policies.<#lt>
 
   </#if>
 </#if>
 <#if ( fixedPolicyViolationsCount > 0 )>
 ---
-  ### :sunglasses: Nexus IQ determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:<#lt>
+  ### :sunglasses: Sonatype Lifecycle determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:<#lt>
 
 <#list fixedComponentList as component>
 <#assign threatImage="${threatImageArray[component.highestThreatLevel]}">
@@ -88,7 +88,7 @@ ${policy.threatLevel} | ${policy.name} | <#list policy.constraints as constraint
 </#list>
 </#if>
 ----
-### Nexus IQ Report Detail
+### Sonatype Lifecycle Report Detail
 **Application**: ${applicationName}<#if provider.name() == "GITLAB">\</#if>
 **Organization**: ${organizationName}<#if provider.name() == "GITLAB">\</#if>
 **Date**: ${date}<#if provider.name() == "GITLAB">\</#if>

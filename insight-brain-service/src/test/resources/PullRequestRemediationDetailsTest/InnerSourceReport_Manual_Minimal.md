@@ -7,7 +7,7 @@
 * New version: **1.58.8**
 
 
-### Nexus IQ Scan Detail
+### Sonatype Lifecycle Scan Detail
 **Application**: MyTestApp  
 **Organization**: Integrations  
 **Date**: 2019-11-26 10:15:30 GMT-8  

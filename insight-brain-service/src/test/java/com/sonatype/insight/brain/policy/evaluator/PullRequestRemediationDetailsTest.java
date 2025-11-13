@@ -432,7 +432,7 @@ public class PullRequestRemediationDetailsTest
             organizationDAO, FULL_DATA);
 
     assertThat(details.getContents().replace("\r\n", "\n"))
-        .startsWith("## :shield: Automated pull request: Nexus IQ found 1 Policy Violation\n");
+        .startsWith("## :shield: Automated pull request: Sonatype Lifecycle found 1 Policy Violation\n");
   }
 
   /**

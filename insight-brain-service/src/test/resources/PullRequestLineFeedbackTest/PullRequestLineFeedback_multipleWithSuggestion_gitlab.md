@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found policy violations introduced by:
+### :thinking: Sonatype Lifecycle found policy violations introduced by:
 
 <details open>
   <summary title="Threat Level: 10 of 10"><img alt="T10" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="16">

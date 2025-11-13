@@ -2,7 +2,7 @@
 <#assign recommendedNonBreaking = "recommended-non-breaking" >
 <#assign recommendedNonBreakingWithDependencies = "recommended-non-breaking-with-dependencies" >
 <#if suggestedVersionType == recommendedNonBreakingWithDependencies>
-### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+### Sonatype Lifecycle found critical issues introduced by ${componentNameAndVersion}
 
 Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
 
@@ -11,7 +11,7 @@ Direct dependency | **Threat level: ${threatLevel}** | [View Component Details i
 :white_check_mark: Non-breaking upgrade resolves issues for this component and its dependencies
 
 <#elseif suggestedVersionType == recommendedNonBreaking>
-### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+### Sonatype Lifecycle found critical issues introduced by ${componentNameAndVersion}
 
 Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
 
@@ -20,7 +20,7 @@ Direct dependency | **Threat level: ${threatLevel}** | [View Component Details i
 :white_check_mark: Non-breaking upgrade resolves issues for this component
 
 <#else>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by this change.<#lt>
+### :thinking: Sonatype Lifecycle found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by this change.<#lt>
 
 <#if suggestedVersion?has_content>
   :shield: **Bumping to version ${suggestedVersion}** will resolve all policy violations for this component<#if ( remediationForDependencies )> and its dependencies</#if> (as of _${date}_)<#lt>

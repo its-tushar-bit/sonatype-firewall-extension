@@ -1,6 +1,6 @@
-### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this PR
+### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this PR
 ---
-### :sunglasses: Nexus IQ determined that you fixed an outstanding policy violation:
+### :sunglasses: Sonatype Lifecycle determined that you fixed an outstanding policy violation:
 
 <details>
 <summary title="Threat Level: 9 of 10"><img alt="T9" src="https://cdn.sonatype.com/iq-for-scm/1.0/red-bar.png" width="4" height="14"> 
@@ -14,7 +14,7 @@ Threat (of 10) | Policy | Violation Details
 </details>
 
 ----
-### Nexus IQ Report Detail
+### Sonatype Lifecycle Report Detail
 **Application**: TEST APP
 **Organization**: TEST ORG
 **Date**: 2020-06-21 09:15:32 UTC

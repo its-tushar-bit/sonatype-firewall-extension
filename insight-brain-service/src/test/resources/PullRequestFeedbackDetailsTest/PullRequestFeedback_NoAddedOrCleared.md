@@ -1,8 +1,8 @@
-### :smiley: All Clear! Nexus IQ didn't find any policy violations introduced by this PR
-Well done. The committed code does not violate any of your organization's Nexus IQ policies.
+### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this PR
+Well done. The committed code does not violate any of your organization's Sonatype Lifecycle policies.
 
 ----
-### Nexus IQ Report Detail
+### Sonatype Lifecycle Report Detail
 **Application**: TEST APP
 **Organization**: TEST ORG
 **Date**: 2020-06-21 09:15:32 UTC

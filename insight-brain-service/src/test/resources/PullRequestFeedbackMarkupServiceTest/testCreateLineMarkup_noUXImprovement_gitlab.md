@@ -1,7 +1,7 @@
 
 
 
-# <a href="#;"> <img title="Low" alt="Low" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="14" height="14"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="14" height="14"/></a> Sonatype IQ found issues introduced by Test Component
+# <a href="#;"> <img title="Low" alt="Low" src="https://cdn.sonatype.com/iq-for-scm/1.0/dark-blue-bar.png" width="14" height="14"/></a> <a href="#;"> <img title="Direct Dependency" alt="Direct Dependency" src="https://cdn.sonatype.com/iq-for-scm/1.0/d-logo.png" width="14" height="14"/></a> Sonatype Lifecycle found issues introduced by Test Component
 <details>
 <br/>
 

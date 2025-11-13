@@ -794,7 +794,7 @@ public class PullRequestFeedbackDetailsTest
     //then assert that created contents has singular violation in heading
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
-    assertThat(contents.get()).startsWith("### :thinking: Nexus IQ found a policy violation");
+    assertThat(contents.get()).startsWith("### :thinking: Sonatype Lifecycle found a policy violation");
   }
 
   @Test
@@ -824,7 +824,7 @@ public class PullRequestFeedbackDetailsTest
     final Optional<String> contents = details.renderTemplateAndGetContents();
     assertThat(contents).isNotEmpty();
     assertThat(contents.get())
-        .contains("### :sunglasses: Nexus IQ determined that you fixed an outstanding policy violation:");
+        .contains("### :sunglasses: Sonatype Lifecycle determined that you fixed an outstanding policy violation:");
   }
 
   @Test

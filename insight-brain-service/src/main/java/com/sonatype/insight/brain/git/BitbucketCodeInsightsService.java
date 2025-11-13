@@ -43,13 +43,13 @@ public class BitbucketCodeInsightsService
   private static final Logger log = LoggerFactory.getLogger(BitbucketCodeInsightsService.class);
 
   @VisibleForTesting
-  static final String CODE_INSIGHT_REPORT_TITLE = "Nexus IQ for SCM";
+  static final String CODE_INSIGHT_REPORT_TITLE = "Sonatype Lifecycle for SCM";
 
   @VisibleForTesting
   static final String CODE_INSIGHT_REPORT_KEY = "nexus-iq-for-scm";
 
   @VisibleForTesting
-  static final String CODE_INSIGHT_REPORTER = "Nexus IQ";
+  static final String CODE_INSIGHT_REPORTER = "Sonatype Lifecycle";
 
   @VisibleForTesting
   static final URI CODE_INSIGHT_LOGO_URL = URI

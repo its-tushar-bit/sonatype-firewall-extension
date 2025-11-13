@@ -87,7 +87,7 @@ There are no breaking changes. This version upgrade requires minimal effort.
 </#macro>
 
 <#if suggestedVersionType == recommendedNonBreakingWithDependencies>
-### Sonatype IQ found critical issues introduced by ${componentDisplayName}
+### Sonatype Lifecycle found critical issues introduced by ${componentDisplayName}
 
 Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
 
@@ -99,7 +99,7 @@ Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Compo
   <summary>View Security Details</summary>
   
 <#elseIf suggestedVersionType == recommendedNonBreaking>
-### Sonatype IQ found critical issues introduced by ${componentDisplayName}
+### Sonatype Lifecycle found critical issues introduced by ${componentDisplayName}
 
 Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Component Details in Sonatype Lifecycle](${componentDetailLink})
 
@@ -111,7 +111,7 @@ Direct dependency | **Threat level: ${threatLevelDisplay.value}** \| [View Compo
   <summary>View Security Details</summary>
 
 <#else>
-# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype IQ found issues introduced by ${componentDisplayName}
+# <@threatLevelIndicatorComponent/> <@dependencyIndicatorComponent/> Sonatype Lifecycle found issues introduced by ${componentDisplayName}
 <details>
 <br/>
 

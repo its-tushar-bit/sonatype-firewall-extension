@@ -173,7 +173,8 @@ public class PullRequestCodeInsightsDetailsTest
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
-        .isEqualTo("On " + bomTimestamp + ", Nexus IQ found 39 new policy violations affecting 4 components.");
+        .isEqualTo("On " + bomTimestamp +
+            ", Sonatype Lifecycle found 39 new policy violations affecting 4 components.");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
@@ -254,8 +255,8 @@ public class PullRequestCodeInsightsDetailsTest
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
     //then assert that created contents match expected
-    assertThat(details.getReportDetails()).isEqualTo("Nexus IQ found no new policy violations on " + bomTimestamp +
-        ". 39 outstanding policy violations fixed, affecting 4 components");
+    assertThat(details.getReportDetails()).isEqualTo("Sonatype Lifecycle found no new policy violations on " +
+        bomTimestamp + ". 39 outstanding policy violations fixed, affecting 4 components");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
@@ -285,8 +286,9 @@ public class PullRequestCodeInsightsDetailsTest
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
     //then assert that created contents match expected
-    assertThat(details.getReportDetails()).isEqualTo("On " + bomTimestamp + ", Nexus IQ found 39 new policy " +
-        "violations affecting 4 components. 1 outstanding policy violation fixed, affecting 1 component");
+    assertThat(details.getReportDetails()).isEqualTo("On " + bomTimestamp +
+        ", Sonatype Lifecycle found 39 new policy violations affecting 4 components. " +
+        "1 outstanding policy violation fixed, affecting 1 component");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(32, 3, 4));
@@ -321,7 +323,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //then assert that created contents match expected
     assertThat(details.getReportDetails())
-        .isEqualTo("Nexus IQ found no new policy violations on " + bomTimestamp + ".");
+        .isEqualTo("Sonatype Lifecycle found no new policy violations on " + bomTimestamp + ".");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
@@ -345,7 +347,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //then assert that created contents has singular violation in heading
     assertThat(details.getReportDetails())
-        .startsWith("On " + bomTimestamp + ", Nexus IQ found 1 new policy violation affecting 1 component.");
+        .startsWith("On " + bomTimestamp + ", Sonatype Lifecycle found 1 new policy violation affecting 1 component.");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.FAIL);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(1, 0, 0));
@@ -373,8 +375,8 @@ public class PullRequestCodeInsightsDetailsTest
         lookup(BaseUrl.class).getConfigured(), locationDiscoveryResult, policyDAO, organizationDAO, false);
 
     //then assert that created contents has singular violation in heading
-    assertThat(details.getReportDetails()).contains("Nexus IQ found no new policy violations on " + bomTimestamp +
-        ". 1 outstanding policy violation fixed, affecting 1 component");
+    assertThat(details.getReportDetails()).contains("Sonatype Lifecycle found no new policy violations on " +
+        bomTimestamp + ". 1 outstanding policy violation fixed, affecting 1 component");
     assertThat(details.getReportOutcome()).isEqualTo(BitbucketCodeInsightReportOutcome.PASS);
     assertThat(details.getReportUri()).isEqualTo(EXPECTED_REPORT_URI);
     assertThat(details.getReportData()).containsAllEntriesOf(expectedReportData(0, 0, 0));
@@ -394,7 +396,7 @@ public class PullRequestCodeInsightsDetailsTest
 
     //then assert that created contents is not available
     String contents = details.getReportDetails();
-    assertThat(contents).isEqualTo("Nexus IQ found no new policy violations on " + bomTimestamp + ".");
+    assertThat(contents).isEqualTo("Sonatype Lifecycle found no new policy violations on " + bomTimestamp + ".");
   }
 
   @Test

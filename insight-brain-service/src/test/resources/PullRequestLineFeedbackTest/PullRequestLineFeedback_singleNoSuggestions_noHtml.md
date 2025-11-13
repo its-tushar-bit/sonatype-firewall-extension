@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found a policy violation introduced by this change.
+### :thinking: Sonatype Lifecycle found a policy violation introduced by this change.
 
 :warning: No recommended versions are available for this component (as of _Jul 03, 2020_)
 

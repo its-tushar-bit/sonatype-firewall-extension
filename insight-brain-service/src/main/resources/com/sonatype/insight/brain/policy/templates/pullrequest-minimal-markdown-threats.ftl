@@ -44,7 +44,7 @@ Current version: ${initialVersionDisplay}
 **Violations resolved by new version:**
 
 <#else>
-## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Nexus IQ found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
+## :shield: <#if !isManualPullRequest>Automated p<#else>P</#if>ull request: Sonatype Lifecycle found ${threatList?size} Policy Violation<#if (threatList?size > 1)>s</#if>
 
 ### Description
 
@@ -66,7 +66,7 @@ Current version: ${initialVersionDisplay}
 </#list>
 </#if>
 
-### Nexus IQ Scan Detail
+### Sonatype Lifecycle Scan Detail
 **Application**: ${applicationName}  <#-- leave 2 trailing spaces as a line break -->
 **Organization**: ${organizationName}  <#-- leave 2 trailing spaces as a line break -->
 **Date**: ${date}  <#-- leave 2 trailing spaces as a line break -->

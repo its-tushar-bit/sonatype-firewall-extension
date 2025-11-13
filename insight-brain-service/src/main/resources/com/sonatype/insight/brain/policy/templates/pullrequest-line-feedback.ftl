@@ -5,7 +5,7 @@
 <#if provider.name() == "GITLAB"><#assign width=14><#else><#assign width=12></#if>
 
 <#if suggestedVersionType == recommendedNonBreakingWithDependencies>
-### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+### Sonatype Lifecycle found critical issues introduced by ${componentNameAndVersion}
 
 Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
 
@@ -16,7 +16,7 @@ Direct dependency | **Threat level: ${threatLevel}** | [View Component Details i
 <details>
   <summary>View Security Details</summary>  
 <#elseif suggestedVersionType == recommendedNonBreaking>
-### Sonatype IQ found critical issues introduced by ${componentNameAndVersion}
+### Sonatype Lifecycle found critical issues introduced by ${componentNameAndVersion}
 
 Direct dependency | **Threat level: ${threatLevel}** | [View Component Details in Sonatype Lifecycle](${componentDetailsReportUrl})
 
@@ -27,7 +27,7 @@ Direct dependency | **Threat level: ${threatLevel}** | [View Component Details i
 <details>
   <summary>View Security Details</summary>
 <#else>
-### :thinking: Nexus IQ found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt>
+### :thinking: Sonatype Lifecycle found <#if ( policiesViolatedCount > 1 )>policy violations<#else>a policy violation</#if> introduced by:<#lt>
 
 <details open>
 </#if>

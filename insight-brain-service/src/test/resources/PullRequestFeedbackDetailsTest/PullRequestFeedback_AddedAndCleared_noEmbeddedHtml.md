@@ -1,4 +1,4 @@
-### :thinking: Nexus IQ found multiple policy violations introduced by this PR:
+### :thinking: Sonatype Lifecycle found multiple policy violations introduced by this PR:
 
 &#8192;
 
@@ -62,7 +62,7 @@
 &#8192;
 
 ---
-### :sunglasses: Nexus IQ determined that you fixed outstanding policy violations:
+### :sunglasses: Sonatype Lifecycle determined that you fixed outstanding policy violations:
 
 :white_check_mark: **com.h2database : h2-cleared : 1.4.190**
 
@@ -108,7 +108,7 @@
 
 &#8192;
 
-### Nexus IQ Report Details
+### Sonatype Lifecycle Report Details
 **Application**: TEST APP   
 **Organization**: TEST ORG   
 **Date**: 2020-06-21 09:15:32 UTC

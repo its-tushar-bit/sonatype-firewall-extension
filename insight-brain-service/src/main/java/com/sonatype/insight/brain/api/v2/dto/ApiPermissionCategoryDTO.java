@@ -7,18 +7,9 @@ package com.sonatype.insight.brain.api.v2.dto;
 
 import java.util.List;
 
-/**
- * @since 1.11.0
- */
-public class ApiRoleDTO
+public class ApiPermissionCategoryDTO
 {
-  public String id;
+  public String displayName;
 
-  public String name;
-
-  public String description;
-
-  public boolean builtIn;
-
-  public List<ApiPermissionCategoryDTO> permissionCategories;
+  public List<ApiPermissionDTO> permissions;
 }

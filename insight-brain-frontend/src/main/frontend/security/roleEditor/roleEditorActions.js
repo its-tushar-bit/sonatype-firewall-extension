@@ -75,7 +75,8 @@ export function save() {
       description,
     };
     const trimmedInputs = mapObjIndexed(prop('trimmedValue'), propsToTrim);
-    const request = axios[id ? 'put' : 'post'](getRoleListUrl(), { ...formState, ...trimmedInputs });
+    const url = id ? getRoleByIdUrl(id) : getRoleListUrl();
+    const request = axios[id ? 'put' : 'post'](url, { ...formState, ...trimmedInputs });
     return request
       .then(() => {
         dispatch(updateFulfilled());

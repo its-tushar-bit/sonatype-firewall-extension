@@ -73,7 +73,7 @@ export const getIqVersion = () => {
 };
 
 export function getRoleForNewUrl() {
-  return uriTemplate`/rest/security/roles/new`;
+  return uriTemplate`/api/v2/roles/new`;
 }
 
 export function getAutomaticSourceControlConfigurationUrl() {
@@ -485,7 +485,7 @@ export function getSystemNoticeFetchUrl() {
 }
 
 export function getRoleListUrl() {
-  return uriTemplate`/rest/security/roles`;
+  return uriTemplate`/api/v2/roles`;
 }
 
 export function getAutomaticApplicationsConfigurationUrl() {
@@ -1007,7 +1007,7 @@ export function getLatestReportInformation(applicationPublicId, stageTypeId) {
 }
 
 export function getRoleByIdUrl(roleId) {
-  return uriTemplate`/rest/security/roles/${roleId}`;
+  return uriTemplate`/api/v2/roles/${roleId}`;
 }
 
 export function getUserUrl() {

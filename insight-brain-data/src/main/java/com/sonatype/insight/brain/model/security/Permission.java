@@ -79,7 +79,8 @@ public enum Permission
 
   /**
    * This determines if we reveal the permission as being associated to a role through the backend REST APIs
-   * {@link RoleResource#getRoleById(String)} or {@link RoleResource#getTemplateForNewRole(String)} and in turn
+   * {@link ApiRoleResource#getRoleById(String)} or
+   * {@link ApiRoleResource#getTemplateForNewRole()} and in turn
    * through the frontend UI (i.e. the Roles System Preferences pages).
    */
   private final Supplier<Boolean> visible;

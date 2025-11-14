@@ -32,7 +32,7 @@ export function load() {
         }
         const readOnly = !data.includes('EDIT_ROLES');
         return axios.get(getRoleListUrl()).then(({ data }) => {
-          dispatch(loadFulfilled({ roles: data, readOnly }));
+          dispatch(loadFulfilled({ roles: data.roles, readOnly }));
         });
       })
       .catch(compose(dispatch, loadFailed, Messages.getHttpErrorMessage));

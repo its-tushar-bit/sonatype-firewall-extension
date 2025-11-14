@@ -1,0 +1,123 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+package com.sonatype.insight.brain.api.v2;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
+import com.sonatype.insight.brain.HttpRequest;
+import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.v2.dto.ApiPermissionCategoryDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiPermissionDTO;
+import com.sonatype.insight.brain.api.v2.dto.ApiRoleDTO;
+import com.sonatype.insight.brain.audit.AuditDTO;
+import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.model.security.Permission;
+import com.sonatype.insight.brain.model.security.Role;
+import com.sonatype.insight.brain.service.AbstractAuditTest;
+
+import org.junit.Test;
+
+public class ApiRoleResourceAuditTest
+    extends AbstractAuditTest
+{
+  @Override
+  protected HttpRequest restRequest() {
+    return super.restRequest().path(PublicApiPaths.ROLE_RESOURCE_PATH_V2);
+  }
+
+  @Test
+  public void testAddRole() throws Exception {
+    ApiRoleDTO roleDTO = role(null, "Test Role", "Just testing", Permission.READ, Permission.VIEW_ROLES);
+    roleDTO.id = restRequest().body(roleDTO).post().getBody(ApiRoleDTO.class).id;
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.CREATE_ROLE, null);
+    assertRoleData(auditDTO, roleDTO.id, roleDTO.name, roleDTO.description, Permission.READ, Permission.VIEW_ROLES);
+  }
+
+  @Test
+  public void testAddRole_Unauthorized() throws Exception {
+    ApiRoleDTO roleDTO = role(null, "Test Role", "Just testing");
+    restRequest().with(unauthorizedUser()).body(roleDTO).post();
+
+    assertAuditLog(AuditEvent.CREATE_ROLE, "unauthorized");
+  }
+
+  @Test
+  public void testUpdateRole() throws Exception {
+    ApiRoleDTO roleDTO = role(tempEntity.newRole(false).getId(), "Test Role", "Just testing", Permission.WRITE);
+    restRequest().path(roleDTO.id).body(roleDTO).put();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.UPDATE_ROLE, null);
+    assertRoleData(auditDTO, roleDTO.id, roleDTO.name, roleDTO.description, Permission.WRITE);
+  }
+
+  @Test
+  public void testUpdateRole_Unauthorized() throws Exception {
+    ApiRoleDTO roleDTO = role(tempEntity.newRole(false).getId(), "Test Role", "Just testing");
+    restRequest().path(roleDTO.id).with(unauthorizedUser()).body(roleDTO).put();
+
+    assertAuditLog(AuditEvent.UPDATE_ROLE, "unauthorized");
+  }
+
+  @Test
+  public void testDeleteRole() throws Exception {
+    Role role = tempEntity.newRole("Test Role", "Just testing", false, Permission.MANAGE_PROPRIETARY);
+    restRequest().path(role.getId()).delete();
+
+    AuditDTO auditDTO = assertAuditLog(AuditEvent.DELETE_ROLE, null);
+    assertRoleData(auditDTO, role.getId(), role.getName(), role.getDescription(), Permission.MANAGE_PROPRIETARY);
+  }
+
+  @Test
+  public void testDeleteRole_Unauthorized() throws Exception {
+    Role role = tempEntity.newRole(false);
+    restRequest().path(role.getId()).with(unauthorizedUser()).delete();
+
+    assertAuditLog(AuditEvent.DELETE_ROLE, "unauthorized");
+  }
+
+  private ApiRoleDTO role(
+      final String id,
+      final String name,
+      final String description,
+      final Permission... permissions)
+  {
+    ApiRoleDTO roleDTO = new ApiRoleDTO();
+    roleDTO.id = id;
+    roleDTO.name = name;
+    roleDTO.description = description;
+    ApiPermissionCategoryDTO permissionCategoryDTO = new ApiPermissionCategoryDTO();
+    permissionCategoryDTO.permissions = new ArrayList<>();
+    for (Permission permission : permissions) {
+      ApiPermissionDTO permissionDTO = new ApiPermissionDTO();
+      permissionDTO.id = permission;
+      permissionDTO.displayName = permission.getDisplayName();
+      permissionDTO.description = permission.getDescription();
+      permissionDTO.allowed = true;
+      permissionCategoryDTO.permissions.add(permissionDTO);
+    }
+    roleDTO.permissionCategories = Collections.singletonList(permissionCategoryDTO);
+    return roleDTO;
+  }
+
+  private void assertRoleData(
+      final AuditDTO auditDTO,
+      final String id,
+      final String name,
+      final String description,
+      final Permission... permissions)
+  {
+    List<String> permissionNames = Arrays.stream(permissions)
+        .map(permission -> permission.getDisplayName() + ' ' + permission.getDescription()).sorted().toList();
+    assertCustomData(auditDTO, "roleId", id);
+    assertCustomData(auditDTO, "roleName", name);
+    assertCustomData(auditDTO, "roleDescription", description);
+    assertCustomData(auditDTO, "grantedPermissions", permissionNames);
+  }
+}

@@ -82,7 +82,7 @@ describe('RoleEditorActions', function () {
       store = SpecUtil.mockReduxStore(state);
       const spy = spyOn(axios, 'put').and.returnValue(Promise.resolve({}));
       store.dispatch(save());
-      expect(spy).toHaveBeenCalledWith(roleListUrl, {
+      expect(spy).toHaveBeenCalledWith(getRoleByIdUrl(id), {
         id,
         name: 'TEST-NAME',
         description: 'TEST-DESCRIPTION',

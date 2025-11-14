@@ -5,20 +5,15 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import java.util.List;
+import com.sonatype.insight.brain.model.security.Permission;
 
-/**
- * @since 1.11.0
- */
-public class ApiRoleDTO
+public class ApiPermissionDTO
 {
-  public String id;
+  public Permission id;
 
-  public String name;
+  public String displayName;
 
   public String description;
 
-  public boolean builtIn;
-
-  public List<ApiPermissionCategoryDTO> permissionCategories;
+  public boolean allowed;
 }

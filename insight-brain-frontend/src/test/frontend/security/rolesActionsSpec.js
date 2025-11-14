@@ -51,7 +51,7 @@ describe('rolesActions', () => {
         mockAxiosCalls({
           get: {
             [rolesListUrl]: Promise.resolve({
-              data: [{ ...role }],
+              data: { roles: [{ ...role }] },
             }),
           },
         });
@@ -80,7 +80,7 @@ describe('rolesActions', () => {
         mockAxiosCalls({
           get: {
             [rolesListUrl]: Promise.resolve({
-              data: [{ ...role }],
+              data: { roles: [{ ...role }] },
             }),
           },
         });

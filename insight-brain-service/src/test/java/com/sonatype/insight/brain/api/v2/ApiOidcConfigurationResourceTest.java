@@ -11,6 +11,7 @@ import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.OAuth2ConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.OidcConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
+import com.sonatype.insight.brain.api.v2.service.ApiOidcConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OAuth2ConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.oauth2.OAuth2Configuration;
@@ -104,7 +105,7 @@ public class ApiOidcConfigurationResourceTest
     assertThat(oidcDto.getIdpTokenUrl()).isEqualTo("https://auth.example.com/token");
 
     // Verify client secret is decrypted
-    assertThat(oidcDto.getClientSecret()).isEqualTo("test-client-secret");
+    assertThat(oidcDto.getClientSecret()).isEqualTo(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
   }
 
   @Test

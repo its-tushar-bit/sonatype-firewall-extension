@@ -298,6 +298,7 @@ export const selectIsContainerImagesEvaluationEnabled = createSelector(
 export const selectIsZscalerEnabled = createSelector(selectProductFeatures, propOr(false, 'zscaler'));
 
 export const selectIsSAMLEnabled = createSelector(selectProductFeatures, propOr(false, 'saml-enabled'));
+export const selectIsOAuth2Enabled = createSelector(selectProductFeatures, propOr(false, 'oauth2-enabled'));
 export const selectIsUserManagementPagesEnabled = createSelector(
   selectProductFeatures,
   propOr(false, 'user-management-pages')

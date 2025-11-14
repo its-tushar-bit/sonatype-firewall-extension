@@ -107,8 +107,8 @@ public class ApiOidcConfigurationServiceTest
     assertThat(oidcDto.getIdpAuthorizationUrl()).isEqualTo("https://auth.example.com/authorize");
     assertThat(oidcDto.getIdpTokenUrl()).isEqualTo("https://auth.example.com/token");
 
-    // Verify client secret is decrypted
-    assertThat(oidcDto.getClientSecret()).isEqualTo("test-client-secret");
+    // Verify client secret is masked (not sent to frontend)
+    assertThat(oidcDto.getClientSecret()).isEqualTo(ApiOidcConfigurationService.CLIENT_SECRET_MASK);
   }
 
   @Test
@@ -487,5 +487,121 @@ public class ApiOidcConfigurationServiceTest
     ssoConfig.setOidcConfiguration(oidcConfig);
 
     return ssoConfig;
+  }
+
+  @Test
+  public void testUpdateOidcConfiguration_WithMaskedSecretPreservesExistingSecret() {
+    // Given: Existing configuration with encrypted secret
+    tempEntity.newOAuth2Configuration(
+        "https://auth.example.com",
+        "RS256",
+        "https://auth.example.com/.well-known/jwks.json",
+        null);
+
+    String originalSecret = "original-secret";
+    String encryptedOriginalSecret = passwordHandler.encryptPassword(originalSecret);
+    tempEntity.newOidcConfiguration(
+        "https://auth.example.com",
+        "original-client-id",
+        encryptedOriginalSecret,
+        "https://auth.example.com/authorize",
+        "https://auth.example.com/token");
+
+    // When: Update with masked client secret (simulating UI sending back masked value)
+    OAuth2ConfigurationDTO oauth2Config = new OAuth2ConfigurationDTO();
+    oauth2Config.setIdpIssuer("https://auth.example.com");
+    oauth2Config.setIdpJwksUrl("https://auth.example.com/.well-known/jwks.json");
+    oauth2Config.setIdpJwsAlgorithm("RS256");
+    oauth2Config.setUsernameClaim("updated_username");
+
+    OidcConfigurationDTO oidcConfig = new OidcConfigurationDTO();
+    oidcConfig.setIdpIssuer("https://auth.example.com");
+    oidcConfig.setClientId("updated-client-id");
+    oidcConfig.setClientSecret(ApiOidcConfigurationService.CLIENT_SECRET_MASK); // Masked value
+    oidcConfig.setIdpAuthorizationUrl("https://auth.example.com/authorize/updated");
+    oidcConfig.setIdpTokenUrl("https://auth.example.com/token");
+
+    SsoConfigurationDTO ssoConfig = new SsoConfigurationDTO();
+    ssoConfig.setOAuth2Configuration(oauth2Config);
+    ssoConfig.setOidcConfiguration(oidcConfig);
+
+    service.insertOrUpdateOidcConfiguration(ssoConfig);
+
+    // Then: Other fields should be updated but secret should remain the same
+    OidcConfiguration updatedOidc = oidcConfigurationDAO.get();
+    assertThat(updatedOidc.getClientId()).isEqualTo("updated-client-id");
+    assertThat(updatedOidc.getIdpAuthorizationUrl()).isEqualTo("https://auth.example.com/authorize/updated");
+
+    // Verify the original secret is preserved (not re-encrypted)
+    String decryptedSecret = passwordHandler.decryptPassword(updatedOidc.getClientSecret());
+    assertThat(decryptedSecret).isEqualTo(originalSecret);
+  }
+
+  @Test
+  public void testUpdateOidcConfiguration_WithNewSecretUpdatesSecret() {
+    // Given: Existing configuration
+    tempEntity.newOAuth2Configuration(
+        "https://auth.example.com",
+        "RS256",
+        "https://auth.example.com/.well-known/jwks.json",
+        null);
+
+    String originalSecret = "original-secret";
+    tempEntity.newOidcConfiguration(
+        "https://auth.example.com",
+        "original-client-id",
+        passwordHandler.encryptPassword(originalSecret),
+        "https://auth.example.com/authorize",
+        "https://auth.example.com/token");
+
+    // When: Update with new actual client secret
+    OAuth2ConfigurationDTO oauth2Config = new OAuth2ConfigurationDTO();
+    oauth2Config.setIdpIssuer("https://auth.example.com");
+    oauth2Config.setIdpJwksUrl("https://auth.example.com/.well-known/jwks.json");
+    oauth2Config.setIdpJwsAlgorithm("RS256");
+
+    OidcConfigurationDTO oidcConfig = new OidcConfigurationDTO();
+    oidcConfig.setIdpIssuer("https://auth.example.com");
+    oidcConfig.setClientId("updated-client-id");
+    oidcConfig.setClientSecret("new-actual-secret"); // New secret provided
+    oidcConfig.setIdpAuthorizationUrl("https://auth.example.com/authorize");
+    oidcConfig.setIdpTokenUrl("https://auth.example.com/token");
+
+    SsoConfigurationDTO ssoConfig = new SsoConfigurationDTO();
+    ssoConfig.setOAuth2Configuration(oauth2Config);
+    ssoConfig.setOidcConfiguration(oidcConfig);
+
+    service.insertOrUpdateOidcConfiguration(ssoConfig);
+
+    // Then: The new secret should be encrypted and stored
+    OidcConfiguration updatedOidc = oidcConfigurationDAO.get();
+    String decryptedSecret = passwordHandler.decryptPassword(updatedOidc.getClientSecret());
+    assertThat(decryptedSecret).isEqualTo("new-actual-secret");
+  }
+
+  @Test
+  public void testInsertOidcConfiguration_WithMaskedSecretThrowsException() {
+    // Given: No existing configuration
+
+    // When/Then: Attempting to create new config with masked secret should fail
+    OAuth2ConfigurationDTO oauth2Config = new OAuth2ConfigurationDTO();
+    oauth2Config.setIdpIssuer("https://auth.example.com");
+    oauth2Config.setIdpJwksUrl("https://auth.example.com/.well-known/jwks.json");
+    oauth2Config.setIdpJwsAlgorithm("RS256");
+
+    OidcConfigurationDTO oidcConfig = new OidcConfigurationDTO();
+    oidcConfig.setIdpIssuer("https://auth.example.com");
+    oidcConfig.setClientId("client-id");
+    oidcConfig.setClientSecret(ApiOidcConfigurationService.CLIENT_SECRET_MASK); // Masked value on new config
+    oidcConfig.setIdpAuthorizationUrl("https://auth.example.com/authorize");
+    oidcConfig.setIdpTokenUrl("https://auth.example.com/token");
+
+    SsoConfigurationDTO ssoConfig = new SsoConfigurationDTO();
+    ssoConfig.setOAuth2Configuration(oauth2Config);
+    ssoConfig.setOidcConfiguration(oidcConfig);
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> service.insertOrUpdateOidcConfiguration(ssoConfig))
+        .withMessageContaining("Client secret cannot be masked for new configuration");
   }
 }

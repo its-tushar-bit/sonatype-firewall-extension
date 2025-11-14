@@ -6,6 +6,7 @@
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ldapModule from './ldap/ldap.module';
 import samlModule from './saml/module';
+import oidcModule from './oidc/module';
 import webhookModule from './webhook/webhook.module';
 import ProductLicenseModule from './license/ProductLicenseModule';
 import MailConfigContainer from './mail/MailConfigContainer';
@@ -35,6 +36,7 @@ export default angular
   .module('configurationModule', [
     ldapModule.name,
     samlModule.name,
+    oidcModule.name,
     webhookModule.name,
     ProductLicenseModule.name,
     'ngRedux',

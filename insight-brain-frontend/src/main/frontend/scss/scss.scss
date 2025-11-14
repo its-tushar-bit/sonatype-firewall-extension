@@ -59,6 +59,7 @@
 @use '../vulnerabilitySearch/vulnerabilitySearch';
 @use '../vulnerabilityCustomize/vulnerabilityCustomize';
 @use '../configuration/saml/samlConfiguration';
+@use '../configuration/oidc/oidcConfiguration';
 @use '../configuration/systemConfiguration';
 @use '../advancedSearch/advancedSearch';
 @use '../report/react/report';

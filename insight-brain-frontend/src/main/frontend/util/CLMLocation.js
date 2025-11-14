@@ -1365,6 +1365,10 @@ export const getSamlMetadataUrl = () => {
   return uriTemplate`/api/v2/config/saml/metadata`;
 };
 
+export const getOidcConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/oidc`;
+};
+
 export const getOrganizationAppliedTagUrl = (organizationId) => {
   return getCategoriesUrl('organization', organizationId) + '/applied';
 };

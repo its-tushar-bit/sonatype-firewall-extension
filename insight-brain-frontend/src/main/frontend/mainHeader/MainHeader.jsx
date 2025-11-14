@@ -29,6 +29,7 @@ import {
   selectIsOrgsAndAppsEnabled,
   selectIsZscalerEnabled,
   selectIsSAMLEnabled,
+  selectIsOAuth2Enabled,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import {
   selectIsSbomManagerOnlyLicense,
@@ -77,6 +78,7 @@ export function MainHeader({ userActions }) {
   const isShowNotificationMenuEnabled = useSelector(selectIsShowNotificationMenuEnabled);
   const isBaseUrlConfigurationEnabled = useSelector(selectIsBaseUrlConfigurationEnabled);
   const isSamlConfigurationEnabled = useSelector(selectIsSAMLEnabled);
+  const isOAuth2ConfigurationEnabled = useSelector(selectIsOAuth2Enabled);
   const isMonitoringSupported = useSelector(selectIsMonitoringSupported);
   const isSsoIdpManagedBySonatype = useSelector(selectIsSsoIdpManagedBySonatype);
   const tenantMode = useSelector(selectTenantMode);
@@ -132,6 +134,7 @@ export function MainHeader({ userActions }) {
       isShowNotificationMenuEnabled={isShowNotificationMenuEnabled}
       isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
       isSamlConfigurationEnabled={isSamlConfigurationEnabled}
+      isOAuth2ConfigurationEnabled={isOAuth2ConfigurationEnabled}
       isMonitoringSupported={isMonitoringSupported}
       isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
       isSingleTenant={isSingleTenant}

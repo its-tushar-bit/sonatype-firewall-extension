@@ -37,6 +37,7 @@ export const MenuBar = ({
   isShowNotificationMenuEnabled,
   isBaseUrlConfigurationEnabled,
   isSamlConfigurationEnabled,
+  isOAuth2ConfigurationEnabled,
   isMonitoringSupported,
   isSsoIdpManagedBySonatype,
   isSingleTenant,
@@ -98,6 +99,7 @@ export const MenuBar = ({
           isAdvancedSearchConfigurationEnabled={isAdvancedSearchConfigurationEnabled}
           isBaseUrlConfigurationEnabled={isBaseUrlConfigurationEnabled}
           isSamlConfigurationEnabled={isSamlConfigurationEnabled}
+          isOAuth2ConfigurationEnabled={isOAuth2ConfigurationEnabled}
           isMonitoringSupported={isMonitoringSupported}
           isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
           isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
@@ -140,6 +142,7 @@ MenuBar.propTypes = {
   isNotificationMenuEnabled: PropTypes.bool,
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,
+  isOAuth2ConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
   isShowNotificationMenuEnabled: PropTypes.bool,
   isSsoIdpManagedBySonatype: PropTypes.bool,

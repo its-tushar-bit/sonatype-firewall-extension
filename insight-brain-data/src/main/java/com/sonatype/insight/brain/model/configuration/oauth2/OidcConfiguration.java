@@ -17,6 +17,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.177
@@ -129,7 +130,7 @@ public class OidcConfiguration
   }
 
   public Map<String, String> getAuthorizationCustomParams() {
-    if (authorizationCustomParamsJson == null) {
+    if (StringUtils.isBlank(authorizationCustomParamsJson)) {
       return new HashMap<>();
     }
     return JsonUtils.asType(authorizationCustomParamsJson, new TypeReference<Map<String, String>>() { });
@@ -140,7 +141,7 @@ public class OidcConfiguration
   }
 
   public Map<String, String> getTokenRequestCustomParams() {
-    if (tokenRequestCustomParamsJson == null) {
+    if (StringUtils.isBlank(tokenRequestCustomParamsJson)) {
       return new HashMap<>();
     }
     return JsonUtils.asType(tokenRequestCustomParamsJson, new TypeReference<Map<String, String>>() { });

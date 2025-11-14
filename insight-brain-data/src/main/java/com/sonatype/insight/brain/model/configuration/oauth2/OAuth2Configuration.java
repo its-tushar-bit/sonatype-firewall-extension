@@ -16,6 +16,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.model.HasStringId;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * @since 1.177
@@ -158,7 +159,7 @@ public class OAuth2Configuration
   }
 
   public Map<String, String> getExactMatchClaims() {
-    if (exactMatchClaimsJson == null) {
+    if (StringUtils.isBlank(exactMatchClaimsJson)) {
       return new HashMap<>();
     }
     return JsonUtils.asType(exactMatchClaimsJson, new TypeReference<Map<String, String>>() { });

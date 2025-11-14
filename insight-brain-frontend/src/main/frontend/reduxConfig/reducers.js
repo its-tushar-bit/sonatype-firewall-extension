@@ -79,6 +79,7 @@ import artifactoryRepositoryConfigurationModalSlice from '../artifactoryReposito
 import artifactoryRepositoryDeleteConfigurationModalSlice from 'MainRoot/artifactoryRepositoryConfiguration/artifactoryRepositoryDeleteConfigurationModalSlice';
 import otherVersionsSlice from 'MainRoot/quarantinedComponentReport/otherVersionsTile/otherVersionsSlice';
 import samlConfigurationSlice from '../configuration/saml/samlConfigurationSlice';
+import oidcConfigurationSlice from '../configuration/oidc/oidcConfigurationSlice';
 import quarantinedRiskRemediationSlice from 'MainRoot/quarantinedComponentReport/riskRemediationTile/riskRemediationSlice';
 import componentRiskDetails from 'MainRoot/dashboard/results/componentRisk/componentRiskSlice';
 import orgsAndPoliciesSlice from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSlice';
@@ -186,6 +187,7 @@ export default combineReducers({
   transitiveViolations: transitiveViolationsReducer,
   waiveTransitiveViolations: waiveTransitiveViolationsReducer,
   samlConfiguration: samlConfigurationSlice,
+  oidcConfiguration: oidcConfigurationSlice,
   componentDetailsPolicyViolations: componentDetailsViolationsReducer,
   administratorsConfig: administratorsSlice,
   componentDetailsOverview: overviewSlice,

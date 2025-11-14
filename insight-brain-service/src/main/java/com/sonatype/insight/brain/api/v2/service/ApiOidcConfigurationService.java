@@ -63,8 +63,8 @@ public class ApiOidcConfigurationService
 
     OidcConfigurationDTO oidcDto = OidcConfigurationDTO.toDTO(oidcConfiguration);
     OAuth2ConfigurationDTO oAuth2Dto = OAuth2ConfigurationDTO.toDTO(oAuth2Configuration);
-    // Decrypt the client secret before returning
-    oidcDto.setClientSecret(passwordHandler.decryptPassword(oidcDto.getClientSecret()));
+    // Mask the client secret - never send actual secret to frontend
+    oidcDto.setClientSecret(CLIENT_SECRET_MASK);
     return new SsoConfigurationDTO(oAuth2Dto, oidcDto);
   }
 

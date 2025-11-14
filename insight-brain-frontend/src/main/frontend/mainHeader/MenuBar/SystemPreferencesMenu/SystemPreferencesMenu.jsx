@@ -33,6 +33,7 @@ export const SystemPreferencesMenu = ({
   isAdvancedSearchConfigurationEnabled = false,
   isBaseUrlConfigurationEnabled = false,
   isSamlConfigurationEnabled = false,
+  isOAuth2ConfigurationEnabled = false,
   isMonitoringSupported = false,
   isSsoIdpManagedBySonatype = false,
   isSbomManagerOnlyLicense = false,
@@ -115,6 +116,14 @@ export const SystemPreferencesMenu = ({
         prefix={firewallPrefix}
       >
         SAML
+      </NavLink>
+      <NavLink
+        stateName="oidc"
+        id="system-configuration-oidc"
+        showIf={CONFIGURE_SYSTEM && isOAuth2ConfigurationEnabled}
+        prefix={firewallPrefix}
+      >
+        OIDC
       </NavLink>
       <NavLink
         stateName="waivedComponentUpgradesConfiguration"
@@ -280,6 +289,7 @@ SystemPreferencesMenu.propTypes = {
   isBaseUrlConfigurationEnabled: PropTypes.bool,
   isMonitoringSupported: PropTypes.bool,
   isSamlConfigurationEnabled: PropTypes.bool,
+  isOAuth2ConfigurationEnabled: PropTypes.bool,
   isSsoIdpManagedBySonatype: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isFirewallLicense: PropTypes.bool,

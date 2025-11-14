@@ -20,7 +20,7 @@ describe('buildSearchQuery', () => {
       { field: { value: '' }, value: 'test', operator: 'OR', isExactMatch: false },
       { field: { value: 'componentName' }, value: 'test', operator: 'OR', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('OR componentName:"test"* ');
+    expect(buildSearchQuery(searchItems)).toBe('OR componentName:*test* ');
   });
 
   it('skips items with missing search value', () => {
@@ -28,14 +28,14 @@ describe('buildSearchQuery', () => {
       { field: { value: 'componentName' }, value: '', operator: 'OR', isExactMatch: false },
       { field: { value: 'applicationName' }, value: 'test', operator: 'OR', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('OR applicationName:"test"* ');
+    expect(buildSearchQuery(searchItems)).toBe('OR applicationName:*test* ');
   });
 
   it('builds query for single item without operator', () => {
     const searchItems = [
       { field: { value: 'componentName' }, value: 'test-component', operator: 'OR', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test-component"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test-component* ');
   });
 
   it('builds query for single item with exact match', () => {
@@ -50,7 +50,7 @@ describe('buildSearchQuery', () => {
       { field: { value: 'componentName' }, value: 'test-component', operator: 'OR', isExactMatch: false },
       { field: { value: 'applicationName' }, value: 'test-app', operator: 'AND', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test-component"* AND applicationName:"test-app"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test-component* AND applicationName:*test-app* ');
   });
 
   it('builds query for multiple items with mixed exact and partial matches', () => {
@@ -58,7 +58,7 @@ describe('buildSearchQuery', () => {
       { field: { value: 'componentName' }, value: 'test-component', operator: 'OR', isExactMatch: true },
       { field: { value: 'applicationName' }, value: 'test-app', operator: 'AND', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test-component" AND applicationName:"test-app"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:"test-component" AND applicationName:*test-app* ');
   });
 
   it('handles items with prefixList', () => {
@@ -76,7 +76,7 @@ describe('buildSearchQuery', () => {
         isExactMatch: false,
       },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test"* componentVersion:"test"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test* componentVersion:*test* ');
   });
 
   it('handles items with prefixList and multiple search items', () => {
@@ -101,7 +101,7 @@ describe('buildSearchQuery', () => {
       },
     ];
     expect(buildSearchQuery(searchItems)).toBe(
-      'componentName:"test"* componentVersion:"test"* AND applicationName:"app" '
+      'componentName:*test* componentVersion:*test* AND applicationName:"app" '
     );
   });
 
@@ -151,7 +151,7 @@ describe('buildSearchQuery', () => {
       },
     ];
     expect(buildSearchQuery(searchItems)).toBe(
-      'componentName:"log4j"* AND vulnerabilityId:"CVE-2021-44228" OR applicationName:"my-app"* applicationVersion:"my-app"* '
+      'componentName:*log4j* AND vulnerabilityId:"CVE-2021-44228" OR applicationName:*my-app* applicationVersion:*my-app* '
     );
   });
 
@@ -160,7 +160,7 @@ describe('buildSearchQuery', () => {
       { field: { value: 'componentName' }, value: 'test@component', operator: 'OR', isExactMatch: false },
       { field: { value: 'applicationName' }, value: 'my-app-v1.0', operator: 'AND', isExactMatch: true },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test@component"* AND applicationName:"my-app-v1.0" ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test@component* AND applicationName:"my-app-v1.0" ');
   });
 
   it('handles empty prefixList', () => {
@@ -191,12 +191,12 @@ describe('buildSearchQuery', () => {
       { field: { value: 'componentName' }, value: 'test1', isExactMatch: false },
       { field: { value: 'applicationName' }, value: 'test2', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test1"* undefined applicationName:"test2"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test1* undefined applicationName:*test2* ');
   });
 
   it('handles missing isExactMatch property (defaults to partial match)', () => {
     const searchItems = [{ field: { value: 'componentName' }, value: 'test', operator: 'OR' }];
-    expect(buildSearchQuery(searchItems)).toBe('componentName:"test"* ');
+    expect(buildSearchQuery(searchItems)).toBe('componentName:*test* ');
   });
 
   it('handles items with only field value but no search value', () => {
@@ -214,7 +214,7 @@ describe('buildSearchQuery', () => {
       { field: { value: '' }, value: '', operator: 'OR', isExactMatch: false },
       { field: { value: 'componentName' }, value: 'test', operator: 'OR', isExactMatch: false },
     ];
-    expect(buildSearchQuery(searchItems)).toBe('OR componentName:"test"* ');
+    expect(buildSearchQuery(searchItems)).toBe('OR componentName:*test* ');
   });
 
   it('handles single item with prefixList and exact match', () => {
@@ -239,7 +239,7 @@ describe('buildSearchQuery', () => {
       { field: { value: 'applicationName' }, value: 'my-app', operator: 'OR', isExactMatch: false },
     ];
     expect(buildSearchQuery(searchItems)).toBe(
-      'componentName:"log4j"* AND vulnerabilityId:"CVE-2021" OR applicationName:"my-app"* '
+      'componentName:*log4j* AND vulnerabilityId:"CVE-2021" OR applicationName:*my-app* '
     );
   });
 });

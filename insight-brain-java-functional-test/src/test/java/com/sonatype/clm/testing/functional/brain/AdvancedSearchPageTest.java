@@ -523,7 +523,7 @@ public class AdvancedSearchPageTest
 
     // Verify search was executed and query builder is closed
     page.queryBuilderEasyContainer().shouldNotBe(visible);
-    page.searchInput().shouldHave(value("itemType:\"ORGANIZATION\"*"));
+    page.searchInput().shouldHave(value("itemType:*ORGANIZATION*"));
     page.resultCount().shouldBe(text("1"));
   }
 
@@ -566,7 +566,7 @@ public class AdvancedSearchPageTest
 
     // Verify complex query was built correctly
     page.searchInput().shouldHave(
-        value("itemType:\"ORGANIZATION\"* AND itemType:\"APPLICATION\"* OR componentName:\"test-component\"*"));
+        value("itemType:*ORGANIZATION* AND itemType:*APPLICATION* OR componentName:*test-component*"));
   }
 
   @Test
@@ -619,6 +619,6 @@ public class AdvancedSearchPageTest
     FormMask.seeAndWaitForDismissal();
 
     // Verify query was updated
-    page.searchInput().shouldHave(value("itemType:\"APPLICATION\"*"));
+    page.searchInput().shouldHave(value("itemType:*APPLICATION*"));
   }
 }

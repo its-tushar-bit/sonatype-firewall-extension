@@ -188,11 +188,11 @@ export const buildSearchQuery = (searchItems) => {
     if (item.field.prefixList) {
       item.field.prefixList.forEach((prefix, prefixIndex) => {
         const operator = prefixIndex === 0 && itemIndex > 0 ? `${item.operator} ` : '';
-        query += `${operator}${prefix.value}:"${item.value}"${item.isExactMatch ? '' : '*'} `;
+        query += `${operator}${prefix.value}:${item.isExactMatch ? `"${item.value}"` : `*${item.value}*`} `;
       });
     } else {
       const operator = itemIndex > 0 ? `${item.operator} ` : '';
-      query += `${operator}${item.field.value}:"${item.value}"${item.isExactMatch ? '' : '*'} `;
+      query += `${operator}${item.field.value}:${item.isExactMatch ? `"${item.value}"` : `*${item.value}*`} `;
     }
   });
   return query;

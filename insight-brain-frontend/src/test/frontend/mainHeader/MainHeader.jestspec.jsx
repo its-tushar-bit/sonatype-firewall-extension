@@ -52,10 +52,13 @@ describe('MainHeader', () => {
     };
 
     fetchUserSpy = jest.spyOn(userSession, 'fetchUser').mockImplementation(() => {});
-    // Mock ensureUserLoggedIn to return a resolved promise
-    ensureUserLoggedInSpy = jest
-      .spyOn(userSessionSlice, 'ensureUserLoggedIn')
-      .mockReturnValue(() => Promise.resolve({ username: 'testuser' }));
+    // Mock ensureUserLoggedIn to return a fulfilled action (as Redux Toolkit async thunks do)
+    ensureUserLoggedInSpy = jest.spyOn(userSessionSlice, 'ensureUserLoggedIn').mockReturnValue(() =>
+      Promise.resolve({
+        type: 'userSession/ensureUserLoggedIn/fulfilled',
+        payload: { username: 'testuser' },
+      })
+    );
     getValidPermissionsSpy = jest.spyOn(permissionService, 'getValidPermissions').mockResolvedValue([]);
     jest.spyOn(routeStateUtilService, 'stateRequiresAuthentication').mockResolvedValue(true);
 
@@ -189,7 +192,12 @@ describe('MainHeader', () => {
     });
 
     it('loads permissions after login', async () => {
-      ensureUserLoggedInSpy.mockReturnValue(() => Promise.resolve({ username: 'testuser' }));
+      ensureUserLoggedInSpy.mockReturnValue(() =>
+        Promise.resolve({
+          type: 'userSession/ensureUserLoggedIn/fulfilled',
+          payload: { username: 'testuser' },
+        })
+      );
       getValidPermissionsSpy.mockResolvedValue(['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY']);
 
       const stateWithUser = {
@@ -215,7 +223,13 @@ describe('MainHeader', () => {
     });
 
     it('handles permission loading errors gracefully', async () => {
-      ensureUserLoggedInSpy.mockReturnValue(() => Promise.reject(new Error('Login failed')));
+      // Mock ensureUserLoggedIn to return a rejected action (as Redux Toolkit async thunks do)
+      ensureUserLoggedInSpy.mockReturnValue(() =>
+        Promise.resolve({
+          type: 'userSession/ensureUserLoggedIn/rejected',
+          error: { message: 'Login failed' },
+        })
+      );
 
       const stateWithUser = {
         ...defaultState,

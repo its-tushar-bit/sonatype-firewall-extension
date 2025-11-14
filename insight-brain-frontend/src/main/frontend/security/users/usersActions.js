@@ -222,7 +222,7 @@ export function resetPassword(userId, username) {
       .put(getUserResetPasswordByIdUrl(userId))
       .then(({ data }) => {
         dispatch(resetFulfilled(data));
-        dispatch(userActions().passwordChangedForUser({ username }));
+        dispatch(userActions.passwordChangedForUser({ username }));
 
         startResetPasswordMaskSuccessTimer(dispatch);
       })

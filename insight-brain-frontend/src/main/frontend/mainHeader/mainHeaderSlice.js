@@ -32,7 +32,14 @@ export const loadPermissions = createAsyncThunk(
   async (_, { dispatch, rejectWithValue }) => {
     try {
       // Wait for user to be logged in before fetching permissions
-      await dispatch(ensureUserLoggedIn());
+      const loginResult = await dispatch(ensureUserLoggedIn());
+
+      // Check if ensureUserLoggedIn was rejected
+      // loginResult will have a type property like "userSession/ensureUserLoggedIn/rejected" if it failed
+      if (loginResult.type && loginResult.type.endsWith('/rejected')) {
+        return rejectWithValue(loginResult.error || 'Failed to ensure user is logged in');
+      }
+
       const data = await getValidPermissions(MAIN_HEADER_PERMISSIONS);
 
       // Convert array to object for easier lookup

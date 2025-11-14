@@ -81,3 +81,12 @@ export function uriTemplate(strings, ...params) {
 
   return `${BASE_URL || ''}${join('', parts)}`;
 }
+
+// Defined as a function to easily mock in jest/jasmine unit tests and prevent redirections during those tests
+export function logoutRedirection(toLocation) {
+  if (toLocation != null) {
+    window.location.href = toLocation;
+  } else {
+    window.location.assign('../');
+  }
+}

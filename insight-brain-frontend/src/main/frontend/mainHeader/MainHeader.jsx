@@ -48,9 +48,10 @@ import { selectIsLoggedIn } from 'MainRoot/user/userSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { actions } from './mainHeaderSlice';
 import { selectPermissions, selectShouldShowLoginButton } from './mainHeaderSelectors';
+import userActions from 'MainRoot/user/userActions';
 
 /* global clmServerVersion */
-export function MainHeader({ userActions }) {
+export function MainHeader() {
   const store = useStore();
   const dispatch = useDispatch();
   const globalMajorMinorVersion = useMemo(
@@ -152,13 +153,5 @@ export function MainHeader({ userActions }) {
     />
   );
 }
-
-MainHeader.propTypes = {
-  userActions: PropTypes.shape({
-    loadUser: PropTypes.func,
-    logout: PropTypes.func,
-    changePassword: PropTypes.func,
-  }).isRequired,
-};
 
 export default MainHeader;

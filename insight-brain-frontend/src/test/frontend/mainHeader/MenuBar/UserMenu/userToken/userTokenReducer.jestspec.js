@@ -57,39 +57,39 @@ describe('userTokenReducer', function () {
 
       expect(() => {
         state.newProp = 'newProp';
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.isUserTokenModalVisible = true;
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.userToken = 'userToken';
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.checkUserTokenError = 'error';
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.checkUserTokenLoading = true;
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.generateUserTokenError = 'error';
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.generateUserTokenLoading = true;
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.deleteUserTokenError = 'error';
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
 
       expect(() => {
         state.deleteUserTokenLoading = true;
-      }).toThrowError(TypeError);
+      }).toThrow(TypeError);
     });
   });
 

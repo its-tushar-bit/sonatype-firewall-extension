@@ -530,9 +530,8 @@ export const InitModule = angular
       return { start: doStart };
     },
   ])
-  .factory('userActions', userActions)
   .value('userReducer', userReducer)
-  .component('mainHeader', iqReact2Angular(MainHeader, [], ['$ngRedux', 'userActions', '$state']))
+  .component('mainHeader', iqReact2Angular(MainHeader, [], ['$ngRedux', '$state']))
   .component(
     'navigationContainer',
     iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$ngRedux', '$rootScope', '$state'])

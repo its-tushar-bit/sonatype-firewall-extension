@@ -5,6 +5,7 @@
  */
 package com.sonatype.clm.testing.functional;
 
+import com.codeborne.selenide.Condition;
 import java.io.ByteArrayInputStream;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -561,6 +562,9 @@ public abstract class AbstractFunctionalTest
       catch (NoSuchElementException e) {
         // do nothing
       }
+      // CLM-34380. After refactoring the logout process from angular code to react code, process is async
+      // and we need to wait for the login alert to be present.
+      waitUntilLoginDialogAppears();
       userMenu.shouldNotBe(visible);
     }
   }
@@ -719,6 +723,10 @@ public abstract class AbstractFunctionalTest
 
   protected static void waitUntilNotUrl(final String url) {
     waitUntil(webDriver -> assertThat(webDriver.getCurrentUrl()).isNotEqualTo(url));
+  }
+
+  protected static void waitUntilLoginDialogAppears() {
+    waitUntil(webDriver -> assertThat(new LoginModal()).actual().shouldBe(Condition.visible));
   }
 
   private static void waitUntil(Consumer<WebDriver> assertion) {

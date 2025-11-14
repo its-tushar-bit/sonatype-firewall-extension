@@ -6,10 +6,13 @@
 
 package com.sonatype.insight.brain.scan.datastore;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -82,7 +85,11 @@ public class S3ScanPersistenceServiceTestHelper
               .build()
       ).asByteArray();
 
-      return new String(responseContents, StandardCharsets.UTF_8);
+      try (GZIPInputStream gis = new GZIPInputStream(new ByteArrayInputStream(responseContents));
+           ByteArrayOutputStream decompressed = new ByteArrayOutputStream()) {
+        gis.transferTo(decompressed);
+        return decompressed.toString(StandardCharsets.UTF_8);
+      }
     }
     catch (NoSuchKeyException e) {
       return null;

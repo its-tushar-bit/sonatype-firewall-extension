@@ -45,6 +45,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -124,7 +125,11 @@ public class HybridSbomPersistenceServiceTest
   @Override
   public void configure(final Binder binder) {
     super.configure(binder);
-    binder.bind(S3Client.class).toInstance(createS3Client());
+    AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+        localstack.getAccessKey(),
+        localstack.getSecretKey()
+    ));
+    binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
   private static S3Client createS3Client() {

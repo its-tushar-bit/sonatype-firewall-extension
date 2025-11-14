@@ -36,6 +36,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -71,14 +72,6 @@ public class S3SbomPersistenceServiceTest
     }
   }
 
-  @After
-  public void cleanup() throws Exception {
-    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
-        .contents()
-        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
-  }
-
   private static S3Client createS3Client() {
     return S3Client.builder()
         .endpointOverride(localstack.getEndpoint())
@@ -89,6 +82,14 @@ public class S3SbomPersistenceServiceTest
                 localstack.getSecretKey()
             )))
         .build();
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+        .contents()
+        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(BUCKET_NAME).key(obj.key()).build()));
   }
 
   @Inject
@@ -115,8 +116,8 @@ public class S3SbomPersistenceServiceTest
     this.prefix = configuredPrefix;
   }
 
-  @Before
-  public void setup() {
+  @Override
+  protected void customizeConfig(InsightConfig insightConfig) {
     var storageConfig = insightConfig.getStorage();
     var s3Config = new S3DataStoreConfig();
     s3Config.setBucketName(BUCKET_NAME);
@@ -125,25 +126,21 @@ public class S3SbomPersistenceServiceTest
     s3Config.setEndpoint(localstack.getEndpoint());
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
+  }
 
+  @Before
+  public void setup() {
     service = lookup(S3SbomPersistenceService.class);
   }
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-
-    var s3Client = S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
-        .region(Region.of(REGION))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
-            )))
-        .build();
-
-    binder.bind(S3Client.class).toInstance(s3Client);
+    AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+        localstack.getAccessKey(),
+        localstack.getSecretKey()
+    ));
+    binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
   @Test

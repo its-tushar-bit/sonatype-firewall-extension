@@ -17,23 +17,28 @@ import com.sonatype.insight.brain.service.config.MultiTenantStorageConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 
 import com.google.inject.Binder;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
+import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.testcontainers.containers.localstack.LocalStackContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.testcontainers.containers.localstack.LocalStackContainer.Service.S3;
 
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
@@ -46,8 +51,8 @@ public class S3SbomPersistenceServiceMultiTenantTest
 
   private static final String REGION = "us-east-2";
 
-  @Rule
-  public LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(S3);
+  @ClassRule
+  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
 
   protected S3SbomPersistenceService service;
 
@@ -61,6 +66,34 @@ public class S3SbomPersistenceServiceMultiTenantTest
         "valid-prefix/with/path/",
         "valid-prefix/with/path/ends-with-slash/"
     );
+  }
+
+  @BeforeClass
+  public static void createBucket() {
+    try (S3Client s3Client = createS3Client()) {
+      s3Client.createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
+    }
+  }
+
+  private static S3Client createS3Client() {
+    return S3Client.builder()
+        .endpointOverride(localstack.getEndpoint())
+        .region(Region.of(REGION))
+        .credentialsProvider(
+            StaticCredentialsProvider.create(AwsBasicCredentials.create(
+                localstack.getAccessKey(),
+                localstack.getSecretKey()
+            )))
+        .build();
+  }
+
+  @After
+  public void cleanup() throws Exception {
+    S3Client s3Client = lookup(S3Client.class);
+    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+        .contents()
+        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(BUCKET_NAME).key(obj.key()).build()));
   }
 
   public S3SbomPersistenceServiceMultiTenantTest(String configuredPrefix) {
@@ -90,25 +123,16 @@ public class S3SbomPersistenceServiceMultiTenantTest
     startIqTestServer(configurator);
 
     this.service = lookup(S3SbomPersistenceService.class);
-
-    lookup(S3Client.class).createBucket(CreateBucketRequest.builder().bucket(BUCKET_NAME).build());
   }
 
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-
-    var s3Client = S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
-        .region(Region.of(REGION))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
-            )))
-        .build();
-
-    binder.bind(S3Client.class).toInstance(s3Client);
+    AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+        localstack.getAccessKey(),
+        localstack.getSecretKey()
+    ));
+    binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
   @Test

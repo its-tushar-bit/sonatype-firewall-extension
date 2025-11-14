@@ -11,6 +11,7 @@ import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
@@ -28,6 +29,7 @@ import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.containers.localstack.LocalStackContainer.Service;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -37,8 +39,6 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
-import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.MINIMUM_PART_SIZE_IN_BYTES;
-import static com.sonatype.insight.brain.aws.s3.S3AsyncClientProvider.THRESHOLD_IN_BYTES;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -66,14 +66,6 @@ public class S3ScanPersistenceServiceTest
     }
   }
 
-  @After
-  public void cleanup() throws Exception {
-    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
-        .contents()
-        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
-            .bucket(BUCKET_NAME).key(obj.key()).build()));
-  }
-
   private static S3Client createS3Client() {
     return S3Client.builder()
         .endpointOverride(localstack.getEndpoint())
@@ -86,25 +78,17 @@ public class S3ScanPersistenceServiceTest
         .build();
   }
 
-  private static S3AsyncClient createS3AsyncClient() {
-    return S3AsyncClient.builder()
-        .multipartEnabled(true)
-        .multipartConfiguration(multipartConfiguration -> multipartConfiguration
-            .minimumPartSizeInBytes(MINIMUM_PART_SIZE_IN_BYTES)
-            .thresholdInBytes(THRESHOLD_IN_BYTES))
-        .endpointOverride(localstack.getEndpoint())
-        .region(Region.of(REGION))
-        .credentialsProvider(
-            StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
-            )))
-        .build();
+  @After
+  public void cleanup() throws Exception {
+    s3Client.listObjectsV2Paginator(ListObjectsV2Request.builder().bucket(BUCKET_NAME).build())
+        .contents()
+        .forEach(obj -> s3Client.deleteObject(DeleteObjectRequest.builder()
+            .bucket(BUCKET_NAME).key(obj.key()).build()));
   }
 
   @Inject
   private S3Client s3Client;
-  
+
   @Inject
   private S3AsyncClient s3AsyncClient;
 
@@ -127,8 +111,8 @@ public class S3ScanPersistenceServiceTest
     this.expectedPrefix = expectedPrefix;
   }
 
-  @Before
-  public void setup() {
+  @Override
+  protected void customizeConfig(InsightConfig insightConfig) {
     var storageConfig = insightConfig.getStorage();
     var s3Config = new S3DataStoreConfig();
     s3Config.setBucketName(BUCKET_NAME);
@@ -137,7 +121,13 @@ public class S3ScanPersistenceServiceTest
     s3Config.setEndpoint(localstack.getEndpoint());
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
+  }
 
+  @Inject
+  private InsightConfig insightConfig;
+
+  @Before
+  public void setup() {
     var helper = new S3ScanPersistenceServiceTestHelper(insightConfig, s3Client, () -> expectedPrefix);
     setup(helper);
 
@@ -147,12 +137,11 @@ public class S3ScanPersistenceServiceTest
   @Override
   public void configure(Binder binder) {
     super.configure(binder);
-
-    var s3Client = createS3Client();
-    var s3AsyncClient = createS3AsyncClient();
-
-    binder.bind(S3Client.class).toInstance(s3Client);
-    binder.bind(S3AsyncClient.class).toInstance(s3AsyncClient);
+    AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
+        localstack.getAccessKey(),
+        localstack.getSecretKey()
+    ));
+    binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
   @Test

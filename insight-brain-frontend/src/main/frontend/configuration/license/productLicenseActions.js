@@ -19,7 +19,7 @@ export const PRODUCT_LICENSE_LOAD_FULFILLED = 'PRODUCT_LICENSE_LOAD_FULFILLED';
 export const PRODUCT_LICENSE_LOAD_FAILED = 'PRODUCT_LICENSE_LOAD_FAILED';
 
 const loadRequested = noPayloadActionCreator(PRODUCT_LICENSE_LOAD_REQUESTED);
-const loadFulfilled = payloadParamActionCreator(PRODUCT_LICENSE_LOAD_FULFILLED);
+export const loadFulfilled = payloadParamActionCreator(PRODUCT_LICENSE_LOAD_FULFILLED);
 const loadFailed = payloadParamActionCreator(PRODUCT_LICENSE_LOAD_FAILED);
 
 export const PRODUCT_LICENSE_INVALID = 'PRODUCT_LICENSE_INVALID';

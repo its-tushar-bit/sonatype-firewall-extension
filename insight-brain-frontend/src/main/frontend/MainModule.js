@@ -40,8 +40,16 @@ import footerModule from './react/Footer/module';
 import { contains, isEmpty, not, path, tryCatch } from 'ramda';
 import { attachAxiosInterceptors } from './utility/axiosConfig';
 import { requestNotificationPermission } from './utility/services/notificationService';
-import { selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
+import {
+  selectHasLifecycleLicense,
+  selectIsLicenseInstalled,
+  selectProductEdition,
+  selectProducts,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
 import { actions } from 'MainRoot/productFeatures/productFeaturesSlice';
+import { selectUsername } from 'MainRoot/user/userSessionSelectors';
+import { setError, clearError } from 'MainRoot/session/appErrorSlice';
+import { selectError } from 'MainRoot/session/appErrorSelectors';
 import {
   selectIsAllowExternalHyperlinksSupported,
   selectIsFirewallSupportedForNavigationContainer,
@@ -53,7 +61,8 @@ import {
 import { unwrapResult } from '@reduxjs/toolkit';
 import { actions as toastSliceActions } from 'MainRoot/toastContainer/toastSlice';
 import { selectToastSlice } from 'MainRoot/toastContainer/toastSelectors';
-import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
+import { load as loadProductLicense, loadFulfilled } from 'MainRoot/configuration/license/productLicenseActions';
+import { getDaysFromNow } from 'MainRoot/util/jsUtil';
 import { selectUnconfiguredRepoManager } from 'MainRoot/firewallOnboarding/firewallOnboardingSelectors';
 import { actions as firewallOnboardingActions } from 'MainRoot/firewallOnboarding/firewallOnboardingSlice';
 import { fab } from '@fortawesome/free-brands-svg-icons';
@@ -134,7 +143,7 @@ export const InitModule = angular
                   return 'gettingStarted';
                 })
                 .catch((err) => {
-                  $rootScope.error = Messages.getHttpErrorMessage(err);
+                  $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err)));
                 });
             },
           })
@@ -151,10 +160,10 @@ export const InitModule = angular
             redirectTo: 'root',
           });
 
-        var unknownErrorFunction = function ($rootScope) {
-          $rootScope.error = 'Unknown Address';
+        var unknownErrorFunction = function ($ngRedux) {
+          $ngRedux.dispatch(setError('Unknown Address'));
         };
-        unknownErrorFunction.$inject = ['$rootScope'];
+        unknownErrorFunction.$inject = ['$ngRedux'];
 
         // Show unknown routing error if route is unknown
         $urlRouterProvider.otherwise(function ($injector) {
@@ -220,7 +229,10 @@ export const InitModule = angular
        */
       function preLoginStateHandler(event, state, params) {
         function attemptLoginIfNeeded() {
-          if (!$rootScope.username) {
+          // Check if user is logged in by reading from Redux state
+          const reduxState = $ngRedux.getState();
+          const username = selectUsername(reduxState);
+          if (!username) {
             attemptLogin();
           }
         }
@@ -259,10 +271,10 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors($rootScope, $window, LoginModalService);
+      attachAxiosInterceptors($window, LoginModalService, $ngRedux);
 
       function setRootError(err) {
-        $rootScope.error = Messages.getHttpErrorMessage(err);
+        $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err)));
       }
 
       /**
@@ -282,10 +294,17 @@ export const InitModule = angular
           cancelPreLoginStateHandler = $rootScope.$on('$stateChangeStart', preLoginStateHandler);
         }
 
-        function onLicenseSuccess({ productEdition, products }) {
-          $rootScope.licensed = true;
-          $rootScope.productEdition = productEdition;
-          $rootScope.products = products;
+        function onLicenseSuccess(licenseData) {
+          // Dispatch license data to Redux immediately so it's available before login.
+          // Use the loadFulfilled action creator from productLicenseActions.
+          $ngRedux.dispatch(
+            loadFulfilled({
+              ...licenseData,
+              ...(licenseData.expiryTimestamp && { daysToExpiration: getDaysFromNow(licenseData.expiryTimestamp) }),
+            })
+          );
+
+          // License data will be synced to $rootScope automatically via the subscribe mechanism
 
           // replay state transition caught while license was loading so that preLoginStateHandler can process it
           if (savedStateDuringLicenseFetch) {
@@ -330,12 +349,15 @@ export const InitModule = angular
           $state.go(savedState.state, savedState.params);
         }
         requestNotificationPermission();
-        checkSessionExpiredLater($ngRedux, $rootScope.productEdition);
+        // Read productEdition from Redux state
+        const state = $ngRedux.getState();
+        const productEdition = selectProductEdition(state);
+        checkSessionExpiredLater($ngRedux, productEdition);
         loadFontAwesomeBrandIcons();
       }
 
       function initFailure(err) {
-        $rootScope.error = Messages.getHttpErrorMessage(err) || 'Unable to initialize the application';
+        $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err) || 'Unable to initialize the application'));
       }
 
       $transitions.onStart({ from: 'productlicense', to: 'gettingStarted' }, () => {
@@ -357,14 +379,11 @@ export const InitModule = angular
         $q.all([$ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded())])
           .then(([result]) => {
             unwrapResult(result);
-            // Update isAllowExternalHyperlinks from Redux state after fetching product features
-            // (but only if not already set by a test)
-            if ($rootScope.isAllowExternalHyperlinks === undefined) {
-              const state = $ngRedux.getState();
-              $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
-            }
+            // Check if external hyperlinks are allowed by reading from Redux state
+            const state = $ngRedux.getState();
+            const isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
 
-            if (!$rootScope.isAllowExternalHyperlinks) {
+            if (!isAllowExternalHyperlinks) {
               const externalLinkClickHandler = (e) => {
                 const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
                 const anchor = getAnchor(e.target);
@@ -395,26 +414,66 @@ export const InitModule = angular
       }
 
       function doStart() {
-        // Check if this is a test environment (tests may pre-set values)
-        const isTest = $rootScope.isAllowExternalHyperlinks !== undefined;
-
         // Subscribe to Redux state changes for $rootScope properties
-        if (!isTest) {
-          const unsubscribeRootScope = $ngRedux.subscribe(() => {
-            const state = $ngRedux.getState();
-            $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
-          });
-          $rootScope.$on('$destroy', unsubscribeRootScope);
+        const unsubscribeRootScope = $ngRedux.subscribe(() => {
+          const state = $ngRedux.getState();
+          $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
+        });
+        $rootScope.$on('$destroy', unsubscribeRootScope);
 
-          // Initialize rootScope properties
-          const initialState = $ngRedux.getState();
-          $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(initialState);
+        // Initialize rootScope properties
+        const initialState = $ngRedux.getState();
+        $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(initialState);
+
+        // Subscribe to Redux error state changes and sync to $rootScope for index.html template compatibility
+        const unsubscribeError = $ngRedux.subscribe(() => {
+          const state = $ngRedux.getState();
+          const error = selectError(state);
+          if (error) {
+            $rootScope.error = error;
+          } else {
+            delete $rootScope.error;
+          }
+        });
+        $rootScope.$on('$destroy', unsubscribeError);
+
+        // Initialize error from Redux state
+        const initialError = selectError(initialState);
+        if (initialError) {
+          $rootScope.error = initialError;
+        }
+
+        // Subscribe to Redux state changes for user session and license data
+        const unsubscribeLicenseAndUser = $ngRedux.subscribe(() => {
+          const state = $ngRedux.getState();
+          $rootScope.username = selectUsername(state);
+          $rootScope.licensed = selectIsLicenseInstalled(state);
+          $rootScope.productEdition = selectProductEdition(state);
+          $rootScope.products = selectProducts(state);
+        });
+        $rootScope.$on('$destroy', unsubscribeLicenseAndUser);
+
+        // Initialize from Redux state
+        const initialUsername = selectUsername(initialState);
+        const initialLicensed = selectIsLicenseInstalled(initialState);
+        const initialProductEdition = selectProductEdition(initialState);
+        const initialProducts = selectProducts(initialState);
+
+        if (initialUsername) {
+          $rootScope.username = initialUsername;
+        }
+        $rootScope.licensed = initialLicensed;
+        if (initialProductEdition) {
+          $rootScope.productEdition = initialProductEdition;
+        }
+        if (initialProducts) {
+          $rootScope.products = initialProducts;
         }
 
         $q.all([waitForLogin($ngRedux), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
-            $ngRedux.dispatch(loadProductLicense());
-            $rootScope.username = authenticationStatus.username;
+            // License data is already loaded by checkLicenseInfo() and dispatched to Redux
+            // Username will be synced to $rootScope automatically via the subscribe mechanism
             cancelLoginDismissListener();
             // This was already called at the bottom of `doStart`, but call it again here now that the user is
             // logged in.  It is safe to call multiple times
@@ -423,9 +482,7 @@ export const InitModule = angular
           .then(initSuccess, initFailure);
 
         function clearRootScopeError() {
-          if ($rootScope.error) {
-            delete $rootScope.error;
-          }
+          $ngRedux.dispatch(clearError());
         }
 
         $rootScope.$on('$locationChangeStart', clearRootScopeError);
@@ -440,7 +497,7 @@ export const InitModule = angular
 
         $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
           if (typeof error === 'string') {
-            $rootScope.error = error;
+            $ngRedux.dispatch(setError(error));
           } else {
             setRootError(error);
           }

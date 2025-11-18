@@ -125,6 +125,7 @@ import addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWa
 import userActivitySlice from '../configuration/userActivityOverview/userActivitySlice';
 import userSessionSlice from '../user/userSessionSlice';
 import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
+import appErrorSlice from '../session/appErrorSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -248,4 +249,5 @@ export default combineReducers({
   userActivity: userActivitySlice,
   userSession: userSessionSlice,
   mainHeader: mainHeaderSlice,
+  appError: appErrorSlice,
 });

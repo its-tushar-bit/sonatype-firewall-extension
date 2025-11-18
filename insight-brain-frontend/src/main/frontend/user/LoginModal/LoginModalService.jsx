@@ -9,8 +9,14 @@ import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { clearRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
+import { selectIsLicenseInstalled, selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
+import {
+  selectIsUnauthenticatedPagesEnabled,
+  selectIsQuarantinedComponentViewAnonymousAccessEnabled,
+  selectSsoLoginUrl,
+} from 'MainRoot/user/LoginModal/userLoginSelectors';
 
-export default function LoginModalService(rootScope, ngRedux, $window) {
+export default function LoginModalService(ngRedux, $window) {
   let modalPromise = null;
   let resolveModalPromise;
   let rejectModalPromise;
@@ -43,9 +49,9 @@ export default function LoginModalService(rootScope, ngRedux, $window) {
   };
 
   const onClickSSO = async () => {
-    // Get SSO login URL provided by backend
+    // Get SSO login URL from Redux state
     const state = ngRedux.getState();
-    const ssoLoginUrl = state.userLogin?.loginModalState?.ssoLoginUrl;
+    const ssoLoginUrl = selectSsoLoginUrl(state);
     await redirectToIdP(ssoLoginUrl);
   };
 
@@ -86,16 +92,30 @@ export default function LoginModalService(rootScope, ngRedux, $window) {
       return modalPromise;
     }
 
+    // Read license and config values from Redux state. License data is already loaded by
+    // MainModule.checkLicenseInfo() before the login modal is shown. Config values
+    // (isUnauthenticatedPagesEnabled, etc.) are loaded by various early initialization calls.
+    // We just read whatever is currently in state - no need to fetch anything.
+    const state = ngRedux.getState();
+    const isLicensed = selectIsLicenseInstalled(state);
+    const products = selectProducts(state);
+    const isUnauthenticatedPagesEnabled = selectIsUnauthenticatedPagesEnabled(state);
+    const isQuarantinedComponentViewEnabled = selectIsQuarantinedComponentViewAnonymousAccessEnabled(state);
+
+    // Dispatch all values to loginModalState for use by the LoginModal component
+    ngRedux.dispatch(actions.setIsLicensed(isLicensed));
+    ngRedux.dispatch(actions.setProducts(products));
+    ngRedux.dispatch(actions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
+    ngRedux.dispatch(actions.setQuarantinedComponentViewAnonymousAccessEnabled(isQuarantinedComponentViewEnabled));
+
+    ngRedux.dispatch(actions.setShowLoginModal(true));
+    ngRedux.dispatch(actions.setShowSso(showSsoButton));
+    ngRedux.dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
+
     modalPromise = new Promise((resolve, reject) => {
       resolveModalPromise = resolve;
       rejectModalPromise = reject;
     });
-
-    ngRedux.dispatch(actions.setIsLicensed(rootScope.licensed));
-    ngRedux.dispatch(actions.setProducts(rootScope.products));
-    ngRedux.dispatch(actions.setShowLoginModal(true));
-    ngRedux.dispatch(actions.setShowSso(showSsoButton));
-    ngRedux.dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
 
     return modalPromise;
   }
@@ -117,4 +137,4 @@ export default function LoginModalService(rootScope, ngRedux, $window) {
   return { onClickSSO, onSubmit, dismiss, open, redirectToIdP, authenticate };
 }
 
-LoginModalService.$inject = ['$rootScope', '$ngRedux', '$window'];
+LoginModalService.$inject = ['$ngRedux', '$window'];

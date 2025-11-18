@@ -14,14 +14,19 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', [
   '$window',
   '$q',
   '$rootScope',
-  function ($window, $q, $rootScope) {
+  '$ngRedux',
+  function ($window, $q, $rootScope, $ngRedux) {
     return {
       responseError: function (response) {
         if (response.status === 401) {
-          // $rootScope.username will be present if this is the top frame and login had already succeeded previously.
+          // Check if user is logged in by reading from Redux state
+          const state = $ngRedux.getState();
+          const username = state.userSession?.data?.username;
+
+          // username will be present if this is the top frame and login had already succeeded previously.
           // If we are in a child frame (for a report), the username won't be available but we can still detect that
           // we are in a child frame.
-          if ($rootScope.username || isIqIframe($window)) {
+          if (username || isIqIframe($window)) {
             // session expired - tell sessionExpirationManager of the main IQ UI, which resides in the top frame of
             // the page.
             $window.top.sessionExpired();

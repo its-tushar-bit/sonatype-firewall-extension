@@ -9,12 +9,12 @@ import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 /**
- * @param rootScope       Angular's $rootScope variable.
  * @param window     Angular's $window variable.
  * @param loginModalService    LoginModalService (open login modal)
+ * @param ngRedux     Angular's $ngRedux service (for accessing Redux store)
  **/
 
-export const attachAxiosInterceptors = (rootScope, window, loginModalService) => {
+export const attachAxiosInterceptors = (window, loginModalService, ngRedux) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -23,10 +23,14 @@ export const attachAxiosInterceptors = (rootScope, window, loginModalService) =>
     (error) => {
       const isUnauthorized = error.response?.status === 401;
       if (isUnauthorized) {
-        // rootScope.username will be present if this is the top frame and login had already succeeded previously.
+        // Check if user is logged in by reading from Redux state
+        const state = ngRedux.getState();
+        const username = state.userSession?.data?.username;
+
+        // username will be present if this is the top frame and login had already succeeded previously.
         // If we are in a child frame (for a report), the username won't be available but we can still detect that
         // we are in a child frame.
-        if (rootScope.username || isIqIframe(window)) {
+        if (username || isIqIframe(window)) {
           // session expired - tell sessionExpirationManager of the main IQ UI, which resides in the top frame of
           // the page.
           window.top.sessionExpired();

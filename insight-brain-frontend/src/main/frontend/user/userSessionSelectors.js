@@ -14,3 +14,5 @@ export const selectUserSessionData = createSelector(selectUserSessionSlice, prop
 export const selectUserSessionLoading = createSelector(selectUserSessionSlice, prop('loading'));
 
 export const selectUserSessionError = createSelector(selectUserSessionSlice, prop('error'));
+
+export const selectUsername = createSelector(selectUserSessionData, (data) => data?.username || null);

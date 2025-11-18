@@ -29,6 +29,8 @@ export const selectProductLicenseSlice = R.prop('productLicense');
 export const selectLoadingProducts = createSelector(selectProductLicenseSlice, R.prop('loading'));
 export const selectProductLicense = createSelector(selectProductLicenseSlice, R.prop('license'));
 export const selectProducts = createSelector(selectProductLicense, R.propOr([], 'products'));
+export const selectProductEdition = createSelector(selectProductLicense, R.propOr(null, 'productEdition'));
+export const selectIsLicenseInstalled = createSelector(selectProductLicenseSlice, R.propOr(false, 'installed'));
 export const selectIsSbomManagerOnlyLicense = createSelector(selectProducts, isSbomManagerOnlyLicenseProduct);
 
 export const isFirewallOnlyLicenseProduct = (products) =>

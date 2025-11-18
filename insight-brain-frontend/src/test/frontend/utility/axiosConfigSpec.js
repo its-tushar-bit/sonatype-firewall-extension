@@ -29,9 +29,10 @@ describe('axiosConfig', () => {
   });
 
   describe('attachAxiosInterceptors', () => {
-    let $rootScope, $window, loginModalService, attachInterceptors;
+    let $window, loginModalService, attachInterceptors, $ngRedux;
     beforeEach(
       angular.mock.module(loginModalModule.name, function ($provide) {
+        SpecUtil.mockNgRedux($provide);
         mockSessionExpired = jasmine.createSpy('mockSessionExpired');
         const $window = {
           location: {
@@ -45,12 +46,37 @@ describe('axiosConfig', () => {
       })
     );
 
-    beforeEach(inject(function (_$rootScope_, _$window_, _LoginModalService_) {
-      $rootScope = _$rootScope_.$new();
+    beforeEach(inject(function (_$window_, _LoginModalService_, _$ngRedux_) {
       $window = _$window_;
       loginModalService = _LoginModalService_;
+      $ngRedux = _$ngRedux_;
 
-      attachInterceptors = () => attachAxiosInterceptors($rootScope, $window, loginModalService);
+      // Create a mock Redux state that can be modified
+      let mockReduxState = {
+        userSession: {
+          data: null,
+        },
+        appError: {
+          error: null,
+        },
+      };
+
+      // Mock dispatch to actually update state for relevant actions
+      $ngRedux.dispatch = jasmine.createSpy('dispatch').and.callFake((action) => {
+        if (action && action.type === 'appError/setError') {
+          mockReduxState.appError.error = action.payload;
+        } else if (action && action.type === 'appError/clearError') {
+          mockReduxState.appError.error = null;
+        } else if (action && action.type === 'userSession/fetchUserSession/fulfilled') {
+          mockReduxState.userSession.data = action.payload;
+        }
+        return action;
+      });
+
+      // Mock getState to return our mutable state
+      $ngRedux.getState = jasmine.createSpy('getState').and.callFake(() => mockReduxState);
+
+      attachInterceptors = () => attachAxiosInterceptors($window, loginModalService, $ngRedux);
     }));
 
     afterEach(() => {
@@ -205,13 +231,16 @@ describe('axiosConfig', () => {
           it('checks for an existing username in the scope', (done) => {
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = { response: { status: 401 } };
-            $rootScope.username = 'previous_session_username';
+            // Set username via Redux dispatch (use the fulfilled action that sets userSession.data)
+            $ngRedux.dispatch({
+              type: 'userSession/fetchUserSession/fulfilled',
+              payload: { username: 'previous_session_username' },
+            });
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
               expect(mockSessionExpired).toHaveBeenCalledTimes(1);
               expect(getRequests().length).toBe(0);
-              delete $rootScope.username;
               done();
             });
           });

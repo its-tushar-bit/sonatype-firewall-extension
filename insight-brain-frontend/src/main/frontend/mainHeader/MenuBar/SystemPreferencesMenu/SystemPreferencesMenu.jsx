@@ -36,6 +36,7 @@ export const SystemPreferencesMenu = ({
   isOAuth2ConfigurationEnabled = false,
   isMonitoringSupported = false,
   isSsoIdpManagedBySonatype = false,
+  isSingleTenant = false,
   isSbomManagerOnlyLicense = false,
   isStandaloneFirewall = false,
   isOrgsAndAppsEnabled = false,
@@ -120,7 +121,7 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="oidc"
         id="system-configuration-oidc"
-        showIf={CONFIGURE_SYSTEM && isOAuth2ConfigurationEnabled}
+        showIf={CONFIGURE_SYSTEM && isOAuth2ConfigurationEnabled && isSingleTenant}
         prefix={firewallPrefix}
       >
         OIDC
@@ -291,6 +292,7 @@ SystemPreferencesMenu.propTypes = {
   isSamlConfigurationEnabled: PropTypes.bool,
   isOAuth2ConfigurationEnabled: PropTypes.bool,
   isSsoIdpManagedBySonatype: PropTypes.bool,
+  isSingleTenant: PropTypes.bool,
   isSbomManagerOnlyLicense: PropTypes.bool,
   isFirewallLicense: PropTypes.bool,
   isOrgsAndAppsEnabled: PropTypes.bool,

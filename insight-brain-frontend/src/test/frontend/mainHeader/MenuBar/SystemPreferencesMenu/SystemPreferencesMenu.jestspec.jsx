@@ -428,6 +428,49 @@ describe('SystemPreferencesMenu', () => {
     });
   });
 
+  describe('OIDC configuration', () => {
+    it('should display "OIDC" when CONFIGURE_SYSTEM, isOAuth2ConfigurationEnabled, and isSingleTenant are true', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isOAuth2ConfigurationEnabled={true} isSingleTenant={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.getByText('OIDC')).toBeInTheDocument();
+    });
+
+    it('should not display "OIDC" when isSingleTenant is false (SaaS license)', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isOAuth2ConfigurationEnabled={true} isSingleTenant={false} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('OIDC')).toBeNull();
+    });
+
+    it('should not display "OIDC" when isOAuth2ConfigurationEnabled is false', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isOAuth2ConfigurationEnabled={false} isSingleTenant={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('OIDC')).toBeNull();
+    });
+
+    it('should not display "OIDC" when CONFIGURE_SYSTEM is false', () => {
+      const noConfigPermissions = { ...permissions, CONFIGURE_SYSTEM: false };
+      render(
+        <SystemPreferencesMenu
+          permissions={noConfigPermissions}
+          isOAuth2ConfigurationEnabled={true}
+          isSingleTenant={true}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('OIDC')).toBeNull();
+    });
+  });
+
   describe('standalone firewall', () => {
     it.each(['isStandaloneFirewall', 'isFirewallOnlyLicense'])(
       'should not display "Success Metrics" if %s is true',

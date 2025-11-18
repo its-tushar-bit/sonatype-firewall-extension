@@ -102,6 +102,7 @@ export const MenuBar = ({
           isOAuth2ConfigurationEnabled={isOAuth2ConfigurationEnabled}
           isMonitoringSupported={isMonitoringSupported}
           isSsoIdpManagedBySonatype={isSsoIdpManagedBySonatype}
+          isSingleTenant={isSingleTenant}
           isSbomManagerOnlyLicense={isSbomManagerOnlyLicense}
           isStandaloneFirewall={isStandaloneFirewall}
           isOrgsAndAppsEnabled={isOrgsAndAppsEnabled}

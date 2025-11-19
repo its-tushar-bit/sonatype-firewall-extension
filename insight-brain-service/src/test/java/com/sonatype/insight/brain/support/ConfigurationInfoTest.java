@@ -294,7 +294,8 @@ public class ConfigurationInfoTest
         "userActivityTracking",
         "copyStorageConfig",
         "warnOnNonPrimaryStorageAccess",
-        "waiverRequestWorkflowEnabled"
+        "waiverRequestWorkflowEnabled",
+        "userTokenDefaultExpirationDays"
     );
 
     // Properties included in the config.json in support zip

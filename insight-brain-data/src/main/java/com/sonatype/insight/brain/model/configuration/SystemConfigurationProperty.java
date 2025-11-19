@@ -300,6 +300,8 @@ public class SystemConfigurationProperty
 
   public static final String COPY_STORAGE_CONFIG = "copyStorageConfig";
 
+  public static final String USER_TOKEN_DEFAULT_EXPIRATION_DAYS = "userTokenDefaultExpirationDays";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

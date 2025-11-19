@@ -1985,6 +1985,52 @@ public class ApiConfigurationServiceTest
         .withMessageContaining("Configuration could result in too many threads");
   }
 
+  @Test
+  public void testGetConfiguration_UserTokenDefaultExpirationDaysNotSet_ReturnsNull() {
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+  }
+
+  @Test
+  public void testSetConfiguration_UserTokenDefaultExpirationDays_Null() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null));
+
+    assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+  }
+
+  @Test
+  public void testSetConfiguration_UserTokenDefaultExpirationDays() {
+    service.setConfigurationNoAuthz(
+        Maps.newHashMap(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 30));
+
+    assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isEqualTo("30");
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 30);
+    assertMinAndMax(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365);
+  }
+
+  @Test
+  public void testDeleteConfiguration_UserTokenDefaultExpirationDays() {
+    // Set a value first
+    dao.set(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+
+    // Delete it
+    service.deleteConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    // Verify it's null
+    assertThat(dao.get(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS)).isNull();
+    assertThat(service.getConfigurationNoAuthz(
+        SetUtils.hashSet(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS))).containsEntry(
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+  }
+
   private void assertMinAndMax(String name, int min, int max) {
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
         () -> service.setConfigurationNoAuthz(name, min - 1))

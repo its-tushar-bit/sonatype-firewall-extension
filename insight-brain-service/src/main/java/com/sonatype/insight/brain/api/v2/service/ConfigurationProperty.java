@@ -298,7 +298,11 @@ public class ConfigurationProperty
             }
             copyStorageConfig.validate();
             return ConfigurationUtils.objectToString(copyStorageConfig);
-          })
+          }),
+      new ConfigurationProperty(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, Integer.class,
+          (p, s) -> s == null ? null : NumberUtils.toInt(s),
+          (p, o) -> ConfigurationUtils.integerValueToString(o,
+              SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

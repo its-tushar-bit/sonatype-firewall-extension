@@ -69,7 +69,6 @@ import com.sonatype.insight.brain.ide.IDEComponentInfoResource;
 import com.sonatype.insight.brain.integration.PolicyEvaluationSummaryResource;
 import com.sonatype.insight.brain.label.ComponentLabelResource;
 import com.sonatype.insight.brain.model.OwnerType;
-import com.sonatype.insight.brain.model.license.LicenseOverride;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverride;
 import com.sonatype.insight.brain.policy.PolicyMonitoringResource;
 import com.sonatype.insight.brain.policy.PolicyResource;
@@ -248,23 +247,6 @@ public class ResourceLicensedFeatureTest
           "getApplicationDetailsByHash",
           String.class
       ), LicensedFeature.APPLICATION_REPORTS);
-
-      map.put(LicenseOverrideResource.class.getDeclaredMethod(
-          "addLicenseOverride",
-          OwnerType.class,
-          String.class,
-          LicenseOverride.class,
-          String.class,
-          HttpServletRequest.class
-      ), LicensedFeature.POLICY_MANAGEMENT);
-      map.put(LicenseOverrideResource.class.getDeclaredMethod(
-          "deleteLicenseOverride",
-          OwnerType.class,
-          String.class,
-          String.class,
-          String.class,
-          HttpServletRequest.class
-      ), LicensedFeature.POLICY_MANAGEMENT);
 
       map.put(ReportResource.class.getDeclaredMethod(
           "browseReport",

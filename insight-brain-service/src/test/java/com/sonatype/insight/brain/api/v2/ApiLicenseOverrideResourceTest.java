@@ -17,7 +17,6 @@ import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseOverrideDTO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.license.LicenseOverrideDAO;
 import com.sonatype.insight.brain.dto.audit.LicenseOverrideAudit;
-import com.sonatype.insight.brain.license.LicenseOverrideResource;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;
@@ -59,7 +58,7 @@ public class ApiLicenseOverrideResourceTest extends AbstractResourceTest
       ComponentIdentifier componentIdentifier,
       String... paths)
   {
-    return restRequest().path(LicenseOverrideResource.RESOURCE_PATH).path(paths)
+    return restRequest().path(PublicApiPaths.LICENSE_OVERRIDE_RESOURCE_PATH_V2).path(paths)
         .query("componentIdentifier", componentIdentifier)
         .parameter(ownerType, ownerId);
   }

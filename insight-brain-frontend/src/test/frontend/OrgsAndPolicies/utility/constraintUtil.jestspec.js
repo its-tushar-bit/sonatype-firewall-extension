@@ -10,6 +10,7 @@ import {
   dataTypeValidatorsMap,
 } from 'MainRoot/OrgsAndPolicies/utility/constraintUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
+import { DOES_NOT_EXIST_OPERATOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 const { initialState: initUserInput } = nxTextInputStateHelpers;
 
@@ -141,6 +142,74 @@ describe('constraintUtil', () => {
       const actual = conditionString(mockCondition, mockConditionTypesMap);
 
       expect(actual).toBe('Security Research Type is Sonatype Deep Dive');
+    });
+
+    it('EPSS Score with "does not exist" operator does not show a value', () => {
+      const mockCondition = {
+        conditionIndex: 0,
+        conditionTypeId: 'SecurityVulnerabilityEpssScore',
+        operator: DOES_NOT_EXIST_OPERATOR,
+        value: {
+          value: '',
+          trimmedValue: '',
+        },
+      };
+      const mockConditionTypesMap = {
+        SecurityVulnerabilityEpssScore: {
+          autoUnquarantineSupported: false,
+          enabled: true,
+          id: 'SecurityVulnerabilityEpssScore',
+          name: 'EPSS Score (percentage)',
+          supportedOperators: ['=', '<', '<=', '>', '>=', DOES_NOT_EXIST_OPERATOR],
+          threatCategory: 'SECURITY',
+          valueHint: 'Enter value 0 to 100',
+          valueType: {
+            id: 'DoubleValueType',
+            dataType: 'Double',
+            allowMultiple: false,
+            availableValues: null,
+          },
+          valueTypeId: 'DoubleValueType',
+        },
+      };
+
+      const actual = conditionString(mockCondition, mockConditionTypesMap);
+
+      expect(actual).toBe('EPSS Score (percentage) does not exist');
+    });
+
+    it('EPSS Score with numeric operator shows a value', () => {
+      const mockCondition = {
+        conditionIndex: 0,
+        conditionTypeId: 'SecurityVulnerabilityEpssScore',
+        operator: '>=',
+        value: {
+          value: '50',
+          trimmedValue: '50',
+        },
+      };
+      const mockConditionTypesMap = {
+        SecurityVulnerabilityEpssScore: {
+          autoUnquarantineSupported: false,
+          enabled: true,
+          id: 'SecurityVulnerabilityEpssScore',
+          name: 'EPSS Score (percentage)',
+          supportedOperators: ['=', '<', '<=', '>', '>=', DOES_NOT_EXIST_OPERATOR],
+          threatCategory: 'SECURITY',
+          valueHint: 'Enter value 0 to 100',
+          valueType: {
+            id: 'DoubleValueType',
+            dataType: 'Double',
+            allowMultiple: false,
+            availableValues: null,
+          },
+          valueTypeId: 'DoubleValueType',
+        },
+      };
+
+      const actual = conditionString(mockCondition, mockConditionTypesMap);
+
+      expect(actual).toBe('EPSS Score (percentage) greater than or equals 50');
     });
 
     it('conditionValue is equal to Automated Detection', () => {

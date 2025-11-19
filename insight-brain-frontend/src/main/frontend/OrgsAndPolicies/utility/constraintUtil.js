@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { mapObjIndexed, prop, omit, curryN, test, includes, equals, isNil, reject, values, forEach, any } from 'ramda';
+import { DOES_NOT_EXIST_OPERATOR } from './constants';
 import {
   validateNonEmpty,
   validateMinMax,
@@ -140,7 +141,8 @@ const getConditionValue = (condition, conditionTypesMap) => {
 };
 
 export const conditionString = (condition, conditionTypesMap) => {
-  const value = getConditionValue(condition, conditionTypesMap);
+  // For "does not exist" operator, don't show a value
+  const value = condition.operator === DOES_NOT_EXIST_OPERATOR ? '' : getConditionValue(condition, conditionTypesMap);
   const operator = constraintOperatorMap.has(condition.operator)
     ? constraintOperatorMap.get(condition.operator)
     : condition.operator;

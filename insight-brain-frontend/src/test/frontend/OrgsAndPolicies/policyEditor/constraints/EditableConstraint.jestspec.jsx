@@ -9,6 +9,7 @@ import { render, screen, within } from 'TestRoot/SpecUtil';
 
 import EditableConstraint from 'MainRoot/OrgsAndPolicies/policyEditor/constraints/EditableConstraint';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
+import { DOES_NOT_EXIST_OPERATOR } from 'MainRoot/OrgsAndPolicies/utility/constants';
 
 describe('EditableConstraint', () => {
   let renderComponent, props, constraint, conditionTypes, conditionTypesMap;
@@ -1677,6 +1678,91 @@ describe('EditableConstraint', () => {
       },
     ];
     conditionWithError.forEach(testCondition);
+  });
+
+  describe('EPSS Score condition with "does not exist" operator', () => {
+    let epssScoreCondition;
+
+    beforeEach(() => {
+      epssScoreCondition = {
+        enabled: true,
+        name: 'EPSS Score (percentage)',
+        id: 'SecurityVulnerabilityEpssScore',
+        threatCategory: 'SECURITY',
+        autoUnquarantineSupported: false,
+        supportedOperators: ['=', '<', '<=', '>', '>=', DOES_NOT_EXIST_OPERATOR],
+        valueHint: 'Enter value 0 to 100',
+        valueTypeId: 'DoubleValueType',
+        valueType: {
+          id: 'DoubleValueType',
+          dataType: 'Double',
+          allowMultiple: false,
+          availableValues: null,
+        },
+      };
+      conditionTypesMap['SecurityVulnerabilityEpssScore'] = epssScoreCondition;
+    });
+
+    it('disables value field when "does not exist" operator is selected', () => {
+      const epssProps = {
+        ...props,
+        constraint: {
+          ...constraint,
+          conditions: [
+            {
+              conditionTypeId: 'SecurityVulnerabilityEpssScore',
+              operator: DOES_NOT_EXIST_OPERATOR,
+              value: {
+                isPristine: true,
+                value: '',
+                trimmedValue: '',
+                validationErrors: null,
+              },
+            },
+          ],
+        },
+      };
+
+      renderComponent(epssProps);
+      const constrainElement = screen.getByTestId('editable-constraint');
+      expect(constrainElement).toBeVisible();
+      const conditionElements = within(constrainElement).getAllByTestId('editable-constraint__condition');
+      expect(conditionElements.length).toBe(1);
+
+      const conditionInputValue = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      expect(conditionInputValue).toBeDisabled();
+    });
+
+    it('enables value field when numeric operator is selected', () => {
+      const epssProps = {
+        ...props,
+        constraint: {
+          ...constraint,
+          conditions: [
+            {
+              conditionTypeId: 'SecurityVulnerabilityEpssScore',
+              operator: '>=',
+              value: {
+                isPristine: false,
+                value: '50',
+                trimmedValue: '50',
+                validationErrors: [],
+              },
+            },
+          ],
+        },
+      };
+
+      renderComponent(epssProps);
+      const constrainElement = screen.getByTestId('editable-constraint');
+      expect(constrainElement).toBeVisible();
+      const conditionElements = within(constrainElement).getAllByTestId('editable-constraint__condition');
+      expect(conditionElements.length).toBe(1);
+
+      const conditionInputValue = within(conditionElements[0]).getByTestId('constraint__condition-value');
+      expect(conditionInputValue).not.toBeDisabled();
+      expect(conditionInputValue).toHaveValue('50');
+    });
   });
 
   describe('custom label condition', () => {

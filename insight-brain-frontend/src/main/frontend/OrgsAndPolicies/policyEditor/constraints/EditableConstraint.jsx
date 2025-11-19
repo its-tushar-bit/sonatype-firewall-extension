@@ -19,6 +19,7 @@ import {
 import AgeInDaysInput from './AgeInDaysInput';
 import Coordinates from './Coordinates';
 import ConditionIsNotSupportedError from './ConditionIsNotSupportedError';
+import { DOES_NOT_EXIST_OPERATOR } from '../../utility/constants';
 
 const constraintOperatorOptions = [
   {
@@ -86,7 +87,10 @@ export default function EditableConstraint({
   }
 
   function renderAvailableValues(condition, selectedCondition, constraintIdx, conditionIdx) {
-    const { value } = condition;
+    const { value, operator } = condition;
+
+    // Disable value field for "does not exist" operator
+    const isValueDisabled = operator === DOES_NOT_EXIST_OPERATOR;
 
     const widthClassName = classnames('constraint-editor__values', {
       [`constraint-editor__${fieldToWidthMap.get(selectedCondition.valueTypeId)}-width`]: fieldToWidthMap.has(
@@ -103,6 +107,7 @@ export default function EditableConstraint({
           value={value.value}
           data-testid="constraint__condition-value"
           aria-label="Condition value"
+          disabled={isValueDisabled}
         >
           {selectedCondition.valueType.availableValues.map((value) => {
             const nameField =
@@ -163,6 +168,7 @@ export default function EditableConstraint({
           aria-required={true}
           validatable
           data-testid="constraint__condition-value"
+          disabled={isValueDisabled}
         />
       );
     }

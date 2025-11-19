@@ -26,6 +26,7 @@ import {
   selectIsRepositoryContainer,
   selectRouterCurrentParams,
 } from '../reduxUiRouter/routerSelectors';
+import { DOES_NOT_EXIST_OPERATOR } from './utility/constants';
 import {
   selectPoliciesByOwner as mainSelectPoliciesByOwner,
   selectOrgsAndPoliciesSlice,
@@ -147,7 +148,11 @@ export const selectValidationError = createSelector(selectPolicySlice, (state) =
     fields.push(constraint.name);
 
     constraint.conditions.forEach((condition) => {
-      if (!includes(condition.conditionTypeId, conditionsWithoutValue)) {
+      // Skip validation for conditions without value OR when operator is "does not exist"
+      const shouldSkipValidation =
+        includes(condition.conditionTypeId, conditionsWithoutValue) || condition.operator === DOES_NOT_EXIST_OPERATOR;
+
+      if (!shouldSkipValidation) {
         if (condition.conditionTypeId === 'Coordinates') {
           fields.push(...computeValidatableFieldsForCoordinates(condition.value));
         } else {

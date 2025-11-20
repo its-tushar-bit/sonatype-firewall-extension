@@ -63,6 +63,7 @@ EXPOSE 8071
 WORKDIR /opt/sonatype/nexus-iq-server
 
 ENV JAVA_OPTS="-Dgit.without.shell=true -Djava.util.prefs.userRoot=/sonatype-work/javaprefs -Djava.library.path=/opt/sonatype/nexus-iq-server -javaagent:/opt/datadog/dd-java-agent.jar -XX:+AlwaysPreTouch -XX:+CrashOnOutOfMemoryError -XshowSettings:vm"
+ENV LD_PRELOAD="/usr/lib/x86_64-linux-gnu/libjemalloc.so.2"
 
 # Use tini init in order to get proper orphaned process reaping
 ENTRYPOINT ["tini", "--", "/opt/sonatype/nexus-iq-server/bin/nexus-mtiq-server"]

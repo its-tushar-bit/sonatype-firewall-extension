@@ -575,7 +575,7 @@ describe('sourceControlConfiguration', () => {
         expect(daysInput).toBeInTheDocument();
       });
 
-      it('hides advanced options for Bitbucket', async () => {
+      it('shows advanced options for Bitbucket', async () => {
         renderComponent();
         await selectProvider('bitbucket');
 
@@ -584,10 +584,10 @@ describe('sourceControlConfiguration', () => {
         const afterDaysCheckbox = screen.queryByText(/Close AutoPRs that have not been merged or closed after:/);
         const daysInput = screen.queryByPlaceholderText('Ex. 7');
 
-        expect(advancedOptionsSection).not.toBeInTheDocument();
+        expect(advancedOptionsSection).toBeInTheDocument();
+        expect(afterDaysCheckbox).toBeInTheDocument();
+        expect(daysInput).toBeInTheDocument();
         expect(failedChecksCheckbox).not.toBeInTheDocument();
-        expect(afterDaysCheckbox).not.toBeInTheDocument();
-        expect(daysInput).not.toBeInTheDocument();
       });
 
       it('hides advanced options for GitHub when saas-lifecycle-scm-prs-enabled is false', async () => {

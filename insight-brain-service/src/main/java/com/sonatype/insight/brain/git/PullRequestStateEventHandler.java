@@ -337,10 +337,7 @@ public class PullRequestStateEventHandler
     if (sourceControl == null) {
       return false;
     }
-    return switch (sourceControl.getProvider()) {
-      case GITHUB, GITLAB, AZURE -> true;
-      default -> false;
-    };
+    return true;
   }
 
   private boolean isAutomaticPullRequest(SourceControlPullRequest pullRequest) {

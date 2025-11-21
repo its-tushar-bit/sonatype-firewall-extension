@@ -67,6 +67,8 @@ const RootSourceControlConfiguration = () => {
         return 'Gitlab';
       case 'azure':
         return 'Azure DevOps';
+      case 'bitbucket':
+        return 'Bitbucket';
       default:
         return 'Git';
     }
@@ -74,12 +76,7 @@ const RootSourceControlConfiguration = () => {
 
   const mapSourceControlOptionToToggle = (id, title, description, optionName) => {
     const scmProvider = sourceControl?.provider?.rscValue?.value;
-    const isAllowedProvider = scmProvider === 'github' || scmProvider === 'gitlab' || scmProvider === 'azure';
-    if (
-      id === 'source-control-remediation-pull-requests' &&
-      isAllowedProvider &&
-      sourceControl?.ownerId === 'ROOT_ORGANIZATION_ID'
-    ) {
+    if (id === 'source-control-remediation-pull-requests' && sourceControl?.ownerId === 'ROOT_ORGANIZATION_ID') {
       return (
         <NxTooltip
           key={id}
@@ -106,7 +103,7 @@ const RootSourceControlConfiguration = () => {
                   name="failed-checks-advanced-option"
                   onChange={() => toggleValue('closePrOnFailedChecksEnabled')}
                   isChecked={sourceControl?.closePrOnFailedChecksEnabled?.value}
-                  disabled={!sourceControl?.remediationPullRequestsEnabled?.value}
+                  disabled={!scmProvider || !sourceControl?.remediationPullRequestsEnabled?.value}
                 >
                   Close AutoPRs when one or more required checks fail
                 </NxCheckbox>
@@ -115,7 +112,7 @@ const RootSourceControlConfiguration = () => {
                 name="after-days-open-advanced-option"
                 onChange={() => toggleValue('closePrAfterDaysOpenEnabled')}
                 isChecked={sourceControl?.closePrAfterDaysOpenEnabled?.value}
-                disabled={!sourceControl?.remediationPullRequestsEnabled.value}
+                disabled={!scmProvider || !sourceControl?.remediationPullRequestsEnabled.value}
               >
                 Close AutoPRs that have not been merged or closed after:
               </NxCheckbox>
@@ -124,6 +121,7 @@ const RootSourceControlConfiguration = () => {
                 onChange={onChangeClosePrAfterDaysOpen}
                 validatable
                 disabled={
+                  !scmProvider ||
                   !sourceControl?.closePrAfterDaysOpenEnabled.value ||
                   !sourceControl?.remediationPullRequestsEnabled.value
                 }

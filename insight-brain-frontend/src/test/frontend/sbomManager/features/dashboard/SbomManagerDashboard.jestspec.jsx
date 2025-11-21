@@ -34,6 +34,12 @@ describe('SbomManagerDashboard page', () => {
           'cpe-matching': true,
         },
       },
+      productLicense: {
+        loading: false,
+        license: {
+          products: ['Sonatype Lifecycle'],
+        },
+      },
       router: { currentState: { name: 'sbomManager.dashboard' } },
     };
 
@@ -127,6 +133,34 @@ describe('SbomManagerDashboard page', () => {
       window.localStorage.setItem(ALERT_DISMISSED_KEY, 'true');
       renderComponent();
       expect(screen.queryByText(findSpecificAlert)).toBeNull();
+    });
+
+    it('does not show the info alert for SBOM Manager Only license', () => {
+      const sbomManagerOnlyState = {
+        ...state,
+        productLicense: {
+          loading: false,
+          license: {
+            products: ['Sonatype SBOM Manager SaaS'],
+          },
+        },
+      };
+      renderComponent(sbomManagerOnlyState);
+      expect(screen.queryByText(findSpecificAlert)).toBeNull();
+    });
+
+    it('shows the info alert for multi-product license including Lifecycle', () => {
+      const multiProductState = {
+        ...state,
+        productLicense: {
+          loading: false,
+          license: {
+            products: ['Sonatype Lifecycle', 'Sonatype SBOM Manager SaaS'],
+          },
+        },
+      };
+      renderComponent(multiProductState);
+      expect(screen.getByText(findSpecificAlert)).toBeVisible();
     });
 
     const findSpecificAlert = (content, element) => {

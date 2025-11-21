@@ -19,6 +19,7 @@ import {
   selectLoadingFeatures,
   selectNoSbomManagerEnabledError,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectIsSbomManagerOnlyLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import TotalSbomsStoredTile from './totalSbomsStoredTile/TotalSbomsStoredTile';
 import ApplicationsHistoryTile from './applicationsHistoryTile/ApplicationsHistoryTile';
 import HighPriorityVulnerabilitiesTile from './highPriorityVulnerabilitiesTile/HighPriorityVulnerabilitiesTile';
@@ -40,6 +41,7 @@ export default function SbomManagerDashboard() {
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const sbomCounts = useSelector(selectSbomCounts);
   const isCpeMatchingSupported = useSelector(selectIsCpeMatchingSupported);
+  const isSbomManagerOnlyLicense = useSelector(selectIsSbomManagerOnlyLicense);
 
   const [showInfoAlert, setShowInfoAlert] = useState(() => {
     return localStorage.getItem(ALERT_DISMISSED_KEY) !== 'true';
@@ -67,7 +69,7 @@ export default function SbomManagerDashboard() {
         loading={isProductFeaturesLoading}
         error={errorLoadingProductFeatures || noSbomManagerEnabledError}
       >
-        {showInfoAlert && isCpeMatchingSupported && (
+        {showInfoAlert && isCpeMatchingSupported && !isSbomManagerOnlyLicense && (
           <NxInfoAlert onClose={handleDismiss}>
             SBOM Manager <strong>now supports C/C++.</strong> See the{' '}
             <NxTextLink

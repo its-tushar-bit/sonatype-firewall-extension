@@ -11,7 +11,7 @@ export default angular
   .module('innerSourceRepositoryConfigurationModule', [])
   .component(
     'innerSourceRepositoryBaseConfigurations',
-    iqReact2Angular(InnerSourceRepositoryBaseConfigurations, [], ['$ngRedux'])
+    iqReact2Angular(InnerSourceRepositoryBaseConfigurations, [], [])
   )
   .config(routes);
 

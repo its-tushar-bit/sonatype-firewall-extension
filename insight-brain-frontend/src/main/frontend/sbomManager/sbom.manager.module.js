@@ -17,18 +17,19 @@ import LearnMoreSbomManager from 'MainRoot/sbomManager/features/LearnMoreSbomMan
 import SbomApplicationsPage from 'MainRoot/sbomManager/features/sbomApplicationsPage/SbomApplicationsPage';
 import { selectHasSbomManagerLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { load as loadProductLicense } from 'MainRoot/configuration/license/productLicenseActions';
+import store from 'MainRoot/reduxConfig/store';
 import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/utility/services/routeStateUtilService';
 import { createLegalRoutes, LEGAL_SBOM_MANAGER_PARENT_ROUTE } from 'MainRoot/legal/legalUtility';
 import { isAuthorized } from 'MainRoot/util/permissionService';
 
 export default angular
-  .module('sbomManagerModule', ['ngRedux', advancedSearchModule.name, legalModule.name])
-  .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$ngRedux', '$state']))
-  .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$ngRedux', '$state']))
-  .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$ngRedux', '$state']))
-  .component('sbomContinuousMonitoring', iqReact2Angular(SbomContinuousMonitoringEditor, [], ['$ngRedux', '$state']))
-  .component('sbomManagerApplicationsPage', iqReact2Angular(SbomApplicationsPage, [], ['$ngRedux', '$state']))
-  .component('learnMoreSbomManager', iqReact2Angular(LearnMoreSbomManager, [], ['$ngRedux', '$state']))
+  .module('sbomManagerModule', [advancedSearchModule.name, legalModule.name])
+  .component('sbomManagerDashboard', iqReact2Angular(SbomManagerDashboard, [], ['$state']))
+  .component('billOfMaterials', iqReact2Angular(BillOfMaterials, [], ['$state']))
+  .component('sbomManagerComponentDetails', iqReact2Angular(ComponentDetailsPage, [], ['$state']))
+  .component('sbomContinuousMonitoring', iqReact2Angular(SbomContinuousMonitoringEditor, [], ['$state']))
+  .component('sbomManagerApplicationsPage', iqReact2Angular(SbomApplicationsPage, [], ['$state']))
+  .component('learnMoreSbomManager', iqReact2Angular(LearnMoreSbomManager, [], ['$state']))
   .config(routes)
   .run(checkLicense);
 
@@ -223,10 +224,10 @@ function routes($stateProvider) {
 
 routes.$inject = ['$stateProvider'];
 
-function checkLicense($transitions, $state, $ngRedux) {
+function checkLicense($transitions, $state) {
   $transitions.onBefore({ to: 'sbomManager.**' }, (transition) => {
-    return $ngRedux.dispatch(loadProductLicense()).then(() => {
-      const state = $ngRedux.getState();
+    return store.dispatch(loadProductLicense()).then(() => {
+      const state = store.getState();
       const isSbomManagerEnabled = selectHasSbomManagerLicense(state);
       const transitionTo = transition.to().name;
       const sbomManagerLearnMoreState = 'sbomManager.learnMore';
@@ -239,4 +240,4 @@ function checkLicense($transitions, $state, $ngRedux) {
     });
   });
 }
-checkLicense.$inject = ['$transitions', '$state', '$ngRedux'];
+checkLicense.$inject = ['$transitions', '$state'];

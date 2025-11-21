@@ -9,8 +9,5 @@ import SuccessMetricsReportListContainer from './SuccessMetricsReportListContain
 
 export default angular
   .module('successMetricsModule', [])
-  .component('successMetricsReport', iqReact2Angular(SuccessMetricsReportContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'successMetricsReportList',
-    iqReact2Angular(SuccessMetricsReportListContainer, [], ['$ngRedux', '$state'])
-  );
+  .component('successMetricsReport', iqReact2Angular(SuccessMetricsReportContainer, [], ['$state']))
+  .component('successMetricsReportList', iqReact2Angular(SuccessMetricsReportListContainer, [], ['$state']));

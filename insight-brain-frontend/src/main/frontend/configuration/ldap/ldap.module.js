@@ -12,10 +12,10 @@ import LdapListContainer from './ldapServersList/LdapListContainer';
 
 export default angular
   .module('ldap.module', ['ui.router'], ldapModuleConfiguration)
-  .component('ldapList', iqReact2Angular(LdapListContainer, [], ['$ngRedux', '$state']))
-  .component('createLdap', iqReact2Angular(CreateLdapContainer, [], ['$ngRedux', '$state']))
-  .component('editLdapConnection', iqReact2Angular(EditLdapConnectionContainer, [], ['$ngRedux', '$state']))
-  .component('editLdapUserMapping', iqReact2Angular(EditLdapUsermappingContainer, [], ['$ngRedux', '$state']));
+  .component('ldapList', iqReact2Angular(LdapListContainer, [], ['$state']))
+  .component('createLdap', iqReact2Angular(CreateLdapContainer, [], ['$state']))
+  .component('editLdapConnection', iqReact2Angular(EditLdapConnectionContainer, [], ['$state']))
+  .component('editLdapUserMapping', iqReact2Angular(EditLdapUsermappingContainer, [], ['$state']));
 
 function ldapModuleConfiguration($stateProvider) {
   $stateProvider

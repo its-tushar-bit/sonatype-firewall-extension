@@ -7,8 +7,8 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import SastScanPage from 'MainRoot/sastScan/SastScanPage';
 
 const sastScanModule = angular
-  .module('sastScanModule', ['ngRedux'])
-  .component('sastScanPage', iqReact2Angular(SastScanPage, [], ['$ngRedux', '$state']))
+  .module('sastScanModule', [])
+  .component('sastScanPage', iqReact2Angular(SastScanPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

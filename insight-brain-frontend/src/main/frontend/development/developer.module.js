@@ -17,8 +17,8 @@ export const SECTIONS = {
 };
 
 const developerModule = angular
-  .module('developerModule', ['ngRedux'])
-  .component('sonatypeDeveloperPage', iqReact2Angular(SonatypeDeveloperPage, [], ['$ngRedux', '$state']))
+  .module('developerModule', [])
+  .component('sonatypeDeveloperPage', iqReact2Angular(SonatypeDeveloperPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider, $urlServiceProvider) {

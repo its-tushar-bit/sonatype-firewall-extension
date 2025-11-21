@@ -9,6 +9,7 @@ import { assign } from 'MainRoot/util/CLMLocation';
 import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
 import { unwrapResult } from '@reduxjs/toolkit';
 import { clearRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
+import store from 'MainRoot/reduxConfig/store';
 import { selectIsLicenseInstalled, selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
 import {
   selectIsUnauthenticatedPagesEnabled,
@@ -16,7 +17,7 @@ import {
   selectSsoLoginUrl,
 } from 'MainRoot/user/LoginModal/userLoginSelectors';
 
-export default function LoginModalService(ngRedux, $window) {
+export default function LoginModalService($window) {
   let modalPromise = null;
   let resolveModalPromise;
   let rejectModalPromise;
@@ -39,7 +40,7 @@ export default function LoginModalService(ngRedux, $window) {
   }
 
   const onSubmit = (loginUsername, loginPassword) => {
-    return ngRedux.dispatch(actions.submitUserLogin(loginUsername, loginPassword)).then(() => {
+    return store.dispatch(actions.submitUserLogin(loginUsername, loginPassword)).then(() => {
       setTimeout(() => {
         // Clean up modal promise and DOM presence without returning login promise rejection.
         resetIsShowing();
@@ -50,7 +51,7 @@ export default function LoginModalService(ngRedux, $window) {
 
   const onClickSSO = async () => {
     // Get SSO login URL from Redux state
-    const state = ngRedux.getState();
+    const state = store.getState();
     const ssoLoginUrl = selectSsoLoginUrl(state);
     await redirectToIdP(ssoLoginUrl);
   };
@@ -73,7 +74,7 @@ export default function LoginModalService(ngRedux, $window) {
   }
 
   const loadIsSsoOnlyEnabled = () => {
-    return ngRedux.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
+    return store.dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
   };
 
   async function redirectToIdP(ssoLoginUrl) {
@@ -96,21 +97,21 @@ export default function LoginModalService(ngRedux, $window) {
     // MainModule.checkLicenseInfo() before the login modal is shown. Config values
     // (isUnauthenticatedPagesEnabled, etc.) are loaded by various early initialization calls.
     // We just read whatever is currently in state - no need to fetch anything.
-    const state = ngRedux.getState();
+    const state = store.getState();
     const isLicensed = selectIsLicenseInstalled(state);
     const products = selectProducts(state);
     const isUnauthenticatedPagesEnabled = selectIsUnauthenticatedPagesEnabled(state);
     const isQuarantinedComponentViewEnabled = selectIsQuarantinedComponentViewAnonymousAccessEnabled(state);
 
     // Dispatch all values to loginModalState for use by the LoginModal component
-    ngRedux.dispatch(actions.setIsLicensed(isLicensed));
-    ngRedux.dispatch(actions.setProducts(products));
-    ngRedux.dispatch(actions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
-    ngRedux.dispatch(actions.setQuarantinedComponentViewAnonymousAccessEnabled(isQuarantinedComponentViewEnabled));
+    store.dispatch(actions.setIsLicensed(isLicensed));
+    store.dispatch(actions.setProducts(products));
+    store.dispatch(actions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
+    store.dispatch(actions.setQuarantinedComponentViewAnonymousAccessEnabled(isQuarantinedComponentViewEnabled));
 
-    ngRedux.dispatch(actions.setShowLoginModal(true));
-    ngRedux.dispatch(actions.setShowSso(showSsoButton));
-    ngRedux.dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
+    store.dispatch(actions.setShowLoginModal(true));
+    store.dispatch(actions.setShowSso(showSsoButton));
+    store.dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
 
     modalPromise = new Promise((resolve, reject) => {
       resolveModalPromise = resolve;
@@ -126,7 +127,7 @@ export default function LoginModalService(ngRedux, $window) {
   // to handle rejecting the promise and removing the modal container from the DOM. Otherwise
   // we can safely do nothing.
   function dismiss() {
-    ngRedux.dispatch(actions.resetLoginSubmitState());
+    store.dispatch(actions.resetLoginSubmitState());
     resetIsShowing();
 
     if (rejectModalPromise) {
@@ -137,4 +138,4 @@ export default function LoginModalService(ngRedux, $window) {
   return { onClickSSO, onSubmit, dismiss, open, redirectToIdP, authenticate };
 }
 
-LoginModalService.$inject = ['$ngRedux', '$window'];
+LoginModalService.$inject = ['$window'];

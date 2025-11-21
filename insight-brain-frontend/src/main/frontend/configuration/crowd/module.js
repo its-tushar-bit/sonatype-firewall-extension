@@ -9,7 +9,7 @@ import AtlassianCrowdConfiguration from './AtlassianCrowdConfiguration';
 
 const atlassianCrowdConfigurationModule = angular
   .module('atlassianCrowdConfiguration', ['ui.router'])
-  .component('atlassianCrowdConfiguration', iqReact2Angular(AtlassianCrowdConfiguration, [], ['$ngRedux', '$state']))
+  .component('atlassianCrowdConfiguration', iqReact2Angular(AtlassianCrowdConfiguration, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

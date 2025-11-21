@@ -7,5 +7,5 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import Footer from './Footer';
 
 export default angular
-  .module('footerModule', ['reduxConfig'])
-  .component('iqFooter', iqReact2Angular(Footer, ['productEdition'], ['$ngRedux', '$state']));
+  .module('footerModule', [])
+  .component('iqFooter', iqReact2Angular(Footer, ['productEdition'], ['$state']));

@@ -10,9 +10,9 @@ import UserManagementContainer from './UserManagementContainer';
 
 export const UserModule = angular
   .module('UserModule', [])
-  .component('users', iqReact2Angular(UserManagementContainer, [], ['$ngRedux', '$state']))
-  .component('createUser', iqReact2Angular(UserAddContainer, [], ['$ngRedux', '$state']))
-  .component('editUser', iqReact2Angular(UserEditContainer, [], ['$ngRedux', '$state']))
+  .component('users', iqReact2Angular(UserManagementContainer, [], ['$state']))
+  .component('createUser', iqReact2Angular(UserAddContainer, [], ['$state']))
+  .component('editUser', iqReact2Angular(UserEditContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

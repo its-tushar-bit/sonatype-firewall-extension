@@ -10,7 +10,7 @@ import { ROUTE_AUTHENTICATION_REQUIRED_BACKEND_CONFIGURABLE } from 'MainRoot/uti
 
 export default angular
   .module('apiModule', [])
-  .component('apiPage', react2angular(withStoreProvider(ApiPage), [], ['$ngRedux']))
+  .component('apiPage', react2angular(withStoreProvider(ApiPage), [], []))
   .config(routes);
 
 function routes($stateProvider) {

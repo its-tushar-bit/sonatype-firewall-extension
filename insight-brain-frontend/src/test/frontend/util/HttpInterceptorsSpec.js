@@ -8,23 +8,18 @@ import { unauthenticatedResponseHttpInterceptor } from 'MainRoot/utilAngular/Htt
 /* Further test coverage for this interceptor will be added with CLM-20631 */
 describe('HttpInterceptors.js', function () {
   beforeEach(
-    angular.mock.module(
-      unauthenticatedResponseHttpInterceptor.name,
-      'legacyConfiguration',
-      'reduxConfig',
-      function ($provide) {
-        const sessionExpiredSpy = jasmine.createSpy(),
-          $window = {
-            sessionExpired: sessionExpiredSpy,
-            location: {
-              assign: jasmine.createSpy(),
-            },
-          };
+    angular.mock.module(unauthenticatedResponseHttpInterceptor.name, 'legacyConfiguration', function ($provide) {
+      const sessionExpiredSpy = jasmine.createSpy(),
+        $window = {
+          sessionExpired: sessionExpiredSpy,
+          location: {
+            assign: jasmine.createSpy(),
+          },
+        };
 
-        $window.top = $window;
-        $provide.value('$window', $window);
-      }
-    )
+      $window.top = $window;
+      $provide.value('$window', $window);
+    })
   );
 
   it('Validate that a GET/POST/PUT/DELETE request has a timestamp param', inject(function ($q, $http, $httpBackend) {

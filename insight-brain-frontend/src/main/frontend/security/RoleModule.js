@@ -10,8 +10,8 @@ import RoleEditorContainer from './roleEditor/RoleEditorContainer';
 
 const module = angular
   .module('RoleModule', ['ui.router', 'ui.router.state'])
-  .component('roles', iqReact2Angular(RoleListContainer, [], ['$ngRedux', '$state']))
-  .component('roleEditor', iqReact2Angular(RoleEditorContainer, [], ['$ngRedux', '$state']))
+  .component('roles', iqReact2Angular(RoleListContainer, [], ['$state']))
+  .component('roleEditor', iqReact2Angular(RoleEditorContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

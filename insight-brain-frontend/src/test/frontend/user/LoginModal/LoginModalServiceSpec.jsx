@@ -8,32 +8,17 @@ import loginModalModule from 'MainRoot/user/LoginModal/module';
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import * as Locations from 'MainRoot/util/CLMLocation';
 import { getEnableSsoOnly, getSessionUrl } from 'MainRoot/util/CLMLocation';
+import store from 'MainRoot/reduxConfig/store';
 
 describe('LoginModalService', function () {
   const mockAxiosCalls = SpecUtil.axiosMockerGenerator(axios);
 
-  let LoginModalService, $ngRedux, $window;
+  let LoginModalService, $window, dispatchSpy;
   let loadIsSsoOnlyEnabledWithValue;
 
-  beforeEach(
-    angular.mock.module(loginModalModule.name, ($provide) => {
-      // provide redux so we can test action calls
-      SpecUtil.mockNgRedux($provide);
-      $provide.value('$window', {
-        location: {
-          hash: '',
-        },
-      });
-    })
-  );
-
-  beforeEach(inject(function (_LoginModalService_, _$ngRedux_, _$window_) {
-    LoginModalService = _LoginModalService_;
-    $ngRedux = _$ngRedux_;
-    $window = _$window_;
-
-    // Mock Redux state with license information
-    $ngRedux.getState.and.returnValue({
+  beforeAll(() => {
+    dispatchSpy = spyOn(store, 'dispatch').and.callThrough();
+    spyOn(store, 'getState').and.returnValue({
       productLicense: {
         installed: true,
         license: {
@@ -47,6 +32,23 @@ describe('LoginModalService', function () {
         },
       },
     });
+  });
+
+  beforeEach(
+    angular.mock.module(loginModalModule.name, ($provide) => {
+      $provide.value('$window', {
+        location: {
+          hash: '',
+        },
+      });
+    })
+  );
+
+  beforeEach(inject(function (_LoginModalService_, _$window_) {
+    LoginModalService = _LoginModalService_;
+    $window = _$window_;
+
+    dispatchSpy.calls.reset();
 
     mockAxiosCalls({
       get: {
@@ -140,8 +142,9 @@ describe('LoginModalService', function () {
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(7);
-      expect($ngRedux.actions).toHaveActionTypesInOrder([
+      expect(dispatchSpy.calls.count()).toBe(7);
+      const actionTypes = dispatchSpy.calls.allArgs().map((args) => args[0].type);
+      expect(actionTypes).toEqual([
         'userLogin/setIsLicensed',
         'userLogin/setProducts',
         'userLogin/setUnauthenticatedPagesEnabled',
@@ -157,9 +160,10 @@ describe('LoginModalService', function () {
 
   it('dismiss the modal when dismiss() is called', (done) => {
     LoginModalService.dismiss();
-    expect($ngRedux.actions.length).toBe(1);
-    expect($ngRedux.actions).toHaveActionTypesInOrder(['userLogin/resetLoginSubmitState']);
-    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.resetLoginSubmitState());
+    expect(dispatchSpy.calls.count()).toBe(1);
+    const actionTypes = dispatchSpy.calls.allArgs().map((args) => args[0].type);
+    expect(actionTypes).toEqual(['userLogin/resetLoginSubmitState']);
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.resetLoginSubmitState());
 
     done();
   });
@@ -205,12 +209,14 @@ describe('LoginModalService', function () {
   }
 
   function assertLoginModalIsOpen(showSsoButton, ssoLoginUrl) {
-    // Service reads license from Redux state (mocked as installed: true)
-    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setIsLicensed(true));
-    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowLoginModal(true));
-    expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setShowSso(showSsoButton));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setIsLicensed(true));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setProducts([]));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setUnauthenticatedPagesEnabled(undefined));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setQuarantinedComponentViewAnonymousAccessEnabled(undefined));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setShowLoginModal(true));
+    expect(dispatchSpy).toHaveBeenCalledWith(actions.setShowSso(showSsoButton));
     if (ssoLoginUrl !== undefined) {
-      expect($ngRedux.dispatch).toHaveBeenCalledWith(actions.setSsoLoginUrl(ssoLoginUrl));
+      expect(dispatchSpy).toHaveBeenCalledWith(actions.setSsoLoginUrl(ssoLoginUrl));
     }
   }
 
@@ -235,8 +241,9 @@ describe('LoginModalService', function () {
 
     // Adding timeout to wait until all the promises for the open modal are completed
     setTimeout(() => {
-      expect($ngRedux.actions.length).toBe(7);
-      expect($ngRedux.actions).toHaveActionTypesInOrder([
+      expect(dispatchSpy.calls.count()).toBe(7);
+      const actionTypes = dispatchSpy.calls.allArgs().map((args) => args[0].type);
+      expect(actionTypes).toEqual([
         'userLogin/setIsLicensed',
         'userLogin/setProducts',
         'userLogin/setUnauthenticatedPagesEnabled',
@@ -269,7 +276,7 @@ describe('LoginModalService', function () {
     spyOn(Locations, 'assign').and.stub();
 
     // Set up Redux state to have ssoLoginUrl value from backend
-    $ngRedux.getState = () => ({
+    store.getState = () => ({
       userLogin: {
         loginModalState: {
           ssoLoginUrl: ssoLoginUrl,

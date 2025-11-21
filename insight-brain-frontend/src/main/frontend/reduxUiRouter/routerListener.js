@@ -5,10 +5,11 @@
  */
 
 import { UI_ROUTER_ON_FINISH } from './routerActions';
+import store from 'MainRoot/reduxConfig/store';
 
-export default function routerListener($transitions, $ngRedux) {
+export default function routerListener($transitions) {
   $transitions.onFinish({}, (transition) =>
-    $ngRedux.dispatch({
+    store.dispatch({
       type: UI_ROUTER_ON_FINISH,
       payload: {
         toState: transition.to(),
@@ -20,4 +21,4 @@ export default function routerListener($transitions, $ngRedux) {
   );
 }
 
-routerListener.$inject = ['$transitions', '$ngRedux'];
+routerListener.$inject = ['$transitions'];

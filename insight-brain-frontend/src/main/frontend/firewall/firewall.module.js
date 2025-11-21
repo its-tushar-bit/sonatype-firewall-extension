@@ -24,18 +24,15 @@ import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerReposito
 import AddContainerImageWaiverPage from './containerImageWaiver/AddContainerImageWaiverPage';
 
 export default angular
-  .module('firewallModule', ['ngRedux'])
+  .module('firewallModule', [])
   .component('firewall', firewall)
-  .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'firewallAutoUnquarantinePage',
-    iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$ngRedux', '$state'])
-  )
-  .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
-  .component('containerReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
-  .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']))
-  .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$ngRedux', '$state']))
-  .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$ngRedux', '$state']))
+  .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$state']))
+  .component('firewallAutoUnquarantinePage', iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$state']))
+  .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$state']))
+  .component('containerReport', iqReact2Angular(ReportPage, [], ['$state']))
+  .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$state']))
+  .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$state']))
+  .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$state']))
   .config(routes);
 
 const vulnerabilitiesRouteCommonProps = {

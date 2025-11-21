@@ -18,16 +18,75 @@ import {
   getSessionUrl,
 } from '../../util/CLMLocation';
 import { stateGo } from '../../reduxUiRouter/routerActions';
-import userActions from '../../user/userActions';
 import { actions as productFeaturesActions } from '../../productFeatures/productFeaturesSlice';
 import { selectIsUserManagementPagesEnabled, selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
+import {
+  USER_SET_FIRST_NAME,
+  USER_SET_LAST_NAME,
+  USER_SET_EMAIL,
+  USER_SET_USERNAME,
+  USER_SET_PASSWORD,
+  USER_SET_MATCH_PASSWORD,
+  USER_RESET_FORM,
+  CREATE_USER_LOAD_REQUESTED,
+  CREATE_USER_LOAD_FAILED,
+  CREATE_USER_LOAD_FULFILLED,
+  CREATE_USER_SAVE_REQUESTED,
+  CREATE_USER_SAVE_FULFILLED,
+  CREATE_USER_SAVE_FAILED,
+  USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_DELETE_MASK_TIMER_DONE,
+  EDIT_USER_LOAD_REQUESTED,
+  EDIT_USER_LOAD_FAILED,
+  EDIT_USER_LOAD_FULFILLED,
+  EDIT_USER_UPDATE_REQUESTED,
+  EDIT_USER_UPDATE_FULFILLED,
+  EDIT_USER_UPDATE_FAILED,
+  DELETE_USER_REQUESTED,
+  DELETE_USER_FULFILLED,
+  DELETE_USER_FAILED,
+  RESET_USER_PASSWORD_REQUESTED,
+  RESET_USER_PASSWORD_FULFILLED,
+  RESET_USER_PASSWORD_FAILED,
+  RESET_USER_PASSWORD_RESET_VALUE,
+  USER_LIST_LOAD_REQUESTED,
+  USER_LIST_LOAD_FAILED,
+  USER_LIST_LOAD_FULFILLED,
+} from './usersActionTypes';
 
-export const USER_SET_FIRST_NAME = 'USER_SET_FIRST_NAME';
-export const USER_SET_LAST_NAME = 'USER_SET_LAST_NAME';
-export const USER_SET_EMAIL = 'USER_SET_EMAIL';
-export const USER_SET_USERNAME = 'USER_SET_USERNAME';
-export const USER_SET_PASSWORD = 'USER_SET_PASSWORD';
-export const USER_SET_MATCH_PASSWORD = 'USER_SET_MATCH_PASSWORD';
+export {
+  USER_SET_FIRST_NAME,
+  USER_SET_LAST_NAME,
+  USER_SET_EMAIL,
+  USER_SET_USERNAME,
+  USER_SET_PASSWORD,
+  USER_SET_MATCH_PASSWORD,
+  USER_RESET_FORM,
+  CREATE_USER_LOAD_REQUESTED,
+  CREATE_USER_LOAD_FAILED,
+  CREATE_USER_LOAD_FULFILLED,
+  CREATE_USER_SAVE_REQUESTED,
+  CREATE_USER_SAVE_FULFILLED,
+  CREATE_USER_SAVE_FAILED,
+  USER_FORM_SUBMIT_MASK_TIMER_DONE,
+  USER_FORM_DELETE_MASK_TIMER_DONE,
+  EDIT_USER_LOAD_REQUESTED,
+  EDIT_USER_LOAD_FAILED,
+  EDIT_USER_LOAD_FULFILLED,
+  EDIT_USER_UPDATE_REQUESTED,
+  EDIT_USER_UPDATE_FULFILLED,
+  EDIT_USER_UPDATE_FAILED,
+  DELETE_USER_REQUESTED,
+  DELETE_USER_FULFILLED,
+  DELETE_USER_FAILED,
+  RESET_USER_PASSWORD_REQUESTED,
+  RESET_USER_PASSWORD_FULFILLED,
+  RESET_USER_PASSWORD_FAILED,
+  RESET_USER_PASSWORD_RESET_VALUE,
+  USER_LIST_LOAD_REQUESTED,
+  USER_LIST_LOAD_FAILED,
+  USER_LIST_LOAD_FULFILLED,
+};
 
 export const setFirstName = payloadParamActionCreator(USER_SET_FIRST_NAME);
 export const setLastName = payloadParamActionCreator(USER_SET_LAST_NAME);
@@ -36,12 +95,7 @@ export const setUserName = payloadParamActionCreator(USER_SET_USERNAME);
 export const setPassword = payloadParamActionCreator(USER_SET_PASSWORD);
 export const setMatchPassword = payloadParamActionCreator(USER_SET_MATCH_PASSWORD);
 
-export const USER_RESET_FORM = 'USER_RESET_FORM';
 export const resetForm = noPayloadActionCreator(USER_RESET_FORM);
-
-export const CREATE_USER_LOAD_REQUESTED = 'CREATE_USER_LOAD_REQUESTED';
-export const CREATE_USER_LOAD_FAILED = 'CREATE_USER_LOAD_FAILED';
-export const CREATE_USER_LOAD_FULFILLED = 'CREATE_USER_LOAD_FULFILLED';
 
 const loadRequested = noPayloadActionCreator(CREATE_USER_LOAD_REQUESTED);
 const loadFailed = payloadParamActionCreator(CREATE_USER_LOAD_FAILED);
@@ -65,13 +119,6 @@ export function loadCreateUserPage() {
     }
   };
 }
-
-export const CREATE_USER_SAVE_REQUESTED = 'CREATE_USER_SAVE_REQUESTED';
-export const CREATE_USER_SAVE_FULFILLED = 'CREATE_USER_SAVE_FULFILLED';
-export const CREATE_USER_SAVE_FAILED = 'CREATE_USER_SAVE_FAILED';
-
-export const USER_FORM_SUBMIT_MASK_TIMER_DONE = 'USER_FORM_SUBMIT_MASK_TIMER_DONE';
-export const USER_FORM_DELETE_MASK_TIMER_DONE = 'USER_FORM_DELETE_MASK_TIMER_DONE';
 
 const saveRequested = noPayloadActionCreator(CREATE_USER_SAVE_REQUESTED);
 const saveFulfilled = noPayloadActionCreator(CREATE_USER_SAVE_FULFILLED);
@@ -126,10 +173,6 @@ export function save() {
   };
 }
 
-export const EDIT_USER_LOAD_REQUESTED = 'EDIT_USER_LOAD_REQUESTED';
-export const EDIT_USER_LOAD_FAILED = 'EDIT_USER_LOAD_FAILED';
-export const EDIT_USER_LOAD_FULFILLED = 'EDIT_USER_LOAD_FULFILLED';
-
 const loadEditRequested = noPayloadActionCreator(EDIT_USER_LOAD_REQUESTED);
 const loadEditFulfilled = payloadParamActionCreator(EDIT_USER_LOAD_FULFILLED);
 const loadEditFailed = payloadParamActionCreator(EDIT_USER_LOAD_FAILED);
@@ -153,10 +196,6 @@ export function loadUserById(userId) {
   };
 }
 
-export const EDIT_USER_UPDATE_REQUESTED = 'EDIT_USER_UPDATE_REQUESTED';
-export const EDIT_USER_UPDATE_FULFILLED = 'EDIT_USER_UPDATE_FULFILLED';
-export const EDIT_USER_UPDATE_FAILED = 'EDIT_USER_UPDATE_FAILED';
-
 const updateRequested = noPayloadActionCreator(EDIT_USER_UPDATE_REQUESTED);
 const updateFulfilled = noPayloadActionCreator(EDIT_USER_UPDATE_FULFILLED);
 const updateFailed = payloadParamActionCreator(EDIT_USER_UPDATE_FAILED);
@@ -178,10 +217,6 @@ export function update() {
       .catch(compose(dispatch, updateFailed, Messages.getHttpErrorMessage));
   };
 }
-
-export const DELETE_USER_REQUESTED = 'DELETE_USER_REQUESTED';
-export const DELETE_USER_FULFILLED = 'DELETE_USER_FULFILLED';
-export const DELETE_USER_FAILED = 'DELETE_USER_FAILED';
 
 const deleteRequested = noPayloadActionCreator(DELETE_USER_REQUESTED);
 const deleteFulfilled = noPayloadActionCreator(DELETE_USER_FULFILLED);
@@ -206,10 +241,6 @@ export function deleteUser(userId) {
   };
 }
 
-export const RESET_USER_PASSWORD_REQUESTED = 'RESET_USER_PASSWORD_REQUESTED';
-export const RESET_USER_PASSWORD_FULFILLED = 'RESET_USER_PASSWORD_FULFILLED';
-export const RESET_USER_PASSWORD_FAILED = 'RESET_USER_PASSWORD_FAILED';
-
 const resetRequested = noPayloadActionCreator(RESET_USER_PASSWORD_REQUESTED);
 const resetFulfilled = payloadParamActionCreator(RESET_USER_PASSWORD_FULFILLED);
 const resetFailed = payloadParamActionCreator(RESET_USER_PASSWORD_FAILED);
@@ -221,6 +252,7 @@ export function resetPassword(userId, username) {
     return axios
       .put(getUserResetPasswordByIdUrl(userId))
       .then(({ data }) => {
+        const userActions = require('../../user/userActions').default;
         dispatch(resetFulfilled(data));
         dispatch(userActions.passwordChangedForUser({ username }));
 
@@ -230,12 +262,7 @@ export function resetPassword(userId, username) {
   };
 }
 
-export const RESET_USER_PASSWORD_RESET_VALUE = 'RESET_USER_PASSWORD_RESET_VALUE';
 export const resetInitialNewPasswordValue = noPayloadActionCreator(RESET_USER_PASSWORD_RESET_VALUE);
-
-export const USER_LIST_LOAD_REQUESTED = 'USER_LIST_LOAD_REQUESTED';
-export const USER_LIST_LOAD_FAILED = 'USER_LIST_LOAD_FAILED';
-export const USER_LIST_LOAD_FULFILLED = 'USER_LIST_LOAD_FULFILLED';
 
 const loadListRequested = noPayloadActionCreator(USER_LIST_LOAD_REQUESTED);
 const loadListFailed = payloadParamActionCreator(USER_LIST_LOAD_FAILED);

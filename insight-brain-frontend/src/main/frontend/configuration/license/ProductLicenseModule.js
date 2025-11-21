@@ -8,7 +8,7 @@ import ProductLicenseContainer from './ProductLicenseContainer';
 
 export default angular
   .module('ProductLicense', ['ui.router'])
-  .component('productLicenseDetail', iqReact2Angular(ProductLicenseContainer, [], ['$ngRedux']))
+  .component('productLicenseDetail', iqReact2Angular(ProductLicenseContainer, [], []))
   .config([
     '$stateProvider',
     function ($stateProvider) {

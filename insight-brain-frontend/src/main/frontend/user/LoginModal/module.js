@@ -9,9 +9,6 @@ import LoginModalService from './LoginModalService';
 import LoginModal from './LoginModal';
 
 export default angular
-  .module('loginModalModule', ['reduxConfig'])
+  .module('loginModalModule', [])
   .service('LoginModalService', LoginModalService)
-  .component(
-    'loginModal',
-    iqReact2Angular(withLoginModalService(LoginModal), [], ['LoginModalService', '$ngRedux', '$state'])
-  );
+  .component('loginModal', iqReact2Angular(withLoginModalService(LoginModal), [], ['LoginModalService', '$state']));

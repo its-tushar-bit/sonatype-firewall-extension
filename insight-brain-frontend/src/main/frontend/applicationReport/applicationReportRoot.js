@@ -5,6 +5,7 @@
  */
 
 import { pick } from 'ramda';
+import store from 'MainRoot/reduxConfig/store';
 
 export default {
   template: '<ui-view></ui-view>',
@@ -12,7 +13,7 @@ export default {
   controller: ApplicationReportRootController,
 };
 
-function ApplicationReportRootController($state, $ngRedux, applicationReportActions) {
+function ApplicationReportRootController($state, applicationReportActions) {
   const vm = this;
 
   Object.assign(vm, {
@@ -20,7 +21,7 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
       const actions = pick(['setReportParameters'], applicationReportActions);
       const boundActions = {};
       Object.keys(actions).forEach((key) => {
-        boundActions[key] = (...args) => $ngRedux.dispatch(actions[key](...args));
+        boundActions[key] = (...args) => store.dispatch(actions[key](...args));
       });
 
       boundActions.setReportParameters(
@@ -37,4 +38,4 @@ function ApplicationReportRootController($state, $ngRedux, applicationReportActi
   });
 }
 
-ApplicationReportRootController.$inject = ['$state', '$ngRedux', 'applicationReportActions'];
+ApplicationReportRootController.$inject = ['$state', 'applicationReportActions'];

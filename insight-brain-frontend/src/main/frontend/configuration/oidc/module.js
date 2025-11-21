@@ -9,7 +9,7 @@ import { selectIsDirty } from './oidcConfigurationSelectors';
 
 export default angular
   .module('oidcModule', [])
-  .component('oidcConfigurationPage', iqReact2Angular(OidcConfigurationPage, [], ['$ngRedux', '$state']))
+  .component('oidcConfigurationPage', iqReact2Angular(OidcConfigurationPage, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

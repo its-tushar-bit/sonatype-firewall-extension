@@ -12,11 +12,11 @@ export default angular
   .module('embeddedLookerDashboard', [])
   .component(
     'enterpriseReportingLandingPage',
-    iqReact2Angular(withStoreProvider(EnterpriseReportingLandingPage), [], ['$ngRedux'])
+    iqReact2Angular(withStoreProvider(EnterpriseReportingLandingPage), [], [])
   )
   .component(
     'enterpriseReportingDashboardPage',
-    iqReact2Angular(withStoreProvider(EnterpriseReportingDashboardPage), [], ['$ngRedux', '$state'])
+    iqReact2Angular(withStoreProvider(EnterpriseReportingDashboardPage), [], ['$state'])
   )
   .config(routes);
 

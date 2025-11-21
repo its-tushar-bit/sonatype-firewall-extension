@@ -9,8 +9,8 @@ import QuarantinedComponentContainer from './QuarantinedComponentContainer';
 import { QUARANTINED_COMPONENT_VIEW_ANONYMOUS_ACCESS_ENABLED } from 'MainRoot/utility/services/routeStateUtilService';
 
 export default angular
-  .module('quarantinedComponentReportModule', ['ngRedux'])
-  .component('quarantinedComponentReport', iqReact2Angular(QuarantinedComponentContainer, [], ['$ngRedux', '$state']))
+  .module('quarantinedComponentReportModule', [])
+  .component('quarantinedComponentReport', iqReact2Angular(QuarantinedComponentContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

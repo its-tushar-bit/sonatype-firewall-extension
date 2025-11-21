@@ -10,8 +10,8 @@ import ListWebhooksContainer from './listWebhooks/ListWebhooksContainer';
 
 export default angular
   .module('webhook.module', [], webhookModuleConfiguration)
-  .component('editWebhook', iqReact2Angular(EditWebhookContainer, [], ['$ngRedux', '$state']))
-  .component('listWebhooks', iqReact2Angular(ListWebhooksContainer, [], ['$ngRedux', '$state']));
+  .component('editWebhook', iqReact2Angular(EditWebhookContainer, [], ['$state']))
+  .component('listWebhooks', iqReact2Angular(ListWebhooksContainer, [], ['$state']));
 
 function webhookModuleConfiguration($stateProvider) {
   $stateProvider

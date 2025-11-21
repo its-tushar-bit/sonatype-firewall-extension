@@ -3,17 +3,19 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import { identity } from 'ramda';
 import { react2angular } from 'react2angular';
 import withStoreProvider from './StoreProvider';
 import withRouterStateProvider from './RouterStateProvider';
 
 export default function iqReact2Angular(Component, bindings, injections) {
-  const hasStore = injections?.includes('$ngRedux'),
-    hasState = injections?.includes('$state'),
-    _withStoreProvider = hasStore ? withStoreProvider : identity,
-    _withRouterStateProvider = hasState ? withRouterStateProvider : identity,
-    WrappedComponent = _withStoreProvider(_withRouterStateProvider(Component));
+  const hasState = injections?.includes('$state');
 
-  return react2angular(WrappedComponent, bindings, injections);
+  // Always wrap with StoreProvider (no longer conditional on $ngRedux)
+  const _withRouterStateProvider = hasState ? withRouterStateProvider : (c) => c;
+  const WrappedComponent = withStoreProvider(_withRouterStateProvider(Component));
+
+  // No need to filter injections anymore since we removed all $ngRedux references
+  const filteredInjections = injections;
+
+  return react2angular(WrappedComponent, bindings, filteredInjections);
 }

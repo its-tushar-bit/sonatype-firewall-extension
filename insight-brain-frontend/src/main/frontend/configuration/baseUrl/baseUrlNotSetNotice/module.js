@@ -8,10 +8,7 @@ import BaseUrlNotSetNotice from './BaseUrlNotSetNotice';
 
 const baseUrlNotSetNoticeModule = angular
   .module('baseUrlNotSetNoticeModule', [])
-  .component(
-    'baseUrlNotSetNotice',
-    iqReact2Angular(BaseUrlNotSetNotice, ['login', 'isLoggedIn'], ['$ngRedux', '$state'])
-  )
+  .component('baseUrlNotSetNotice', iqReact2Angular(BaseUrlNotSetNotice, ['login', 'isLoggedIn'], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

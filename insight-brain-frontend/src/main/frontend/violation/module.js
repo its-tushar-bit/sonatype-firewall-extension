@@ -12,9 +12,9 @@ import TransitiveViolationsPage from 'MainRoot/violation/TransitiveViolationsPag
 export default angular
   .module('violationPage', [])
   .component('sidebarView', sidebarView)
-  .component('sidebarNavList', iqReact2Angular(SidebarNavListContainer, [], ['$ngRedux', '$state']))
-  .component('violationPage', iqReact2Angular(ViolationPageContainer, [], ['$ngRedux', '$state']))
-  .component('transitiveViolationsPage', iqReact2Angular(TransitiveViolationsPage, [], ['$ngRedux', '$state']))
+  .component('sidebarNavList', iqReact2Angular(SidebarNavListContainer, [], ['$state']))
+  .component('violationPage', iqReact2Angular(ViolationPageContainer, [], ['$state']))
+  .component('transitiveViolationsPage', iqReact2Angular(TransitiveViolationsPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

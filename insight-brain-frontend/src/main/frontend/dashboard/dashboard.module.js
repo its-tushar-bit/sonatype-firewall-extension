@@ -19,13 +19,13 @@ import DashboardFilter from 'MainRoot/dashboard/filter/dashboardFilter/Dashboard
 export default angular
   .module('dashboard.module', ['ui.router'])
   .component('dashboardResultsContainer', dashboardResultsContainer)
-  .component('dashboardHeader', iqReact2Angular(DashboardHeaderContainer, [], ['$ngRedux', '$state']))
-  .component('violations', iqReact2Angular(DashboardViolationsContainer, [], ['$ngRedux']))
-  .component('components', iqReact2Angular(DashboardComponentsContainer, [], ['$ngRedux']))
-  .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$ngRedux', '$state']))
-  .component('waivers', iqReact2Angular(DashboardWaivers, [], ['$ngRedux', '$state']))
-  .component('component', iqReact2Angular(ComponentRisk, [], ['$ngRedux', '$state']))
-  .component('dashboardFilter', iqReact2Angular(DashboardFilter, [], ['$ngRedux', '$state']))
+  .component('dashboardHeader', iqReact2Angular(DashboardHeaderContainer, [], ['$state']))
+  .component('violations', iqReact2Angular(DashboardViolationsContainer, [], []))
+  .component('components', iqReact2Angular(DashboardComponentsContainer, [], []))
+  .component('applications', iqReact2Angular(DashboardApplicationsContainer, [], ['$state']))
+  .component('waivers', iqReact2Angular(DashboardWaivers, [], ['$state']))
+  .component('component', iqReact2Angular(ComponentRisk, [], ['$state']))
+  .component('dashboardFilter', iqReact2Angular(DashboardFilter, [], ['$state']))
 
   // To avoid hacking dependency order, states must be declared with their parent.
   // Fixed https://github.com/angular-ui/ui-router/pull/492

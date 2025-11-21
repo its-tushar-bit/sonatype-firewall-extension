@@ -7,8 +7,8 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import AdvancedSearchContainer from 'MainRoot/advancedSearch/AdvancedSearchContainer';
 
 export default angular
-  .module('advancedSearchModule', ['ngRedux'])
-  .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$ngRedux', '$state']))
+  .module('advancedSearchModule', [])
+  .component('advancedSearch', iqReact2Angular(AdvancedSearchContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

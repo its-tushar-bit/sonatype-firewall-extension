@@ -9,6 +9,6 @@ import DependencyTreePage from './DependencyTreePage';
 
 const dependencyTreeModule = angular
   .module('dependencyTree', ['ui.router'])
-  .component('dependencyTree', iqReact2Angular(DependencyTreePage, [], ['$ngRedux', '$state']));
+  .component('dependencyTree', iqReact2Angular(DependencyTreePage, [], ['$state']));
 
 export default dependencyTreeModule;

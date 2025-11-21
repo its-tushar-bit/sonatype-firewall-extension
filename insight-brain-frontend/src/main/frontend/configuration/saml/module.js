@@ -8,7 +8,7 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 
 export default angular
   .module('samlModule', [])
-  .component('samlConfigurationPage', iqReact2Angular(SAMLConfigurationPage, [], ['$ngRedux', '$state']))
+  .component('samlConfigurationPage', iqReact2Angular(SAMLConfigurationPage, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

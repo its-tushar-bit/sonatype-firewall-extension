@@ -9,7 +9,7 @@ import SourceControlRateLimits from './SourceControlRateLimits';
 
 const sourceControlRateLimitsModule = angular
   .module('sourceControlRateLimits', ['ui.router'])
-  .component('sourceControlRateLimits', iqReact2Angular(SourceControlRateLimits, [], ['$ngRedux', '$state']))
+  .component('sourceControlRateLimits', iqReact2Angular(SourceControlRateLimits, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

@@ -9,6 +9,6 @@ import ComponentDetails from './ComponentDetails';
 
 const componentDetailsModule = angular
   .module('componentDetails', ['ui.router'])
-  .component('componentDetails', iqReact2Angular(ComponentDetails, [], ['$ngRedux', '$state']));
+  .component('componentDetails', iqReact2Angular(ComponentDetails, [], ['$state']));
 
 export default componentDetailsModule;

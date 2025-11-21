@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import template from './dashboardResultsContainer.html';
+import store from 'MainRoot/reduxConfig/store';
 
 export default {
   template,
@@ -11,7 +12,7 @@ export default {
   controllerAs: 'vm',
 };
 
-function dashboardResultsContainerController($ngRedux, $scope) {
+function dashboardResultsContainerController($scope) {
   const vm = this;
 
   function mapStateToThis(state) {
@@ -22,7 +23,7 @@ function dashboardResultsContainerController($ngRedux, $scope) {
   }
 
   function updateState() {
-    const state = $ngRedux.getState();
+    const state = store.getState();
     const mapped = mapStateToThis(state);
     Object.assign(vm, mapped);
   }
@@ -30,7 +31,7 @@ function dashboardResultsContainerController($ngRedux, $scope) {
   Object.assign(vm, {
     $onInit() {
       updateState();
-      const unsubscribe = $ngRedux.subscribe(() => {
+      const unsubscribe = store.subscribe(() => {
         updateState();
         $scope.$applyAsync();
       });
@@ -43,4 +44,4 @@ function dashboardResultsContainerController($ngRedux, $scope) {
   });
 }
 
-dashboardResultsContainerController.$inject = ['$ngRedux', '$scope'];
+dashboardResultsContainerController.$inject = ['$scope'];

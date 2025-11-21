@@ -26,33 +26,24 @@ import { createLegalRoutes } from 'MainRoot/legal/legalUtility';
 
 export default angular
   .module('legalModule', [])
-  .component('legalDashboard', iqReact2Angular(LegalDashboardContainer, ['isAuthorized'], ['$ngRedux', '$state']))
-  .component('componentLegalOverview', iqReact2Angular(ComponentLegalOverviewContainer, [], ['$ngRedux', '$state']))
-  .component('legalApplicationDetails', iqReact2Angular(LegalApplicationDetailsContainer, [], ['$ngRedux', '$state']))
-  .component('attributionReportForm', iqReact2Angular(AttributionReportForm, [], ['$ngRedux', '$state']))
-  .component(
-    'attributionReportTemplateForm',
-    iqReact2Angular(AttributionReportTemplateForm, [], ['$ngRedux', '$state'])
-  )
+  .component('legalDashboard', iqReact2Angular(LegalDashboardContainer, ['isAuthorized'], ['$state']))
+  .component('componentLegalOverview', iqReact2Angular(ComponentLegalOverviewContainer, [], ['$state']))
+  .component('legalApplicationDetails', iqReact2Angular(LegalApplicationDetailsContainer, [], ['$state']))
+  .component('attributionReportForm', iqReact2Angular(AttributionReportForm, [], ['$state']))
+  .component('attributionReportTemplateForm', iqReact2Angular(AttributionReportTemplateForm, [], ['$state']))
   .component('componentCopyrightDetails', componentCopyrightDetails)
-  .component('copyrightDetailsHeader', iqReact2Angular(CopyrightDetailsHeaderContainer, [], ['$ngRedux', '$state']))
-  .component('copyrightList', iqReact2Angular(CopyrightListContainer, [], ['$ngRedux', '$state']))
-  .component('copyrightDetailsContents', iqReact2Angular(CopyrightDetailsContentsContainer, [], ['$ngRedux', '$state']))
+  .component('copyrightDetailsHeader', iqReact2Angular(CopyrightDetailsHeaderContainer, [], ['$state']))
+  .component('copyrightList', iqReact2Angular(CopyrightListContainer, [], ['$state']))
+  .component('copyrightDetailsContents', iqReact2Angular(CopyrightDetailsContentsContainer, [], ['$state']))
   .component('componentNoticeDetails', componentNoticeDetails)
-  .component('noticeDetailsHeader', iqReact2Angular(NoticeDetailsHeaderContainer, [], ['$ngRedux', '$state']))
-  .component('noticeDetailsList', iqReact2Angular(NoticeDetailsListContainer, [], ['$ngRedux', '$state']))
-  .component('noticeDetailsContents', iqReact2Angular(NoticeDetailsContentsContainer, [], ['$ngRedux', '$state']))
-  .component('componentLicenseDetails', iqReact2Angular(ComponentLicenseDetailsContainer, [], ['$ngRedux', '$state']))
+  .component('noticeDetailsHeader', iqReact2Angular(NoticeDetailsHeaderContainer, [], ['$state']))
+  .component('noticeDetailsList', iqReact2Angular(NoticeDetailsListContainer, [], ['$state']))
+  .component('noticeDetailsContents', iqReact2Angular(NoticeDetailsContentsContainer, [], ['$state']))
+  .component('componentLicenseDetails', iqReact2Angular(ComponentLicenseDetailsContainer, [], ['$state']))
   .component('componentLicenseFilesDetails', componentLicenseFilesDetails)
-  .component(
-    'licenseFilesDetailsHeader',
-    iqReact2Angular(LicenseFilesDetailsHeaderContainer, [], ['$ngRedux', '$state'])
-  )
-  .component('licenseFilesDetailsList', iqReact2Angular(LicenseFilesDetailsListContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'licenseFilesDetailsContents',
-    iqReact2Angular(LicenseFilesDetailsContentsContainer, [], ['$ngRedux', '$state'])
-  )
+  .component('licenseFilesDetailsHeader', iqReact2Angular(LicenseFilesDetailsHeaderContainer, [], ['$state']))
+  .component('licenseFilesDetailsList', iqReact2Angular(LicenseFilesDetailsListContainer, [], ['$state']))
+  .component('licenseFilesDetailsContents', iqReact2Angular(LicenseFilesDetailsContentsContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

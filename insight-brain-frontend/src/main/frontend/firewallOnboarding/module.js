@@ -9,9 +9,9 @@ import firewallOnboarding from './firewallOnboarding';
 import IncompleteConfigurationModal from './IncompleteConfigurationModal';
 
 export default angular
-  .module('firewallOnboardingModule', ['ngRedux'])
+  .module('firewallOnboardingModule', [])
   .component('firewallOnboarding', firewallOnboarding)
-  .component('firewallOnboardingPage', iqReact2Angular(FirewallOnboardingPage, [], ['$ngRedux', '$state']))
+  .component('firewallOnboardingPage', iqReact2Angular(FirewallOnboardingPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

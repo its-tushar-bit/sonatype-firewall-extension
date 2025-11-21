@@ -9,14 +9,15 @@ import { Messages } from './util/CommonServices';
 import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
+import './reduxConfig/store';
+import store from './reduxConfig/store';
 import {
   DEPARTED_ACTION,
   REDIRECTED_ACTION,
   submitData,
 } from './configuration/gettingStarted/gettingStartedTelemetryServiceHelper';
-import reduxConfigModule from './reduxConfig/module';
+import reduxUiRouterModule from './reduxUiRouter/module';
 import MainHeader from './mainHeader/MainHeader.jsx';
-import userActions from './user/userActions';
 import userReducer from './user/userReducer';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import NavigationContainer from './navigationContainer/NavigationContainer';
@@ -85,7 +86,7 @@ export const InitModule = angular
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
       legalModule.name,
-      reduxConfigModule.name,
+      reduxUiRouterModule.name,
       configurationModule.name,
       loginModalModule.name,
       toastContainerModule.name,
@@ -104,19 +105,17 @@ export const InitModule = angular
             url: '^',
             redirectTo: function (transition) {
               const injector = transition.injector(),
-                $rootScope = injector.get('$rootScope'),
-                $q = injector.get('$q'),
-                $ngRedux = injector.get('$ngRedux');
+                $q = injector.get('$q');
               return $q
                 .all([
-                  $ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded()),
-                  $ngRedux.dispatch(loadProductLicense()),
-                  $ngRedux.dispatch(firewallOnboardingActions.loadUnconfiguredRepoManagers()),
-                  waitForLogin($ngRedux),
+                  store.dispatch(actions.fetchProductFeaturesIfNeeded()),
+                  store.dispatch(loadProductLicense()),
+                  store.dispatch(firewallOnboardingActions.loadUnconfiguredRepoManagers()),
+                  waitForLogin(store),
                 ])
                 .then((results) => {
                   unwrapResult(results[0]);
-                  const state = $ngRedux.getState();
+                  const state = store.getState();
                   const hasLifecycleLicense = selectHasLifecycleLicense(state);
                   const isDashboardAvailable = selectIsDashboardSupported(state);
                   const isFirewallAvailable = selectIsFirewallSupported(state);
@@ -143,7 +142,7 @@ export const InitModule = angular
                   return 'gettingStarted';
                 })
                 .catch((err) => {
-                  $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err)));
+                  store.dispatch(setError(Messages.getHttpErrorMessage(err)));
                 });
             },
           })
@@ -160,10 +159,9 @@ export const InitModule = angular
             redirectTo: 'root',
           });
 
-        var unknownErrorFunction = function ($ngRedux) {
-          $ngRedux.dispatch(setError('Unknown Address'));
+        var unknownErrorFunction = function () {
+          store.dispatch(setError('Unknown Address'));
         };
-        unknownErrorFunction.$inject = ['$ngRedux'];
 
         // Show unknown routing error if route is unknown
         $urlRouterProvider.otherwise(function ($injector) {
@@ -200,25 +198,13 @@ export const InitModule = angular
     '$timeout',
     '$urlService',
     'LoginModalService',
-    '$ngRedux',
     '$transitions',
-    function (
-      $rootScope,
-      $state,
-      $window,
-      $q,
-      $urlRouter,
-      $timeout,
-      $urlService,
-      LoginModalService,
-      $ngRedux,
-      $transitions
-    ) {
+    function ($rootScope, $state, $window, $q, $urlRouter, $timeout, $urlService, LoginModalService, $transitions) {
       // Initialize the singleton pendoService with urlService
       setUrlService($urlService);
 
       // Initialize the ES6 routeStateUtilService module with Angular dependencies
-      initializeRouteStateUtilService($state, $ngRedux);
+      initializeRouteStateUtilService($state, store);
 
       var savedState = null,
         cancelPreLoginStateHandler,
@@ -230,7 +216,7 @@ export const InitModule = angular
       function preLoginStateHandler(event, state, params) {
         function attemptLoginIfNeeded() {
           // Check if user is logged in by reading from Redux state
-          const reduxState = $ngRedux.getState();
+          const reduxState = store.getState();
           const username = selectUsername(reduxState);
           if (!username) {
             attemptLogin();
@@ -271,10 +257,10 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors($window, LoginModalService, $ngRedux);
+      attachAxiosInterceptors($window, LoginModalService, store);
 
       function setRootError(err) {
-        $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err)));
+        store.dispatch(setError(Messages.getHttpErrorMessage(err)));
       }
 
       /**
@@ -297,7 +283,7 @@ export const InitModule = angular
         function onLicenseSuccess(licenseData) {
           // Dispatch license data to Redux immediately so it's available before login.
           // Use the loadFulfilled action creator from productLicenseActions.
-          $ngRedux.dispatch(
+          store.dispatch(
             loadFulfilled({
               ...licenseData,
               ...(licenseData.expiryTimestamp && { daysToExpiration: getDaysFromNow(licenseData.expiryTimestamp) }),
@@ -350,20 +336,20 @@ export const InitModule = angular
         }
         requestNotificationPermission();
         // Read productEdition from Redux state
-        const state = $ngRedux.getState();
+        const state = store.getState();
         const productEdition = selectProductEdition(state);
-        checkSessionExpiredLater($ngRedux, productEdition);
+        checkSessionExpiredLater(store, productEdition);
         loadFontAwesomeBrandIcons();
       }
 
       function initFailure(err) {
-        $ngRedux.dispatch(setError(Messages.getHttpErrorMessage(err) || 'Unable to initialize the application'));
+        store.dispatch(setError(Messages.getHttpErrorMessage(err) || 'Unable to initialize the application'));
       }
 
       $transitions.onStart({ from: 'productlicense', to: 'gettingStarted' }, () => {
         const {
           productLicense: { installed },
-        } = $ngRedux.getState();
+        } = store.getState();
 
         if (!installed) return false;
 
@@ -376,11 +362,11 @@ export const InitModule = angular
       });
 
       function initExternalLinkClickHandler() {
-        $q.all([$ngRedux.dispatch(actions.fetchProductFeaturesIfNeeded())])
+        $q.all([store.dispatch(actions.fetchProductFeaturesIfNeeded())])
           .then(([result]) => {
             unwrapResult(result);
             // Check if external hyperlinks are allowed by reading from Redux state
-            const state = $ngRedux.getState();
+            const state = store.getState();
             const isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
 
             if (!isAllowExternalHyperlinks) {
@@ -388,7 +374,7 @@ export const InitModule = angular
                 const isExternalLink = (anchor) => anchor.hostname && anchor.hostname !== location.hostname;
                 const anchor = getAnchor(e.target);
                 if (isExternalLink(anchor)) {
-                  $ngRedux.dispatch(externalLinkModalActions.open(anchor.href));
+                  store.dispatch(externalLinkModalActions.open(anchor.href));
                   e.stopImmediatePropagation();
                   return false;
                 }
@@ -410,24 +396,24 @@ export const InitModule = angular
       }
 
       function attemptLogin() {
-        fetchUser($ngRedux);
+        fetchUser(store);
       }
 
       function doStart() {
         // Subscribe to Redux state changes for $rootScope properties
-        const unsubscribeRootScope = $ngRedux.subscribe(() => {
-          const state = $ngRedux.getState();
+        const unsubscribeRootScope = store.subscribe(() => {
+          const state = store.getState();
           $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(state);
         });
         $rootScope.$on('$destroy', unsubscribeRootScope);
 
         // Initialize rootScope properties
-        const initialState = $ngRedux.getState();
+        const initialState = store.getState();
         $rootScope.isAllowExternalHyperlinks = selectIsAllowExternalHyperlinksSupported(initialState);
 
         // Subscribe to Redux error state changes and sync to $rootScope for index.html template compatibility
-        const unsubscribeError = $ngRedux.subscribe(() => {
-          const state = $ngRedux.getState();
+        const unsubscribeError = store.subscribe(() => {
+          const state = store.getState();
           const error = selectError(state);
           if (error) {
             $rootScope.error = error;
@@ -444,8 +430,8 @@ export const InitModule = angular
         }
 
         // Subscribe to Redux state changes for user session and license data
-        const unsubscribeLicenseAndUser = $ngRedux.subscribe(() => {
-          const state = $ngRedux.getState();
+        const unsubscribeLicenseAndUser = store.subscribe(() => {
+          const state = store.getState();
           $rootScope.username = selectUsername(state);
           $rootScope.licensed = selectIsLicenseInstalled(state);
           $rootScope.productEdition = selectProductEdition(state);
@@ -469,10 +455,9 @@ export const InitModule = angular
         if (initialProducts) {
           $rootScope.products = initialProducts;
         }
-
-        $q.all([waitForLogin($ngRedux), checkLicenseInfo()])
+        $q.all([waitForLogin(store), checkLicenseInfo()])
           .then(function ([authenticationStatus]) {
-            // License data is already loaded by checkLicenseInfo() and dispatched to Redux
+            store.dispatch(loadProductLicense());
             // Username will be synced to $rootScope automatically via the subscribe mechanism
             cancelLoginDismissListener();
             // This was already called at the bottom of `doStart`, but call it again here now that the user is
@@ -482,7 +467,7 @@ export const InitModule = angular
           .then(initSuccess, initFailure);
 
         function clearRootScopeError() {
-          $ngRedux.dispatch(clearError());
+          store.dispatch(clearError());
         }
 
         $rootScope.$on('$locationChangeStart', clearRootScopeError);
@@ -497,7 +482,7 @@ export const InitModule = angular
 
         $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
           if (typeof error === 'string') {
-            $ngRedux.dispatch(setError(error));
+            store.dispatch(setError(error));
           } else {
             setRootError(error);
           }
@@ -506,7 +491,7 @@ export const InitModule = angular
         let isProcessingStateChange = false;
 
         function isPageDirty() {
-          const state = $ngRedux.getState();
+          const state = store.getState();
           const currentState = state.router.currentState;
           const isDirtyLookup = currentState.data && currentState.data.isDirty;
 
@@ -519,17 +504,17 @@ export const InitModule = angular
         }
 
         $rootScope.$on('$stateChangeStart', function (event, toState, toParams) {
-          const state = $ngRedux.getState();
+          const state = store.getState();
           const toast = selectToastSlice(state);
           if (!isEmpty(toast.toasts)) {
-            $ngRedux.dispatch(toastSliceActions.removeAllToasts());
+            store.dispatch(toastSliceActions.removeAllToasts());
           }
           if (!isProcessingStateChange) {
             var e = $rootScope.$broadcast('pageChangeStarted');
             if (e.defaultPrevented || isPageDirty()) {
               isProcessingStateChange = true;
               event.preventDefault();
-              $ngRedux
+              store
                 .dispatch(unsavedChangesModalActions.open())
                 .then(
                   function () {
@@ -579,7 +564,7 @@ export const InitModule = angular
 
         // Try to fetch the current user in order to see if we are already logged in, but do not attempt
         // to initiate a login here (we might be on a page that doesn't require auth)
-        fetchUser($ngRedux, false);
+        fetchUser(store, false);
 
         pendoService.start();
       }
@@ -588,10 +573,10 @@ export const InitModule = angular
     },
   ])
   .value('userReducer', userReducer)
-  .component('mainHeader', iqReact2Angular(MainHeader, [], ['$ngRedux', '$state']))
+  .component('mainHeader', iqReact2Angular(MainHeader, ['clmServerVersion'], ['$state']))
   .component(
     'navigationContainer',
-    iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$ngRedux', '$rootScope', '$state'])
+    iqReact2Angular(NavigationContainer, ['productEdition', 'clmServerVersion'], ['$rootScope', '$state'])
   );
 
 export const MainModule = angular.module('MainModule', [InitModule.name]).run([

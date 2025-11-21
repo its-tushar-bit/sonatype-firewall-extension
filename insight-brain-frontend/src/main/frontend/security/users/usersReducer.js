@@ -47,7 +47,7 @@ import {
   USER_LIST_LOAD_REQUESTED,
   USER_LIST_LOAD_FAILED,
   USER_LIST_LOAD_FULFILLED,
-} from './usersActions';
+} from './usersActionTypes';
 
 const { initialState: initUserInput, userInput } = nxTextInputStateHelpers;
 

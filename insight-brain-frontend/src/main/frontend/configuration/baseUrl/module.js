@@ -9,7 +9,7 @@ import BaseUrlConfiguration from './BaseUrlConfiguration';
 
 const baseUrlConfigurationModule = angular
   .module('baseUrlConfiguration', [])
-  .component('baseUrlConfiguration', iqReact2Angular(BaseUrlConfiguration, [], ['$ngRedux', '$state']))
+  .component('baseUrlConfiguration', iqReact2Angular(BaseUrlConfiguration, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

@@ -11,7 +11,7 @@ export default angular
   .module('artifactoryRepositoryConfigurationModule', [])
   .component(
     'artifactoryRepositoryBaseConfigurations',
-    iqReact2Angular(ArtifactoryRepositoryBaseConfigurations, [], ['$ngRedux'])
+    iqReact2Angular(ArtifactoryRepositoryBaseConfigurations, [], [])
   )
   .config(routes);
 

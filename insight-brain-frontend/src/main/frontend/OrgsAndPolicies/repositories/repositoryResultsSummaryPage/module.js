@@ -20,6 +20,6 @@ var reportModule = angular
       },
     ]
   )
-  .component('repositoryResultsSummaryPage', iqReact2Angular(RepositoryResultsSummaryPage, [], ['$ngRedux', '$state']));
+  .component('repositoryResultsSummaryPage', iqReact2Angular(RepositoryResultsSummaryPage, [], ['$state']));
 
 export default reportModule;

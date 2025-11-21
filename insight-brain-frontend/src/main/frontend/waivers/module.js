@@ -12,11 +12,11 @@ import WaiverDetailsContainer from './waiverDetails/WaiverDetailsContainer';
 
 export default angular
   .module('waivers', [])
-  .component('addWaiverPage', iqReact2Angular(AddWaiverPageContainer, [], ['$ngRedux', '$state']))
-  .component('requestWaiverPage', iqReact2Angular(RequestWaiverPage, [], ['$ngRedux', '$state']))
-  .component('requestWaiverReviewPage', iqReact2Angular(RequestWaiverReviewPage, [], ['$ngRedux', '$state']))
+  .component('addWaiverPage', iqReact2Angular(AddWaiverPageContainer, [], ['$state']))
+  .component('requestWaiverPage', iqReact2Angular(RequestWaiverPage, [], ['$state']))
+  .component('requestWaiverReviewPage', iqReact2Angular(RequestWaiverReviewPage, [], ['$state']))
   .component('waiverSidebarView', sidebarView)
-  .component('waiverDetailsContainer', iqReact2Angular(WaiverDetailsContainer, [], ['$ngRedux', '$state']))
+  .component('waiverDetailsContainer', iqReact2Angular(WaiverDetailsContainer, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

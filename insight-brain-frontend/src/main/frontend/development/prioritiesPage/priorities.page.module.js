@@ -8,8 +8,8 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import PrioritiesPage from 'MainRoot/development/prioritiesPage/PrioritiesPage';
 
 const prioritiesPageModule = angular
-  .module('prioritiesPageModule', ['ngRedux'])
-  .component('prioritiesPage', iqReact2Angular(PrioritiesPage, [], ['$ngRedux', '$state']))
+  .module('prioritiesPageModule', [])
+  .component('prioritiesPage', iqReact2Angular(PrioritiesPage, [], ['$state']))
   .config(routes);
 
 const cdpFromDashboard = 'componentDetailsPageWithinPrioritiesPageContainerFromDashboard';

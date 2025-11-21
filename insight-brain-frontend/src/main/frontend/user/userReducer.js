@@ -12,7 +12,7 @@ import {
   CHANGE_PASSWORD_FULFILLED,
   CHANGE_PASSWORD_FAILED,
   CHANGE_PASSWORD_STATUS_RESET,
-} from './userActions';
+} from './userActionTypes';
 
 // Initial User state
 const initialState = Object.freeze({

@@ -39,37 +39,30 @@ export default angular
     oidcModule.name,
     webhookModule.name,
     ProductLicenseModule.name,
-    'ngRedux',
   ])
-  .component(
-    'automaticApplicationsConfiguration',
-    iqReact2Angular(AutomaticApplicationsConfiguration, [], ['$ngRedux', '$state'])
-  )
+  .component('automaticApplicationsConfiguration', iqReact2Angular(AutomaticApplicationsConfiguration, [], ['$state']))
   .component(
     'automaticSourceControlConfiguration',
-    iqReact2Angular(AutomaticSourceControlConfigurationContainer, [], ['$ngRedux', '$state'])
+    iqReact2Angular(AutomaticSourceControlConfigurationContainer, [], ['$state'])
   )
-  .component('mailConfig', iqReact2Angular(MailConfigContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('zscalerConfig', iqReact2Angular(ZscalerConfigContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('proxyConfig', iqReact2Angular(ProxyConfigContainer, [], ['$ngRedux', '$state']))
-  .component('advancedSearchConfig', iqReact2Angular(AdvancedSearchConfigContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], ['$ngRedux']))
-  .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, [], ['$ngRedux', '$state']))
-  .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], ['$ngRedux']))
-  .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfiguration, [], ['$ngRedux']))
+  .component('mailConfig', iqReact2Angular(MailConfigContainer, ['isAuthorized'], []))
+  .component('zscalerConfig', iqReact2Angular(ZscalerConfigContainer, ['isAuthorized'], []))
+  .component('proxyConfig', iqReact2Angular(ProxyConfigContainer, [], ['$state']))
+  .component('advancedSearchConfig', iqReact2Angular(AdvancedSearchConfigContainer, ['isAuthorized'], []))
+  .component('gettingStarted', iqReact2Angular(GettingStartedContainer, [], []))
+  .component('scmOnboarding', iqReact2Angular(ScmOnboardingContainer, [], ['$state']))
+  .component('labsDataInsights', iqReact2Angular(LabsDataInsightsContainer, ['isAuthorized'], []))
+  .component('successMetricsConfiguration', iqReact2Angular(SuccessMetricsConfiguration, [], []))
   .component(
     'waivedComponentUpgradesConfiguration',
-    iqReact2Angular(WaivedComponentUpgradesConfiguration, [], ['$ngRedux', '$state'])
+    iqReact2Angular(WaivedComponentUpgradesConfiguration, [], ['$state'])
   )
-  .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], ['$ngRedux']))
-  .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], ['$ngRedux']))
-  .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$ngRedux', '$state']))
-  .component('roiConfiguration', iqReact2Angular(RoiConfigurationPage, [], ['$ngRedux', '$state']))
-  .component('editRoiConfiguration', iqReact2Angular(EditRoiConfigurationPage, [], ['$ngRedux', '$state']))
-  .component(
-    'userActivityDetails',
-    iqReact2Angular(UserActivityDetailsContainer, ['isAuthorized'], ['$ngRedux', '$state'])
-  )
+  .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], []))
+  .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], []))
+  .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$state']))
+  .component('roiConfiguration', iqReact2Angular(RoiConfigurationPage, [], ['$state']))
+  .component('editRoiConfiguration', iqReact2Angular(EditRoiConfigurationPage, [], ['$state']))
+  .component('userActivityDetails', iqReact2Angular(UserActivityDetailsContainer, ['isAuthorized'], ['$state']))
   .factory('scmOnboardingActions', scmOnboardingActions)
   .value('routerListener', routerListener) // add to angular so we can test it
   .config(routes)

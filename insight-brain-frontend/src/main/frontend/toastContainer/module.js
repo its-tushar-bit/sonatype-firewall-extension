@@ -7,5 +7,5 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import ToastContainer from 'MainRoot/toastContainer/ToastContainer';
 
 export default angular
-  .module('toastContainerModule', ['reduxConfig'])
-  .component('toastContainer', iqReact2Angular(ToastContainer, [], ['$ngRedux']));
+  .module('toastContainerModule', [])
+  .component('toastContainer', iqReact2Angular(ToastContainer, [], []));

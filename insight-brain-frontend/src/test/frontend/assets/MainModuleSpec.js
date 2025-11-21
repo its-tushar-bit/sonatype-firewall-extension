@@ -14,7 +14,7 @@ import axios from 'axios';
 window.angularDebug = true;
 
 describe('mainModuleSpec', function () {
-  let scope, $ngRedux, productLicenseLoadDefer, mockPendoService, InitModule, axiosMock;
+  let scope, productLicenseLoadDefer, mockPendoService, InitModule, axiosMock, mockStore;
 
   beforeAll(() => {
     // Create axios mock adapter for HTTP mocking
@@ -22,8 +22,8 @@ describe('mainModuleSpec', function () {
   });
 
   afterEach(() => {
-    if ($ngRedux) {
-      userSession._resetForTest($ngRedux);
+    if (mockStore) {
+      userSession._resetForTest(mockStore);
     }
     // Reset axios mocks after each test
     if (axiosMock) {
@@ -39,6 +39,58 @@ describe('mainModuleSpec', function () {
   });
 
   beforeEach(() => {
+    // Create mock store with mutable state
+    const mockState = {
+      productFeatures: { productFeatures: {} },
+      firewallOnboarding: {
+        unconfiguredRepoManagers: {
+          repoManagers: [],
+          loading: false,
+          loadError: null,
+        },
+      },
+      router: {
+        currentState: {
+          data: {
+            isDirty: false,
+          },
+        },
+      },
+      userSession: {
+        data: null,
+        error: null,
+      },
+      appError: {
+        error: null,
+      },
+    };
+
+    mockStore = {
+      getState: jasmine.createSpy('getState').and.callFake(() => mockState),
+      subscribe: jasmine.createSpy('subscribe').and.callFake(() => {
+        // Return unsubscribe function
+        return jasmine.createSpy('unsubscribe');
+      }),
+      dispatch: jasmine.createSpy('dispatch').and.callFake((action) => {
+        // Handle thunk actions (functions)
+        if (angular.isFunction(action)) {
+          const result = action(mockStore.dispatch, mockStore.getState);
+          // If the result is a promise, return it; otherwise wrap in resolved promise
+          return result && result.then ? result : Promise.resolve(result);
+        }
+        // Handle appError/setError action to update mock state
+        if (action.type === 'appError/setError') {
+          mockState.appError.error = action.payload;
+        }
+        // Handle appError/clearError action
+        if (action.type === 'appError/clearError') {
+          mockState.appError.error = null;
+        }
+        // Return a resolved promise with the action
+        return Promise.resolve({ payload: action });
+      }),
+    };
+
     // Create fresh mock for each test
     mockPendoService = {
       start: jasmine.createSpy('start'),
@@ -49,7 +101,10 @@ describe('mainModuleSpec', function () {
     spyOn(routeStateUtilService, 'stateRequiresAuthenticationSync').and.returnValue(true);
     spyOn(routeStateUtilService, 'stateRequiresAuthentication').and.returnValue(Promise.resolve(true));
 
-    // Use inject-loader to mock the pendoService dependency
+    // Mock fetchUser to prevent it from calling store.dispatch
+    spyOn(userSession, 'fetchUser');
+
+    // Use inject-loader to mock the pendoService dependency and store
     const MainModuleInjector = require('inject-loader!MainRoot/MainModule');
     const moduleExports = MainModuleInjector({
       './pendo/mainBundlePendoService': {
@@ -59,98 +114,13 @@ describe('mainModuleSpec', function () {
         // exports object as the default export
         ...mockPendoService,
       },
+      './reduxConfig/store': mockStore,
     });
     InitModule = moduleExports.InitModule;
   });
 
   beforeEach(function () {
     angular.mock.module(InitModule.name, function ($provide, $stateProvider) {
-      const unsubscribeSpy = jasmine.createSpy('unsubscribe');
-
-      $provide.service('$ngRedux', function () {
-        let mockReduxState = {
-          productFeatures: { productFeatures: {} },
-          firewallOnboarding: {
-            unconfiguredRepoManagers: {
-              repoManagers: [],
-              loading: false,
-              loadError: null,
-            },
-          },
-          userSession: {
-            data: null,
-          },
-          appError: {
-            error: null,
-          },
-        };
-
-        let connectedTarget = null;
-        let mapStateToThisFunc = null;
-
-        this.actions = [];
-        this.connect = jasmine.createSpy('connect').and.callFake(function (mapStateToThis) {
-          mapStateToThisFunc = mapStateToThis;
-          return function (target) {
-            connectedTarget = target;
-            // Immediately sync Redux state to target (usually $rootScope)
-            const mappedState = mapStateToThis(mockReduxState);
-            Object.assign(target, mappedState);
-            return unsubscribeSpy;
-          };
-        });
-
-        this.getState = jasmine.createSpy('getState').and.callFake(() => mockReduxState);
-        this.subscribe = jasmine.createSpy('subscribe').and.returnValue(unsubscribeSpy);
-
-        // Mock dispatch to actually update state for relevant actions
-        this.dispatch = jasmine.createSpy('dispatch').and.callFake((action) => {
-          if (typeof action === 'function') {
-            // Thunk actions return promises. Execute the thunk and ensure we return its result.
-            const result = action(this.dispatch, this.getState);
-
-            // If the thunk returns a promise, return it so callers can use .then()
-            if (result && typeof result.then === 'function') {
-              return result;
-            }
-
-            // Otherwise wrap in a resolved promise to maintain consistent API
-            return Promise.resolve(result);
-          } else {
-            if (action && action.type === 'appError/setError') {
-              mockReduxState.appError.error = action.payload;
-            } else if (action && action.type === 'appError/clearError') {
-              mockReduxState.appError.error = null;
-            } else if (action && action.type === 'userSession/fetchUserSession/fulfilled') {
-              // When user session is fetched successfully, update the Redux state
-              mockReduxState.userSession.data = action.payload;
-            } else if (action && action.type === 'LOAD_USER_FULFILLED') {
-              // Also handle the legacy action for backward compatibility
-              if (action.payload && action.payload.currentUser) {
-                mockReduxState.userSession.data = action.payload.currentUser;
-              }
-            } else if (action && action.type === 'productFeatures/fetchProductFeaturesIfNeeded/fulfilled') {
-              // Update product features state when fulfilled
-              if (action.payload) {
-                mockReduxState.productFeatures.productFeatures = {
-                  ...mockReduxState.productFeatures.productFeatures,
-                  ...action.payload,
-                };
-              }
-            }
-
-            // Re-sync state to $rootScope after any action (if connect was called)
-            if (connectedTarget && mapStateToThisFunc) {
-              const newMappedState = mapStateToThisFunc(mockReduxState);
-              Object.assign(connectedTarget, newMappedState);
-            }
-
-            this.actions.push(action);
-            return action;
-          }
-        });
-      });
-
       // mock the window using anything on which events can be dispatched
       const mockWindow = document.createElement('div');
       mockWindow.top = {
@@ -164,9 +134,8 @@ describe('mainModuleSpec', function () {
     });
   });
 
-  beforeEach(inject(function ($q, $rootScope, _$ngRedux_) {
+  beforeEach(inject(function ($q, $rootScope) {
     scope = $rootScope.$new();
-    $ngRedux = _$ngRedux_;
 
     productLicenseLoadDefer = $q.defer();
     spyOn(ProductLicense, 'loadIfNotYetLoaded').and.returnValue(productLicenseLoadDefer.promise);
@@ -210,7 +179,7 @@ describe('mainModuleSpec', function () {
         const originalResolve = waitForLoginDeferred.resolve;
         waitForLoginDeferred.resolve = function (authStatus) {
           // Dispatch Redux action to update userSession state
-          $ngRedux.dispatch({
+          mockStore.dispatch({
             type: 'userSession/fetchUserSession/fulfilled',
             payload: authStatus,
           });
@@ -230,7 +199,7 @@ describe('mainModuleSpec', function () {
 
       it('validate state after all requests succeed', function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
 
@@ -245,7 +214,7 @@ describe('mainModuleSpec', function () {
 
       it('validate state after license check fails because unlicensed', function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
         $rootScope.$digest();
         productLicenseLoadDefer.reject({ response: { status: 402 } });
 
@@ -261,7 +230,7 @@ describe('mainModuleSpec', function () {
 
       it('validate state after logged in check error', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
 
@@ -270,15 +239,15 @@ describe('mainModuleSpec', function () {
         waitForLoginDeferred.reject(new Error('Login failed'));
         await waitFor(() => {
           $rootScope.$digest();
-          return $ngRedux.getState().appError.error;
+          return mockStore.getState().appError.error;
         });
-        expect($ngRedux.getState().appError.error).toBeDefined();
+        expect(mockStore.getState().appError.error).toBeDefined();
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
       it('validate state after license check error', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
         $rootScope.$digest();
 
         initService.start();
@@ -292,9 +261,9 @@ describe('mainModuleSpec', function () {
         }
         await waitFor(() => {
           $rootScope.$digest();
-          return $ngRedux.getState().appError.error;
+          return mockStore.getState().appError.error;
         });
-        expect($ngRedux.getState().appError.error).toBeDefined();
+        expect(mockStore.getState().appError.error).toBeDefined();
         expect(mockPendoService.start).toHaveBeenCalled();
       });
 
@@ -313,9 +282,9 @@ describe('mainModuleSpec', function () {
         }
         await waitFor(() => {
           $rootScope.$digest();
-          return $ngRedux.getState().appError.error;
+          return mockStore.getState().appError.error;
         });
-        expect($ngRedux.getState().appError.error).toEqual(errorMsg);
+        expect(mockStore.getState().appError.error).toEqual(errorMsg);
       });
 
       it('validate state after waitForLogin 403 error', async function () {
@@ -329,9 +298,9 @@ describe('mainModuleSpec', function () {
         await waitFor(() => {
           $rootScope.$digest();
           // Check Redux state instead of $rootScope
-          return $ngRedux.getState().appError.error;
+          return mockStore.getState().appError.error;
         });
-        expect($ngRedux.getState().appError.error).toEqual(errorMsg);
+        expect(mockStore.getState().appError.error).toEqual(errorMsg);
       });
 
       it('validate state after external hyperlinks are disabled', async function () {
@@ -339,7 +308,7 @@ describe('mainModuleSpec', function () {
         axiosMock.onGet('/rest/product/features').reply(200, []);
 
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
 
@@ -354,8 +323,8 @@ describe('mainModuleSpec', function () {
 
       it('validate state with only dashboard available', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
-        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
             productFeatures: {
               dashboard: true,
@@ -391,8 +360,8 @@ describe('mainModuleSpec', function () {
 
       it('validate state with dashboard unavailable and reports-list available', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
-        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
             productFeatures: {
               dashboard: false,
@@ -429,8 +398,8 @@ describe('mainModuleSpec', function () {
 
       it('validate state with only reports-list available', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
-        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
             productFeatures: {
               'reports-list': true,
@@ -466,8 +435,8 @@ describe('mainModuleSpec', function () {
 
       it('validate state with dashboard and reports-list available', async function () {
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
-        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState = jasmine.createSpy('getState').and.returnValue({
           productFeatures: {
             productFeatures: {
               dashboard: true,
@@ -507,7 +476,7 @@ describe('mainModuleSpec', function () {
         axiosMock.onGet('/rest/product/features').reply(200, []);
 
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = false;
         $rootScope.$digest();
         productLicenseLoadDefer.resolve({});
 
@@ -531,14 +500,13 @@ describe('mainModuleSpec', function () {
         spyOn(userSession, 'waitForLogin').and.returnValue(waitForLoginDeferred.promise);
       }));
 
-      beforeEach(inject(function (_$httpBackend_, _$window_, _$ngRedux_, _initService_, _$state_) {
+      beforeEach(inject(function (_$httpBackend_, _$window_, _initService_, _$state_) {
         $window = _$window_;
-        $ngRedux = _$ngRedux_;
         initService = _initService_;
         $state = _$state_;
         spyOn(gettingStartedTelemetryServiceHelper, 'submitData');
 
-        $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+        mockStore.getState = jasmine.createSpy('getState').and.returnValue({
           router: {
             currentState: {
               data: {
@@ -560,7 +528,7 @@ describe('mainModuleSpec', function () {
         });
 
         // Set isAllowExternalHyperlinksSupported in Redux state
-        $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+        mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
         productLicenseLoadDefer.resolve({});
       }));
 
@@ -594,7 +562,7 @@ describe('mainModuleSpec', function () {
     }));
 
     beforeEach(function () {
-      $ngRedux.getState = jasmine.createSpy('getState').and.returnValue({
+      mockStore.getState = jasmine.createSpy('getState').and.returnValue({
         productFeatures: { productFeatures: {} },
         firewallOnboarding: {
           unconfiguredRepoManagers: {
@@ -619,7 +587,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService.start before login', function () {
       // Set isAllowExternalHyperlinksSupported in Redux state
-      $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+      mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
 
@@ -631,7 +599,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService a second time after login and license fetch', function () {
       // Set isAllowExternalHyperlinksSupported in Redux state
-      $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+      mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
 
@@ -646,7 +614,7 @@ describe('mainModuleSpec', function () {
 
     it('calls pendoService a second time after login if the license is not installed', function () {
       // Set isAllowExternalHyperlinksSupported in Redux state
-      $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+      mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
       $rootScope.$digest();
       productLicenseLoadDefer.reject({ response: { status: 402 } });
 
@@ -661,7 +629,7 @@ describe('mainModuleSpec', function () {
 
     it('does not call pendoService a second time after failed login', function () {
       // Set isAllowExternalHyperlinksSupported in Redux state
-      $ngRedux.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
+      mockStore.getState().productFeatures.productFeatures.isAllowExternalHyperlinksSupported = true;
       $rootScope.$digest();
       productLicenseLoadDefer.resolve({});
 

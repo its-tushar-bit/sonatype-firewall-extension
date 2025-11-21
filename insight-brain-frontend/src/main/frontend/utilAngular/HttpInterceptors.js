@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import loginModalModule from 'MainRoot/user/LoginModal/module';
+import store from 'MainRoot/reduxConfig/store';
 
 import isIqIframe from '../util/isIqFrame';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
@@ -14,13 +15,12 @@ httpInterceptors.factory('unauthenticatedResponseHttpInterceptor', [
   '$window',
   '$q',
   '$rootScope',
-  '$ngRedux',
-  function ($window, $q, $rootScope, $ngRedux) {
+  function ($window, $q, $rootScope) {
     return {
       responseError: function (response) {
         if (response.status === 401) {
           // Check if user is logged in by reading from Redux state
-          const state = $ngRedux.getState();
+          const state = store.getState();
           const username = state.userSession?.data?.username;
 
           // username will be present if this is the top frame and login had already succeeded previously.
@@ -85,9 +85,8 @@ export var unauthenticatedResponseHttpInterceptor = angular
     '$rootScope',
     '$q',
     '$http',
-    '$ngRedux',
     'LoginModalService',
-    function ($rootScope, $q, $http, $ngRedux, LoginModalService) {
+    function ($rootScope, $q, $http, LoginModalService) {
       $rootScope.$on('userNeedsAuthentication', function (event, response, deferred) {
         if (response.config && response.config.waitForLogin === false) {
           deferred.reject(response);

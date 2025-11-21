@@ -8,10 +8,7 @@ import ApplicationLatestEvaluationsPage from 'MainRoot/applicationLatestEvaluati
 
 export default angular
   .module('applicationLatestEvaluationsModule', [])
-  .component(
-    'applicationLatestEvaluationsPage',
-    iqReact2Angular(ApplicationLatestEvaluationsPage, [], ['$ngRedux', '$state'])
-  )
+  .component('applicationLatestEvaluationsPage', iqReact2Angular(ApplicationLatestEvaluationsPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

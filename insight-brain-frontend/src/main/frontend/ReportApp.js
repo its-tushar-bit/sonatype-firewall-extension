@@ -8,7 +8,7 @@ import ReportsPage from './report/react/ReportsPage';
 
 export default angular
   .module('ReportModule', ['ui.router'])
-  .component('reportsPage', iqReact2Angular(ReportsPage, [], ['$ngRedux', '$state']))
+  .component('reportsPage', iqReact2Angular(ReportsPage, [], ['$state']))
   .config([
     '$stateProvider',
     function ($stateProvider) {

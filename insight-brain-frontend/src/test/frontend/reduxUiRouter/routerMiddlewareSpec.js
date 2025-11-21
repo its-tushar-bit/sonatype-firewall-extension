@@ -4,14 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import reduxUiRouterModule from '../../../main/frontend/reduxUiRouter/module';
+import { setStateService } from '../../../main/frontend/reduxUiRouter/routerMiddleware';
 
 describe('routerMiddleware', function () {
   var routerMiddleware, $state, next, successSpy;
 
   beforeEach(
     angular.mock.module(reduxUiRouterModule.name, function ($provide) {
-      SpecUtil.mockNgRedux($provide);
-
       successSpy = jasmine.createSpy('successSpy');
       next = jasmine.createSpy('next').and.returnValue('nextReturnValue');
       $state = jasmine.createSpyObj('$state', ['go', 'reload', 'transitionTo', 'includes']);
@@ -22,6 +21,7 @@ describe('routerMiddleware', function () {
   );
 
   beforeEach(inject(function ($injector) {
+    setStateService($state);
     routerMiddleware = $injector.get('routerMiddleware')();
   }));
 

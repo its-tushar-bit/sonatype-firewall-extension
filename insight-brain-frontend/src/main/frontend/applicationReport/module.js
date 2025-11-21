@@ -18,17 +18,14 @@ import applicationReportVulnerabilities from './vulnerabilities/ApplicationRepor
 import ApplicationReportRawDataContainer from './rawData/ApplicationReportRawDataContainer';
 
 export default angular
-  .module('applicationReportModule', ['ui.router', selectedComponentServiceModule.name, waiversModule.name, 'ngRedux'])
-  .component('applicationReport', iqReact2Angular(ReportPage, [], ['$ngRedux', '$state']))
+  .module('applicationReportModule', ['ui.router', selectedComponentServiceModule.name, waiversModule.name])
+  .component('applicationReport', iqReact2Angular(ReportPage, [], ['$state']))
   .component('applicationReportRoot', applicationReportRoot)
-  .component('bulkWaive', iqReact2Angular(BulkWaivePage, [], ['$ngRedux', '$state']))
-  .component('waiverConfigurationPage', iqReact2Angular(WaiverConfigurationPage, [], ['$ngRedux', '$state']))
-  .component('waiverConfirmationPage', iqReact2Angular(WaiverConfirmationPage, [], ['$ngRedux', '$state']))
-  .component('applicationReportRawData', iqReact2Angular(ApplicationReportRawDataContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'applicationReportVulnerabilities',
-    iqReact2Angular(applicationReportVulnerabilities, [], ['$ngRedux', '$state'])
-  )
+  .component('bulkWaive', iqReact2Angular(BulkWaivePage, [], ['$state']))
+  .component('waiverConfigurationPage', iqReact2Angular(WaiverConfigurationPage, [], ['$state']))
+  .component('waiverConfirmationPage', iqReact2Angular(WaiverConfirmationPage, [], ['$state']))
+  .component('applicationReportRawData', iqReact2Angular(ApplicationReportRawDataContainer, [], ['$state']))
+  .component('applicationReportVulnerabilities', iqReact2Angular(applicationReportVulnerabilities, [], ['$state']))
   .factory('applicationReportActions', applicationReportActions)
   .config(routes);
 

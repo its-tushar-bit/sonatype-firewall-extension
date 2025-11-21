@@ -10,14 +10,11 @@ import firewall from './firewall';
 import FirewallComponentDetailsPage from './firewallComponentDetailsPage/FirewallComponentDetailsPage';
 
 export default angular
-  .module('firewallModule', ['ngRedux', 'ui.router'])
+  .module('firewallModule', ['ui.router'])
   .component('firewall', firewall)
-  .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$ngRedux', '$state']))
-  .component(
-    'firewallAutoUnquarantinePage',
-    iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$ngRedux', '$state'])
-  )
-  .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$ngRedux', '$state']))
+  .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$state']))
+  .component('firewallAutoUnquarantinePage', iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$state']))
+  .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {

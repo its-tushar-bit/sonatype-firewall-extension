@@ -6,11 +6,17 @@
 import uiRouter from '@uirouter/angularjs';
 import routerStateReducer from './routerStateReducer';
 import routerListener from './routerListener';
-import routerMiddleware from './routerMiddleware';
+import routerMiddleware, { setStateService } from './routerMiddleware';
+
+function initializeRouterMiddleware($state) {
+  setStateService($state);
+}
+initializeRouterMiddleware.$inject = ['$state'];
 
 export default angular
   .module('reduxUiRouter', [uiRouter])
   .value('routerStateReducer', routerStateReducer) // add to angular so we can test it
   .value('routerListener', routerListener) // add to angular so we can test it
-  .factory('routerMiddleware', routerMiddleware)
-  .run(routerListener);
+  .value('routerMiddleware', routerMiddleware) // add to angular so we can test it
+  .run(routerListener)
+  .run(initializeRouterMiddleware);

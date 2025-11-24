@@ -8,6 +8,7 @@ import {
   compositeSourceControlToModel,
   effectiveProvider,
   getBaseBranchValueFromModel,
+  getClosePrOnFailedChecksEnabledFlagFromModel,
   getPullRequestCommentingEnabledFlagFromModel,
   getRemediationPullRequestsEnabledFlagFromModel,
   getSourceControlEvaluationsEnabledFlagFromModel,
@@ -605,6 +606,69 @@ describe('sourceControlConfiguration util', () => {
     });
   });
 
+  describe('getClosePrOnFailedChecksEnabledFlagFromModel', () => {
+    let sourceControl, serverSourceControl;
+    beforeEach(() => {
+      sourceControl = {
+        provider: { isInherited: false, rscValue: { value: 'github' } },
+        closePrOnFailedChecksEnabled: { value: true },
+      };
+      serverSourceControl = {
+        provider: { parentValue: { value: 'gitlab' } },
+      };
+    });
+
+    it('returns current closePrOnFailedChecksEnabled value for GitHub provider', () => {
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(true);
+    });
+
+    it('returns current closePrOnFailedChecksEnabled value for GitLab provider', () => {
+      sourceControl.provider.rscValue.value = 'gitlab';
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(true);
+    });
+
+    it('returns false for closePrOnFailedChecksEnabled value when value is false for GitHub', () => {
+      sourceControl.closePrOnFailedChecksEnabled.value = false;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(false);
+    });
+
+    it('returns null for Bitbucket provider regardless of value', () => {
+      sourceControl.provider.rscValue.value = 'bitbucket';
+      sourceControl.closePrOnFailedChecksEnabled.value = true;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(null);
+    });
+
+    it('returns null for Azure DevOps provider regardless of value', () => {
+      sourceControl.provider.rscValue.value = 'azure';
+      sourceControl.closePrOnFailedChecksEnabled.value = true;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(null);
+    });
+
+    it('returns null when provider is not set', () => {
+      sourceControl.provider.rscValue.value = '';
+      sourceControl.closePrOnFailedChecksEnabled.value = true;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(null);
+    });
+
+    it('returns false when value is null for GitHub provider', () => {
+      sourceControl.closePrOnFailedChecksEnabled.value = null;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(false);
+    });
+
+    it('uses inherited provider value when provider is inherited', () => {
+      sourceControl.provider.isInherited = true;
+      sourceControl.closePrOnFailedChecksEnabled.value = true;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(true);
+    });
+
+    it('returns null when inherited provider is Azure DevOps', () => {
+      sourceControl.provider.isInherited = true;
+      serverSourceControl.provider.parentValue.value = 'azure';
+      sourceControl.closePrOnFailedChecksEnabled.value = true;
+      expect(getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl)).toBe(null);
+    });
+  });
+
   describe('compositeSourceControlToModel', () => {
     let configResponse, isRootOrg;
     describe('server response without previous configuration', () => {
@@ -674,7 +738,7 @@ describe('sourceControlConfiguration util', () => {
             parentName: null,
             parentValue: { isPristine: true, value: '', trimmedValue: '', validationErrors: null },
           },
-          closePrOnFailedChecksEnabled: { parentValue: null, parentName: null, isInherited: false, value: false },
+          closePrOnFailedChecksEnabled: { parentValue: null, parentName: null, isInherited: false, value: true },
           closePrAfterDaysOpenEnabled: { parentValue: null, parentName: null, isInherited: false, value: false },
           closePrAfterDays: {
             isInherited: false,

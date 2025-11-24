@@ -36,6 +36,7 @@ export const PROVIDER_TYPES = [
 ];
 export const PROVIDERS_WITH_USERNAME = ['azure', 'bitbucket'];
 export const PROVIDERS_SUPPORTING_PULL_REQUESTS = ['azure', 'bitbucket', 'github', 'gitlab'];
+export const PROVIDERS_SUPPORTING_FAILED_CHECKS_CLOSE = ['github', 'gitlab'];
 export const BRANCH_INPUT_MAX_CHARACTERS = 243,
   USERNAME_INPUT_MAX_CHARACTERS = 255,
   TOKEN_INPUT_MAX_CHARACTERS = 512;
@@ -183,7 +184,7 @@ export const compositeSourceControlToModel = (
     closePrOnFailedChecksEnabled: {
       ...closePrOnFailedChecksEnabled,
       isInherited: closePrOnFailedChecksEnabled?.value === null && !isRootOrg,
-      value: setDefaultIfNull(closePrOnFailedChecksEnabled?.value, closePrOnFailedChecksEnabled?.parentValue, false),
+      value: setDefaultIfNull(closePrOnFailedChecksEnabled?.value, closePrOnFailedChecksEnabled?.parentValue, true),
     },
     closePrAfterDaysOpenEnabled: {
       ...closePrAfterDaysOpenEnabled,
@@ -298,7 +299,7 @@ export const prepareSubmitData = (sourceControl, serverSourceControl, isApp, isR
     statusChecksEnabled: true,
     repositoryUrl: isApp ? sourceControl.repositoryUrl.trimmedValue : null,
     sshEnabled: sshEnabled.value,
-    closePrOnFailedChecksEnabled: sourceControl.closePrOnFailedChecksEnabled.value ?? false,
+    closePrOnFailedChecksEnabled: getClosePrOnFailedChecksEnabledFlagFromModel(sourceControl, serverSourceControl),
     closePrAfterDaysOpenEnabled: sourceControl.closePrAfterDaysOpenEnabled.value ?? false,
     closePrAfterDays: isNaN(parseInt(sourceControl.closePrAfterDays?.rscValue?.trimmedValue, 10))
       ? null
@@ -474,6 +475,16 @@ export const getBaseBranchValueFromModel = (sourceControl, serverSourceControl, 
   return serverSourceControl.baseBranch.rscValue.trimmedValue === ''
     ? 'main'
     : serverSourceControl.baseBranch.rscValue.trimmedValue;
+};
+
+export const getClosePrOnFailedChecksEnabledFlagFromModel = (sourceControl, serverSourceControl) => {
+  const provider = effectiveProvider(sourceControl, serverSourceControl);
+
+  if (!PROVIDERS_SUPPORTING_FAILED_CHECKS_CLOSE.includes(provider)) {
+    return null;
+  }
+
+  return sourceControl.closePrOnFailedChecksEnabled.value ?? false;
 };
 
 export const getDataFromSourceControl = (

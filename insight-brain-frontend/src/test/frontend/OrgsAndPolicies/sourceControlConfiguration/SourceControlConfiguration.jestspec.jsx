@@ -306,7 +306,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: true,
           innerSourceAutomatedUpdatesEnabled: true,
-          closePrOnFailedChecksEnabled: false,
+          closePrOnFailedChecksEnabled: true,
           closePrAfterDaysOpenEnabled: false,
           closePrAfterDays: null,
         };
@@ -338,7 +338,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
-          closePrOnFailedChecksEnabled: false,
+          closePrOnFailedChecksEnabled: null,
           closePrAfterDaysOpenEnabled: false,
           closePrAfterDays: null,
         };
@@ -403,7 +403,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: null,
           manualPullRequestsEnabled: false,
           innerSourceAutomatedUpdatesEnabled: false,
-          closePrOnFailedChecksEnabled: false,
+          closePrOnFailedChecksEnabled: null,
           closePrAfterDaysOpenEnabled: false,
           closePrAfterDays: null,
         };
@@ -868,7 +868,7 @@ describe('sourceControlConfiguration', () => {
           sshEnabled: true,
           manualPullRequestsEnabled: null,
           innerSourceAutomatedUpdatesEnabled: null,
-          closePrOnFailedChecksEnabled: false,
+          closePrOnFailedChecksEnabled: null,
           closePrAfterDaysOpenEnabled: false,
           closePrAfterDays: null,
         };
@@ -1348,7 +1348,7 @@ describe('sourceControlConfiguration', () => {
           repositoryUrl: 'https://www.example.com',
           manualPullRequestsEnabled: null,
           innerSourceAutomatedUpdatesEnabled: null,
-          closePrOnFailedChecksEnabled: false,
+          closePrOnFailedChecksEnabled: null,
           closePrAfterDaysOpenEnabled: false,
           closePrAfterDays: null,
         };

@@ -334,10 +334,7 @@ public class PullRequestStateEventHandler
   }
 
   private boolean isProviderAllowedForAutoClosing(SourceControl sourceControl) {
-    if (sourceControl == null) {
-      return false;
-    }
-    return true;
+    return sourceControl != null;
   }
 
   private boolean isAutomaticPullRequest(SourceControlPullRequest pullRequest) {

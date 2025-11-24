@@ -213,6 +213,7 @@ public class Configuration
         SystemConfigurationProperty.COMPONENT_CHANGE_DETECTION_API,
         SystemConfigurationProperty.CONTAINER_IMAGES_EVAL_ENABLED,
         SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
+        SystemConfigurationProperty.ZSCALER_MAX_URLS_PER_CATEGORY,
         SystemConfigurationProperty.ZSCALER,
         SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP,
         SystemConfigurationProperty.EPSS_DATA,
@@ -708,6 +709,10 @@ public class Configuration
 
   public Integer getZScalerUpdateTaskPeriod() {
     return configCache.get(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD);
+  }
+
+  public Integer getZScalerMaxUrlsPerCategory() {
+    return configCache.get(SystemConfigurationProperty.ZSCALER_MAX_URLS_PER_CATEGORY);
   }
 
   public Integer getIntegrationsSupportedVersionCount() {

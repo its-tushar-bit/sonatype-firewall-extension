@@ -112,6 +112,8 @@ public class ConfigurationInfo
         configuration.getComponentChangeDetectionMaxEvents());
     entries.put(SystemConfigurationProperty.ZSCALER_UPDATE_TASK_PERIOD,
         configuration.getZScalerUpdateTaskPeriod());
+    entries.put(SystemConfigurationProperty.ZSCALER_MAX_URLS_PER_CATEGORY,
+        configuration.getZScalerMaxUrlsPerCategory());
 
     return JsonUtils.format(entries);
   }

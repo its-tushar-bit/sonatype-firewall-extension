@@ -38,6 +38,8 @@ public class ApiZScalerService
 {
   private static final String QUOTA_KEY = "QUOTA_KEY";
 
+  private static final int DEFAULT_MAX_URLS_PER_CATEGORY = 25000;
+
   private final Logger log = LoggerFactory.getLogger(ApiZScalerService.class);
 
   private final ZScalerConfigurationDAO zScalerConfigurationDAO;
@@ -52,19 +54,23 @@ public class ApiZScalerService
 
   private ZScalerClient zScalerClient;
 
+  private final com.sonatype.insight.brain.service.Configuration configuration;
+
   @Inject
   public ApiZScalerService(
       final ZScalerConfigurationDAO zScalerConfigurationDAO,
       final ZscalerFormatDAO zscalerFormatDAO,
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
-      final ZScalerClient zScalerClient)
+      final ZScalerClient zScalerClient,
+      final com.sonatype.insight.brain.service.Configuration configuration)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
     this.zscalerFormatDAO = zscalerFormatDAO;
     this.zScalerMetricsDAO = zScalerMetricsDAO;
     this.passwordHandler = passwordHandler;
     this.zScalerClient = zScalerClient;
+    this.configuration = configuration;
     this.quotaCache = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS)
         .maximumSize(1)
@@ -77,9 +83,10 @@ public class ApiZScalerService
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient,
+      final com.sonatype.insight.brain.service.Configuration configuration,
       final Cache<String, ZScalerQuota> cache)
   {
-    this(zScalerConfigurationDAO, zscalerFormatDAO, zScalerMetricsDAO, passwordHandler, zScalerClient);
+    this(zScalerConfigurationDAO, zscalerFormatDAO, zScalerMetricsDAO, passwordHandler, zScalerClient, configuration);
     this.quotaCache = cache;
   }
 
@@ -149,30 +156,66 @@ public class ApiZScalerService
   }
 
   private void updateCategory(String baseUrl, ZScalerSupportedFormat selectedFormat, List<String> activeUrls) {
-    List<ZScalerCategory> categories = zScalerClient.getCustomUrlCategories(baseUrl);
+    List<ZScalerCategory> allCategories = zScalerClient.getCustomUrlCategories(baseUrl);
 
-    String category = zscalerCategoryName(selectedFormat);
-    ZScalerCategory existingCategory = categories.stream()
-        .filter(cat -> cat.getConfiguredName().toLowerCase().equals(category))
-        .findFirst()
-        .orElse(null);
+    // Find all existing categories for this format
+    String categoryPrefix = zscalerCategoryPrefix(selectedFormat);
+    List<ZScalerCategory> existingFormatCategories = allCategories.stream()
+        .filter(cat -> cat.getConfiguredName().toLowerCase().startsWith(categoryPrefix.toLowerCase()))
+        .toList();
 
-    int currentCustomCount = existingCategory != null ? existingCategory.getCustomUrlsCount() : 0;
-    List<String> allowedUrls = limitUrlsToQuota(baseUrl, currentCustomCount, activeUrls);
+    // Clean up legacy categories (without index) before proceeding
+    cleanupLegacyCategories(baseUrl, existingFormatCategories, selectedFormat);
+
+    // After cleanup, get only the indexed categories for URL count calculation
+    List<ZScalerCategory> indexedCategories = existingFormatCategories.stream()
+        .filter(cat -> extractIndexFromCategoryName(cat.getConfiguredName()) >= 0)
+        .toList();
+
+    // Calculate current total URLs used by this format (only from indexed categories)
+    int currentFormatUrlCount = indexedCategories.stream()
+        .mapToInt(ZScalerCategory::getCustomUrlsCount)
+        .sum();
+
+    // Determine how many URLs we can push based on quota
+    List<String> allowedUrls = limitUrlsToQuota(baseUrl, currentFormatUrlCount, activeUrls);
     if (allowedUrls.isEmpty()) {
-      log.warn("No URLs to update, perhaps the quota is exceeded");
+      log.warn("No URLs to update for format {}, perhaps the quota is exceeded", selectedFormat);
       return;
     }
 
-    if (existingCategory != null) {
-      String categoryId = existingCategory.getId();
-      log.info("{} category with id {} already exists, updating it", category, categoryId);
-      zScalerClient.updateCustomUrlCategories(baseUrl, category, categoryId, allowedUrls);
+    // Calculate how many categories we need
+    int maxUrlsPerCategory = getMaxUrlsPerCategory();
+    int numCategoriesNeeded = (int) Math.ceil((double) allowedUrls.size() / maxUrlsPerCategory);
+    log.info("Need {} categories to accommodate {} URLs for format {} (max {} URLs per category)",
+        numCategoriesNeeded, allowedUrls.size(), selectedFormat, maxUrlsPerCategory);
+
+    // Update or create categories as needed
+    for (int i = 0; i < numCategoriesNeeded; i++) {
+      int startIdx = i * maxUrlsPerCategory;
+      int endIdx = Math.min(startIdx + maxUrlsPerCategory, allowedUrls.size());
+      List<String> urlsForCategory = allowedUrls.subList(startIdx, endIdx);
+
+      String categoryName = zscalerCategoryName(selectedFormat, i);
+      ZScalerCategory existingCategory = indexedCategories.stream()
+          .filter(cat -> cat.getConfiguredName().equalsIgnoreCase(categoryName))
+          .findFirst()
+          .orElse(null);
+
+      if (existingCategory != null) {
+        String categoryId = existingCategory.getId();
+        log.info("Category {} with id {} already exists, updating with {} URLs",
+            categoryName, categoryId, urlsForCategory.size());
+        zScalerClient.updateCustomUrlCategories(baseUrl, categoryName, categoryId, urlsForCategory);
+      }
+      else {
+        log.info("Category {} does not exist, creating with {} URLs", categoryName, urlsForCategory.size());
+        zScalerClient.createCustomUrlCategory(baseUrl, categoryName, urlsForCategory);
+      }
     }
-    else {
-      log.info("{} category does not exist, creating it", category);
-      zScalerClient.createCustomUrlCategory(baseUrl, category, allowedUrls);
-    }
+
+    // Clean up unused categories (categories with index >= numCategoriesNeeded)
+    cleanupUnusedCategories(baseUrl, indexedCategories, numCategoriesNeeded);
 
     updateMetrics(selectedFormat, activeUrls, allowedUrls);
   }
@@ -211,9 +254,83 @@ public class ApiZScalerService
     zScalerMetricsDAO.set(zScalerMetrics);
   }
 
-  private String zscalerCategoryName(final ZScalerSupportedFormat selectedFormat) {
+  private String zscalerCategoryPrefix(final ZScalerSupportedFormat selectedFormat) {
+    String formatName = selectedFormat.name().toLowerCase(Locale.getDefault());
+    return "sonatype-" + formatName + "-";
+  }
+
+  private String zscalerCategoryName(final ZScalerSupportedFormat selectedFormat, final int index) {
+    String formatName = selectedFormat.name().toLowerCase(Locale.getDefault());
+    return "sonatype-" + formatName + "-" + index + "-shadow-download-defense";
+  }
+
+  private void cleanupLegacyCategories(
+      final String baseUrl,
+      final List<ZScalerCategory> existingFormatCategories,
+      final ZScalerSupportedFormat selectedFormat)
+  {
+    // Clean up legacy categories (without index in the name)
+    // Legacy format: sonatype-<format>-shadow-download-defense
+    String legacyCategoryName = zscalerLegacyCategoryName(selectedFormat);
+
+    for (ZScalerCategory category : existingFormatCategories) {
+      if (isLegacyCategory(category.getConfiguredName(), legacyCategoryName)) {
+        log.info("Deleting legacy category {} with id {} (migrating to indexed format)",
+            category.getConfiguredName(), category.getId());
+        zScalerClient.deleteCustomUrlCategory(baseUrl, category.getId());
+      }
+    }
+  }
+
+  private String zscalerLegacyCategoryName(final ZScalerSupportedFormat selectedFormat) {
     String formatName = selectedFormat.name().toLowerCase(Locale.getDefault());
     return "sonatype-" + formatName + "-shadow-download-defense";
+  }
+
+  private boolean isLegacyCategory(final String categoryName, final String legacyCategoryName) {
+    // A category is legacy if it matches the old naming format exactly
+    // and doesn't have an index number in it
+    return categoryName.equalsIgnoreCase(legacyCategoryName);
+  }
+
+  private void cleanupUnusedCategories(
+      final String baseUrl,
+      final List<ZScalerCategory> existingFormatCategories,
+      final int numCategoriesNeeded)
+  {
+    // Find categories with indices >= numCategoriesNeeded and delete them
+    for (ZScalerCategory category : existingFormatCategories) {
+      String categoryName = category.getConfiguredName();
+      int index = extractIndexFromCategoryName(categoryName);
+      if (index >= numCategoriesNeeded) {
+        log.info("Deleting unused category {} with id {}", categoryName, category.getId());
+        zScalerClient.deleteCustomUrlCategory(baseUrl, category.getId());
+      }
+    }
+  }
+
+  private int extractIndexFromCategoryName(final String categoryName) {
+    // Extract index from category name like "sonatype-maven-2-shadow-download-defense"
+    // Pattern: sonatype-<format>-<index>-shadow-download-defense
+    try {
+      String[] parts = categoryName.split("-");
+      if (parts.length >= 3) {
+        // The index is the part after the format and before "shadow"
+        for (int i = 2; i < parts.length - 3; i++) {
+          try {
+            return Integer.parseInt(parts[i]);
+          }
+          catch (NumberFormatException e) {
+            // Continue looking
+          }
+        }
+      }
+      return -1; // Invalid format, treat as index -1 so it won't be deleted
+    }
+    catch (Exception e) {
+      log.warn("Failed to extract index from category name: {}", categoryName);
+      return -1;
+    }
   }
 
   private List<String> limitUrlsToQuota(
@@ -281,6 +398,16 @@ public class ApiZScalerService
       return "over";
     }
     return "under";
+  }
+
+  private int getMaxUrlsPerCategory() {
+    Integer configured = configuration.getZScalerMaxUrlsPerCategory();
+    if (configured == null || configured <= 0) {
+      log.debug("Using default max URLs per category: {}", DEFAULT_MAX_URLS_PER_CATEGORY);
+      return DEFAULT_MAX_URLS_PER_CATEGORY;
+    }
+    log.debug("Using configured max URLs per category: {}", configured);
+    return configured;
   }
 
   private static String obfuscateApiKey(String key, String timestamp) {

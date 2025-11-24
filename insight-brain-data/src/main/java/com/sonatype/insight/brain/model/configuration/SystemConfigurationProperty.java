@@ -279,6 +279,8 @@ public class SystemConfigurationProperty
 
   public static final String ZSCALER_UPDATE_TASK_PERIOD = "zScalerUpdateTaskPeriod";
 
+  public static final String ZSCALER_MAX_URLS_PER_CATEGORY = "zScalerMaxUrlsPerCategory";
+
   public static final String ZSCALER = "zScaler";
 
   public static final String THIRD_PARTY_KEV_LOOKUP = "thirdPartyKevLookup";

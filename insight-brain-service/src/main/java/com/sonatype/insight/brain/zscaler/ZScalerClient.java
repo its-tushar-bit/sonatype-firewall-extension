@@ -262,7 +262,28 @@ public class ZScalerClient
     }
 
     log.info("Creating URL categories");
-    sendCustomUrlCategoriesMessage(baseUrl, category, body);
+    sendCustomUrlCategoriesMessage(baseUrl, null, body);
+  }
+
+  public void deleteCustomUrlCategory(final String baseUrl, final String categoryId) {
+    HttpRequest request = HttpRequest.newBuilder()
+        .uri(URI.create(baseUrl + URL_CATEGORIES + "/" + categoryId))
+        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+        .DELETE()
+        .build();
+
+    try {
+      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
+      if (response.statusCode() != 204 && response.statusCode() != 200) {
+        log.warn("Failed to delete URL category {}: {}", categoryId, response.body());
+      }
+      else {
+        log.info("Successfully deleted URL category: {}", categoryId);
+      }
+    }
+    catch (Exception e) {
+      log.warn("Failed to delete URL category {}: {}", categoryId, e.getMessage());
+    }
   }
 
   public void activateChanges(String baseUrl) {
@@ -291,14 +312,24 @@ public class ZScalerClient
       final String categoryId,
       final String body)
   {
-    HttpRequest put = HttpRequest.newBuilder()
-        .uri(URI.create(baseUrl + URL_CATEGORIES + "/" + categoryId))
-        .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
-        .PUT(BodyPublishers.ofString(body))
-        .build();
+    HttpRequest request;
+    if (categoryId == null) {
+      request = HttpRequest.newBuilder()
+          .uri(URI.create(baseUrl + URL_CATEGORIES))
+          .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+          .POST(BodyPublishers.ofString(body))
+          .build();
+    }
+    else {
+      request = HttpRequest.newBuilder()
+          .uri(URI.create(baseUrl + URL_CATEGORIES + '/' + categoryId))
+          .header("Content-Type", ContentType.APPLICATION_JSON.getMimeType())
+          .PUT(BodyPublishers.ofString(body))
+          .build();
+    }
 
     try {
-      HttpResponse<String> response = client.send(put, BodyHandlers.ofString());
+      HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
       if (response.statusCode() != 200) {
         log.warn("Failed to update URL category: {}", response.body());
       }

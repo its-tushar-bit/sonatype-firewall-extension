@@ -32,7 +32,6 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.sonatype.insight.brain.api.PublicApiPaths.ZSCALER_CONFIG_RESOURCE_PATH_V2;
 import static com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.EULA_MESSAGE;
@@ -370,11 +369,11 @@ public class ApiZScalerConfigurationResourceTest
         .withQueryParam("customOnly", equalTo("true")));
 
     // Account for update of configured format and delete of MAVEN/NPM/PYPI with real URLs
-    zScalerMockServer.getWireMockServer().verify(4, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+    zScalerMockServer.getWireMockServer().verify(4, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
     // Account for delete of NUGET format only (uses placeholder)
     zScalerMockServer.getWireMockServer()
-        .verify(1, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+        .verify(1, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new RegexPattern(".*placeholder.*")));
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
   }
@@ -395,7 +394,7 @@ public class ApiZScalerConfigurationResourceTest
 
     // Account for delete of format
     zScalerMockServer.getWireMockServer()
-        .verify(putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+        .verify(postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
 
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
@@ -415,13 +414,13 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withQueryParam("customOnly", equalTo("true")));
 
-    // Account for delete of MAVEN/NPM/PYPI formats (use real URLs)
+    // Account for delete of MAVEN/NPM/PYPI/NUGET formats (use real URLs)
     zScalerMockServer.getWireMockServer()
-        .verify(3, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+        .verify(3, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
     // Account for delete of NUGET format (uses placeholder)
     zScalerMockServer.getWireMockServer()
-        .verify(1, putRequestedFor(urlPathMatching("/api/v1/urlCategories/.*"))
+        .verify(1, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new RegexPattern(".*placeholder.*")));
 
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));

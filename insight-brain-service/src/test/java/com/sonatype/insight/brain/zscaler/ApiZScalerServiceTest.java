@@ -72,6 +72,9 @@ public class ApiZScalerServiceTest
   @Mock
   private Cache<String, ZScalerQuota> cache;
 
+  @Mock
+  private com.sonatype.insight.brain.service.Configuration configuration;
+
   @Spy
   @InjectMocks
   private ApiZScalerService underTest;
@@ -86,8 +89,11 @@ public class ApiZScalerServiceTest
 
     urls = List.of(url);
 
+    // Default: return null so the service uses the default value (25000)
+    when(configuration.getZScalerMaxUrlsPerCategory()).thenReturn(null);
+
     underTest = Mockito.spy(new ApiZScalerService(configurationDAO, zscalerFormatDAO,
-        metricsDAO, passwordHandler, client, cache));
+        metricsDAO, passwordHandler, client, configuration, cache));
   }
 
   @Test
@@ -117,8 +123,9 @@ public class ApiZScalerServiceTest
   public void testUpdateCategory_categoryExistsAndUpdatedSuccessfully() {
     ZScalerCategory existingCategory = new ZScalerCategory();
     existingCategory.setId("npm-category");
-    existingCategory.setConfiguredName("sonatype-npm-shadow-download-defense");
+    existingCategory.setConfiguredName("sonatype-npm-0-shadow-download-defense");
     existingCategory.setCustomCategory(true);
+    existingCategory.setCustomUrlsCount(1);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
 
     when(configurationDAO.get()).thenReturn(config);
@@ -129,11 +136,12 @@ public class ApiZScalerServiceTest
     underTest.updateCategory(ZScalerSupportedFormat.NPM, urls);
 
     verify(client).getCustomUrlCategories(config.getHostname());
-    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-npm-shadow-download-defense"),
+    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-npm-0-shadow-download-defense"),
         eq("npm-category"), eq(List.of(url)));
     verify(client, never()).createCustomUrlCategory(anyString(), anyString(), anyList());
     assertThat(logOutput).atInfoLevel()
-        .contains("sonatype-npm-shadow-download-defense category with id npm-category already exists, updating it");
+        .contains("Category sonatype-npm-0-shadow-download-defense with id npm-category already exists, " +
+            "updating with 1 URLs");
     verify(metricsDAO).set(any());
   }
 
@@ -148,10 +156,10 @@ public class ApiZScalerServiceTest
 
     verify(client).getCustomUrlCategories(config.getHostname());
     verify(client, never()).updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList());
-    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-npm-shadow-download-defense"),
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-npm-0-shadow-download-defense"),
         anyList());
     assertThat(logOutput).atInfoLevel()
-        .contains("sonatype-npm-shadow-download-defense category does not exist, creating it");
+        .contains("Category sonatype-npm-0-shadow-download-defense does not exist, creating with 1 URLs");
     verify(metricsDAO).set(any());
   }
 
@@ -159,7 +167,7 @@ public class ApiZScalerServiceTest
   public void testUpdateCategory_whenQuotaWouldBeExceeded() throws Exception {
     ZScalerCategory existingCategory = new ZScalerCategory();
     existingCategory.setId("npm-category");
-    existingCategory.setConfiguredName("sonatype-npm-shadow-download-defense");
+    existingCategory.setConfiguredName("sonatype-npm-0-shadow-download-defense");
     existingCategory.setCustomCategory(true);
     existingCategory.setCustomUrlsCount(1);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
@@ -172,7 +180,7 @@ public class ApiZScalerServiceTest
     underTest.updateCategory(ZScalerSupportedFormat.NPM,
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
-    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
+    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-npm-0-shadow-download-defense"),
         eq(existingCategory.getId()), eq(List.of("http://example-url1")));
     verify(metricsDAO).set(any());
   }
@@ -181,7 +189,7 @@ public class ApiZScalerServiceTest
   public void testUpdateCategory_whenQuotaWouldNotBeExceeded() throws Exception {
     ZScalerCategory existingCategory = new ZScalerCategory();
     existingCategory.setId("npm-category");
-    existingCategory.setConfiguredName("sonatype-npm-shadow-download-defense");
+    existingCategory.setConfiguredName("sonatype-npm-0-shadow-download-defense");
     existingCategory.setCustomCategory(true);
     existingCategory.setCustomUrlsCount(1);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
@@ -194,7 +202,7 @@ public class ApiZScalerServiceTest
     underTest.updateCategory(ZScalerSupportedFormat.NPM,
         List.of("http://example-url1", "http://example-url2", "http://example-url3"));
 
-    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq(existingCategory.getConfiguredName()),
+    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-npm-0-shadow-download-defense"),
         eq(existingCategory.getId()), eq(List.of("http://example-url1", "http://example-url2", "http://example-url3")));
     verify(metricsDAO).set(any());
   }
@@ -203,7 +211,7 @@ public class ApiZScalerServiceTest
   public void testUpdateCategory_whenQuotaExceededMax() throws Exception {
     ZScalerCategory existingCategory = new ZScalerCategory();
     existingCategory.setId("npm-category");
-    existingCategory.setConfiguredName("sonatype-npm-shadow-download-defense");
+    existingCategory.setConfiguredName("sonatype-npm-0-shadow-download-defense");
     existingCategory.setCustomCategory(true);
     existingCategory.setCustomUrlsCount(0);
     existingCategory.setUrls(List.of("https://npmjs.org/npm/"));
@@ -309,5 +317,165 @@ public class ApiZScalerServiceTest
         () -> underTest.getConfiguredFormats());
 
     assertThat(logOutput).atWarnLevel().contains("No zScaler configuration found");
+  }
+
+  @Test
+  public void testUpdateCategory_multipleCategories_whenUrlsExceedLimit() {
+    // Create a list of 50001 URLs (more than 25000 per category)
+    List<String> manyUrls = new ArrayList<>();
+    for (int i = 0; i < 50001; i++) {
+      manyUrls.add("http://example-url-" + i);
+    }
+
+    when(configurationDAO.get()).thenReturn(config);
+    ZScalerQuota quota = new ZScalerQuota(0, 100000);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
+    when(client.getCustomUrlCategories(config.getHostname())).thenReturn(Collections.emptyList());
+
+    underTest.updateCategory(ZScalerSupportedFormat.MAVEN, manyUrls);
+
+    verify(client).getCustomUrlCategories(config.getHostname());
+    // Should create 3 categories: 2 with 25000 each, 1 with 1 URL
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-0-shadow-download-defense"),
+        anyList());
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-1-shadow-download-defense"),
+        anyList());
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-2-shadow-download-defense"),
+        anyList());
+    verify(metricsDAO).set(any());
+  }
+
+  @Test
+  public void testUpdateCategory_cleanupUnusedCategories() {
+    // Start with 3 categories
+    ZScalerCategory category0 = new ZScalerCategory();
+    category0.setId("maven-category-0");
+    category0.setConfiguredName("sonatype-maven-0-shadow-download-defense");
+    category0.setCustomCategory(true);
+    category0.setCustomUrlsCount(25000);
+
+    ZScalerCategory category1 = new ZScalerCategory();
+    category1.setId("maven-category-1");
+    category1.setConfiguredName("sonatype-maven-1-shadow-download-defense");
+    category1.setCustomCategory(true);
+    category1.setCustomUrlsCount(25000);
+
+    ZScalerCategory category2 = new ZScalerCategory();
+    category2.setId("maven-category-2");
+    category2.setConfiguredName("sonatype-maven-2-shadow-download-defense");
+    category2.setCustomCategory(true);
+    category2.setCustomUrlsCount(5000);
+
+    when(configurationDAO.get()).thenReturn(config);
+    ZScalerQuota quota = new ZScalerQuota(55000, 100000);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
+    when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(category0, category1, category2));
+
+    // Now update with only 10000 URLs (should only need 1 category)
+    List<String> urls = new ArrayList<>();
+    for (int i = 0; i < 10000; i++) {
+      urls.add("http://example-url-" + i);
+    }
+
+    underTest.updateCategory(ZScalerSupportedFormat.MAVEN, urls);
+
+    // Should update category 0
+    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-maven-0-shadow-download-defense"),
+        eq("maven-category-0"), anyList());
+    // Should delete categories 1 and 2
+    verify(client).deleteCustomUrlCategory(config.getHostname(), "maven-category-1");
+    verify(client).deleteCustomUrlCategory(config.getHostname(), "maven-category-2");
+    verify(metricsDAO).set(any());
+  }
+
+  @Test
+  public void testUpdateCategory_migratesLegacyCategory() {
+    // Create a legacy category (without index)
+    ZScalerCategory legacyCategory = new ZScalerCategory();
+    legacyCategory.setId("npm-legacy-category");
+    legacyCategory.setConfiguredName("sonatype-npm-shadow-download-defense");
+    legacyCategory.setCustomCategory(true);
+    legacyCategory.setCustomUrlsCount(5000);
+
+    when(configurationDAO.get()).thenReturn(config);
+    ZScalerQuota quota = new ZScalerQuota(0, 100000);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
+    when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(legacyCategory));
+
+    underTest.updateCategory(ZScalerSupportedFormat.NPM, urls);
+
+    // Should delete the legacy category first
+    verify(client).deleteCustomUrlCategory(config.getHostname(), "npm-legacy-category");
+    // Then create a new indexed category
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-npm-0-shadow-download-defense"),
+        anyList());
+    verify(metricsDAO).set(any());
+    assertThat(logOutput).atInfoLevel()
+        .contains("Deleting legacy category sonatype-npm-shadow-download-defense with id npm-legacy-category");
+  }
+
+  @Test
+  public void testUpdateCategory_handlesMixedLegacyAndIndexedCategories() {
+    // Create both legacy and indexed categories
+    ZScalerCategory legacyCategory = new ZScalerCategory();
+    legacyCategory.setId("maven-legacy-category");
+    legacyCategory.setConfiguredName("sonatype-maven-shadow-download-defense");
+    legacyCategory.setCustomCategory(true);
+    legacyCategory.setCustomUrlsCount(10000);
+
+    ZScalerCategory indexedCategory = new ZScalerCategory();
+    indexedCategory.setId("maven-category-0");
+    indexedCategory.setConfiguredName("sonatype-maven-0-shadow-download-defense");
+    indexedCategory.setCustomCategory(true);
+    indexedCategory.setCustomUrlsCount(5000);
+
+    when(configurationDAO.get()).thenReturn(config);
+    ZScalerQuota quota = new ZScalerQuota(15000, 100000);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
+    when(client.getCustomUrlCategories(config.getHostname())).thenReturn(List.of(legacyCategory, indexedCategory));
+
+    // Create a list with 10000 URLs
+    List<String> manyUrls = new ArrayList<>();
+    for (int i = 0; i < 10000; i++) {
+      manyUrls.add("http://example-url-" + i);
+    }
+
+    underTest.updateCategory(ZScalerSupportedFormat.MAVEN, manyUrls);
+
+    // Should delete the legacy category
+    verify(client).deleteCustomUrlCategory(config.getHostname(), "maven-legacy-category");
+    // Should update the indexed category (only considers indexed categories for URL count)
+    verify(client).updateCustomUrlCategories(eq(config.getHostname()), eq("sonatype-maven-0-shadow-download-defense"),
+        eq("maven-category-0"), anyList());
+    verify(metricsDAO).set(any());
+  }
+
+  @Test
+  public void testUpdateCategory_withCustomMaxUrlsPerCategory() {
+    // Configure custom max URLs per category
+    when(configuration.getZScalerMaxUrlsPerCategory()).thenReturn(10000);
+
+    // Create a list of 25000 URLs (would be 1 category with default 25000, but 3 with custom 10000)
+    List<String> manyUrls = new ArrayList<>();
+    for (int i = 0; i < 25000; i++) {
+      manyUrls.add("http://example-url-" + i);
+    }
+
+    when(configurationDAO.get()).thenReturn(config);
+    ZScalerQuota quota = new ZScalerQuota(0, 100000);
+    when(client.getZScalerQuota(config.getHostname())).thenReturn(quota);
+    when(client.getCustomUrlCategories(config.getHostname())).thenReturn(Collections.emptyList());
+
+    underTest.updateCategory(ZScalerSupportedFormat.MAVEN, manyUrls);
+
+    verify(client).getCustomUrlCategories(config.getHostname());
+    // Should create 3 categories with custom limit: 10000, 10000, 5000
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-0-shadow-download-defense"),
+        anyList());
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-1-shadow-download-defense"),
+        anyList());
+    verify(client).createCustomUrlCategory(eq(config.getHostname()), eq("sonatype-maven-2-shadow-download-defense"),
+        anyList());
+    verify(metricsDAO).set(any());
   }
 }

@@ -20,9 +20,10 @@ describe('Footer', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    global.clmServerVersion = '1.185.0-01';
     renderComponent = (preloadedState) =>
-      render(<Footer productEdition="Lifecycle" />, { preloadedState: preloadedState || defaultPreloadedState });
+      render(<Footer productEdition="Lifecycle" clmServerVersion="1.185.0-01" />, {
+        preloadedState: preloadedState || defaultPreloadedState,
+      });
   });
 
   describe('when productEdition and releaseNumber are provided', () => {
@@ -65,13 +66,16 @@ describe('Footer', () => {
 
   describe('when productEdition or releaseNumber are missing', () => {
     it('renders nothing when productEdition is not provided', () => {
-      render(<Footer />, { defaultPreloadedState });
+      render(<Footer clmServerVersion="1.185.0-01" />, { defaultPreloadedState });
 
       expect(screen.queryByText('Powered by Sonatype IQ Server')).not.toBeInTheDocument();
     });
 
     it('throws TypeError when clmServerVersion is undefined', () => {
-      global.clmServerVersion = undefined;
+      renderComponent = (preloadedState) =>
+        render(<Footer productEdition="Lifecycle" />, {
+          preloadedState: preloadedState || defaultPreloadedState,
+        });
 
       expect(() => renderComponent()).toThrow(TypeError);
       expect(() => renderComponent()).toThrow(`Cannot determine release version from '${global.clmServerVersion}'.`);

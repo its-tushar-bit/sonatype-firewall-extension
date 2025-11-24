@@ -50,13 +50,12 @@ import { actions } from './mainHeaderSlice';
 import { selectPermissions, selectShouldShowLoginButton } from './mainHeaderSelectors';
 import userActions from 'MainRoot/user/userActions';
 
-/* global clmServerVersion */
-export function MainHeader() {
+export function MainHeader({ clmServerVersion = '' }) {
   const store = useStore();
   const dispatch = useDispatch();
   const globalMajorMinorVersion = useMemo(
     () => (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.'),
-    []
+    [clmServerVersion]
   );
 
   // Redux selectors
@@ -153,5 +152,9 @@ export function MainHeader() {
     />
   );
 }
+
+MainHeader.propTypes = {
+  clmServerVersion: PropTypes.string,
+};
 
 export default MainHeader;

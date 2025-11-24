@@ -10,6 +10,7 @@ import $ from 'jquery';
 
 global.$ = $;
 global.jQuery = $;
+global.CLM_SERVER_VERSION = '1.200.0-SNAPSHOT';
 
 for (const [name, matcherProvider] of Object.entries(customMatchers)) {
   expect.extend({ [name]: matcherProvider().compare });

@@ -36,9 +36,9 @@
       <navigation-container
         ng-if="!$state.params.embeddable"
         product-edition="productEdition"
-        clm-server-version="CLM_SERVER_VERSION"
+        clm-server-version='CLM_SERVER_VERSION'
       ></navigation-container>
-      <main-header ng-if="!$state.params.embeddable" clm-server-version="CLM_SERVER_VERSION"></main-header>
+      <main-header ng-if="!$state.params.embeddable" clm-server-version='CLM_SERVER_VERSION'></main-header>
       <div id="iq-content" class="nx-page-content nx-page-content--full-width">
         <div id="iq-sidebar-container"></div>
         <div id="iq-footer-container" class="nx-global-footer-2-container" ng-class="{ 'nx-viewport-sized': $state.current.data.viewportSized }">
@@ -52,7 +52,7 @@
               <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
             </div>
           </div>
-          <iq-footer ng-if="!$state.current.data.hideFooter" product-edition="productEdition"></iq-footer>
+          <iq-footer ng-if="!$state.current.data.hideFooter" product-edition="productEdition" clm-server-version='CLM_SERVER_VERSION'></iq-footer>
         </div>
       </div>
     </div>

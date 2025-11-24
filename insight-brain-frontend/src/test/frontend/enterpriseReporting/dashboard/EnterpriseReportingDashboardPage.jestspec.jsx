@@ -39,7 +39,7 @@ describe('EnterpriseReportingDashboardPage', () => {
     });
 
   beforeAll(() => {
-    window.clmServerVersion = '1.188.0-SNAPSHOT';
+    global.CLM_SERVER_VERSION = '1.188.0-SNAPSHOT';
     axiosMock = axiosMockAdapter();
   });
 
@@ -229,7 +229,7 @@ describe('EnterpriseReportingDashboardPage', () => {
     describe('disabled', () => {
       describe('dashboard link', () => {
         beforeEach(() => {
-          window.clmServerVersion = '1.182.0-SNAPSHOT';
+          global.CLM_SERVER_VERSION = '1.182.0-SNAPSHOT';
           const updatedDashboardData = [
             {
               dashboardId: 'success-metrics',
@@ -300,7 +300,7 @@ describe('EnterpriseReportingDashboardPage', () => {
         };
 
         beforeEach(() => {
-          window.clmServerVersion = '1.188.0-SNAPSHOT';
+          global.CLM_SERVER_VERSION = '1.188.0-SNAPSHOT';
         });
 
         it('does not disable the group dashboard link if one its children is not disabled', async () => {
@@ -352,7 +352,7 @@ describe('EnterpriseReportingDashboardPage', () => {
     let currentParams = { groupId: 'security-risk', id: 'security_risk_breakdown' };
 
     beforeEach(() => {
-      window.clmServerVersion = '1.192.0-SNAPSHOT';
+      global.CLM_SERVER_VERSION = '1.192.0-SNAPSHOT';
       jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue(currentParams);
     });
 

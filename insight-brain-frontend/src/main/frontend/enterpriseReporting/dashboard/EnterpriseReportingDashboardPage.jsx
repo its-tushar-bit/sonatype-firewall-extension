@@ -39,7 +39,9 @@ import {
 import { getUpgradeVersion, isElementDisabled } from '../utils';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
 
+/* global CLM_SERVER_VERSION */
 export default function EnterpriseReportingDashboardPage() {
+  const clmServerVersion = CLM_SERVER_VERSION; // Provided by webpack DefinePlugin
   const dispatch = useDispatch();
 
   const loadingFeatures = useSelector(selectLoadingFeatures);
@@ -53,7 +55,7 @@ export default function EnterpriseReportingDashboardPage() {
 
   const { loadingDashboard, iframeError } = useLookerDashboard();
 
-  const clmVersion = parseInt(window.clmServerVersion.split('.')[1]);
+  const clmVersion = parseInt(clmServerVersion.split('.')[1]);
   const isDashboardDisabled = (dashboard) => clmVersion < parseInt(dashboard.sinceIQVersion);
 
   const isLoading = loadingFeatures || loadingDashboard;
@@ -157,6 +159,10 @@ export default function EnterpriseReportingDashboardPage() {
     </NxPageMain>
   );
 }
+
+EnterpriseReportingDashboardPage.propTypes = {
+  clmServerVersion: PropTypes.string,
+};
 
 function NavigationBarRow({ dashboards, title, activeDashboard, isDashboardDisabled }) {
   const DASHBOARD_SELECTOR = '.enterprise-reporting-dashboard__container iframe';

@@ -71,16 +71,8 @@ describe('MainHeader', () => {
     jest.spyOn(routerStateContext, 'useRouterState').mockReturnValue(routerContextMock);
   });
 
-  beforeEach(() => {
-    global.clmServerVersion = '1.234.5';
-  });
-
-  afterEach(() => {
-    delete global.clmServerVersion;
-  });
-
-  const renderComponent = (state = defaultState) => {
-    return render(<MainHeader userActions={mockUserActions} />, {
+  const renderComponent = (state = defaultState, props = {}) => {
+    return render(<MainHeader clmServerVersion="1.234.5" userActions={mockUserActions} {...props} />, {
       preloadedState: state,
     });
   };

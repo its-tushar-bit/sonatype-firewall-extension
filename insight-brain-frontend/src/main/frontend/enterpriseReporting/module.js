@@ -16,7 +16,7 @@ export default angular
   )
   .component(
     'enterpriseReportingDashboardPage',
-    iqReact2Angular(withStoreProvider(EnterpriseReportingDashboardPage), [], ['$state'])
+    iqReact2Angular(withStoreProvider(EnterpriseReportingDashboardPage), ['clmServerVersion'], ['$state'])
   )
   .config(routes);
 

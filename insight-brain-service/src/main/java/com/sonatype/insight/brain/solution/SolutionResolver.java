@@ -92,6 +92,11 @@ public class SolutionResolver
     log.trace("Setting licensed solutions for the Solution Switcher");
     Set<Solution> licensedSolutions = new HashSet<>();
 
+    // Special case: If only SBOM Manager + ALP, don't include Lifecycle
+    boolean hasSbomManager = hasAnyProduct(SBOM_MANAGER_PRODUCTS);
+    boolean hasOnlyALP = productLicense.hasProduct(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK)
+        && !hasAnyOtherLifecycleProduct();
+
     if (hasAnyProduct(DEVELOPER_PRODUCTS)) {
       log.trace("Adding Developer product to licenced solutions");
       licensedSolutions.add(Solution.DEVELOPER);
@@ -101,7 +106,7 @@ public class SolutionResolver
       licensedSolutions.add(Solution.FIREWALL);
     }
 
-    if (hasAnyProduct(LIFECYCLE_PRODUCTS)) {
+    if (hasAnyProduct(LIFECYCLE_PRODUCTS) && !(hasSbomManager && hasOnlyALP)) {
       licensedSolutions.add(Solution.LIFECYCLE);
     }
 
@@ -121,5 +126,11 @@ public class SolutionResolver
     log.trace("Products [{}] are included in the license products set [{}]? = {}", products,
         productLicense.getProducts(), hasAnyProduct);
     return hasAnyProduct;
+  }
+
+  private boolean hasAnyOtherLifecycleProduct() {
+    return LIFECYCLE_PRODUCTS.stream()
+        .filter(p -> !p.equals(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK))
+        .anyMatch(productLicense::hasProduct);
   }
 }

@@ -62,4 +62,27 @@ public class SolutionResolverTest
     // then:
     assertThat(licensedSolutions).isEmpty();
   }
+
+  // CLM-36382: Special case fix to validate the case when only SBOM Manager and ALP are present in the license. This
+  // is to prevent to display in the solution switcher the Lifecycle solution when it shouldn't be shown.
+  @Test
+  public void testOnlySbomLicensed_WhenOnlySbomProductAndALP_arePresentInLicense() {
+    ProductLicense productLicense = Mockito.mock(ProductLicense.class);
+    for (String product : ProductLicenseDetails.PRODUCTS) {
+      if (
+          product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER) ||
+              product.equals(ProductLicenseDetails.PRODUCT_ADVANCED_LEGAL_PACK) ||
+              product.equals(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS)
+      ) {
+        when(productLicense.hasProduct(product)).thenReturn(true);
+      }
+      else {
+        when(productLicense.hasProduct(product)).thenReturn(false);
+      }
+    }
+
+    SolutionResolver solutionResolver = new SolutionResolver(productLicense);
+    Set<Solution> licensedSolutions = solutionResolver.getLicensedSolutions();
+    assertThat(licensedSolutions).containsExactly(Solution.SBOM_MANAGER);
+  }
 }

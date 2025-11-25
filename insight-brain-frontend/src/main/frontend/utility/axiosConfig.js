@@ -9,12 +9,13 @@ import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 
 /**
+ * @param rootScope    Angular's $rootScope variable.
  * @param window     Angular's $window variable.
- * @param loginModalService    LoginModalService (open login modal)
- * @param ngRedux     Angular's $ngRedux service (for accessing Redux store)
+ * @param loginModalActions    loginModalActions (Redux action creators for login modal)
+ * @param store    Redux store
  **/
 
-export const attachAxiosInterceptors = (window, loginModalService, ngRedux) => {
+export const attachAxiosInterceptors = (rootScope, window, loginModalActions, store) => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -24,7 +25,7 @@ export const attachAxiosInterceptors = (window, loginModalService, ngRedux) => {
       const isUnauthorized = error.response?.status === 401;
       if (isUnauthorized) {
         // Check if user is logged in by reading from Redux state
-        const state = ngRedux.getState();
+        const state = store.getState();
         const username = state.userSession?.data?.username;
 
         // username will be present if this is the top frame and login had already succeeded previously.
@@ -46,19 +47,22 @@ export const attachAxiosInterceptors = (window, loginModalService, ngRedux) => {
               // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
               // the other messages, the data will be added to the queue, but the dialog portion will be ignored
               if (getRequests().length === 1) {
-                (async () => {
-                  try {
-                    await loginModalService.authenticate(
+                // Dispatch authenticate action and wait for user to log in
+                store
+                  .dispatch(
+                    loginModalActions.authenticate(
                       error.response.headers['www-authenticate'],
                       error.response.headers['x-sso-login-url']
-                    );
-                    // retry failed requests and then clear the queue
-                    await settleAll();
-                  } catch (e) {
-                    // Login was cancelled or failed
+                    )
+                  )
+                  .then(() => {
+                    // User logged in successfully, replay all queued requests
+                    settleAll();
+                  })
+                  .catch(() => {
+                    // Login was cancelled or failed, reject all queued requests
                     rejectAll();
-                  }
-                })();
+                  });
               }
             });
           }

@@ -6,7 +6,6 @@
  */
 /* global angularDebug */
 import { Messages } from './util/CommonServices';
-import { httpInterceptors, unauthenticatedResponseHttpInterceptor } from './utilAngular/HttpInterceptors';
 import IqHttpInterceptorsModule from './utilAngular/IqHttpInterceptors';
 import configurationModule, { GETTING_STARTED_STATE } from './configuration/module';
 import './reduxConfig/store';
@@ -73,6 +72,7 @@ import { actions as externalLinkModalActions } from 'MainRoot/modals/externalLin
 import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
 import { checkSessionExpiredLater } from 'MainRoot/session/sessionExpirationManager';
 import { fetchUser, waitForLogin } from 'MainRoot/user/userSessionUtils';
+import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 
 export const InitModule = angular
   .module(
@@ -81,8 +81,6 @@ export const InitModule = angular
       'ui.router',
       ReportModule.name,
       Report.name,
-      unauthenticatedResponseHttpInterceptor.name,
-      httpInterceptors.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,
       legalModule.name,
@@ -197,9 +195,8 @@ export const InitModule = angular
     '$urlRouter',
     '$timeout',
     '$urlService',
-    'LoginModalService',
     '$transitions',
-    function ($rootScope, $state, $window, $q, $urlRouter, $timeout, $urlService, LoginModalService, $transitions) {
+    function ($rootScope, $state, $window, $q, $urlRouter, $timeout, $urlService, $transitions) {
       // Initialize the singleton pendoService with urlService
       setUrlService($urlService);
 
@@ -257,7 +254,7 @@ export const InitModule = angular
         }
       }
 
-      attachAxiosInterceptors($window, LoginModalService, store);
+      attachAxiosInterceptors($rootScope, $window, loginModalActions, store);
 
       function setRootError(err) {
         store.dispatch(setError(Messages.getHttpErrorMessage(err)));
@@ -477,7 +474,7 @@ export const InitModule = angular
         // time, that means that the page navigated to must be one that allows unauthenticated use, so the login
         // modal should be closed without completing the login
         let cancelLoginDismissListener = $rootScope.$on('$stateChangeSuccess', function () {
-          LoginModalService.dismiss();
+          store.dispatch(loginModalActions.dismiss());
         });
 
         $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {

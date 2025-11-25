@@ -6,7 +6,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './userLoginSlice';
-import * as PropTypes from 'prop-types';
 import useConditionalAutoFocus from 'MainRoot/react/useConditionalAutoFocus';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { not, includes } from 'ramda';
@@ -26,7 +25,7 @@ import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as sbomManagerUtil from 'MainRoot/sbomManager/sbomManagerUtil';
 import { isFirewallOnlyLicenseProduct } from 'MainRoot/productFeatures/productLicenseSelectors';
 
-export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
+export default function LoginModal() {
   // State selectors
   const dispatch = useDispatch();
   const routeState = useSelector(selectRouterState);
@@ -72,7 +71,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
   // The backend sends WWW-Authenticate header with "SAML" and/or "OIDC" values
   const additionalFooterBtns = () =>
     showSso && (
-      <NxButton ref={ssoButtonRef} type="button" id="iq-login-modal-sso-button" onClick={onClickSSO}>
+      <NxButton ref={ssoButtonRef} type="button" id="iq-login-modal-sso-button" onClick={onClickSSOHandler}>
         Single Sign-On (SSO)
       </NxButton>
     );
@@ -85,9 +84,21 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     dispatch(actions.setPassword(userInput(userInputValidator, val)));
   };
 
+  const onDismissHandler = () => {
+    dispatch(actions.dismiss());
+  };
+
+  const onSubmitHandler = ({ loginUsername, loginPassword }) => {
+    dispatch(actions.onSubmit({ loginUsername, loginPassword }));
+  };
+
+  const onClickSSOHandler = () => {
+    dispatch(actions.onClickSSO());
+  };
+
   const onCancelHandler = (e) => {
     e.preventDefault();
-    onDismiss();
+    onDismissHandler();
   };
 
   const isShowCancel =
@@ -105,7 +116,7 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
         <NxModal id="iq-login-modal" onCancel={isShowCancel ? onCancelHandler : null}>
           <NxStatefulForm
             onSubmit={() => {
-              onSubmit({ loginUsername: username.value, loginPassword: password.value });
+              onSubmitHandler({ loginUsername: username.value, loginPassword: password.value });
             }}
             onCancel={isShowCancel ? onCancelHandler : null}
             submitBtnText="Sign in"
@@ -161,9 +172,3 @@ export default function LoginModal({ onSubmit, onDismiss, onClickSSO }) {
     </>
   );
 }
-
-LoginModal.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-  onDismiss: PropTypes.func.isRequired,
-  onClickSSO: PropTypes.func.isRequired,
-};

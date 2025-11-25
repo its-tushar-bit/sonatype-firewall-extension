@@ -79,21 +79,23 @@ const fetchProductFeaturesIfNeeded = createAsyncThunk(
  * Separate REST call because it must be accessible before login
  */
 const loadIsUnauthenticatedPagesEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsUnauthenticatedPagesEnabled`, () =>
-  axios.get(getEnableUnauthenticatedPages()).then(pipe(prop('data'), includes('enable-unauthenticated-pages')))
+  axios
+    .get(getEnableUnauthenticatedPages(), { waitForLogin: false })
+    .then(pipe(prop('data'), includes('enable-unauthenticated-pages')))
 );
 
 /**
  * Separate REST call because it must be accessible before login
  */
 const loadIsSsoOnlyEnabled = createAsyncThunk(`${REDUCER_NAME}/loadIsSsoOnlyEnabled`, () =>
-  axios.get(getEnableSsoOnly()).then(pipe(prop('data'), includes('enable-sso-only')))
+  axios.get(getEnableSsoOnly(), { waitForLogin: false }).then(pipe(prop('data'), includes('enable-sso-only')))
 );
 
 /**
  * Separate REST call because it must be accessible before login
  */
 const loadIsOauth2Enabled = createAsyncThunk(`${REDUCER_NAME}/loadIsOauth2Enabled`, () =>
-  axios.get(getOAuth2Enabled()).then(pipe(prop('data'), includes('oauth2-enabled')))
+  axios.get(getOAuth2Enabled(), { waitForLogin: false }).then(pipe(prop('data'), includes('oauth2-enabled')))
 );
 
 const productFeaturesSlice = createSlice({

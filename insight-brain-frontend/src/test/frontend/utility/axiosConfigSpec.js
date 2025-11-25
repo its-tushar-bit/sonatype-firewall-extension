@@ -4,52 +4,41 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import loginModalModule from 'MainRoot/user/LoginModal/module';
+import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import * as isIqIframeUtil from 'MainRoot/util/isIqFrame';
 import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, clearRequests, getRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
+import axios from 'axios';
+import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
 
 describe('axiosConfig', () => {
-  let mockAxios, attachAxiosInterceptors, mockSessionExpired;
+  let mockSessionExpired;
 
   beforeEach(function () {
-    mockAxios = Object.assign(
-      jasmine.createSpy('axios').and.returnValue(Promise.resolve({ data: 'mocked response' })),
-      {
-        interceptors: {
-          response: { use: jasmine.createSpy('axios.interceptors.response.use') },
-          request: { use: jasmine.createSpy('axios.interceptors.response.use') },
-        },
-      }
-    );
-
-    const axiosConfig = require('inject-loader!MainRoot/utility/axiosConfig')({ axios: mockAxios });
-
-    attachAxiosInterceptors = axiosConfig.attachAxiosInterceptors;
+    // We'll spy on axios interceptors directly instead of using inject-loader
   });
 
   describe('attachAxiosInterceptors', () => {
-    let $window, loginModalService, attachInterceptors, $ngRedux;
-    beforeEach(
-      angular.mock.module(loginModalModule.name, function ($provide) {
-        SpecUtil.mockNgRedux($provide);
-        mockSessionExpired = jasmine.createSpy('mockSessionExpired');
-        const $window = {
-          location: {
-            assign: jasmine.createSpy(),
-          },
-          sessionExpired: mockSessionExpired,
-        };
+    let $window, attachInterceptors, mockRootScope, mockStore;
 
-        $window.top = $window;
-        $provide.value('$window', $window);
-      })
-    );
+    beforeEach(() => {
+      $window = {
+        location: {
+          assign: jasmine.createSpy(),
+        },
+      };
 
-    beforeEach(inject(function (_$window_, _LoginModalService_, _$ngRedux_) {
-      $window = _$window_;
-      loginModalService = _LoginModalService_;
-      $ngRedux = _$ngRedux_;
+      mockSessionExpired = jasmine.createSpy('mockSessionExpired');
+      $window.sessionExpired = mockSessionExpired;
+      $window.top = $window;
+
+      // axiosConfig uses window.top.sessionExpired(), not $window
+      // Set up the mock on the real window.top object
+      window.top.sessionExpired = mockSessionExpired;
+
+      // Create mock rootScope for axiosConfig
+      // axiosConfig checks rootScope.username to detect session expiration
+      mockRootScope = {};
 
       // Create a mock Redux state that can be modified
       let mockReduxState = {
@@ -59,25 +48,53 @@ describe('axiosConfig', () => {
         appError: {
           error: null,
         },
+        userLogin: {},
       };
 
-      // Mock dispatch to actually update state for relevant actions
-      $ngRedux.dispatch = jasmine.createSpy('dispatch').and.callFake((action) => {
-        if (action && action.type === 'appError/setError') {
-          mockReduxState.appError.error = action.payload;
-        } else if (action && action.type === 'appError/clearError') {
-          mockReduxState.appError.error = null;
-        } else if (action && action.type === 'userSession/fetchUserSession/fulfilled') {
-          mockReduxState.userSession.data = action.payload;
+      // Create mock store
+      mockStore = {
+        dispatch: jasmine.createSpy('dispatch').and.callFake((action) => {
+          if (typeof action === 'function') {
+            return action(mockStore.dispatch, mockStore.getState);
+          }
+
+          if (action && action.type === 'appError/setError') {
+            mockReduxState.appError.error = action.payload;
+          } else if (action && action.type === 'appError/clearError') {
+            mockReduxState.appError.error = null;
+          } else if (action && action.type === 'userSession/fetchUserSession/fulfilled') {
+            mockReduxState.userSession.data = action.payload;
+          }
+
+          return action;
+        }),
+        getState: jasmine.createSpy('getState').and.callFake(() => mockReduxState),
+      };
+
+      // Spy on axios interceptor methods
+      spyOn(axios.interceptors.response, 'use').and.callThrough();
+      spyOn(axios.interceptors.request, 'use').and.callThrough();
+
+      // Mock axios default function (used by axios(config) when replaying requests)
+      // This intercepts calls to axios() that happen when queued requests are replayed
+      const mockAxiosAdapter = (config) => {
+        // Return success for test URLs to prevent actual HTTP requests
+        if (config && config.url === '/api/test') {
+          return Promise.resolve({ data: 'test', status: 200, config });
         }
-        return action;
-      });
+        // For other URLs, return 404 to match real behavior
+        return Promise.reject({ response: { status: 404, config } });
+      };
 
-      // Mock getState to return our mutable state
-      $ngRedux.getState = jasmine.createSpy('getState').and.callFake(() => mockReduxState);
+      // Set up axios adapter to use our mock
+      axios.defaults.adapter = mockAxiosAdapter;
 
-      attachInterceptors = () => attachAxiosInterceptors($window, loginModalService, $ngRedux);
-    }));
+      // Spy on loginModalActions.authenticate and make it return a promise
+      spyOn(loginModalActions, 'authenticate').and.returnValue(() => Promise.resolve());
+
+      // attachAxiosInterceptors signature: (rootScope, window, loginModalActions, store)
+      attachInterceptors = () => attachAxiosInterceptors(mockRootScope, $window, loginModalActions, mockStore);
+    });
 
     afterEach(() => {
       // clear any requests/promises in queue
@@ -87,13 +104,13 @@ describe('axiosConfig', () => {
     it('attaches interceptors for the request and response of the rest calls', () => {
       attachInterceptors();
 
-      expect(mockAxios.interceptors.response.use).toHaveBeenCalledTimes(2);
-      expect(mockAxios.interceptors.request.use).toHaveBeenCalledTimes(1);
+      expect(axios.interceptors.response.use).toHaveBeenCalledTimes(2);
+      expect(axios.interceptors.request.use).toHaveBeenCalledTimes(1);
     });
 
     describe('request interceptors', () => {
       const getInterceptorHandlerAt = (index) => {
-        const [fulfilled, rejected] = mockAxios.interceptors.request.use.calls.argsFor(index);
+        const [fulfilled, rejected] = axios.interceptors.request.use.calls.argsFor(index);
         return { fulfilled, rejected };
       };
 
@@ -202,7 +219,7 @@ describe('axiosConfig', () => {
 
     describe('response interceptors', () => {
       const getInterceptorHandlerAt = (index) => {
-        const [fulfilled, rejected] = mockAxios.interceptors.response.use.calls.argsFor(index);
+        const [fulfilled, rejected] = axios.interceptors.response.use.calls.argsFor(index);
         return { fulfilled, rejected };
       };
 
@@ -231,11 +248,8 @@ describe('axiosConfig', () => {
           it('checks for an existing username in the scope', (done) => {
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = { response: { status: 401 } };
-            // Set username via Redux dispatch (use the fulfilled action that sets userSession.data)
-            $ngRedux.dispatch({
-              type: 'userSession/fetchUserSession/fulfilled',
-              payload: { username: 'previous_session_username' },
-            });
+            // Set username in Redux state to simulate existing session
+            mockStore.getState().userSession.data = { username: 'previous_session_username' };
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
@@ -278,64 +292,48 @@ describe('axiosConfig', () => {
 
         describe('intercepts a request that is waiting for login and is rejected due to authentication', () => {
           it('adds the request to the unauthenticatedRequestsQueue if it was waiting for login', (done) => {
-            let deferred;
-            spyOn(loginModalService, 'authenticate').and.callFake(() => {
-              return new Promise((resolve, reject) => {
-                deferred = { resolve, reject };
-              });
-            });
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = {
               response: {
                 status: 401,
                 headers: {},
+                config: { url: '/api/test' },
               },
             };
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
             expect(getRequests().length).toBe(1);
+
+            // Promise resolves when authentication succeeds
             interceptorResolution.then(() => {
               setTimeout(() => {
                 expect(getRequests().length).toBe(0);
                 done();
               }, 0);
             });
-            deferred.resolve();
           });
 
           describe('when there is a single request in the queue', () => {
             it('requests the opening of the login modal without SSO if the appropriate header is not present', (done) => {
-              let deferred;
-              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                return new Promise((resolve, reject) => {
-                  deferred = { resolve, reject };
-                });
-              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   status: 401,
                   headers: {},
+                  config: { url: '/api/test' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith(undefined, undefined);
+                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith(undefined, undefined);
                 done();
               });
-              deferred.resolve();
             });
 
             it('requests the opening of the login modal with SAML SSO if the SAML header is present', (done) => {
-              let deferred;
-              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                return new Promise((resolve, reject) => {
-                  deferred = { resolve, reject };
-                });
-              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
@@ -344,25 +342,19 @@ describe('axiosConfig', () => {
                     'www-authenticate': 'SAML',
                     'x-sso-login-url': '/saml/login',
                   },
+                  config: { url: '/api/test' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith('SAML', '/saml/login');
+                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith('SAML', '/saml/login');
                 done();
               });
-              deferred.resolve();
             });
 
             it('requests the opening of the login modal with OIDC SSO if the OIDC header is present', (done) => {
-              let deferred;
-              const loginModalAuthenticateSpy = spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                return new Promise((resolve, reject) => {
-                  deferred = { resolve, reject };
-                });
-              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
@@ -371,58 +363,72 @@ describe('axiosConfig', () => {
                     'www-authenticate': 'OIDC',
                     'x-sso-login-url': '/oidc/login',
                   },
+                  config: { url: '/api/test' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalAuthenticateSpy).toHaveBeenCalledOnceWith('OIDC', '/oidc/login');
+                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith('OIDC', '/oidc/login');
                 done();
               });
-              deferred.resolve();
             });
 
-            it('Resolves all promises in the queue and clears any requests after authentication is successful', (done) => {
-              let deferred1;
-              let deferred2;
-              const newRequestedPromise = new Promise((resolve, reject) => {
-                deferred2 = { resolve, reject };
+            it('resolves all promises in the queue and clears any requests after authentication is successful', (done) => {
+              let resolveAuthentication, newRequestResolve;
+              const authenticationPromise = new Promise((resolve) => {
+                resolveAuthentication = resolve;
               });
-              spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                addRequest(() => newRequestedPromise);
-                return new Promise((resolve, reject) => {
-                  deferred1 = { resolve, reject };
-                });
+              const newRequestedPromise = new Promise((resolve) => {
+                newRequestResolve = resolve;
               });
+
+              // Reset the spy and mock authenticate to return a controllable promise and add an additional request
+              loginModalActions.authenticate.and.callFake(() => {
+                // Add a second request to the queue when authenticate is called
+                addRequest(
+                  () => newRequestedPromise,
+                  () => {}
+                );
+                // Return a thunk that returns the authentication promise
+                return () => authenticationPromise;
+              });
+
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   status: 401,
                   headers: {},
+                  config: { url: '/api/test' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
-              interceptorResolution.then(() => {
+              // Wait for authenticate to be called and the second request to be added
+              setTimeout(() => {
+                // Should have 2 requests: the initial 401 retry + the one added in authenticate
                 expect(getRequests().length).toBe(2);
-                deferred2.resolve();
-                setTimeout(() => {
-                  expect(getRequests().length).toBe(0);
-                  done();
-                }, 0);
-              });
-              deferred1.resolve();
+
+                // Resolve authentication, which should trigger settleAll()
+                resolveAuthentication();
+
+                // Also resolve the new request that was added
+                newRequestResolve();
+
+                // Wait for all promises to settle
+                interceptorResolution.then(() => {
+                  setTimeout(() => {
+                    // All requests should be cleared after successful replay
+                    expect(getRequests().length).toBe(0);
+                    done();
+                  }, 0);
+                });
+              }, 10);
             });
 
             it('clears any remaining requests if authentication is not successful or cancelled', (done) => {
-              let deferred;
-              spyOn(loginModalService, 'authenticate').and.callFake(() => {
-                return new Promise((resolve, reject) => {
-                  deferred = { resolve, reject };
-                });
-              });
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
@@ -437,7 +443,11 @@ describe('axiosConfig', () => {
                 expect(getRequests().length).toBe(0);
                 done();
               });
-              deferred.reject();
+              // Simulate cancelled authentication
+              mockStore.dispatch({
+                type: 'userLogin/setAuthenticationFlowStatus',
+                payload: { status: 'cancelled', requestId: '123' },
+              });
             });
           });
         });

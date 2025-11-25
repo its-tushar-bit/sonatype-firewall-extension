@@ -49,6 +49,8 @@ import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { actions } from './mainHeaderSlice';
 import { selectPermissions, selectShouldShowLoginButton } from './mainHeaderSelectors';
 import userActions from 'MainRoot/user/userActions';
+import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
+import { actions as userSessionActions } from 'MainRoot/user/userSessionSlice';
 
 export function MainHeader({ clmServerVersion = '' }) {
   const store = useStore();
@@ -108,7 +110,7 @@ export function MainHeader({ clmServerVersion = '' }) {
   }, [dispatch, isLoggedIn]);
 
   const handleLogin = () => {
-    fetchUser(store);
+    dispatch(userSessionActions.fetchUserSession(true));
   };
 
   return (

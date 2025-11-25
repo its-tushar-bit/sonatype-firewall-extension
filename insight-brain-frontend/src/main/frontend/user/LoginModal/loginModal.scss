@@ -7,6 +7,10 @@
 @use '~@sonatype/react-shared-components/scss-shared/nx-text-helpers';
 @use '../../scss/variables' as *;
 
+login-modal {
+  display: contents;
+}
+
 #iq-login-modal {
   .iq-login-modal-helper-text {
     color: var(--nx-color-text);

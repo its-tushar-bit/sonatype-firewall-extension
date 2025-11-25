@@ -8,4 +8,4 @@ import ModalContainer from './ModalContainer';
 
 export default angular
   .module('modalContainerModule', [])
-  .component('modalContainer', iqReact2Angular(ModalContainer, [], []));
+  .component('modalContainer', iqReact2Angular(ModalContainer, [], ['$state']));

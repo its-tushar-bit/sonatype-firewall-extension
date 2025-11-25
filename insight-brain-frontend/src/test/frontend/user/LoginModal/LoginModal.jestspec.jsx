@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React from 'react';
-import { fireEvent, render, screen } from 'TestRoot/SpecUtil';
+import { axiosMockAdapter, fireEvent, render, screen, waitFor } from 'TestRoot/SpecUtil';
 import { actions } from 'MainRoot/user/LoginModal/userLoginSlice';
 
 import LoginModal from 'MainRoot/user/LoginModal/LoginModal';
@@ -12,6 +12,7 @@ import * as userLoginSelectors from 'MainRoot/user/LoginModal/userLoginSelectors
 import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
+import * as Locations from 'MainRoot/util/CLMLocation';
 
 const { userInput, initialState } = nxTextInputStateHelpers;
 
@@ -19,7 +20,6 @@ describe('LoginModal', () => {
   const originalLoginStateSelector = userLoginSelectors.selectLoginModalState;
 
   let renderComponent,
-    minimalProps,
     onSubmitSpy,
     onDismissSpy,
     onClickSSOSpy,
@@ -33,9 +33,9 @@ describe('LoginModal', () => {
     loginSubmitState;
 
   beforeEach(() => {
-    onSubmitSpy = jest.fn();
-    onDismissSpy = jest.fn();
-    onClickSSOSpy = jest.fn();
+    onSubmitSpy = jest.spyOn(actions, 'onSubmit').mockReturnValue(() => Promise.resolve());
+    onDismissSpy = jest.spyOn(actions, 'dismiss').mockReturnValue(() => {});
+    onClickSSOSpy = jest.spyOn(actions, 'onClickSSO').mockReturnValue(() => Promise.resolve());
     setUsernameSpy = jest.spyOn(actions, 'setUsername');
     setPasswordSpy = jest.spyOn(actions, 'setPassword');
 
@@ -62,18 +62,12 @@ describe('LoginModal', () => {
       name: 'firewall.quarantinedComponentReport',
     };
 
-    minimalProps = {
-      onSubmit: onSubmitSpy,
-      onDismiss: onDismissSpy,
-      onClickSSO: onClickSSOSpy,
-    };
-
     useSelectorLoginSubmitStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalSubmitState');
     useSelectorLoginStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalState').mockImplementation((state) => {
       const originalSelection = originalLoginStateSelector(state);
       return { ...originalSelection, isLicensed: true, showLoginModal: true };
     });
-    renderComponent = (additionalProps = {}) => render(<LoginModal {...minimalProps} {...additionalProps} />);
+    renderComponent = (additionalProps = {}) => render(<LoginModal {...additionalProps} />);
   });
 
   it('renders login modal with correct content', () => {
@@ -359,6 +353,123 @@ describe('LoginModal', () => {
 
       expect(screen.getByText('Invalid credentials. Please try again.', { exact: false })).toBeVisible();
       expect(screen.getByRole('button', { name: 'Retry' })).toBeVisible();
+    });
+  });
+
+  describe('authenticate action integration tests', () => {
+    let axiosMock, assignSpy;
+
+    beforeAll(() => {
+      axiosMock = axiosMockAdapter();
+    });
+
+    beforeEach(() => {
+      assignSpy = jest.spyOn(Locations, 'assign').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      assignSpy.mockRestore();
+    });
+
+    it('opens login modal when authenticate is called without SSO', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate(null, null));
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.userLogin.loginModalState.showLoginModal).toBe(true);
+        expect(state.userLogin.loginModalState.showSso).toBeFalsy();
+      });
+    });
+
+    it('opens login modal with SSO button when SAML is available and SSO-only is disabled', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.userLogin.loginModalState.showLoginModal).toBe(true);
+        expect(state.userLogin.loginModalState.showSso).toBe(true);
+        expect(state.userLogin.loginModalState.ssoLoginUrl).toBe('/saml/login');
+      });
+    });
+
+    it('opens login modal with SSO button when OIDC is available and SSO-only is disabled', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('OIDC', '/oidc/login'));
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.userLogin.loginModalState.showLoginModal).toBe(true);
+        expect(state.userLogin.loginModalState.showSso).toBe(true);
+        expect(state.userLogin.loginModalState.ssoLoginUrl).toBe('/oidc/login');
+      });
+    });
+
+    it('redirects to IdP when SSO-only is enabled and SAML is available', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+
+      await waitFor(() => {
+        expect(assignSpy).toHaveBeenCalledWith('/saml/login');
+      });
+    });
+
+    it('redirects to IdP when SSO-only is enabled and OIDC is available', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('OIDC', '/oidc/login'));
+
+      await waitFor(() => {
+        expect(assignSpy).toHaveBeenCalledWith('/oidc/login');
+      });
+    });
+
+    it('opens login modal even when SSO-only is enabled if on backupLogin route', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
+      window.location.hash = '#/backupLogin';
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+
+      await waitFor(() => {
+        const state = store.getState();
+        expect(state.userLogin.loginModalState.showLoginModal).toBe(true);
+        expect(assignSpy).not.toHaveBeenCalled();
+      });
+
+      window.location.hash = '';
+    });
+
+    it('redirects to SSO with hash parameter when hash is present in URL', async () => {
+      axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
+      window.location.hash = '#/applications/app123/report/scanId456';
+
+      const { store } = render(<LoginModal />);
+
+      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+
+      const expectedHash = encodeURIComponent('#/applications/app123/report/scanId456');
+      await waitFor(() => {
+        expect(assignSpy).toHaveBeenCalledWith(`/saml/login?hash=${expectedHash}`);
+      });
+
+      window.location.hash = '';
     });
   });
 });

@@ -6,14 +6,13 @@
 import React from 'react';
 import { render, screen, waitFor } from 'TestRoot/SpecUtil';
 import { MainHeader } from 'MainRoot/mainHeader/MainHeader';
-import * as userSession from 'MainRoot/user/userSessionUtils';
 import * as userSessionSlice from 'MainRoot/user/userSessionSlice';
 import * as routeStateUtilService from 'MainRoot/utility/services/routeStateUtilService';
 import * as permissionService from 'MainRoot/util/permissionService';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('MainHeader', () => {
-  let mockUserActions, fetchUserSpy, ensureUserLoggedInSpy, getValidPermissionsSpy, routerContextMock;
+  let mockUserActions, fetchUserSessionSpy, ensureUserLoggedInSpy, getValidPermissionsSpy, routerContextMock;
 
   const defaultState = {
     user: {
@@ -51,7 +50,9 @@ describe('MainHeader', () => {
       resetChangedPasswordStatus: jest.fn(() => () => Promise.resolve()),
     };
 
-    fetchUserSpy = jest.spyOn(userSession, 'fetchUser').mockImplementation(() => {});
+    fetchUserSessionSpy = jest
+      .spyOn(userSessionSlice.actions, 'fetchUserSession')
+      .mockReturnValue(() => Promise.resolve());
     // Mock ensureUserLoggedIn to return a fulfilled action (as Redux Toolkit async thunks do)
     ensureUserLoggedInSpy = jest.spyOn(userSessionSlice, 'ensureUserLoggedIn').mockReturnValue(() =>
       Promise.resolve({
@@ -155,7 +156,7 @@ describe('MainHeader', () => {
       });
     });
 
-    it('calls fetchUser when login button is clicked', async () => {
+    it('calls fetchUserSession when login button is clicked', async () => {
       jest.spyOn(routeStateUtilService, 'stateRequiresAuthentication').mockResolvedValue(false);
       renderComponent();
 
@@ -166,13 +167,7 @@ describe('MainHeader', () => {
       const loginButton = screen.getByRole('button', { name: /sign in/i });
       loginButton.click();
 
-      expect(fetchUserSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          getState: expect.any(Function),
-          dispatch: expect.any(Function),
-          subscribe: expect.any(Function),
-        })
-      );
+      expect(fetchUserSessionSpy).toHaveBeenCalledWith(true);
     });
   });
 

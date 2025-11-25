@@ -42,6 +42,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
+import com.sonatype.insight.brain.security.UserDirectory.QueryResult;
 import com.sonatype.insight.brain.webhook.EventAction;
 import com.sonatype.insight.brain.webhook.ManagementEventService;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -196,6 +197,31 @@ public class MembershipMappingService
 
     roleToMembers.put(roleId, members);
     managementEventService.postEvent(EventAction.CREATED, roleToMembers, internalOwnerId);
+  }
+
+  public void grantRoleMembership(
+      OwnerType ownerType,
+      String internalOwnerId,
+      String roleId,
+      MemberType memberType,
+      String memberName,
+      boolean validateMember)
+  {
+    if (validateMember) {
+      // perform opt-in validation
+      Member userMember = new Member(MemberType.USER, memberName, memberName);
+      Member groupMember = new Member(MemberType.GROUP, memberName, memberName);
+      QueryResult userOrGroup = userDirectory.getMembersByNames(Set.of(userMember, groupMember));
+
+      // Object equality to the passed in members means we didn't find anything and just echoed the args
+      List<Member> result = new ArrayList<>(userOrGroup.get());
+      result.removeIf(member -> member == userMember || member == groupMember);
+
+      if (result.isEmpty()) {
+        throw new NotFoundException("Could not find user or group with name " + memberName);
+      }
+    }
+    grantRoleMembership(ownerType, internalOwnerId, roleId, memberType, memberName);
   }
 
   /**

@@ -12,11 +12,13 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
@@ -108,9 +110,14 @@ public class ApiRoleMembershipResource
       @PathParam("memberType") MemberType memberType,
       @Parameter(description = "Enter the value for memberName. This can be a username or group name depending upon " +
           "the value of memberType above.", required = true)
-      @PathParam("memberName") String memberName)
+      @PathParam("memberName") String memberName,
+      @Parameter(description = "If true, attempts to validate if the specified user or group exists " +
+          "before assigning the role.\n" +
+          "If false or omitted, the request behaves as before (no validation check).")
+      @QueryParam("validateMember") @DefaultValue("false") boolean validateMember)
   {
-    membershipMappingService.grantRoleMembership(ownerType, internalOwnerId, roleId, memberType, memberName);
+    membershipMappingService.grantRoleMembership(ownerType, internalOwnerId, roleId, memberType, memberName,
+        validateMember);
   }
 
   @PUT

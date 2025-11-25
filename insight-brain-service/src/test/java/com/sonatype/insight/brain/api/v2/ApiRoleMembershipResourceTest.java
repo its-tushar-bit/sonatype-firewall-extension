@@ -501,6 +501,78 @@ public class ApiRoleMembershipResourceTest
     assertThat(membershipMapping).isNotNull();
   }
 
+  @Test
+  public void testGrantRoleMembership_ValidateMemberTrue_Exists() throws Exception {
+    String organizationId = tempEntity.newOrganization().getId();
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("organization", organizationId, DEVELOPER_ROLE_ID, "user", username)
+            .query("validateMember", true)
+            .put();
+
+    assertResponseStatus(204, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(organizationId, DEVELOPER_ROLE_ID, username, USER);
+    assertThat(membershipMapping).isNotNull();
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberTrue_DoesNotExist() throws Exception {
+    String organizationId = tempEntity.newOrganization().getId();
+    String username = "a-user";
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("organization", organizationId, DEVELOPER_ROLE_ID, "user", username)
+            .query("validateMember", true)
+            .put();
+
+    assertResponseStatus(404, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(organizationId, DEVELOPER_ROLE_ID, username, USER);
+    assertThat(membershipMapping).isNull();
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberFalse_Exists() throws Exception {
+    String organizationId = tempEntity.newOrganization().getId();
+    String username = tempEntity.newUser("a-user").getUsername();
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("organization", organizationId, DEVELOPER_ROLE_ID, "user", username)
+            .query("validateMember", false)
+            .put();
+
+    assertResponseStatus(204, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(organizationId, DEVELOPER_ROLE_ID, username, USER);
+    assertThat(membershipMapping).isNotNull();
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberFalse_DoesNotExist() throws Exception {
+    String organizationId = tempEntity.newOrganization().getId();
+    String username = "a-user";
+
+    HttpResponse response =
+        restRequest().path(APPLICATION_OR_ORGANIZATION)
+            .parameter("organization", organizationId, DEVELOPER_ROLE_ID, "user", username)
+            .query("validateMember", false)
+            .put();
+
+    assertResponseStatus(204, response);
+
+    MembershipMapping membershipMapping =
+        dao.getByContextIdAndRoleIdAndMemberNameAndMemberType(organizationId, DEVELOPER_ROLE_ID, username, USER);
+    assertThat(membershipMapping).isNotNull();
+  }
+
   @Override
   protected HttpRequest restRequest() {
     return super.restRequest().path(PublicApiPaths.ROLE_MEMBERSHIP_PATH_V2);

@@ -708,6 +708,131 @@ public class MembershipMappingServiceTest
   }
 
   @Test
+  public void testGrantRoleMembership_ValidateMemberNameTrue_UserDoesNotExist() {
+    String name = "invalid-member-name";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
+                MemberType.USER, name, true))
+        .withMessageContaining("Could not find user or group with name " + name);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameTrue_UserExists() {
+    Application application = tempEntity.newApplicationWithParent();
+    String username = tempEntity.newUser("a-user").getUsername();
+    String contextId = application.getId();
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, MemberType.USER, username, true);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameFalse_UserDoesNotExist() {
+    Application application = tempEntity.newApplicationWithParent();
+    String username = "invalid-username";
+    String contextId = application.getId();
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, MemberType.USER, username,
+            false);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameFalse_UserExists() {
+    Application application = tempEntity.newApplicationWithParent();
+    String username = tempEntity.newUser("a-user").getUsername();
+    String contextId = application.getId();
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, MemberType.USER, username,
+            false);
+  }
+  
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameTrue_GroupDoesNotExist() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    String name = "invalid-groupname";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
+                MemberType.GROUP, name, true))
+        .withMessageContaining("Could not find user or group with name " + name);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameTrue_GroupDoesNotExist_AndGroupSearchDisabled()
+      throws Exception
+  {
+    testLdapServer.start();
+    testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    LdapUserMapping ldapUserMapping = tempEntity.newLdapUserMapping(ldapServer.getId());
+    ldapUserMapping.setGroupMappingType(LdapGroupMappingType.NONE);
+    ldapUserMappingDAO.update(ldapUserMapping);
+
+    String name = "invalid-groupname";
+    assertThatExceptionOfType(NotFoundException.class)
+        .isThrownBy(() -> membershipMappingService
+            .grantRoleMembership(OwnerType.GLOBAL, MembershipMapping.GLOBAL_CONTEXT_ID, Role.DEVELOPER_ROLE_ID,
+                MemberType.GROUP, name, true))
+        .withMessageContaining("Could not find user or group with name " + name);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameTrue_GroupExists() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Application application = tempEntity.newApplicationWithParent();
+    String contextId = application.getId();
+
+    membershipMappingService.grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID,
+        MemberType.GROUP, "Alpha1", true);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameFalse_GroupDoesNotExist() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Application application = tempEntity.newApplicationWithParent();
+    String groupName = "invalid-groupname";
+    String contextId = application.getId();
+
+    membershipMappingService
+        .grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID, MemberType.GROUP, groupName,
+            false);
+  }
+
+  @Test
+  public void testGrantRoleMembership_ValidateMemberNameFalse_GroupExists() throws Exception {
+    testLdapServer.start();
+    testLdapServer.loadData("/MembershipMappingServiceTest/ldap_users1.ldif");
+    LdapServer ldapServer = tempEntity.newLdapServer("LDAP");
+    tempEntity.newLdapConnection(ldapServer.getId(), testLdapServer.getPort());
+    tempEntity.newLdapUserMapping(ldapServer.getId());
+
+    Application application = tempEntity.newApplicationWithParent();
+    String contextId = application.getId();
+
+    membershipMappingService.grantRoleMembership(OwnerType.APPLICATION, contextId, Role.DEVELOPER_ROLE_ID,
+        MemberType.GROUP, "Alpha1", false);
+  }
+
+  @Test
   public void testRevokeRoleMembership() throws InterruptedException {
     handler = new TestEventHandler<>(new CountDownLatch(1), RoleEvent.class);
     eventBus.register(handler);

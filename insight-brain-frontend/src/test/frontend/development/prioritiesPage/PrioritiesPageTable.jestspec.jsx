@@ -213,21 +213,6 @@ describe('PrioritiesPageTable', () => {
       expect(state.prioritiesPage.branchName).toBe(branchName);
     }
 
-    it('loads branch name from report metadata if available', async () => {
-      const branchName = 'custom-branch-name';
-
-      const { store } = renderComponent(
-        mergeDeepRight(defaultPreloadedState, {
-          applicationReport: {
-            metadata: {
-              branchName,
-            },
-          },
-        })
-      );
-      await assertBranchNameIsLoaded(store, branchName);
-    });
-
     it('loads branch name from source control config base branch value', async () => {
       const branchName = 'custom-branch-name';
       axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
@@ -252,6 +237,34 @@ describe('PrioritiesPageTable', () => {
 
       const { store } = renderComponent();
       await assertBranchNameIsLoaded(store, branchName);
+    });
+
+    it('fetches repository default branch from API', async () => {
+      const apiBranchName = 'main';
+      const reportBranchName = 'feature-branch';
+
+      axiosMock.onGet(getCompositeSourceControlUrl('application', appId)).reply(200, {
+        baseBranch: {
+          value: apiBranchName,
+          parentValue: null,
+        },
+      });
+
+      const { store } = renderComponent(
+        mergeDeepRight(defaultPreloadedState, {
+          applicationReport: {
+            metadata: {
+              branchName: reportBranchName,
+            },
+          },
+        })
+      );
+
+      await assertBranchNameIsLoaded(store, apiBranchName);
+
+      expect(axiosMock.history.get.some((req) => req.url === getCompositeSourceControlUrl('application', appId))).toBe(
+        true
+      );
     });
   });
 

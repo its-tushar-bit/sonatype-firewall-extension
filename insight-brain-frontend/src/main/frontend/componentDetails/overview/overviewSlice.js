@@ -40,7 +40,7 @@ import {
   selectComponentDetailsSelectedRequestData as firewallSelectComponentDetailsSelectedRequestData,
   selectComponentDetailsFromParams,
 } from 'MainRoot/firewall/firewallComponentDetailsPage/overview/firewallOverviewSelectors';
-import { fetchBranchName } from 'MainRoot/util/branchNameUtil';
+import { fetchDefaultBranchName } from 'MainRoot/util/branchNameUtil';
 import { pollPRStatus } from 'MainRoot/manualPullRequest/pollPRStatus';
 import { AUTOMATED_REMEDIATION_STATUS } from 'MainRoot/constants/automatedRemediationStatus';
 
@@ -235,7 +235,7 @@ const loadVersionExplorerDataWithCancelToken = createAsyncThunk(
     const promises = [
       axios.get(getVersionGraphUrl(selectVersionExplorerRequestData(getState())), { cancelToken }),
       axios.get(getComponentDetailsUrl(requestData), { cancelToken }),
-      fetchBranchName(getState()).catch(() => null), // do not reject if branch name is not available
+      fetchDefaultBranchName(getState()).catch(() => null), // do not reject if branch name is not available
     ];
 
     return Promise.all(promises)

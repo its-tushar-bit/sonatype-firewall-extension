@@ -7,15 +7,11 @@ import axios from 'axios';
 import { getCompositeSourceControlUrl } from './CLMLocation';
 import { selectApplicationReportMetaData } from '../applicationReport/applicationReportSelectors';
 
-export const fetchBranchName = async (state) => {
+export const fetchDefaultBranchName = async (state) => {
   const applicationReportMetaData = selectApplicationReportMetaData(state);
 
   if (!applicationReportMetaData) {
     return null;
-  }
-
-  if (applicationReportMetaData.branchName) {
-    return applicationReportMetaData.branchName;
   }
 
   const { data } = await axios.get(

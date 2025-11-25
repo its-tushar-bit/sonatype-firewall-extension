@@ -17,7 +17,7 @@ import { actions as createPRModalActions } from 'MainRoot/manualPullRequest/crea
 import { getAsyncRecommendationsPrioritiesPage } from 'MainRoot/componentDetails/overview/riskRemediation/recommendedVersionsUtils';
 import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { AUTOMATED_REMEDIATION_STATUS } from 'MainRoot/constants/automatedRemediationStatus';
-import { fetchBranchName } from 'MainRoot/util/branchNameUtil';
+import { fetchDefaultBranchName } from 'MainRoot/util/branchNameUtil';
 
 export const PRIORITIES_PAGE_REDUCER_NAME = 'prioritiesPage';
 
@@ -237,7 +237,7 @@ const loadBranchName = createAsyncThunk(
       return prioritiesPage.branchName;
     }
 
-    return fetchBranchName(state).catch(rejectWithValue);
+    return fetchDefaultBranchName(state).catch(rejectWithValue);
   }
 );
 

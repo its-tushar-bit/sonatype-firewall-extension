@@ -1531,6 +1531,9 @@ public class ScanPolicyEvaluator
     sendLegacyViolationTelemetryData(application.getId(), scanPolicyEvaluatorResults.allViolations,
         stage.getStageTypeId());
 
+    sendMissingEpssScoreTelemetry(application.getId(), scanId, stage.getStageTypeId(),
+        reportComponentData.components);
+
     final Set<Feature> features = featuresService.getFeatures();
     if (features.contains(SystemConfigurationPropertyFeature.DEVELOPER_BULK_RECOMMENDATIONS)) {
       fetchAndPersistRemediationRecommendations(scanId, stage, reportComponentData.components, appId);
@@ -1726,6 +1729,31 @@ public class ScanPolicyEvaluator
         scanId,
         analysisDTO
     );
+  }
+  
+  @VisibleForTesting
+  void sendMissingEpssScoreTelemetry(
+      final String applicationId,
+      final String scanId,
+      final String stageTypeId,
+      final List<Component> components)
+  {
+    long vulnerabilitiesWithMissingEpss = components.stream()
+        .flatMap(component -> component.getSecurityVulnerabilities().stream())
+        .filter(vulnerability -> vulnerability.getEpssData() == null ||
+            vulnerability.getEpssData().getCurrentScore() == null)
+        .count();
+
+    TelemetryData telemetryData = new TelemetryData(
+        TelemetryPurpose.APPLICATION_EVALUATION_MISSING_EPSS_SCORE_COUNT);
+    Map<String, Object> attributes = new HashMap<>();
+    attributes.put("application_id", HdsClientAnalytics.obfuscate(applicationId));
+    telemetryUtils.includeRealApplicationId(attributes, applicationId);
+    attributes.put("scan_id", HdsClientAnalytics.obfuscate(scanId));
+    attributes.put("stage_id", stageTypeId);
+    attributes.put("vulnerabilities_with_missing_epss", String.valueOf(vulnerabilitiesWithMissingEpss));
+    telemetryData.setAttributes(attributes);
+    telemetrySender.send(telemetryData);
   }
 
   private void sendAggregatePolicyViolationAndAutoWaiverTelemetry(

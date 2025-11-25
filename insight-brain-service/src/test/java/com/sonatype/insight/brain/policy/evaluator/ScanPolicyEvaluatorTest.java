@@ -60,6 +60,7 @@ import com.sonatype.insight.brain.model.ApplicationComponentLicense;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
+import com.sonatype.insight.brain.model.component.SecurityVulnerability;
 import com.sonatype.insight.brain.model.component.SecurityVulnerabilitySource;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -157,6 +158,7 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.vulnerability.model.EpssData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -1709,7 +1711,7 @@ public class ScanPolicyEvaluatorTest
     }
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
+    verify(mockTelemetrySender, times(3)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
     expectedAttributes.put("real_application_id", application.getId());
@@ -2860,7 +2862,7 @@ public class ScanPolicyEvaluatorTest
         ClientScanType.SONATYPE, false);
 
     ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
-    verify(mockTelemetrySender, times(2)).send(telemetryDataArgumentCaptor.capture());
+    verify(mockTelemetrySender, times(3)).send(telemetryDataArgumentCaptor.capture());
     Map<String, Object> expectedAttributes = new HashMap<>();
     expectedAttributes.put("scan_id", scanId);
     expectedAttributes.put("application_id", HdsClientAnalytics.obfuscate(application.getId()));
@@ -5862,5 +5864,86 @@ public class ScanPolicyEvaluatorTest
               cond.getConditionTypeId().equals(conditionType)));
         }
     );
+  }
+
+  @Test
+  public void testSendMissingEpssScoreTelemetry_noVulnerabilities() {
+    // Components without any vulnerabilities
+    List<Component> components = List.of(
+        new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v")),
+        new Component(ComponentIdentifier.createNpmCoordinates("p", "v"))
+    );
+
+    scanPolicyEvaluator.sendMissingEpssScoreTelemetry("appId", "scanId", "stageId", components);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryData.getAttributes())
+        .containsKey("application_id")
+        .containsKey("scan_id")
+        .containsEntry("stage_id", "stageId")
+        .containsEntry("vulnerabilities_with_missing_epss", "0");
+  }
+
+  @Test
+  public void testSendMissingEpssScoreTelemetry_withMissingEpssData() {
+    // Components with vulnerabilities but missing EPSS data
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+    component1.addSecurityVulnerability(new SecurityVulnerability("CVE", "CVE-2021-1234", 7.5f));
+    component1.addSecurityVulnerability(new SecurityVulnerability("CVE", "CVE-2021-5678", 5.0f));
+
+    Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
+    component2.addSecurityVulnerability(new SecurityVulnerability("CVE", "CVE-2022-9999", 9.0f));
+
+    List<Component> components = List.of(component1, component2);
+
+    scanPolicyEvaluator.sendMissingEpssScoreTelemetry("appId", "scanId", "stageId", components);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    assertThat(telemetryData.getAttributes())
+        .containsKey("application_id")
+        .containsKey("scan_id")
+        .containsEntry("stage_id", "stageId")
+        .containsEntry("vulnerabilities_with_missing_epss", "3");
+  }
+
+  @Test
+  public void testSendMissingEpssScoreTelemetry_withMixedEpssData() {
+    // Components with some vulnerabilities having EPSS data and some without
+    Component component1 = new Component(ComponentIdentifier.createMavenCoordinates("g", "a", "v"));
+
+    SecurityVulnerability vulnWithEpss = new SecurityVulnerability("CVE", "CVE-2021-1234", 7.5f);
+    EpssData epssData = new EpssData(0.75);
+    vulnWithEpss.setEpssData(epssData);
+    component1.addSecurityVulnerability(vulnWithEpss);
+
+    SecurityVulnerability vulnWithoutEpss = new SecurityVulnerability("CVE", "CVE-2021-5678", 5.0f);
+    component1.addSecurityVulnerability(vulnWithoutEpss);
+
+    Component component2 = new Component(ComponentIdentifier.createNpmCoordinates("p", "v"));
+    SecurityVulnerability vulnWithNullScore = new SecurityVulnerability("CVE", "CVE-2022-1111", 8.0f);
+    EpssData epssDataNullScore = new EpssData(null);
+    vulnWithNullScore.setEpssData(epssDataNullScore);
+    component2.addSecurityVulnerability(vulnWithNullScore);
+
+    List<Component> components = List.of(component1, component2);
+
+    scanPolicyEvaluator.sendMissingEpssScoreTelemetry("appId", "scanId", "stageId", components);
+
+    ArgumentCaptor<TelemetryData> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+
+    TelemetryData telemetryData = telemetryDataArgumentCaptor.getValue();
+    // Should count: vulnWithoutEpss (1) + vulnWithNullScore (1) = 2
+    assertThat(telemetryData.getAttributes())
+        .containsKey("application_id")
+        .containsKey("scan_id")
+        .containsEntry("stage_id", "stageId")
+        .containsEntry("vulnerabilities_with_missing_epss", "2");
   }
 }

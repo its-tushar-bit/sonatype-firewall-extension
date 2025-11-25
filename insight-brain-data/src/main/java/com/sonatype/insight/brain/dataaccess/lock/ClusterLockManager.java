@@ -36,4 +36,6 @@ public interface ClusterLockManager
   ClusterLock createForInactiveRepositoryViolationCleaner();
 
   ClusterLock createForSupportZip();
+
+  ClusterLock createForSearchIndexUpdate();
 }

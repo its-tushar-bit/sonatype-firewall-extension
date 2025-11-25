@@ -54,7 +54,8 @@ public class OpenSearchIndexSearchingTest
 
   @Before
   public void deleteIndex() {
-    openSearchSearchIndexClient.createIndexAndOverwriteIfNeeded();
+    openSearchSearchIndexClient.deleteIndex();
+    openSearchSearchIndexClient.createIndexIfNotExists();
   }
 
   @Override

@@ -44,6 +44,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -186,12 +187,11 @@ public class OpenSearchSearchIndexClientTest
     CountDownLatch fullReindexBlock = new CountDownLatch(1);
     AtomicReference<String> oldRealIndexName = new AtomicReference<>();
     doAnswer(invocation -> {
-      oldRealIndexName.set(openSearchSearchIndexClient.getRealIndexName());
       invocation.callRealMethod();
       preFullReindexBlock.countDown();
       assertThat(fullReindexBlock.await(5, TimeUnit.SECONDS)).isTrue();
       return null;
-    }).when(spy).createIndexAndOverwriteIfNeeded();
+    }).when(spy).createIndex(anyString());
     Thread thread = new Thread(spy::populateIndex);
     thread.start();
     assertThat(preFullReindexBlock.await(5, TimeUnit.SECONDS)).isTrue();

@@ -28,6 +28,8 @@ import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
+import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.tag.TagDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
@@ -115,13 +117,13 @@ public class OpenSearchSearchIndexClient
 
   private final IndexConfigProvider indexConfigProvider;
 
+  private final ClusterLockManager clusterLockManager;
+
   private OpenSearchClient openSearchClient;
 
   private final AtomicLong lastRecordedConnectExceptionEpochMs = new AtomicLong();
 
   private final AtomicReference<Duration> currentCooldown = new AtomicReference<>(INITIAL_COOLDOWN);
-
-  private final AtomicReference<String> oldRealIndexName = new AtomicReference<>();
 
   @Inject
   public OpenSearchSearchIndexClient(
@@ -144,6 +146,7 @@ public class OpenSearchSearchIndexClient
       final ConversionHelper conversionHelper,
       final OpenSearchTransport openSearchTransport,
       final IndexConfigProvider indexConfigProvider,
+      final ClusterLockManager clusterLockManager,
       final ShutdownHandler shutdownHandler)
   {
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
@@ -152,15 +155,14 @@ public class OpenSearchSearchIndexClient
         shutdownHandler);
     this.openSearchTransport = openSearchTransport;
     this.indexConfigProvider = indexConfigProvider;
+    this.clusterLockManager = clusterLockManager;
   }
 
   @VisibleForTesting
   public OpenSearchClient getClient() {
     if (openSearchClient == null) {
       openSearchClient = new OpenSearchClient(openSearchTransport);
-      if (!indexExists(indexConfigProvider.getIndexConfig().getIndexName())) {
-        createIndexAndOverwriteIfNeeded();
-      }
+      createIndexIfNotExists();
     }
     return openSearchClient;
   }
@@ -169,21 +171,38 @@ public class OpenSearchSearchIndexClient
   public void populateIndex() {
     log.info("creating search index...");
     long start = System.currentTimeMillis();
+    String oldIndexName = getRealIndexName();
+    String newIndexName = generateIndexName();
+    boolean newIndexCreated = false;
     boolean indexRotated = false;
-    try {
-      oldRealIndexName.set(getRealIndexName());
-      createIndexAndOverwriteIfNeeded();
+    try (ClusterLock clusterLock = clusterLockManager.createForSearchIndexUpdate()) {
+      createIndex(newIndexName);
+      newIndexCreated = true;
+      IndexConfig indexConfig = indexConfigProvider.getIndexConfig();
+
+      clusterLock.lock();
+      doPopulateIndex(new OpenSearchIndexingContext(ownerDAO, conversionHelper, () -> {
+        IndexConfig newIndexConfig = new IndexConfig();
+        newIndexConfig.setIndexMapping(indexConfig.getIndexMapping());
+        newIndexConfig.setIndexName(newIndexName);
+        return newIndexConfig;
+      }, getClient()));
+      updateIndexAlias(newIndexName);
       indexRotated = true;
-      doPopulateIndex(new OpenSearchIndexingContext(ownerDAO, conversionHelper, indexConfigProvider, getClient()));
+
       log.info("all indexing complete");
     }
     catch (Exception e) {
       throw new SearchIndexException("Error creating search index", e);
     }
     finally {
-      String oldRealIndexNameValue = oldRealIndexName.getAndSet(null);
       if (indexRotated) {
-        deleteIndex(oldRealIndexNameValue);
+        deleteIndex(oldIndexName);
+      }
+      else {
+        if (newIndexCreated) {
+          deleteIndex(newIndexName);
+        }
       }
     }
     sendAdvancedSearchIndexingTelemetry(System.currentTimeMillis() - start);
@@ -196,12 +215,11 @@ public class OpenSearchSearchIndexClient
     if (searchIndexChanges.isEmpty()) {
       return;
     }
-    if (oldRealIndexName.get() != null) {
-      return;
-    }
-    try {
-      processSearchIndexChanges(searchIndexChanges,
-          new OpenSearchIndexingContext(ownerDAO, conversionHelper, indexConfigProvider, getClient()));
+    try (ClusterLock clusterLock = clusterLockManager.createForSearchIndexUpdate()) {
+      if (clusterLock.tryLock()) {
+        processSearchIndexChanges(searchIndexChanges,
+            new OpenSearchIndexingContext(ownerDAO, conversionHelper, indexConfigProvider, getClient()));
+      }
     }
     catch (Exception e) {
       if (shouldThrow(e, lastRecordedConnectExceptionEpochMs, currentCooldown, MAX_COOLDOWN)) {
@@ -327,11 +345,9 @@ public class OpenSearchSearchIndexClient
       int maxResultWindow = getMaxResultWindow();
       int newPageSize = Math.min(maxResultWindow, desiredStartIndex + pageSize);
       int currentPageStartIndex = 0;
-      String index = oldRealIndexName.get();
-      index = index == null ? indexConfigProvider.getIndexConfig().getIndexName() : index;
       while (true) {
         SearchRequest.Builder searchRequestBuilder = new SearchRequest.Builder()
-            .index(index)
+            .index(indexConfigProvider.getIndexConfig().getIndexName())
             .query(q -> q
                 .queryString(qs -> qs
                     .query(finalQuery)
@@ -451,13 +467,10 @@ public class OpenSearchSearchIndexClient
     }
   }
 
-  public void createIndexAndOverwriteIfNeeded() {
+  private void updateIndexAlias(final String newIndex) {
     try {
       String aliasName = indexConfigProvider.getIndexConfig().getIndexName();
       String oldIndex = getCurrentIndexNameForAlias(aliasName);
-      String newIndex = generateIndexName();
-
-      createIndex(newIndex);
 
       List<Action> actions = new ArrayList<>();
       if (oldIndex != null) {
@@ -478,9 +491,14 @@ public class OpenSearchSearchIndexClient
       log.info("Alias '{}' now points to '{}'", aliasName, newIndex);
     }
     catch (Exception e) {
-      log.error("Failed to rotate index for alias '{}'", indexConfigProvider.getIndexConfig().getIndexName(), e);
-      throw new RuntimeException(e);
+      throw new RuntimeException(
+          "Failed to rotate index for alias '%s'".formatted(indexConfigProvider.getIndexConfig().getIndexName()), e);
     }
+  }
+
+  // Visible for testing
+  public void deleteIndex() {
+    deleteIndex(getRealIndexName());
   }
 
   private void deleteIndex(final String name) {
@@ -500,21 +518,27 @@ public class OpenSearchSearchIndexClient
   }
 
   // Visible for testing
-  String getRealIndexName() throws IOException {
+  String getRealIndexName() {
     return getCurrentIndexNameForAlias(indexConfigProvider.getIndexConfig().getIndexName());
   }
 
-  private String getCurrentIndexNameForAlias(final String aliasName) throws IOException {
-    GetAliasRequest getAliasRequest = new GetAliasRequest.Builder()
-        .build();
-    GetAliasResponse getAliasResponse = getClient().indices().getAlias(getAliasRequest);
-    Map<String, IndexAliases> result = getAliasResponse.result();
-    for (Entry<String, IndexAliases> entry : result.entrySet()) {
-      if (entry.getValue().aliases().containsKey(aliasName)) {
-        return entry.getKey();
+  private String getCurrentIndexNameForAlias(final String aliasName) {
+    try {
+      GetAliasRequest getAliasRequest = new GetAliasRequest.Builder()
+          .build();
+      GetAliasResponse getAliasResponse = getClient().indices().getAlias(getAliasRequest);
+      Map<String, IndexAliases> result = getAliasResponse.result();
+      for (Entry<String, IndexAliases> entry : result.entrySet()) {
+        if (entry.getValue().aliases().containsKey(aliasName)) {
+          return entry.getKey();
+        }
       }
+      return null;
     }
-    return null;
+    catch (Exception e) {
+      throw new RuntimeException("Failed to get current index name for alias '%s'".formatted(
+          indexConfigProvider.getIndexConfig().getIndexName()), e);
+    }
   }
 
   private String generateIndexName() {
@@ -534,11 +558,21 @@ public class OpenSearchSearchIndexClient
       return false;
     }
     catch (Exception e) {
-      throw new RuntimeException(String.format("Error creating OpenSearch index: '%s'", name), e);
+      throw new RuntimeException(String.format("Error checking existence for OpenSearch index: '%s'", name), e);
     }
   }
 
-  private void createIndex(final String name) {
+  // Visible for testing
+  public void createIndexIfNotExists() {
+    if (!indexExists(indexConfigProvider.getIndexConfig().getIndexName())) {
+      String newIndexName = generateIndexName();
+      createIndex(newIndexName);
+      updateIndexAlias(newIndexName);
+    }
+  }
+
+  // Visible for testing
+  public void createIndex(final String name) {
     try {
       log.info("Creating OpenSearch index: {}", name);
       TypeMapping typeMapping = new TypeMapping.Builder()

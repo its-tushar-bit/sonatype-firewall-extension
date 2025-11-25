@@ -72,4 +72,9 @@ public abstract class AbstractClusterLockManager
   public ClusterLock createForSupportZip() {
     return createClusterLock(ClusterLockId.forSupportZip());
   }
+
+  @Override
+  public ClusterLock createForSearchIndexUpdate() {
+    return createClusterLock(ClusterLockId.forSearchIndexUpdate());
+  }
 }

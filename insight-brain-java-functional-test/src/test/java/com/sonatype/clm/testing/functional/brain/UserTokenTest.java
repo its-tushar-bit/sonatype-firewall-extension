@@ -9,14 +9,22 @@ import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.UserTokenModal;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.security.User;
 
 import com.codeborne.selenide.Condition;
+import org.junit.Before;
 import org.junit.Test;
 
 public class UserTokenTest
     extends AbstractFunctionalTest
 {
+  @Before
+  public void before() {
+    // Ensure we start with a clean session
+    hardreset();
+  }
+
   @Test
   public void testGenerateUserToken() {
     User user = tempEntity.newUser("user1", "user1", "user1", "user1@mail.com");
@@ -85,5 +93,53 @@ public class UserTokenTest
     userTokenModal.passCodeInput().shouldNotBe(Condition.visible);
     userTokenModal.userCodeInput().shouldNotBe(Condition.visible);
     userTokenModal.generateUserTokenButton().shouldBe(Condition.visible);
+
+    // Close the modal before logout
+    userTokenModal.cancelButton().shouldBe(Condition.visible).click();
+    userTokenModal.should(Condition.disappear);
+
+    logout();
+  }
+
+  @Test
+  public void testUserTokenExpirationDisplayed() {
+    // Set token expiration days configuration property to enable expiration feature
+    tempEntity.newSystemConfigurationProperty(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+
+    User user = tempEntity.newUser("user3", "user3", "user3", "user3@mail.com");
+    refreshOrOpen(DashboardPage.url());
+    login(user.getUsername(), user.getPassword());
+
+    // Generate a token first
+    MainHeader.userMenu().dropdownToggle().shouldBe(Condition.visible).click();
+    MainHeader.userMenu().manageUserToken().shouldBe(Condition.visible).click();
+
+    UserTokenModal userTokenModal = new UserTokenModal();
+    userTokenModal.should(Condition.appear);
+    userTokenModal.generateUserTokenButton().shouldBe(Condition.visible).click();
+    userTokenModal.userCodeInput().shouldBe(Condition.visible);
+    userTokenModal.passCodeInput().shouldBe(Condition.visible);
+    userTokenModal.cancelButton().shouldBe(Condition.enabled).click();
+    userTokenModal.should(Condition.disappear);
+
+    // Reopen modal to verify expiration info is displayed
+    MainHeader.userMenu().dropdownToggle().shouldBe(Condition.visible).click();
+    MainHeader.userMenu().manageUserToken().shouldBe(Condition.visible).click();
+    userTokenModal.should(Condition.appear);
+    userTokenModal.tokenExistenceAlert().shouldBe(Condition.visible);
+    
+    userTokenModal.deleteUserTokenButton().shouldBe(Condition.visible);
+
+    // Verify expiration section is displayed
+    userTokenModal.expirationSection().shouldBe(Condition.visible);
+    userTokenModal.expirationHeading().shouldBe(Condition.visible).shouldHave(Condition.text("User Token Status"));
+    userTokenModal.expirationSubtitle().shouldBe(Condition.visible)
+        .shouldHave(Condition.text("Time remaining until user token expires"));
+    userTokenModal.expirationDate().shouldBe(Condition.visible).shouldHave(Condition.text("Expires:"));
+
+    eyesWatcher.eyesCheck("User Token with Expiration Info");
+
+    userTokenModal.cancelButton().shouldBe(Condition.visible).click();
+    logout();
   }
 }

@@ -316,6 +316,11 @@ public class ConfigurationProperty
           .filter(property -> property.getType().equals(Boolean.class))
           .collect(Collectors.toMap(ConfigurationProperty::getName, Function.identity())));
 
+  // Properties that any authenticated user can read (no specific permissions required beyond authentication)
+  public static final Set<String> PUBLIC_PROPERTIES = Collections.singleton(
+      SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS
+  );
+
   // Multiple permissions grouped by each Triple will be ORed in order to check access
   public static final Map<String, Set<Triple<OwnerType, String, Set<Permission>>>> additionalPermissionsPerProperty =
       ImmutableMap.of(

@@ -727,6 +727,10 @@ export function checkUserTokenExistenceUrl() {
   return `${userTokenUrl()}/hasToken`;
 }
 
+export function userTokenCreateTimeUrl() {
+  return `${userTokenUrl()}/createTime`;
+}
+
 export function getLicenseLegalApplicationReportUrl(applicationId) {
   return uriTemplate`/api/v2/licenseLegalMetadata/application/${applicationId}`;
 }

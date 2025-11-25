@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2;
 
+import java.util.Date;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -78,6 +79,28 @@ public class ApiUserTokenResource
   )
   public ApiUserTokenExistsDTO getUserTokenExistsForCurrentUser() {
     return userTokenService.userTokenExistsForCurrentUser();
+  }
+
+  /**
+   * @since 1.198
+   */
+  @GET
+  @Path(CURRENT_USER + "/createTime")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(description = "Use this method to retrieve the creation time of the user token" +
+      " for the currently logged in user." +
+      "\n" +
+      "\n" +
+      "Permissions required: None",
+      responses = {
+          @ApiResponse(responseCode = "200",
+              description = "The response contains the token creation time in ISO format.",
+              useReturnTypeSchema = true),
+          @ApiResponse(responseCode = "404",
+              description = "User token does not exist for the current user.")
+      })
+  public Date getCurrentUserTokenCreateTime() {
+    return userTokenService.getCurrentUserTokenCreateTime();
   }
 
   /**

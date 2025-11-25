@@ -39,4 +39,20 @@ public class UserTokenModal
   public SelenideElement passCodeInput() {
     return child("#user-token-passcode");
   }
+
+  public SelenideElement expirationSection() {
+    return child(".iq-user-token-expiration");
+  }
+
+  public SelenideElement expirationHeading() {
+    return child(".iq-user-token-expiration__heading");
+  }
+
+  public SelenideElement expirationSubtitle() {
+    return child(".iq-user-token-expiration__subtitle");
+  }
+
+  public SelenideElement expirationDate() {
+    return child(".iq-user-token-expiration__date");
+  }
 }

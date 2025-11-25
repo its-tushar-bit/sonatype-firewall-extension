@@ -145,6 +145,20 @@ public class UserTokenService
     return apiUserTokenExistsDTO;
   }
 
+  public Date getCurrentUserTokenCreateTime() {
+    UserPrincipal userPrincipal = currentUser.getUserPrincipal();
+    if (userPrincipal == null) {
+      throw new UnauthenticatedException();
+    }
+
+    UserToken userToken = userTokenDAO.getByUsernameAndRealmId(userPrincipal.getUsername(), userPrincipal.getRealmId());
+    if (userToken == null) {
+      throw new NotFoundException("User token does not exist for user: " + userPrincipal.getUsername());
+    }
+
+    return userToken.getCreateTime();
+  }
+
   private boolean isRealmAllowed(String realmId) {
     if (InternalRealm.ID.equals(realmId)) {
       return true;

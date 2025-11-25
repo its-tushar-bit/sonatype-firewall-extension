@@ -5,11 +5,31 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
-import { NxButton, NxModal, NxSubmitMask, NxWarningAlert, NxTextLink } from '@sonatype/react-shared-components';
+import {
+  NxButton,
+  NxModal,
+  NxSubmitMask,
+  NxWarningAlert,
+  NxErrorAlert,
+  NxTextLink,
+} from '@sonatype/react-shared-components';
+import moment from 'moment-timezone';
 
 import UserTokenDisplay, { userTokenType } from './UserTokenDisplay';
 import LoadWrapper from '../../../../react/LoadWrapper';
 import LoadError from '../../../../react/LoadError';
+
+const calculateTokenExpiration = (tokenCreateTime, tokenExpirationDays) => {
+  const expirationDate = moment(tokenCreateTime).add(tokenExpirationDays, 'days');
+  const isExpired = expirationDate.isBefore(moment());
+  const userTimezone = moment.tz.guess();
+  const formattedDate = expirationDate.tz(userTimezone).format('MMM DD, YYYY [at] h:mm A z');
+
+  return {
+    isExpired,
+    formattedDate,
+  };
+};
 
 export default function UserTokenModal(props) {
   const {
@@ -18,6 +38,8 @@ export default function UserTokenModal(props) {
     generateUserToken,
     deleteUserToken,
     hideUserTokenModal,
+    fetchTokenExpirationConfig,
+    fetchTokenCreateTime,
     // loading flags
     checkUserTokenLoading,
     generateUserTokenLoading,
@@ -28,13 +50,21 @@ export default function UserTokenModal(props) {
     deleteUserTokenError,
     // data
     userToken,
+    tokenExpirationDays,
+    tokenCreateTime,
   } = props;
 
   useEffect(() => {
     if (userToken === null) {
       checkUserTokenExistence();
     }
-  }, [userToken]);
+    if (tokenExpirationDays === null) {
+      fetchTokenExpirationConfig();
+    }
+    if (userToken === true && tokenCreateTime === null) {
+      fetchTokenCreateTime();
+    }
+  }, [userToken, tokenExpirationDays, tokenCreateTime]);
 
   const primaryAction = userToken === false ? generateUserToken : deleteUserToken;
   const primaryActionLabel = userToken === false ? 'Generate User Token' : 'Delete User Token';
@@ -71,11 +101,34 @@ export default function UserTokenModal(props) {
             </NxTextLink>
           </p>
           {userToken === true && (
-            <NxWarningAlert id="user-token-modal-token-exists-alert">
-              A user token already exists for this user.
-              <br />
-              To create a new token please delete the existing one.
-            </NxWarningAlert>
+            <>
+              <NxWarningAlert id="user-token-modal-token-exists-alert">
+                A user token already exists for this user.
+                <br />
+                To create a new token please delete the existing one.
+              </NxWarningAlert>
+              {tokenCreateTime &&
+                tokenExpirationDays &&
+                (() => {
+                  const { isExpired, formattedDate } = calculateTokenExpiration(tokenCreateTime, tokenExpirationDays);
+                  return (
+                    <>
+                      <div className="iq-user-token-expiration">
+                        <strong className="iq-user-token-expiration__heading">User Token Status</strong>
+                        <p className="iq-user-token-expiration__subtitle">Time remaining until user token expires</p>
+                        <p className="iq-user-token-expiration__date">
+                          {isExpired ? 'Expired:' : 'Expires:'} {formattedDate}
+                        </p>
+                      </div>
+                      {isExpired && (
+                        <NxErrorAlert id="user-token-expired-alert">
+                          Your user token has expired. Delete the user token to generate a new one.
+                        </NxErrorAlert>
+                      )}
+                    </>
+                  );
+                })()}
+            </>
           )}
           {userToken && userToken !== true && <UserTokenDisplay userToken={userToken} />}
         </LoadWrapper>
@@ -122,4 +175,8 @@ UserTokenModal.propTypes = {
   deleteUserToken: PropTypes.func.isRequired,
   deleteUserTokenLoading: PropTypes.bool,
   deleteUserTokenError: PropTypes.object,
+  fetchTokenExpirationConfig: PropTypes.func.isRequired,
+  tokenExpirationDays: PropTypes.number,
+  fetchTokenCreateTime: PropTypes.func.isRequired,
+  tokenCreateTime: PropTypes.number,
 };

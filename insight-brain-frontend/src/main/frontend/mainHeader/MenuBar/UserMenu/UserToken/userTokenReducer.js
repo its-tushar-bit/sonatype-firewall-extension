@@ -21,6 +21,12 @@ import {
   USER_TOKEN_SHOW_MODAL,
   USER_TOKEN_HIDE_MODAL,
   USER_TOKEN_MASK_TIMER_DONE,
+  USER_TOKEN_FETCH_EXPIRATION_CONFIG_REQUESTED,
+  USER_TOKEN_FETCH_EXPIRATION_CONFIG_FULFILLED,
+  USER_TOKEN_FETCH_EXPIRATION_CONFIG_FAILED,
+  USER_TOKEN_FETCH_CREATE_TIME_REQUESTED,
+  USER_TOKEN_FETCH_CREATE_TIME_FULFILLED,
+  USER_TOKEN_FETCH_CREATE_TIME_FAILED,
 } from './userTokenActions';
 
 const initialState = Object.freeze({
@@ -36,6 +42,14 @@ const initialState = Object.freeze({
   // delete state
   deleteUserTokenError: null,
   deleteUserTokenLoading: null,
+  // expiration config state
+  tokenExpirationDays: null,
+  fetchExpirationConfigLoading: false,
+  fetchExpirationConfigError: null,
+  // create time state
+  tokenCreateTime: null,
+  fetchCreateTimeLoading: false,
+  fetchCreateTimeError: null,
 });
 
 const checkTokenRequested = (payload, state) => ({
@@ -97,6 +111,44 @@ const deleteUserTokenFulfilled = (payload, state) => ({
   userToken: null,
 });
 
+const fetchExpirationConfigRequested = (payload, state) => ({
+  ...state,
+  fetchExpirationConfigLoading: true,
+  fetchExpirationConfigError: null,
+});
+
+const fetchExpirationConfigFulfilled = (payload, state) => ({
+  ...state,
+  tokenExpirationDays: payload,
+  fetchExpirationConfigLoading: false,
+  fetchExpirationConfigError: null,
+});
+
+const fetchExpirationConfigFailed = (payload, state) => ({
+  ...state,
+  fetchExpirationConfigLoading: false,
+  fetchExpirationConfigError: payload,
+});
+
+const fetchCreateTimeRequested = (payload, state) => ({
+  ...state,
+  fetchCreateTimeLoading: true,
+  fetchCreateTimeError: null,
+});
+
+const fetchCreateTimeFulfilled = (payload, state) => ({
+  ...state,
+  tokenCreateTime: payload,
+  fetchCreateTimeLoading: false,
+  fetchCreateTimeError: null,
+});
+
+const fetchCreateTimeFailed = (payload, state) => ({
+  ...state,
+  fetchCreateTimeLoading: false,
+  fetchCreateTimeError: payload,
+});
+
 const reducerActionMap = {
   [UI_ROUTER_ON_FINISH]: always(initialState),
   [USER_TOKEN_HIDE_MODAL]: always(initialState),
@@ -111,6 +163,12 @@ const reducerActionMap = {
   [USER_TOKEN_DELETE_TOKEN_FAILED]: deleteTokenFailed,
   [USER_TOKEN_DELETE_TOKEN_FULFILLED]: deleteUserTokenFulfilled,
   [USER_TOKEN_MASK_TIMER_DONE]: propSetConst('deleteUserTokenLoading', null),
+  [USER_TOKEN_FETCH_EXPIRATION_CONFIG_REQUESTED]: fetchExpirationConfigRequested,
+  [USER_TOKEN_FETCH_EXPIRATION_CONFIG_FULFILLED]: fetchExpirationConfigFulfilled,
+  [USER_TOKEN_FETCH_EXPIRATION_CONFIG_FAILED]: fetchExpirationConfigFailed,
+  [USER_TOKEN_FETCH_CREATE_TIME_REQUESTED]: fetchCreateTimeRequested,
+  [USER_TOKEN_FETCH_CREATE_TIME_FULFILLED]: fetchCreateTimeFulfilled,
+  [USER_TOKEN_FETCH_CREATE_TIME_FAILED]: fetchCreateTimeFailed,
 };
 
 const userTokenReducer = createReducerFromActionMap(reducerActionMap, initialState);

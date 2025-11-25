@@ -155,6 +155,11 @@ public class ApiConfigurationService
     }
 
     for (String propertyName : propertyNames) {
+      // Skip permission check for public properties (authentication is still required via checkAuthenticated())
+      if (ConfigurationProperty.PUBLIC_PROPERTIES.contains(propertyName)) {
+        continue;
+      }
+
       ConfigurationProperty property = ConfigurationProperty.getConfigurationPropertiesByName().get(propertyName);
       if (property != null && !checkPermissionForProperty(propertyName)) {
         throw new UnauthorizedException("Insufficient permissions");

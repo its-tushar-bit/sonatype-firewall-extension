@@ -20,6 +20,8 @@ import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.v2.service.ConfigurationProperty.PUBLIC_PROPERTIES;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 
@@ -38,7 +40,9 @@ public class ApiConfigurationServiceAuthzTest
   public void testGetConfiguration_Unauthorized() {
     login();
     Set<String> allPropertiesThatRequireConfigureSystemPermission =
-        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName()).collect(Collectors.toSet());
+        Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName())
+            .filter(property -> !PUBLIC_PROPERTIES.contains(property))
+            .collect(Collectors.toSet());
     for (String property : allPropertiesThatRequireConfigureSystemPermission) {
       assertThrows("Insufficient permissions",
           UnauthorizedException.class,
@@ -68,12 +72,21 @@ public class ApiConfigurationServiceAuthzTest
     Set<String> allPropertiesThatRequireConfigureSystemPermission =
         Arrays.stream(ConfigurationProperty.PROPERTIES).map(property -> property.getName())
             .filter(property -> !property.equals(SystemConfigurationProperty.QUARANTINED_ITEM_CUSTOM_MESSAGE))
+            .filter(property -> !PUBLIC_PROPERTIES.contains(property))
             .collect(Collectors.toSet());
     for (String property : allPropertiesThatRequireConfigureSystemPermission) {
       assertThrows("Insufficient permissions",
           UnauthorizedException.class,
           () -> service.getConfiguration(Collections.singleton(property)));
     }
+  }
+
+  @Test
+  public void testGetConfiguration_PublicProperties_Authorized() {
+    login();
+    assertThat(PUBLIC_PROPERTIES)
+        .allSatisfy(property ->
+            assertThat(service.getConfiguration(Collections.singleton(property))).isNotNull());
   }
 
   @Test(expected = BadRequestException.class)

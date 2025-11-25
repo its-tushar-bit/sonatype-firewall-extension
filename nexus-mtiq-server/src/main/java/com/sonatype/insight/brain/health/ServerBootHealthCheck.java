@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
 public class ServerBootHealthCheck
     extends AbstractOperationalCheck
 {
-  private static boolean fullyBooted = false;
+  private static volatile boolean fullyBooted = false;
 
   public ServerBootHealthCheck() {
     super("server-boot");

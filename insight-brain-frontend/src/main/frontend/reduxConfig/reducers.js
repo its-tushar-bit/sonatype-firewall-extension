@@ -102,7 +102,6 @@ import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import enterpriseReportingSupportInfoSlice from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSlice';
-import enterpriseReportingFilterSlice from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
 import billOfMaterialsComponentsTileSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
@@ -228,7 +227,6 @@ export default combineReducers({
   enterpriseReportingDashboard: enterpriseReportingDashboardSlice,
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,
   enterpriseReportingSupportInfo: enterpriseReportingSupportInfoSlice,
-  enterpriseReportingFilter: enterpriseReportingFilterSlice,
   sast: sastReportSlice,
   billOfMaterialsComponentsTile: billOfMaterialsComponentsTileSlice,
   billOfMaterialsPage: billsOfMaterialsPageSlice,

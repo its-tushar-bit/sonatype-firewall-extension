@@ -11,14 +11,7 @@ import * as PropTypes from 'prop-types';
 import useEscapeKeyStack from '../../../react/useEscapeKeyStack';
 
 export default function DeleteFilterModal(props) {
-  const {
-    deleteFilter,
-    hideDeleteFilterModal,
-    filterToDelete,
-    deleteFilterError,
-    deleteFilterMaskState,
-    isUserDefault = () => false,
-  } = props;
+  const { deleteFilter, hideDeleteFilterModal, filterToDelete, deleteFilterError, deleteFilterMaskState } = props;
 
   useEscapeKeyStack(filterToDelete != null, hideDeleteFilterModal);
 
@@ -50,13 +43,7 @@ export default function DeleteFilterModal(props) {
         </header>
         <div className="nx-modal-content">
           <NxWarningAlert id="delete-filter-confirmation">
-            You are about to delete &quot;{filterToDelete}&quot; filter.{' '}
-            {isUserDefault(filterToDelete) && (
-              <>
-                Once deleted, your default filter set will revert to <b>Sonatype Default</b>.{' '}
-              </>
-            )}
-            This action can not be undone.
+            You are about to delete &quot;{filterToDelete}&quot; filter. This action can not be undone.
           </NxWarningAlert>
         </div>
       </NxStatefulForm>
@@ -70,5 +57,4 @@ DeleteFilterModal.propTypes = {
   filterToDelete: PropTypes.string,
   deleteFilterError: PropTypes.string,
   deleteFilterMaskState: PropTypes.bool,
-  isUserDefault: PropTypes.func,
 };

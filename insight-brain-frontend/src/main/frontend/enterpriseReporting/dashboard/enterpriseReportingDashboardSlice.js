@@ -21,10 +21,10 @@ export const initialState = {
   loadError: null,
   baseUrl: null,
   selectedDashboard: null,
-  selectedDashboardName: null,
   dashboardsData: null,
   dashboardTabs: [],
   activeDashboardTab: 0,
+  pendingDashboardToView: null,
 };
 
 const loadRequested = (state) => {
@@ -66,12 +66,7 @@ const setSelectedDashboard = (state, { payload }) => {
   state.selectedDashboard = {
     dashboardId: payload.dashboardId,
     dashboardPath: payload.dashboardPath?.replace('dashboards/', ''),
-    category: payload.category,
   };
-};
-
-const setSelectedDashboardName = (state, { payload }) => {
-  state.selectedDashboardName = payload;
 };
 
 const resetSelectedDashboard = (state) => {
@@ -100,14 +95,12 @@ const updateDashboardPage = (id, groupId, isDashboardDisabled) => {
     if (dashboardFromUrl) {
       dispatch(actions.setDashboardTabs([]));
       dispatch(actions.setSelectedDashboard(dashboardFromUrl));
-      dispatch(actions.setSelectedDashboardName(dashboardFromUrl.title));
 
       // If navigating to a "Group" page, update dashboardTabs and trigger activeTab & selectedDashboard
       // (and default to first enabled tab if selectedDashboard doesn't exist)
     } else if (dashboardGroupFromUrl) {
       const { groupedDashboards } = dashboardGroupFromUrl;
       dispatch(actions.setDashboardTabs(groupedDashboards));
-      dispatch(actions.setSelectedDashboardName(dashboardGroupFromUrl.title));
 
       const selectedDashboard = find(propEq('dashboardId', id), groupedDashboards);
       if (selectedDashboard) {
@@ -148,7 +141,6 @@ const enterpriseReportingDashboardSlice = createSlice({
   reducers: {
     setSelectedDashboard,
     resetSelectedDashboard,
-    setSelectedDashboardName,
     reset: always(initialState),
     setActiveDashboardTab,
     setDashboardTabs,

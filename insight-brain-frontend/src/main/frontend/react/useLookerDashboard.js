@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { prop } from 'ramda';
 import { LookerEmbedSDK } from '@looker/embed-sdk';
@@ -16,51 +16,17 @@ import {
   selectSelectedDashboard,
 } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
 import {
-  actions as filterActions,
-  FILTER_STATES,
-} from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSlice';
-import { selectEnterpriseReportingFilter } from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSelectors';
-import { findFilterByName } from 'MainRoot/enterpriseReporting/utils';
-import {
   getEnterpriseReportingAcquireEmbedSessionUrl,
   getEnterpriseReportingGenerateEmbedTokensUrl,
 } from 'MainRoot/util/CLMLocation';
 
 export default function useLookerDashboard(iframeContainerId = '#dashboard') {
-  const dispatch = useDispatch();
   const baseUrl = useSelector(selectBaseUrl);
   const selectedDashboard = useSelector(selectSelectedDashboard);
-  const { appliedFilter, appliedFilterName, filterState, loadingAllFilters, savedFilters } = useSelector(
-    selectEnterpriseReportingFilter
-  );
-
   const [iframeError, setIframeError] = useState(false);
   const [loadingDashboard, setLoadingDashboard] = useState(true);
-  const isEnterprise = selectedDashboard?.category === 'enterprise';
 
   const tokens = useRef({});
-  const dashboardCommunicationRef = useRef(null);
-  // Track current dashboard to prevent stale iframe events from interfering with new dashboard if user moves
-  // between pages before dashboard finishes loading
-  const currentDashboardId = useRef(null);
-
-  // Update filters values & force iframe reload if filterState = 'applying'
-  useEffect(() => {
-    if (filterState === FILTER_STATES.APPLYING && dashboardCommunicationRef.current && appliedFilter) {
-      dashboardCommunicationRef.current.send('dashboard:filters:update', { filters: appliedFilter });
-      dashboardCommunicationRef.current.send('dashboard:run');
-    }
-  }, [filterState, dispatch]);
-
-  // Determines which filters to apply on dashboard load. If appliedFilterName !== null, find matching savedFilter,
-  // otherwise, return an empty object to allow Looker to load its default filter values.
-  const filtersToApplyOnLoad = useMemo(() => {
-    if (appliedFilterName) {
-      const savedFilter = findFilterByName(appliedFilterName, savedFilters);
-      return savedFilter?.filter || {};
-    }
-    return {};
-  }, [appliedFilterName, savedFilters]);
 
   const acquireEmbedSession = async () =>
     axios
@@ -82,16 +48,11 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
         tokens.current = data;
         return data;
       });
-  // Embed a Looker dashboard without filter support (used for non-enterprise dashboards)
   const embedDashboard = async () => {
     try {
       setLoadingDashboard(true);
       await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
         .appendTo(iframeContainerId)
-        .withParams({
-          _theme: '{"show_title": false}',
-        })
-        .withDynamicIFrameHeight()
         .build()
         .connect();
     } catch (error) {
@@ -100,80 +61,20 @@ export default function useLookerDashboard(iframeContainerId = '#dashboard') {
       setLoadingDashboard(false);
     }
   };
-  // Embed a Looker dashboard with filter support and event handlers (used for enterprise dashboards)
-  const embedDashboardWithFilters = async () => {
-    try {
-      setLoadingDashboard(true);
-      // Capture the dashboardId for current iframe instance to prevent race conditions from stale listeners that
-      // may not have been cleaned up yet
-      const selectedId = selectedDashboard.dashboardId;
-      currentDashboardId.current = selectedId;
 
-      const dashboard = await LookerEmbedSDK.createDashboardWithId(selectedDashboard.dashboardPath)
-        .appendTo(iframeContainerId)
-        .withFilters(filtersToApplyOnLoad)
-        .withParams({
-          _theme: '{"show_title": false}',
-        })
-        .withDynamicIFrameHeight()
-        // Fires once when dashboard initially loads
-        .on('dashboard:loaded', (evt) => {
-          if (currentDashboardId.current !== selectedId) {
-            return;
-          }
-          dispatch(filterActions.handleDashLoaded(evt.dashboard.dashboard_filters));
-        })
-        // Fires immediately when user updates a filter in the iframe prior to refreshing the iframe
-        .on('dashboard:filters:changed', () => {
-          dispatch(filterActions.handleDashChanged());
-        })
-        // Fires when dashboard is loading (either iniitial load or any re-load of iframe)
-        .on('dashboard:run:start', () => {
-          dispatch(filterActions.setLoadingIframe(true));
-        })
-        // Fires when dashboard finishes running with new data
-        .on('dashboard:run:complete', (evt) => {
-          if (currentDashboardId.current !== selectedId) {
-            return;
-          }
-          dispatch(filterActions.handleDashUpdated(evt.dashboard.dashboard_filters));
-        })
-        .build()
-        .connect();
-      // Store the Looker dashboard connection in a ref for sending filter updates
-      dashboardCommunicationRef.current = dashboard;
-    } catch (error) {
-      setIframeError(true);
-    } finally {
-      setLoadingDashboard(false);
-    }
-  };
-
-  // This prevents dashboards loading twice if link is double clicked, or breaking if navigating
+  // this prevents dashboards loading twice if link is double clicked, or breaking if navigating
   // too quickly between dashboards
   const runLookerQuery = useDebounceCallback(function runLookerQuery() {
     LookerEmbedSDK.initCookieless(baseUrl, acquireEmbedSession, generateEmbedTokens);
-    if (isEnterprise) {
-      embedDashboardWithFilters();
-    } else {
-      embedDashboard();
-    }
+    embedDashboard();
   }, 300);
 
   useEffect(() => {
     if (baseUrl && selectedDashboard) {
-      // Reset the dashboardCommunicationRef & currentDashboardId when selectedDashboard changes to invalidate old event handlers
-      currentDashboardId.current = null;
-      dashboardCommunicationRef.current = null;
-
-      // Filters apply to enterprise-level dashboards only, so if the category is 'enterprise', wait
-      // for initializeFilters() to complete, otherwise call immediately
-      if (!isEnterprise || !loadingAllFilters) {
-        setIframeError(false);
-        runLookerQuery();
-      }
+      setIframeError(false);
+      runLookerQuery();
     }
-  }, [baseUrl, selectedDashboard, loadingAllFilters]);
+  }, [baseUrl, selectedDashboard]);
 
   return { loadingDashboard, iframeError };
 }

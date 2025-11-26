@@ -342,13 +342,14 @@ public class EnterpriseReportingDashboardPageTest
     setupTests(dashboardList, version);
     refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
 
+    SelenideElement groupTitle = page.groupTitle();
+    groupTitle.shouldBe(hidden);
     page.groupTabs().shouldHave(size(0));
 
     refreshOrOpen(EnterpriseReportingDashboardPage.groupUrl(dashboardGroupMetadata.groupId,
                                                             dashboardMetadataSecondGrouped.dashboardId));
-    SelenideElement pageTitle = page.pageTitle();
-    pageTitle.shouldBe(visible);
-    pageTitle.shouldHave(text(dashboardGroupMetadata.title));
+    groupTitle.shouldBe(visible);
+    groupTitle.shouldHave(text(dashboardGroupMetadata.title));
 
     ElementsCollection groupTabs = page.groupTabs();
     groupTabs.shouldHave(size(2));
@@ -361,33 +362,6 @@ public class EnterpriseReportingDashboardPageTest
     SelenideElement secondDashboardTab = groupTabs.get(1);
     secondDashboardTab.shouldHave(text(tabText));
     secondDashboardTab.shouldHave(attribute("aria-selected", "true"));
-  }
-
-  @Test
-  public void testFilterBtnVisibility() {
-    DashboardsVersionDTO version = new DashboardsVersionDTO(6);
-    DashboardMetadataDTO dashboardMetadataDataInsight =
-        createDashboardMetadata(3, "188");
-    DashboardMetadataDTO dashboardMetadataEnterprise =
-        createDashboardMetadataWithCategoryAndGroup("enterprise", 1, NO_IQ_VERSION, "");
-    DashboardMetadataListDTO dashboardList = new DashboardMetadataListDTO(version,
-        List.of(
-            dashboardMetadataDataInsight,
-            dashboardMetadataEnterprise),
-        List.of());
-
-    setupTests(dashboardList, version);
-    refreshOrOpen(EnterpriseReportingDashboardPage.url(URL_DASHBOARD_ID));
-
-    SelenideElement pageTitle = page.pageTitle();
-    SelenideElement filtersBtn = page.openFiltersBtn();
-    pageTitle.shouldHave(text(dashboardMetadataDataInsight.title));
-    filtersBtn.shouldBe(hidden);
-
-    refreshOrOpen(EnterpriseReportingDashboardPage.url(dashboardMetadataEnterprise.dashboardId));
-
-    pageTitle.shouldHave(text(dashboardMetadataEnterprise.title));
-    filtersBtn.shouldBe(visible);
   }
 
   @Test

@@ -42,16 +42,12 @@ public class EnterpriseReportingDashboardPage
     return child(".iq-enterprise-reporting-support-info__message");
   }
 
-  public SelenideElement pageTitle() {
+  public SelenideElement groupTitle() {
     return child(".nx-h1");
   }
 
   public ElementsCollection groupTabs() {
     return children(".nx-tab");
-  }
-
-  public SelenideElement openFiltersBtn() {
-    return child(".filter-button");
   }
 
   public SelenideElement navigationBar() {

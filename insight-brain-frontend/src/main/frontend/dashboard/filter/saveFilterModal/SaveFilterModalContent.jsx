@@ -4,7 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import React, { useState } from 'react';
-import classNames from 'classnames';
+
 import {
   NxFieldset,
   NxFontAwesomeIcon,
@@ -17,7 +17,7 @@ import {
 import { initialState, userInput } from '@sonatype/react-shared-components/components/NxTextInput/stateHelpers';
 import { faSave } from '@fortawesome/free-solid-svg-icons';
 import * as PropTypes from 'prop-types';
-import { validateMaxLength, validateNonEmpty, validateNameCharacters } from '../../../util/validationUtil';
+import { validateMaxLength, validateNonEmpty, hasValidationErrors } from '../../../util/validationUtil';
 import { isNil, reject } from 'ramda';
 import { DEFAULT_FILTER_NAME } from '../defaultFilter';
 import { WARNING_OVERWRITE, WARNING_NAME_IN_USE } from '../manageFiltersReducer';
@@ -35,25 +35,10 @@ export default function SaveFilterModalContent(props) {
     saveFilterMaskState,
     saveFilterWarning,
     cancelSaveFilter,
-    defaultFilterName = DEFAULT_FILTER_NAME,
-    maxNameLength = 60,
-    saveAsLabel = 'Save as…',
-    additionalFooterBtns,
   } = props;
 
-  const validateIsNotDefault = (val) =>
-    val === defaultFilterName ? `Can not overwrite ${defaultFilterName} filter` : null;
-
-  const validateNameChange = (val) =>
-    reject(isNil, [
-      validateNonEmpty(val),
-      validateMaxLength(maxNameLength, val),
-      validateIsNotDefault(val),
-      validateNameCharacters(val),
-    ]);
-
   const [saveMode, setSaveMode] = useState(appliedFilterName ? SAVE_MODE_OVERWRITE : SAVE_MODE_SAVE_AS);
-  const [filterName, setFilterName] = useState(initialState('', validateNameChange));
+  const [filterName, setFilterName] = useState(initialState(''));
   useEscapeKeyStack(true, cancelSaveFilter);
 
   const trySave = (e) => {
@@ -65,15 +50,16 @@ export default function SaveFilterModalContent(props) {
     });
   };
 
+  const validateIsNotDefault = (val) => (val === DEFAULT_FILTER_NAME ? 'Can not overwrite Default filter' : null);
+
+  const validateNameChange = (val) =>
+    reject(isNil, [validateNonEmpty(val), validateMaxLength(60, val), validateIsNotDefault(val)]);
+
   const filterNameChangeHandler = (newValue) => setFilterName(userInput(validateNameChange, newValue));
 
   const getFilterNameToSave = () => {
     return saveMode === SAVE_MODE_OVERWRITE ? appliedFilterName : filterName.trimmedValue;
   };
-
-  const modalClassNames = classNames({
-    'enterprise-reporting-save-filter-modal': defaultFilterName !== DEFAULT_FILTER_NAME,
-  });
 
   const headerLabel =
     saveFilterWarning == null
@@ -113,7 +99,7 @@ export default function SaveFilterModalContent(props) {
         value={SAVE_MODE_OVERWRITE}
         disabled={appliedFilterName == null}
       >
-        Save (overwrite{appliedFilterName ? ' ' + appliedFilterName : ''})
+        save (overwrite{appliedFilterName ? ' ' + appliedFilterName : ''})
       </NxRadio>
       <NxRadio
         id="dashboard-filter-save-as"
@@ -122,7 +108,7 @@ export default function SaveFilterModalContent(props) {
         onChange={setSaveMode}
         value={SAVE_MODE_SAVE_AS}
       >
-        {saveAsLabel}
+        save as…
       </NxRadio>
       {saveMode === SAVE_MODE_SAVE_AS && (
         <div id="filter-name-section" className="iq-filter-name-section">
@@ -133,17 +119,16 @@ export default function SaveFilterModalContent(props) {
   );
 
   return (
-    <NxModal id="save-filter-modal" className={modalClassNames}>
+    <NxModal id="save-filter-modal">
       <NxStatefulForm
         onSubmit={trySave}
         onCancel={cancelSaveFilter}
         submitBtnText={saveFilterWarning ? 'Continue' : 'Save'}
-        validationErrors={saveMode === SAVE_MODE_SAVE_AS ? validateNameChange(filterName.value) : null}
+        validationErrors={filterName.validationErrors}
         submitError={saveError}
         submitErrorTitleMessage="An error occurred saving data."
         submitMaskState={saveFilterMaskState}
         submitMaskMessage="Saving…"
-        additionalFooterBtns={additionalFooterBtns}
       >
         <header className="nx-modal-header">
           <h2 className="nx-h2">
@@ -165,8 +150,4 @@ SaveFilterModalContent.propTypes = {
   saveFilterMaskState: PropTypes.bool,
   saveFilterWarning: PropTypes.string,
   cancelSaveFilter: PropTypes.func,
-  defaultFilterName: PropTypes.string,
-  maxNameLength: PropTypes.number,
-  saveAsLabel: PropTypes.string,
-  additionalFooterBtns: PropTypes.element,
 };

@@ -72,17 +72,6 @@
       .nx-btn--delete-filter {
         background: none;
         padding: 0;
-        flex-shrink: 0;
-      }
-    }
-
-    .nx-small-tag {
-      align-self: center;
-      margin: 0;
-      cursor: default;
-
-      & + .nx-btn--delete-filter {
-        margin-left: 0;
       }
     }
   }

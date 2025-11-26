@@ -4,7 +4,6 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 import { all, filter, find, includes, pluck, propEq, uniq } from 'ramda';
-import { EI_DEFAULT_FILTER_NAME, FILTER_STATES } from './filter/enterpriseReportingFilterSlice';
 
 export const smallTagColors = ['blue', 'green', 'indigo', 'orange', 'pink', 'purple', 'red', 'teal', 'turquoise'];
 
@@ -41,20 +40,3 @@ export const getUpgradeVersion = (dashboard) => {
 export const isElementDisabled = (dashboard, isDashboardDisabled) =>
   isDashboardDisabled(dashboard) ||
   (!!dashboard.groupedDashboards && all(isDashboardDisabled, dashboard.groupedDashboards));
-
-const normalizeFilterName = (name) => (name ? name.toLowerCase().replace(/\s/g, '') : '');
-
-export const findFilterByName = (filterName, savedFilters) =>
-  find((f) => normalizeFilterName(f.name) === normalizeFilterName(filterName), savedFilters);
-
-export const calculateIsFilterDefault = (filterName, defaultFilterId, savedFilters) => {
-  const filter = findFilterByName(filterName, savedFilters);
-  return filter && filter.id === defaultFilterId;
-};
-
-export const findFilterById = (filterId, savedFilters) => find(propEq('id', filterId), savedFilters);
-
-export const calculateIsFilterDirty = (filterOptionName, appliedFilterName, filterState) => {
-  const cleanedName = filterOptionName === EI_DEFAULT_FILTER_NAME ? null : filterOptionName;
-  return filterState === FILTER_STATES.CHANGED && cleanedName === appliedFilterName;
-};

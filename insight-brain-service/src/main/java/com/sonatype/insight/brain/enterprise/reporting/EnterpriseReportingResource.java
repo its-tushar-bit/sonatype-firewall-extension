@@ -5,11 +5,14 @@
  */
 package com.sonatype.insight.brain.enterprise.reporting;
 
+import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
+import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -45,11 +48,24 @@ public class EnterpriseReportingResource
 
   public static final String GENERATE_EMBED_TOKENS = "generateEmbedTokens";
 
+  public static final String SAVED_FILTERS_PATH = "filters";
+
+  public static final String DELETE_FILTERS_PATH = SAVED_FILTERS_PATH + "/{filterId}";
+
+  public static final String DEFAULT_FILTER_PATH = SAVED_FILTERS_PATH + "/default";
+
+  public static final String UPDATE_DEFAULT_FILTERS_PATH = DEFAULT_FILTER_PATH + "/{filterId}";
+
   private final EnterpriseReportingService enterpriseReportingService;
 
+  private final EnterpriseReportingFilterService enterpriseReportingFilterService;
+
   @Inject
-  public EnterpriseReportingResource(final EnterpriseReportingService enterpriseReportingService) {
+  public EnterpriseReportingResource(final EnterpriseReportingService enterpriseReportingService,
+                                     final EnterpriseReportingFilterService enterpriseReportingFilterService)
+  {
     this.enterpriseReportingService = enterpriseReportingService;
+    this.enterpriseReportingFilterService = enterpriseReportingFilterService;
   }
 
   @GET
@@ -96,5 +112,58 @@ public class EnterpriseReportingResource
   )
   {
     return enterpriseReportingService.generateEmbedTokens(embedCookielessSessionGenerateTokens, clientUserAgent);
+  }
+
+  @GET
+  @Path(SAVED_FILTERS_PATH)
+  @Produces(MediaType.APPLICATION_JSON)
+  public List<EnterpriseReportingDashboardFilterDTO> getFiltersForCurrentUser() {
+    return enterpriseReportingFilterService.getFiltersForCurrentUser();
+  }
+
+  @POST
+  @Path(SAVED_FILTERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public EnterpriseReportingDashboardFilterDTO createFilterForCurrentUser(
+      EnterpriseReportingDashboardFilterDTO filterDTO)
+  {
+    return enterpriseReportingFilterService.upsertFilterForCurrentUser(filterDTO);
+  }
+
+  @PUT
+  @Path(SAVED_FILTERS_PATH)
+  @Consumes(MediaType.APPLICATION_JSON)
+  @Produces(MediaType.APPLICATION_JSON)
+  public EnterpriseReportingDashboardFilterDTO updateFilterForCurrentUser(
+      EnterpriseReportingDashboardFilterDTO filterDTO)
+  {
+    return enterpriseReportingFilterService.upsertFilterForCurrentUser(filterDTO);
+  }
+
+  @DELETE
+  @Path(DELETE_FILTERS_PATH)
+  public void deleteDashboardFilterForCurrentUser(@PathParam("filterId") String filterId) {
+    enterpriseReportingFilterService.deleteFilterForCurrentUser(filterId);
+  }
+
+  @GET
+  @Path(DEFAULT_FILTER_PATH)
+  @Produces(MediaType.TEXT_PLAIN)
+  public String getDefaultFilterForCurrentUser() {
+    return enterpriseReportingFilterService.getDefaultFilterForCurrentUser();
+  }
+
+  @DELETE
+  @Path(DEFAULT_FILTER_PATH)
+  public void deleteDefaultFilterForCurrentUser() {
+    enterpriseReportingFilterService.deleteDefaultFilterForCurrentUser();
+  }
+
+  @PUT
+  @Path(UPDATE_DEFAULT_FILTERS_PATH)
+  @Produces(MediaType.TEXT_PLAIN)
+  public String setDefaultFilterForCurrentUser(@PathParam("filterId") String filterId) {
+    return enterpriseReportingFilterService.setDefaultFilterForCurrentUser(filterId);
   }
 }

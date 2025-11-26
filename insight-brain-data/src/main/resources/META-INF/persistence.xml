@@ -63,6 +63,8 @@
     <class>com.sonatype.insight.brain.model.tag.PolicyTag</class>
     <class>com.sonatype.insight.brain.model.tag.Tag</class>
     <class>com.sonatype.insight.brain.model.filter.DashboardFilter</class>
+    <class>com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter</class>
+    <class>com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter</class>
     <class>com.sonatype.insight.brain.model.configuration.DataRetentionPolicy</class>
     <class>com.sonatype.insight.brain.model.configuration.MailConfiguration</class>
     <class>com.sonatype.insight.brain.model.configuration.ZScalerConfiguration</class>

@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlConfiguratio
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO;
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
@@ -474,4 +476,8 @@ public interface DAOFactory
   ZScalerMetricsDAO createZScalerMetricsDAO();
 
   ZscalerFormatDAO createZscalerFormatDAO();
+
+  EnterpriseReportingFilterDAO createEnterpriseReportingFilterDAO();
+
+  EnterpriseReportingDefaultFilterDAO createEnterpriseReportingDefaultFilterDAO();
 }

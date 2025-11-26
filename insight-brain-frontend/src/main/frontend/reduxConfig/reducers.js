@@ -96,6 +96,7 @@ import toastSlice from '../toastContainer/toastSlice';
 import vulnerabilityCustomizeSlice from 'MainRoot/vulnerabilityCustomize/vulnerabilityCustomizeSlice';
 import baseUrlConfigurationSlice from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import waivedComponentUpgradesConfigurationSlice from 'MainRoot/configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfigurationSlice';
+import userTokensConfigurationSlice from 'MainRoot/configuration/userTokensConfiguration/userTokensConfigurationSlice';
 import sourceControlRateLimitsSlice from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimitsSlice';
 import integrationsSlice from 'MainRoot/development/developmentDashboard/slices/integrationsSlice';
 import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
@@ -220,6 +221,7 @@ export default combineReducers({
   toast: toastSlice,
   baseUrlConfiguration: baseUrlConfigurationSlice,
   waivedComponentUpgradesConfiguration: waivedComponentUpgradesConfigurationSlice,
+  userTokensConfiguration: userTokensConfigurationSlice,
   sourceControlRateLimits: sourceControlRateLimitsSlice,
   integrations: integrationsSlice,
   enterpriseReportingDashboard: enterpriseReportingDashboardSlice,

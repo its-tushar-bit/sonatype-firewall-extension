@@ -158,6 +158,7 @@
 @use '../OrgsAndPolicies/navigation/ownerDetailSidebar';
 @use '../firewallOnboarding/firewallOnboarding';
 @use '../configuration/waivedComponentUpgradesConfiguration/waivedComponentUpgradesConfiguration';
+@use '../configuration/userTokensConfiguration/userTokensConfiguration';
 @use '../OrgsAndPolicies/sourceControlRateLimits/sourceControlRateLimits';
 @use '../enterpriseReporting/enterpriseReportingLandingPage';
 @use '../enterpriseReporting/card/enterpriseReportCard';

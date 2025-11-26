@@ -24,6 +24,7 @@ import AdministratorsConfig from './administrators/config/AdministratorsConfig';
 import AdministratorsEdit from './administrators/edit/AdministratorsEdit';
 import GettingStartedContainer from './gettingStarted/GettingStartedContainer';
 import WaivedComponentUpgradesConfiguration from './waivedComponentUpgradesConfiguration/WaivedComponentUpgradesConfiguration';
+import UserTokensConfiguration from './userTokensConfiguration/UserTokensConfiguration';
 import RoiConfigurationPage from './roiConfiguration/RoiConfigurationPage';
 import EditRoiConfigurationPage from './editRoiConfiguration/EditRoiConfigurationPage';
 import UserActivityDetailsContainer from './userActivityOverview/UserActivityDetailsContainer';
@@ -57,6 +58,7 @@ export default angular
     'waivedComponentUpgradesConfiguration',
     iqReact2Angular(WaivedComponentUpgradesConfiguration, [], ['$state'])
   )
+  .component('userTokensConfiguration', iqReact2Angular(UserTokensConfiguration, [], []))
   .component('systemNoticeConfiguration', iqReact2Angular(SystemNoticeConfigurationContainer, [], []))
   .component('administratorsConfig', iqReact2Angular(AdministratorsConfig, [], []))
   .component('administratorsEdit', iqReact2Angular(AdministratorsEdit, [], ['$state']))
@@ -132,6 +134,14 @@ function routes($stateProvider) {
       data: {
         title: 'Success Metrics',
         isDirty: ['waivedComponentUpgradesConfiguration', 'isDirty'],
+      },
+    })
+    .state('userTokensConfiguration', {
+      component: 'userTokensConfiguration',
+      url: '/userTokensConfiguration',
+      data: {
+        title: 'User Tokens',
+        isDirty: ['userTokensConfiguration', 'isDirty'],
       },
     })
     .state('systemNoticeConfiguration', {

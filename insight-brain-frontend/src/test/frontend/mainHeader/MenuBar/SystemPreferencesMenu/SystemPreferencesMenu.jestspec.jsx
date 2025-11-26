@@ -229,6 +229,20 @@ describe('SystemPreferencesMenu', () => {
     expect(screen.getByText('System Notice')).toBeInTheDocument();
   });
 
+  it('should display "User Tokens Configuration" link when "CONFIGURE_SYSTEM" is true', () => {
+    render(<SystemPreferencesMenu permissions={permissions} />);
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.getByText('User Tokens Configuration')).toBeInTheDocument();
+  });
+
+  it('should not display "User Tokens Configuration" link when "CONFIGURE_SYSTEM" is false', () => {
+    render(<SystemPreferencesMenu permissions={{ CONFIGURE_SYSTEM: false }} />);
+    const button = screen.getByRole('button');
+    fireEvent.click(button);
+    expect(screen.queryByText('User Tokens Configuration')).toBeNull();
+  });
+
   // Will be enabled in: NEXUS-46126
   // describe('ROI Configuration', () => {
   //   it('should display when has both Lifecycle and Firewall License', () => {

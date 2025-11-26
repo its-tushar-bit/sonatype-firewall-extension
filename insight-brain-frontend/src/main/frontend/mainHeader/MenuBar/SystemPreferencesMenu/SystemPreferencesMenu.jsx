@@ -249,6 +249,14 @@ export const SystemPreferencesMenu = ({
       >
         Advanced Search
       </NavLink>
+      <NavLink
+        stateName="userTokensConfiguration"
+        id="system-configuration-user-tokens"
+        showIf={CONFIGURE_SYSTEM}
+        prefix={firewallPrefix}
+      >
+        User Tokens Configuration
+      </NavLink>
       {/* Will be enabled in: NEXUS-46126
       {CONFIGURE_SYSTEM && (
         <NavLink

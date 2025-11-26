@@ -82,6 +82,10 @@ public class SystemConfigMenu
     return child("#system-configuration-saml");
   }
 
+  public SelenideElement userTokensConfiguration() {
+    return child("#system-configuration-user-tokens");
+  }
+
   public SelenideElement dataInsights() {
     return child("#system-labs-data-insights");
   }

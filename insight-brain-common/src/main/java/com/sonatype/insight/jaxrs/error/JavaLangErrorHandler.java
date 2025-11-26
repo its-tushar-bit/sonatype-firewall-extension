@@ -58,7 +58,7 @@ public class JavaLangErrorHandler
     if (exitOnFatalError) {
       try {
         log.error("Exiting on fatal error"
-            + ", see https://help.sonatype.com/display/NXIQ/Automatic+Shutdown+on+Errors for details.");
+            + ", see https://links.sonatype.com/products/lifecycle/docs/automatic-shutdown-on-errors for details.");
       }
       finally {
         runtime.exit(1);

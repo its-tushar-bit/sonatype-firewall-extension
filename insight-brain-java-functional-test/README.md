@@ -125,3 +125,42 @@ To fix this, run the following command from the insight-brain-data folder of the
 ```
 mvn process-classes
 ```
+
+### Docker API version incompatibility with testcontainers
+
+#### 4) "client version 1.32 is too old. Minimum supported API version is 1.44"
+
+When running functional tests with Docker/testcontainers, you may encounter an error similar to:
+
+```
+Caused by: java.lang.ExceptionInInitializerError: Exception java.lang.IllegalStateException: Could not find a valid Docker environment. Please see logs and check configuration [in thread "main"]
+```
+
+And when `-X` debug flag is added to the maven command, a more detailed error like this:
+
+```
+Caused by: com.github.dockerjava.api.exception.BadRequestException: Status 400:
+{"message":"client version 1.32 is too old. Minimum supported API version is 1.44, please upgrade your client to a newer version"}
+```
+
+This occurs because:
+- The project uses testcontainers 1.21.3, which depends on docker-java-api 3.4.2
+- docker-java-api 3.4.2 uses Docker API version 1.32 by default
+- Modern Docker Desktop versions (29.0+) require minimum API version 1.44
+
+#### Fix
+
+Add the `-Dapi.version=1.44` system property when running functional tests with the `docker-functional-tests` profile:
+
+```bash
+mvn test-compile failsafe:integration-test failsafe:verify \
+  -Dit.test=YourTestClass#yourTestMethod \
+  -Pdocker-functional-tests \
+  -Dapi.version=1.44 \
+  -pl insight-brain-java-functional-test
+```
+
+This overrides the default Docker API version used by docker-java-api to match your Docker Desktop version.
+
+**Note**: This is only needed when running tests locally with newer Docker Desktop versions. CI/CD environments typically use compatible Docker versions and don't require this flag.
+

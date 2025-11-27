@@ -39,3 +39,11 @@ license:
 # Check styling
 style:
     {{mvn}} checkstyle:check pmd:check
+
+# Run all functional tests with Docker
+func-test:
+    {{mvn}} test-compile failsafe:integration-test failsafe:verify -Pdocker-functional-tests -Dapi.version=1.44 -pl insight-brain-java-functional-test
+
+# Run specific functional test (usage: just func-test-specific TestClassName#testMethodName)
+func-test-specific TEST:
+    {{mvn}} test-compile failsafe:integration-test failsafe:verify -Pdocker-functional-tests -Dapi.version=1.44 -pl insight-brain-java-functional-test -Dit.test={{TEST}}

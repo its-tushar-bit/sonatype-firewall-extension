@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static com.sonatype.nexus.scm.SourceControlProvider.BITBUCKET;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -76,6 +77,8 @@ public class PullRequestFeedbackDetails
       ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, ORANGE_BAR, // 4 - 7
       RED_BAR, RED_BAR, RED_BAR // 8 - 10
   };
+
+  private static final int MAX_BITBUCKET_DESCRIPTION_COMPONENTS = 10;
 
   private static Template policyViolationDiffMDEmbeddedHtmlTemplate;
 
@@ -465,6 +468,8 @@ public class PullRequestFeedbackDetails
         .put("applicationName", app.getName())
         .put("organizationName", getOrganizationName(app))
         .put("componentList", newComponentFeedbackList)
+        .put("maxComponents", provider == BITBUCKET ? MAX_BITBUCKET_DESCRIPTION_COMPONENTS : Integer.MAX_VALUE)
+        .put("maxFixedComponents", provider == BITBUCKET ? MAX_BITBUCKET_DESCRIPTION_COMPONENTS : Integer.MAX_VALUE)
         .put("date", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").format(featureBranchEvaluation.getTime()))
         .put("featureBranchStage", StringUtils.capitalize(featureBranchEvaluation.getStageTypeId()))
         .put("baseBranchStage", StringUtils.capitalize(baseBranchEvaluation.getStageTypeId()))

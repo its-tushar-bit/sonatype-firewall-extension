@@ -56,6 +56,12 @@ public class PullRequestCodeInsightsDetails
   // We provide the IQ report link at the Code Insight report level. The annotation link is not required.
   private static final URI ANNOTATION_LINK = null;
 
+  @SuppressWarnings("checkstyle:LineLength")
+  // BitBucket Cloud and BitBucket Server have a limit of 1000 annotations per report
+  // https://support.atlassian.com/bitbucket-cloud/docs/code-insights/#Annotations
+  // https://developer.atlassian.com/server/bitbucket/rest/v819/api-group-builds-and-deployments/#api-insights-latest-projects-projectkey-repos-repositoryslug-commits-commitid-reports-key-annotations-post
+  private static final int BITBUCKET_ANNOTATION_LIMIT = 1000;
+
   private final String repositoryUrl;
 
   private final Application application;
@@ -226,31 +232,43 @@ public class PullRequestCodeInsightsDetails
     BitbucketCodeInsightAnnotationRequestBuilder builder = new BitbucketCodeInsightAnnotationRequestBuilder(
         repositoryUrl);
 
-    newPolicyViolations.forEach(policyViolation -> {
-      String componentDisplayName =
-          sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()).getDisplayName();
-      AnnotationContent annotationContent = new AnnotationContent(policyViolation, componentDisplayName);
-      BitbucketCodeInsightSeverity severity = getSeverity(policyViolation.getThreatLevel());
-
-      String path = null;
-      Integer lineOfCode = null;
-      RankedSourceLocation matchingLocation = findViolationLocation(locationDiscoveryResult, policyViolation);
-      if (matchingLocation != null) {
-        path = matchingLocation.getFilePath();
-        lineOfCode = matchingLocation.getLineNumber();
-      }
-
+    if (newPolicyViolations.size() > BITBUCKET_ANNOTATION_LIMIT) {
       builder.withAnnotation(
-          annotationContent.message,
-          annotationContent.details,
-          severity,
+          "%s component(s) with violations - ".formatted(newPolicyViolations.size()),
+          null,
+          BitbucketCodeInsightSeverity.HIGH,
           ANNOTATION_TYPE,
-          ANNOTATION_LINK,
-          path,
-          lineOfCode
+          getReportUri(),
+          null,
+          null
       );
-    });
+    }
+    else {
+      newPolicyViolations.forEach(policyViolation -> {
+        String componentDisplayName =
+            sourceControlComponentDetails.getComponentInfo(policyViolation.getHash()).getDisplayName();
+        AnnotationContent annotationContent = new AnnotationContent(policyViolation, componentDisplayName);
+        BitbucketCodeInsightSeverity severity = getSeverity(policyViolation.getThreatLevel());
 
+        String path = null;
+        Integer lineOfCode = null;
+        RankedSourceLocation matchingLocation = findViolationLocation(locationDiscoveryResult, policyViolation);
+        if (matchingLocation != null) {
+          path = matchingLocation.getFilePath();
+          lineOfCode = matchingLocation.getLineNumber();
+        }
+
+        builder.withAnnotation(
+            annotationContent.message,
+            annotationContent.details,
+            severity,
+            ANNOTATION_TYPE,
+            ANNOTATION_LINK,
+            path,
+            lineOfCode
+        );
+      });
+    }
     return builder.build();
   }
 

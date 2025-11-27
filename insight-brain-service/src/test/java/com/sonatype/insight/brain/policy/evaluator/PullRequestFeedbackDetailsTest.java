@@ -1058,6 +1058,44 @@ public class PullRequestFeedbackDetailsTest
     assertThat(result).isEmpty();
   }
 
+  @Test
+  public void testPullRequestFeedback_Bitbucket_LimitedViolatingComponents() throws Exception {
+    setupTestData("/PullRequestFeedbackDetailsTest/from-report", "/PullRequestFeedbackDetailsTest/to-report-large",
+        false);
+    bitbucketGitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.org/scm/project/repo", null, "user", "token",
+            SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, true, false, null);
+
+    PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(componentDetails, featureBranchPolicyEvaluation, defaultBranchPolicyEvaluation,
+            diff, remediationVersionMap, pullRequestLineComments, bitbucketGitRepositoryInfo, pullRequestNumber, app,
+            lookup(BaseUrl.class).getConfigured(), false, organizationDAO, developmentPrioritiesUtilsService,
+            FULL_DATA);
+
+    Optional<String> contents = details.renderTemplateAndGetContents();
+    assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Added_noEmbeddedHtml_LimitedComponents.md");
+  }
+
+  @Test
+  public void testPullRequestFeedback_Bitbucket_LimitedFixedComponents() throws Exception {
+    setupTestData("/PullRequestFeedbackDetailsTest/to-report-large", "/PullRequestFeedbackDetailsTest/from-report",
+        false);
+    bitbucketGitRepositoryInfo =
+        new GitRepositoryInfo("https://bitbucket.org/scm/project/repo", null, "user", "token",
+            SourceControlProvider.BITBUCKET, "master", true, true, true, true, true, true, false, null);
+    SourceControlComponentDetails sourceControlComponentDetails =
+        sourceControlComponentLoader.getSourceControlComponentDetails(
+            featureBranchPolicyEvaluation.getApplicationId(), defaultBranchPolicyEvaluation.getScanId());
+    PullRequestFeedbackDetails details =
+        new PullRequestFeedbackDetails(sourceControlComponentDetails, featureBranchPolicyEvaluation,
+            defaultBranchPolicyEvaluation, diff, remediationVersionMap, pullRequestLineComments,
+            bitbucketGitRepositoryInfo, pullRequestNumber, app, lookup(BaseUrl.class).getConfigured(), false,
+            organizationDAO, developmentPrioritiesUtilsService, FULL_DATA);
+
+    Optional<String> contents = details.renderTemplateAndGetContents();
+    assertRenderedOutput(contents, getClass(), "PullRequestFeedback_Cleared_noEmbeddedHtml_LimitedComponents.md");
+  }
+
   private PolicyViolation createClearedPolicyViolation() {
     PolicyViolation existingViolation = diff.getAppeared().get(0);
     PolicyViolation policyViolation = new PolicyViolation();

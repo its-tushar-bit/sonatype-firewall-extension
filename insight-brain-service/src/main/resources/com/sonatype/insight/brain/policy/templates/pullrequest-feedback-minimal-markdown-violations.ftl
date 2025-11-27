@@ -5,6 +5,7 @@
 &#8192;<#-- spacer -->
 
 <#list componentList as component>
+<#if (component?index < maxComponents)>
   <#switch component.dependencyLogo>
       <#case "d-logo.png">
         \[Direct\] <#t>
@@ -38,7 +39,13 @@
 
   &#8192;<#-- spacer --><#lt>
 
+</#if>
 </#list><#t>
+<#if (componentList?size > maxComponents)>
+
+**...and ${componentList?size - maxComponents} more component(s) with violations.**
+
+</#if>
 <#else>
   ### :smiley: All Clear! Sonatype Lifecycle didn't find any policy violations introduced by this PR<#lt>
 
@@ -52,6 +59,7 @@
 ### :sunglasses: Sonatype Lifecycle determined that you fixed <#if ( fixedPolicyViolationsCount > 1 )>outstanding policy violations<#else>an outstanding policy violation</#if>:
 
 <#list fixedComponentList as component>
+<#if (component?index < maxFixedComponents)>
   :white_check_mark: **${component.componentNameAndVersion}**<#lt>
 
   | **Threat (of 10)** | **Policy** | **Violation Details** |<#lt>
@@ -66,7 +74,13 @@
 
   &#8192;<#-- spacer --><#lt>
 
+</#if>
 </#list>
+<#if (fixedComponentList?size > maxFixedComponents)>
+
+**...and ${fixedComponentList?size - maxFixedComponents} more fixed component(s).**
+
+</#if>
 </#if>
 ### Sonatype Lifecycle Report Details<#lt>
 **Application**: ${applicationName}   <#lt><#-- 3 spaces before a newline renders as a br -->

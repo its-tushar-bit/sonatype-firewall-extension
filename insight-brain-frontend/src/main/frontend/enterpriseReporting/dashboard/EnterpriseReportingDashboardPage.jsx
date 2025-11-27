@@ -5,9 +5,11 @@
  */
 import React, { useEffect } from 'react';
 import * as PropTypes from 'prop-types';
+import classNames from 'classnames';
 import {
   NxLoadWrapper,
   NxPageMain,
+  NxPageTitle,
   NxTextLink,
   NxH1,
   NxH3,
@@ -17,8 +19,11 @@ import {
   NxTab,
   NxTabPanel,
   NxErrorAlert,
+  NxButtonBar,
+  NxButton,
+  NxTag,
 } from '@sonatype/react-shared-components';
-import { find, includes, replace, pluck, propEq, test, when } from 'ramda';
+import { find, includes, replace, pluck, test, when } from 'ramda';
 import { useDispatch, useSelector } from 'react-redux';
 
 import EnterpriseReportingSupportInfo from '../supportInfo/EnterpiseReportingSupportInfo';
@@ -31,6 +36,14 @@ import {
   selectDataInsightsDashboards,
 } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSelectors';
 import { selectRouterCurrentParams, selectRouterPrevState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectEnterpriseReportingFilter,
+  selectIsFilterDirty,
+} from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSelectors';
+import {
+  actions as drawerActions,
+  EI_DEFAULT_FILTER_NAME,
+} from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSlice';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import {
   selectEnterpriseReportingLicenseError,
@@ -38,6 +51,7 @@ import {
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
 import { getUpgradeVersion, isElementDisabled } from '../utils';
 import useLookerDashboard from 'MainRoot/react/useLookerDashboard';
+import EnterpriseReportingFilter from 'MainRoot/enterpriseReporting/filter/EnterpriseReportingFilter';
 
 /* global CLM_SERVER_VERSION */
 export default function EnterpriseReportingDashboardPage() {
@@ -48,10 +62,20 @@ export default function EnterpriseReportingDashboardPage() {
   const licenseError = useSelector(selectEnterpriseReportingLicenseError);
   const { id, groupId } = useSelector(selectRouterCurrentParams); //need to pull the dashboard's id from the URL to query Looker
   const routerPrevState = useSelector(selectRouterPrevState);
-  const { loading, loadError, dashboardTabs, activeDashboardTab } = useSelector(selectEnterpriseReportingDashboard);
+  const {
+    loading,
+    loadError,
+    dashboardTabs,
+    activeDashboardTab,
+    selectedDashboardName,
+    selectedDashboard,
+  } = useSelector(selectEnterpriseReportingDashboard);
+  const { appliedFilterName } = useSelector(selectEnterpriseReportingFilter);
+  const isFilterDirty = useSelector(selectIsFilterDirty);
   const combinedDashboards = useSelector(selectCombinedDashboards);
   const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
   const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
+  const toggleShowFilter = () => dispatch(drawerActions.toggleShowFilter());
 
   const { loadingDashboard, iframeError } = useLookerDashboard();
 
@@ -60,6 +84,9 @@ export default function EnterpriseReportingDashboardPage() {
 
   const isLoading = loadingFeatures || loadingDashboard;
   const combinedError = licenseError || iframeError;
+  const iframeClassNames = classNames('enterprise-reporting-dashboard__container', {
+    loading: loadingDashboard,
+  });
 
   useEffect(() => {
     if (!['enterpriseReportingDashboardGroup', 'enterpriseReportingDashboard'].includes(routerPrevState.name)) {
@@ -91,72 +118,94 @@ export default function EnterpriseReportingDashboardPage() {
         error={combinedError}
       ></NxLoadWrapper>
       {/* The dashboard container should be outside of the load wrapper or the looker sdk wont be able to embed the iframe */}
-      {!iframeError && (
-        <div
-          className="enterprise-reporting-dashboard__container"
-          id="dashboard"
-          role="enterprise-reporting-dashboard"
-        />
-      )}
+      {!iframeError && <div className={iframeClassNames} id="dashboard" role="enterprise-reporting-dashboard" />}
     </>
   );
 
   const calculateTabTitle = when(test(/^view\s+/i), replace(/^view\s+/i, ''));
 
   return (
-    <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
-      <nav className="enterprise-reporting-dashboard__navigation-bar">
-        <NavigationBarRow
-          activeDashboard={id}
-          dashboards={enterpriseDashboards}
-          title="Enterprise Dashboards"
-          isDashboardDisabled={isDashboardDisabled}
-        />
-        <NavigationBarRow
-          activeDashboard={id}
-          dashboards={dataInsightsDashboards}
-          title="Data Insights"
-          isDashboardDisabled={isDashboardDisabled}
-        />
-      </nav>
-      <NxLoadWrapper loading={loading} retryHandler={() => dispatch(stateGo('enterpriseReporting'))} error={loadError}>
-        {dashboardTabs.length ? (
-          <>
-            {groupId && <NxH1>{find(propEq('groupId', groupId), combinedDashboards)?.title}</NxH1>}
-            <NxTabs activeTab={activeDashboardTab} onTabSelect={(tabIndex) => onTabSelect(tabIndex, groupId)}>
-              <NxTabList>
+    <>
+      {selectedDashboard?.category === 'enterprise' && <EnterpriseReportingFilter />}
+      <NxPageMain id="enterprise-reporting-dashboard-page" className="nx-viewport-sized">
+        <nav className="enterprise-reporting-dashboard__navigation-bar">
+          <NavigationBarRow
+            activeDashboard={id}
+            dashboards={enterpriseDashboards}
+            title="Enterprise Dashboards"
+            isDashboardDisabled={isDashboardDisabled}
+          />
+          <NavigationBarRow
+            activeDashboard={id}
+            dashboards={dataInsightsDashboards}
+            title="Data Insights"
+            isDashboardDisabled={isDashboardDisabled}
+          />
+        </nav>
+        <NxPageTitle>
+          <NxH1>{selectedDashboardName}</NxH1>
+          {selectedDashboard?.category === 'enterprise' && (
+            <NxButtonBar>
+              <div className="enterprise-reporting-dashboard__filter-tag">
+                <NxH3>Current Filter Set:</NxH3>
+                <NxTag color="sky">
+                  {isFilterDirty && '*'}
+                  {appliedFilterName || EI_DEFAULT_FILTER_NAME}
+                </NxTag>
+              </div>
+              <NxButton className="filter-button" onClick={toggleShowFilter}>
+                Save / Apply Filters
+              </NxButton>
+            </NxButtonBar>
+          )}
+        </NxPageTitle>
+
+        <NxLoadWrapper
+          loading={loading}
+          retryHandler={() => dispatch(stateGo('enterpriseReporting'))}
+          error={loadError}
+        >
+          {dashboardTabs.length ? (
+            <>
+              <NxTabs
+                activeTab={activeDashboardTab}
+                className="enterprise-reporting-dashboard__tabs"
+                onTabSelect={(tabIndex) => onTabSelect(tabIndex, groupId)}
+              >
+                <NxTabList>
+                  {dashboardTabs.map((dashboard) => (
+                    <NxTab
+                      key={dashboard.dashboardId}
+                      className={`enterprise-reporting-dashboard-${dashboard.dashboardId}`}
+                    >
+                      {calculateTabTitle(dashboard.accessButtonText)}
+                    </NxTab>
+                  ))}
+                </NxTabList>
                 {dashboardTabs.map((dashboard) => (
-                  <NxTab
-                    key={dashboard.dashboardId}
-                    className={`enterprise-reporting-dashboard-${dashboard.dashboardId}`}
-                  >
-                    {calculateTabTitle(dashboard.accessButtonText)}
-                  </NxTab>
+                  <NxTabPanel key={dashboard.dashboardId} id={dashboard.dashboardId}>
+                    {isDashboardDisabled(dashboard) ? (
+                      <NxErrorAlert className="dashboard-disabled">
+                        You&apos;re using a version of Lifecycle that does not support this dashboard. To unlock this
+                        feature,{' '}
+                        <NxTextLink external href="https://links.sonatype.com/products/clm/download">
+                          update to version {dashboard.sinceIQVersion} or later
+                        </NxTextLink>
+                      </NxErrorAlert>
+                    ) : (
+                      iframeContainerHtml
+                    )}
+                  </NxTabPanel>
                 ))}
-              </NxTabList>
-              {dashboardTabs.map((dashboard) => (
-                <NxTabPanel key={dashboard.dashboardId} id={dashboard.dashboardId}>
-                  {isDashboardDisabled(dashboard) ? (
-                    <NxErrorAlert className="dashboard-disabled">
-                      You&apos;re using a version of Lifecycle that does not support this dashboard. To unlock this
-                      feature,{' '}
-                      <NxTextLink external href="https://links.sonatype.com/products/clm/download">
-                        update to version {dashboard.sinceIQVersion} or later
-                      </NxTextLink>
-                    </NxErrorAlert>
-                  ) : (
-                    iframeContainerHtml
-                  )}
-                </NxTabPanel>
-              ))}
-            </NxTabs>
-          </>
-        ) : (
-          iframeContainerHtml
-        )}
-      </NxLoadWrapper>
-      <EnterpriseReportingSupportInfo />
-    </NxPageMain>
+              </NxTabs>
+            </>
+          ) : (
+            iframeContainerHtml
+          )}
+        </NxLoadWrapper>
+        <EnterpriseReportingSupportInfo />
+      </NxPageMain>
+    </>
   );
 }
 

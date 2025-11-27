@@ -12,7 +12,6 @@ import {
   getEnterpriseReportingDashboardsUrl,
   getProductFeaturesUrl,
 } from 'MainRoot/util/CLMLocation';
-import { initialState } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
 import { actions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
 import * as routerSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
@@ -32,7 +31,11 @@ describe('EnterpriseReportingDashboardPage', () => {
     render(<EnterpriseReportingDashboardPage />, {
       preloadedState: {
         enterpriseReportingDashboard: {
-          selectedDashboard: { dashboardId: 'rolling-recap', dashboardPath: 'dashboards/rolling_recap::rolling_recap' },
+          selectedDashboard: {
+            dashboardId: 'rolling-recap',
+            dashboardPath: 'dashboards/rolling_recap::rolling_recap',
+            category: 'dataInsight',
+          },
           dashboardTabs: [],
         },
       },
@@ -41,6 +44,21 @@ describe('EnterpriseReportingDashboardPage', () => {
   beforeAll(() => {
     global.CLM_SERVER_VERSION = '1.188.0-SNAPSHOT';
     axiosMock = axiosMockAdapter();
+  });
+
+  beforeEach(() => {
+    const mockRouterContext = {
+      href: jest.fn().mockImplementation((stateName, stateParam) => {
+        if (stateName === 'enterpriseReportingDashboardGroup') {
+          return `/enterpriseReportingDashboard/${stateParam?.groupId}/${stateParam?.id}`;
+        } else {
+          return `/${stateName}/${stateParam?.id}`;
+        }
+      }),
+      get: jest.fn(),
+      includes: jest.fn(),
+    };
+    jest.spyOn(routerContext, 'useRouterState').mockReturnValue(mockRouterContext);
   });
 
   beforeEach(() => {
@@ -65,12 +83,19 @@ describe('EnterpriseReportingDashboardPage', () => {
       session_reference_token: 'session_reference_token',
       session_reference_token_ttl: 1800,
     });
-    jest.spyOn(LookerEmbedSDK, 'createDashboardWithId').mockReturnValue({
-      appendTo: jest.fn().mockReturnValue({ build: jest.fn().mockReturnValue({ connect: jest.fn() }) }),
-    });
+
+    const chain = {
+      appendTo: jest.fn().mockReturnThis(),
+      withParams: jest.fn().mockReturnThis(),
+      withDynamicIFrameHeight: jest.fn().mockReturnThis(),
+      build: jest.fn().mockReturnThis(),
+      connect: jest.fn(),
+    };
+    jest.spyOn(LookerEmbedSDK, 'createDashboardWithId').mockReturnValue(chain);
   });
 
   it('shows loading before iframe is loaded and the renders the iframe', async () => {
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'rolling-recap' });
     renderPage();
 
     expect(screen.getAllByRole('status').length).toBe(2); //one for iframe, one for telemetry status
@@ -109,16 +134,16 @@ describe('EnterpriseReportingDashboardPage', () => {
 
   it('calls setSelectDashboard according to the dashboardId from the url', async () => {
     const selectedDashboardSpy = jest.spyOn(actions, 'setSelectedDashboard');
-    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'component-eol' });
+    jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({ id: 'rolling-recap' });
 
-    render(<EnterpriseReportingDashboardPage />, { initialState });
+    renderPage();
     await waitFor(() => {
-      expect(selectedDashboardSpy).toHaveBeenCalledWith(mockData.dashboardMetadata[6]);
+      expect(selectedDashboardSpy).toHaveBeenCalledWith(mockData.dashboardMetadata[5]);
     });
   });
 
   describe('Dashboard Navigation Links', () => {
-    let hrefSpy, routerContextMock;
+    let hrefSpy;
 
     const preloadedState = {
       enterpriseReportingDashboard: {
@@ -138,7 +163,7 @@ describe('EnterpriseReportingDashboardPage', () => {
           return `/${stateName}/${stateParam.id}`;
         }
       });
-      routerContextMock = { href: hrefSpy };
+      const routerContextMock = { href: hrefSpy, get: jest.fn(), includes: jest.fn() };
       jest.spyOn(routerContext, 'useRouterState').mockReturnValue(routerContextMock);
       jest.spyOn(routerSelectors, 'selectRouterCurrentParams').mockReturnValue({
         id: 'rolling-recap',
@@ -178,7 +203,8 @@ describe('EnterpriseReportingDashboardPage', () => {
       renderComponent();
       const nav = screen.getByRole('navigation');
 
-      const rollingRecap = await screen.findByText('Rolling Recap Dashboard');
+      //2 instances - the H1 title & span in navigation bar
+      const rollingRecap = screen.getAllByText('Rolling Recap Dashboard')[0];
       expect(rollingRecap).toBeInTheDocument();
       expect(rollingRecap.tagName).toBe('SPAN');
 

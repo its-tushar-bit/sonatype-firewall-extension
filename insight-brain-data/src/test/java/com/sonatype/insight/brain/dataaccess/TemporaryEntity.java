@@ -85,6 +85,8 @@ import com.sonatype.insight.brain.dataaccess.development.prioritization.Developm
 import com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationDAO;
 import com.sonatype.insight.brain.dataaccess.filter.DashboardFilterDAO;
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingFilterDAO;
+import com.sonatype.insight.brain.dataaccess.enterprisereporting.EnterpriseReportingDefaultFilterDAO;
 import com.sonatype.insight.brain.dataaccess.ide.UserIdePolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.innersource.InnerSourceVersionDAO;
@@ -234,6 +236,8 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.model.filter.DashboardFilter;
 import com.sonatype.insight.brain.model.filter.UserFilter;
 import com.sonatype.insight.brain.model.filter.UserFilterType;
+import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingFilter;
+import com.sonatype.insight.brain.model.enterprisereporting.EnterpriseReportingDefaultFilter;
 import com.sonatype.insight.brain.model.innersource.InnerSourceApplication;
 import com.sonatype.insight.brain.model.innersource.InnerSourceVersion;
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
@@ -478,6 +482,10 @@ public class TemporaryEntity
   private DashboardFilterDAO dashboardFilterDAO;
 
   private UserFilterDAO userFilterDAO;
+
+  private EnterpriseReportingFilterDAO enterpriseReportingFilterDAO;
+
+  private EnterpriseReportingDefaultFilterDAO enterpriseReportingDefaultFilterDAO;
 
   private UserViewedProductNotificationDAO userViewedProductNotificationDAO;
 
@@ -987,6 +995,8 @@ public class TemporaryEntity
       delete(clusterIdentificationDAO.getAll(), clusterIdentificationDAO);
       delete(zScalerConfigurationDAO.getAll(), zScalerConfigurationDAO);
       delete(zscalerFormatDAO.getAll(), zscalerFormatDAO);
+      delete(enterpriseReportingFilterDAO.getAll(), enterpriseReportingFilterDAO);
+      delete(enterpriseReportingDefaultFilterDAO.getAll(), enterpriseReportingDefaultFilterDAO);
 
       restoreInitialWaiverReasons();
       productLicenseDAO.delete();
@@ -1185,6 +1195,29 @@ public class TemporaryEntity
     userFilter.setBasedOnFilterName(basedOn);
     userFilterDAO.insert(userFilter);
     return userFilter;
+  }
+
+  /**
+   * Creates and persists a new EnterpriseReportingFilter for tests.
+   * Note: The enterprise_reporting_filter_id column is mapped to EnterpriseReportingFilter.id. The DAO will
+   * auto-generate a UUID for the id if it is not provided, so callers do not need to set it explicitly.
+   */
+  public EnterpriseReportingFilter newEnterpriseReportingFilter(String userId, String filterName, String filterJson) {
+    EnterpriseReportingFilter filter = new EnterpriseReportingFilter();
+    filter.setUserId(userId);
+    filter.setFilterName(filterName);
+    filter.setFilter(filterJson);
+    // insert will assign an id if none is set
+    enterpriseReportingFilterDAO.insert(filter);
+    return filter;
+  }
+
+  public EnterpriseReportingDefaultFilter newEnterpriseReportingDefaultFilter(String userId, String filterId) {
+    EnterpriseReportingDefaultFilter filter = new EnterpriseReportingDefaultFilter();
+    filter.setId(userId);
+    filter.setFilterId(filterId);
+    enterpriseReportingDefaultFilterDAO.insert(filter);
+    return filter;
   }
 
   public Organization newOrganization() {
@@ -1576,6 +1609,12 @@ public class TemporaryEntity
     String uuid = uuid();
     return newSamlUser("username" + uuid, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
         new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
+  }
+
+  public SamlUser newSamlUser(String username) {
+    String uuid = uuid();
+    return newSamlUser(username, "firstName" + uuid, "lastName" + uuid, "email@domain" + uuid + ".com",
+            new LinkedHashSet<>(Arrays.asList("group1" + uuid, "group2" + uuid)));
   }
 
   public SamlUser newSamlUser(String username, Set<String> groups) {
@@ -6432,6 +6471,8 @@ public class TemporaryEntity
     hashComponentIdentifierDAO = daoFactory.createHashComponentIdentifierDAO();
     dashboardFilterDAO = daoFactory.createDashboardFilterDAO();
     userFilterDAO = daoFactory.createUserFilterDAO();
+    enterpriseReportingFilterDAO = daoFactory.createEnterpriseReportingFilterDAO();
+    enterpriseReportingDefaultFilterDAO = daoFactory.createEnterpriseReportingDefaultFilterDAO();
     userViewedProductNotificationDAO = daoFactory.createUserViewedProductNotificationDAO();
     policyMonitoringDAO = daoFactory.createPolicyMonitoringDAO();
     repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();

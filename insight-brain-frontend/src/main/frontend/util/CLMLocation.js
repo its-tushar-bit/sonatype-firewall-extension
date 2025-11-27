@@ -68,6 +68,16 @@ export const getEnterpriseReportingSelectedDashboardUrl = (dashboardId) => {
   return uriTemplate`/ui/links/enterpriseReporting/${dashboardId}`;
 };
 
+export const getEnterpriseReportingFilters = () => uriTemplate`/rest/enterpriseReporting/filters`;
+
+export const getDeleteEnterpriseReportingFilter = (filterId) =>
+  uriTemplate`/rest/enterpriseReporting/filters/${filterId}`;
+
+export const getDefaultEnterpriseReportingFilter = () => uriTemplate`/rest/enterpriseReporting/filters/default`;
+
+export const getAssignDefaultEnterpriseReportingFilter = (filterId) =>
+  uriTemplate`/rest/enterpriseReporting/filters/default/${filterId}`;
+
 export const getIqVersion = () => {
   return uriTemplate`/rest/product/version`;
 };

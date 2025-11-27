@@ -865,7 +865,7 @@ public class UserDirectoryTest
   }
 
   private static Member createUser(String name) {
-    return new Member(MemberType.USER, name, null);
+    return new Member(MemberType.USER, name, null, null, null, null);
   }
 
   private static Member createGroup(String name) {
@@ -986,11 +986,14 @@ public class UserDirectoryTest
     UserDirectory userDirectory =
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, mockCrowdClientFactory);
 
+    // Fetch the actual admin user to get its ID
+    User adminUser = userDao.getByUsernameNotNull("admin");
     QueryResult result = userDirectory.getUsersByNames(Sets.newHashSet("admin"));
 
     assertThat(result).isNotNull();
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator().containsExactly(
-        new Member(MemberType.USER, "admin", "Admin BuiltIn", "admin@localhost", InternalRealm.DISPLAY_NAME));
+        new Member(MemberType.USER, "admin", "Admin BuiltIn", "admin@localhost",
+                InternalRealm.DISPLAY_NAME, adminUser.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
     verify(mockCrowdClientFactory, never()).createCrowdClient();
@@ -1052,8 +1055,8 @@ public class UserDirectoryTest
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, mockCrowdClientFactory);
     CrowdClient mockCrowdClient = mock(CrowdClient.class);
     List<Member> members = Arrays.asList(
-        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
-        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID, null),
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null)
     );
     Set<String> queriedUsernames = new LinkedHashSet<>();
     when(mockCrowdClient.searchUsersByUsernames(any())).thenAnswer(invocationOnMock -> {
@@ -1102,9 +1105,9 @@ public class UserDirectoryTest
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-                SamlRealm.ID),
+                SamlRealm.ID, samlUser1.getId()),
             new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-                SamlRealm.ID));
+                SamlRealm.ID, samlUser2.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1139,9 +1142,9 @@ public class UserDirectoryTest
     assertThat(result.get()).usingRecursiveFieldByFieldElementComparator()
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-                SamlRealm.ID),
+                SamlRealm.ID, samlUser1.getId()),
             new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-                SamlRealm.ID));
+                SamlRealm.ID, samlUser2.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1221,10 +1224,10 @@ public class UserDirectoryTest
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, oauth2User1.getUsername(), oauth2User1.calculateDisplayName(),
                 oauth2User1.getEmail(),
-                OAuth2Realm.ID),
+                OAuth2Realm.ID, oauth2User1.getId()),
             new Member(MemberType.USER, oauth2User2.getUsername(), oauth2User2.calculateDisplayName(),
                 oauth2User2.getEmail(),
-                OAuth2Realm.ID));
+                OAuth2Realm.ID, oauth2User2.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1260,10 +1263,10 @@ public class UserDirectoryTest
         .containsExactlyInAnyOrder(
             new Member(MemberType.USER, oauth2User1.getUsername(), oauth2User1.calculateDisplayName(),
                 oauth2User1.getEmail(),
-                OAuth2Realm.ID),
+                OAuth2Realm.ID, oauth2User1.getId()),
             new Member(MemberType.USER, oauth2User2.getUsername(), oauth2User2.calculateDisplayName(),
                 oauth2User2.getEmail(),
-                OAuth2Realm.ID));
+                OAuth2Realm.ID, oauth2User2.getId()));
     assertThat(result.hasException()).isFalse();
     assertThat(result.getException()).isNull();
   }
@@ -1443,8 +1446,8 @@ public class UserDirectoryTest
         new UserDirectory(userDao, ldapServerDAO, ssoUserService, ldapService, mockCrowdClientFactory);
     CrowdClient mockCrowdClient = mock(CrowdClient.class);
     List<Member> expectedMembers = Arrays.asList(
-        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID),
-        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID)
+        new Member(MemberType.USER, "username1", "displayName1", "email1", CrowdRealm.ID, null),
+        new Member(MemberType.USER, "username2", "displayName2", "email2", CrowdRealm.ID, null)
     );
     when(mockCrowdClient.searchUsersByDisplayName(eq("displayName*"))).thenReturn(new LinkedHashSet<>(expectedMembers));
     when(mockCrowdClientFactory.createCrowdClient()).thenReturn(mockCrowdClient);
@@ -1526,9 +1529,9 @@ public class UserDirectoryTest
 
     assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-            SamlRealm.ID),
+            SamlRealm.ID, samlUser1.getId()),
         new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-            SamlRealm.ID));
+            SamlRealm.ID, samlUser2.getId()));
   }
 
   @Test
@@ -1551,9 +1554,9 @@ public class UserDirectoryTest
 
     assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
-            oAuth2User1.getEmail(), OAuth2Realm.ID),
+            oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
         new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
-            oAuth2User2.getEmail(), OAuth2Realm.ID));
+            oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
   }
 
   @Test
@@ -1576,9 +1579,9 @@ public class UserDirectoryTest
 
     assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         new Member(MemberType.USER, samlUser1.getUsername(), samlUser1.calculateDisplayName(), samlUser1.getEmail(),
-            SamlRealm.ID),
+            SamlRealm.ID, samlUser1.getId()),
         new Member(MemberType.USER, samlUser2.getUsername(), samlUser2.calculateDisplayName(), samlUser2.getEmail(),
-            SamlRealm.ID));
+            SamlRealm.ID, samlUser2.getId()));
   }
 
   @Test
@@ -1601,9 +1604,9 @@ public class UserDirectoryTest
 
     assertThat(result).usingRecursiveFieldByFieldElementComparator().containsExactlyInAnyOrder(
         new Member(MemberType.USER, oAuth2User1.getUsername(), oAuth2User1.calculateDisplayName(),
-            oAuth2User1.getEmail(), OAuth2Realm.ID),
+            oAuth2User1.getEmail(), OAuth2Realm.ID, oAuth2User1.getId()),
         new Member(MemberType.USER, oAuth2User2.getUsername(), oAuth2User2.calculateDisplayName(),
-            oAuth2User2.getEmail(), OAuth2Realm.ID));
+            oAuth2User2.getEmail(), OAuth2Realm.ID, oAuth2User2.getId()));
   }
 
   private void assertGroupSearchDisabled(boolean dynamicGroupSearchDisabled, boolean expectedDisabled) {

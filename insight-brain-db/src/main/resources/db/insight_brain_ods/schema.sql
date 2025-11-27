@@ -2149,3 +2149,21 @@ CREATE TABLE zscaler_format (
 
 -- Since 1.193
 INSERT INTO cpe_matching_configuration (cpe_matching_configuration_id, owner_id, cpe_enabled, allow_override) VALUES ('de05215c34f944b7b77ca85f6e096797', 'ROOT_ORGANIZATION_ID', true, true);
+
+-- Since 1.197
+CREATE TABLE enterprise_reporting_filter (
+  enterprise_reporting_filter_id varchar(50) NOT NULL,
+  filter_name varchar(60) NOT NULL,
+  filter_json text NOT NULL,
+  user_id varchar(50) NOT NULL,
+  CONSTRAINT enterprise_reporting_filter_uk UNIQUE (filter_name, user_id),
+  CONSTRAINT enterprise_reporting_filter_pk PRIMARY KEY (enterprise_reporting_filter_id)
+);
+
+CREATE TABLE enterprise_reporting_default_filter (
+  enterprise_reporting_filter_id varchar(50) NOT NULL,
+  user_id varchar(50) NOT NULL,
+  CONSTRAINT enterprise_reporting_default_filter_user_pk PRIMARY KEY (user_id),
+  CONSTRAINT enterprise_reporting_default_filter_id_fk FOREIGN KEY (enterprise_reporting_filter_id)
+      REFERENCES enterprise_reporting_filter(enterprise_reporting_filter_id) ON DELETE CASCADE
+);

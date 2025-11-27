@@ -30,6 +30,17 @@ public class Member
 
   private String dn;
 
+  @JsonIgnore
+  public String getUserId() {
+    return userId;
+  }
+
+  public void setUserId(String userId) {
+    this.userId = userId;
+  }
+
+  private String userId;
+
   public MemberType getType() {
     return type;
   }
@@ -101,9 +112,18 @@ public class Member
     this.realm = realm;
   }
 
+  public Member(MemberType type, String internalName, String displayName, String email, String realm, String userId) {
+    this.type = type;
+    this.internalName = internalName;
+    this.displayName = displayName;
+    this.email = email;
+    this.realm = realm;
+    this.userId = userId;
+  }
+
   @Override
   public String toString() {
     return "Member [type=" + type + ", internalName=" + internalName + ", displayName=" + displayName + ", email="
-        + email + ", realm=" + realm + "]";
+        + email + ", realm=" + realm + ", userId=" + userId + "]";
   }
 }

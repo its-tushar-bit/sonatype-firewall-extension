@@ -239,7 +239,7 @@ public class UserDirectory
     List<User> internalUsers = userDao.getByUsernames(sortedUserNames);
     for (User internalUser : internalUsers) {
       Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
-          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME, internalUser.getId());
       members.add(member);
       sortedUserNames.remove(internalUser.getUsername());
     }
@@ -253,8 +253,8 @@ public class UserDirectory
 
           for (LdapUser user : ldapService
               .getUsersByName(ldapServer, sortedUserNames.toArray(new String[sortedUserNames.size()]))) {
-            Member member =
-                new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+            Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
+                    ldapName, user.getDn());
             member.setDn(user.getDn());
             members.add(member);
             sortedUserNames.remove(user.getUsername());
@@ -272,7 +272,7 @@ public class UserDirectory
     if (!sortedUserNames.isEmpty() && ssoUserService.isSsoConfigured()) {
       for (SsoUser ssoUser : ssoUserService.getSsoUsersByUsernames(sortedUserNames)) {
         Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
-            ssoUser.getEmail(), ssoUser.getRealmId());
+            ssoUser.getEmail(), ssoUser.getRealmId(), ssoUser.getId());
         members.add(member);
         sortedUserNames.remove(ssoUser.getUsername());
       }
@@ -326,7 +326,7 @@ public class UserDirectory
     final List<User> internalUsers = userDao.getByRealNames(sortedRealNames);
     for (User internalUser : internalUsers) {
       Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
-          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME, internalUser.getId());
       members.add(member);
 
       // if we've matched on an internal user don't try to match again against other user providers
@@ -344,8 +344,8 @@ public class UserDirectory
 
             for (LdapUser user : ldapService.getUsersByRealName(ldapServer,
                 sortedRealNames.toArray(new String[sortedRealNames.size()]))) {
-              final Member member =
-                  new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+              final Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
+                      ldapName, user.getDn());
               member.setDn(user.getDn());
               members.add(member);
 
@@ -367,7 +367,7 @@ public class UserDirectory
     if (!sortedRealNames.isEmpty() && ssoUserService.isSsoConfigured()) {
       for (SsoUser ssoUser : ssoUserService.getSsoUsersByRealNames(sortedRealNames)) {
         Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
-            ssoUser.getEmail(), ssoUser.getRealmId());
+            ssoUser.getEmail(), ssoUser.getRealmId(), ssoUser.getId());
         members.add(member);
         sortedRealNames.remove(ssoUser.getFirstName() + " " + ssoUser.getLastName());
       }
@@ -407,7 +407,7 @@ public class UserDirectory
     final List<User> internalUsers = userDao.getByEmails(sortedEmails);
     for (User internalUser : internalUsers) {
       Member member = new Member(MemberType.USER, internalUser.getUsername(), internalUser.calculateDisplayName(),
-          internalUser.getEmail(), InternalRealm.DISPLAY_NAME);
+          internalUser.getEmail(), InternalRealm.DISPLAY_NAME, internalUser.getId());
       members.add(member);
 
       // if we've matched on an internal user don't try to match against ldap
@@ -425,8 +425,8 @@ public class UserDirectory
 
             for (LdapUser user : ldapService.getUsersByEmail(ldapServer,
                 sortedEmails.toArray(new String[sortedEmails.size()]))) {
-              final Member member =
-                  new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(), ldapName);
+              final Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
+                      ldapName, user.getDn());
               member.setDn(user.getDn());
               members.add(member);
 
@@ -448,7 +448,7 @@ public class UserDirectory
     if (!sortedEmails.isEmpty() && ssoUserService.isSsoConfigured()) {
       for (SsoUser ssoUser : ssoUserService.getSsoUsersByEmails(sortedEmails)) {
         Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
-            ssoUser.getEmail(), ssoUser.getRealmId());
+            ssoUser.getEmail(), ssoUser.getRealmId(), ssoUser.getId());
         members.add(member);
         sortedEmails.remove(ssoUser.getEmail());
       }
@@ -528,7 +528,7 @@ public class UserDirectory
         try {
           for (LdapUser user : ldapService.findUsersByName(ldapServer, query, 100)) {
             Member member = new Member(MemberType.USER, user.getUsername(), user.getRealName(), user.getEmail(),
-                ldapServer.getName());
+                ldapServer.getName(), user.getDn());
             member.setDn(user.getDn());
             String key = member.getInternalNameLowerCase();
             // Ignore any user that was already discovered in the other realms.
@@ -558,7 +558,7 @@ public class UserDirectory
       String nameQuery = query.replace(QUERY_WILDCARD, SQL_QUERY_WILDCARD);
       for (SsoUser ssoUser : ssoUserService.findSsoUsersByNameOrUsernameQuery(nameQuery)) {
         Member member = new Member(MemberType.USER, ssoUser.getUsername(), ssoUser.calculateDisplayName(),
-            ssoUser.getEmail(), ssoUser.getRealmId());
+            ssoUser.getEmail(), ssoUser.getRealmId(), ssoUser.getId());
         users.put(member.getInternalNameLowerCase(), member);
       }
     }

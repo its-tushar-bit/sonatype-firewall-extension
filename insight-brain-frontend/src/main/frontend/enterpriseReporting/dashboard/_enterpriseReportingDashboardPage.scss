@@ -14,25 +14,20 @@ enterprise-reporting-dashboard-page {
     width: 100%;
   }
 
-  .nx-h1 {
-    margin-left: var(--looker-iframe-margin);
+  .nx-page-title {
+    .nx-h1 {
+      margin-left: var(--looker-iframe-margin);
+    }
   }
 
   .nx-tabs {
-    margin-top: 0;
+    margin: 0;
   }
   .nx-tab-list {
     margin-bottom: 0;
     margin-left: var(--looker-iframe-margin);
   }
 
-  .nx-tabs {
-    height: calc(100% + 56px);
-    margin-bottom: 0;
-    .enterprise-reporting-dashboard__container {
-      height: calc(100% - 56px);
-    }
-  }
   .nx-tab-panel {
     display: contents;
     .dashboard-disabled {
@@ -46,8 +41,13 @@ enterprise-reporting-dashboard-page {
 }
 
 .enterprise-reporting-dashboard {
+  // the skeleton loader for Looker seems to be about 120px, temporarily hard code the
+  // container's height to prevent elements underneath from jumping on the page as Looker
+  // iframe loads
   &__container {
-    height: 100%;
+    &.loading {
+      height: 120px;
+    }
   }
 
   &__navigation-bar {
@@ -58,6 +58,18 @@ enterprise-reporting-dashboard-page {
 
   &__navigation-links {
     display: flex;
+  }
+
+  &__filter-tag {
+    display: flex;
+    gap: var(--nx-spacing-2x);
+    align-items: center;
+
+    .nx-h3,
+    .nx-tag {
+      margin: 0;
+      font-size: var(--nx-font-size-xs);
+    }
   }
 
   &__link-list {
@@ -85,6 +97,11 @@ enterprise-reporting-dashboard-page {
       margin: 2px 12px 0 0;
     }
   }
+}
+
+.filter-button.nx-btn {
+  width: max-content;
+  align-self: end;
 }
 
 //Matching the Looker Dashboard marign, which shrinks at 1512px

@@ -90,7 +90,8 @@ public class CrowdClient
   {
     return crowdClient.searchUsers(anyNameMatchesAndActive(usernames), 0, -1).stream()
         .map(user ->
-            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
+                    CrowdRealm.ID, user.getExternalId()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 
@@ -99,7 +100,8 @@ public class CrowdClient
   {
     return crowdClient.searchUsers(displayNameMatchesAndActive(displayName), 0, -1).stream()
         .map(user ->
-            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(), CrowdRealm.ID))
+            new Member(MemberType.USER, user.getName(), user.getDisplayName(), user.getEmailAddress(),
+                    CrowdRealm.ID, user.getExternalId()))
         .collect(Collectors.toCollection(LinkedHashSet::new));
   }
 

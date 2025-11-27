@@ -375,32 +375,49 @@ public class HybridScanPersistenceServiceTest
   }
 
   @Test
-  public void testDoGetScan_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  public void testDoGetScan_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testDoGetScan_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  public void testDoGetScan_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
   }
 
-  private void assertWarning(final Callable<?> callable) throws Exception {
+  @Test
+  public void testDoGetScan_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testDoGetScan_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridScanPersistenceService.doGetScan(APP_ID, SCAN_ID));
+  }
+
+  private void enableWarning() {
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
     hybridScanPersistenceService.configurationChanged(
         Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
-    ScanPersistenceService nonPrimaryStorage =
-        scanPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createScan(nonPrimaryStorage.getScan(APP_ID, SCAN_ID));
+  }
+
+  private void assertWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    ScanPersistenceService service = scanPersistenceServiceProvider.get(dataStoreType);
+    createScan(service.getScan(APP_ID, SCAN_ID));
 
     callable.call();
 
     logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
   }
 
-  private void assertNoWarning(final Callable<?> callable) throws Exception {
-    ScanPersistenceService nonPrimaryStorage =
-        scanPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createScan(nonPrimaryStorage.getScan(APP_ID, SCAN_ID));
+  private void assertNoWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    ScanPersistenceService service = scanPersistenceServiceProvider.get(dataStoreType);
+    createScan(service.getScan(APP_ID, SCAN_ID));
 
     callable.call();
 

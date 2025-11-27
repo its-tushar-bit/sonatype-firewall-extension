@@ -81,8 +81,8 @@ public class HybridApplicationReportPersistenceService
         scanId,
         reportEntity.getApplicationReportPersistenceServiceClass()
     );
-    if (warnOnNonPrimaryStorageAccess &&
-        !applicationReportPersistenceServices.get(0).getReportEntityClass().equals(reportEntity.getClass())) {
+    if (warnOnNonPrimaryStorageAccess && !applicationReportPersistenceServices.get(0).getClass()
+        .equals(reportEntity.getApplicationReportPersistenceServiceClass())) {
       log.warn("Non-primary storage access for report entity '{}' for app id '{}' and scan id '{}' using {}.",
           name,
           applicationId,
@@ -132,7 +132,7 @@ public class HybridApplicationReportPersistenceService
         targetService.getClass()
     );
     if (warnOnNonPrimaryStorageAccess &&
-        !targetService.getClass().equals(applicationReportPersistenceServices.get(0).getClass())) {
+        !applicationReportPersistenceServices.get(0).getClass().equals(targetService.getClass())) {
       log.warn("Non-primary storage access for all report entities for app id '{}' and scan id '{}' using {}.",
           applicationId,
           scanId,
@@ -196,7 +196,8 @@ public class HybridApplicationReportPersistenceService
           reportPdfEntity.getApplicationReportPersistenceServiceClass()
       );
       if (warnOnNonPrimaryStorageAccess &&
-          !applicationReportPersistenceServices.get(0).getReportEntityClass().equals(reportPdfEntity.getClass())) {
+          !applicationReportPersistenceServices.get(0).getReportEntityClass()
+              .isAssignableFrom(reportPdfEntity.getClass())) {
         log.warn("Non-primary storage access for report pdf entity for app id '{}' and scan id '{}' using {}.",
             applicationId,
             scanId,
@@ -230,7 +231,8 @@ public class HybridApplicationReportPersistenceService
           baseReportEntity.getApplicationReportPersistenceServiceClass()
       );
       if (warnOnNonPrimaryStorageAccess &&
-          !applicationReportPersistenceServices.get(0).getReportEntityClass().equals(baseReportEntity.getClass())) {
+          !applicationReportPersistenceServices.get(0).getReportEntityClass()
+              .isAssignableFrom(baseReportEntity.getClass())) {
         log.warn(
             "Non-primary storage access for vulnerability signatures entity for app id '{}' and scan id '{}' using {}.",
             applicationId,

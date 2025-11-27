@@ -419,43 +419,77 @@ public class HybridSbomPersistenceServiceTest
   }
 
   @Test
-  public void testDoGetSbom_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  public void testDoGetSbom_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
   }
 
   @Test
-  public void testDoGetSbom_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  public void testDoGetSbom_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
   }
 
   @Test
-  public void testGetTemporarySbom_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  public void testGetTemporarySbom_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
   }
 
   @Test
-  public void testGetTemporarySbom_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  public void testGetTemporarySbom_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
   }
 
-  private void assertWarning(final Callable<?> callable) throws Exception {
+  @Test
+  public void testDoGetSbom_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  }
+
+  @Test
+  public void testDoGetSbom_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridSbomPersistenceService.doGetSbom(APP_ID, FILE_NAME));
+  }
+
+  @Test
+  public void testGetTemporarySbom_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  }
+
+  @Test
+  public void testGetTemporarySbom_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridSbomPersistenceService.getTemporarySbom(APP_ID, "prefix"));
+  }
+
+  private void enableWarning() {
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
     hybridSbomPersistenceService.configurationChanged(
         Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
-    SbomPersistenceService nonPrimaryStorage =
-        sbomPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createSbom(nonPrimaryStorage, APP_ID, FILE_NAME);
-    createSbom(nonPrimaryStorage.getTemporarySbom(APP_ID, "prefix"));
+  }
+
+  private void assertWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    SbomPersistenceService service = sbomPersistenceServiceProvider.get(dataStoreType);
+    createSbom(service, APP_ID, FILE_NAME);
+    createSbom(service.getTemporarySbom(APP_ID, "prefix"));
 
     callable.call();
 
     logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
   }
 
-  private void assertNoWarning(final Callable<?> callable) throws Exception {
-    SbomPersistenceService nonPrimaryStorage =
-        sbomPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createSbom(nonPrimaryStorage, APP_ID, FILE_NAME);
+  private void assertNoWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    SbomPersistenceService service = sbomPersistenceServiceProvider.get(dataStoreType);
+    createSbom(service, APP_ID, FILE_NAME);
+    createSbom(service.getTemporarySbom(APP_ID, "prefix"));
 
     callable.call();
 

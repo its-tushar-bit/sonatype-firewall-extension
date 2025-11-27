@@ -86,7 +86,7 @@ public class HybridSbomPersistenceService
     SbomEntity sbomEntity = hybridDoGetSbom(appId, fileName);
     log.trace("Getting SBOM by app id and file name from {}.", sbomEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getScanPersistenceServiceClass())) {
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass())) {
       log.warn("Non-primary storage access for SBOM by app id and file name from {}.", sbomEntity.getLocation());
     }
     return sbomEntity;
@@ -107,7 +107,7 @@ public class HybridSbomPersistenceService
     SbomEntity sbomEntity = hybridGetTemporarySbom(fileName, prefix);
     log.trace("Getting temporary SBOM by file name and prefix from {}.", sbomEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getScanPersistenceServiceClass())) {
+        !sbomPersistenceServices.get(0).getClass().equals(sbomEntity.getSbomPersistenceServiceClass())) {
       log.warn("Non-primary storage access for temporary SBOM by file name and prefix from {}.",
           sbomEntity.getLocation());
     }
@@ -134,12 +134,12 @@ public class HybridSbomPersistenceService
       throws IOException
   {
     SbomPersistenceService entityPersistenceService =
-        sbomPersistenceServiceByClass.get(sbomEntity.getScanPersistenceServiceClass());
+        sbomPersistenceServiceByClass.get(sbomEntity.getSbomPersistenceServiceClass());
     SbomPersistenceService primaryPersistenceService = sbomPersistenceServices.get(0);
     if (primaryPersistenceService.getClass().equals(entityPersistenceService.getClass())) {
       return entityPersistenceService.saveTemporarySbom(sbomEntity, fileName, prefix);
     }
-    log.warn("Unexpected SBOM copy from {} to {}.", sbomEntity.getScanPersistenceServiceClass(),
+    log.warn("Unexpected SBOM copy from {} to {}.", sbomEntity.getSbomPersistenceServiceClass(),
         primaryPersistenceService.getClass());
     SbomEntity writeTransientEntity = null;
     try {
@@ -157,9 +157,9 @@ public class HybridSbomPersistenceService
   @Override
   public void deleteSbom(final SbomEntity sbomEntity) throws IOException {
     SbomPersistenceService persistenceService =
-        sbomPersistenceServiceByClass.get(sbomEntity.getScanPersistenceServiceClass());
+        sbomPersistenceServiceByClass.get(sbomEntity.getSbomPersistenceServiceClass());
     if (persistenceService == null) {
-      log.warn("SbomPersistenceService {}, cannot delete {}.", sbomEntity.getScanPersistenceServiceClass(),
+      log.warn("SbomPersistenceService {}, cannot delete {}.", sbomEntity.getSbomPersistenceServiceClass(),
           sbomEntity.getLocation());
     }
     else {

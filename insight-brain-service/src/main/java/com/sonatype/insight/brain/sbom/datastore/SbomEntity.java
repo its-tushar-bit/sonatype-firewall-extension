@@ -63,5 +63,5 @@ public interface SbomEntity
    *
    * @return the class of the persistence service
    */
-  Class<? extends SbomPersistenceService> getScanPersistenceServiceClass();
+  Class<? extends SbomPersistenceService> getSbomPersistenceServiceClass();
 }

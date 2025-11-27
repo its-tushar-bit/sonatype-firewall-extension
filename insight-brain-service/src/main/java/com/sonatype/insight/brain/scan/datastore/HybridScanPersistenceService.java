@@ -82,7 +82,7 @@ public class HybridScanPersistenceService
     ScanEntity scanEntity = hybridDoGetScan(appId, scanId);
     log.trace("Getting scan by id from {}.", scanEntity.getLocation());
     if (warnOnNonPrimaryStorageAccess &&
-        !scanPersistenceServices.get(0).getScanEntityClass().equals(scanEntity.getClass())) {
+        !scanPersistenceServices.get(0).getClass().equals(scanEntity.getScanPersistenceServiceClass())) {
       log.warn("Non-primary storage access for scan by id from {}.", scanEntity.getLocation());
     }
     return scanEntity;

@@ -52,7 +52,7 @@ public record FileSbomEntity(Path path, @Nullable String appId, String fileName)
   }
 
   @Override
-  public Class<? extends SbomPersistenceService> getScanPersistenceServiceClass() {
+  public Class<? extends SbomPersistenceService> getSbomPersistenceServiceClass() {
     return FileSbomPersistenceService.class;
   }
 

@@ -234,63 +234,131 @@ public class HybridApplicationReportPersistenceServiceTest
   }
 
   @Test
-  public void testDoGetReportEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  public void testDoGetReportEntity_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
   }
 
   @Test
-  public void testDoGetReportEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  public void testDoGetReportEntity_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
   }
 
   @Test
-  public void testGetAllReportEntities_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  public void testGetAllReportEntities_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testGetAllReportEntities_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  public void testGetAllReportEntities_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testGetPdfEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  public void testGetPdfEntity_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testGetPdfEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  public void testGetPdfEntity_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testGetVulnerabilitySignaturesEntity_DoesNotExistInPrimary_WarnEnabled() throws Exception {
-    assertWarning(() -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  public void testGetVulnerabilitySignaturesEntity_ExistsOnlyInSecondary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
   }
 
   @Test
-  public void testGetVulnerabilitySignaturesEntity_DoesNotExistInPrimary_WarnDisabled() throws Exception {
-    assertNoWarning(() -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  public void testGetVulnerabilitySignaturesEntity_ExistsOnlyInSecondary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(1),
+        () -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
   }
 
-  private void assertWarning(final Callable<?> callable) throws Exception {
+  @Test
+  public void testDoGetReportEntity_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  }
+
+  @Test
+  public void testDoGetReportEntity_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.doGetReportEntity(APP_ID, SCAN_ID, NAME));
+  }
+
+  @Test
+  public void testGetAllReportEntities_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetAllReportEntities_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getAllReportEntities(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetPdfEntity_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetPdfEntity_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getPdfEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetVulnerabilitySignaturesEntity_ExistsOnlyInPrimary_WarnEnabled() throws Exception {
+    enableWarning();
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  }
+
+  @Test
+  public void testGetVulnerabilitySignaturesEntity_ExistsOnlyInPrimary_WarnDisabled() throws Exception {
+    assertNoWarning(new ArrayList<>(dataStoreTypes).get(0),
+        () -> hybridApplicationReportPersistenceService.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  }
+
+  private void enableWarning() {
     systemConfigurationPropertyDAO.set(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "true");
     hybridApplicationReportPersistenceService.configurationChanged(
         Collections.singleton(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS));
-    ApplicationReportPersistenceService nonPrimaryStorage =
-        applicationReportPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createReportEntity(nonPrimaryStorage, APP_ID, SCAN_ID, NAME);
-    createReportEntity(nonPrimaryStorage.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
+  }
+
+  private void assertWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    ApplicationReportPersistenceService service = applicationReportPersistenceServiceProvider.get(dataStoreType);
+    createReportEntity(service, APP_ID, SCAN_ID, NAME);
+    createReportEntity(service.getPdfEntity(APP_ID, SCAN_ID));
+    createReportEntity(service.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
 
     callable.call();
 
     logOutput.assertThat().atWarnLevel().contains("Non-primary storage access");
   }
 
-  private void assertNoWarning(final Callable<?> callable) throws Exception {
-    ApplicationReportPersistenceService nonPrimaryStorage =
-        applicationReportPersistenceServiceProvider.get(new ArrayList<>(dataStoreTypes).get(1));
-    createReportEntity(nonPrimaryStorage, APP_ID, SCAN_ID, NAME);
+  private void assertNoWarning(final DataStoreType dataStoreType, final Callable<?> callable) throws Exception {
+    ApplicationReportPersistenceService service = applicationReportPersistenceServiceProvider.get(dataStoreType);
+    createReportEntity(service, APP_ID, SCAN_ID, NAME);
+    createReportEntity(service.getPdfEntity(APP_ID, SCAN_ID));
+    createReportEntity(service.getVulnerabilitySignaturesEntity(APP_ID, SCAN_ID));
 
     callable.call();
 

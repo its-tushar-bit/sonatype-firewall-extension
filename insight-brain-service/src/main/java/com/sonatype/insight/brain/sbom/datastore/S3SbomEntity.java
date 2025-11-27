@@ -115,7 +115,7 @@ public record S3SbomEntity(
   }
 
   @Override
-  public Class<? extends SbomPersistenceService> getScanPersistenceServiceClass() {
+  public Class<? extends SbomPersistenceService> getSbomPersistenceServiceClass() {
     return S3SbomPersistenceService.class;
   }
 

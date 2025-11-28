@@ -360,11 +360,14 @@ const setSavedFilterAsSelected = (filter) => (dispatch) => {
 
 const applySavedFilterAndRunDashboard = () => (dispatch, getState) => {
   const state = getState();
-  const { previewFilterName, previewFilter } = selectEnterpriseReportingFilter(state);
+  const { previewFilterName, previewFilter, defaultFilter } = selectEnterpriseReportingFilter(state);
   const isDefaultAlertRendered = selectIsDefaultAlertRendered(state);
   if (previewFilter) {
+    // Merge with defaultFilter to clear any fields not in the saved filter
+    const mergedFilter = { ...defaultFilter, ...previewFilter };
+
     dispatch(actions.setAppliedFilterName(previewFilterName));
-    dispatch(actions.setAppliedFilter(previewFilter));
+    dispatch(actions.setAppliedFilter(mergedFilter));
     dispatch(actions.setFilterState(FILTER_STATES.APPLYING));
 
     if (isDefaultAlertRendered) {
@@ -380,7 +383,10 @@ const revertFilterChanges = () => (dispatch, getState) => {
   const lastSavedFilter =
     appliedFilterName === null ? defaultFilter : findFilterByName(appliedFilterName, savedFilters)?.filter;
 
-  dispatch(actions.setAppliedFilter(lastSavedFilter));
+  // Merge with defaultFilter to clear any fields not in the saved filter
+  const mergedFilter = { ...defaultFilter, ...lastSavedFilter };
+
+  dispatch(actions.setAppliedFilter(mergedFilter));
   dispatch(actions.setFilterState(FILTER_STATES.APPLYING));
 };
 

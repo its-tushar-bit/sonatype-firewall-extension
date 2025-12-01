@@ -1128,6 +1128,15 @@ public abstract class AbstractPolicyEditorTest
     deleteModal.shouldBe(visible);
     deleteModal.header().shouldHave(text("Policy"));
     deleteModal.alertContent().shouldHave(text(policy.getName()));
+    PolicyEditorPage.deleteConfirmationInput().shouldBe(visible).val("WRONG");
+    PolicyEditorPage.deleteConfirmationError().shouldHave(text("Must type DELETE to confirm"));
+
+    deleteModal.submitButton().click();
+    PolicyEditorPage.deleteConfirmationFormError().shouldBe(visible).shouldHave(text("Required fields are missing"));
+
+    PolicyEditorPage.deleteConfirmationInput().clear();
+    PolicyEditorPage.deleteConfirmationInput().val("DELETE");
+    PolicyEditorPage.deleteConfirmationError().shouldBe(hidden);
 
     deleteModal.submitButton().click();
     FormMask.seeAndWaitForDismissal();

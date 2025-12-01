@@ -213,7 +213,7 @@ describe('PolicyEditorSpec', () => {
   it('disables the Delete button when there is no permission', async () => {
     setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN, true, []);
     renderComponent(initState);
-    const deleteButton = await screen.findByText('Delete');
+    const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
     expect(deleteButton).toBeVisible();
     expect(deleteButton).toBeDisabled();
   });
@@ -292,7 +292,7 @@ describe('PolicyEditorSpec', () => {
           renderComponent(initState);
 
           const updateButton = await screen.findByText('Update');
-          const deleteButton = await screen.findByText('Delete');
+          const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
           const policyTitle = screen.getByText('Edit Policy');
           expect(policyTitle).toBeVisible();
           expect(updateButton).toBeVisible();
@@ -497,12 +497,14 @@ describe('PolicyEditorSpec', () => {
             .reply(200, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
 
           renderComponent(initState);
-          const deleteButton = await screen.findByText('Delete');
+          const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
           fireEvent.click(deleteButton);
-          const deleteDesc = screen.getByText('Delete Policy');
-          const continueButton = screen.getByText('Continue');
+          const deleteDesc = screen.getByRole('heading', { name: 'Delete Policy' });
+          const confirmInput = screen.getByLabelText('To confirm, please type DELETE in the box below:');
+          fireEvent.change(confirmInput, { target: { value: 'DELETE' } });
+          const confirmDeletionButton = screen.getByText('Confirm Deletion');
           expect(deleteDesc).toBeVisible();
-          fireEvent.click(continueButton);
+          fireEvent.click(confirmDeletionButton);
           const savingMask = screen.getByText('Deleting…');
           expect(savingMask).toBeVisible();
           const successMask = await screen.findAllByText(/Success/);
@@ -516,17 +518,56 @@ describe('PolicyEditorSpec', () => {
             .reply(404, 'Error');
 
           renderComponent(initState);
-          const deleteButton = await screen.findByText('Delete');
+          const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
           fireEvent.click(deleteButton);
-          const deleteDesc = screen.getByText('Delete Policy');
-          const continueButton = screen.getByText('Continue');
+          const deleteDesc = screen.getByRole('heading', { name: 'Delete Policy' });
+          const confirmInput = screen.getByLabelText('To confirm, please type DELETE in the box below:');
+          fireEvent.change(confirmInput, { target: { value: 'DELETE' } });
+          const confirmDeletionButton = screen.getByText('Confirm Deletion');
           expect(deleteDesc).toBeVisible();
-          fireEvent.click(continueButton);
+          fireEvent.click(confirmDeletionButton);
           const savingMask = screen.getByText('Deleting…');
           expect(savingMask).toBeVisible();
 
           const error = await screen.findByText('An error occurred loading data. Error 404');
           expect(error).toBeVisible();
+        });
+
+        it('renders delete modal with warning message and confirmation input', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
+          const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
+          fireEvent.click(deleteButton);
+
+          expect(screen.getByRole('heading', { name: 'Delete Policy' })).toBeVisible();
+          expect(screen.getByText(/You are about to permanently delete the policy/i)).toBeVisible();
+          expect(screen.getByText(/Deleting this policy will:/i)).toBeVisible();
+          expect(
+            screen.getByText(/Immediately unquarantine all components previously quarantined by this policy/i)
+          ).toBeVisible();
+          expect(
+            screen.getByText(
+              /Permanently remove all associated waivers, which cannot be recovered without restoring from a backup/i
+            )
+          ).toBeVisible();
+          expect(screen.getByLabelText('To confirm, please type DELETE in the box below:')).toBeVisible();
+        });
+
+        it('renders errors until DELETE is typed correctly', async () => {
+          setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID, POLICY_ID_OVERRIDE_ENABLED_OVERRIDDEN);
+          renderComponent(initState);
+
+          const deleteButton = await screen.findByRole('button', { name: 'Delete Policy' });
+          fireEvent.click(deleteButton);
+
+          const confirmInput = screen.getByLabelText('To confirm, please type DELETE in the box below:');
+
+          fireEvent.change(confirmInput, { target: { value: 'delete' } });
+          expect(screen.getByText('Must type DELETE to confirm')).toBeVisible();
+
+          fireEvent.change(confirmInput, { target: { value: 'DELETE' } });
+          expect(screen.queryByText('Must type DELETE to confirm')).not.toBeInTheDocument();
         });
       });
     });
@@ -536,7 +577,7 @@ describe('PolicyEditorSpec', () => {
         setInitStateAndMockHttpRequests('organization', ROOT_ORG_ID);
         renderComponent(initState);
         const updateButton = await screen.findByText('Create');
-        const deleteButton = screen.queryByText('Delete');
+        const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
         const policyTitle = screen.getByText('New Policy');
         expect(policyTitle).toBeVisible();
         expect(updateButton).toBeVisible();
@@ -1240,7 +1281,7 @@ describe('PolicyEditorSpec', () => {
       const updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
-      const deleteButton = screen.queryByText('Delete');
+      const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
@@ -1273,7 +1314,7 @@ describe('PolicyEditorSpec', () => {
       });
       let updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
-      const deleteButton = screen.queryByText('Delete');
+      const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
@@ -1289,7 +1330,7 @@ describe('PolicyEditorSpec', () => {
       renderComponent(initState);
       let updateButton = await screen.findByText('Update');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
-      const deleteButton = screen.queryByText('Delete');
+      const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
@@ -1446,7 +1487,7 @@ describe('PolicyEditorSpec', () => {
       });
       let updateButton = await screen.findByText('Update');
       const overrideParentActionsInput = await screen.findByLabelText('Override parent actions');
-      const deleteButton = screen.queryByText('Delete');
+      const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();
@@ -1470,7 +1511,7 @@ describe('PolicyEditorSpec', () => {
       renderComponent(initState);
       let updateButton = await screen.findByText('Update');
       const overrideParentNotificationsInput = await screen.findByLabelText('Override parent notifications');
-      const deleteButton = screen.queryByText('Delete');
+      const deleteButton = screen.queryByRole('button', { name: 'Delete Policy' });
       const policyTitle = screen.getByText('View Policy');
       expect(policyTitle).toBeVisible();
       expect(updateButton).toBeVisible();

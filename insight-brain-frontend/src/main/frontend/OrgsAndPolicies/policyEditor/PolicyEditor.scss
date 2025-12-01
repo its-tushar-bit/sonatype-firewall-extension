@@ -10,4 +10,27 @@
       color: var(--nx-color-text-dark);
     }
   }
+
+  #delete-policy-button {
+    color: var(--nx-swatch-red-40);
+    border-color: var(--nx-swatch-red-40);
+
+    &:hover {
+      background-color: var(--nx-swatch-red-95);
+    }
+
+    &:focus {
+      outline-color: var(--nx-swatch-red-40);
+    }
+  }
+
+  #policy-delete-modal {
+    .list-item-title {
+      font-weight: 600;
+    }
+
+    .nx-form__submit-btn {
+      background-color: var(--nx-swatch-red-40);
+    }
+  }
 }

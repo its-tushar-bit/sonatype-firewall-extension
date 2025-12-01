@@ -36,10 +36,14 @@ import {
   NxModal,
   NxPageTitle,
   NxTile,
-  NxWarningAlert,
+  NxErrorAlert,
+  NxList,
   NxFontAwesomeIcon,
   NxInfoAlert,
   NxTextLink,
+  NxFormGroup,
+  NxTextInput,
+  nxTextInputStateHelpers,
 } from '@sonatype/react-shared-components';
 import EditPolicySummary from './editPolicySummary/EditPolicySummary';
 import EditPolicyInheritance from './editPolicyInheritance/EditPolicyInheritance';
@@ -50,7 +54,7 @@ import { selectEntityId, selectOwnerProperties } from '../orgsAndPoliciesSelecto
 import { selectIsRepositoriesRelated, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectHasFirewallLicense, selectHasLifecycleLicense } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
-import { faLock } from '@fortawesome/pro-regular-svg-icons';
+import { faLock, faTrashAlt } from '@fortawesome/pro-regular-svg-icons';
 import './PolicyEditor.scss';
 
 export default function PolicyEditor() {
@@ -112,10 +116,21 @@ export default function PolicyEditor() {
     removePolicy();
   };
 
+  const requiredValidator = (val) => (val === 'DELETE' ? null : 'Must type DELETE to confirm');
+
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [confirmDeleteState, setConfirmDeleteState] = useState(
+    nxTextInputStateHelpers.initialState('', requiredValidator)
+  );
+
+  const onConfirmDeleteChange = (val) => {
+    setConfirmDeleteState(nxTextInputStateHelpers.userInput(requiredValidator, val));
+  };
+  const modalFormValidationErrors = confirmDeleteState.validationErrors ? 'Required fields are missing' : null;
 
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
+    setConfirmDeleteState(nxTextInputStateHelpers.initialState('', requiredValidator));
     dispatch(actions.clearDeleteError());
   };
 
@@ -190,7 +205,8 @@ export default function PolicyEditor() {
                 disabled={isDisabled()}
                 type="button"
               >
-                Delete
+                <NxFontAwesomeIcon icon={faTrashAlt} />
+                <span>Delete Policy</span>
               </NxButton>
             ) : null
           }
@@ -211,9 +227,10 @@ export default function PolicyEditor() {
             submitMaskState={submitMaskState}
             submitError={deleteError}
             onCancel={closeDeleteModal}
-            submitBtnText="Continue"
+            submitBtnText="Confirm Deletion"
             submitMaskMessage="Deleting…"
             onSubmit={onRemovePolicy}
+            validationErrors={modalFormValidationErrors}
           >
             <header className="nx-modal-header">
               <h2 className="nx-h2" id="category-delete-modal-header">
@@ -221,9 +238,27 @@ export default function PolicyEditor() {
               </h2>
             </header>
             <div className="nx-modal-content">
-              <NxWarningAlert>
-                You are about to permanently remove {dirtyPolicy?.name.value}. This action cannot be undone.
-              </NxWarningAlert>
+              <NxErrorAlert>
+                You are about to permanently delete the policy "{dirtyPolicy?.name.value}". This action cannot be
+                undone.
+              </NxErrorAlert>
+              <p className="list-item-title">Deleting this policy will:</p>
+              <NxList bulleted>
+                <NxList.Item>
+                  <NxList.Text>
+                    Immediately unquarantine all components previously quarantined by this policy.
+                  </NxList.Text>
+                </NxList.Item>
+                <NxList.Item>
+                  <NxList.Text>
+                    Permanently remove all associated waivers, which cannot be recovered without restoring from a
+                    backup.
+                  </NxList.Text>
+                </NxList.Item>
+              </NxList>
+              <NxFormGroup label="To confirm, please type DELETE in the box below:" isRequired>
+                <NxTextInput {...confirmDeleteState} validatable={true} onChange={onConfirmDeleteChange} />
+              </NxFormGroup>
             </div>
           </NxStatefulForm>
         </NxModal>

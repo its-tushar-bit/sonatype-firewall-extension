@@ -113,4 +113,16 @@ public class PolicyEditorPage
     FormMask.seeAndWaitForDismissal();
     ScrollUtil.awaitEndOfScrolling(saveButton());
   }
+
+  public static SelenideElement deleteConfirmationInput() {
+    return $("#policy-delete-modal input[type='text']");
+  }
+
+  public static SelenideElement deleteConfirmationError() {
+    return $("#policy-delete-modal .nx-field-validation-message");
+  }
+
+  public static SelenideElement deleteConfirmationFormError() {
+    return $("#policy-delete-modal .nx-form__validation-errors");
+  }
 }

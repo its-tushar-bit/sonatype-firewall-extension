@@ -64,7 +64,8 @@ public class TenantConfigurationService
       THIRD_PARTY_KEV_LOOKUP,
       EPSS_DATA,
       SESSION_TIMEOUT_MINUTES,
-      USER_ACTIVITY_TRACKING
+      USER_ACTIVITY_TRACKING,
+      USER_TOKEN_DEFAULT_EXPIRATION_DAYS
   );
 
   // Visible for testing

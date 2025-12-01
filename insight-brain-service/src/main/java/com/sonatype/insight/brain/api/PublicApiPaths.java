@@ -124,6 +124,8 @@ public class PublicApiPaths
 
   public static final String USER_TOKEN_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "userTokens";
 
+  public static final String USER_TOKEN_CONFIG_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "config/userTokens";
+
   public static final String COMPOSITE_SOURCE_CONTROL_PATH_V2 = API_VERSION_PATH_V2 + "compositeSourceControl";
 
   public static final String CLAIM_PATH_V2 = API_VERSION_PATH_V2 + "claim/components";

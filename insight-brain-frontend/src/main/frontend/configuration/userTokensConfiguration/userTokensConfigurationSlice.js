@@ -9,15 +9,15 @@ import { pathSet } from 'MainRoot/util/jsUtil';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getConfigurationUrl } from 'MainRoot/util/CLMLocation';
+import { getUserTokenConfigurationUrl } from 'MainRoot/util/CLMLocation';
 import { propSetConst } from 'MainRoot/util/reduxToolkitUtil';
 import { selectFormState } from './userTokensConfigurationSelectors';
 
 const { userInput } = nxTextInputStateHelpers;
 
 const REDUCER_NAME = 'userTokensConfiguration';
-export const CONFIG_PROPERTIES_PARAMS = '?property=userTokenDefaultExpirationDays';
 const DEFAULT_EXPIRATION_DAYS = 30;
+const USER_TOKEN_DEFAULT_EXPIRATION_DAYS = 'userTokenDefaultExpirationDays';
 
 export const initialState = {
   loading: false,
@@ -173,21 +173,34 @@ function resetForm(state) {
 }
 
 const load = createAsyncThunk(`${REDUCER_NAME}/load`, async (_, { rejectWithValue }) => {
-  return axios.get(getConfigurationUrl().concat(CONFIG_PROPERTIES_PARAMS)).then(prop('data')).catch(rejectWithValue);
+  const url = getUserTokenConfigurationUrl();
+  return axios.get(url).then(prop('data')).catch(rejectWithValue);
 });
 
 const update = createAsyncThunk(`${REDUCER_NAME}/update`, (_, { getState, dispatch, rejectWithValue }) => {
   const state = getState();
+  const url = getUserTokenConfigurationUrl();
   const formState = selectFormState(state);
-  const serverData = {
-    userTokenDefaultExpirationDays: formState.expirationEnabled ? inputToInt(formState.expirationDays.value) : null,
-  };
-  return axios
-    .put(getConfigurationUrl(), serverData)
-    .then(() => {
-      startMaskSuccessTimer(dispatch, actions.submitMaskTimerDone).then(() => dispatch(load()));
-    })
-    .catch(rejectWithValue);
+
+  if (formState.expirationEnabled) {
+    const serverData = {
+      userTokenDefaultExpirationDays: inputToInt(formState.expirationDays.value),
+    };
+    return axios
+      .put(url, serverData)
+      .then(() => {
+        startMaskSuccessTimer(dispatch, actions.submitMaskTimerDone).then(() => dispatch(load()));
+      })
+      .catch(rejectWithValue);
+  } else {
+    const deleteUrl = `${url}?property=${USER_TOKEN_DEFAULT_EXPIRATION_DAYS}`;
+    return axios
+      .delete(deleteUrl)
+      .then(() => {
+        startMaskSuccessTimer(dispatch, actions.submitMaskTimerDone).then(() => dispatch(load()));
+      })
+      .catch(rejectWithValue);
+  }
 });
 
 const userTokensConfigurationSlice = createSlice({

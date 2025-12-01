@@ -1567,6 +1567,10 @@ export const getConfigurationUrl = () => {
   return uriTemplate`/api/v2/config`;
 };
 
+export const getUserTokenConfigurationUrl = () => {
+  return uriTemplate`/api/v2/config/userTokens`;
+};
+
 export const getRepositoryComponentNamePatternUpdateUrl = () =>
   uriTemplate`/rest/repositories/proprietaryComponentNamePatterns/update`;
 

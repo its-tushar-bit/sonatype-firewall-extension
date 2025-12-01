@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -237,6 +238,103 @@ public class ApiComponentRemediationResourceTest
     assertThat(result.remediation.versionChanges.get(1).getDirectDependency()).isTrue();
     assertThat(result.remediation.versionChanges.get(1).getDirectDependencyData()).isEmpty();
     assertThat(result.remediation.versionChanges.get(1).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
+  }
+
+  @Test
+  public void testIncludeParentRemediation_WithoutDirectFlags_UsesTreeStructure()
+      throws Exception
+  {
+    final String scanID = "scanID";
+    createReportFile(app.getId(), scanID,
+        "/ApiComponentRemediationResourceTest/parent-remediation-without-direct-flags");
+
+    // pdfbox is a transitive dependency through easytable
+    final ComponentIdentifier transitiveComponent =
+        ComponentIdentifier.createMavenCoordinates("org.apache.pdfbox", "pdfbox", "2.0.19", "", "jar");
+
+    // easytable is the direct dependency
+    final ComponentIdentifier currentParentComponent =
+        ComponentIdentifier.createMavenCoordinates("com.github.vandeseer", "easytable", "0.8.5", "", "jar");
+
+    // Newer versions of easytable with updated pdfbox
+    final ComponentIdentifier newerVersionParentComponent1 =
+        ComponentIdentifier.createMavenCoordinates("com.github.vandeseer", "easytable", "0.8.6", "", "jar");
+    final ComponentIdentifier newerVersionParentComponent2 =
+        ComponentIdentifier.createMavenCoordinates("com.github.vandeseer", "easytable", "0.8.7", "", "jar");
+
+    mockComponentSummary(transitiveComponent, ComponentSummary.create(true));
+    mockGetDependencies(new ComponentDependenciesDTO(new HashMap<>(), new HashMap<>()));
+
+    ApiComponentDTOV2 transitiveComponentDTOV2 = componentEvaluationV2Helper.createComponent(transitiveComponent, null);
+
+    createPolicyWithSecurityVulnerabilityConstraint(app.getId());
+
+    ComponentEvaluationDataList componentEvaluationDataList = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData1 = new ComponentEvaluationData();
+    componentEvaluationData1.declaredLicenses = Set.of(new License("Apache-2.0", "Apache-2.0"));
+    componentEvaluationData1.securityVulnerabilities =
+        List.of(new SecurityVulnerability("Test Ref Id", "Test Source", 7.5F));
+    componentEvaluationData1.componentIdentifier = currentParentComponent;
+    componentEvaluationDataList.components = new ArrayList<>();
+    componentEvaluationDataList.components.add(componentEvaluationData1);
+    ComponentEvaluationData componentEvaluationData2 = new ComponentEvaluationData();
+    componentEvaluationData2.declaredLicenses = Set.of(new License("Apache-2.0", "Apache-2.0"));
+    componentEvaluationData2.securityVulnerabilities = Collections.emptyList();
+    componentEvaluationData2.componentIdentifier = newerVersionParentComponent1;
+    componentEvaluationDataList.components.add(componentEvaluationData2);
+    ComponentEvaluationData componentEvaluationData3 = new ComponentEvaluationData();
+    componentEvaluationData3.declaredLicenses = Set.of(new License("Apache-2.0", "Apache-2.0"));
+    componentEvaluationData3.securityVulnerabilities = Collections.emptyList();
+    componentEvaluationData3.componentIdentifier = newerVersionParentComponent2;
+    componentEvaluationDataList.components.add(componentEvaluationData3);
+
+    mockComponentEvaluationData(componentEvaluationDataList);
+
+    // Get the PURL without a version number
+    PackageUrlIdentifier packageOnly = PackageUrlIdentifier
+        .fromComponentIdentifier(currentParentComponent)
+        .createAlternativeVersion(null);
+
+    Map<String, List<String>> versionsByComponent = new LinkedHashMap<>();
+    versionsByComponent.put(PackageUrlIdentifier.toPackageUrl(packageOnly.toComponentIdentifier()),
+        Arrays.asList("0.8.5", "0.8.6", "0.8.7"));
+    mockComponentVersionList(versionsByComponent);
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.COMPONENT_REMEDIATION_PATH_V2)
+        .parameter(OwnerType.APPLICATION, app.getId())
+        .query("scanId", scanID)
+        .query("stageId", BuildStageType.ID)
+        .query("includeParentRemediation", "true")
+        .body(transitiveComponentDTOV2)
+        .post();
+
+    // The feature works by using the dependency tree structure when 'direct' flags are missing.
+    // ApiReportDataServiceV2 populates 'direct' flags based on tree position (root children = direct).
+    assertResponseStatus(200, response);
+    ApiComponentRemediationDTO result = response.getBody(ApiComponentRemediationDTO.class);
+    assertThat(result).isNotNull();
+    assertThat(result.remediation.versionChanges).hasSize(2);
+
+    //next-no-violations-with-dependencies should have newer version fix for parent component
+    assertThat(result.remediation.versionChanges.get(0).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES);
+    assertThat(result.remediation.versionChanges.get(0).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
+    ApiVersionChangeOptionDTO transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(0);
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(newerVersionParentComponent1);
+
+    //next-no-failing-with-dependencies should have current version fix for parent component
+    assertThat(result.remediation.versionChanges.get(1).getData()
+        .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(transitiveComponent);
+    assertThat(result.remediation.versionChanges.get(1).getType()).isEqualTo(
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES);
+    transitiveVersionChangeOptionDTO = result.remediation.versionChanges.get(1);
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependency()).isFalse();
+    assertThat(transitiveVersionChangeOptionDTO.getDirectDependencyData().get(0)
         .getComponent().componentIdentifier.toComponentIdentifier()).isEqualTo(currentParentComponent);
   }
 

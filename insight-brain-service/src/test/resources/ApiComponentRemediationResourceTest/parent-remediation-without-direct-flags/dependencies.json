@@ -1,0 +1,106 @@
+{
+  "dependencyGraph": [
+    {
+      "children": [
+        {
+          "componentIdentifier": {
+            "format": "maven",
+            "coordinates": {
+              "artifactId": "easytable",
+              "classifier": "",
+              "extension": "jar",
+              "groupId": "com.github.vandeseer",
+              "version": "0.8.5"
+            }
+          },
+          "packageUrl": "pkg:maven/com.github.vandeseer/easytable@0.8.5?type=jar"
+        }
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "easytable",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "com.github.vandeseer",
+          "version": "0.8.5"
+        }
+      },
+      "packageUrl": "pkg:maven/com.github.vandeseer/easytable@0.8.5?type=jar",
+      "children": [
+        {
+          "componentIdentifier": {
+            "format": "maven",
+            "coordinates": {
+              "artifactId": "pdfbox",
+              "classifier": "",
+              "extension": "jar",
+              "groupId": "org.apache.pdfbox",
+              "version": "2.0.19"
+            }
+          },
+          "packageUrl": "pkg:maven/org.apache.pdfbox/pdfbox@2.0.19?type=jar"
+        }
+      ]
+    },
+    {
+      "componentIdentifier": {
+        "format": "maven",
+        "coordinates": {
+          "artifactId": "pdfbox",
+          "classifier": "",
+          "extension": "jar",
+          "groupId": "org.apache.pdfbox",
+          "version": "2.0.19"
+        }
+      },
+      "packageUrl": "pkg:maven/org.apache.pdfbox/pdfbox@2.0.19?type=jar"
+    }
+  ],
+  "dependencyTree": {
+    "componentIdentifier": {
+      "format": "maven",
+      "coordinates": {
+        "artifactId": "test-project",
+        "classifier": "",
+        "extension": "jar",
+        "groupId": "com.sonatype.test",
+        "version": "1.0.0"
+      }
+    },
+    "packageUrl": "pkg:maven/com.sonatype.test/test-project@1.0.0?type=jar",
+    "children": [
+      {
+        "componentIdentifier": {
+          "format": "maven",
+          "coordinates": {
+            "artifactId": "easytable",
+            "classifier": "",
+            "extension": "jar",
+            "groupId": "com.github.vandeseer",
+            "version": "0.8.5"
+          }
+        },
+        "packageUrl": "pkg:maven/com.github.vandeseer/easytable@0.8.5?type=jar",
+        "children": [
+          {
+            "componentIdentifier": {
+              "format": "maven",
+              "coordinates": {
+                "artifactId": "pdfbox",
+                "classifier": "",
+                "extension": "jar",
+                "groupId": "org.apache.pdfbox",
+                "version": "2.0.19"
+              }
+            },
+            "packageUrl": "pkg:maven/org.apache.pdfbox/pdfbox@2.0.19?type=jar"
+          }
+        ]
+      }
+    ],
+    "module": true
+  }
+}

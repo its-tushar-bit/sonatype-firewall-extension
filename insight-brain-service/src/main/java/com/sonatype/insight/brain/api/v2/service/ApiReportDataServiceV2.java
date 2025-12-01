@@ -77,6 +77,7 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEP
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
+import static com.sonatype.insight.brain.utils.DependencyTreeDirectFlagProcessor.populateDirectFlags;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -214,6 +215,9 @@ public class ApiReportDataServiceV2
           Map<String,BillOfMaterialsRowDTO> componentsIndex = indexBom(aaDataNode);
           dependencyTree = JsonUtils.asPojo(dependencyTreeObject, ApiDependencyTreeNodeDTO.class);
           dependencyTree.setChildren(correlateDependencyTreeWithComponentIndex(dependencyTree, componentsIndex));
+
+          // CLM-36797 - travers dependencies and set direct flag to indicate if they are a direct dependency or not
+          populateDirectFlags(dependencyTree);
         }
       }
     }

@@ -17,7 +17,14 @@ When the user asks to "plan", "list", or "review" stories:
 - **DO NOT** create any stories in Jira
 - Analyze the discovery documentation and requirements
 - Output a detailed summary of the stories that WOULD be created
-- Include story titles, descriptions, and acceptance criteria in your response
+- **Format the output in a clear, readable manner** using markdown formatting:
+  - Use clear section headers (## for epics, ### for stories)
+  - Present each story with its full title, description, and acceptance criteria
+  - Use numbered lists for acceptance criteria
+  - Use bullet points for technical details
+  - Add visual separation between stories (e.g., horizontal rules or clear spacing)
+  - Group stories by epic for easier comprehension
+  - Include a summary table at the beginning showing all tickets that will be created
 - Present this as a proposal for the user to review
 - Ask the user if they want to proceed with creating these stories in Jira
 
@@ -200,16 +207,39 @@ Examples:
 - ✅ INCLUDE IN STORY: Performance criteria as acceptance criteria for UI changes or low-impact features
 
 ### Documentation Tickets
-Documentation tickets are **almost always required** for initiatives. These tickets are for developers to create technical documentation that technical writers will reference when creating user-facing documentation.
+Documentation tickets are **almost always required** for initiatives. Create **TWO documentation tickets** for each initiative:
 
-**Always include a documentation story** with:
-- Context prefix: "Documentation"
-- Description: Specify what technical documentation needs to be created (architecture decisions, API specifications, configuration options, implementation details, etc.)
-- Acceptance Criteria: List specific documentation artifacts to be produced
-- Note: This is developer-created documentation for technical writers, not end-user documentation
+#### 1. Technical Documentation Ticket (Story Type)
+This ticket is for engineers to create comprehensive technical documentation that serves as a reference for the implementation.
+
+**Requirements**:
+- Context prefix: "Technical Documentation"
+- Issue Type: Story
+- Description: Specify what technical documentation needs to be created (architecture decisions, API specifications, configuration options, implementation details, database schemas, integration points, etc.)
+- Acceptance Criteria: List specific technical documentation artifacts to be produced
+- Note: This is engineer-created documentation providing a comprehensive technical reference
 
 Example:
-- ✅ "Documentation - Create technical documentation for SPDX 3.0 SBOM export feature"
+- ✅ "Technical Documentation: Create technical reference for SPDX 3.0 SBOM export feature"
+
+#### 2. User Documentation Ticket (Documentation Type)
+This ticket is for technical writers to create user-facing documentation based on the technical documentation.
+
+**Requirements**:
+- Context prefix: "User Documentation"
+- Issue Type: Documentation
+- Description: Specify what user-facing documentation needs to be created, noting that it will reference the technical documentation from the Technical Documentation ticket
+- Acceptance Criteria: **Always include** the following standard acceptance criteria (can add more as needed):
+  1. Update Sprint field to the current sprint
+  2. Update Due Date field
+  3. Update Team field
+  4. Change ticket status to "Ready for Development"
+  5. Assign @Lisa Durant as the tech writer
+  6. [Additional feature-specific documentation requirements]
+- Note: This ticket depends on the Technical Documentation ticket and is completed by technical writers
+
+Example:
+- ✅ "User Documentation: Create user documentation for SPDX 3.0 SBOM export feature"
 
 ### Telemetry Tickets
 Telemetry/metrics tracking tickets are **often required** but not always. Always ask the user in your clarifying questions whether telemetry should be added for the feature.
@@ -234,7 +264,9 @@ Before finalizing each story, verify:
 - [ ] Story is linked to correct epic
 - [ ] No duplicate stories exist in Jira
 - [ ] No separate QA/testing tickets created (unless for performance testing)
-- [ ] Documentation ticket included for the initiative
+- [ ] **TWO documentation tickets included for the initiative**:
+  - [ ] Technical Documentation ticket (Story type) for engineers
+  - [ ] User Documentation ticket (Documentation type) for tech writers with standard acceptance criteria
 - [ ] Telemetry ticket included if user confirmed it's needed
 
 If you lack information needed to create complete stories, proactively ask the user for:

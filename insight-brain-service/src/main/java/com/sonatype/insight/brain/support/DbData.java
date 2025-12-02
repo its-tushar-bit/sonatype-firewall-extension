@@ -18,6 +18,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
+import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO;
@@ -130,6 +131,8 @@ class DbData
 
   private final RepositoryConnectionDAO repositoryConnectionDAO;
 
+  private final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO;
+
   @Inject
   DbData(final RepositoryManagerDAO repositoryManagerDAO,
          final RepositoryDAO repositoryDAO,
@@ -162,7 +165,8 @@ class DbData
          final RepositoryComponentDAO repositoryComponentDAO,
          final PolicyWaiverDAO policyWaiverDAO,
          final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
-         final RepositoryConnectionDAO repositoryConnectionDAO)
+         final RepositoryConnectionDAO repositoryConnectionDAO,
+         final CpeMatchingConfigurationDAO cpeMatchingConfigurationDAO)
   {
     this.repositoryManagerDAO = repositoryManagerDAO;
     this.repositoryDAO = repositoryDAO;
@@ -196,6 +200,7 @@ class DbData
     this.policyWaiverDAO = policyWaiverDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;
     this.repositoryConnectionDAO = repositoryConnectionDAO;
+    this.cpeMatchingConfigurationDAO = cpeMatchingConfigurationDAO;
   }
 
   Entry<String, Object> getRepositoryManager() {
@@ -363,6 +368,10 @@ class DbData
     }
 
     return wrapEntry("innerSourceRepositoryConnection", repositoryConfigs);
+  }
+
+  Entry<String, Object> getCpeMatchingConfiguration() {
+    return wrapEntry("cpeMatchingConfiguration", cpeMatchingConfigurationDAO.getAll());
   }
 
   private static Entry<String, Object> wrapEntry(final String entryName, final Object objectToPut) {

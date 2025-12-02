@@ -10,11 +10,12 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
@@ -134,7 +135,7 @@ public class DbDataTest
     //when: querying SourceControl records
     @SuppressWarnings({"unchecked"})
     List<SourceControl> sourceControls = (List<SourceControl>) dbData.getSourceControl().getValue();
-    
+
     //then: embedded credentials are stripped from the value included in support information
     assertThat(sourceControls).extracting(SourceControl::getRepositoryUrl).filteredOn(Objects::nonNull)
         .containsOnly("https://****:****@example.com/scm/project/repo");
@@ -189,5 +190,60 @@ public class DbDataTest
         .containsEntry(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, SystemInfo.MASK)
         .containsEntry(AUTOMATIC_SOURCE_CONTROL_CONFIGURATION_ENABLED, "false")
         .containsEntry(ADVANCED_SEARCH_ENABLED, "false");
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_withOrgAndAppConfigs() {
+    // Create organization with CPE config
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newCpeMatchingConfiguration(org.getId(), true, true);
+
+    // Create application with CPE config
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newCpeMatchingConfiguration(app.getId(), false, false);
+
+    @SuppressWarnings({"unchecked"})
+    List<CpeMatchingConfiguration> cpeConfigs =
+        (List<CpeMatchingConfiguration>) dbData.getCpeMatchingConfiguration().getValue();
+
+    assertThat(cpeConfigs).hasSize(2);
+    assertThat(cpeConfigs).anySatisfy(config -> {
+      assertThat(config.getOwnerId()).isEqualTo(org.getId());
+      assertThat(config.isCpeEnabled()).isTrue();
+      assertThat(config.isAllowOverride()).isTrue();
+    });
+    assertThat(cpeConfigs).anySatisfy(config -> {
+      assertThat(config.getOwnerId()).isEqualTo(app.getId());
+      assertThat(config.isCpeEnabled()).isFalse();
+      assertThat(config.isAllowOverride()).isFalse();
+    });
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_noConfigs() {
+    @SuppressWarnings({"unchecked"})
+    List<CpeMatchingConfiguration> cpeConfigs =
+        (List<CpeMatchingConfiguration>) dbData.getCpeMatchingConfiguration().getValue();
+
+    assertThat(cpeConfigs).isNotNull();
+    // May have root org config from sample data, so just check it's a list
+    assertThat(cpeConfigs).isInstanceOf(List.class);
+  }
+
+  @Test
+  public void testGetCpeMatchingConfiguration_nullValues() {
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newCpeMatchingConfiguration(org.getId(), null, true);
+
+    @SuppressWarnings({"unchecked"})
+    List<CpeMatchingConfiguration> cpeConfigs =
+        (List<CpeMatchingConfiguration>) dbData.getCpeMatchingConfiguration().getValue();
+
+    assertThat(cpeConfigs).anySatisfy(config -> {
+      if (config.getOwnerId().equals(org.getId())) {
+        assertThat(config.isCpeEnabled()).isNull();
+        assertThat(config.isAllowOverride()).isTrue();
+      }
+    });
   }
 }

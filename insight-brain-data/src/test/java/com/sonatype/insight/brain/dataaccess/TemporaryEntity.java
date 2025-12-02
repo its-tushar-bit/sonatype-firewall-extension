@@ -211,6 +211,7 @@ import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
+import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
@@ -5795,6 +5796,12 @@ public class TemporaryEntity
     ReverseProxyAuthenticationConfiguration config =
         new ReverseProxyAuthenticationConfiguration(enabled, usernameHeader, csrfProtectionDisabled, logoutUrl);
     reverseProxyAuthenticationConfigurationDAO.insert(config);
+    return config;
+  }
+
+  public CpeMatchingConfiguration newCpeMatchingConfiguration(String ownerId, Boolean enabled, Boolean allowOverride) {
+    CpeMatchingConfiguration config = new CpeMatchingConfiguration(ownerId, enabled, allowOverride);
+    cpeMatchingConfigurationDAO.insert(config);
     return config;
   }
 

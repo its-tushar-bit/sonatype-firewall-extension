@@ -29,6 +29,8 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.Configuration;
@@ -257,7 +259,8 @@ public class SupportServiceTest
         "policyMonitoring",
         "sourceControl",
         "reverseProxyAuthenticationConfiguration",
-        "innerSourceRepositoryConnection"
+        "innerSourceRepositoryConnection",
+        "cpeMatchingConfiguration"
     };
     final File[] expectedFiles = createExpectedFiles(workDir, basenames);
     assertThat(workDir.listFiles()).containsExactlyInAnyOrder(expectedFiles);
@@ -449,6 +452,41 @@ public class SupportServiceTest
       exception = (SupportZipInProgressException) exceptions[1];
     }
     assertThat(exception.getMessage()).contains("Support zip generation is already in progress");
+  }
+
+  @Test
+  public void testCreateSupportZip_IncludesCpeMatchingConfiguration() throws Exception {
+    // Create test data
+    Organization org = tempEntity.newOrganization();
+    tempEntity.newCpeMatchingConfiguration(org.getId(), true, true);
+    Application app = tempEntity.newApplication(org.getId());
+    tempEntity.newCpeMatchingConfiguration(app.getId(), false, false);
+
+    // Create support zip
+    File supportZip = supportService.createSupportZip(true, null, false);
+    assertThat(supportZip).exists();
+
+    // Verify CPE configuration file is in the zip
+    try (ZipFile zipFile = new ZipFile(supportZip)) {
+      List<? extends ZipEntry> entries = EnumerationUtils.toList(zipFile.entries());
+      String expectedPath =
+          getZipFileBasename(supportZip) + "/" + SupportFileType.DB.getDirName() + "/cpeMatchingConfiguration.json";
+
+      ZipEntry cpeConfigEntry = entries.stream()
+          .filter(e -> e.getName().equals(expectedPath))
+          .findFirst()
+          .orElse(null);
+
+      assertThat(cpeConfigEntry).isNotNull();
+
+      // Verify content
+      String content = getZipEntryContent(zipFile, cpeConfigEntry);
+      assertThat(content).isNotEmpty();
+      JsonNode jsonNode = JsonUtils.parse(content);
+      assertThat(jsonNode.has("cpeMatchingConfiguration")).isTrue();
+      assertThat(jsonNode.get("cpeMatchingConfiguration").isArray()).isTrue();
+      assertThat(jsonNode.get("cpeMatchingConfiguration").size()).isGreaterThanOrEqualTo(2);
+    }
   }
 
   private File createFile(int sizeInBytes) throws Exception {

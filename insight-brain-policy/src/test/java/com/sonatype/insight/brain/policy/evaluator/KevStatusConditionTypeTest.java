@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.policy.evaluator;
 
+import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.SecurityVulnerability;
@@ -16,7 +17,6 @@ import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilityWithKev;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.model.vulnerability.KevStatus;
-import com.sonatype.insight.vulnerability.model.KevData;
 import org.junit.Test;
 
 import java.util.List;

@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.DerivedFromAiModel;
+import com.sonatype.clm.dto.model.EpssData;
+import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -975,6 +977,161 @@ public class ComponentLoaderTest
     assertThat(securityVulnerabilityResult3.getKevData()).isNotNull();
     assertThat(securityVulnerabilityResult3.getKevData().getIsKev()).isTrue();
     assertThat(securityVulnerabilityResult3.getEpssData()).isNull();
+  }
+
+  @Test
+  public void testGetComponent_WithKevData() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-001", "cve", 7.5f);
+
+    KevData kevData = new KevData(true);
+    securityVulnerability.setKevData(kevData);
+
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getRefId()).isEqualTo("CVE-2024-001");
+    assertThat(foundSecurityVulnerability.getKevData()).isNotNull();
+    assertThat(foundSecurityVulnerability.getKevData().getIsKev()).isTrue();
+    assertThat(foundSecurityVulnerability.getEpssData()).isNull();
+  }
+
+  @Test
+  public void testGetComponent_WithEpssData() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-002", "cve", 8.0f);
+
+    EpssData epssData = new EpssData(0.75);
+    securityVulnerability.setEpssData(epssData);
+
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getRefId()).isEqualTo("CVE-2024-002");
+    assertThat(foundSecurityVulnerability.getEpssData()).isNotNull();
+    assertThat(foundSecurityVulnerability.getEpssData().getCurrentScore()).isEqualTo(0.75);
+    assertThat(foundSecurityVulnerability.getKevData()).isNull();
+  }
+
+  @Test
+  public void testGetComponent_WithBothKevAndEpssData() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-003", "cve", 9.0f);
+
+    KevData kevData = new KevData(false);
+    securityVulnerability.setKevData(kevData);
+
+    EpssData epssData = new EpssData(0.123);
+    securityVulnerability.setEpssData(epssData);
+
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getRefId()).isEqualTo("CVE-2024-003");
+    assertThat(foundSecurityVulnerability.getKevData()).isNotNull();
+    assertThat(foundSecurityVulnerability.getKevData().getIsKev()).isFalse();
+    assertThat(foundSecurityVulnerability.getEpssData()).isNotNull();
+    assertThat(foundSecurityVulnerability.getEpssData().getCurrentScore()).isEqualTo(0.123);
+  }
+
+  @Test
+  public void testGetComponent_WithoutKevAndEpssData() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-004", "cve", 5.0f);
+    // Do not set KEV or EPSS data
+
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getRefId()).isEqualTo("CVE-2024-004");
+    assertThat(foundSecurityVulnerability.getKevData()).isNull();
+    assertThat(foundSecurityVulnerability.getEpssData()).isNull();
+  }
+
+  @Test
+  public void testGetComponent_WithMultipleVulnerabilitiesWithMixedKevAndEpssData() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+
+    // Vulnerability 1: Has KEV data only
+    com.sonatype.clm.dto.model.SecurityVulnerability sv1 =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-101", "cve", 7.0f);
+    KevData kevData1 = new KevData(true);
+    sv1.setKevData(kevData1);
+
+    // Vulnerability 2: Has EPSS data only
+    com.sonatype.clm.dto.model.SecurityVulnerability sv2 =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-102", "cve", 6.0f);
+    EpssData epssData2 = new EpssData(0.456);
+    sv2.setEpssData(epssData2);
+
+    // Vulnerability 3: Has neither KEV nor EPSS data
+    com.sonatype.clm.dto.model.SecurityVulnerability sv3 =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-103", "cve", 5.0f);
+
+    List<com.sonatype.clm.dto.model.SecurityVulnerability> vulnerabilities = new ArrayList<>();
+    vulnerabilities.add(sv1);
+    vulnerabilities.add(sv2);
+    vulnerabilities.add(sv3);
+    matchedComponent.setSecurityVulnerabilities(vulnerabilities);
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(3);
+
+    // Assert vulnerability 1
+    SecurityVulnerability foundSv1 = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSv1.getRefId()).isEqualTo("CVE-2024-101");
+    assertThat(foundSv1.getKevData()).isNotNull();
+    assertThat(foundSv1.getKevData().getIsKev()).isTrue();
+    assertThat(foundSv1.getEpssData()).isNull();
+
+    // Assert vulnerability 2
+    SecurityVulnerability foundSv2 = component.getSecurityVulnerabilities().get(1);
+    assertThat(foundSv2.getRefId()).isEqualTo("CVE-2024-102");
+    assertThat(foundSv2.getKevData()).isNull();
+    assertThat(foundSv2.getEpssData()).isNotNull();
+    assertThat(foundSv2.getEpssData().getCurrentScore()).isEqualTo(0.456);
+
+    // Assert vulnerability 3
+    SecurityVulnerability foundSv3 = component.getSecurityVulnerabilities().get(2);
+    assertThat(foundSv3.getRefId()).isEqualTo("CVE-2024-103");
+    assertThat(foundSv3.getKevData()).isNull();
+    assertThat(foundSv3.getEpssData()).isNull();
   }
 
   private void assertLicenseOverrideIsTheExpected(MatchedComponent matchedComponent, String licenseOverrideId) {

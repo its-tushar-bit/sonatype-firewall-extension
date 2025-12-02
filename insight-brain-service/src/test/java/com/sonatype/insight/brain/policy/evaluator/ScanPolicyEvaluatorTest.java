@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import javax.inject.Inject;
 
+import com.sonatype.clm.dto.model.EpssData;
 import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -158,7 +159,6 @@ import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.sonatype.insight.test.LogOutput;
-import com.sonatype.insight.vulnerability.model.EpssData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;

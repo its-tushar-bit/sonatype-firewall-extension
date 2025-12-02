@@ -5,7 +5,6 @@
  */
 package com.sonatype.insight.brain.thirdparty;
 
-import com.sonatype.insight.vulnerability.model.EpssData;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
@@ -19,6 +18,8 @@ import java.util.TreeSet;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
+import com.sonatype.clm.dto.model.EpssData;
+import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.SecurityVulnerabilityDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetails;
@@ -44,7 +45,6 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.scan.ThirdPartyHealthCheckReportSecurityRowDTO;
 import com.sonatype.insight.test.LogOutput;
 import com.sonatype.insight.vulnerability.model.BulkSecurityVulnerabilityDataDTO;
-import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 
 import com.fasterxml.jackson.databind.JsonNode;

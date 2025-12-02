@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 import com.sonatype.clm.dto.model.ComponentEndOfLifeStatus;
 import com.sonatype.clm.dto.model.ComponentInfo;
 import com.sonatype.clm.dto.model.DerivedFromAiModel;
+import com.sonatype.clm.dto.model.EpssData;
+import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.component.AggregateFile;
 import com.sonatype.clm.dto.model.component.AiModelContentType;
 import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
@@ -69,8 +71,6 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemedia
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
-import com.sonatype.insight.vulnerability.model.KevData;
-import com.sonatype.insight.vulnerability.model.EpssData;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -804,6 +804,8 @@ public class ComponentLoader
             sv.addAlias(alias);
           }
         }
+        sv.setKevData(dtoSv.getKevData());
+        sv.setEpssData(dtoSv.getEpssData());
         fillSecurityVulnerabilityCustomData(component, sv);
         component.addSecurityVulnerability(sv);
       }

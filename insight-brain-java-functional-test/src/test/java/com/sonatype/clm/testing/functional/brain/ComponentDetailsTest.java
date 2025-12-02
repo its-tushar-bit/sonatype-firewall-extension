@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.core.UriBuilder;
 
+import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -92,7 +93,6 @@ import com.sonatype.insight.dependency.ComponentDependenciesDTO;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.mock.hds.HdsMockServer;
-import com.sonatype.insight.vulnerability.model.KevData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilitySeverity;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityData.SecurityVulnerabilityWeakness;

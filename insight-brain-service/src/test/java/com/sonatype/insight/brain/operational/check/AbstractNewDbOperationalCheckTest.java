@@ -5,7 +5,12 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.sql.Connection;
+import java.sql.Statement;
 import java.util.Map;
 
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -27,7 +32,9 @@ import org.junit.runners.MethodSorters;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
@@ -93,6 +100,54 @@ abstract class AbstractNewDbOperationalCheckTest
     testExecute_Unhealthy(thirdPartyScansDataStore);
   }
 
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_ODS() throws Exception {
+    testExecute_Unhealthy_ReadOnly(operationalDataStore, databaseOperationalCheck);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_DataMart() throws Exception {
+    testExecute_Unhealthy_ReadOnly(dataMartDataStore, databaseOperationalCheck);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_Aggregation() throws Exception {
+    testExecute_Unhealthy_ReadOnly(aggregationDataStore, databaseOperationalCheck);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_ThirdParty() throws Exception {
+    testExecute_Unhealthy_ReadOnly(thirdPartyScansDataStore, databaseOperationalCheck);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_Fallback_ODS() throws Exception {
+    NewDbConnectionOperationalCheck spy = spy(databaseOperationalCheck);
+    doReturn(null).when(spy).isConnectionReadOnlyViaQuery(any(), any());
+    testExecute_Unhealthy_ReadOnly(operationalDataStore, spy);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_Fallback_DataMart() throws Exception {
+    NewDbConnectionOperationalCheck spy = spy(databaseOperationalCheck);
+    doReturn(null).when(spy).isConnectionReadOnlyViaQuery(any(), any());
+    testExecute_Unhealthy_ReadOnly(dataMartDataStore, spy);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_Fallback_Aggregation() throws Exception {
+    NewDbConnectionOperationalCheck spy = spy(databaseOperationalCheck);
+    doReturn(null).when(spy).isConnectionReadOnlyViaQuery(any(), any());
+    testExecute_Unhealthy_ReadOnly(aggregationDataStore, spy);
+  }
+
+  @Test
+  public void testExecute_Unhealthy_ReadOnly_Fallback_ThirdParty() throws Exception {
+    NewDbConnectionOperationalCheck spy = spy(databaseOperationalCheck);
+    doReturn(null).when(spy).isConnectionReadOnlyViaQuery(any(), any());
+    testExecute_Unhealthy_ReadOnly(thirdPartyScansDataStore, spy);
+  }
+
   private void testExecute_Unhealthy(DataStore unhealthyDataStore) throws Exception {
     DatabaseConfig databaseConfig = unhealthyDataStore.getDatabaseConfig();
     DataSourceProvider mockDataSourceProvider = mock();
@@ -114,6 +169,77 @@ abstract class AbstractNewDbOperationalCheckTest
       else {
         assertThat((String) resultDetails.get(dataStore.getID() + " database")).matches("^roundTripTimeInMs=\\d+$");
       }
+    }
+  }
+
+  private void testExecute_Unhealthy_ReadOnly(
+      DataStore unhealthyDataStore,
+      NewDbConnectionOperationalCheck newDbConnectionOperationalCheck) throws Exception
+  {
+    if (unhealthyDataStore.isDatabaseEmbedded()) {
+      setPathReadOnly(getH2DBPath(unhealthyDataStore));
+
+      try (Connection connection = unhealthyDataStore.getDataSource().getConnection();
+           Statement statement = connection.createStatement()) {
+        statement.execute("SHUTDOWN");
+      }
+    }
+    else {
+      try (Connection connection = unhealthyDataStore.getDataSource().getConnection();
+           Statement statement = connection.createStatement()) {
+        statement.execute("ALTER DATABASE " + connection.getCatalog() + " SET default_transaction_read_only = on;");
+      }
+    }
+
+    Result result = newDbConnectionOperationalCheck.execute();
+
+    // Assert overall health check failed
+    assertThat(result.isHealthy()).isFalse();
+
+    // Assert the specific datastore has the read-only error message
+    Map<String, Object> resultDetails = result.getDetails();
+    assertThat((String) resultDetails.get(unhealthyDataStore.getID() + " database"))
+        .isEqualTo("New connections to the database are read-only. Cannot perform write operations.");
+  }
+
+  private Path getH2DBPath(final DataStore unhealthyDataStore) {
+    String location = unhealthyDataStore.getDatabaseConfig().getUrl().substring("jdbc:h2:".length());
+    location = location.substring(0, location.indexOf(";")) + ".h2.db";
+    return Path.of(location);
+  }
+
+  private void setPathReadOnly(final Path path) {
+    boolean setReadOnly = false;
+
+    try {
+      // attempt 1
+      File dbFile = new File(path.toString());
+      setReadOnly = dbFile.setReadOnly();
+    }
+    catch (Exception ignore) {
+      // do nothing
+    }
+
+    try {
+      // attempt 2
+      Files.setPosixFilePermissions(path, PosixFilePermissions.fromString("r--r--r--"));
+      setReadOnly = true;
+    }
+    catch (Exception ignore) {
+      // do nothing
+    }
+
+    try {
+      // attempt 3
+      Files.setAttribute(path, "dos:readonly", true);
+      setReadOnly = true;
+    }
+    catch (Exception ignore) {
+      // do nothing
+    }
+
+    if (!setReadOnly) {
+      throw new AssertionError("Could not set read-only permissions for database " + path.toString());
     }
   }
 }

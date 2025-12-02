@@ -121,7 +121,7 @@ function onLogoutConfirmation() {
         error: resultServerLogout.error?.message,
       };
     } else {
-      toLocation = resultServerLogout.headers['Location'];
+      toLocation = resultServerLogout.headers['Location'] || resultServerLogout.headers['location'];
     }
     logoutRedirection(toLocation);
   };

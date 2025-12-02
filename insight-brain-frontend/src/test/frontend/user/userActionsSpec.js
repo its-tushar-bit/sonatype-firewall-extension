@@ -485,9 +485,28 @@ describe('userActions', function () {
       });
     });
 
-    it('provides the ability to log out for reverse proxy', function () {
+    it('provides the ability to log out for reverse proxy with Location header (Capital)', function () {
       const afterLogoutRedirectionUrl = 'http://localhost/logout';
       axiosMock.onDelete(getSessionLogoutUrl()).reply(204, '', { Location: afterLogoutRedirectionUrl });
+
+      const store = SpecUtil.mockReduxStore(currentState);
+      mainBundlePendoService.flush.and.returnValue(pendoDeferred);
+
+      store
+        .dispatch(userActions.logout())
+        .then(() => {
+          expect(mainBundlePendoService.flush).toHaveBeenCalled();
+          expect(urlUtil.logoutRedirection).toHaveBeenCalledWith(afterLogoutRedirectionUrl);
+          pendoDeferred.then((p) => {
+            expect(p).toBe(true);
+          });
+        })
+        .catch(() => {});
+    });
+
+    it('provides the ability to log out for reverse proxy with location header (Lowercase)', function () {
+      const afterLogoutRedirectionUrl = 'http://localhost/logout';
+      axiosMock.onDelete(getSessionLogoutUrl()).reply(204, '', { location: afterLogoutRedirectionUrl });
 
       const store = SpecUtil.mockReduxStore(currentState);
       mainBundlePendoService.flush.and.returnValue(pendoDeferred);

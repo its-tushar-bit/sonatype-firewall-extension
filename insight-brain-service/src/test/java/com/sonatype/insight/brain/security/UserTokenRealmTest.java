@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.security;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -21,6 +24,7 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 
 import com.atlassian.crowd.exception.UserNotFoundException;
 import com.google.inject.Binder;
@@ -34,6 +38,7 @@ import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
@@ -49,9 +54,12 @@ public class UserTokenRealmTest
 
   @Inject
   private PasswordService passwordService;
-  
+
   @Inject
   private UserTokenDAO userTokenDAO;
+
+  @Inject
+  private Configuration configuration;
 
   @Mock
   private ProductLicense mockProductLicense;
@@ -422,6 +430,26 @@ public class UserTokenRealmTest
             userToken.getUserCode())).withStackTraceContaining("SomeError");
   }
 
+  @Test
+  public void testGetAuthenticationInfo_ExpiredToken() {
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+    configuration.configurationChanged(
+        Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+    UserToken userToken = createExpiredUserToken("JohnDoe");
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "TestPassword");
+    assertThatExceptionOfType(AuthenticationException.class)
+        .isThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken))
+        .withMessage("User token has expired");
+  }
+
+  @Test
+  public void testGetAuthenticationInfo_NonExpiredToken() {
+    UserToken userToken = createNonExpiredUserToken("JohnDoe");
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "TestPassword");
+    AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
+    assertThat(authenticationInfo).isNotNull();
+  }
+
   private UserPrincipal getUserPrincipal(AuthenticationInfo authenticationInfo) {
     assertThat(authenticationInfo).isInstanceOf(SimpleAuthenticationInfo.class);
     SimpleAuthenticationInfo simpleAuthenticationInfo = (SimpleAuthenticationInfo) authenticationInfo;
@@ -430,5 +458,21 @@ public class UserTokenRealmTest
     Object primaryPrincipal = simpleAuthenticationInfo.getPrincipals().getPrimaryPrincipal();
     assertThat(primaryPrincipal).isInstanceOf(UserPrincipal.class);
     return (UserPrincipal) primaryPrincipal;
+  }
+
+  private UserToken createExpiredUserToken(String username) {
+    String hashedPassword = passwordService.encryptPassword("TestPassword");
+    tempEntity.newUser(username);
+    // Create token with create_time set to 31 days ago (expired with 30 day default expiration)
+    Instant createTime = Instant.now().minus(31, ChronoUnit.DAYS);
+    return tempEntity.newUserToken(username, "TestUserCode", hashedPassword, InternalRealm.ID,
+        Date.from(createTime));
+  }
+
+  private UserToken createNonExpiredUserToken(String username) {
+    String hashedPassword = passwordService.encryptPassword("TestPassword");
+    tempEntity.newUser(username);
+    // Token created with current time, so it won't be expired (within 30 day default expiration)
+    return tempEntity.newUserToken(username, "TestUserCode", hashedPassword, InternalRealm.ID);
   }
 }

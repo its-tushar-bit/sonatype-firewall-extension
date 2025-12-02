@@ -7,9 +7,12 @@ package com.sonatype.insight.brain.security;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,6 +35,7 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.model.security.UserToken;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.dataaccess.TransactionContext;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -39,6 +43,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
+import org.apache.shiro.authz.UnauthorizedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,6 +67,8 @@ public class UserTokenService
 
   private final LdapServerDAO ldapServerDAO;
 
+  private final Configuration configuration;
+
   @Inject
   public UserTokenService(
       UserTokenDAO userTokenDAO,
@@ -69,7 +76,8 @@ public class UserTokenService
       LdapServerDAO ldapServerDAO,
       PasswordService passwordService,
       LdapService ldapService,
-      CurrentUser currentUser)
+      CurrentUser currentUser,
+      Configuration configuration)
   {
     this.userTokenDAO = userTokenDAO;
     this.ssoUserService = ssoUserService;
@@ -77,6 +85,7 @@ public class UserTokenService
     this.passwordService = passwordService;
     this.ldapService = ldapService;
     this.currentUser = currentUser;
+    this.configuration = configuration;
   }
 
   public ApiUserTokenDTO createUserToken() {
@@ -200,6 +209,10 @@ public class UserTokenService
       throw new NotFoundException(
           "No user token found for " + realmId + " user " + username + ".");
     }
+    if (isTokenExpired(userToken)) {
+      throw new UnauthorizedException(
+          "User token for " + realmId + " user " + username + " has expired.");
+    }
     return createApiUserTokenDTO(userToken);
   }
 
@@ -282,6 +295,41 @@ public class UserTokenService
     return SystemConfigurationPropertyFeature.CROWD_INTEGRATION.isEnabled();
   }
 
+  /**
+   * Check if a user token has expired based on configured expiration days.
+   *
+   * @param userToken the user token to check
+   * @return true if the token has expired, false otherwise
+   */
+  public boolean isTokenExpired(final UserToken userToken) {
+    int configuredExpirationDays = getConfiguredExpirationDays();
+    if (configuredExpirationDays <= 0 || userToken.getCreateTime() == null) {
+      return false; // No expiration configured or no create time
+    }
+
+    Instant expirationInstant = Objects.requireNonNull(calculateExpirationDate(userToken)).toInstant();
+    return Instant.now().isAfter(expirationInstant);
+  }
+
+  private int getConfiguredExpirationDays() {
+    Integer expirationDays = configuration.getUserTokenDefaultExpirationDays();
+
+    if (expirationDays == null) {
+      return 0; // No expiration configured
+    }
+
+    return expirationDays;
+  }
+
+  private Date calculateExpirationDate(UserToken userToken) {
+    int expiryDays = getConfiguredExpirationDays();
+    if (expiryDays <= 0 || userToken.getCreateTime() == null) {
+      return null; // No expiration configured
+    }
+    Instant expirationInstant = userToken.getCreateTime().toInstant().plus(expiryDays, ChronoUnit.DAYS);
+    return Date.from(expirationInstant);
+  }
+
   private ApiUserTokenDTO createApiUserTokenDTO(UserToken userToken) {
     ApiUserTokenDTO apiUserTokenDTO = new ApiUserTokenDTO();
     apiUserTokenDTO.userCode = userToken.getUserCode();
@@ -289,6 +337,7 @@ public class UserTokenService
     apiUserTokenDTO.realm = userToken.getRealmId();
     apiUserTokenDTO.createTime = userToken.getCreateTime();
     apiUserTokenDTO.lastAccessTime = userToken.getLastAccessTime();
+    apiUserTokenDTO.expirationDate = calculateExpirationDate(userToken);
     return apiUserTokenDTO;
   }
 }

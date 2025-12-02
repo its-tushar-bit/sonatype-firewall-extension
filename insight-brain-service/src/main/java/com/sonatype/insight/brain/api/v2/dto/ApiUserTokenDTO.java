@@ -28,4 +28,7 @@ public class ApiUserTokenDTO
 
   @ApiDateFormat
   public Date lastAccessTime;
+
+  @ApiDateFormat
+  public Date expirationDate;
 }

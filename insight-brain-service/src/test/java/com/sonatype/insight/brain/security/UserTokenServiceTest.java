@@ -14,6 +14,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenDTO;
@@ -33,6 +35,7 @@ import com.sonatype.insight.brain.model.security.UserToken;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
@@ -41,6 +44,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -70,6 +74,9 @@ public class UserTokenServiceTest
 
   @Inject
   private UserTokenDAO userTokenDAO;
+
+  @Inject
+  private Configuration configuration;
 
   @Mock
   private ProductLicense mockProductLicense;
@@ -629,5 +636,144 @@ public class UserTokenServiceTest
     assertThat(result.username).isEqualTo("foo");
     assertThat(result.userCode).isEqualTo("3");
     assertThat(result.realm).isEqualTo(CrowdRealm.ID);
+  }
+
+  @Test
+  public void testCreateUserToken_WithExpirationConfigured() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
+
+    // Configure expiration to 30 days
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    Date start = new Date();
+    userTokenService.createUserToken();
+
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
+    assertThat(persistedToken).isNotNull();
+
+    // Verify API response contains computed expiration date approximately 30 days from now (with 1 minute tolerance)
+    Calendar expectedExpiration = Calendar.getInstance();
+    expectedExpiration.setTime(start);
+    expectedExpiration.add(Calendar.DAY_OF_YEAR, 30);
+    long expectedMillis = expectedExpiration.getTimeInMillis();
+
+    // Get the DTO which should have computed expiration
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+    assertThat(result.expirationDate).isNotNull();
+    long actualMillis = result.expirationDate.getTime();
+    long differenceMillis = Math.abs(actualMillis - expectedMillis);
+    assertThat(differenceMillis).isLessThan(TimeUnit.MINUTES.toMillis(1));
+  }
+
+  @Test
+  public void testCreateUserToken_WithoutExpirationConfigured() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
+
+    // Ensure no expiration is configured
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, null);
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    userTokenService.createUserToken();
+
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
+    assertThat(persistedToken).isNotNull();
+
+    // Verify API response has null expiration when not configured
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+    assertThat(result.expirationDate).isNull();
+  }
+
+  @Test
+  public void testCreateUserToken_WithZeroExpirationDays() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
+
+    // Configure expiration to 0 days (should be treated as no expiration)
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "0");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    userTokenService.createUserToken();
+
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
+    assertThat(persistedToken).isNotNull();
+
+    // Verify API response has null expiration when set to 0
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+    assertThat(result.expirationDate).isNull();
+  }
+
+  @Test
+  public void testCreateUserToken_WithNegativeExpirationDays() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
+
+    // Configure expiration to -1 days (should be treated as no expiration)
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "-1");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    userTokenService.createUserToken();
+
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
+    assertThat(persistedToken).isNotNull();
+
+    // Verify API response has null expiration when set to negative
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+    assertThat(result.expirationDate).isNull();
+  }
+
+  @Test
+  public void testCreateUserToken_WithInvalidExpirationDays() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+    when(subject.getPrincipal()).thenReturn(new UserPrincipal(username, "John Doe", InternalRealm.ID));
+
+    // Configure expiration to invalid value (should be treated as no expiration)
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "invalid");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    userTokenService.createUserToken();
+
+    UserToken persistedToken = userTokenDAO.getByUsernameAndRealmId(username, InternalRealm.ID);
+    assertThat(persistedToken).isNotNull();
+
+    // Verify API response has null expiration when set to invalid
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+    assertThat(result.expirationDate).isNull();
+  }
+
+  @Test
+  public void testGetUserTokenByUsernameAndRealmId_ReturnsComputedExpirationDate() {
+    String username = "JohnDoe";
+    tempEntity.newUser(username);
+
+    // Configure expiration to 30 days
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+
+    // Create a token
+    UserToken userToken = tempEntity.newUserToken(username, InternalRealm.ID);
+
+    // Calculate expected expiration based on token creation time + 30 days
+    Calendar expectedExpiration = Calendar.getInstance();
+    expectedExpiration.setTime(userToken.getCreateTime());
+    expectedExpiration.add(Calendar.DAY_OF_YEAR, 30);
+    long expectedMillis = expectedExpiration.getTimeInMillis();
+
+    ApiUserTokenDTO result = userTokenService.getUserTokenByUsernameAndRealmId(username, User.INTERNAL_REALM_ID);
+
+    assertThat(result).isNotNull();
+    assertThat(result.expirationDate).isNotNull();
+
+    // Verify computed expiration is approximately 30 days from creation (with 1 minute tolerance)
+    long actualMillis = result.expirationDate.getTime();
+    long differenceMillis = Math.abs(actualMillis - expectedMillis);
+    assertThat(differenceMillis).isLessThan(TimeUnit.MINUTES.toMillis(1));
   }
 }

@@ -128,6 +128,11 @@ public class UserTokenRealm
       return null;
     }
 
+    if (userTokenService.isTokenExpired(userToken)) {
+      log.info("User token '{}' for user '{}' has expired", userToken.getUserCode(), userToken.getUsername());
+      throw new AuthenticationException("User token has expired");
+    }
+
     if (userToken.isInternalUser()) {
       return doGetInternalRealmAuthenticationInfo(userToken);
     }

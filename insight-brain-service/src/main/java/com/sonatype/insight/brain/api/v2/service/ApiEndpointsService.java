@@ -55,6 +55,7 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
+import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.collections4.CollectionUtils;
@@ -75,6 +76,16 @@ public class ApiEndpointsService
 
   // Cache of lambda to calculate if an operation is supported by operation ID
   private static final Map<String, BooleanSupplier> IS_SUPPORTED_BY_OPERATION_ID = new ConcurrentHashMap<>();
+
+  private static final String BASIC_AUTH_SCHEME_NAME = "BasicAuth";
+
+  private static final String BEARER_AUTH_SCHEME_NAME = "BearerAuth";
+
+  private static final String BASIC_SCHEME = "basic";
+
+  private static final String BEARER_SCHEME = "bearer";
+
+  private static final String JWT_FORMAT = "JWT";
 
   private final VersionService versionService;
 
@@ -113,7 +124,29 @@ public class ApiEndpointsService
     OpenAPI openAPI = new InsightOpenAPIReader().read(getResourceHandlerClasses(application));
     handlePathsAndOperations(openAPI);
     handleTags(openAPI);
+    addSecuritySchemes(openAPI);
     return openAPI;
+  }
+
+  private void addSecuritySchemes(final OpenAPI openAPI) {
+    if (openAPI.getComponents() == null) {
+      openAPI.setComponents(new Components());
+    }
+    SecurityScheme basicAuth = new SecurityScheme();
+    basicAuth.setType(SecurityScheme.Type.HTTP);
+    basicAuth.setScheme(BASIC_SCHEME);
+    openAPI.getComponents().addSecuritySchemes(BASIC_AUTH_SCHEME_NAME, basicAuth);
+
+    SecurityScheme bearerAuth = new SecurityScheme();
+    bearerAuth.setType(SecurityScheme.Type.HTTP);
+    bearerAuth.setScheme(BEARER_SCHEME);
+    bearerAuth.setBearerFormat(JWT_FORMAT);
+    openAPI.getComponents().addSecuritySchemes(BEARER_AUTH_SCHEME_NAME, bearerAuth);
+
+    SecurityRequirement securityRequirement = new SecurityRequirement();
+    securityRequirement.addList(BASIC_AUTH_SCHEME_NAME);
+    securityRequirement.addList(BEARER_AUTH_SCHEME_NAME);
+    openAPI.addSecurityItem(securityRequirement);
   }
 
   private Set<Class<?>> getResourceHandlerClasses(final Application application) {
@@ -439,6 +472,9 @@ public class ApiEndpointsService
               classSecurityRequirements, classExternalDocs, classTags, classServers, isSubresource, parentRequestBody,
               parentResponses, jsonViewAnnotation, classResponses, annotatedMethod);
       IS_SUPPORTED_BY_OPERATION_ID.put(operation.getOperationId(), getIsSupported(method));
+      if (method.isAnnotationPresent(AnonymousWithFeature.class)) {
+        operation.setSecurity(new ArrayList<>());
+      }
       return operation;
     }
 

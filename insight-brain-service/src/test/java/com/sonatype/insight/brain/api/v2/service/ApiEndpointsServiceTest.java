@@ -58,6 +58,16 @@ public class ApiEndpointsServiceTest
 {
   private static final String MOCK_VERSION = "1.165.0-01";
 
+  private static final String BASIC_AUTH_SCHEME_NAME = "BasicAuth";
+
+  private static final String BEARER_AUTH_SCHEME_NAME = "BearerAuth";
+
+  private static final String BASIC_SCHEME = "basic";
+
+  private static final String BEARER_SCHEME = "bearer";
+
+  private static final String JWT_FORMAT = "JWT";
+
   @Inject
   private ApiEndpointsService apiEndpointsService;
 
@@ -436,7 +446,51 @@ public class ApiEndpointsServiceTest
     String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.EXPERIMENTAL);
 
     OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
-    assertThat(openAPI.getComponents()).isNull();
+    assertThat(openAPI.getComponents()).isNotNull();
+    assertThat(openAPI.getComponents().getSchemas()).isNullOrEmpty();
+    assertThat(openAPI.getComponents().getSecuritySchemes()).isNotEmpty();
+  }
+
+  @Test
+  public void testGetOpenAPI_HasSecuritySchemes() throws Exception {
+    setupApplicationClasses();
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getComponents()).isNotNull();
+    assertThat(openAPI.getComponents().getSecuritySchemes()).isNotEmpty();
+    assertThat(openAPI.getComponents().getSecuritySchemes()).containsKey(BASIC_AUTH_SCHEME_NAME);
+    assertThat(openAPI.getComponents().getSecuritySchemes()).containsKey(BEARER_AUTH_SCHEME_NAME);
+
+    var basicAuth = openAPI.getComponents().getSecuritySchemes().get(BASIC_AUTH_SCHEME_NAME);
+    assertThat(basicAuth.getType()).isEqualTo(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP);
+    assertThat(basicAuth.getScheme()).isEqualTo(BASIC_SCHEME);
+    var bearerAuth = openAPI.getComponents().getSecuritySchemes().get(BEARER_AUTH_SCHEME_NAME);
+    assertThat(bearerAuth.getType()).isEqualTo(io.swagger.v3.oas.models.security.SecurityScheme.Type.HTTP);
+    assertThat(bearerAuth.getScheme()).isEqualTo(BEARER_SCHEME);
+    assertThat(bearerAuth.getBearerFormat()).isEqualTo(JWT_FORMAT);
+    assertThat(openAPI.getSecurity()).isNotEmpty();
+    assertThat(openAPI.getSecurity().get(0).containsKey(BASIC_AUTH_SCHEME_NAME)).isTrue();
+    assertThat(openAPI.getSecurity().get(0).containsKey(BEARER_AUTH_SCHEME_NAME)).isTrue();
+  }
+
+  @Test
+  public void testGetOpenAPI_AnonymousEndpointsNoAuth() throws Exception {
+    setupApplicationClasses();
+    String result = apiEndpointsService.getOpenAPI(mockApplication, ApiType.PUBLIC);
+
+    OpenAPI openAPI = Json.mapper().readValue(result, OpenAPI.class);
+    assertThat(openAPI).isNotNull();
+    assertThat(openAPI.getPaths()).isNotNull();
+    PathItem vulnPath = openAPI.getPaths().get("/api/v2/vulnerabilities/{refId}");
+    if (vulnPath != null && vulnPath.getGet() != null) {
+      assertThat(vulnPath.getGet().getSecurity()).isEmpty();
+    }
+    PathItem bulkVulnPath = openAPI.getPaths().get("/api/v2/vulnerabilities/bulk");
+    if (bulkVulnPath != null && bulkVulnPath.getPost() != null) {
+      assertThat(bulkVulnPath.getPost().getSecurity()).isEmpty();
+    }
   }
 
   private void assertEndpoints(String result, ApiType expectedApiType, String expectedEndpoint, String expectedTag)

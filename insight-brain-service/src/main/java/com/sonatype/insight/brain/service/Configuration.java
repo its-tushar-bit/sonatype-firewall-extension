@@ -217,7 +217,8 @@ public class Configuration
         SystemConfigurationProperty.ZSCALER,
         SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP,
         SystemConfigurationProperty.EPSS_DATA,
-        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT
+        SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT,
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

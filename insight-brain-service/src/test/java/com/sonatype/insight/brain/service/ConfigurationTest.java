@@ -347,6 +347,19 @@ public class ConfigurationTest
     assertThat(matcherConfiguration).containsEntry("disableConanNamespaceMatching", "true");
   }
 
+  @Test
+  public void testInitializeValues_LoadUserTokenDefaultExpirationDays() {
+    // Given a value is set in the database before initialization
+    configurationService.setConfigurationInDatabaseNoAuthz(
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 45);
+
+    // When the configuration is reinitialized (simulating server startup)
+    configuration.register();
+
+    // Then the value should be available from the configuration cache
+    assertThat(configuration.getUserTokenDefaultExpirationDays()).isEqualTo(45);
+  }
+
   private void givenCacheAndDatabaseAreNotInSync(
       final int maxPoolSize,
       final String givenSomeCustomBaseUrl

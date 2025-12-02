@@ -46,9 +46,12 @@ server:
       port: 8071
 
       # The hostname of the interface to which the admin HTTP server socket
-      # will be bound. If omitted, the socket will listen on all
-      # interfaces.
-      #bindHost: 127.0.0.1  # only bind to loopback
+      # will be bound. For security, this defaults to localhost (127.0.0.1)
+      # to prevent unauthorized access to administrative endpoints.
+      # To allow access from other hosts, set this to 0.0.0.0 or a specific IP address.
+      # WARNING: Exposing the admin port beyond localhost may allow unauthorized users
+      # to trigger sensitive operations like backups, shutdowns, or policy monitoring.
+      bindHost: 127.0.0.1
 
   # HTTP request log settings.
   requestLog:

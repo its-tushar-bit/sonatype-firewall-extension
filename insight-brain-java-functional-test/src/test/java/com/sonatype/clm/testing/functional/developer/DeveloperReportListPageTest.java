@@ -42,9 +42,13 @@ import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.text;
+import static com.codeborne.selenide.Condition.focused;
 import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.value;
 import static com.codeborne.selenide.Selectors.byText;
+import static com.codeborne.selenide.Selenide.sleep;
 import static com.sonatype.clm.testing.functional.utils.ScrollUtil.scrollIntoView;
+import static org.junit.Assert.assertTrue;
 
 public class DeveloperReportListPageTest
     extends AbstractFunctionalTest
@@ -177,6 +181,35 @@ public class DeveloperReportListPageTest
     prioritiesPage.componentNameFilter().type("http");
 
     prioritiesPage.prioritiesTableCell(0, 1).shouldHave(text("http"));
+  }
+
+  @Test
+  public void testComponentFilterInputRetainsFocusWhileTyping() {
+    refreshOrOpen(DeveloperReportListPage.url());
+    DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
+    PrioritiesPage page = new PrioritiesPage();
+    page.componentNameFilter().shouldBe(visible);
+    page.componentNameFilter().click();
+    page.componentNameFilter().shouldBe(focused);
+
+    // Type multiple characters and verify focus is retained after each keystroke
+    String filterText = "spring";
+    for (char c : filterText.toCharArray()) {
+      page.componentNameFilter().sendKeys(String.valueOf(c));
+      page.componentNameFilter().shouldBe(focused);
+      sleep(50); // Small delay between keystrokes to simulate real typing
+    }
+
+    // Verify the full text was captured
+    page.componentNameFilter().shouldHave(value(filterText));
+
+    // Verify URL updated with filter parameter after debounce
+    sleep(500);
+    String currentUrl = WebDriverRunner.url();
+    assertTrue("URL should contain filter parameter",
+            currentUrl.contains("componentNameFilter=" + filterText));
+
+    page.componentNameFilter().shouldBe(focused);
   }
 
   @Test

@@ -132,6 +132,16 @@ export default function PrioritiesPageTable() {
     }
   }, [integrationType]);
 
+  useEffect(() => {
+    if (componentNameFilterValue) {
+      const inputId = 'priorities-component-name-filter';
+      const inputEl = document.getElementById(inputId);
+      if (inputEl) {
+        inputEl.focus();
+      }
+    }
+  }, [componentNameFilterValue]);
+
   const removeDefaultFilters = () => {
     if (hasDefaultFilters) {
       dispatch(actions.setHasDefaultFilters(false));

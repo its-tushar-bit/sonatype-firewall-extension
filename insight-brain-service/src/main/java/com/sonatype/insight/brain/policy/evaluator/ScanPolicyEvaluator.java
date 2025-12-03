@@ -759,6 +759,8 @@ public class ScanPolicyEvaluator
           existing.add(oldPolicyViolation);
           PolicyViolation newPolicyViolation = entry.getValue();
 
+          recordConditionTypeViolationAuditTelemetry(telemetryCollector, newPolicyViolation, components);
+
           if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
             // The policy violation was un-waived or un-auto-waived
             oldPolicyViolation.setFixTime(policyEvaluation.getTime());
@@ -941,6 +943,37 @@ public class ScanPolicyEvaluator
   }
 
   /**
+   * Builds a list of constraints formatted for telemetry from the policy violation's constraint facts,
+   * specifically for condition type violation telemetry.
+   *
+   * @param telemetryCollector Collector for formatting telemetry data.
+   * @param policyViolation Policy violation containing constraint facts to format.
+   * @return List of constraints formatted for condition type violation telemetry.
+   */
+  private List<Constraint> buildConditionTypeViolationTelemetryConstraints(
+      final PolicyViolationTelemetryCollector telemetryCollector,
+      final PolicyViolation policyViolation)
+  {
+    List<Constraint> policyViolationTelemetryConstraints = new ArrayList<>();
+    if (policyViolation.getConstraintFacts() != null) {
+      for (ConstraintFact constraintFact : policyViolation.getConstraintFacts()) {
+        List<Condition> policyViolationTelemetryConditions = new ArrayList<>();
+        if (constraintFact.getConditionFacts() != null) {
+          for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
+            policyViolationTelemetryConditions.add(
+                telemetryCollector.formatConditionForTelemetryData(conditionFact,
+                    constraintFact.getOperatorName()));
+          }
+        }
+        policyViolationTelemetryConstraints.add(
+            telemetryCollector.formatConstraintForTelemetryData(constraintFact,
+                policyViolationTelemetryConditions));
+      }
+    }
+    return policyViolationTelemetryConstraints;
+  }
+
+  /**
    * Records Condition Type policy violations as telemetry.
    *
    * @param telemetryCollector Collector for adding telemetry.
@@ -954,18 +987,34 @@ public class ScanPolicyEvaluator
     List<Component> found = findComponentsByComponentIdentifierElseVersionless(components,
         newPolicyViolation.getComponentIdentifier());
 
-    List<Constraint> policyViolationTelemetryConstraints = new ArrayList<>();
-    for (ConstraintFact constraintFact : newPolicyViolation.getConstraintFacts()) {
-      List<Condition> policyViolationTelemetryConditions = new ArrayList<>();
-      for (ConditionFact conditionFact : constraintFact.getConditionFacts()) {
-        policyViolationTelemetryConditions.add(telemetryCollector.formatConditionForTelemetryData(conditionFact,
-            constraintFact.getOperatorName()));
-      }
-      policyViolationTelemetryConstraints.add(telemetryCollector.formatConstraintForTelemetryData(constraintFact,
-          policyViolationTelemetryConditions));
-    }
+    List<Constraint> policyViolationTelemetryConstraints =
+        buildConditionTypeViolationTelemetryConstraints(telemetryCollector, newPolicyViolation);
 
     telemetryCollector.addTelemetryForConditionTypeViolation(newPolicyViolation, found,
+        policyViolationTelemetryConstraints);
+  }
+
+  /**
+   * Records audit telemetry for existing condition type violations that remain unchanged.
+   *
+   * @param telemetryCollector Collector for adding telemetry.
+   * @param newPolicyViolation Current representation of the policy violation.
+   * @param components List of components to search for associated component.
+   */
+  private void recordConditionTypeViolationAuditTelemetry(
+      final PolicyViolationTelemetryCollector telemetryCollector,
+      final PolicyViolation newPolicyViolation,
+      final List<Component> components)
+  {
+    List<Component> foundComponents = findComponentsByComponentIdentifierElseVersionless(components,
+        newPolicyViolation.getComponentIdentifier());
+
+    List<Constraint> policyViolationTelemetryConstraints =
+        buildConditionTypeViolationTelemetryConstraints(telemetryCollector, newPolicyViolation);
+
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        newPolicyViolation,
+        foundComponents,
         policyViolationTelemetryConstraints);
   }
 

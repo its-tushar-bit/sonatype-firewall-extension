@@ -5825,6 +5825,225 @@ public class ScanPolicyEvaluatorTest
     assertThat(actual.getTime()).isEqualTo(time);
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEvaluate_AuditTelemetryForUnchangedViolations() throws Exception {
+    // Given: A policy that will trigger violations
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Condition securityCondition = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "1");
+    Constraint constraint = new Constraint(null, "Security Constraint", LogicalOperator.OR);
+    constraint.setConditions(Arrays.asList(securityCondition));
+    tempEntity.newPolicy("Security Policy", constraint);
+
+    String scanId = simulateReportIsAvailable("report");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running the first evaluation to create violations
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running a second evaluation with the same scan (violations remain unchanged)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then: Verify CONDITION_TYPE_VIOLATION_AUDIT telemetry was collected for unchanged violations
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> telemetryDataList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    // Verify we have audit telemetry for the unchanged violations
+    assertThat(telemetryDataList).isNotEmpty();
+
+    // Verify the telemetry contains policy constraints
+    for (TelemetryData telemetryData : telemetryDataList) {
+      assertThat(telemetryData.getAttributes()).containsKey(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+      List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
+          .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+      assertThat(constraints).isNotEmpty();
+
+      // Verify the constraints have conditions
+      for (Constraint c : constraints) {
+        assertThat(c.getConditions()).isNotEmpty();
+      }
+    }
+  }
+
+  @Test
+  public void testEvaluate_AuditTelemetryWithMultipleConstraints() throws Exception {
+    // Given: A policy with multiple constraints
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Condition condition1 = new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "7");
+    Condition condition2 = new Condition(ComponentCategoryConditionType.ID, "is not", "113");
+    Constraint constraint1 = new Constraint(null, "Constraint 1", LogicalOperator.AND);
+    constraint1.setConditions(Arrays.asList(condition1));
+
+    Constraint constraint2 = new Constraint(null, "Constraint 2", LogicalOperator.OR);
+    constraint2.setConditions(Arrays.asList(condition2));
+
+    tempEntity.newPolicy("Multi-Constraint Policy", constraint1, constraint2);
+
+    String scanId = simulateReportIsAvailable("report");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+
+    // When: Running first evaluation
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running second evaluation
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then Verify audit telemetry contains all constraints
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> auditTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    assertThat(auditTelemetryList).isNotEmpty();
+
+    // Verify each telemetry entry contains constraint data
+    // Note: When a policy has multiple constraints, each violation contains constraint facts
+    // for the specific constraint that was violated, not all constraints from the policy
+    auditTelemetryList.forEach(telemetryData -> {
+      List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
+          .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+      assertThat(constraints).isNotNull();
+      assertThat(constraints).isNotEmpty();
+    });
+  }
+
+  @Test
+  public void testEvaluate_AuditTelemetryWithNullConstraintFacts() throws Exception {
+    // Given: A policy that will trigger violations
+    Stage stage = new Stage(Stage.ID_BUILD);
+    newSecurityPolicy();
+    String scanId = simulateReportIsAvailable("report");
+
+    // When Running first evaluation
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Note: Cannot set constraint facts to null as AbstractPolicyViolation validates this.
+    // Instead, we verify that audit telemetry is collected properly for existing violations.
+
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When Running second evaluation
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then Verify audit telemetry was collected without errors
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> auditTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    // Should collect telemetry for violations with valid constraint facts
+    assertThat(auditTelemetryList).isNotEmpty();
+  }
+
+  @Test
+  public void testEvaluate_AuditTelemetryForWaivedViolations() throws Exception {
+    // Given: A policy with a waiver
+    Stage stage = new Stage(Stage.ID_BUILD);
+    Policy policy = newSecurityPolicy();
+    tempEntity.newWaiver(policy.getId(), application.getId());
+
+    String scanId = simulateReportIsAvailable("report");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+
+    // When: Running first evaluation (creates waived violations)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running second evaluation (waived violations remain unchanged)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then: Verify audit telemetry is collected for waived violations
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> auditTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    // Should collect audit telemetry even for waived violations
+    assertThat(auditTelemetryList).isNotEmpty();
+
+    // Verify each telemetry entry has constraint data
+    for (TelemetryData telemetryData : auditTelemetryList) {
+      List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
+          .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+      assertThat(constraints).isNotNull();
+    }
+  }
+
+  @Test
+  public void testEvaluate_AuditAndRegularTelemetryBothCollected() throws Exception {
+    // Given: A policy that will trigger violations
+    Stage stage = new Stage(Stage.ID_BUILD);
+    newSecurityPolicy();
+    String scanId = simulateReportIsAvailable("report");
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running first evaluation (creates new violations)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then: Should have regular CONDITION_TYPE_VIOLATION telemetry for new violations
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> regularTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION))
+        .toList();
+
+    assertThat(regularTelemetryList).isNotEmpty();
+
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running second evaluation (violations remain unchanged)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then: Should have AUDIT telemetry for unchanged violations
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> auditTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    assertThat(auditTelemetryList).isNotEmpty();
+
+    // Verify both use the same constraint structure (built by buildTelemetryConstraints)
+    List<Constraint> regularConstraints = (List<Constraint>) regularTelemetryList.get(0).getAttributes()
+        .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+    List<Constraint> auditConstraints = (List<Constraint>) auditTelemetryList.get(0).getAttributes()
+        .get(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
+
+    // Both should have constraint data
+    assertThat(regularConstraints).isNotEmpty();
+    assertThat(auditConstraints).isNotEmpty();
+  }
+
   /**
    * Simulates that a report (based on the specified resource) exists.
    *

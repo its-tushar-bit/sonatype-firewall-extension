@@ -305,6 +305,27 @@ public class PolicyViolationTelemetryCollector
     }
   }
 
+  /**
+   * Records telemetry for existing, unchanged policy violations for auditing purposes.
+   * Uses the CONDITION_TYPE_VIOLATION_AUDIT purpose.
+   *
+   * @param policyViolation         The policy violation to include in telemetry.
+   * @param components              The associated component(s).
+   * @param constraintsTelemetryData Formatted constraint data for telemetry.
+   */
+  public void addTelemetryForConditionTypeViolationAudit(
+      final PolicyViolation policyViolation,
+      final List<Component> components,
+      final List<Constraint> constraintsTelemetryData)
+  {
+    if (policyViolation != null) {
+      TelemetryData telemetryData =
+          createTelemetry(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT, policyViolation, components)
+              .put(POLICY_CONSTRAINTS, constraintsTelemetryData);
+      telemetryDataList.add(telemetryData);
+    }
+  }
+
   public Condition formatConditionForTelemetryData(ConditionFact conditionFact, String constraintFactOperatorName) {
     Condition condition = new Condition(conditionFact.getConditionTypeId(), constraintFactOperatorName);
     condition.setConditionIndex(conditionFact.getConditionIndex());

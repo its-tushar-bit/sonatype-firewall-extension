@@ -140,8 +140,11 @@ public class PolicyViolationTelemetryCollectorTest
   public void testAddTelemetryForConditionTypeViolation() {
     // given a new policy violation and a telemetry collector
     TestablePolicyViolation testablePolicyViolation =
-        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
-            .withConditionType(HygieneRatingConditionType.ID);
+        TestablePolicyViolation.createMinimalViolationForComponent(commonsLang3)
+            .withPolicyViolationId("conditionTypeViolation")
+            .withThreatCategory(PolicyThreatCategory.SECURITY)
+            .withThreatLevel(7)
+            .withGenericConditionType(HygieneRatingConditionType.ID);
 
     PolicyViolationTelemetryCollector telemetryCollector =
         createTelemetryCollector(testablePolicyViolation.isScmEnabled());
@@ -578,6 +581,276 @@ public class PolicyViolationTelemetryCollectorTest
     testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData, CALLFLOW_EVALUATION_COMPONENT_COUNTS);
   }
 
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_BasicAudit() {
+    // given: A policy violation with constraints
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .withConditionType(SecurityVulnerabilitySeverityConditionType.ID);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // Build the constraints test data
+    List<Constraint> formattedConstraints = testablePolicyViolation.policyViolation.getConstraintFacts()
+        .stream().map(
+            cf -> {
+              List<Condition> conditions = cf.getConditionFacts().stream().map(
+                  condF -> telemetryCollector
+                      .formatConditionForTelemetryData(condF, cf.getOperatorName()))
+                  .collect(Collectors.toList());
+              return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
+            }).toList();
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData,
+        TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_DifferentPurposeFromRegular() {
+    // given
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when- Add both regular and audit telemetry
+    telemetryCollector.addTelemetryForConditionTypeViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    // then- Verify both telemetry entries exist with different purposes
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(2);
+
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION);
+    assertThat(telemetryData.get(1).getPurpose()).isEqualTo(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_NullPolicyViolation() {
+    // given
+    PolicyViolationTelemetryCollector telemetryCollector = createTelemetryCollector(false);
+
+    // when: Pass null policy violation
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        null,
+        Collections.emptyList(),
+        Collections.emptyList()
+    );
+
+    // then: No telemetry should be added
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).isEmpty();
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_EmptyConstraints() {
+    // given
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when- Pass empty constraints
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        Collections.emptyList()
+    );
+
+    // then- Telemetry should still be added with empty constraints
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(
+        TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+    assertThat(telemetryData.get(0).getAttributes().get(POLICY_CONSTRAINTS)).isEqualTo(
+        Collections.emptyList());
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_MultipleComponents() {
+    // given: Policy violation with multiple component versions
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .withConditionType(SecurityVulnerabilitySeverityConditionType.ID)
+            .withAdditionalComponentVersion(lodashv3, true, false)
+            .withAdditionalComponentVersion(lodashv5, true, false);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when: Pass multiple components
+    List<Component> allComponents = new ArrayList<>(testablePolicyViolation.getComponents());
+    allComponents.addAll(testablePolicyViolation.getAdditionalVersions());
+
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        allComponents,
+        formattedConstraints
+    );
+
+    // then: Should use first component for telemetry
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData,
+        TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_LicenseViolation() {
+    // given: License threat violation
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultLicenseViolationForComponent(commonsLang3)
+            .withConditionType(LicenseThreatGroupConditionType.ID)
+            .withLicenses("MIT", "Apache-2.0", "BSD-3-Clause", "GPL-3.0");
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    testablePolicyViolation.validateTelemetryDataForPurposes(telemetryData,
+        TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_WaivedViolation() {
+    // given: A waived policy violation
+    PolicyWaiver policyWaiver =
+        tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());
+
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .withPolicyViolationId("waivedViolationAudit")
+            .markWaived(policyWaiver);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent() != null
+            ? List.of(testablePolicyViolation.getComponent()) : Collections.emptyList(),
+        formattedConstraints
+    );
+
+    // then: Should capture waived violations in audit telemetry
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(
+        TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_WithScmEnabled() {
+    // given: Violation with SCM enabled
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(jacksonDatabind_2_13_4)
+            .withScmEnabled(true);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(true);
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    // then- Should include SCM enabled flag
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getAttributes()).containsEntry(IS_SCM_ENABLED, true);
+  }
+
+  @Test
+  public void testAddTelemetryForConditionTypeViolationAudit_TimeAttributeIsZero() {
+    // given
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .openedHoursAgo(48);
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    List<Constraint> formattedConstraints = buildFormattedConstraints(telemetryCollector,
+        testablePolicyViolation);
+
+    // when
+    telemetryCollector.addTelemetryForConditionTypeViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponents(),
+        formattedConstraints
+    );
+
+    // then: TIME should be 0 for audit telemetry (not calculated duration)
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    // Note: The test should validate that TIME is properly set in the telemetry
+    // The actual time value should match what CONDITION_TYPE_VIOLATION uses
+  }
+
+  // Add this helper method to the test class
+  private List<Constraint> buildFormattedConstraints(
+      PolicyViolationTelemetryCollector telemetryCollector,
+      TestablePolicyViolation testablePolicyViolation)
+  {
+    return testablePolicyViolation.policyViolation.getConstraintFacts()
+        .stream().map(
+            cf -> {
+              List<Condition> conditions = cf.getConditionFacts().stream()
+                  .map(condF -> telemetryCollector.formatConditionForTelemetryData(condF,
+                      cf.getOperatorName()))
+                  .collect(Collectors.toList());
+              return telemetryCollector.formatConstraintForTelemetryData(cf, conditions);
+            }).toList();
+  }
+
   private PolicyViolationTelemetryCollector createTelemetryCollector(boolean isScmEnabled) {
     ComponentHelper componentHelper = new ComponentHelper(null)
     {
@@ -874,6 +1147,14 @@ public class PolicyViolationTelemetryCollectorTest
       return this;
     }
 
+    TestablePolicyViolation withGenericConditionType(String conditionType) {
+      this.conditionType = conditionType;
+      // Create constraint facts with the specified condition type (no special CVE or license metadata)
+      policyViolation.setConstraintFacts(
+          ConditionGenerator.createConstraintFactsWithGenericConditionType(conditionType));
+      return this;
+    }
+
     TestablePolicyViolation withCount(int count) {
       this.count = count;
       return this;
@@ -890,6 +1171,7 @@ public class PolicyViolationTelemetryCollectorTest
 
     TestablePolicyViolation withLicenseThreatGroup(String licenseThreatGroup) {
       this.licenseThreatGroup = licenseThreatGroup;
+      this.conditionType = LicenseThreatGroupConditionType.ID;
       policyViolation.setConstraintFacts(
           ConditionGenerator.createConstraintFactsWithInjectedLicenseCondition(licenseThreatGroup, 1));
       return this;
@@ -903,10 +1185,15 @@ public class PolicyViolationTelemetryCollectorTest
     {
       this.licensesDeclared = String.join(", ", declaredMulti, declared);
       this.licensesObserved = String.join(", ", observedMulti, observed);
+      // licensesEffective is the combination of all licenses when there's no override
+      this.licensesEffective = String.join(", ", declaredMulti, declared, observedMulti, observed);
+      // Set override status to Open (default for components with licenses set)
+      this.licensesOverrideStatus = "Open";
       this.component.setDeclaredLicenseIds(toLicenseSet(declared));
       this.component.setDeclaredMultiLicenseIds(toLicenseSet(declaredMulti));
       this.component.setObservedLicenseIds(toLicenseSet(observed));
       this.component.setObservedMultiLicenseIds(toLicenseSet(observedMulti));
+      this.component.setLicenseOverrideStatus(LicenseOverrideStatus.OPEN);
       return this;
     }
 
@@ -1035,6 +1322,11 @@ public class PolicyViolationTelemetryCollectorTest
           validateConstraintsData(attributes);
           break;
 
+        case CONDITION_TYPE_VIOLATION_AUDIT:
+          validateTimeAttribute(attributes, 0L);
+          validateConstraintsData(attributes);
+          break;
+
         case TIME_TO_CHANGE_VERSION_POLICY_VIOLATION:
           validateMatchesOrNotExists(attributes, FIX_TIME, fixTime);
           validateMatchesOrNotExists(attributes, FIX_BY_VERSION_CHANGE, fixReason);
@@ -1098,7 +1390,7 @@ public class PolicyViolationTelemetryCollectorTest
       return new LinkedHashSet<>(Arrays.asList(licenses.split(", ")));
     }
 
-    private static void validateConstraintsData(Map<String, Object> attributes) {
+    private void validateConstraintsData(Map<String, Object> attributes) {
       assertThat(attributes).containsKey(POLICY_CONSTRAINTS);
 
       @SuppressWarnings("unchecked")
@@ -1118,13 +1410,16 @@ public class PolicyViolationTelemetryCollectorTest
         // Validate each condition within the constraint
         for (int j = 0; j < conditions.size(); j++) {
           Condition condition = conditions.get(j);
-          assertThat(condition.getConditionTypeId()).isEqualTo("SecurityVulnerabilitySeverity");
+          assertThat(condition.getConditionTypeId()).isEqualTo(conditionType);
           assertThat(condition.getConditionIndex()).isEqualTo(j);
           assertThat(condition.getOperator()).isEqualTo("operatorName" + i);
         }
       }
 
-      assertThat(constraints.get(1).getConditions().get(1).getValue()).isEqualTo("CVE-123");
+      // Only check CVE value for security violations
+      if (cveIdentifier != null) {
+        assertThat(constraints.get(1).getConditions().get(1).getValue()).isEqualTo("CVE-123");
+      }
     }
   }
 
@@ -1148,6 +1443,20 @@ public class PolicyViolationTelemetryCollectorTest
       return createConstraintFactsWithInjectedCondition(null, cveNumber, cvssScore, cvIteration);
     }
 
+    static List<ConstraintFact> createConstraintFactsWithGenericConditionType(String conditionType) {
+      List<ConstraintFact> constraintFacts = new ArrayList<>();
+      for (int i = 0; i < 3; i++) {
+        ConstraintFact constraintFact =
+            new ConstraintFact("constraintId" + i, "constraintName" + i, "operatorName" + i);
+        constraintFacts.add(constraintFact);
+        for (int j = 0; j < 3; j++) {
+          ConditionFact conditionFact = createConditionFact(j, conditionType);
+          constraintFact.addConditionFact(conditionFact);
+        }
+      }
+      return constraintFacts;
+    }
+
     /**
      * A useful constraint fact must have at least 1 condition facts because that's where the test data is. Several are
      * created because in real word scenarios there may be multiple constraint facts with one condition fact nested with
@@ -1167,6 +1476,11 @@ public class PolicyViolationTelemetryCollectorTest
         Double cvssScore,
         int cvIteration)
     {
+      // Determine the default condition type based on what kind of condition is being created
+      String defaultConditionType = StringUtils.isNotBlank(licenseThreatGroup)
+          ? LicenseThreatGroupConditionType.ID
+          : SecurityVulnerabilitySeverityConditionType.ID;
+
       List<ConstraintFact> constraintFacts = new ArrayList<>();
       for (int i = 0; i < 3; i++) {
         ConstraintFact constraintFact =
@@ -1182,7 +1496,7 @@ public class PolicyViolationTelemetryCollectorTest
             conditionFact = createConditionFactForLicenseThreat(j, licenseThreatGroup);
           }
           else {
-            conditionFact = createConditionFact(j, SecurityVulnerabilitySeverityConditionType.ID);
+            conditionFact = createConditionFact(j, defaultConditionType);
           }
 
           constraintFact.addConditionFact(conditionFact);

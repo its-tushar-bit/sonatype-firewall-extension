@@ -30,8 +30,8 @@ public class BaseUrl
   private static final String[] ESCAPED_CHARACTERS = new String[]{"%7B", "%7D"};
 
   public static final String ERR_MSG_BASE_URL_NOT_CONFIGURED = "The server base URL (baseUrl) is not configured. "
-      + "More information at https://help.sonatype.com/en/configuring-base-url.html";
-
+      + "More information at https://links.sonatype.com/products/nxiq/doc/configuring-base-url";
+      
   private final Configuration configuration;
 
   private final ThreadLocal<HttpServletRequest> currentHttpRequest = new ThreadLocal<>();

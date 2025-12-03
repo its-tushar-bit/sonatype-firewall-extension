@@ -45,7 +45,10 @@ describe('policySlice actions', () => {
       orgsAndPolicies: {
         organizations: { organizations: [] },
         root: {
-          selectedOwner: {},
+          selectedOwner: {
+            id: undefined,
+            type: 'application',
+          },
         },
       },
     });

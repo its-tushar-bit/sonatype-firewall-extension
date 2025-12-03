@@ -5,7 +5,7 @@
  */
 import axios from 'axios';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { path, prop } from 'ramda';
+import { path } from 'ramda';
 
 import { propSet } from 'MainRoot/util/reduxToolkitUtil';
 import {
@@ -54,7 +54,9 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
     const ownerProperties = selectOwnerProperties(getState());
     const ownerType = ownerProperties.ownerType;
     const ownerId = ownerProperties.ownerId;
-
+    if (!ownerId) {
+      return;
+    }
     return axios
       .get(getApplicablePolicies(ownerType, ownerId))
       .then(path(['data', 'policiesByOwner']))
@@ -73,21 +75,34 @@ const loadSelectedOwner = createAsyncThunk(
     const isRepositoryContainer = selectIsRepositoryContainer(state);
     const entityId = selectEntityId(state);
     const selectedOwner = selectSelectedOwner(state);
-    const shouldReloadOwner = forceReload || entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id);
+    const shouldReloadOwner =
+      forceReload || (entityId && entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id));
     if (!shouldReloadOwner) {
       return Promise.resolve(selectedOwner);
     }
     if (isRepositories) {
       if (isRepositoryManager) {
-        return axios.get(getRepositoryManagerById(entityId)).then(prop('data')).catch(rejectWithValue);
+        return axios
+          .get(getRepositoryManagerById(entityId))
+          .then((response) => ({
+            ...response.data,
+            type: 'repository_manager',
+          }))
+          .catch(rejectWithValue);
       } else if (isRepositoryContainer) {
-        return axios.get(getRepositoryContainer()).then(prop('data')).catch(rejectWithValue);
+        return axios
+          .get(getRepositoryContainer())
+          .then((response) => ({
+            ...response.data,
+            type: 'repository_container',
+          }))
+          .catch(rejectWithValue);
       } else if (isRepository) {
         return axios
           .get(getRepositoryInfoUrl(entityId))
           .then((response) => {
             const repository = path(['data', 'repository'], response) || {};
-            return { ...repository, name: repository?.publicId };
+            return { ...repository, name: repository?.publicId, type: 'repository' };
           })
           .catch(rejectWithValue);
       } else {
@@ -97,7 +112,12 @@ const loadSelectedOwner = createAsyncThunk(
     const loadOwnerPromise = isApp
       ? axios.get(getApplicationSummaryUrl(entityId))
       : axios.get(getOrganizationUrl(entityId));
-    return loadOwnerPromise.then(prop('data')).catch(rejectWithValue);
+    return loadOwnerPromise
+      .then((response) => ({
+        ...response.data,
+        type: isApp ? 'application' : 'organization',
+      }))
+      .catch(rejectWithValue);
   }
 );
 

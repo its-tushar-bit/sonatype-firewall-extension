@@ -130,10 +130,19 @@ const customMatchers = {
 
         return areActionsIncluded
           ? { pass: true }
-          : { pass: false, message: `Expected ${expectedActionsString} to be included in ${actionsTypesString}` };
+          : {
+              pass: false,
+              message: makeMessage(`Expected ${expectedActionsString} to be included in ${actionsTypesString}`),
+            };
       },
     };
   },
 };
+
+function makeMessage(msg) {
+  const fn = () => msg; // Jest uses this
+  fn.toString = () => msg; // Jasmine uses this
+  return fn;
+}
 
 export default customMatchers;

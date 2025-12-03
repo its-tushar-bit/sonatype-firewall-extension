@@ -200,7 +200,7 @@ export function setSelectedOrganization(selectedOrg) {
             dispatch(loadRepositories(orgId, data.defaultHostUrl));
           }
           dispatch(ownerSideNavActions.setDisplayedOrganization(selectedOrg.organization));
-          dispatch(rootActions.loadSelectedOwner());
+          return dispatch(rootActions.loadSelectedOwner());
         })
         .catch((error) => {
           dispatch(setTargetOrganizationFailed(error));
@@ -215,7 +215,7 @@ export function setSelectedOrganization(selectedOrg) {
       );
     }
     dispatch(ownerSideNavActions.setDisplayedOrganization(selectedOrg.organization));
-    dispatch(rootActions.loadSelectedOwner());
+    return dispatch(rootActions.loadSelectedOwner());
   };
 }
 

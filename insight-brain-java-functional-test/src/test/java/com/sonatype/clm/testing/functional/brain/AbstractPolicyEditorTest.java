@@ -73,6 +73,7 @@ import com.sonatype.insight.brain.model.policy.conditions.DependencyTypeConditio
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IdentificationSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LabelConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseStatusConditionType;
@@ -85,7 +86,6 @@ import com.sonatype.insight.brain.model.policy.conditions.RelativePopularityCond
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityCategoryConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilitySeverityConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.SecurityVulnerabilityStatusConditionType;
-import com.sonatype.insight.brain.model.policy.conditions.KevStatusConditionType;
 import com.sonatype.insight.brain.model.policy.notifications.JiraNotification;
 import com.sonatype.insight.brain.model.policy.notifications.Notification;
 import com.sonatype.insight.brain.model.policy.notifications.Notifications;
@@ -94,10 +94,12 @@ import com.sonatype.insight.brain.model.policy.notifications.UserNotification;
 import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
+import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import com.codeborne.selenide.ElementsCollection;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
@@ -110,17 +112,7 @@ import org.openqa.selenium.interactions.Actions;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.CollectionCondition.texts;
-import static com.codeborne.selenide.Condition.attribute;
-import static com.codeborne.selenide.Condition.cssClass;
-import static com.codeborne.selenide.Condition.disabled;
-import static com.codeborne.selenide.Condition.empty;
-import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
-import static com.codeborne.selenide.Condition.hidden;
-import static com.codeborne.selenide.Condition.selected;
-import static com.codeborne.selenide.Condition.text;
-import static com.codeborne.selenide.Condition.value;
-import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Condition.*;
 import static com.codeborne.selenide.Selenide.back;
 import static com.sonatype.clm.testing.functional.elements.CLM.DISABLED;
 import static com.sonatype.insight.brain.model.Color.dark_blue;
@@ -129,7 +121,9 @@ import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID
 import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_NO_SUPPORT_FOR;
 import static com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType.HAS_SUPPORT_FOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 public abstract class AbstractPolicyEditorTest
@@ -342,6 +336,30 @@ public abstract class AbstractPolicyEditorTest
     testEditPolicy_actionsSection(policy);
     testEditPolicy_notificationsSection(policy);
     testDeletePolicy(policyDAO.getById(policy.getId()));
+  }
+
+  // This test is for CLM-37950 to check that we don't get an error
+  // i.e. "An error occurred loading data. Organization with ID null does not exist."
+  // instead of the expected policy tile
+  @Test
+  public void testNavigateToOrgsAndPoliciesFromEditPolicy() {
+    tempEntity.newPolicy(ROOT_ORGANIZATION_ID);
+    refresh();
+    SidebarNavigation.policiesNavigationButton().click();
+    OwnerSummaryPage.policyTile().localPolicyList().shouldBe(visible).row(1).shouldBe(visible).click();
+    OrganizationService spyOrganizationService = spy(lookup(OrganizationService.class));
+    doAnswer(invocation -> {
+      // Delay the REST call to /rest/organization/null to ensure it's the last request that gets fulfilled
+      Selenide.sleep(2000);
+      return invocation.callRealMethod();
+    }).when(spyOrganizationService).getOrganization("null");
+    mocks.put(OrganizationService.class, spyOrganizationService);
+
+    SidebarNavigation.policiesNavigationButton().click();
+    // Make sure the delayed call completes
+    Selenide.sleep(3000);
+
+    OwnerSummaryPage.policyTile().shouldBe(visible);
   }
 
   @Ignore

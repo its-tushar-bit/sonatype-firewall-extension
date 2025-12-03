@@ -62,6 +62,7 @@ describe('PolicyEditorSpec', () => {
         root: {
           selectedOwner: {
             id: ownerId,
+            type: ownerType,
           },
         },
       },
@@ -181,6 +182,7 @@ describe('PolicyEditorSpec', () => {
         root: {
           selectedOwner: {
             id: ROOT_ORG_ID,
+            type: 'organization',
           },
         },
         policy: {

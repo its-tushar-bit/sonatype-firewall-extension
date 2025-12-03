@@ -27,6 +27,7 @@ export const selectSelectedOwner = createSelector(selectRootSlice, prop('selecte
 export const selectSelectedOwnerContact = createSelector(selectSelectedOwner, prop('contact'));
 export const selectSelectedOwnerName = createSelector(selectSelectedOwner, prop('name'));
 export const selectSelectedOwnerId = createSelector(selectSelectedOwner, prop('id'));
+export const selectSelectedOwnerType = createSelector(selectSelectedOwner, prop('type'));
 export const selectSelectedOwnerPublicId = createSelector(selectSelectedOwner, prop('publicId'));
 export const selectSelectedOwnerParentId = createSelector(selectSelectedOwner, prop('parentOrganizationId'));
 export const selectLoadError = createSelector(selectRootSlice, prop('loadError'));

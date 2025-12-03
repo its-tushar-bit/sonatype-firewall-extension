@@ -149,7 +149,7 @@ const createAppState = {
       organizations: ORGS,
     },
     root: {
-      selectedOwner: ORGS[0],
+      selectedOwner: { type: 'organization', ...ORGS[0] },
     },
     ownerSideNav: {
       displayedOrganization: {
@@ -206,7 +206,7 @@ const editOrgState = {
       organizations: ORGS,
     },
     root: {
-      selectedOwner: ORGS[0],
+      selectedOwner: { type: 'organization', ...ORGS[0] },
     },
     ownerSideNav: {
       displayedOrganization: {
@@ -253,7 +253,7 @@ const editAppState = {
       organizations: ORGS,
     },
     root: {
-      selectedOwner: APPS[0],
+      selectedOwner: { type: 'application', ...APPS[0] },
     },
     ownerSideNav: {
       displayedOrganization: {
@@ -300,7 +300,7 @@ const sbomManagerEditOrgState = {
       organizations: ORGS,
     },
     root: {
-      selectedOwner: ORGS[0],
+      selectedOwner: { type: 'organization', ...ORGS[0] },
     },
     ownerSideNav: {
       displayedOrganization: {

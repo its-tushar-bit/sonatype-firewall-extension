@@ -76,6 +76,7 @@ const createOrgState = {
       selectedOwner: {
         id: 'ROOT_ORGANIZATION_ID',
         name: 'Root Organization',
+        type: 'organization',
       },
     },
     ownerActions: {
@@ -116,6 +117,7 @@ const createAppState = {
       selectedOwner: {
         id: 'organizationOneID',
         name: 'OrganizationOneName',
+        type: 'organization',
       },
     },
     ownerActions: {
@@ -156,6 +158,7 @@ const editOrgState = {
       selectedOwner: {
         id: 'organizationOneID',
         name: 'OrganizationOneName',
+        type: 'organization',
       },
     },
     ownerActions: {
@@ -197,6 +200,7 @@ const editAppState = {
         publicId: 'applicationOnePublicID',
         organizationId: 'organizationOneID',
         name: 'ApplicationOneName',
+        type: 'application',
       },
     },
     ownerActions: {
@@ -230,6 +234,7 @@ const editRepositoryManagerNameState = {
         id: 'repositoryManagerId',
         parentOrganizationId: 'REPOSITORY_CONTAINER_ID',
         name: 'oldName',
+        type: 'repository_manager',
       },
     },
     ownerActions: {

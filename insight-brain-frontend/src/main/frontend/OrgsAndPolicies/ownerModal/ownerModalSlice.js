@@ -22,7 +22,7 @@ import { Messages } from 'MainRoot/util/CommonServices';
 import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { actions as ownerEditorActions } from 'MainRoot/OrgsAndPolicies/ownerEditorSlice';
 import { actions as ownerSideNavActions } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSlice';
-import { selectOwnerProperties, selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectSelectedOwner } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectIsApplication, selectIsRepository } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectOwnerById } from 'MainRoot/OrgsAndPolicies/ownerSideNav/ownerSideNavSelectors';
 import { selectOwnerModalSlice } from './ownerModalSelectors';
@@ -241,11 +241,10 @@ const editCurrentOwner = createAsyncThunk(
   `${REDUCER_NAME}/editCurrentOwner`,
   async (_, { getState, dispatch, rejectWithValue }) => {
     const state = getState();
-    const currentOwner = selectSelectedOwner(state);
+    const { type: ownerType, ...currentOwner } = selectSelectedOwner(state);
     const { ownerName, ownerIconType, robotHash, ownerIcon } = selectOwnerModalSlice(state);
     const isApp = selectIsApplication(state);
     const isScmOnboarding = selectIsScmOnboarding(state);
-    const { ownerType } = selectOwnerProperties(state);
 
     try {
       if (ownerName.trimmedValue.toLowerCase() !== currentOwner.name.toLowerCase()) {

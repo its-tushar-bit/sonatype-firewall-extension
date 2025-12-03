@@ -30,6 +30,9 @@ const loadOwnerDetails = createAsyncThunk(`${REDUCER_NAME}/loadOwnerDetails`, (_
   const state = getState();
   const { ownerType, ownerId } = selectOwnerProperties(state);
   const isRepositoryContainer = selectIsRepositoryContainer(state);
+  if (!isRepositoryContainer && !ownerId) {
+    return;
+  }
   return axios
     .get(getOwnerDetailsUrl(ownerType, ownerId, isRepositoryContainer))
     .then(prop('data'))

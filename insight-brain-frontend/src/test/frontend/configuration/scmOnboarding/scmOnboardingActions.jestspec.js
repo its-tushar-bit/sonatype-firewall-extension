@@ -30,6 +30,7 @@ import {
   loadRepositories,
   onRepositorySelectionChanged,
   setCurrentHostUrl,
+  SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
 } from 'MainRoot/configuration/scmOnboarding/scmOnboardingActions';
 import { authErrorMessage, featureNotEnableErrorMessage } from 'MainRoot/util/authorizationUtil';
 import { getOwnersMap } from 'TestRoot/OrgsAndPolicies/ownerSideNav/nLevelMockData';
@@ -634,6 +635,14 @@ describe('scmOnboardingActions', function () {
     // selected org action creator retrieves top-level state, so need to mock that instead of the narrow state
     function mockReduxStoreForSelectedOrg(isScmTokenOverridden, previousOrg) {
       return SpecUtil.mockReduxStore({
+        orgsAndPolicies: {
+          root: {
+            selectedOwner: {
+              id: previousOrg?.organization?.id,
+              type: 'organization',
+            },
+          },
+        },
         scmOnboarding: {
           ...state,
           configState: {
@@ -654,10 +663,12 @@ describe('scmOnboardingActions', function () {
       };
 
       // no axios calls
-      expect(store.dispatch(setSelectedOrganization(selectedOrg))).toBeUndefined();
+      expect(store.dispatch(setSelectedOrganization(selectedOrg))).resolves.toMatchObject({
+        payload: { id: 'prevId', type: 'organization' },
+      });
 
       const actions = store.getActions();
-      expect(actions.length).toBe(5);
+      expect(actions.length).toBe(4);
       expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
       expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
       expect(actions[1].payload).toEqual({
@@ -725,7 +736,8 @@ describe('scmOnboardingActions', function () {
           SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
           'ownerSideNav/setDisplayedOrganization',
           'orgsAndPolicies/loadSelectedOwner/pending',
-          'orgsAndPolicies/loadSelectedOwner/rejected',
+          'orgsAndPolicies/loadSelectedOwner/fulfilled',
+          SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
         ]);
         done();
       });
@@ -751,7 +763,8 @@ describe('scmOnboardingActions', function () {
           SCM_ONBOARDING_LOAD_REPOSITORIES_REQUESTED,
           'ownerSideNav/setDisplayedOrganization',
           'orgsAndPolicies/loadSelectedOwner/pending',
-          'orgsAndPolicies/loadSelectedOwner/rejected',
+          'orgsAndPolicies/loadSelectedOwner/fulfilled',
+          SCM_ONBOARDING_LOAD_REPOSITORIES_FAILED,
         ]);
         done();
       });
@@ -765,10 +778,12 @@ describe('scmOnboardingActions', function () {
       };
 
       // undefined because it does not make any axios calls
-      expect(store.dispatch(setSelectedOrganization(selectedOrg))).toBeUndefined();
+      expect(store.dispatch(setSelectedOrganization(selectedOrg))).resolves.toMatchObject({
+        payload: { id: 'prevId', type: 'organization' },
+      });
 
       const actions = store.getActions();
-      expect(actions.length).toBe(5);
+      expect(actions.length).toBe(4);
       expect(actions[0].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_REQUESTED);
       expect(actions[1].type).toBe(SCM_ONBOARDING_SET_TARGET_ORGANIZATION_FULFILLED);
       expect(actions[1].payload).toEqual({

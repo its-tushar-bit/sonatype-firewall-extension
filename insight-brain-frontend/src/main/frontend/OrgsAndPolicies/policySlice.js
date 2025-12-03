@@ -88,7 +88,7 @@ import {
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
 import { propSet, pathSet, allEqual } from 'MainRoot/util/jsUtil';
 import { propSet as reduxPropSet } from 'MainRoot/util/reduxToolkitUtil';
-import { selectOwnerProperties, selectSelectedOwnerId } from './orgsAndPoliciesSelectors';
+import { selectOwnerProperties, selectSelectedOwnerId, selectSelectedOwnerType } from './orgsAndPoliciesSelectors';
 import { actions as constraintActions } from 'MainRoot/OrgsAndPolicies/constraintSlice';
 import { actions as rootActions } from 'MainRoot/OrgsAndPolicies/rootSlice';
 import { actions as stagesActions } from 'MainRoot/OrgsAndPolicies/stagesSlice';
@@ -574,21 +574,11 @@ const checkEditIqPermission = createAsyncThunk(
   `${REDUCER_NAME}/checkEditIqPermission`,
   (_, { rejectWithValue, getState }) => {
     const state = getState();
-    const isRepositories = selectIsRepositoriesRelated(state);
-    const isRepositoryManager = selectIsRepositoryManager(state);
-    const ownerType = getOwnerType(state);
-    const ownerId = isRepositories && !isRepositoryManager ? 'REPOSITORY_CONTAINER_ID' : selectSelectedOwnerId(state);
+    const ownerType = selectSelectedOwnerType(state);
+    const ownerId = ownerType === 'repository_container' ? 'REPOSITORY_CONTAINER_ID' : selectSelectedOwnerId(state);
     return checkPermissions(['WRITE'], ownerType, ownerId).catch(rejectWithValue);
   }
 );
-
-const getOwnerType = (state) => {
-  const isRepositories = selectIsRepositoriesRelated(state);
-  if (isRepositories) {
-    return 'repository_container';
-  }
-  return selectIsOrganization(state) ? 'organization' : 'application';
-};
 
 const checkEditIqPermissionFulfilled = (state) => {
   state.hasEditIqPermission = true;

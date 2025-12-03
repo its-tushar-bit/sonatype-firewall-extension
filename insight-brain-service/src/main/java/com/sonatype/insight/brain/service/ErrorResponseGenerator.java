@@ -11,6 +11,7 @@ import javax.naming.NamingException;
 import javax.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.organization.PartialDeletionException;
+import com.sonatype.insight.brain.security.ExpiredUserTokenException;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.fasterxml.jackson.core.JsonGenerationException;
@@ -43,8 +44,13 @@ public class ErrorResponseGenerator
 
   static final String MSG_JSON_UNMAPPABLE = "JSON data does not match expected format.";
 
+  static final String MSG_EXPIRED_TOKEN = "User token has expired. Please generate a new token.";
+
   @Override
   protected ErrorResponse buildErrorResponse(final Throwable e) {
+    if (e instanceof ExpiredUserTokenException) {
+      return new ErrorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), MSG_EXPIRED_TOKEN);
+    }
     if (e instanceof AuthenticationException) {
       final Throwable cause = e.getCause();
       if (cause instanceof NamingException) {

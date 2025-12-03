@@ -439,7 +439,7 @@ public class UserTokenRealmTest
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "TestPassword");
     assertThatExceptionOfType(AuthenticationException.class)
         .isThrownBy(() -> realm.getAuthenticationInfo(usernamePasswordToken))
-        .withMessage("User token has expired");
+        .withMessage("User token has expired. Please generate a new token.");
   }
 
   @Test
@@ -448,6 +448,17 @@ public class UserTokenRealmTest
     UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "TestPassword");
     AuthenticationInfo authenticationInfo = realm.getAuthenticationInfo(usernamePasswordToken);
     assertThat(authenticationInfo).isNotNull();
+  }
+
+  @Test
+  public void testDoGetAuthenticationInfo_ExpiredToken() {
+    tempEntity.newSystemConfigurationProperty(USER_TOKEN_DEFAULT_EXPIRATION_DAYS, "30");
+    configuration.configurationChanged(Set.of(USER_TOKEN_DEFAULT_EXPIRATION_DAYS));
+    UserToken userToken = createExpiredUserToken("JaneDoe");
+    UsernamePasswordToken usernamePasswordToken = new UsernamePasswordToken(userToken.getUserCode(), "TestPassword");
+    assertThatExceptionOfType(ExpiredUserTokenException.class)
+        .isThrownBy(() -> realm.doGetAuthenticationInfo(usernamePasswordToken))
+        .withMessage("User token has expired. Please generate a new token.");
   }
 
   private UserPrincipal getUserPrincipal(AuthenticationInfo authenticationInfo) {

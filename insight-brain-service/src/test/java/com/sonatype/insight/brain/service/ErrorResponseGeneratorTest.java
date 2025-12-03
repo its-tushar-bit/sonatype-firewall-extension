@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.sonatype.insight.brain.security.ExpiredUserTokenException;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -109,5 +110,12 @@ public class ErrorResponseGeneratorTest
     final ErrorResponse errorResponse = generator.buildErrorResponse(new JsonMappingException(null, "error"));
     assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_BAD_REQUEST);
     assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_JSON_UNMAPPABLE);
+  }
+
+  @Test
+  public void testBuildErrorResponse_ExpiredUserTokenException() {
+    final ErrorResponse errorResponse = generator.mapExceptionAndLog(new ExpiredUserTokenException());
+    assertThat(errorResponse.getStatusCode()).isEqualTo(HttpServletResponse.SC_UNAUTHORIZED);
+    assertThat(errorResponse.getMessageBody()).isEqualTo(ErrorResponseGenerator.MSG_EXPIRED_TOKEN);
   }
 }

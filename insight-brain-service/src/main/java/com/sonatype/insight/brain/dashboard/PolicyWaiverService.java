@@ -20,7 +20,6 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -33,6 +32,7 @@ import com.sonatype.insight.brain.dataaccess.policy.AutoPolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverReasonDAO;
+import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.policy.AutoPolicyWaiver;
@@ -42,15 +42,16 @@ import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.PolicyWaiverReason;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.organization.OrganizationService;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource;
 import com.sonatype.insight.brain.repository.RepositoryService;
 import com.sonatype.insight.brain.security.AuthzFilter;
 import com.sonatype.insight.brain.security.AuthzFilter.Context;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.google.common.collect.Lists;
-import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -87,6 +88,8 @@ public class PolicyWaiverService
 
   private final PolicyWaiverReasonDAO policyWaiverReasonDAO;
 
+  private final RepositoryManagerDAO repositoryManagerDAO;
+
   @Inject
   PolicyWaiverService(
       final DashboardUtils dashboardUtils,
@@ -97,7 +100,8 @@ public class PolicyWaiverService
       final RepositoryService repositoryService,
       final OrganizationService organizationService,
       final OwnerDAO ownerDAO,
-      final PolicyWaiverReasonDAO policyWaiverReasonDAO)
+      final PolicyWaiverReasonDAO policyWaiverReasonDAO,
+      final RepositoryManagerDAO repositoryManagerDAO)
   {
     this.dashboardUtils = dashboardUtils;
     this.policyDAO = policyDAO;
@@ -108,6 +112,7 @@ public class PolicyWaiverService
     this.organizationService = organizationService;
     this.ownerDAO = ownerDAO;
     this.policyWaiverReasonDAO = policyWaiverReasonDAO;
+    this.repositoryManagerDAO = repositoryManagerDAO;
   }
 
   public DashboardResultsDTO<DashboardPolicyWaiverDTO> getDashboardPolicyWaivers(final RisksFilterDTO risksFilterDTO) {
@@ -227,23 +232,18 @@ public class PolicyWaiverService
             && CollectionUtils.isEmpty(tagIds)
             && CollectionUtils.isEmpty(repositoryIds);
 
-    final Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
-        !repos.isEmpty() || (CollectionUtils.isNotEmpty(repositoryIds)
-            && repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
-    final BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
-        isOwnerFilterEmpty.getAsBoolean()
-            && repositoryService.checkReadPermissionRepositoryContainer();
-    final Predicate<List<Repository>> shouldAddRepoContainer = repos ->
-        reposAreNotEmptyOrIsOnlyRepoContainer.test(repos)
-            || filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
-
     final Map<String, ? extends Owner> lifeCycleOwners =
         getApplicationsAndOrgs(applicationIds, tagIds, organizationIds, isOwnerFilterEmpty);
-
     final List<Repository> repositories = getRepositories(repositoryIds, isOwnerFilterEmpty);
+    final List<RepositoryManager> repositoryManagers = getRepositoryManagers(
+        repositories.stream().map(Repository::getId).collect(Collectors.toSet()), isOwnerFilterEmpty);
 
     owners.putAll(lifeCycleOwners);
     owners.putAll(repositories.stream().collect(ownerCollector));
+    owners.putAll(repositoryManagers.stream().collect(ownerCollector));
+
+    final Predicate<List<Repository>> shouldAddRepoContainer =
+        shouldAddRepoContainerPredicate(repositoryIds, isOwnerFilterEmpty);
 
     if (shouldAddRepoContainer.test(repositories)) {
       owners.put(RepositoryContainer.REPOSITORY_CONTAINER_ID, RepositoryContainer.SINGLETON);
@@ -470,5 +470,38 @@ public class PolicyWaiverService
       return ownerDAO.getOwnersByAppTagsAndOrgs(
           applicationIds, tagIds, organizationIds);
     }
+  }
+
+  @AuthzFilter(permission = Permission.READ, context = Context.REPOSITORY_MANAGER)
+  List<RepositoryManager> getRepositoryManagersWithReadPermission(List<RepositoryManager> repositoryManagers) {
+    return repositoryManagers;
+  }
+
+  private List<RepositoryManager> getRepositoryManagers(Set<String> repositoryIds, BooleanSupplier isOwnerFilterEmpty) {
+    if (isOwnerFilterEmpty.getAsBoolean()) {
+      return getRepositoryManagersWithReadPermission(repositoryManagerDAO.getAll());
+    }
+    if (CollectionUtils.isNotEmpty(repositoryIds)) {
+      // We need all parent repository managers for the repositories the user has read permission for,
+      // regardless of the permissions on repository managers.
+      return repositoryManagerDAO.getByRepositoryIds(repositoryIds);
+    }
+    return Collections.emptyList();
+  }
+
+  private Predicate<List<Repository>> shouldAddRepoContainerPredicate(
+      final Set<String> repositoryIds,
+      final BooleanSupplier isOwnerFilterEmpty)
+  {
+    final Predicate<List<Repository>> reposAreNotEmptyOrIsOnlyRepoContainer = repos ->
+        !repos.isEmpty() ||
+            (CollectionUtils.isNotEmpty(repositoryIds) &&
+                repositoryIds.contains(RepositoryContainer.REPOSITORY_CONTAINER_ID));
+    final BooleanSupplier filtersAreEmptyAndRepoContainerReadPermission = () ->
+        isOwnerFilterEmpty.getAsBoolean() && repositoryService.checkReadPermissionRepositoryContainer();
+
+    return repos ->
+        reposAreNotEmptyOrIsOnlyRepoContainer.test(repos) ||
+            filtersAreEmptyAndRepoContainerReadPermission.getAsBoolean();
   }
 }

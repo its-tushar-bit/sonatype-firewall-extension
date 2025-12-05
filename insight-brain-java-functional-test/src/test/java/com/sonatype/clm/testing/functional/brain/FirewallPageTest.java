@@ -25,8 +25,8 @@ import com.sonatype.clm.testing.functional.pages.DashboardPage;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
 import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
-import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerWaiverTile;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerQuarantineTile;
+import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.ContainerWaiverTile;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallMetricsContent;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallQuarantineTable;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.RoiFirewallMetrics;
@@ -137,7 +137,6 @@ public class FirewallPageTest
         LicensedFeature.CONTAINER_IMAGES_EVALUATION);
 
     SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.setEnabled(false);
-    
   }
 
   private void setupData() {
@@ -899,29 +898,6 @@ public class FirewallPageTest
     firewallComponentDetailsPage.getComponentOverviewTile().shouldBe(visible);
   }
 
-  private Policy createTestPolicyWithCondition(
-      String name,
-      boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
-      boolean withProprietaryNameConflictCondition)
-  {
-    Policy policy = new Policy(name, name);
-    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
-    Constraint constraint = new Constraint("test-constraint", "Test Constraint", LogicalOperator.OR);
-    constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
-        SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
-    if (withSecurityVulnerabilityCategoryMaliciousCodeCondition) {
-      constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
-          SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code"));
-    }
-    if (withProprietaryNameConflictCondition) {
-      constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
-          ProprietaryNameConflictConditionType.ID, "is present"));
-    }
-    policy.addConstraint(constraint);
-    policyDAO.insert(policy);
-    return policy;
-  }
-
   @Test
   public void testFirewallPage_QuarantineStatusCount() {
     RepositoryManager repositoryManager = tempEntity.newRepositoryManager("1");
@@ -992,18 +968,15 @@ public class FirewallPageTest
     roiFirewallMetrics.contentHeaderTooltipIcon(malwareAttackPreventedSelector).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text(
-          "Determined based on the number of Malware attacks prevented and the ROI value configured per attack.")
-    );
+            "Determined based on the number of Malware attacks prevented and the ROI value configured per attack."));
     roiFirewallMetrics.contentHeaderTooltipIcon(namespaceAttacksPreventedSelector).hover();
     Tooltip.get().shouldBe(visible)
         .shouldHave(text(
-          "Determined based on the number of namespace attacks protected and the ROI value configured per attack.")
-    );
+            "Determined based on the number of namespace attacks protected and the ROI value configured per attack."));
     roiFirewallMetrics.contentHeaderTooltipIcon(safeComponentsAutoSelectedSelector).hover();
     Tooltip.get().shouldBe(visible)
-        .shouldHave(text(
-          "Determined based on the number of safe components auto-selected and the ROI value configured per attack.")
-    );
+        .shouldHave(text("Determined based on the number of safe components auto-selected " +
+            "and the ROI value configured per attack."));
 
     roiFirewallMetrics.contentValue(malwareAttackPreventedSelector).shouldHave(text("$100,000"));
     roiFirewallMetrics.contentValue(namespaceAttacksPreventedSelector).shouldHave(text("$200,000"));
@@ -1233,39 +1206,6 @@ public class FirewallPageTest
     page.firewallContainerQuarantineTabContent().quarantinedContainers().shouldHave(size(12));
   }
 
-  private PolicyWaiver createFirewallContainerPolicyWaiver(
-      Organization org,
-      String appName,
-      int threatNumber,
-      int containerImageComponentCount)
-  {
-    Application app = tempEntity.newApplication(appName, appName, org.getId());
-    Policy policy = tempEntity.newPolicy(app, threatNumber);
-    Date now = new Date();
-    Date twoDaysAgo = DateUtils.addDays(now, -2);
-    Date threeDaysFromNow = DateUtils.addDays(now, 3);
-
-    for (int i = 0; i < containerImageComponentCount; i++) {
-      tempEntity.newWaiver(new PolicyWaiver()
-          .setHash(appName + i)
-          .setPolicyId(policy.getId())
-          .setOwnerId(app.getId())
-          .setCreateTime(twoDaysAgo)
-          .setExpiryTime(threeDaysFromNow)
-          .setForContainerImage(false)
-          .setForContainerImageComponent(true));
-    }
-
-    return tempEntity.newWaiver(new PolicyWaiver()
-        .setHash(null)
-        .setPolicyId(policy.getId())
-        .setOwnerId(app.getId())
-        .setCreateTime(twoDaysAgo)
-        .setExpiryTime(threeDaysFromNow)
-        .setForContainerImage(true)
-        .setForContainerImageComponent(false));
-  }
-
   @Test
   public void testFirewallPage_AdminUserSeesFullContent() {
     setupData();
@@ -1399,6 +1339,315 @@ public class FirewallPageTest
     logout();
     refreshOrOpen(FirewallPage.url());
     loginAsAdmin();
+  }
+
+  @Test
+  public void testFirewallWaiversTable_includesRepositoryManagerWaivers() {
+    Policy policy = tempEntity.newPolicy();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("rm1");
+    // Create a repository under the repository manager (may be needed for setup)
+    tempEntity.newRepository(repositoryManager, "maven-central", true, false);
+
+    // Component identifier for the waiver
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "1.2.3", "", "jar")).getPackageUrl();
+
+    // Dates for the waiver
+    Date twoDaysAgo = DateUtils.addDays(new Date(), -2);
+    Date threeDaysFromNow = DateUtils.addDays(new Date(), 3);
+
+    // Create waiver scoped to repository manager
+    PolicyWaiver rmWaiver = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash1")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId())  // Repository Manager ID
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("repository manager waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    refreshOrOpen(FirewallPage.urlToFirewallWaivers());
+    WaiversResults waiversResults = DashboardPage.waiversView().results();
+
+    // Verify: Repository manager waiver is displayed
+    waiversResults.waivers().shouldHave(size(1));
+
+    WaiverTile waiver = waiversResults.firstWaiver();
+    page.firewallWaiversTable().shouldBe(visible);
+    waiver.threatIndicator().shouldBe(SEVERE);
+    waiver.threatNumber().shouldHave(text("5"));
+    waiver.createTime().shouldHave(text(DateFormatUtils.format(rmWaiver.getCreateTime(), "yyyy-MM-dd")));
+    waiver.expiryTime().shouldHave(text(DateFormatUtils.format(rmWaiver.getExpiryTime(), "yyyy-MM-dd")));
+    waiver.policy().shouldHave(text(policy.getName()));
+    waiver.scope().shouldHave(text("rm1"));
+    waiver.component().shouldHave(text("Group1 : Artifact1 : 1.2.3"));
+    waiver.upgradeAvailable().shouldHave(text("—"));
+  }
+
+  @Test
+  public void testFirewallWaiversTable_multipleRepositoryManagerWaivers() {
+    Policy policy = tempEntity.newPolicy();
+
+    // Create multiple repository managers
+    RepositoryManager rm1 = tempEntity.newRepositoryManager("rm1");
+    RepositoryManager rm2 = tempEntity.newRepositoryManager("rm2");
+    RepositoryManager rm3 = tempEntity.newRepositoryManager("rm3");
+
+    // Create repositories under each manager
+    tempEntity.newRepository(rm1, "maven-central-1", true, false);
+    tempEntity.newRepository(rm2, "npm-registry-2", true, false);
+    tempEntity.newRepository(rm3, "pypi-registry-3", true, false);
+
+    // Component identifiers for the waivers
+    String purl1 = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "1.0.0", "", "jar")).getPackageUrl();
+    String purl2 = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("Group2", "Artifact2", "2.0.0", "", "jar")).getPackageUrl();
+    String purl3 = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("Group3", "Artifact3", "3.0.0", "", "jar")).getPackageUrl();
+
+    // Dates for the waivers
+    Date twoDaysAgo = DateUtils.addDays(new Date(), -2);
+    Date threeDaysFromNow = DateUtils.addDays(new Date(), 3);
+
+    // Create waivers scoped to different repository managers
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash1")
+        .setPolicyId(policy.getId())
+        .setOwnerId(rm1.getId())
+        .setAssociatedPackageUrl(purl1)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("rm1 waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash2")
+        .setPolicyId(policy.getId())
+        .setOwnerId(rm2.getId())
+        .setAssociatedPackageUrl(purl2)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("rm2 waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash3")
+        .setPolicyId(policy.getId())
+        .setOwnerId(rm3.getId())
+        .setAssociatedPackageUrl(purl3)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("rm3 waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    refreshOrOpen(FirewallPage.urlToFirewallWaivers());
+    WaiversResults waiversResults = DashboardPage.waiversView().results();
+
+    // Verify: All three repository manager waivers are displayed
+    waiversResults.waivers().shouldHave(size(3));
+
+    // Verify first waiver
+    WaiverTile tile1 = waiversResults.waiver(0);
+    tile1.scope().shouldHave(text("rm1"));
+    tile1.component().shouldHave(text("Group1 : Artifact1 : 1.0.0"));
+
+    // Verify second waiver
+    WaiverTile tile2 = waiversResults.waiver(1);
+    tile2.scope().shouldHave(text("rm2"));
+    tile2.component().shouldHave(text("Group2 : Artifact2 : 2.0.0"));
+
+    // Verify third waiver
+    WaiverTile tile3 = waiversResults.waiver(2);
+    tile3.scope().shouldHave(text("rm3"));
+    tile3.component().shouldHave(text("Group3 : Artifact3 : 3.0.0"));
+  }
+
+  @Test
+  public void testFirewallWaiversTable_repositoryManagerWaiverWithMultipleRepositories() {
+    Policy policy = tempEntity.newPolicy();
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("multi-repo-rm");
+
+    // Create multiple repositories under the same repository manager
+    tempEntity.newRepository(repositoryManager, "maven-central", true, false);
+    tempEntity.newRepository(repositoryManager, "maven-releases", true, false);
+    tempEntity.newRepository(repositoryManager, "maven-snapshots", true, false);
+
+    // Component identifier for the waiver
+    String purl = PackageUrlIdentifier.fromComponentIdentifier(
+            ComponentIdentifier.createMavenCoordinates("com.example", "multi-repo-component", "1.5.0", "", "jar"))
+        .getPackageUrl();
+
+    // Dates for the waiver
+    Date twoDaysAgo = DateUtils.addDays(new Date(), -2);
+    Date threeDaysFromNow = DateUtils.addDays(new Date(), 3);
+
+    // Create waiver scoped to repository manager (not individual repositories)
+    PolicyWaiver rmWaiver = tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash-multi-repo")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId())  // Scoped to repository manager, not individual repos
+        .setAssociatedPackageUrl(purl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("waiver for repository manager with multiple repositories")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    refreshOrOpen(FirewallPage.urlToFirewallWaivers());
+    WaiversResults waiversResults = DashboardPage.waiversView().results();
+
+    // Verify: Repository manager waiver is displayed
+    waiversResults.waivers().shouldHave(size(1));
+
+    WaiverTile waiver = waiversResults.firstWaiver();
+    page.firewallWaiversTable().shouldBe(visible);
+    waiver.threatIndicator().shouldBe(SEVERE);
+    waiver.threatNumber().shouldHave(text("5"));
+    waiver.createTime().shouldHave(text(DateFormatUtils.format(rmWaiver.getCreateTime(), "yyyy-MM-dd")));
+    waiver.expiryTime().shouldHave(text(DateFormatUtils.format(rmWaiver.getExpiryTime(), "yyyy-MM-dd")));
+    waiver.policy().shouldHave(text(policy.getName()));
+    // Verify scope shows repository manager name, not individual repository names
+    waiver.scope().shouldHave(text("multi-repo-rm"));
+    waiver.component().shouldHave(text("com.example : multi-repo-component : 1.5.0"));
+    waiver.upgradeAvailable().shouldHave(text("—"));
+  }
+
+  @Test
+  public void testFirewallWaiversTable_repositoryManagerAndRepositoryWaivers() {
+    Policy policy = tempEntity.newPolicy();
+
+    // Create repository manager with two repositories
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager("test-rm");
+    tempEntity.newRepository(repositoryManager, "test-repo-1", true, false);
+    Repository repository2 = tempEntity.newRepository(repositoryManager, "test-repo-2", true, false);
+
+    // Component for repository manager waiver
+    String rmPurl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("com.rm", "rm-component", "2.0.0", "", "jar")).getPackageUrl();
+
+    // Component for individual repository waiver
+    String repoPurl = PackageUrlIdentifier.fromComponentIdentifier(
+        ComponentIdentifier.createMavenCoordinates("com.repo", "repo-component", "3.0.0", "", "jar")).getPackageUrl();
+
+    // Dates for the waivers
+    Date twoDaysAgo = DateUtils.addDays(new Date(), -2);
+    Date threeDaysFromNow = DateUtils.addDays(new Date(), 3);
+
+    // Create waiver scoped to repository manager
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash-rm")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId())
+        .setAssociatedPackageUrl(rmPurl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("repository manager waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    // Create waiver scoped to individual repository
+    tempEntity.newWaiver(new PolicyWaiver()
+        .setHash("hash-repo")
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository2.getId())
+        .setAssociatedPackageUrl(repoPurl)
+        .setComponentMatchStrategy(EXACT_COMPONENT)
+        .setComment("repository waiver")
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setCreatorId("testuser")
+        .setCreatorName("Test User")
+        .setComponentUpgradeAvailable(false));
+
+    refreshOrOpen(FirewallPage.urlToFirewallWaivers());
+    WaiversResults waiversResults = DashboardPage.waiversView().results();
+
+    // Verify: Both repository manager and repository waivers are displayed
+    waiversResults.waivers().shouldHave(size(2));
+
+    // Verify repository manager waiver
+    WaiverTile tile1 = waiversResults.waiver(0);
+    tile1.scope().shouldHave(text("test-rm"));
+    tile1.component().shouldHave(text("com.rm : rm-component : 2.0.0"));
+
+    // Verify individual repository waiver
+    WaiverTile tile2 = waiversResults.waiver(1);
+    tile2.scope().shouldHave(text("test-repo-2"));
+    tile2.component().shouldHave(text("com.repo : repo-component : 3.0.0"));
+  }
+
+  private Policy createTestPolicyWithCondition(
+      String name,
+      boolean withSecurityVulnerabilityCategoryMaliciousCodeCondition,
+      boolean withProprietaryNameConflictCondition)
+  {
+    Policy policy = new Policy(name, name);
+    policy.setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    Constraint constraint = new Constraint("test-constraint", "Test Constraint", LogicalOperator.OR);
+    constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
+        SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
+    if (withSecurityVulnerabilityCategoryMaliciousCodeCondition) {
+      constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
+          SecurityVulnerabilityCategoryConditionType.ID, "is", "malicious_code"));
+    }
+    if (withProprietaryNameConflictCondition) {
+      constraint.addCondition(new com.sonatype.insight.brain.model.policy.Condition(
+          ProprietaryNameConflictConditionType.ID, "is present"));
+    }
+    policy.addConstraint(constraint);
+    policyDAO.insert(policy);
+    return policy;
+  }
+
+  private PolicyWaiver createFirewallContainerPolicyWaiver(
+      Organization org,
+      String appName,
+      int threatNumber,
+      int containerImageComponentCount)
+  {
+    Application app = tempEntity.newApplication(appName, appName, org.getId());
+    Policy policy = tempEntity.newPolicy(app, threatNumber);
+    Date now = new Date();
+    Date twoDaysAgo = DateUtils.addDays(now, -2);
+    Date threeDaysFromNow = DateUtils.addDays(now, 3);
+
+    for (int i = 0; i < containerImageComponentCount; i++) {
+      tempEntity.newWaiver(new PolicyWaiver()
+          .setHash(appName + i)
+          .setPolicyId(policy.getId())
+          .setOwnerId(app.getId())
+          .setCreateTime(twoDaysAgo)
+          .setExpiryTime(threeDaysFromNow)
+          .setForContainerImage(false)
+          .setForContainerImageComponent(true));
+    }
+
+    return tempEntity.newWaiver(new PolicyWaiver()
+        .setHash(null)
+        .setPolicyId(policy.getId())
+        .setOwnerId(app.getId())
+        .setCreateTime(twoDaysAgo)
+        .setExpiryTime(threeDaysFromNow)
+        .setForContainerImage(true)
+        .setForContainerImageComponent(false));
   }
 }
 

@@ -19,7 +19,6 @@ import java.util.function.IntConsumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
@@ -51,6 +50,7 @@ import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;
+import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.policy.PolicyWaiverResource;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -731,7 +731,7 @@ public class PolicyWaiverServiceTest
     tempEntity.newWaiver(policy.getId(), org.getId());
     tempEntity.newWaiver(policy.getId(), Organization.ROOT_ORGANIZATION_ID);
 
-    Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(),app2.getId(), app3.getId()));
+    Set<String> apps = new HashSet<>(Arrays.asList(app1.getId(), app2.getId(), app3.getId()));
     String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.OWNER_SCOPE;
     risksFilterDTOBuilder.withApplicationIds(apps).withOrderBy(orderBy).withPageSize(10);
     DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
@@ -749,7 +749,7 @@ public class PolicyWaiverServiceTest
   @Test
   public void testGetDashboardPolicyWaivers_ordersByComponentDisplayNameWithMatchStrategy() {
     String[] chars = "abc".split("");
-    String[] formats = { FORMAT_MAVEN, FORMAT_PYPI, FORMAT_GOLANG };
+    String[] formats = {FORMAT_MAVEN, FORMAT_PYPI, FORMAT_GOLANG};
     List<ComponentMatcherStrategyForWaiver> waiverTypes = List.of(EXACT_COMPONENT, EXACT_COMPONENT, ALL_VERSIONS,
         ALL_COMPONENTS, ALL_COMPONENTS, EXACT_COMPONENT, EXACT_COMPONENT);
     List<ComponentIdentifier> componentIdentifiers = new ArrayList<>();
@@ -1248,7 +1248,6 @@ public class PolicyWaiverServiceTest
     result = dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build(), true);
     assertThat(result.dashboardResults).hasSize(1);
     assertThat(result.hasNextPage).isEqualTo(false);
-
   }
 
   @Test
@@ -1303,12 +1302,633 @@ public class PolicyWaiverServiceTest
         .containsExactly("waiver-id");
   }
 
+  @Test
+  public void testGetDashboardPolicyWaivers_includesRepositoryManagerWaivers() {
+    // Create a RepositoryManager and Repository hierarchy
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create waiver at Repository level
+    PolicyWaiver repositoryLevelWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId());
+    tempEntity.newWaiver(repositoryLevelWaiver);
+
+    // Create waiver at RepositoryManager level
+    PolicyWaiver repositoryManagerLevelWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId());
+    tempEntity.newWaiver(repositoryManagerLevelWaiver);
+
+    // Create waiver at Application level (should not be returned)
+    PolicyWaiver applicationLevelWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
+    tempEntity.newWaiver(applicationLevelWaiver);
+
+    // Filter by repository
+    risksFilterDTOBuilder.withRepositoryIds(Collections.singleton(repository.getId())).withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Should return both repository and repository manager waivers, but not application waiver
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(2);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Verify both waivers are present
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+    assertThat(returnedWaiverIds).containsExactlyInAnyOrder(
+        repositoryLevelWaiver.getId(),
+        repositoryManagerLevelWaiver.getId()
+    );
+
+    // Verify the repository manager waiver details
+    DashboardPolicyWaiverDTO rmWaiverDto = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(repositoryManagerLevelWaiver.getId()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RepositoryManager waiver not found"));
+
+    assertPolicyWaiverWithoutDetails(rmWaiverDto, repositoryManagerLevelWaiver, repositoryManager);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_repositoryManagerWaiverAppearsOnceForMultipleRepositories() {
+    // Create a RepositoryManager with multiple repositories
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository1 = tempEntity.newRepository(repositoryManager);
+    Repository repository2 = tempEntity.newRepository(repositoryManager);
+    Repository repository3 = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create waivers at each Repository level
+    PolicyWaiver repositoryWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository1.getId());
+    tempEntity.newWaiver(repositoryWaiver1);
+
+    PolicyWaiver repositoryWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository2.getId());
+    tempEntity.newWaiver(repositoryWaiver2);
+
+    PolicyWaiver repositoryWaiver3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository3.getId());
+    tempEntity.newWaiver(repositoryWaiver3);
+
+    // Create ONE waiver at RepositoryManager level
+    PolicyWaiver repositoryManagerWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId());
+    tempEntity.newWaiver(repositoryManagerWaiver);
+
+    // Filter by all three repositories
+    Set<String> repositoryIds = new HashSet<>(Arrays.asList(
+        repository1.getId(),
+        repository2.getId(),
+        repository3.getId()
+    ));
+    risksFilterDTOBuilder.withRepositoryIds(repositoryIds).withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Should return 3 repository waivers + 1 repository manager waiver (not duplicated)
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(4);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Verify all waivers are present and repository manager waiver appears only once
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+    assertThat(returnedWaiverIds).containsExactlyInAnyOrder(
+        repositoryWaiver1.getId(),
+        repositoryWaiver2.getId(),
+        repositoryWaiver3.getId(),
+        repositoryManagerWaiver.getId()
+    );
+
+    // Verify repository manager waiver appears exactly once
+    long repositoryManagerWaiverCount = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(repositoryManagerWaiver.getId()))
+        .count();
+    assertThat(repositoryManagerWaiverCount).isEqualTo(1);
+
+    // Verify the repository manager waiver has correct owner details
+    DashboardPolicyWaiverDTO rmWaiverDto = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(repositoryManagerWaiver.getId()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RepositoryManager waiver not found"));
+
+    assertPolicyWaiverWithoutDetails(rmWaiverDto, repositoryManagerWaiver, repositoryManager);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_includesMultipleRepositoryManagerWaivers() {
+    // Create multiple RepositoryManagers with their own repositories
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager();
+
+    Repository repo1 = tempEntity.newRepository(repositoryManager1);
+    Repository repo2 = tempEntity.newRepository(repositoryManager2);
+    Repository repo3 = tempEntity.newRepository(repositoryManager3);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create waivers at each Repository level
+    PolicyWaiver repoWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1.getId());
+    tempEntity.newWaiver(repoWaiver1);
+
+    PolicyWaiver repoWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo2.getId());
+    tempEntity.newWaiver(repoWaiver2);
+
+    PolicyWaiver repoWaiver3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo3.getId());
+    tempEntity.newWaiver(repoWaiver3);
+
+    // Create waivers at each RepositoryManager level
+    PolicyWaiver rmWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager1.getId());
+    tempEntity.newWaiver(rmWaiver1);
+
+    PolicyWaiver rmWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager2.getId());
+    tempEntity.newWaiver(rmWaiver2);
+
+    PolicyWaiver rmWaiver3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager3.getId());
+    tempEntity.newWaiver(rmWaiver3);
+
+    // Filter by all three repositories from different repository managers
+    Set<String> repositoryIds = new HashSet<>(Arrays.asList(
+        repo1.getId(),
+        repo2.getId(),
+        repo3.getId()
+    ));
+    risksFilterDTOBuilder.withRepositoryIds(repositoryIds).withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Should return 3 repository waivers + 3 repository manager waivers = 6 total
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(6);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Verify all waivers are present
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+    assertThat(returnedWaiverIds).containsExactlyInAnyOrder(
+        repoWaiver1.getId(),
+        repoWaiver2.getId(),
+        repoWaiver3.getId(),
+        rmWaiver1.getId(),
+        rmWaiver2.getId(),
+        rmWaiver3.getId()
+    );
+
+    // Verify each repository manager waiver has correct owner details
+    DashboardPolicyWaiverDTO rmWaiverDto1 = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(rmWaiver1.getId()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RepositoryManager1 waiver not found"));
+    assertPolicyWaiverWithoutDetails(rmWaiverDto1, rmWaiver1, repositoryManager1);
+
+    DashboardPolicyWaiverDTO rmWaiverDto2 = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(rmWaiver2.getId()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RepositoryManager2 waiver not found"));
+    assertPolicyWaiverWithoutDetails(rmWaiverDto2, rmWaiver2, repositoryManager2);
+
+    DashboardPolicyWaiverDTO rmWaiverDto3 = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(rmWaiver3.getId()))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RepositoryManager3 waiver not found"));
+    assertPolicyWaiverWithoutDetails(rmWaiverDto3, rmWaiver3, repositoryManager3);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_mixedRepositoriesFromSameAndDifferentManagers() {
+    // Create 2 repository managers
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+
+    // RepositoryManager1 has 3 repositories
+    Repository repo1a = tempEntity.newRepository(repositoryManager1);
+    Repository repo1b = tempEntity.newRepository(repositoryManager1);
+    Repository repo1c = tempEntity.newRepository(repositoryManager1);
+
+    // RepositoryManager2 has 2 repositories
+    Repository repo2a = tempEntity.newRepository(repositoryManager2);
+    Repository repo2b = tempEntity.newRepository(repositoryManager2);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create waivers for all repositories
+    PolicyWaiver waiver1a = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1a.getId());
+    tempEntity.newWaiver(waiver1a);
+
+    PolicyWaiver waiver1b = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1b.getId());
+    tempEntity.newWaiver(waiver1b);
+
+    PolicyWaiver waiver1c = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1c.getId());
+    tempEntity.newWaiver(waiver1c);
+
+    PolicyWaiver waiver2a = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo2a.getId());
+    tempEntity.newWaiver(waiver2a);
+
+    PolicyWaiver waiver2b = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo2b.getId());
+    tempEntity.newWaiver(waiver2b);
+
+    // Create waivers for both repository managers
+    PolicyWaiver rmWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager1.getId());
+    tempEntity.newWaiver(rmWaiver1);
+
+    PolicyWaiver rmWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager2.getId());
+    tempEntity.newWaiver(rmWaiver2);
+
+    // Filter by all 5 repositories (3 from RM1, 2 from RM2)
+    Set<String> repositoryIds = new HashSet<>(Arrays.asList(
+        repo1a.getId(),
+        repo1b.getId(),
+        repo1c.getId(),
+        repo2a.getId(),
+        repo2b.getId()
+    ));
+    risksFilterDTOBuilder.withRepositoryIds(repositoryIds).withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Should return 5 repository waivers + 2 repository manager waivers = 7 total
+    // Each RM waiver should appear only once despite multiple repos from same manager
+    assertThat(dashboardPolicyWaivers.dashboardResults).hasSize(7);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Verify all waivers are present
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+    assertThat(returnedWaiverIds).containsExactlyInAnyOrder(
+        waiver1a.getId(),
+        waiver1b.getId(),
+        waiver1c.getId(),
+        waiver2a.getId(),
+        waiver2b.getId(),
+        rmWaiver1.getId(),
+        rmWaiver2.getId()
+    );
+
+    // Verify each repository manager waiver appears exactly once
+    long rmWaiver1Count = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(rmWaiver1.getId()))
+        .count();
+    assertThat(rmWaiver1Count).isEqualTo(1);
+
+    long rmWaiver2Count = dashboardPolicyWaivers.dashboardResults.stream()
+        .filter(dto -> dto.id.equals(rmWaiver2.getId()))
+        .count();
+    assertThat(rmWaiver2Count).isEqualTo(1);
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_emptyFiltersIncludesAllRepositoryManagerWaivers() {
+    // Create repository managers with repositories
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+
+    Repository repo1 = tempEntity.newRepository(repositoryManager1);
+    Repository repo2 = tempEntity.newRepository(repositoryManager2);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create repository waivers
+    PolicyWaiver repoWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1.getId());
+    tempEntity.newWaiver(repoWaiver1);
+
+    PolicyWaiver repoWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo2.getId());
+    tempEntity.newWaiver(repoWaiver2);
+
+    // Create repository manager waivers
+    PolicyWaiver rmWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager1.getId());
+    tempEntity.newWaiver(rmWaiver1);
+
+    PolicyWaiver rmWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager2.getId());
+    tempEntity.newWaiver(rmWaiver2);
+
+    // Create application waivers (should also be included with empty filters)
+    PolicyWaiver appWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
+    tempEntity.newWaiver(appWaiver);
+
+    PolicyWaiver orgWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(org.getId());
+    tempEntity.newWaiver(orgWaiver);
+
+    // Use empty filters (no applicationIds, organizationIds, or repositoryIds)
+    risksFilterDTOBuilder.withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    // Should return all waivers including repository manager waivers
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isGreaterThanOrEqualTo(6);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Verify repository manager waivers are included
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+
+    assertThat(returnedWaiverIds).contains(
+        rmWaiver1.getId(),
+        rmWaiver2.getId(),
+        repoWaiver1.getId(),
+        repoWaiver2.getId(),
+        appWaiver.getId(),
+        orgWaiver.getId()
+    );
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_ordersByOwnerScopeWithRepositoryManagers() {
+    // Create repository managers and repositories
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create waivers at different owner levels
+    PolicyWaiver rootOrgWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(Organization.ROOT_ORGANIZATION_ID);
+    tempEntity.newWaiver(rootOrgWaiver);
+
+    PolicyWaiver parentOrgWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(parentOrg.getId());
+    tempEntity.newWaiver(parentOrgWaiver);
+
+    PolicyWaiver orgWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(org.getId());
+    tempEntity.newWaiver(orgWaiver);
+
+    PolicyWaiver appWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(app1.getId());
+    tempEntity.newWaiver(appWaiver);
+
+    PolicyWaiver repositoryManagerWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager.getId());
+    tempEntity.newWaiver(repositoryManagerWaiver);
+
+    PolicyWaiver repositoryWaiver = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repository.getId());
+    tempEntity.newWaiver(repositoryWaiver);
+
+    // Order by owner scope descending
+    String orderBy = "-" + DashboardPolicyWaiverOrderByEnum.OWNER_SCOPE;
+    risksFilterDTOBuilder.withOrderBy(orderBy).withPageSize(10);
+
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> dashboardPolicyWaivers =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(dashboardPolicyWaivers.dashboardResults.size()).isGreaterThanOrEqualTo(6);
+    assertThat(dashboardPolicyWaivers.hasNextPage).isEqualTo(false);
+
+    // Find the positions of each waiver type in the ordered results
+    List<String> orderedOwnerTypes = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.ownerType)
+        .collect(Collectors.toList());
+
+    // Verify repository manager waivers are included and ordered correctly
+    // Owner scope order (descending): root_organization > organization > application > repository_manager > repository
+    assertThat(orderedOwnerTypes).contains("repository_manager", "repository");
+
+    // Verify the specific waivers are present
+    List<String> returnedWaiverIds = dashboardPolicyWaivers.dashboardResults.stream()
+        .map(dto -> dto.id)
+        .collect(Collectors.toList());
+
+    assertThat(returnedWaiverIds).contains(
+        repositoryManagerWaiver.getId(),
+        repositoryWaiver.getId()
+    );
+  }
+
+  @Test
+  public void testGetDashboardPolicyWaivers_paginationWithRepositoryManagerWaivers() {
+    // Create repository managers with repositories
+    RepositoryManager repositoryManager1 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager2 = tempEntity.newRepositoryManager();
+    RepositoryManager repositoryManager3 = tempEntity.newRepositoryManager();
+
+    Repository repo1 = tempEntity.newRepository(repositoryManager1);
+    Repository repo2 = tempEntity.newRepository(repositoryManager2);
+    Repository repo3 = tempEntity.newRepository(repositoryManager3);
+
+    Policy policy = tempEntity.newPolicy(
+        new TestPolicyBuilder()
+            .withSampleTestValues()
+            .withOwnerId(org.getId())
+            .build());
+
+    // Create 6 repository waivers
+    PolicyWaiver repoWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo1.getId());
+    tempEntity.newWaiver(repoWaiver1);
+
+    PolicyWaiver repoWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo2.getId());
+    tempEntity.newWaiver(repoWaiver2);
+
+    PolicyWaiver repoWaiver3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repo3.getId());
+    tempEntity.newWaiver(repoWaiver3);
+
+    // Create 3 repository manager waivers
+    PolicyWaiver rmWaiver1 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager1.getId());
+    tempEntity.newWaiver(rmWaiver1);
+
+    PolicyWaiver rmWaiver2 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager2.getId());
+    tempEntity.newWaiver(rmWaiver2);
+
+    PolicyWaiver rmWaiver3 = new PolicyWaiver()
+        .setHash(TemporaryEntity.uuid().substring(0, 5))
+        .setPolicyId(policy.getId())
+        .setOwnerId(repositoryManager3.getId());
+    tempEntity.newWaiver(rmWaiver3);
+
+    Set<String> repositoryIds = new HashSet<>(Arrays.asList(
+        repo1.getId(),
+        repo2.getId(),
+        repo3.getId()
+    ));
+
+    // Test first page with page size 2
+    risksFilterDTOBuilder.withRepositoryIds(repositoryIds).withPageSize(2).withPage(0);
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> page1 =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(page1.dashboardResults).hasSize(2);
+    assertThat(page1.hasNextPage).isTrue();
+
+    // Test second page
+    risksFilterDTOBuilder.withPage(1);
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> page2 =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(page2.dashboardResults).hasSize(2);
+    assertThat(page2.hasNextPage).isTrue();
+
+    // Test third page
+    risksFilterDTOBuilder.withPage(2);
+    DashboardResultsDTO<DashboardPolicyWaiverDTO> page3 =
+        dashboardPolicyWaiverService.getDashboardPolicyWaivers(risksFilterDTOBuilder.build());
+
+    assertThat(page3.dashboardResults).hasSize(2);
+    assertThat(page3.hasNextPage).isFalse();
+
+    // Verify all pages together contain all 6 waivers (3 repos + 3 repo managers)
+    List<String> allWaiverIds = new ArrayList<>();
+    allWaiverIds.addAll(page1.dashboardResults.stream().map(dto -> dto.id).toList());
+    allWaiverIds.addAll(page2.dashboardResults.stream().map(dto -> dto.id).toList());
+    allWaiverIds.addAll(page3.dashboardResults.stream().map(dto -> dto.id).toList());
+
+    assertThat(allWaiverIds).hasSize(6);
+    assertThat(allWaiverIds).containsExactlyInAnyOrder(
+        repoWaiver1.getId(),
+        repoWaiver2.getId(),
+        repoWaiver3.getId(),
+        rmWaiver1.getId(),
+        rmWaiver2.getId(),
+        rmWaiver3.getId()
+    );
+
+    // Verify no duplicates across pages
+    Set<String> uniqueWaiverIds = new HashSet<>(allWaiverIds);
+    assertThat(uniqueWaiverIds).hasSize(6);
+  }
+
   private ComponentIdentifier getTestComponentIdentifier() {
-    TreeMap<String, String> coordinates = new TreeMap<>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>()
+    {
+      {
         this.put("artifactId", "Artifact1");
         this.put("groupId", "Group1");
         this.put("version", "1.2.3");
-      }};
+      }
+    };
 
     return new ComponentIdentifier("maven", coordinates);
   }
@@ -1331,6 +1951,7 @@ public class PolicyWaiverServiceTest
         null,
         null,
         mockDAO,
+        null,
         null,
         null,
         null,
@@ -1425,13 +2046,16 @@ public class PolicyWaiverServiceTest
         new ConditionFact(ConditionTypes.SecurityVulnerabilityStatusConditionType.getId(), 0, "summary", "reason",
             triggerReference);
     ConstraintFact constraintFact = new ConstraintFact("constraint id", "constraint name", "operator", conditionFact);
-    TreeMap<String, String> coordinates = new TreeMap<>() {{
+    TreeMap<String, String> coordinates = new TreeMap<>()
+    {
+      {
         this.put("artifactId", "a1");
         this.put("groupId", "g1");
         this.put("version", "v1");
         this.put("classifier", "c1");
         this.put("extension", "jar");
-      }};
+      }
+    };
     ComponentIdentifier componentIdentifier = new ComponentIdentifier("maven", coordinates);
     String purl = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier).getPackageUrl();
 

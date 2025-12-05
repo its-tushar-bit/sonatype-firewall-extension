@@ -13,10 +13,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;
@@ -70,10 +70,6 @@ public class DashboardResourceTest
   private final SimpleDateFormat csvTimestampFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
   private final SimpleDateFormat filenameTimestampFormatter = new SimpleDateFormat("yyyyMMdd-HHmmss");
-
-  {
-    csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-  }
 
   private DashboardFilterDAO dashboardFilterDAO;
 
@@ -137,7 +133,7 @@ public class DashboardResourceTest
     // creating a new filter
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     dashboardFilterDTO.filter.repositoryFilters = new ArrayList<>();
-    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(),repository2.getId()));
+    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(), repository2.getId()));
 
     // Test the create
     HttpRequest request = restRequest().auth(tempUser).path(DashboardResource.FILTERS_PATH);
@@ -164,7 +160,7 @@ public class DashboardResourceTest
     String filterName = "";
     NamedDashboardFilterDTO dashboardFilterDTO = createNamedDashboardFilter(app, tag);
     dashboardFilterDTO.filter.repositoryFilters = new ArrayList<>();
-    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(),repository2.getId()));
+    dashboardFilterDTO.filter.repositoryFilters.addAll(Arrays.asList(repository1.getId(), repository2.getId()));
 
     // creating a new filter
     tempEntity.newDashboardFilter(tempUser.getUsername(), InternalRealm.ID, filterName,
@@ -454,10 +450,11 @@ public class DashboardResourceTest
     return createFirstOccurrencePolicyViolation(app, tempPolicy, stageTypeId, new Date());
   }
 
-  private PolicyViolation createFirstOccurrencePolicyViolation(Application app,
-                                                               Policy tempPolicy,
-                                                               String stageTypeId,
-                                                               Date time)
+  private PolicyViolation createFirstOccurrencePolicyViolation(
+      Application app,
+      Policy tempPolicy,
+      String stageTypeId,
+      Date time)
   {
     PolicyEvaluation evaluation = tempEntity.newPolicyEvaluation(app.getId(), stageTypeId, "test scan id", time);
     return tempEntity.newPolicyViolation(evaluation, tempPolicy);
@@ -721,7 +718,7 @@ public class DashboardResourceTest
     PolicyWaiverReason waiverReason = tempEntity.newWaiverReason("system", "Something");
     PolicyWaiver secondPolicyWaiver =
         tempEntity.newWaiverWithExistingReason("hash2", policy.getId(), org.getId(), null, "waiver at org level",
-                waiverReason.getId());
+            waiverReason.getId());
 
     RisksFilterDTO filter = new RisksFilterDTO();
     HttpResponse response = restRequest().path(GET_POLICY_WAIVERS_EXPORT_PATH).part("filter", filter).post();
@@ -738,9 +735,11 @@ public class DashboardResourceTest
             "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
     String expectedSecondLine =
         format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
-        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
-        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false,
+            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/
+            "",
+            policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
+            secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(),
+            false,
             false, waiverReason.getId(), waiverReason.getReasonText());
 
     assertThat(lines).containsExactly(DashboardPolicyWaiverDTO.getCsvHeader(), expectedFirstLine, expectedSecondLine);
@@ -752,16 +751,18 @@ public class DashboardResourceTest
     assertResponseOkAndCsvHeadersSet(response, "results-waivers");
     lines = response.getBodyText().split("\r\n");
     expectedFirstLine =
-            format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
-        policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
-        policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
-        "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
+        format("%s,5,%s,%s,%s,%s,%s,application,%s,%s,EXACT_COMPONENT,hash,%s,%s,%s,%s,comment,%s,%s,%s,%s",
+            policyWaiver.getId(), csvTimestampFormatter.format(policyWaiver.getCreateTime()),/*no expiry*/"",
+            policy.getId(), policy.getName(), expectedConstraints, app.getId(), app.getName(), expectedComponentName,
+            "", policyWaiver.getCreatorId(), policyWaiver.getCreatorName(), false, false, "", "");
     expectedSecondLine =
-            format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
-        secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/"",
-        policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
-        secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(), false,
-        false, waiverReason.getId(), waiverReason.getReasonText());
+        format("%s,5,%s,%s,%s,%s,%s,organization,%s,%s,EXACT_COMPONENT,hash2,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+            secondPolicyWaiver.getId(), csvTimestampFormatter.format(secondPolicyWaiver.getCreateTime()),/*no expiry*/
+            "",
+            policy.getId(), policy.getName(), "", org.getId(), org.getName(), "", "",
+            secondPolicyWaiver.getCreatorId(), secondPolicyWaiver.getCreatorName(), secondPolicyWaiver.getComment(),
+            false,
+            false, waiverReason.getId(), waiverReason.getReasonText());
     String expectedThirdLine = format("%s,7,%s,%s,%s,%s,%s,application,%s,%s,DEFAULT,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
         autoPolicyWaiver.getId(), csvTimestampFormatter.format(autoPolicyWaiver.getCreateTime()),/*no expiry*/"",
         "", "", "", app.getId(), app.getName(), "", "", "",
@@ -882,5 +883,154 @@ public class DashboardResourceTest
     DashboardFilterDTO actualDto = JsonUtils.parse(actual.getFilter(), DashboardFilterDTO.class);
     assertThat(actual.getName()).isEqualTo(expected.name);
     assertDashboardFilterDTO(actualDto, expected.filter);
+  }
+
+  /**
+   * GET policy waivers includes Repository Manager waivers when filtering by repository. This tests the end-to-end REST
+   * endpoint behavior including JSON serialization/deserialization.
+   */
+  @Test
+  public void testGetPolicyWaivers_IncludesRepositoryManagerWaivers() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(org);
+
+    // Create waiver at Repository level
+    PolicyWaiver repositoryWaiver = tempEntity.newWaiver("hash1", policy.getId(), repository.getId(), "repo comment");
+
+    // Create waiver at RepositoryManager level
+    PolicyWaiver rmWaiver = tempEntity.newWaiver("hash2", policy.getId(), repositoryManager.getId(), "rm comment");
+
+    // Filter by repository
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.repositoryIds = Set.of(repository.getId());
+
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+
+    // Should return BOTH repository waiver and repository manager waiver
+    assertThat(dto.dashboardResults).hasSize(2);
+
+    // Verify both waivers are in the response
+    java.util.List<String> waiverIds = dto.dashboardResults.stream()
+        .map(result -> {
+          LinkedHashMap<String, Object> resultMap = (LinkedHashMap<String, Object>) result;
+          return (String) resultMap.get("id");
+        })
+        .collect(java.util.stream.Collectors.toList());
+
+    assertThat(waiverIds).containsExactlyInAnyOrder(repositoryWaiver.getId(), rmWaiver.getId());
+  }
+
+  /**
+   * Verify JSON response structure for Repository Manager waivers. This tests that RM waivers have correct ownerType,
+   * ownerId, and ownerName in JSON response.
+   */
+  @Test
+  public void testGetPolicyWaivers_RepositoryManagerWaiverJsonStructure() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(org);
+
+    // Create waiver at RepositoryManager level
+    PolicyWaiver rmWaiver = tempEntity.newWaiver("hash1", policy.getId(), repositoryManager.getId(), "rm comment");
+
+    // Filter by repository
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.repositoryIds = Set.of(repository.getId());
+
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+
+    // Find the RM waiver in results
+    LinkedHashMap<String, Object> rmWaiverResult = dto.dashboardResults.stream()
+        .map(result -> (LinkedHashMap<String, Object>) result)
+        .filter(map -> rmWaiver.getId().equals(map.get("id")))
+        .findFirst()
+        .orElseThrow(() -> new AssertionError("RM waiver not found in response"));
+
+    // Verify JSON structure for RM waiver - focusing on owner-related fields
+    assertThat(rmWaiverResult.get("id")).isEqualTo(rmWaiver.getId());
+    assertThat(rmWaiverResult.get("ownerId")).isEqualTo(repositoryManager.getId());
+    assertThat(rmWaiverResult.get("ownerType")).isEqualTo("repository_manager");
+    assertThat(rmWaiverResult.get("ownerName")).isEqualTo(repositoryManager.getName());
+
+    // Verify that essential fields are present (not null)
+    assertThat(rmWaiverResult.get("policyId")).isNotNull();
+    assertThat(rmWaiverResult.get("policyName")).isNotNull();
+  }
+
+  /**
+   * Multiple repositories under same RM - verify deduplication via REST endpoint. This tests that RM waivers appear
+   * only once when filtering by multiple repos under the same RM.
+   */
+  @Test
+  public void testGetPolicyWaivers_RepositoryManagerWaiverDeduplication() throws Exception {
+    Organization org = tempEntity.newOrganization();
+    com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository(repositoryManager);
+    Repository repo2 = tempEntity.newRepository(repositoryManager);
+    Repository repo3 = tempEntity.newRepository(repositoryManager);
+
+    Policy policy = tempEntity.newPolicy(org);
+
+    // Create waivers at Repository level
+    PolicyWaiver repoWaiver1 = tempEntity.newWaiver("hash1", policy.getId(), repo1.getId(), "repo1 comment");
+    PolicyWaiver repoWaiver2 = tempEntity.newWaiver("hash2", policy.getId(), repo2.getId(), "repo2 comment");
+    PolicyWaiver repoWaiver3 = tempEntity.newWaiver("hash3", policy.getId(), repo3.getId(), "repo3 comment");
+
+    // Create ONE waiver at RepositoryManager level
+    PolicyWaiver rmWaiver = tempEntity.newWaiver("hash4", policy.getId(), repositoryManager.getId(), "rm comment");
+
+    // Filter by all three repositories
+    RisksFilterDTO filter = new RisksFilterDTO();
+    filter.repositoryIds = Set.of(repo1.getId(), repo2.getId(), repo3.getId());
+
+    HttpResponse response = restRequest().path(DashboardResource.GET_POLICY_WAIVERS_PATH)
+        .body(filter).post();
+
+    assertResponseStatus(200, response);
+    DashboardResultsDTO<?> dto = response.getBody(DashboardResultsDTO.class);
+
+    // Should return 3 repository waivers + 1 RM waiver (not duplicated) = 4 total
+    assertThat(dto.dashboardResults).hasSize(4);
+
+    // Verify all waiver IDs are present
+    java.util.List<String> waiverIds = dto.dashboardResults.stream()
+        .map(result -> {
+          LinkedHashMap<String, Object> resultMap = (LinkedHashMap<String, Object>) result;
+          return (String) resultMap.get("id");
+        })
+        .collect(java.util.stream.Collectors.toList());
+
+    assertThat(waiverIds).containsExactlyInAnyOrder(
+        repoWaiver1.getId(),
+        repoWaiver2.getId(),
+        repoWaiver3.getId(),
+        rmWaiver.getId()
+    );
+
+    // Verify RM waiver appears exactly ONCE (deduplication)
+    long rmWaiverCount = waiverIds.stream()
+        .filter(id -> rmWaiver.getId().equals(id))
+        .count();
+    assertThat(rmWaiverCount).isEqualTo(1);
+  }
+
+  {
+    csvTimestampFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
   }
 }

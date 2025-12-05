@@ -1269,7 +1269,7 @@
     },
     "directDependency" : false,
     "innerSource" : false,
-    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@5.13.3.202401111512-r?type=jar" ],
+    "parentComponentPurls" : [ "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@7.4.0.202509020913-r?type=jar" ],
     "innerSourceData" : [ {
       "ownerApplicationName" : "nexus-scm-client",
       "ownerApplicationId" : "8638a1df952c40beac2e990165fc3ccf",
@@ -3456,15 +3456,15 @@
         "classifier" : "",
         "extension" : "jar",
         "groupId" : "org.eclipse.jgit",
-        "version" : "5.13.3.202401111512-r"
+        "version" : "7.4.0.202509020913-r"
       }
     },
-    "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@5.13.3.202401111512-r?type=jar",
+    "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@7.4.0.202509020913-r?type=jar",
     "groupId" : "org.eclipse.jgit",
     "artifactId" : "org.eclipse.jgit",
-    "version" : "5.13.3.202401111512-r",
-    "filenames" : [ "org.eclipse.jgit-5.13.3.202401111512-r.jar" ],
-    "pathnames" : [ "dependency:/com.sonatype.insight.brain:nexus-iq-cli:jar:2.4.4-SNAPSHOT/org.eclipse.jgit:org.eclipse.jgit:jar:5.13.3.202401111512-r" ],
+    "version" : "7.4.0.202509020913-r",
+    "filenames" : [ "org.eclipse.jgit-7.4.0.202509020913-r.jar" ],
+    "pathnames" : [ "dependency:/com.sonatype.insight.brain:nexus-iq-cli:jar:2.4.4-SNAPSHOT/org.eclipse.jgit:org.eclipse.jgit:jar:7.4.0.202509020913-r" ],
     "aggregateFiles" : [ ],
     "matchState" : "exact",
     "scanError" : false,
@@ -3508,7 +3508,7 @@
         "value" : " : "
       }, {
         "field" : "Version",
-        "value" : "5.13.3.202401111512-r"
+        "value" : "7.4.0.202509020913-r"
       } ],
       "name" : "org.eclipse.jgit"
     },

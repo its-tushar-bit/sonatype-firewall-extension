@@ -2493,10 +2493,10 @@
           "classifier" : "",
           "extension" : "jar",
           "groupId" : "org.eclipse.jgit",
-          "version" : "5.13.3.202401111512-r"
+          "version" : "7.4.0.202509020913-r"
         }
       },
-      "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@5.13.3.202401111512-r?type=jar"
+      "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@7.4.0.202509020913-r?type=jar"
     }, {
       "componentIdentifier" : {
         "format" : "maven",
@@ -3395,10 +3395,10 @@
         "classifier" : "",
         "extension" : "jar",
         "groupId" : "org.eclipse.jgit",
-        "version" : "5.13.3.202401111512-r"
+        "version" : "7.4.0.202509020913-r"
       }
     },
-    "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@5.13.3.202401111512-r?type=jar",
+    "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@7.4.0.202509020913-r?type=jar",
     "children" : [ {
       "componentIdentifier" : {
         "format" : "maven",
@@ -5239,7 +5239,7 @@
         "classifier" : "",
         "extension" : "jar",
         "groupId" : "org.eclipse.jgit",
-        "version" : "5.13.3.202401111512-r"
+        "version" : "7.4.0.202509020913-r"
       }
     },
     "depths" : [ 2 ]
@@ -7109,10 +7109,10 @@
               "classifier" : "",
               "extension" : "jar",
               "groupId" : "org.eclipse.jgit",
-              "version" : "5.13.3.202401111512-r"
+              "version" : "7.4.0.202509020913-r"
             }
           },
-          "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@5.13.3.202401111512-r?type=jar",
+          "packageUrl" : "pkg:maven/org.eclipse.jgit/org.eclipse.jgit@7.4.0.202509020913-r?type=jar",
           "children" : [ {
             "componentIdentifier" : {
               "format" : "maven",

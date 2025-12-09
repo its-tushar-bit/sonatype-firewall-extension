@@ -76,6 +76,8 @@ public class ComponentRemediationService
 {
   private static final Logger log = LoggerFactory.getLogger(ComponentRemediationService.class);
 
+  private static final int SEVERITY_THRESHOLD = 2;
+
   public static final List<ApiVersionChangeOptionType> PREFERABLE_TYPE_ORDER = List.of(
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
@@ -256,7 +258,7 @@ public class ComponentRemediationService
         nonBreakingVersionsSortedByScore.addAll(versionScoringService.getSortedNonBreakingVersionsNoAuth(
             List.of(currentComponent)).getOrDefault(currentComponent, Collections.emptyList()));
         Set<ComponentIdentifier> nonViolatingVersionsSet =
-            findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, 2)
+            findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, SEVERITY_THRESHOLD)
                 .map(dto -> dto.componentIdentifier)
                 .collect(Collectors.toSet());
         Optional<ComponentIdentifier> topScoreNonViolatingNonBreakingVersion = nonBreakingVersionsSortedByScore.stream()
@@ -303,19 +305,17 @@ public class ComponentRemediationService
 
           if (SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.isEnabled()) {
             log.debug("Fetching non-breaking versions with dependencies for component: {}", currentComponent);
-            Set<ComponentIdentifier> nonViolatingVersionsWithDependenciesSet =
-                findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, 2)
-                .filter(dto -> {
-                  // Get the dependencies of the current component as ComponentDetails
-                  Collection<PackageUrlIdentifier> dependencies = componentDependencies.getDependenciesMap()
-                      .getOrDefault(PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier), List.of());
-                  Stream<ComponentDetails> dependenciesDetailsStream =
-                      dependencies.stream().map(componentDependencies.getDetailsMap()::get);
-                  // Check if all dependencies have no violations above severity threshold
-                  return allMatchNoViolatingAboveSeverityThreshold(dependenciesDetailsStream, 2);
-                })
-                .map(dto -> dto.componentIdentifier)
+            Set<ComponentDetailsDTO> nonViolatingVersionsAboveThreshold =
+                findNoViolatingAboveSeverityThreshold(currentIndex, allVersions, SEVERITY_THRESHOLD)
                 .collect(Collectors.toSet());
+
+            List<ComponentIdentifier> nonViolatingVersionsWithDependenciesSet =
+                nonViolatingWithDependenciesAboveThreshold(
+                nonViolatingVersionsAboveThreshold,
+                dependencyAlerts,
+                SEVERITY_THRESHOLD
+            ).map(dto -> dto.componentIdentifier).toList();
+
             Optional<ComponentIdentifier> topScoreNonViolatingNonBreakingWithDependenciesVersion =
                 nonBreakingVersionsSortedByScore.stream()
                 .map(currentComponent::createAlternativeVersion)
@@ -583,22 +583,6 @@ public class ComponentRemediationService
         });
   }
 
-  private boolean allMatchNoViolatingAboveSeverityThreshold(Stream<ComponentDetails> details,
-                                                                             int severityThreshold)
-  {
-    return details.parallel()
-        .allMatch(d -> {
-          Stream<Integer> stream;
-          if (d.getPolicyMaxThreatLevelsByCategory() == null) {
-            stream = Stream.empty();
-          }
-          else {
-            stream = d.getPolicyMaxThreatLevelsByCategory().values().stream();
-          }
-          return stream.max(Integer::compareTo).orElse(0) < severityThreshold;
-        });
-  }
-
   private ComponentIdentifier tryEnsureCompleteIdentifier(PackageUrlIdentifier versionPurl) {
     try {
       return versionPurl.ensureCompleteIdentifier();
@@ -621,6 +605,27 @@ public class ComponentRemediationService
       }
     }
     return Optional.empty();
+  }
+
+  private Stream<ComponentDetailsDTO> nonViolatingWithDependenciesAboveThreshold(
+      final Collection<ComponentDetailsDTO> nonViolatingVersions,
+      final Map<PackageUrlIdentifier, List<PolicyAlert>> dependencyAlerts,
+      final int severityThreshold)
+  {
+    return nonViolatingVersions.stream().filter(dto -> {
+      final PackageUrlIdentifier versionPurl = PackageUrlIdentifier.fromComponentIdentifier(dto.componentIdentifier);
+      if (CollectionUtils.isEmpty(dependencyAlerts.get(versionPurl)))
+      {
+        dto.componentIdentifier = tryEnsureCompleteIdentifier(versionPurl);
+        return true;
+      }
+
+      long dependenciesAboveThresholdCount =
+          dependencyAlerts.get(versionPurl).stream().filter(dependencyAlert ->
+              dependencyAlert.getTrigger().getThreatLevel() > severityThreshold).count();
+
+      return dependenciesAboveThresholdCount == 0;
+    });
   }
 
   private Optional<ComponentDetailsDTO> nonFailingWithDependencies(

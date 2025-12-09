@@ -1746,4 +1746,115 @@ public class ComponentRemediationServiceTest
 
     assertThat(remediationDto.suggestedVersionChange).isNull();
   }
+
+  @Test
+  public void testGetSuggestedRemediation_goldenVersion_dependenciesWithoutViolationsAboveThreshold() {
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3, detailsDtoA1V4);
+    detailsDtoA1V3.policyMaxThreatLevelsByCategory = Collections.emptyMap();
+    detailsDtoA1V4.policyMaxThreatLevelsByCategory = Collections.emptyMap();
+    mockVersionScoring_mockSortedVersions("v4", "v3");
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V1));
+    dependenciesMap.put(purlA1V4, Collections.singletonList(purlA2V3));
+
+    detailsMap.put(purlA2V1, detailsA2V1);
+    detailsMap.put(purlA2V3, detailsA2V3);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3,
+        detailsDtoA1V4);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
+        SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V4.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isTrue();
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_goldenVersion_dependenciesWithViolationsAboveThreshold() {
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
+    mockVersionScoring_mockSortedVersions("v3");
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V3, Collections.singletonList(purlA2V1));
+
+    PolicyAlert highThreatAlert = new PolicyAlert(new PolicyFact("policyId", "High Threat", 5),
+        Collections.singletonList(new Action(Action.ID_WARN)));
+    ComponentDetails detailsA2V1WithHighThreat = buildComponentDetails(MAVEN_COORDINATES_A2_V1,
+        Collections.singletonList(highThreatAlert));
+
+    detailsMap.put(purlA2V1, detailsA2V1WithHighThreat);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
+        SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V3.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isFalse();
+  }
+
+  @Test
+  public void testGetSuggestedRemediation_goldenVersion_mixedDependenciesWithViolationsAboveThreshold() {
+    SystemConfigurationPropertyFeature.DEVELOPER_SUGGEST_NON_BREAKING_VERSION.setEnabled(true);
+    setBreakingChangesCount(0,
+        detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
+    mockVersionScoring_mockSortedVersions("v3");
+
+    setTransitiveSolverValue(true);
+    Map<PackageUrlIdentifier, Collection<PackageUrlIdentifier>> dependenciesMap = new HashMap<>();
+    Map<PackageUrlIdentifier, ComponentDetails> detailsMap = new HashMap<>();
+
+    dependenciesMap.put(purlA1V3, Arrays.asList(purlA2V1, purlA2V2));
+
+    PolicyAlert highThreatAlert = new PolicyAlert(new PolicyFact("policyId1", "High Threat", 8),
+        Collections.singletonList(new Action(Action.ID_WARN)));
+    PolicyAlert lowThreatAlert = new PolicyAlert(new PolicyFact("policyId2", "Low Threat", 0),
+        Collections.singletonList(new Action(Action.ID_WARN)));
+
+    ComponentDetails detailsA2V1WithHighThreat = buildComponentDetails(MAVEN_COORDINATES_A2_V1,
+        Collections.singletonList(highThreatAlert));
+    ComponentDetails detailsA2V2WithLowThreat = buildComponentDetails(MAVEN_COORDINATES_A2_V2,
+        Collections.singletonList(lowThreatAlert));
+
+    detailsMap.put(purlA2V1, detailsA2V1WithHighThreat);
+    detailsMap.put(purlA2V2, detailsA2V2WithLowThreat);
+
+    ComponentDependenciesDTO returnDto = new ComponentDependenciesDTO(dependenciesMap, detailsMap);
+    List<ComponentDetailsDTO> allVersions = Arrays.asList(detailsDtoA1V1, detailsDtoA1V2, detailsDtoA1V3);
+    mockHdsGetComponentDependencies(returnDto);
+    mockLicenseFeature(true);
+
+    ApiComponentRemediationValueDTO dto = componentRemediationService.getSuggestedRemediation(MAVEN_COORDINATES_A1_V1,
+        allVersions, org, DevelopStageType.ID, componentDetailsLoaderFactory.newInstance(org),
+        SourceEndpoint.API_COMPONENT_REMEDIATION);
+
+    assertThat(dto.suggestedVersionChange.getData().getComponent().packageUrl).isEqualTo(componentDtoA1V3.packageUrl);
+    assertThat(dto.suggestedVersionChange.getType()).isEqualTo(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
+    assertThat(dto.suggestedVersionChange.getIsGolden()).isFalse();
+  }
 }

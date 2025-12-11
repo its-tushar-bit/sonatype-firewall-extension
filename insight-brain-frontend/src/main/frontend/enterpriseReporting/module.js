@@ -12,7 +12,7 @@ export default angular
   .module('embeddedLookerDashboard', [])
   .component(
     'enterpriseReportingLandingPage',
-    iqReact2Angular(withStoreProvider(EnterpriseReportingLandingPage), [], [])
+    iqReact2Angular(withStoreProvider(EnterpriseReportingLandingPage), [], ['$state'])
   )
   .component(
     'enterpriseReportingDashboardPage',

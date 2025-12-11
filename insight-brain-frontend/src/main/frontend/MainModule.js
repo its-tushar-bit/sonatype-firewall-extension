@@ -21,6 +21,7 @@ import userReducer from './user/userReducer';
 import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import NavigationContainer from './navigationContainer/NavigationContainer';
 import ReportModule from './ReportApp';
+import react2ShellModule from './report/react2shell/react2shell.module';
 import dashboardModule from './dashboard/dashboard.module';
 import Report from 'MainRoot/OrgsAndPolicies/repositories/repositoryResultsSummaryPage/module';
 import routeProductLicenseValidator from './routeProductLicenseValidator/module';
@@ -80,6 +81,7 @@ export const InitModule = angular
     [
       'ui.router',
       ReportModule.name,
+      react2ShellModule.name,
       Report.name,
       IqHttpInterceptorsModule.name,
       dashboardModule.name,

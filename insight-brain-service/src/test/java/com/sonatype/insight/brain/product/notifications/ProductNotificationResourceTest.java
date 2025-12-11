@@ -39,15 +39,16 @@ public class ProductNotificationResourceTest
     hdsRespondWith(new ProductNotificationList(notifications))
         .atUri(HdsProductNotificationService.HDS_PRODUCT_NOTIFICATION_PATH);
 
-    // Get first page of notifications
+    // Get first page of notifications (includes mock React2Shell notification)
     int pageSize = 10;
     HttpResponse response = listRequest(pageSize, 1).get();
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO).isNotNull();
-    assertThat(notificationListDTO.notifications).hasSize(2);
-    assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
-    assertNotification(notificationListDTO.notifications.get(1), notifications.get(1), false);
+    assertThat(notificationListDTO.notifications).hasSize(3);
+    // First notification is React2Shell mock, skip validation for it
+    assertNotification(notificationListDTO.notifications.get(1), notifications.get(0), false);
+    assertNotification(notificationListDTO.notifications.get(2), notifications.get(1), false);
 
     // Get second page, should be empty
     response = listRequest(pageSize, 2).get();
@@ -68,9 +69,9 @@ public class ProductNotificationResourceTest
     assertResponseStatus(200, response);
     ProductNotificationListDTO notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO).isNotNull();
-    assertThat(notificationListDTO.notifications).hasSize(1);
-    // test that the notification is what is expected with viewed = false
-    assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), false);
+    assertThat(notificationListDTO.notifications).hasSize(2);
+    // test that the notification is what is expected with viewed = false (skip React2Shell mock at index 0)
+    assertNotification(notificationListDTO.notifications.get(1), notifications.get(0), false);
 
     // Now set the notification as viewed
     ProductNotificationDTO notificationDTO = new ProductNotificationDTO();
@@ -89,9 +90,9 @@ public class ProductNotificationResourceTest
     assertResponseStatus(200, response);
     notificationListDTO = response.getBody(ProductNotificationListDTO.class);
     assertThat(notificationListDTO).isNotNull();
-    assertThat(notificationListDTO.notifications).hasSize(1);
-    // test that the notification is what is expected with viewed = true
-    assertNotification(notificationListDTO.notifications.get(0), notifications.get(0), true);
+    assertThat(notificationListDTO.notifications).hasSize(2);
+    // test that the notification is what is expected with viewed = true (skip React2Shell mock at index 0)
+    assertNotification(notificationListDTO.notifications.get(1), notifications.get(0), true);
   }
 
   private List<ProductNotification> createNotifications(final int numNotifications) {

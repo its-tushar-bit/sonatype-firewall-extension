@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.product.notifications;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -51,7 +52,24 @@ public class HdsProductNotificationService
     if (productNotificationList == null) {
       return Collections.emptyList();
     }
-    List<ProductNotification> productNotifications = productNotificationList.getProductNotifications();
+    List<ProductNotification> productNotifications = new ArrayList<>(
+        productNotificationList.getProductNotifications() != null
+            ? productNotificationList.getProductNotifications()
+            : Collections.emptyList());
+
+    // Add mock React2Shell notification for prototype
+    ProductNotification react2ShellNotification = new ProductNotification();
+    react2ShellNotification.setId("react2shell-notification");
+    react2ShellNotification.setSummaryText("NEW: React2Shell Impact Report");
+    react2ShellNotification.setSummaryUrl("#/reports/react2shell");
+    react2ShellNotification.setDetailHtml(
+        "<p>A new React2Shell Impact report is now available. This report provides detailed information about " +
+        "the React2Shell vulnerability affecting your applications.</p>" +
+        "<p><a href=\"#/reports/react2shell\">View the React2Shell Impact Report</a></p>");
+    react2ShellNotification.setType(com.sonatype.clm.dto.model.notification.ProductNotificationType.DEFAULT);
+    react2ShellNotification.setDateCreated(System.currentTimeMillis());
+    productNotifications.add(0, react2ShellNotification);
+
     productNotifications.sort((o1, o2) -> Long.compare(o2.getDateCreated(), o1.getDateCreated()));
     deleteOldUserViewedProductNotification(productNotifications.stream().map(ProductNotification::getId).collect(
         Collectors.toSet()));

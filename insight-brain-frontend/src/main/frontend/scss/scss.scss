@@ -34,6 +34,7 @@
 @use '../components/reachability/reachability';
 @use '../configuration/ldap/ldap';
 @use 'reports';
+@use '../report/react2shell/react2shell';
 @use '../mainHeader/mainHeader';
 @use '../react/iqViolationExclamation';
 @use '../react/ThreatDropdownSelector';

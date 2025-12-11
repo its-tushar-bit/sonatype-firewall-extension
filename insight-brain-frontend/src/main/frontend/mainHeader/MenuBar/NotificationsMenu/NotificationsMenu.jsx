@@ -45,8 +45,16 @@ const NotificationsMenu = (props) => {
   };
 
   const handleNotifClick = (notification) => {
-    handleViewNotificationDetails(notification);
-    setDetailModalOpen(true);
+
+    if (notification.summaryUrl && notification.summaryUrl.startsWith('#/')) {
+      if (!notification.viewed) {
+        setNotificationViewed(notification);
+      }
+      window.location.hash = notification.summaryUrl.substring(1);
+    } else {
+      handleViewNotificationDetails(notification);
+      setDetailModalOpen(true);
+    }
   };
 
   const notificationMappingToComponent = (notification) => {

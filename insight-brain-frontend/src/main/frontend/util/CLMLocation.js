@@ -1827,3 +1827,4 @@ function getUserTelemetryPrefix() {
 export const getUserTelemetryConfig = () => `${getUserTelemetryPrefix()}/config`;
 export const getUserTelemetryJavascript = () => `${getUserTelemetryPrefix()}/javascript`;
 export const getUserTelemetryProxy = () => `${getUserTelemetryPrefix()}/events`;
+export const getReact2ShellReportDownloadUrl = () => uriTemplate`/api/v2/componentSearch/downloadComponentSearchReport`;

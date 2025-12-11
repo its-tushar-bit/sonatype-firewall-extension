@@ -102,8 +102,8 @@ public class FileSbomPersistenceService
 
   @Override
   public void deleteSbom(final SbomEntity sbomEntity) throws IOException {
-    Files.delete(sbomEntity.getPath());
-    if (!Files.exists(sbomEntity.getPath())) {
+    boolean deleted = Files.deleteIfExists(sbomEntity.getPath());
+    if (deleted) {
       // Delete the parent directory if it is empty
       Path parent = sbomEntity.getPath().getParent();
       if (parent != null && Files.isDirectory(parent)) {

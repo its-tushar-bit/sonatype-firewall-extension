@@ -311,6 +311,20 @@ public class FileSbomPersistenceServiceTest
   }
 
   @Test
+  public void testDeleteSbomEntity_nonExistentFile() throws Exception {
+    // Create a SBOM entity
+    Path sbomDir = insightWork.getSbomDir(APP_ID).toPath();
+    Path sbomPath = sbomDir.resolve(FILE_NAME);
+    FileSbomEntity sbomEntity = new FileSbomEntity(sbomPath, APP_ID, FILE_NAME);
+
+    // Delete the SBOM entity
+    service.deleteSbom(sbomEntity);
+
+    // Verify that an error is not thrown and the file is still non-existent
+    assertThat(Files.exists(sbomPath)).isFalse();
+  }
+
+  @Test
   public void testDeleteSbom() throws Exception {
     // Create a SBOM file
     Path sbomDir = insightWork.getSbomDir(APP_ID).toPath();

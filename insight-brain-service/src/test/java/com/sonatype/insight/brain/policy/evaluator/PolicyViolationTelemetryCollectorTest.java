@@ -417,6 +417,143 @@ public class PolicyViolationTelemetryCollectorTest
   }
 
   @Test
+  public void testAddTelemetryForLegacyViolationAudit_BasicAudit() {
+    // given: An unchanged legacy policy violation
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(commonsLang3)
+            .openedHoursAgo(720)
+            .asDirectDependency(true)
+            .withPolicyViolationId("unchangedLegacyViolation")
+            .markFixedAsLegacy();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForLegacyViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(
+        TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT);
+    assertThat(telemetryData.get(0).getAttributes()).containsKey(LEGACY_VIOLATION_TIME);
+  }
+
+  @Test
+  public void testAddTelemetryForLegacyViolationAudit_DifferentPurposeFromRegular() {
+    // given: A legacy violation
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(lodashv4)
+            .openedHoursAgo(500)
+            .markFixedAsLegacy();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when: Add both regular and audit telemetry
+    telemetryCollector.addTelemetryForLegacyViolation(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    telemetryCollector.addTelemetryForLegacyViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then: Verify both telemetry entries exist with different purposes
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(2);
+    assertThat(telemetryData.get(0).getPurpose()).isEqualTo(TIME_TO_LEGACY_VIOLATION);
+    assertThat(telemetryData.get(1).getPurpose()).isEqualTo(
+        TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT);
+  }
+
+  @Test
+  public void testAddTelemetryForLegacyViolationAudit_NullPolicyViolation() {
+    // given
+    PolicyViolationTelemetryCollector telemetryCollector = createTelemetryCollector(false);
+
+    // when: Pass null policy violation
+    telemetryCollector.addTelemetryForLegacyViolationAudit(null, null);
+
+    // then: No telemetry should be added
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).isEmpty();
+  }
+
+  @Test
+  public void testAddTelemetryForLegacyViolationAudit_IncludesStandardFields() {
+    // given: Legacy violation with specific component
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(jacksonDatabind_2_13_4)
+            .openedHoursAgo(1000)
+            .asDirectDependency(true)
+            .withPolicyViolationId("legacyViolationWithMetadata")
+            .markFixedAsLegacy();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForLegacyViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then: Should include all standard telemetry fields
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    TelemetryData data = telemetryData.get(0);
+
+    // Verify standard fields are present
+    assertThat(data.getAttributes()).containsKeys(
+        APPLICATION_ID,
+        COMPONENT_IDENTIFIER,
+        ECOSYSTEM,
+        COMPONENT_NAME,
+        COMPONENT_VERSION,
+        LEGACY_VIOLATION_TIME,
+        DIRECT_DEPENDENCY,
+        POLICY_VIOLATION_ID
+    );
+
+    // Verify component metadata
+    assertThat(data.getAttributes().get(ECOSYSTEM)).isEqualTo("maven");
+    assertThat(data.getAttributes().get(COMPONENT_NAME)).isEqualTo("jackson-databind");
+    assertThat(data.getAttributes().get(COMPONENT_VERSION)).isEqualTo("2.13.4");
+    assertThat(data.getAttributes().get(DIRECT_DEPENDENCY)).isEqualTo(true);
+  }
+
+  @Test
+  public void testAddTelemetryForLegacyViolationAudit_WithInnerSourceComponent() {
+    // given: Legacy violation with inner source component
+    TestablePolicyViolation testablePolicyViolation =
+        TestablePolicyViolation.createDefaultSecurityViolationForComponent(urllib3)
+            .openedHoursAgo(600)
+            .asInnerSourceDependency(true)
+            .markFixedAsLegacy();
+
+    PolicyViolationTelemetryCollector telemetryCollector =
+        createTelemetryCollector(testablePolicyViolation.isScmEnabled());
+
+    // when
+    telemetryCollector.addTelemetryForLegacyViolationAudit(
+        testablePolicyViolation.getPolicyViolation(),
+        testablePolicyViolation.getComponent()
+    );
+
+    // then: Should mark as inner source dependency
+    List<TelemetryData> telemetryData = telemetryCollector.getTelemetryData();
+    assertThat(telemetryData).hasSize(1);
+    assertThat(telemetryData.get(0).getAttributes().get(INNERSOURCE_DEPENDENCY)).isEqualTo(true);
+  }
+
+  @Test
   public void testAddTelemetryForUnwaivedViolation() {
     // given a policy violation that was unwaived and the new open violation created for it
     var policyWaiver = tempEntity.newWaiver(tempEntity.newPolicy().getId(), policyEvaluation.getApplicationId());

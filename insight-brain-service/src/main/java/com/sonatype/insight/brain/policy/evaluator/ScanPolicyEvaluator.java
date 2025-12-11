@@ -885,6 +885,11 @@ public class ScanPolicyEvaluator
               oldPolicyViolation.setLegacyViolationApplied(true);
               telemetryCollector.addTelemetryForLegacyViolation(oldPolicyViolation, component);
             }
+            else if (oldPolicyViolation.isLegacyViolation() && oldPolicyViolation.isLegacyViolationApplied() &&
+                !oldPolicyViolation.getStageTypeId().equals(Stage.ID_COMPLIANCE)) {
+              // Send audit telemetry for unchanged legacy violations to detect missing data
+              telemetryCollector.addTelemetryForLegacyViolationAudit(oldPolicyViolation, component);
+            }
             else if (!oldPolicyViolation.isLegacyViolation() &&
                 oldPolicyViolation.isLegacyViolationApplied()) {
               // legacy violation was revoked

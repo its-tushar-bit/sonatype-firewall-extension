@@ -91,6 +91,8 @@ public class PolicyViolationTelemetryCollector
 
   static final String LEGACY_VIOLATION_TIME = "legacy_violation_time";
 
+  static final String IS_LEGACY_VIOLATION = "is_legacy_violation";
+
   static final String INNERSOURCE_DEPENDENCY = "innersource_dependency";
 
   static final String DIRECT_DEPENDENCY = "direct_dependency";
@@ -167,7 +169,8 @@ public class PolicyViolationTelemetryCollector
     if (fixedPolicyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_REMEDIATE_POLICY_VIOLATION, fixedPolicyViolation, components)
-              .put(FIX_TIME, timeOfPolicyEvaluation.getTime());
+              .put(FIX_TIME, timeOfPolicyEvaluation.getTime())
+              .put(IS_LEGACY_VIOLATION, fixedPolicyViolation.isLegacyViolation());
 
       telemetryDataList.add(telemetryData);
       possiblyAddTelemetryForVersionChange(fixedPolicyViolation, components);
@@ -243,7 +246,8 @@ public class PolicyViolationTelemetryCollector
               .put(WAIVE_TIME, unwaivedPolicyViolation.getWaiveTime().getTime())
               .put(UNWAIVE_TIME, timeOfPolicyEvaluation.getTime())
               .put(COUNT, -1)
-              .put(NEW_POLICY_VIOLATION_ID, newPolicyViolation.getId());
+              .put(NEW_POLICY_VIOLATION_ID, newPolicyViolation.getId())
+              .put(IS_LEGACY_VIOLATION, unwaivedPolicyViolation.isLegacyViolation());
 
       if (null != unwaivedPolicyViolation.getPolicyWaiverId()) {
         var policyWaiverId = unwaivedPolicyViolation.getPolicyWaiverId();
@@ -271,7 +275,8 @@ public class PolicyViolationTelemetryCollector
           createTelemetry(TelemetryPurpose.TIME_TO_WAIVE_POLICY_VIOLATION, waivedPolicyViolation, component)
               .put(WAIVER_EXPIRATION, waiverExpirationInDays)
               .put(WAIVE_TIME, timeOfPolicyEvaluation.getTime())
-              .put(POLICY_WAIVER_ID, policyWaiverId);
+              .put(POLICY_WAIVER_ID, policyWaiverId)
+              .put(IS_LEGACY_VIOLATION, waivedPolicyViolation.isLegacyViolation());
 
       telemetryDataList.add(telemetryData);
     }
@@ -287,6 +292,7 @@ public class PolicyViolationTelemetryCollector
       telemetryData.put(WAIVE_TIME, timeOfPolicyEvaluation.getTime());
       telemetryData.put(WAIVER_EXPIRATION, WAIVER_EXPIRATION_NEVER);
       telemetryData.put(AUTO_POLICY_WAIVER_ID, autoPolicyWaiverId);
+      telemetryData.put(IS_LEGACY_VIOLATION, waivedPolicyViolation.isLegacyViolation());
       telemetryDataList.add(telemetryData);
     }
   }
@@ -355,6 +361,27 @@ public class PolicyViolationTelemetryCollector
     if (legacyViolation != null) {
       TelemetryData telemetryData =
           createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION, legacyViolation, component)
+              .put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
+
+      telemetryDataList.add(telemetryData);
+    }
+  }
+
+  /**
+   * Records telemetry for existing, unchanged legacy violations for auditing purposes.
+   * Uses the TIME_TO_LEGACY_VIOLATION_AUDIT purpose to enable tracking of specific legacy violations
+   * that persist over time and detection of missing legacy violation data.
+   *
+   * This audit event is sent on every scan for unchanged legacy violations, allowing comparison
+   * with original TIME_TO_LEGACY_VIOLATION events to identify missing data.
+   *
+   * @param legacyViolation The legacy policy violation to include in telemetry.
+   * @param component       The associated component.
+   */
+  public void addTelemetryForLegacyViolationAudit(PolicyViolation legacyViolation, Component component) {
+    if (legacyViolation != null) {
+      TelemetryData telemetryData =
+          createTelemetry(TelemetryPurpose.TIME_TO_LEGACY_VIOLATION_AUDIT, legacyViolation, component)
               .put(LEGACY_VIOLATION_TIME, timeOfPolicyEvaluation.getTime());
 
       telemetryDataList.add(telemetryData);

@@ -114,6 +114,10 @@ import io.dropwizard.web.conf.WebConfiguration;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.HandlerWrapper;
+import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
@@ -320,9 +324,68 @@ public class InsightBrainService
   public void run(InsightConfig configuration, Environment environment) throws Exception {
     logServerInstanceMessage("Started " + getServerInstanceMessage());
 
+    // Configure gzip to exclude text/csv for streaming endpoints
+    configureGzipExclusions(environment);
+
     super.run(configuration, environment);
 
     bootApplicationLifecycle();
+  }
+
+  /**
+   * Configures Jetty's GzipHandler to exclude the CSV streaming endpoint from compression.
+   * This is critical for streaming CSV endpoints with keep-alive, as gzip compression
+   * buffers the entire response before compressing, defeating the streaming mechanism.
+   */
+  private void configureGzipExclusions(Environment environment) {
+    environment.lifecycle().addServerLifecycleListener(server -> {
+      Handler rootHandler = server.getHandler();
+      log.debug("Searching for GzipHandler in handler tree, root handler type: {}",
+          rootHandler.getClass().getName());
+
+      GzipHandler gzipHandler = findGzipHandler(rootHandler);
+
+      if (gzipHandler != null) {
+        gzipHandler.addExcludedPaths("/api/v2/componentSearch/downloadComponentSearchReport");
+        log.info("Added CSV streaming endpoint to gzip path exclusions for streaming support");
+      }
+      else {
+        log.warn("GzipHandler not found in handler tree - streaming endpoint compression may cause issues. " +
+            "Root handler type: {}", rootHandler.getClass().getName());
+      }
+    });
+  }
+
+  private GzipHandler findGzipHandler(Handler handler) {
+    if (handler == null) {
+      return null;
+    }
+
+    log.debug("Checking handler type: {}", handler.getClass().getName());
+
+    if (handler instanceof GzipHandler) {
+      return (GzipHandler) handler;
+    }
+
+    // Check wrapped handler
+    if (handler instanceof HandlerWrapper handlerWrapper) {
+      GzipHandler found = findGzipHandler(handlerWrapper.getHandler());
+      if (found != null) {
+        return found;
+      }
+    }
+
+    // Check handler collections
+    if (handler instanceof HandlerCollection handlerCollection) {
+      for (Handler child : handlerCollection.getHandlers()) {
+        GzipHandler found = findGzipHandler(child);
+        if (found != null) {
+          return found;
+        }
+      }
+    }
+
+    return null;
   }
 
   public DatabaseContainer createDatabaseContainer(final InsightConfig insightConfig) {

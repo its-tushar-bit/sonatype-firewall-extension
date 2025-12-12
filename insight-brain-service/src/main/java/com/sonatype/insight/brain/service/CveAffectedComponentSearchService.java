@@ -5,35 +5,40 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.clm.dto.model.policy.TriggerReference;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportComponentPolicyViolationsDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportPolicyDataDTOV2;
-import com.sonatype.insight.brain.api.v2.dto.ApiReportRawDataDTOV2;
 import com.sonatype.insight.brain.api.v2.dto.remediation.ApiComponentRemediationDTO;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentRemediationService;
-import com.sonatype.insight.brain.api.v2.service.ApiReportDataServiceV2;
+import com.sonatype.insight.brain.component.ComponentDisplayNameUtil;
+import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
+import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dto.ApplicationComponentMatchDTO;
 import com.sonatype.insight.brain.hds.AffectedComponentDTO;
 import com.sonatype.insight.brain.hds.ComponentRemediationService;
 import com.sonatype.insight.brain.hds.CveAffectedComponentsService;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.ApplicationComponent;
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.utils.CsvWritable;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
@@ -41,7 +46,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
@@ -57,150 +61,248 @@ public class CveAffectedComponentSearchService
 
   private final PolicyEvaluationDAO policyEvaluationDAO;
 
-  private final ApiReportDataServiceV2 apiReportDataService;
+  private final ApplicationComponentDAO applicationComponentDAO;
+
+  private final PolicyViolationDAO policyViolationDAO;
 
   private final ApiComponentRemediationService apiComponentRemediationService;
 
   private final ComponentRemediationService componentRemediationService;
+
+  private final BaseUrl baseUrl;
 
   @Inject
   public CveAffectedComponentSearchService(
       final CveAffectedComponentsService cveAffectedComponentsService,
       final ApplicationService applicationService,
       final PolicyEvaluationDAO policyEvaluationDAO,
-      final ApiReportDataServiceV2 apiReportDataService,
+      final ApplicationComponentDAO applicationComponentDAO,
+      final PolicyViolationDAO policyViolationDAO,
       final ApiComponentRemediationService apiComponentRemediationService,
-      final ComponentRemediationService componentRemediationService)
+      final ComponentRemediationService componentRemediationService,
+      final BaseUrl baseUrl)
   {
     this.cveAffectedComponentsService = cveAffectedComponentsService;
     this.applicationService = applicationService;
     this.policyEvaluationDAO = policyEvaluationDAO;
-    this.apiReportDataService = apiReportDataService;
+    this.applicationComponentDAO = applicationComponentDAO;
+    this.policyViolationDAO = policyViolationDAO;
     this.apiComponentRemediationService = apiComponentRemediationService;
     this.componentRemediationService = componentRemediationService;
+    this.baseUrl = baseUrl;
   }
 
   /**
-   * Finds all applications containing components affected by the given CVE. Uses a shared cache to fetch remediation
-   * data on-demand as the stream is consumed.
+   * Finds all applications containing components affected by the given CVE. Uses database queries instead of
+   * loading report files for better performance.
    *
    * @param cveId the CVE identifier
-   * @param baseUrl the base URL for generating links (optional, can be null)
    * @return Stream of matches with remediation data
    */
-  public Stream<ApplicationComponentMatchDTO> find(final String cveId, final String baseUrl) {
-    List<AffectedComponentDTO> affectedComponents = cveAffectedComponentsService.getAffectedComponents(cveId);
+  public Stream<ApplicationComponentMatchDTO> find(final String cveId) {
+    // Step 1: Get affected component coordinates from HDS
+    List<AffectedComponentDTO> affectedComponentsList = cveAffectedComponentsService.getAffectedComponents(cveId);
 
-    if (affectedComponents.isEmpty()) {
+    log.debug("CVE {}: Found {} affected components from HDS", cveId, affectedComponentsList.size());
+    if (log.isTraceEnabled()) {
+      affectedComponentsList.forEach(dto ->
+          log.trace("  Affected: format={}, namespace={}, name={}, version={}",
+              dto.format(), dto.namespace(), dto.name(), dto.version()));
+    }
+
+    if (affectedComponentsList.isEmpty()) {
+      return Stream.empty();
+    }
+
+    // Convert to Set for O(1) lookup instead of O(n) iteration
+    Set<AffectedComponentDTO> affectedComponents = Set.copyOf(affectedComponentsList);
+
+    // Step 2: Get all applications
+    List<Application> applications = applicationService.getApplications();
+    if (applications.isEmpty()) {
+      return Stream.empty();
+    }
+
+    // Step 3: Batch get latest PolicyEvaluations for ALL applications
+    Set<String> applicationIds = applications.stream()
+        .map(Application::getId)
+        .collect(Collectors.toSet());
+
+    Map<String, PolicyEvaluation> latestEvaluationByAppId =
+        policyEvaluationDAO.getLastByApplicationIds(applicationIds)
+            .stream()
+            .collect(Collectors.groupingBy(
+                PolicyEvaluation::getApplicationId,
+                Collectors.collectingAndThen(
+                    Collectors.maxBy(comparing(PolicyEvaluation::getTime)),
+                    opt -> opt.orElse(null)
+                )
+            ));
+
+    // Step 4: Build app->stage mapping
+    Map<String, String> appIdToStageType = new HashMap<>();
+    latestEvaluationByAppId.forEach((appId, evaluation) -> {
+      if (evaluation != null) {
+        appIdToStageType.put(appId, evaluation.getStageTypeId());
+      }
+    });
+
+    if (appIdToStageType.isEmpty()) {
       return Stream.empty();
     }
 
     Map<String, String> remediationCache = new ConcurrentHashMap<>();
 
-    return applicationService
-        .getApplications()
-        .stream()
-        .flatMap(application -> findMatchesInApplication(application, affectedComponents, cveId))
-        .map(match -> enrichMatchWithRemediation(match, remediationCache))
-        .map(match -> setBaseUrl(match, baseUrl));
+    // Step 5: Process each application, querying components and violations per-app to avoid row limits
+    return applications.stream()
+        .flatMap(application -> {
+          PolicyEvaluation evaluation = latestEvaluationByAppId.get(application.getId());
+          if (evaluation == null) {
+            return Stream.empty();
+          }
+
+          // Query per-application to avoid hitting global database row limits
+          List<ApplicationComponent> appComponents = applicationComponentDAO.getByApplicationIdAndStageTypeId(
+                  application.getId(),
+                  evaluation.getStageTypeId()
+          );
+          List<PolicyViolation> appViolations =
+              policyViolationDAO.getActiveByApplicationIdAndStageId(application.getId(), evaluation.getStageTypeId());
+
+          // First, check if any components in this app match affected components
+          List<ApplicationComponent> matchingComponents = appComponents.stream()
+              .filter(component -> {
+                ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+                if (componentIdentifier == null) {
+                  return false;
+                }
+                AffectedComponentDTO affectedComponent =
+                    AffectedComponentDTO.fromComponentIdentifier(componentIdentifier);
+                return affectedComponents.contains(affectedComponent);
+              })
+              .toList();
+
+          if (matchingComponents.isEmpty()) {
+            return Stream.empty();
+          }
+
+          // Only load constraint facts if we have matching components
+          policyViolationDAO.loadConstraintFacts(appViolations);
+
+          // Now process the matching components
+          return matchingComponents.stream()
+              .map(component -> buildMatchFromDatabase(
+                  application,
+                  evaluation,
+                  component,
+                  affectedComponents,
+                  appViolations,
+                  cveId
+              ))
+              .filter(Objects::nonNull);
+        })
+        .map(match -> enrichMatchWithRemediation(match, remediationCache));
   }
 
-  private Stream<ApplicationComponentMatchDTO> findMatchesInApplication(
-      final Application application,
-      final List<AffectedComponentDTO> affectedComponents,
-      final String cveId)
-  {
-    PolicyEvaluation latestEvaluation = policyEvaluationDAO.getLastByApplicationIds(singleton(application.getId()))
-        .stream()
-        .max(comparing(PolicyEvaluation::getTime))
-        .orElse(null);
-
-    if (latestEvaluation == null) {
-      return Stream.empty();
-    }
-
-    ApiReportRawDataDTOV2 reportRawData = getLastRawApplicationReport(application.getPublicId(), latestEvaluation);
-
-    if (reportRawData == null || reportRawData.components == null || reportRawData.components.isEmpty()) {
-      return Stream.empty();
-    }
-
-    ApiReportPolicyDataDTOV2 policyData = getPolicyViolationsData(application, latestEvaluation);
-
-    return reportRawData
-        .components
-        .stream()
-        .map(reportComponent ->
-            buildMatch(application, latestEvaluation, reportComponent, affectedComponents, policyData, cveId)
-        )
-        .filter(Objects::nonNull);
-  }
-
-  private ApiReportPolicyDataDTOV2 getPolicyViolationsData(
-      final Application application,
-      final PolicyEvaluation latestEvaluation)
-  {
-    try {
-      return apiReportDataService.getPolicyViolationsDataNoAuth(
-          application.getPublicId(),
-          latestEvaluation.getScanId(),
-          false);
-    }
-    catch (IOException e) {
-      log.error("Failed to fetch policy violation data for application {} and scan id {}: {}",
-          application.getPublicId(),
-          latestEvaluation.getScanId(), e.getMessage());
-    }
-    return null;
-  }
-
-  private ApplicationComponentMatchDTO buildMatch(
+  private ApplicationComponentMatchDTO buildMatchFromDatabase(
       final Application application,
       final PolicyEvaluation evaluation,
-      final ApiReportComponentDTOV2 reportComponent,
-      final List<AffectedComponentDTO> affectedComponents,
-      final ApiReportPolicyDataDTOV2 policyData,
+      final ApplicationComponent component,
+      final Set<AffectedComponentDTO> affectedComponents,
+      final List<PolicyViolation> appViolations,
       final String cveId)
   {
-    AffectedComponentDTO affectedComponent = findMatchingAffectedComponent(reportComponent, affectedComponents);
-    if (affectedComponent == null) {
+    // Step 1: Check if this component matches any affected component from HDS using O(1) set lookup
+    ComponentIdentifier componentIdentifier = component.getComponentIdentifier();
+    if (componentIdentifier == null) {
+      log.trace("Skipping component without ComponentIdentifier: hash={}", component.getHash());
       return null;
     }
 
-    // Build vulnerability IDs
-    String vulnerabilityIds = "";
-    if (reportComponent.securityData != null && reportComponent.securityData.securityIssues != null) {
-      vulnerabilityIds = reportComponent.securityData.securityIssues.stream()
-          .map(issue -> issue.reference)
-          .filter(ref -> ref != null && !ref.isEmpty())
-          .collect(joining(", "));
+    AffectedComponentDTO affectedComponent = AffectedComponentDTO.fromComponentIdentifier(componentIdentifier);
+
+    log.trace("Checking component: format={}, namespace={}, name={}, version={}",
+        affectedComponent.format(), affectedComponent.namespace(),
+        affectedComponent.name(), affectedComponent.version());
+
+    if (!affectedComponents.contains(affectedComponent)) {
+      log.trace("  No match in affected components set");
+      return null;
     }
 
-    String activeWaiver = hasActiveWaiver(reportComponent, policyData) ? "True" : "False";
-    String implicatedFiles = hasImplicatedFiles(reportComponent, cveId) ? "True" : "False";
+    log.debug("MATCH FOUND: app={}, component={}", application.getName(), affectedComponent);
+
+    // Step 2: Find PolicyViolations for this component
+    String componentHash = component.getHash();
+    List<PolicyViolation> componentViolations = appViolations.stream()
+        .filter(v -> componentHash.equals(v.getHash()))
+        .toList();
+
+    // Step 3: Extract vulnerability IDs and check for implicated/waived status
+    Set<String> vulnerabilityIds = new HashSet<>();
+    boolean implicated = false;
+    boolean hasWaiver = false;
+
+    for (PolicyViolation violation : componentViolations) {
+      if (violation.isWaived()) {
+        hasWaiver = true;
+      }
+
+      List<ConstraintFact> constraintFacts = violation.getConstraintFacts();
+      if (constraintFacts != null) {
+        for (ConstraintFact constraintFact : constraintFacts) {
+          if (constraintFact.getConditionFacts() != null) {
+            for (var conditionFact : constraintFact.getConditionFacts()) {
+              if (conditionFact.getReference() != null &&
+                  TriggerReference.Type.SECURITY_VULNERABILITY_REFID == conditionFact.getReference().getType()) {
+                String vulnId = conditionFact.getReference().getValue();
+                if (vulnId != null) {
+                  vulnerabilityIds.add(vulnId);
+                  if (cveId.equals(vulnId)) {
+                    implicated = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    String vulnerabilityIdsString = vulnerabilityIds.stream()
+        .sorted()
+        .collect(joining(", "));
 
     String evaluationDate = evaluation.getTime() != null
         ? CsvWritable.dateFormatter.format(evaluation.getTime().toInstant())
         : "";
 
-    return new ApplicationComponentMatchDTO(
+    PackageUrlIdentifier purlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
+    String packageUrl = purlIdentifier.getPackageUrl();
+    String fullDisplayName = ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString();
+    String displayName = stripVersionFromDisplayName(fullDisplayName);
+
+    ApplicationComponentMatchDTO match = new ApplicationComponentMatchDTO(
         application.getPublicId(),
         application.getName(),
         application.getId(),
         evaluation.getStageTypeId(),
         evaluationDate,
-        reportComponent.packageUrl != null ? reportComponent.packageUrl : "",
-        stripVersionFromDisplayName(reportComponent.displayName),
-        reportComponent.hash != null ? reportComponent.hash : "",
-        affectedComponent.getName(),
-        affectedComponent.getVersion(),
-        vulnerabilityIds,
+        packageUrl != null ? packageUrl : "",
+        displayName,
+        componentHash != null ? componentHash : "",
+        affectedComponent.name(),
+        affectedComponent.version(),
+        vulnerabilityIdsString,
         "",
         "",
-        activeWaiver,
-        implicatedFiles,
+        hasWaiver ? "True" : "False",
+        implicated ? "True" : "False",
         evaluation.getScanId()
     );
+
+    match.setBaseUrl(baseUrl.get());
+    return match;
   }
 
   private String stripVersionFromDisplayName(final String displayName) {
@@ -214,39 +316,6 @@ public class CveAffectedComponentSearchService
     }
 
     return displayName;
-  }
-
-  private boolean hasActiveWaiver(
-      final ApiReportComponentDTOV2 reportComponent,
-      final ApiReportPolicyDataDTOV2 policyData)
-  {
-    if (policyData == null || policyData.components == null || reportComponent.hash == null) {
-      return false;
-    }
-
-    for (ApiReportComponentPolicyViolationsDTOV2 compViolation : policyData.components) {
-      if (reportComponent.hash.equals(compViolation.hash)) {
-        boolean hasWaiver = compViolation.violations != null &&
-            compViolation.violations.stream().anyMatch(v -> v.waived);
-
-        if (hasWaiver) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  private boolean hasImplicatedFiles(
-      final ApiReportComponentDTOV2 reportComponent,
-      final String cveId)
-  {
-    if (reportComponent.securityData == null || reportComponent.securityData.securityIssues == null) {
-      return false;
-    }
-
-    return reportComponent.securityData.securityIssues.stream()
-        .anyMatch(issue -> cveId.equals(issue.reference));
   }
 
   private ApplicationComponentMatchDTO enrichMatchWithRemediation(
@@ -302,7 +371,7 @@ public class CveAffectedComponentSearchService
       recommendedAction = "Upgrade recommended";
     }
 
-    return new ApplicationComponentMatchDTO(
+    ApplicationComponentMatchDTO enriched = new ApplicationComponentMatchDTO(
         match.getApplicationPublicId(),
         match.getApplicationName(),
         match.getApplicationInternalId(),
@@ -320,6 +389,8 @@ public class CveAffectedComponentSearchService
         match.getImplicatedFiles(),
         match.getReportId()
     );
+    enriched.setBaseUrl(baseUrl.get());
+    return enriched;
   }
 
   private String extractVersionFromVersionChange(final ApiVersionChangeOptionDTO versionChange) {
@@ -339,46 +410,5 @@ public class CveAffectedComponentSearchService
       log.debug("Failed to extract version from version change: {}", e.getMessage());
     }
     return "";
-  }
-
-  private AffectedComponentDTO findMatchingAffectedComponent(
-      final ApiReportComponentDTOV2 reportComponent,
-      final List<AffectedComponentDTO> affectedComponents)
-  {
-    if (reportComponent != null && reportComponent.componentIdentifier != null) {
-      ComponentIdentifier componentIdentifier = reportComponent.componentIdentifier.toComponentIdentifier();
-      for (AffectedComponentDTO affectedComponent : affectedComponents) {
-        if (affectedComponent.equalByComponentIdentifier(componentIdentifier)) {
-          return affectedComponent;
-        }
-      }
-    }
-
-    return null;
-  }
-
-  private ApiReportRawDataDTOV2 getLastRawApplicationReport(
-      final String applicationPublicId,
-      final PolicyEvaluation lastPolicyEvaluation)
-  {
-    try {
-      return apiReportDataService.getDataNoAuth(applicationPublicId, lastPolicyEvaluation.getScanId());
-    }
-    catch (Exception e) {
-      // this mostly happens if we don't have a report file while we do have an application
-      log.warn("Failed to fetch last application report for {}: {}", applicationPublicId, e.getMessage());
-
-      return null;
-    }
-  }
-
-  private ApplicationComponentMatchDTO setBaseUrl(
-      final ApplicationComponentMatchDTO match,
-      final String baseUrl)
-  {
-    if (baseUrl != null && !baseUrl.isEmpty()) {
-      match.setBaseUrl(baseUrl);
-    }
-    return match;
   }
 }

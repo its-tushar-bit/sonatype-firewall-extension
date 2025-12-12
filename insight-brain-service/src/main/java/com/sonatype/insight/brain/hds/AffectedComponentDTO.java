@@ -5,101 +5,55 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import java.util.Objects;
-
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 /**
  * DTO representing a component affected by a CVE vulnerability. Maps to the response from HDS endpoint: GET
  * /rest/vulnerability/cve/{cveId}
+ *
+ * This is a record with normalized namespace handling: null and empty strings are treated as equivalent.
  */
-public class AffectedComponentDTO
+public record AffectedComponentDTO(
+    String format,
+    String namespace,
+    String name,
+    String version)
 {
-  private String format;
-
-  private String namespace;
-
-  private String name;
-
-  private String version;
-
-  public AffectedComponentDTO() {
-    // Default constructor for Jackson
-  }
-
-  public AffectedComponentDTO(
-      String format,
-      String namespace,
-      String name,
-      String version)
-  {
-    this.format = format;
-    this.namespace = namespace;
-    this.name = name;
-    this.version = version;
-  }
-
-  public String getFormat() {
-    return format;
-  }
-
-  public void setFormat(String format) {
-    this.format = format;
-  }
-
-  public String getNamespace() {
-    return namespace;
-  }
-
-  public void setNamespace(String namespace) {
-    this.namespace = namespace;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public String getVersion() {
-    return version;
-  }
-
-  public void setVersion(String version) {
-    this.version = version;
-  }
-
-  @Override
-  public String toString() {
-    return "AffectedComponentDTO{" +
-        "format='" + format + '\'' +
-        ", namespace='" + namespace + '\'' +
-        ", name='" + name + '\'' +
-        ", version='" + version +
-        '}';
-  }
-
-  public boolean equalByComponentIdentifier(final ComponentIdentifier componentIdentifier) {
-    if (componentIdentifier == null || !Objects.equals(format, componentIdentifier.getFormat())) {
-      return false;
+  /**
+   * Creates an AffectedComponentDTO from a ComponentIdentifier with proper namespace normalization.
+   * Null and empty namespaces are normalized to null for consistent equality comparisons.
+   */
+  public static AffectedComponentDTO fromComponentIdentifier(ComponentIdentifier componentIdentifier) {
+    if (componentIdentifier == null) {
+      throw new IllegalArgumentException("ComponentIdentifier cannot be null");
     }
 
     PackageUrlIdentifier purlIdentifier = PackageUrlIdentifier.fromComponentIdentifier(componentIdentifier);
 
-    if (!Objects.equals(name, purlIdentifier.getName()) ||
-        !Objects.equals(version, purlIdentifier.getVersion())) {
-      return false;
-    }
+    // Normalize namespace: treat null and empty as equivalent (both become null)
+    String normalizedNamespace = normalizeNamespace(purlIdentifier.getNamespace());
 
-    return isNamespaceEqual(namespace, purlIdentifier.getNamespace());
+    return new AffectedComponentDTO(
+        componentIdentifier.getFormat(),
+        normalizedNamespace,
+        purlIdentifier.getName(),
+        purlIdentifier.getVersion()
+    );
   }
 
-  private boolean isNamespaceEqual(String namespace1, String namespace2) {
-    String ns1 = (namespace1 == null || namespace1.isEmpty()) ? null : namespace1;
-    String ns2 = (namespace2 == null || namespace2.isEmpty()) ? null : namespace2;
-    return Objects.equals(ns1, ns2);
+  /**
+   * Normalizes namespace by converting empty strings to null for consistent equality.
+   */
+  private static String normalizeNamespace(String namespace) {
+    return (namespace == null || namespace.isEmpty()) ? null : namespace;
+  }
+
+  /**
+   * Canonical constructor with namespace normalization.
+   */
+  public AffectedComponentDTO {
+    // Normalize namespace in the canonical constructor to ensure all instances have normalized values
+    namespace = normalizeNamespace(namespace);
   }
 }

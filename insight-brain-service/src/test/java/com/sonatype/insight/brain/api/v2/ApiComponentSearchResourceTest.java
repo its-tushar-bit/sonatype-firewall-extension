@@ -14,7 +14,6 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.dto.ApplicationComponentMatchDTO;
-import com.sonatype.insight.brain.service.BaseUrlProvider;
 import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
 
 import org.junit.Before;
@@ -38,30 +37,22 @@ public class ApiComponentSearchResourceTest
   private CveAffectedComponentSearchService mockCveAffectedComponentSearchService;
 
   @Mock
-  private BaseUrlProvider mockBaseUrlProvider;
-
-  @Mock
   private HttpServletResponse mockHttpServletResponse;
 
   private ApiComponentSearchResource resource;
 
   private ByteArrayOutputStream outputStream;
 
-  private static final String TEST_BASE_URL = "http://localhost:8072";
-
   @Before
   public void setUp() throws Exception {
     mockCveAffectedComponentSearchService = mock(CveAffectedComponentSearchService.class);
-    mockBaseUrlProvider = mock(BaseUrlProvider.class);
     mockHttpServletResponse = mock(HttpServletResponse.class);
-
-    when(mockBaseUrlProvider.getBaseUrl()).thenReturn(TEST_BASE_URL);
 
     // Setup mock response with output stream
     outputStream = new ByteArrayOutputStream();
     when(mockHttpServletResponse.getOutputStream()).thenReturn(createServletOutputStream(outputStream));
 
-    resource = new ApiComponentSearchResource(mockCveAffectedComponentSearchService, mockBaseUrlProvider);
+    resource = new ApiComponentSearchResource(mockCveAffectedComponentSearchService);
   }
 
   @Test
@@ -69,7 +60,7 @@ public class ApiComponentSearchResourceTest
     // Arrange
     List<ApplicationComponentMatchDTO> matches = createSampleMatches();
 
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(matches.stream());
 
     // Act
@@ -87,13 +78,13 @@ public class ApiComponentSearchResourceTest
     verify(mockHttpServletResponse, times(3)).flushBuffer();
 
     // Verify service was called with base URL
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
   public void testExportComponentSearchReport_EmptyResults() throws Exception {
     // Arrange
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(Stream.empty());
 
     // Act
@@ -108,7 +99,7 @@ public class ApiComponentSearchResourceTest
     verify(mockHttpServletResponse).setContentType("text/csv");
 
     // Verify service was called
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
@@ -119,7 +110,7 @@ public class ApiComponentSearchResourceTest
     matches.add(createMatch("app2", "lodash", "4.17.20", "CVE-2025-55182", "Upgrade to 4.17.21", "No"));
     matches.add(createMatch("app3", "axios", "0.21.0", "CVE-2025-55183", "Upgrade to 0.21.4", "Yes"));
 
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(matches.stream());
 
     // Act
@@ -133,7 +124,7 @@ public class ApiComponentSearchResourceTest
     assertThat(csvOutput).contains("app2");
     assertThat(csvOutput).contains("app3");
 
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
@@ -159,7 +150,7 @@ public class ApiComponentSearchResourceTest
         "scan123"
     ));
 
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(matches.stream());
 
     // Act
@@ -170,20 +161,20 @@ public class ApiComponentSearchResourceTest
     assertThat(csvOutput).isNotEmpty();
     assertThat(csvOutput).contains("Application 1");
 
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
   public void testExportComponentSearchReport_VerifyRequestParameters() throws Exception {
     // Arrange
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(Stream.empty());
 
     // Act
     resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert - Verify the service was called with CVE ID
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
@@ -191,7 +182,7 @@ public class ApiComponentSearchResourceTest
     // Arrange
     List<ApplicationComponentMatchDTO> matches = createSampleMatches();
 
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(matches.stream());
 
     // Act
@@ -204,13 +195,13 @@ public class ApiComponentSearchResourceTest
     assertThat(csvOutput).contains("Vulnerability ID");
     assertThat(csvOutput).contains("Recommended Action");
 
-    verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
+    verify(mockCveAffectedComponentSearchService).find(anyString());
   }
 
   @Test
   public void testExportComponentSearchReport_ContentDisposition() throws Exception {
     // Arrange
-    when(mockCveAffectedComponentSearchService.find(anyString(), eq(TEST_BASE_URL)))
+    when(mockCveAffectedComponentSearchService.find(anyString()))
         .thenReturn(Stream.empty());
 
     // Act

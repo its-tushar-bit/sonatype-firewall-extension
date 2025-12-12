@@ -28,7 +28,6 @@ import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.service.BaseUrlProvider;
 import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
 
 import com.codahale.metrics.annotation.Timed;
@@ -91,15 +90,9 @@ public class ApiComponentSearchResource
 
   protected final CveAffectedComponentSearchService cveAffectedComponentSearchService;
 
-  protected final BaseUrlProvider baseUrlProvider;
-
   @Inject
-  public ApiComponentSearchResource(
-      final CveAffectedComponentSearchService cveAffectedComponentSearchService,
-      final BaseUrlProvider baseUrlProvider)
-  {
+  public ApiComponentSearchResource(final CveAffectedComponentSearchService cveAffectedComponentSearchService) {
     this.cveAffectedComponentSearchService = cveAffectedComponentSearchService;
-    this.baseUrlProvider = baseUrlProvider;
   }
 
   @GET
@@ -145,7 +138,6 @@ public class ApiComponentSearchResource
       writer.flush();
       httpServletResponse.flushBuffer();
 
-      String baseUrl = baseUrlProvider.getBaseUrl();
       AtomicLong lastFlushTime = new AtomicLong(System.currentTimeMillis());
 
       // Start background keep-alive task to prevent ALB timeouts
@@ -154,8 +146,7 @@ public class ApiComponentSearchResource
 
       try {
         // Stream data rows as they're produced
-        cveAffectedComponentSearchService
-            .find(REACT2SHELL_CVE_ID, baseUrl)
+        cveAffectedComponentSearchService.find(REACT2SHELL_CVE_ID)
             .forEach(applicationComponentMatchDTO -> {
               try {
                 String dataLine = applicationComponentMatchDTO.toCsvLine();

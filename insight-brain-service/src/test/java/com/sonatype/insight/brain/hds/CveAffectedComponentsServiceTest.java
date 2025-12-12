@@ -62,8 +62,8 @@ public class CveAffectedComponentsServiceTest
 
     // Assert
     assertThat(result).hasSize(2);
-    assertThat(result.get(0).getName()).isEqualTo("commons-text");
-    assertThat(result.get(1).getVersion()).isEqualTo("1.10");
+    assertThat(result.get(0).name()).isEqualTo("commons-text");
+    assertThat(result.get(1).version()).isEqualTo("1.10");
     verify(hdsClient).get(eq(AffectedComponentList.class), eq("/rest/vulnerability/affected/{cveId}"),
         anyMap(), eq(cveId));
   }

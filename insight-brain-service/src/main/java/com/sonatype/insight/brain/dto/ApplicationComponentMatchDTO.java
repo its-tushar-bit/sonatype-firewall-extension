@@ -170,6 +170,10 @@ public class ApplicationComponentMatchDTO implements CsvWritable
     return reportId;
   }
 
+  public String getBaseUrl() {
+    return baseUrl;
+  }
+
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
   }
@@ -203,7 +207,7 @@ public class ApplicationComponentMatchDTO implements CsvWritable
       return relativePath;
     }
 
-    return UriBuilder.fromPath(baseUrl).path(relativePath).toString();
+    return UriBuilder.fromUri(baseUrl).path(relativePath).toString();
   }
 
   private String formatField(String field) {

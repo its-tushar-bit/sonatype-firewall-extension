@@ -13,7 +13,6 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.dto.ApplicationComponentMatchDTO;
-import com.sonatype.insight.brain.service.BaseUrlProvider;
 import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
 
 import org.junit.Before;
@@ -23,7 +22,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
@@ -46,9 +44,6 @@ public class ApiComponentSearchResourceKeepAliveTest
 
   @Mock
   private CveAffectedComponentSearchService cveAffectedComponentSearchService;
-
-  @Mock
-  private BaseUrlProvider baseUrlProvider;
 
   @Mock
   private HttpServletResponse mockHttpServletResponse;
@@ -82,8 +77,7 @@ public class ApiComponentSearchResourceKeepAliveTest
 
   @Before
   public void setup() throws Exception {
-    resource = new ApiComponentSearchResource(cveAffectedComponentSearchService, baseUrlProvider);
-    when(baseUrlProvider.getBaseUrl()).thenReturn("http://localhost:8070");
+    resource = new ApiComponentSearchResource(cveAffectedComponentSearchService);
 
     outputStream = new ByteArrayOutputStream();
     when(mockHttpServletResponse.getOutputStream()).thenReturn(createServletOutputStream(outputStream));
@@ -100,7 +94,7 @@ public class ApiComponentSearchResourceKeepAliveTest
         new TimedRecord(null, 600)      // 600ms EOF delay - 3 keep-alive spaces on Record3
     );
 
-    when(cveAffectedComponentSearchService.find(eq("CVE-2025-55182"), any()))
+    when(cveAffectedComponentSearchService.find(eq("CVE-2025-55182")))
         .thenReturn(createTimedStream(records));
 
     resource.streamCsvReport(mockHttpServletResponse, KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);

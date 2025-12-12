@@ -5,28 +5,21 @@
  */
 
 import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
 import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faDownload } from '@fortawesome/pro-solid-svg-icons';
-import { actions } from './react2shellSlice';
-import { selectDownloadLoading } from './react2shellSelectors';
+import { getReact2ShellReportDownloadUrl } from 'MainRoot/util/CLMLocation';
 
 export default function React2ShellHeader() {
-  const dispatch = useDispatch();
-  const downloadLoading = useSelector(selectDownloadLoading);
-
-  const handleDownloadCSV = () => {
-    dispatch(actions.downloadReact2ShellCSV());
-  };
+  const downloadUrl = getReact2ShellReportDownloadUrl();
 
   return (
     <div className="nx-page-title">
       <h1 className="nx-h1">React2Shell Impact Report</h1>
       <div className="nx-btn-bar">
-        <NxButton variant="tertiary" onClick={handleDownloadCSV} disabled={downloadLoading}>
+        <a href={downloadUrl} download="react2shell-report.csv" className="nx-btn nx-btn--tertiary">
           <NxFontAwesomeIcon icon={faDownload} />
-          <span>{downloadLoading ? 'Downloading...' : 'Download CSV'}</span>
-        </NxButton>
+          <span>Download CSV</span>
+        </a>
       </div>
     </div>
   );

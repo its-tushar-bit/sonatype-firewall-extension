@@ -128,7 +128,6 @@ import userActivitySlice from '../configuration/userActivityOverview/userActivit
 import userSessionSlice from '../user/userSessionSlice';
 import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
-import react2shellSlice from 'MainRoot/report/react2shell/react2shellSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -255,5 +254,4 @@ export default combineReducers({
   userSession: userSessionSlice,
   mainHeader: mainHeaderSlice,
   appError: appErrorSlice,
-  react2shell: react2shellSlice,
 });

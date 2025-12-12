@@ -43,7 +43,6 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -439,7 +438,6 @@ public class DashboardWaiversTest
     waiver5.upgradeAvailable().shouldHave(text("—"));
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_defaultCsvExport() {
     // checks csv export when no filters are selected
@@ -458,7 +456,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testAutoWaiversTable_defaultCsvExport() {
     // checks csv export when no filters are selected
@@ -478,7 +475,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore //CLM-36174
   @Test
   public void testWaiversTable_sortByThreat() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -503,7 +499,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByCreatedDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -528,7 +523,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testAutoWaiversTable_sortByCreatedDate() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -580,7 +574,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testWaiversTable_sortByScope() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -604,7 +597,6 @@ public class DashboardWaiversTest
     assertWaiversCsv(exportCsvData, expectedResults);
   }
 
-  @Ignore("This test is flaky and will be fixed by CLM-32946")
   @Test
   public void testAutoWaiversTable_sortByScope() {
     refreshOrOpen(DashboardPage.urlToWaivers());
@@ -1473,8 +1465,15 @@ public class DashboardWaiversTest
     switch (sortByColumn) {
       case "threat":
         return new String[]{
-            waiver3String, waiver4String, waiverRepoContainerString, waiverParentOrgString, waiver1String,
-            waiverRepoString, waiver5String, waiver2String, waiver6String
+            waiver3String,                // threat=9, created=sixDaysAgo (NEWEST threat-9)
+            waiver4String,                // threat=9, created=sevenDaysAgo
+            waiverRepoContainerString,    // threat=9, created=fourteenDaysAgo
+            waiverParentOrgString,        // threat=9, created=thirtyDaysAgo (OLDEST threat-9)
+            waiver1String,                // threat=7, created=twoDaysAgo (NEWEST threat-7)
+            waiverRepoString,             // threat=7, created=nineDaysAgo (OLDEST threat-7)
+            waiver5String,                // threat=4, created=eightDaysAgo
+            waiver2String,                // threat=3, created=threeDaysAgo (NEWEST threat-3)
+            waiver6String
         };
       case "createddate":
         return new String[]{

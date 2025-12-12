@@ -57,7 +57,7 @@ public class DashboardPolicyWaiverDTOComparator
       case POLICY_NAME:
         return comparePolicyNames(dto1, dto2);
       case THREAT_LEVEL:
-        return dto1.threatLevel - dto2.threatLevel;
+        return compareThreatLevel(o1, o2);
       default:
         throw new IllegalArgumentException(
             "unsupported order by " + orderByField);
@@ -80,6 +80,23 @@ public class DashboardPolicyWaiverDTOComparator
 
     // do secondary sorting by expiration date when policy is same
     return sortByPolicyName == 0 ? compareExpirationDates(dto1, dto2) : sortByPolicyName;
+  }
+
+  private int compareThreatLevel(final DashboardPolicyWaiverDTO o1, final DashboardPolicyWaiverDTO o2) {
+    int sortByThreatLevel = o2.threatLevel - o1.threatLevel;
+    if (sortByThreatLevel == 0) { // When threat is same, sort by creation date DESCENDING
+      if (o1.createTime == null && o2.createTime == null) {
+        return 0; // Both null → equal
+      }
+      if (o1.createTime == null) {
+        return 1;  // o1 is null → o1 comes AFTER o2
+      }
+      if (o2.createTime == null) {
+        return -1;  //o2 is null → o1 comes BEFORE o2
+      }
+      return o2.createTime.compareTo(o1.createTime); // DESCENDING: newer dates come first
+    }
+    return isAscending ? -sortByThreatLevel : sortByThreatLevel;
   }
 
   private int compareComponentNames(final DashboardPolicyWaiverDTO dto1, final DashboardPolicyWaiverDTO dto2) {

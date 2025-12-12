@@ -570,6 +570,30 @@ public class DashboardPolicyWaiverDTOComparatorTest
     assertThat(comparator.compare(highestThreat, highestThreat)).isEqualTo(0);
   }
 
+  @Test
+  public void testCompare_THREAT_LEVEL_SameThreatLevel_SortsByCreationDate() {
+    Instant now = Instant.now();
+    Instant twoDaysAgo = now.minus(2, ChronoUnit.DAYS);
+    Instant fiveDaysAgo = now.minus(5, ChronoUnit.DAYS);
+
+    DashboardPolicyWaiverDTO olderWaiver = new DashboardPolicyWaiverDTOBuilder()
+        .withThreatLevel(9)
+        .withCreateTime(Date.from(fiveDaysAgo))
+        .getBuiltDTO();
+
+    DashboardPolicyWaiverDTO newerWaiver = new DashboardPolicyWaiverDTOBuilder()
+        .withThreatLevel(9)
+        .withCreateTime(Date.from(twoDaysAgo))
+        .getBuiltDTO();
+
+    DashboardPolicyWaiverDTOComparator comparator =
+        new DashboardPolicyWaiverDTOComparator(DashboardPolicyWaiverOrderByEnum.THREAT_LEVEL.toString());
+
+    // When threat levels are equal, newer creation date should come first
+    assertThat(comparator.compare(newerWaiver, olderWaiver)).isLessThan(0);
+    assertThat(comparator.compare(olderWaiver, newerWaiver)).isGreaterThan(0);
+  }
+
   private List<DashboardPolicyWaiverDTO> getWaiversToSort(List<ComponentIdentifier> componentIdentifiers) {
     ComponentMatcherStrategyForWaiver[] waiverTypes = {EXACT_COMPONENT, ALL_VERSIONS};
     return IntStream.range(0, componentIdentifiers.size()).mapToObj(i -> {

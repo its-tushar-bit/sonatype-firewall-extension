@@ -43,6 +43,7 @@ import static com.sonatype.insight.brain.utils.HttpHeaderUtils.buildContentDispo
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.ws.rs.core.HttpHeaders.CACHE_CONTROL;
 import static javax.ws.rs.core.HttpHeaders.CONTENT_DISPOSITION;
+import static javax.ws.rs.core.HttpHeaders.CONTENT_ENCODING;
 
 /**
  * REST API for searching applications by components.
@@ -122,6 +123,7 @@ public class ApiComponentSearchResource
     httpServletResponse.setContentType(TEXT_CSV);
     httpServletResponse.setHeader(CONTENT_DISPOSITION, buildContentDispositionHeaderValue(filename));
     httpServletResponse.setHeader(CACHE_CONTROL, "public, max-age=" + CACHE_MAX_AGE_SECONDS);
+    httpServletResponse.setHeader(CONTENT_ENCODING, "identity"); // Disable gzip - critical for streaming
     httpServletResponse.setBufferSize(0); // Disable buffering for immediate streaming
 
     streamCsvReport(httpServletResponse, KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);

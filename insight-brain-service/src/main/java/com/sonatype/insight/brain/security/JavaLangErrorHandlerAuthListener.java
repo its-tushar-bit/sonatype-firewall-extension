@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.security;
 import javax.inject.Inject;
 import javax.inject.Named;
 
-import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 
 import org.apache.shiro.authc.AuthenticationException;
@@ -24,9 +23,8 @@ class JavaLangErrorHandlerAuthListener
   private final JavaLangErrorHandler javaLangErrorHandler;
 
   @Inject
-  JavaLangErrorHandlerAuthListener(InsightConfig config, JavaLangErrorHandler javaLangErrorHandler) {
+  JavaLangErrorHandlerAuthListener(JavaLangErrorHandler javaLangErrorHandler) {
     this.javaLangErrorHandler = javaLangErrorHandler;
-    this.javaLangErrorHandler.setExitOnFatalError(config.isExitOnFatalError());
   }
 
   @Override

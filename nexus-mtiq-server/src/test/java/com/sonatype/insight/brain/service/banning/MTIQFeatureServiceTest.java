@@ -239,7 +239,8 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP,
         SystemConfigurationPropertyFeature.SAML_ENABLED,
         SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED,
-        SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED
+        SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED,
+        SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR
     ).collect(toSet()).toArray(new SystemConfigurationPropertyFeature[]{});
   }
 

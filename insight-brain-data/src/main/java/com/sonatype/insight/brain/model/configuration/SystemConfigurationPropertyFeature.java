@@ -386,7 +386,23 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  USER_ACTIVITY_TRACKING(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, false);
+  USER_ACTIVITY_TRACKING(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, false),
+
+  EXIT_ON_FATAL_ERROR(SystemConfigurationProperty.EXIT_ON_FATAL_ERROR, true)
+  {
+    @Override
+    public boolean isEnabled(TransactionContext tx) {
+      final SystemConfigurationProperty systemConfigurationProperty =
+          systemConfigurationPropertyDAO.getByName(tx, getPropertyName());
+      return systemConfigurationProperty == null ? super.isEnabled(tx) :
+          Boolean.parseBoolean(systemConfigurationProperty.getValue());
+    }
+
+    @Override
+    public void setEnabled(TransactionContext tx, boolean enabled) {
+      systemConfigurationPropertyDAO.set(tx, getPropertyName(), Boolean.toString(enabled));
+    }
+  };
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

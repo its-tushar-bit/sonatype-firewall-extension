@@ -295,7 +295,8 @@ public class ConfigurationInfoTest
         "copyStorageConfig",
         "warnOnNonPrimaryStorageAccess",
         "waiverRequestWorkflowEnabled",
-        "userTokenDefaultExpirationDays"
+        "userTokenDefaultExpirationDays",
+        "exitOnFatalError"
     );
 
     // Properties included in the config.json in support zip

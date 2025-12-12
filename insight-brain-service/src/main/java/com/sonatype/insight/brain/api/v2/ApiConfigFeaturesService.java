@@ -72,6 +72,8 @@ public class ApiConfigFeaturesService
 
   static final String FEATURE_USER_ACTIVITY_TRACKING = "userActivityTracking";
 
+  static final String FEATURE_EXIT_ON_FATAL_ERROR = "exitOnFatalError";
+
   private static final List<UnsupportedFeature> NO_LONGER_SUPPORTED_FLAGS = Arrays.asList(
       new UnsupportedFeature("transitiveSolverDisable", FEATURE_TRANSITIVE_SOLVER)
   );
@@ -220,6 +222,7 @@ public class ApiConfigFeaturesService
       case FEATURE_SAAS_LIFECYCLE_SCM_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
       case FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED -> SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED;
       case FEATURE_USER_ACTIVITY_TRACKING -> SystemConfigurationProperty.USER_ACTIVITY_TRACKING;
+      case FEATURE_EXIT_ON_FATAL_ERROR -> SystemConfigurationProperty.EXIT_ON_FATAL_ERROR;
       default -> feature;
     };
   }
@@ -281,6 +284,7 @@ public class ApiConfigFeaturesService
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
       case SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_PRS_ENABLED -> FEATURE_SAAS_LIFECYCLE_SCM_PRS_ENABLED;
       case SystemConfigurationProperty.USER_ACTIVITY_TRACKING -> FEATURE_USER_ACTIVITY_TRACKING;
+      case SystemConfigurationProperty.EXIT_ON_FATAL_ERROR -> FEATURE_EXIT_ON_FATAL_ERROR;
       default -> propertyName;
     };
   }

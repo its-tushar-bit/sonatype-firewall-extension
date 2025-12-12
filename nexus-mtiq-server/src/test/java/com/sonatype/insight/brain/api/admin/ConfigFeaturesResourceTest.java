@@ -73,6 +73,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
   };
 
   /**
@@ -113,6 +114,7 @@ public class ConfigFeaturesResourceTest
       SystemConfigurationPropertyFeature.THIRD_PARTY_KEV_LOOKUP.getId(),
       SystemConfigurationPropertyFeature.CONTAINER_IMAGES_EVAL_ENABLED.getId(),
       SystemConfigurationPropertyFeature.WAIVER_REQUEST_WORKFLOW_ENABLED.getId(),
+      SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.getId(),
   };
 
   /**

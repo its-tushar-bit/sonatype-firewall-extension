@@ -304,6 +304,8 @@ public class SystemConfigurationProperty
 
   public static final String USER_TOKEN_DEFAULT_EXPIRATION_DAYS = "userTokenDefaultExpirationDays";
 
+  public static final String EXIT_ON_FATAL_ERROR = "exitOnFatalError";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

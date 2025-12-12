@@ -28,6 +28,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -50,7 +52,6 @@ public class AuthenticationTest
   public void configure(Binder binder) {
     super.configure(binder);
     InsightConfig config = new InsightConfig();
-    config.setExitOnFatalError(false);
     binder.bind(InsightConfig.class).toInstance(config);
 
     mockRealm = mock(Realm.class);
@@ -67,6 +68,7 @@ public class AuthenticationTest
 
   @Before
   public void setUpSecurity() {
+    javaLangErrorHandler.setExitOnFatalErrorSupplier(() -> false);
     ThreadContext.bind(securityManager);
     subject = (new Subject.Builder()).buildSubject();
     ThreadContext.bind(subject);
@@ -89,5 +91,13 @@ public class AuthenticationTest
     // The java.lang.Error must get to the handler for Errors,
     // which in a real system will (probably) terminate the JVM.
     assertThat(javaLangErrorHandler.getLastFatalError()).isEqualTo(error);
+  }
+
+  @Test
+  public void testHandleExit_whenExitOnFatalErrorIsFalse_doesNotCallRuntimeExit() {
+    javaLangErrorHandler.setExitOnFatalErrorSupplier(() -> false);
+    Runtime mockRuntime = mock(Runtime.class);
+    javaLangErrorHandler.handleExit(mockRuntime);
+    verify(mockRuntime, never()).exit(1);
   }
 }

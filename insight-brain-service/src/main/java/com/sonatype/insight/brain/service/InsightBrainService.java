@@ -77,6 +77,7 @@ import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
+import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.codahale.metrics.servlets.PingServlet;
@@ -500,7 +501,7 @@ public class InsightBrainService
   protected void customize(final InsightConfig config, final Environment env) {
     super.customize(config, env);
 
-    replaceGenericExceptionMapper(env, config);
+    replaceGenericExceptionMapper(env);
 
     // This provider comes from HDS and does not have the necessary annotations for automatic injection,
     // so register it manually
@@ -584,10 +585,13 @@ public class InsightBrainService
     }
   }
 
-  private void replaceGenericExceptionMapper(final Environment environment, InsightConfig config) {
+  private void replaceGenericExceptionMapper(final Environment environment) {
     // Add our own mapper for exceptions.
     JaxRsExceptionMapper jaxRsExceptionMapper = getInstance(JaxRsExceptionMapper.class);
-    jaxRsExceptionMapper.setExitOnFatalError(config.isExitOnFatalError());
+    JavaLangErrorHandler errorHandler = getInstance(JavaLangErrorHandler.class);
+    errorHandler.setExitOnFatalErrorSupplier(() ->
+        SystemConfigurationPropertyFeature.EXIT_ON_FATAL_ERROR.isEnabled()
+    );
     environment.jersey().register(jaxRsExceptionMapper);
   }
 

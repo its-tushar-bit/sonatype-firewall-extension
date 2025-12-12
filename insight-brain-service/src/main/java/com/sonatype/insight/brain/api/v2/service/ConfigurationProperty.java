@@ -288,6 +288,9 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.USER_ACTIVITY_TRACKING, Boolean.class,
           (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
           (p, o) -> Objects.toString(o, null)),
+      new ConfigurationProperty(SystemConfigurationProperty.EXIT_ON_FATAL_ERROR, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, true),
+          (p, o) -> Objects.toString(o, null)),
       new ConfigurationProperty(SystemConfigurationProperty.COPY_STORAGE_CONFIG, Map.class,
           (p, s) -> ConfigurationUtils.stringToObject(
               s,

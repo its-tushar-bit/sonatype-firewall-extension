@@ -64,6 +64,7 @@ public class ApiConfigFeaturesServiceTest
         SAAS_LIFECYCLE_SCM_ENABLED);
     assertThat(service.getPropertyNameForFeature(FEATURE_USER_ACTIVITY_TRACKING)).isEqualTo(
         USER_ACTIVITY_TRACKING);
+    assertThat(service.getPropertyNameForFeature(FEATURE_EXIT_ON_FATAL_ERROR)).isEqualTo(EXIT_ON_FATAL_ERROR);
     assertThat(service.getPropertyNameForFeature("default-value")).isEqualTo("default-value");
   }
 
@@ -94,6 +95,8 @@ public class ApiConfigFeaturesServiceTest
         FEATURE_SAAS_LIFECYCLE_SCM_ENABLED);
     assertThat(service.getFeatureForPropertyName(USER_ACTIVITY_TRACKING)).isEqualTo(
         FEATURE_USER_ACTIVITY_TRACKING);
+    assertThat(service.getFeatureForPropertyName(EXIT_ON_FATAL_ERROR)).isEqualTo(
+            FEATURE_EXIT_ON_FATAL_ERROR);
     assertThat(service.getFeatureForPropertyName("default-value")).isEqualTo("default-value");
   }
 
@@ -1481,6 +1484,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("saasLifecycleScmPrsEnabled", true);
     expectedFeatureConfigMap.put("userActivityTracking", false);
     expectedFeatureConfigMap.put("waiverRequestWorkflowEnabled", true);
+    expectedFeatureConfigMap.put("exitOnFatalError", true);
 
     return expectedFeatureConfigMap;
   }

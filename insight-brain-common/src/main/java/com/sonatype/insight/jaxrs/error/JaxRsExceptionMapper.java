@@ -50,8 +50,4 @@ public class JaxRsExceptionMapper
     return Response.status(response.getStatusCode()).type(ErrorResponse.CONTENT_TYPE).entity(response.getMessageBody())
         .build();
   }
-
-  public void setExitOnFatalError(boolean exitOnFatalError) {
-    javaLangErrorHandler.setExitOnFatalError(exitOnFatalError);
-  }
 }

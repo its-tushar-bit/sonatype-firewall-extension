@@ -9,9 +9,9 @@ import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
-
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.StreamingOutput;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.dto.ApplicationComponentMatchDTO;
 import com.sonatype.insight.brain.service.BaseUrlProvider;
@@ -24,6 +24,8 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -38,15 +40,27 @@ public class ApiComponentSearchResourceTest
   @Mock
   private BaseUrlProvider mockBaseUrlProvider;
 
+  @Mock
+  private HttpServletResponse mockHttpServletResponse;
+
   private ApiComponentSearchResource resource;
+
+  private ByteArrayOutputStream outputStream;
 
   private static final String TEST_BASE_URL = "http://localhost:8072";
 
   @Before
-  public void setUp() {
-    mockCveAffectedComponentSearchService = org.mockito.Mockito.mock(CveAffectedComponentSearchService.class);
-    mockBaseUrlProvider = org.mockito.Mockito.mock(BaseUrlProvider.class);
+  public void setUp() throws Exception {
+    mockCveAffectedComponentSearchService = mock(CveAffectedComponentSearchService.class);
+    mockBaseUrlProvider = mock(BaseUrlProvider.class);
+    mockHttpServletResponse = mock(HttpServletResponse.class);
+
     when(mockBaseUrlProvider.getBaseUrl()).thenReturn(TEST_BASE_URL);
+
+    // Setup mock response with output stream
+    outputStream = new ByteArrayOutputStream();
+    when(mockHttpServletResponse.getOutputStream()).thenReturn(createServletOutputStream(outputStream));
+
     resource = new ApiComponentSearchResource(mockCveAffectedComponentSearchService, mockBaseUrlProvider);
   }
 
@@ -59,16 +73,18 @@ public class ApiComponentSearchResourceTest
         .thenReturn(matches.stream());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-
-    StreamingOutput entity = (StreamingOutput) response.getEntity();
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    entity.write(outputStream);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getMediaType().toString()).isEqualTo("text/csv");
+    String csvOutput = outputStream.toString();
+    assertThat(csvOutput).isNotEmpty();
+    assertThat(csvOutput).contains("Application Name,Application ID"); // Header check
+    assertThat(csvOutput).contains("lodash"); // Data check
+
+    // Verify response configuration
+    verify(mockHttpServletResponse).setContentType("text/csv");
+    verify(mockHttpServletResponse).setBufferSize(0);
+    verify(mockHttpServletResponse, times(3)).flushBuffer();
 
     // Verify service was called with base URL
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
@@ -81,13 +97,15 @@ public class ApiComponentSearchResourceTest
         .thenReturn(Stream.empty());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getMediaType().toString()).isEqualTo("text/csv");
+    String csvOutput = outputStream.toString();
+    assertThat(csvOutput).isNotEmpty();
+    assertThat(csvOutput).contains("Application Name,Application ID"); // Header should still be present
+
+    // Verify response configuration
+    verify(mockHttpServletResponse).setContentType("text/csv");
 
     // Verify service was called
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
@@ -105,12 +123,16 @@ public class ApiComponentSearchResourceTest
         .thenReturn(matches.stream());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
+    String csvOutput = outputStream.toString();
+    assertThat(csvOutput).contains("lodash");
+    assertThat(csvOutput).contains("axios");
+    assertThat(csvOutput).contains("app1");
+    assertThat(csvOutput).contains("app2");
+    assertThat(csvOutput).contains("app3");
+
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
   }
 
@@ -141,12 +163,13 @@ public class ApiComponentSearchResourceTest
         .thenReturn(matches.stream());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
+    String csvOutput = outputStream.toString();
+    assertThat(csvOutput).isNotEmpty();
+    assertThat(csvOutput).contains("Application 1");
+
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
   }
 
@@ -157,13 +180,9 @@ public class ApiComponentSearchResourceTest
         .thenReturn(Stream.empty());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
-    // Assert
-    assertThat(response).isNotNull();
-
-    // Verify the service was called with CVE ID
+    // Assert - Verify the service was called with CVE ID
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
   }
 
@@ -176,14 +195,15 @@ public class ApiComponentSearchResourceTest
         .thenReturn(matches.stream());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert - CSV should be properly formatted with correct headers
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
+    String csvOutput = outputStream.toString();
+    assertThat(csvOutput).startsWith("Application Name,Application ID");
+    assertThat(csvOutput).contains("Component Name");
+    assertThat(csvOutput).contains("Vulnerability ID");
+    assertThat(csvOutput).contains("Recommended Action");
 
-    // We can't directly access the response body in this test, but we verify the structure is correct
     verify(mockCveAffectedComponentSearchService).find(anyString(), eq(TEST_BASE_URL));
   }
 
@@ -194,22 +214,15 @@ public class ApiComponentSearchResourceTest
         .thenReturn(Stream.empty());
 
     // Act
-    Response response = resource.exportComponentSearchReport();
-    consumeStreamingOutput(response);
+    resource.exportComponentSearchReport(mockHttpServletResponse);
 
     // Assert - Response should have proper content disposition for download
-    assertThat(response).isNotNull();
-    assertThat(response.getStatus()).isEqualTo(200);
-    assertThat(response.getMediaType().toString()).isEqualTo("text/csv");
+    verify(mockHttpServletResponse).setContentType("text/csv");
+    verify(mockHttpServletResponse).setHeader(eq("Content-Disposition"), anyString());
+    verify(mockHttpServletResponse).setHeader(eq("Cache-Control"), anyString());
   }
 
   // Helper methods
-
-  private void consumeStreamingOutput(Response response) throws Exception {
-    StreamingOutput entity = (StreamingOutput) response.getEntity();
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    entity.write(outputStream);
-  }
 
   private List<ApplicationComponentMatchDTO> createSampleMatches() {
     List<ApplicationComponentMatchDTO> matches = new ArrayList<>();
@@ -244,5 +257,25 @@ public class ApiComponentSearchResourceTest
         implicatedFiles,
         "scan-123"
     );
+  }
+
+  private ServletOutputStream createServletOutputStream(ByteArrayOutputStream outputStream) {
+    return new ServletOutputStream()
+    {
+      @Override
+      public void write(int b) {
+        outputStream.write(b);
+      }
+
+      @Override
+      public boolean isReady() {
+        return true;
+      }
+
+      @Override
+      public void setWriteListener(WriteListener writeListener) {
+        // Not needed for tests
+      }
+    };
   }
 }

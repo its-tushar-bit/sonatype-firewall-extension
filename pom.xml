@@ -16,7 +16,7 @@
 
   <groupId>com.sonatype.insight.brain</groupId>
   <artifactId>insight-brain</artifactId>
-  <version>1.199.0-01</version>
+  <version>1.200.0-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Insight Brain Parent POM</name>
@@ -180,60 +180,60 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>hds-mock-server</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>keycloak-server</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>gitlab-server</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>docker-utils</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-data</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-policy</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-policy</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-db</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-db</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
         <exclusions>
@@ -247,72 +247,72 @@
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-test</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-common</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-common</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <type>test-jar</type>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-event</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-frontend</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-tenancy</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-service</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <classifier>tests</classifier>
         <scope>test</scope>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-json-store</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>insight-brain-functional-test-common</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-mtiq-server</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>nexus-mtiq-server</artifactId>
-        <version>1.199.0-01</version>
+        <version>1.200.0-SNAPSHOT</version>
         <classifier>tests</classifier>
         <type>test-jar</type>
         <scope>test</scope>

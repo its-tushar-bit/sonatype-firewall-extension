@@ -44,7 +44,7 @@ public class HybridSbomPersistenceService
 
   private final Map<Class<? extends SbomPersistenceService>, SbomPersistenceService> sbomPersistenceServiceByClass;
 
-  private final ApiConfigurationService apiConfigurationService;
+  private final Provider<ApiConfigurationService> apiConfigurationServiceProvider;
 
   private volatile boolean warnOnNonPrimaryStorageAccess;
 
@@ -52,7 +52,7 @@ public class HybridSbomPersistenceService
   public HybridSbomPersistenceService(
       final InsightConfig config,
       final Provider<SbomPersistenceServiceProvider> sbomPersistenceServiceProviderProvider,
-      final ApiConfigurationService apiConfigurationService)
+      final Provider<ApiConfigurationService> apiConfigurationServiceProvider)
   {
     StorageConfig storageConfig = config.getStorage();
     HybridDataStoreConfig hybridDataStoreConfig = storageConfig == null ? null : storageConfig.getHybridConfig();
@@ -76,8 +76,8 @@ public class HybridSbomPersistenceService
     for (SbomPersistenceService sbomPersistenceService : sbomPersistenceServices) {
       sbomPersistenceServiceByClass.put(sbomPersistenceService.getClass(), sbomPersistenceService);
     }
-    this.apiConfigurationService = apiConfigurationService;
-    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+    this.apiConfigurationServiceProvider = apiConfigurationServiceProvider;
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
         SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
@@ -202,7 +202,7 @@ public class HybridSbomPersistenceService
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
-      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
           SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }

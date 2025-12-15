@@ -136,8 +136,8 @@ export default function EnterpriseReportingLandingPage() {
       </NxPageTitle>
       {showReact2ShellBanner && (
         <NxWarningAlert onClose={handleDismissReact2ShellBanner} className="iq-react2shell-banner">
-          <strong>React2Shell:</strong> A severe flaw in React Server Components could allow attackers to run
-          arbitrary code. Check your applications now to understand your exposure and remediate quickly.{' '}
+          <strong>React2Shell:</strong> A severe flaw in React Server Components could allow attackers to run arbitrary
+          code. Check your applications now to understand your exposure and remediate quickly.{' '}
           <NxTextLink href={routerState.href('react2ShellReport')}>React2Shell Impact Report</NxTextLink>
         </NxWarningAlert>
       )}

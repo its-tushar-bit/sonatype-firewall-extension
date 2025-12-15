@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.api.v2.dto.ApiDataRetentionPoliciesDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiDataRetentionPolicyService;
 import com.sonatype.insight.brain.audit.AuditData;
@@ -35,6 +36,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * @since 1.63
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(PublicApiPaths.DATA_RETENTION_POLICY_RESOURCE_PATH)
 @Tag(name = "Data Retention Policies",

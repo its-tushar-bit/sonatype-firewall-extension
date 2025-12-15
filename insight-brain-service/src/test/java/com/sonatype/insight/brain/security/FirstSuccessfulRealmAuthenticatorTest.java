@@ -7,14 +7,13 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
 import java.util.Collections;
-
-import javax.inject.Inject;
-
-import com.sonatype.insight.brain.service.AbstractComponentTest;
+import java.util.Set;
 
 import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationListener;
 import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.realm.Realm;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -22,10 +21,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class FirstSuccessfulRealmAuthenticatorTest
-    extends AbstractComponentTest
 {
-  @Inject
   private FirstSuccessfulRealmAuthenticator firstSuccessfulRealmAuthenticator;
+
+  @Before
+  public void setUp() {
+    Set<Realm> realms = Collections.emptySet();
+    Set<AuthenticationListener> authenticationListeners = Collections.emptySet();
+    firstSuccessfulRealmAuthenticator = new FirstSuccessfulRealmAuthenticator(realms, authenticationListeners);
+  }
 
   @Test
   public void testDoMultiRealmAuthenticationIncludesExceptionCause() {

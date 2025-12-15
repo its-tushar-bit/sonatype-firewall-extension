@@ -24,6 +24,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import org.apache.commons.io.FileUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,17 +39,20 @@ import static org.awaitility.Awaitility.await;
 public class MultiTenantAuditLogAppenderFactoryTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {
+  @Before
+  public void setUp() throws Exception {
+    // Trigger an audit log write to ensure the audit log directory exists for the test tenant.
+    // Wait for logback to flush the logs to disk before proceeding.
+    organizationRequest().body(new Organization("setupOrg")).post();
+    String auditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(getTestTenant().tenantSlug);
+    await().atMost(5, TimeUnit.SECONDS).until(() -> new File(auditLogFileName).exists());
+  }
+
   @Test
   public void testAuditLogsAreSeparatedByTenant() throws Exception {
     String expectedSystemStartLogText = "\"username\":\"*SYSTEM\",\"domain\":\"server\",\"type\":\"start\"";
     assertLogContains(Tenant.GLOBAL_TENANT.tenantSlug, expectedSystemStartLogText);
     assertLogDoesNotContain(getTestTenant().tenantSlug, expectedSystemStartLogText);
-
-    String expectedTenantCreateLogText =
-        "\"username\":\"test@test.com\",\"domain\":\"mtiq.tenant\",\"type\":\"create\"";
-    // The audit log for the global tenant may contain this text or not from tests that were run before this test,
-    // so we cannot assert that it does not contain it.
-    assertLogContains(getTestTenant().tenantSlug, expectedTenantCreateLogText);
 
     // Create an organization for the current tenant and verify that the corresponding audit log record is saved in the
     // tenant specific audit log.

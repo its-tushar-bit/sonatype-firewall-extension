@@ -19,9 +19,12 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
+
 import org.apache.commons.lang3.StringUtils;
 
 @Named
+@IqOnlyEndpoint
 @Path(LabsResource.RESOURCE_PATH)
 public class LabsResource
 {

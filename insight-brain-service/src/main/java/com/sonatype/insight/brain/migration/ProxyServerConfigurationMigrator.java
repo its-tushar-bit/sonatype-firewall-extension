@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.migration;
 
 import java.util.Arrays;
-import java.util.List;
-
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -54,7 +53,7 @@ public class ProxyServerConfigurationMigrator
 
   private final PasswordHandler passwordHandler;
 
-  private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
+  private final Set<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
 
   @Inject
   public ProxyServerConfigurationMigrator(
@@ -63,7 +62,7 @@ public class ProxyServerConfigurationMigrator
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       InsightConfig insightConfig,
       PasswordHandler passwordHandler,
-      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners)
+      Set<ProxyServerConfigurationListener> proxyServerConfigurationListeners)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;

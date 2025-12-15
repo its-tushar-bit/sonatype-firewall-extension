@@ -24,6 +24,7 @@ import java.util.UUID;
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import javax.validation.Validator;
+import javax.ws.rs.container.ResourceInfo;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
@@ -67,13 +68,30 @@ import com.sonatype.insight.brain.security.HttpHeaderValidatorFilter;
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.security.SecurityAopModule;
 import com.sonatype.insight.brain.security.SecurityModule;
+import com.sonatype.insight.brain.service.modules.ApiServiceBindingsModule;
+import com.sonatype.insight.brain.service.modules.AuthenticationModule;
+import com.sonatype.insight.brain.service.modules.ComponentModule;
+import com.sonatype.insight.brain.service.modules.CoreServiceModule;
+import com.sonatype.insight.brain.service.modules.DashboardModule;
+import com.sonatype.insight.brain.service.modules.DataAccessModule;
+import com.sonatype.insight.brain.service.modules.FirewallModule;
+import com.sonatype.insight.brain.service.modules.IntegrationModule;
+import com.sonatype.insight.brain.service.modules.IqOnlyAuthModule;
+import com.sonatype.insight.brain.service.modules.IqOnlyModule;
+import com.sonatype.insight.brain.service.modules.MigrationModule;
+import com.sonatype.insight.brain.service.modules.OperationalModule;
+import com.sonatype.insight.brain.service.modules.OrganizationModule;
+import com.sonatype.insight.brain.service.modules.PolicyModule;
+import com.sonatype.insight.brain.service.modules.ProductLicenseModule;
+import com.sonatype.insight.brain.service.modules.RepositoryModule;
+import com.sonatype.insight.brain.service.modules.ScannerModule;
+import com.sonatype.insight.brain.service.modules.SonatypeLicensingModule;
+import com.sonatype.insight.brain.service.modules.TelemetryModule;
 import com.sonatype.insight.brain.shutdown.ActiveRequestCounterFilter;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.brain.utils.ExecutorThreadPools;
-import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
-import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
@@ -118,6 +136,7 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
+import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
@@ -125,7 +144,7 @@ import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
 import static com.sonatype.insight.brain.security.FIPSProviderFactory.createFipsProvider;
 
 public class InsightBrainService
-    extends SisuApplication<InsightConfig>
+    extends GuiceApplication<InsightConfig>
 {
   protected static final Logger log = LoggerFactory.getLogger(InsightBrainService.class);
 
@@ -142,9 +161,6 @@ public class InsightBrainService
   public static final String POLICY_ASSET_PATH = "/policy-assets/";
 
   static final String INSTANCE_ID = UUID.randomUUID().toString();
-
-  // Visible for testing
-  static final String SISU_URL_CACHES = "sisu.url.caches";
 
   private static volatile File configFile;
 
@@ -190,14 +206,6 @@ public class InsightBrainService
     }
   }
 
-  // Visible for testing
-  static void setSisuUrlCachesToTrueIfNotSet() {
-    String sisuUrlCaches = System.getProperty(SISU_URL_CACHES);
-    if (sisuUrlCaches == null) {
-      System.setProperty(SISU_URL_CACHES, "true");
-    }
-  }
-
   void setupServerLogging(final String... args) {
     if (args.length == 0 || "server".equals(args[0])) {
       logServerInstanceMessage("Starting " + getServerInstanceMessage());
@@ -223,7 +231,6 @@ public class InsightBrainService
   @Override
   public void run(String... arguments) throws Exception {
     startTime = System.currentTimeMillis();
-    setSisuUrlCachesToTrueIfNotSet();
 
     final Bootstrap<InsightConfig> bootstrap = new Bootstrap<>(this);
     bootstrap.addCommand(createDbMigrationCommand());
@@ -333,9 +340,9 @@ public class InsightBrainService
   }
 
   /**
-   * Configures Jetty's GzipHandler to exclude the CSV streaming endpoint from compression.
-   * This is critical for streaming CSV endpoints with keep-alive, as gzip compression
-   * buffers the entire response before compressing, defeating the streaming mechanism.
+   * Configures Jetty's GzipHandler to exclude the CSV streaming endpoint from compression. This is critical for
+   * streaming CSV endpoints with keep-alive, as gzip compression buffers the entire response before compressing,
+   * defeating the streaming mechanism.
    */
   private void configureGzipExclusions(Environment environment) {
     environment.lifecycle().addServerLifecycleListener(server -> {
@@ -566,9 +573,18 @@ public class InsightBrainService
 
     replaceGenericExceptionMapper(env);
 
+    // We use @InvisibleForScanner on TenantManagedInitializer subclasses, so we need to manage the bound class directly
+    env.lifecycle().manage(getInjector().getInstance(TenantManagedInitializer.class));
+
     // This provider comes from HDS and does not have the necessary annotations for automatic injection,
     // so register it manually
     env.jersey().register(new ComponentIdentifierParamConverterProvider(env.getObjectMapper()));
+
+    // The InsightJacksonMessageBodyProvider extends JacksonMessageBodyProvider and overrides hasMatchingMediaType
+    // to accept text/plain content type. This is required for @FormDataParam to work with JSON DTOs, since
+    // multipart/form-data fields default to text/plain content type. Without explicit registration,
+    // dropwizard-guicey may not discover this @Provider class automatically.
+    env.jersey().register(new InsightJacksonMessageBodyProvider(env.getObjectMapper()));
 
     // Most jersey components are injected automatically by dropwizard-guicey. However it seems to be unable
     // to correctly handle @Context injections on @Providers. So for that case, we register them here. Note that
@@ -579,11 +595,12 @@ public class InsightBrainService
         injector.getInstance(ApplicationDAO.class),
         injector.getInstance(OrganizationDAO.class),
         injector.getInstance(RepositoryDAO.class),
-        injector.getInstance(RepositoryManagerDAO.class)
+        injector.getInstance(RepositoryManagerDAO.class),
+        injector.getProvider(ResourceInfo.class)
     );
-    getInjector().injectMembers(auditContainerRequestFilter);
 
-    addThrowableHandlers(env);
+    wrapWithThrowableHandler(env.getApplicationContext());
+    wrapWithThrowableHandler(env.getAdminContext());
 
     env.jersey().register(auditContainerRequestFilter);
 
@@ -596,14 +613,9 @@ public class InsightBrainService
     log.debug("Features flags: {}", config.getFeatures());
   }
 
-  private void addThrowableHandlers(final Environment env) {
-    ThrowableHandler applicationThrowableHandler = getInstance(ThrowableHandler.class);
-    applicationThrowableHandler.setHandler(env.getApplicationContext().getHandler());
-    env.getApplicationContext().setHandler(applicationThrowableHandler);
-
-    ThrowableHandler adminThrowableHandler = getInstance(ThrowableHandler.class);
-    adminThrowableHandler.setHandler(env.getAdminContext().getHandler());
-    env.getAdminContext().setHandler(adminThrowableHandler);
+  private void wrapWithThrowableHandler(final ServletContextHandler context) {
+    ThrowableHandler wrapper = getInstance(ThrowableHandler.class);
+    context.insertHandler(wrapper);
   }
 
   protected void addServletFilters(Environment env) {
@@ -698,7 +710,6 @@ public class InsightBrainService
         bind(DataStoreProvider.class).toInstance(databaseContainer);
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
         bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
-        bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);
         bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
       }
     });
@@ -708,6 +719,33 @@ public class InsightBrainService
     modules.add(new DbBasedModule(() -> databaseContainer));
     // Set up bindings based on which search index is used.
     modules.add(new SearchModule());
+
+    return modules;
+  }
+
+  @Override
+  protected List<Module> getAppModules() {
+    List<Module> modules = new ArrayList<>();
+
+    modules.add(new ApiServiceBindingsModule());
+    modules.add(new ComponentModule());
+    modules.add(new CoreServiceModule());
+    modules.add(new DashboardModule());
+    modules.add(new DataAccessModule());
+    modules.add(new FirewallModule());
+    modules.add(new IntegrationModule());
+    modules.add(new IqOnlyAuthModule());
+    modules.add(new IqOnlyModule());
+    modules.add(new MigrationModule());
+    modules.add(new OperationalModule());
+    modules.add(new OrganizationModule());
+    modules.add(new PolicyModule());
+    modules.add(new ProductLicenseModule());
+    modules.add(new SonatypeLicensingModule());
+    modules.add(new RepositoryModule());
+    modules.add(new ScannerModule());
+    modules.add(new AuthenticationModule());
+    modules.add(new TelemetryModule());
 
     return modules;
   }

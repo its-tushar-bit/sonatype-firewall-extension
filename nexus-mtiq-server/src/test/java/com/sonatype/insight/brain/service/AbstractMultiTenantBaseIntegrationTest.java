@@ -6,7 +6,6 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Stream;
 import javax.ws.rs.core.HttpHeaders;
 
@@ -14,9 +13,10 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelper;
 import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
+import com.sonatype.insight.brain.api.admin.service.TenantProvisioningService;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.db.DatabaseName;
 import com.sonatype.insight.brain.db.rule.DatabaseContainerRule;
 import com.sonatype.insight.brain.db.rule.MultiTenantDatabaseContainerRule;
@@ -34,14 +34,14 @@ import com.sonatype.insight.brain.testing.AbstractBaseIntegrationTest;
 import com.sonatype.insight.brain.testing.InsightBrainServiceFactory;
 import com.sonatype.insight.brain.testing.MultiTenantRule;
 import com.sonatype.insight.brain.testing.MultiTenantTestInsightBrainServiceFactory;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.auth0.jwk.Jwk;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.inject.AbstractModule;
-import com.google.inject.Module;
+import com.google.inject.Binder;
 import org.apache.commons.lang3.exception.UncheckedException;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -52,12 +52,12 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
-import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ENABLE_SSO_ONLY;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 
 /**
  * Base integration test class for multi-tenant IQ. {@link TemporaryEntity} resides here to manipulate data for the
@@ -185,18 +185,11 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   }
 
   @Override
-  protected List<Module> getBrainModules() {
-    List<Module> modules = super.getBrainModules();
-    modules.add(new AbstractModule()
-    {
-      @Override
-      protected void configure() {
-        bind(TenantUtil.class).toInstance(tenantUtil);
-        bind(EncryptionKeyStore.class).to(getEncryptionKeyStoreClass());
-      }
-    });
-
-    return modules;
+  protected void configureTestBindings(final Binder binder) {
+    binder.bind(TenantUtil.class).toInstance(tenantUtil);
+    MultiTenantJwkProvider multiTenantJwkTestProvider = mock(MultiTenantJwkProvider.class);
+    binder.bind(MultiTenantJwkProvider.class).toInstance(multiTenantJwkTestProvider);
+    super.configureTestBindings(binder);
   }
 
   private void jwtSetup() {
@@ -207,9 +200,9 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
       DecodedJWT decodedJWT = JWT.decode(jwt);
       Jwk jwk = AuthorizationTestHelper.createJwk(decodedJWT.getKeyId());
 
-      when(multiTenantJwkTestProvider.denyRequest()).thenReturn(false);
-      when(multiTenantJwkTestProvider.getJsonWebKey(decodedJWT.getKeyId())).thenReturn(jwk);
-      when(multiTenantJwkTestProvider.getIssuers()).thenReturn(new String[]{decodedJWT.getIssuer()});
+      lenient().when(multiTenantJwkTestProvider.denyRequest()).thenReturn(false);
+      lenient().when(multiTenantJwkTestProvider.getJsonWebKey(decodedJWT.getKeyId())).thenReturn(jwk);
+      lenient().when(multiTenantJwkTestProvider.getIssuers()).thenReturn(new String[]{decodedJWT.getIssuer()});
     }
     catch (Exception e) {
       log.error("Failed to setup mock JWT for TestMultiTenantInsightBrainService", e);
@@ -257,38 +250,56 @@ public abstract class AbstractMultiTenantBaseIntegrationTest
   /**
    * Provision the given tenant name by invoking the admin provisioning endpoint
    */
-  protected HttpResponse provisionTenant(final String tenantName) {
-    return provisionTenant(tenantName, null);
+  protected void provisionTenant(final String tenantName) {
+    provisionTenant(tenantName, null);
   }
 
   /**
    * Provision the given tenant name by invoking the admin provisioning endpoint
    */
-  protected HttpResponse provisionTenant(final String tenantName, final ConsumerWithException<Tenant> consumer) {
+  protected void provisionTenant(final String tenantName, final ConsumerWithException<Tenant> consumer) {
     setTenantSlug(tenantName);
+    TenantProvisioningService tenantProvisioningService = lookup(TenantProvisioningService.class);
 
+    TenantTestHelper.testAsNewTenant(tenantName,
+        tenant -> {
+          try {
+            tenantProvisioningService.provisionTenant(tenant.tenantSlug);
+          }
+          catch (ConflictException e) {
+            log.info("Skipping tenant creation as tenant already exists: {}", tenantName);
+          }
+          // Initialize Configuration for the newly provisioned tenant
+          initializeConfigurationForTenant();
+        });
+
+    TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
+      if (consumer != null) {
+        consumer.accept(tenant);
+      }
+      testProductLicenseRule.insertLicenseIfNeeded();
+    });
+
+    // This endpoint call ensures the full tenant registration process is invoked via AdminTenantFilter,
+    // which triggers TenantManager.setTenant() -> validateAndRegisterTenant() -> performRegistration().
+    // This is necessary because TenantTestHelper.testAsNewTenant() bypasses TenantManager.setTenant().
     try {
-      HttpResponse httpResponse = adminRestRequest(ADMIN_TENANT_PROVISIONING_PATH)
-          .parameter(tenantName)
-          .post();
-
-      TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
-        if (consumer != null) {
-          consumer.accept(tenant);
-        }
-        testProductLicenseRule.insertLicenseIfNeeded();
-      });
-
-      // This just makes an endpoint call which indirectly will ensure the tenant registration process is invoked
       adminRestRequest(ADMIN_CONFIG_PATH)
           .parameter(tenantName)
           .get();
-
-      return httpResponse;
     }
     catch (Exception e) {
       throw new UncheckedException(e);
     }
+  }
+
+  /**
+   * Initialize Configuration for the current tenant. This is needed because tests use
+   * TenantTestHelper.setTenantWithoutValidation which bypasses TenantManager.setTenant()
+   * and thus doesn't trigger Configuration.register().
+   */
+  private void initializeConfigurationForTenant() {
+    lookup(Configuration.class).register();
   }
 
   protected HttpRequest adminRestRequest(String path) {

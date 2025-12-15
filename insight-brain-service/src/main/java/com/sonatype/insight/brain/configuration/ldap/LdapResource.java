@@ -20,6 +20,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapConnection;
 import com.sonatype.insight.brain.model.configuration.ldap.LdapServer;
@@ -31,6 +32,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.7
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(LdapResource.RESOURCE_PATH)
 public class LdapResource

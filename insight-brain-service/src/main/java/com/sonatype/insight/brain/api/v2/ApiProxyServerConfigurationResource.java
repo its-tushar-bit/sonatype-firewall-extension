@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.api.v2.dto.ApiProxyServerConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -32,6 +33,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * @since 1.84
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(value = PublicApiPaths.PROXY_SERVER_CONFIG_PATH_V2)
 @UnlicensedPath

@@ -288,8 +288,16 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   private Class<? extends AbstractBaseIntegrationTest> getConfigureBinderClass() throws Exception {
-    return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configure", Binder.class)
-        .getDeclaringClass();
+    // Check both the new method name and the deprecated method name for backward compatibility
+    try {
+      return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configureTestBindings", Binder.class)
+          .getDeclaringClass();
+    }
+    catch (NoSuchMethodException e) {
+      // Fall back to checking the deprecated configure method
+      return (Class<? extends AbstractBaseIntegrationTest>) getClass().getMethod("configure", Binder.class)
+          .getDeclaringClass();
+    }
   }
 
   protected void startIqTestServer() throws Exception {
@@ -468,13 +476,28 @@ public abstract class AbstractBaseIntegrationTest
     // hook for subclasses to perform further cleanup action after TemporaryEntity has reset the database
   }
 
+  /**
+   * Returns test-specific override modules. These modules provide test implementations (like TestProductLicense,
+   * TestTaskScheduler, etc.) and test-only modules (like DataStoreTestModule) that override or supplement
+   * production bindings.
+   * IMPORTANT: Do NOT include production modules here! The production modules are already loaded by
+   * InsightBrainService.modules(). Only test overrides should be returned here.
+   *
+   * @return list of test override modules
+   */
   protected List<Module> getBrainModules() {
     List<Module> modules = new ArrayList<>();
+
+    // Test-specific module for binding DataStore instances
+    modules.add(new DataStoreTestModule(databaseContainerRule));
+    modules.add(new TestHelperModule());
+
+    // Test override bindings (TestProductLicense, TestTaskScheduler, mocks, etc.)
     modules.add(new AbstractModule()
     {
       @Override
       protected void configure() {
-        AbstractBaseIntegrationTest.this.configure(binder());
+        AbstractBaseIntegrationTest.this.configureTestBindings(binder());
       }
     });
 
@@ -482,10 +505,14 @@ public abstract class AbstractBaseIntegrationTest
   }
 
   /**
+   * Configure test-specific bindings that override production bindings. Override this method to provide custom
+   * test bindings for mocks, spies, or test implementations.
    * Note that overriding this method will cause the server to restart if it's already running.
    * Additionally, the server will restart again once the overridden method is no longer being used.
+   *
+   * @param binder the Guice binder for configuring test bindings
    */
-  public void configure(final Binder binder) {
+  protected void configureTestBindings(final Binder binder) {
     binder.bind(ProductLicense.class).to(TestProductLicense.class);
     binder.bind(TestProductLicense.class).toInstance(testProductLicense);
     binder.bind(ProductLicenseManager.class).to(TestProductLicenseManager.class);
@@ -505,6 +532,18 @@ public abstract class AbstractBaseIntegrationTest
     if (shouldBindTestEncryptionKeyStore()) {
       binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
     }
+
+    configure(binder);
+  }
+
+  /**
+   * @deprecated Use {@link #configureTestBindings(Binder)} instead. This method is kept for backward compatibility
+   * with tests that override it. It is called by configureTestBindings() to maintain compatibility.
+   */
+  @Deprecated
+  public void configure(final Binder binder) {
+    // Kept for backward compatibility with tests that override this method
+    // By default, does nothing - configureTestBindings() provides the default bindings
   }
 
   /**

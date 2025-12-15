@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
  * instance ID <B>MUST BE</B> processed first before it can be passed onto the real {@link ArtifactoryRepositoryService}
  */
 @Named
-class ArtifactoryRepositoryServiceWrapper
+public class ArtifactoryRepositoryServiceWrapper
 {
   private static final Logger log = LoggerFactory.getLogger(ArtifactoryRepositoryServiceWrapper.class);
 

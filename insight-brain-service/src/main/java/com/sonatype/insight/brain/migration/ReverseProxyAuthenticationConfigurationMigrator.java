@@ -6,8 +6,7 @@
 package com.sonatype.insight.brain.migration;
 
 import java.net.URI;
-import java.util.List;
-
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -43,14 +42,14 @@ public class ReverseProxyAuthenticationConfigurationMigrator
 
   private final InsightConfig insightConfig;
 
-  private final List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners;
+  private final Set<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners;
 
   @Inject
   public ReverseProxyAuthenticationConfigurationMigrator(
       MigrationTrackerDAO migrationTrackerDAO,
       ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
       InsightConfig insightConfig,
-      List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners)
+      Set<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners)
   {
     this.migrationTrackerDAO = migrationTrackerDAO;
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;

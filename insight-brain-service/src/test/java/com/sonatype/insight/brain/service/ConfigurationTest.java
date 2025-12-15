@@ -23,7 +23,7 @@ import com.sonatype.insight.brain.telemetry.HistoricalPolicyViolationTelemetryTa
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Binder;
-import com.google.inject.Provides;
+import com.google.inject.TypeLiteral;
 import org.junit.Test;
 import org.mockito.Mock;
 
@@ -71,37 +71,19 @@ public class ConfigurationTest
   @Override
   public void configure(final Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(taskScheduler);
+
+    // Bind a Provider for List<HdsClient>
+    binder.bind(new TypeLiteral<List<HdsClient>>() {})
+        .toInstance(Lists.newArrayList(hdsClient1, hdsClient2));
+
+    // Bind other mocks
+    binder.bind(ReleaseGraphCacheProvider.class).toInstance(releaseGraphCacheProvider);
+    binder.bind(PolicyMonitorScheduler.class).toInstance(policyMonitorScheduler);
+    binder.bind(HistoricalPolicyViolationTelemetryTask.class).toInstance(historicalPolicyViolationTelemetryTask);
+    binder.bind(AutomaticQuarantineReleaseScheduler.class).toInstance(automaticQuarantineReleaseScheduler);
+    binder.bind(WaivedComponentUpgradeScheduler.class).toInstance(waivedComponentUpgradeScheduler);
+
     super.configure(binder);
-  }
-
-  @Provides
-  List<HdsClient> providesHdsClients() {
-    return Lists.newArrayList(hdsClient1, hdsClient2);
-  }
-
-  @Provides
-  ReleaseGraphCacheProvider providesReleaseGraphCache() {
-    return releaseGraphCacheProvider;
-  }
-
-  @Provides
-  PolicyMonitorScheduler providesPolicyMonitorScheduler() {
-    return policyMonitorScheduler;
-  }
-
-  @Provides
-  HistoricalPolicyViolationTelemetryTask providesHistoricalPolicyViolationTelemetryTask() {
-    return historicalPolicyViolationTelemetryTask;
-  }
-
-  @Provides
-  AutomaticQuarantineReleaseScheduler providesAutomaticQuarantineReleaseScheduler() {
-    return automaticQuarantineReleaseScheduler;
-  }
-
-  @Provides
-  WaivedComponentUpgradeScheduler providesWaivedComponentUpgradeScheduler() {
-    return waivedComponentUpgradeScheduler;
   }
 
   @Test

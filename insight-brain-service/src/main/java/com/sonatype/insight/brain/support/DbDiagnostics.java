@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @since 1.27
  */
-class DbDiagnostics
+public class DbDiagnostics
 {
   private static final Logger log = LoggerFactory.getLogger(DbDiagnostics.class);
 

@@ -95,6 +95,7 @@ import com.sonatype.insight.brain.model.policy.stages.ComplianceStageType;
 import com.sonatype.insight.brain.model.tag.Tag;
 import com.sonatype.insight.brain.model.vulnerability.SecurityVulnerabilityOverrideStatus;
 import com.sonatype.insight.brain.organization.OrganizationService;
+import com.sonatype.insight.brain.product.license.LicensedConditionTypesListener;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
@@ -130,7 +131,7 @@ public abstract class AbstractPolicyEditorTest
     extends AbstractFunctionalTest
 {
   protected static final String YE_OLE_ORGANIZATION = "Ye Ole Organization";
-  
+
   protected static final String COMPLIANCE = new ComplianceStageType().getId();
 
   private Owner currentOwner;
@@ -154,6 +155,14 @@ public abstract class AbstractPolicyEditorTest
     policyDAO = lookup(PolicyDAO.class);
     licenseThreatGroupDAO = lookup(LicenseThreatGroupDAO.class);
     roleDAO = lookup(RoleDAO.class);
+
+    // Manually trigger the LicensedConditionTypesListener to enable condition types
+    // This is necessary because functional tests use TestProductLicenseManager which bypasses
+    // the normal license change notification system. This must be done in @Before (not static block)
+    // because Guice's injectConditionTypes() method resets all condition types to their default
+    // enabled/disabled state during dependency injection.
+    LicensedConditionTypesListener listener = lookup(LicensedConditionTypesListener.class);
+    listener.productLicenseChanged();
   }
 
   private static void assertCondition(
@@ -248,23 +257,23 @@ public abstract class AbstractPolicyEditorTest
         "pypi:MarkupSafe:1.1.0:cp37:tar.gz");
     assertCondition(constraint.getConditions().get(4), LabelConditionType.ID, "is", sampleLabel.getId());
     assertCondition(constraint.getConditions().get(5),
-            LicenseConditionType.ID, "is", "ABBYY-RTR-SDK-LA");
+        LicenseConditionType.ID, "is", "ABBYY-RTR-SDK-LA");
     assertCondition(constraint.getConditions().get(6), LicenseStatusConditionType.ID, "is not",
         LicenseOverrideStatus.CONFIRMED.name());
     assertCondition(constraint.getConditions().get(7), LicenseThreatGroupConditionType.ID, "is",
         licenseThreatGroupDAO.getByName("Liberal").get(0).getId());
     assertCondition(constraint.getConditions().get(8),
-            LicenseThreatGroupLevelConditionType.ID, ">=", "5");
+        LicenseThreatGroupLevelConditionType.ID, ">=", "5");
     assertCondition(constraint.getConditions().get(9),
-            SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
+        SecurityVulnerabilitySeverityConditionType.ID, ">", "1");
     assertCondition(constraint.getConditions().get(10), SecurityVulnerabilityStatusConditionType.ID, "is",
         SecurityVulnerabilityOverrideStatus.NOT_APPLICABLE.name());
     assertCondition(constraint.getConditions().get(11),
-            RelativePopularityConditionType.ID, "=", "50");
+        RelativePopularityConditionType.ID, "=", "50");
     assertCondition(constraint.getConditions().get(12), MatchStateConditionType.ID, "is not",
         MatchState.UNKNOWN.getId());
     assertCondition(constraint.getConditions().get(13),
-            ProprietaryConditionType.ID, "is false", null);
+        ProprietaryConditionType.ID, "is false", null);
     assertCondition(constraint.getConditions().get(14), IdentificationSourceConditionType.ID, "is not",
         IdentificationSource.MANUAL.getId());
     assertCondition(constraint.getConditions().get(15), PackageUrlConditionType.ID, "matches",
@@ -276,24 +285,24 @@ public abstract class AbstractPolicyEditorTest
     assertCondition(constraint.getConditions().get(18), PackageUrlConditionType.ID, "matches",
         "pkg:pypi/*/*/a@*?extension=*&qualifier=*");
     assertCondition(constraint.getConditions().get(19),
-            PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
+        PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/a@*");
     assertCondition(constraint.getConditions().get(20), PackageUrlConditionType.ID, "matches",
         "pkg:conan/*/*/a@*?channel=*");
     assertCondition(constraint.getConditions().get(21),
-            PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
+        PackageUrlConditionType.ID, "matches", "pkg:golang/*/*/*@*");
     assertCondition(constraint.getConditions().get(22), HygieneRatingConditionType.ID, "is not",
         HygieneRating.getById("4").getId());
     assertCondition(constraint.getConditions().get(23), DataSourceConditionType.ID, HAS_NO_SUPPORT_FOR,
         ComponentDataSource.getById("identity").getId());
     assertCondition(constraint.getConditions().get(24),
-            DependencyTypeConditionType.ID, "is not", "transitive");
+        DependencyTypeConditionType.ID, "is not", "transitive");
     assertCondition(constraint.getConditions().get(25),
-            SecurityVulnerabilityCategoryConditionType.ID, "is not",
+        SecurityVulnerabilityCategoryConditionType.ID, "is not",
         "configuration");
     assertCondition(constraint.getConditions().get(26), IntegrityRatingConditionType.ID, "is not",
         IntegrityRating.getById("1").getId());
     assertCondition(constraint.getConditions().get(27),
-            DependencyTypeConditionType.ID, "is", "innersource");
+        DependencyTypeConditionType.ID, "is", "innersource");
     assertCondition(constraint.getConditions().get(28),
         ComponentEndOfLifeConditionType.ID, "is false", null);
     assertThat(newPolicy.getActions().get(Stage.ID_BUILD)).isEqualTo("warn");
@@ -424,7 +433,7 @@ public abstract class AbstractPolicyEditorTest
         LicensedFeature.POLICY_GRANDFATHERING, LicensedFeature.ENFORCEMENT, LicensedFeature.SBOM_MANAGER,
         LicensedFeature.ORGS_AND_APPS, LicensedFeature.NOTIFICATIONS);
     setLicensedProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER_SAAS, ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
-    
+
     String ownerId = currentOwner.getId();
     Tag[] categories = createCategories(
         OwnerType.ORGANIZATION.equals(currentOwner.getType()) ? ownerId : currentOwner.getParentOwnerId());
@@ -433,27 +442,27 @@ public abstract class AbstractPolicyEditorTest
     refreshOrOpen(OwnerSummaryPage.url(currentOwner));
 
     OwnerSummaryPage.policyTile().localPolicyList().row(1).click();
-    
+
     SummarySection summarySection = PolicyEditorPage.summarySection();
     summarySection.policyName().input().shouldBe(visible, enabled);
     summarySection.threatLevel().shouldNotHave(cssClass("disabled"));
     summarySection.legacyViolationCheckbox().shouldBe(visible, enabled);
-    
+
     if (OwnerType.ORGANIZATION.equals(currentOwner.getType())) {
       PolicyInheritsToSection inheritanceSection = PolicyEditorPage.inheritanceSection();
-      inheritanceSection.allChildrenInheritRadio().shouldBe(visible, enabled); 
+      inheritanceSection.allChildrenInheritRadio().shouldBe(visible, enabled);
     }
-    
+
     ConstraintSection constraintsSection = PolicyEditorPage.constraintSection();
     constraintsSection.addConstraintButton().shouldBe(visible, enabled);
     constraintsSection.constraintSummary(0).editConstraintButton().shouldBe(visible, enabled);
-    
+
     PolicyEditorPage.actionsSection().title().shouldBe(visible);
     PolicyEditorPage.actionsSection().headers().get(0).shouldNotHave(text(COMPLIANCE));
     PolicyEditorPage.actionsSection().table().shouldBe(visible);
-    
+
     PolicyEditorPage.notificationsSection().headers().get(0).shouldBe(visible)
-      .shouldNotHave(text(COMPLIANCE));
+        .shouldNotHave(text(COMPLIANCE));
     PolicyEditorPage.deleteButton().shouldBe(visible);
     OwnerDetailSidebar.policyGroup().shouldBe(visible);
   }
@@ -1076,7 +1085,7 @@ public abstract class AbstractPolicyEditorTest
     assertThat(policy.getNotifications().getApplicable(Stage.ID_OPERATE, true).getRoleNotifications()).hasSize(1);
 
     // test "All roles are being notified." message
-    addNotification.notificationType().chooseOption( "Role");
+    addNotification.notificationType().chooseOption("Role");
     addNotification.role().shouldBe(visible).chooseOption("Owner");
     addNotification.addButton().shouldNotBe(disabled).click();
     addNotification.role().shouldBe(visible).chooseOption("Component Evaluator");
@@ -1597,7 +1606,7 @@ public abstract class AbstractPolicyEditorTest
     addNotification.addButton().shouldNotBe(disabled).click();
 
     // add email notifications
-    addNotification.notificationType().chooseOption( "Email");
+    addNotification.notificationType().chooseOption("Email");
     addNotification.addButton().shouldBe(disabled);
     addNotification.email().val("aaa@sonatype.com").shouldNotHave(cssClass("ng-invalid")).shouldBe(visible);
     addNotification.addButton().shouldNotBe(disabled).click();
@@ -1798,8 +1807,8 @@ public abstract class AbstractPolicyEditorTest
 
     if (actionsReadOnly) {
       String expectedText = !proxyActionReadOnly ?
-              "Only Proxy Actions are supported with your Firewall product license." :
-              "Actions are not supported by your product license.";
+          "Only Proxy Actions are supported with your Firewall product license." :
+          "Actions are not supported by your product license.";
       PolicyEditorPage.disabledActionsMessage().shouldBe(text(expectedText));
     }
     else {
@@ -1854,8 +1863,8 @@ public abstract class AbstractPolicyEditorTest
 
     if (notificationsReadOnly) {
       String expectedText =
-              !proxyActionReadOnly ? "Only Proxy Notifications are supported with your Firewall product license."
-                      : "Notifications are not supported by your product license.";
+          !proxyActionReadOnly ? "Only Proxy Notifications are supported with your Firewall product license."
+              : "Notifications are not supported by your product license.";
       PolicyEditorPage.disabledNotificationsMessage().shouldHave(text(expectedText));
     }
     else {

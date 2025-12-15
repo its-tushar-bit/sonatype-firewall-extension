@@ -67,7 +67,12 @@ public class ApiJiraConfigurationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(JiraConfigurationListener.class).toInstance(mockJiraConfigurationListener);
+
+    // Use Multibinder to add test listeners to the Set<ConfigurationListener>
+    com.google.inject.multibindings.Multibinder<JiraConfigurationListener> listenerBinder =
+        com.google.inject.multibindings.Multibinder.newSetBinder(binder, JiraConfigurationListener.class);
+    listenerBinder.addBinding().toInstance(mockJiraConfigurationListener);
+
     super.configure(binder);
   }
 
@@ -105,7 +110,7 @@ public class ApiJiraConfigurationServiceTest
     dto.username = "username";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -116,7 +121,7 @@ public class ApiJiraConfigurationServiceTest
     dto.password = "password".toCharArray();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -158,7 +163,7 @@ public class ApiJiraConfigurationServiceTest
     dto.url = existing.getUrl() + "2";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_PASSWORD_ERROR_MSG);
   }
 
@@ -185,7 +190,7 @@ public class ApiJiraConfigurationServiceTest
     dto.username = "username";
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -196,7 +201,7 @@ public class ApiJiraConfigurationServiceTest
     dto.password = "password".toCharArray();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTreeIgnoreNull(dto)))
+            () -> service.setConfiguration(asTreeIgnoreNull(dto)))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -206,7 +211,7 @@ public class ApiJiraConfigurationServiceTest
     ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTree(dto, "url", "username", "customFields")))
+            () -> service.setConfiguration(asTree(dto, "url", "username", "customFields")))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 
@@ -216,7 +221,7 @@ public class ApiJiraConfigurationServiceTest
     ApiJiraConfigurationDTO dto = new ApiJiraConfigurationDTO();
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> service.setConfiguration(asTree(dto, "url", "password", "customFields")))
+            () -> service.setConfiguration(asTree(dto, "url", "password", "customFields")))
         .withMessageContaining(NO_USERNAME_PASSWORD_PAIR);
   }
 

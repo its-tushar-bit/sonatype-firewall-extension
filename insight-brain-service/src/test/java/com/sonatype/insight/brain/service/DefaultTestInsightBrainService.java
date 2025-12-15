@@ -105,7 +105,7 @@ public class DefaultTestInsightBrainService
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
 
-  private Collection<Module> extraModules = new ArrayList<>();
+  private Collection<Module> overrideModules = new ArrayList<>();
 
   @Override
   public void setHttpPort(final int port) {
@@ -382,16 +382,15 @@ public class DefaultTestInsightBrainService
   }
 
   @Override
-  public void addModules(Collection<Module> modules) {
-    extraModules.addAll(modules);
+  public void addOverrideModules(final List<Module> overrideModules) {
+    if (overrideModules != null) {
+      this.overrideModules.addAll(overrideModules);
+    }
   }
 
   @Override
-  public List<Module> modules() {
-    List<Module> modules = new ArrayList<>(extraModules);
-    modules.addAll(super.modules());
-
-    return modules;
+  protected List<Module> overrideModules() {
+    return new ArrayList<>(overrideModules);
   }
 
   private void setHdsUrl(InsightConfig config) {

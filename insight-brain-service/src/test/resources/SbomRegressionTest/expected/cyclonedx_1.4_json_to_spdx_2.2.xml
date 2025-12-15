@@ -18,44 +18,24 @@
     <attributionTexts>Evidence license text for: (LGPL-2.1-only AND Apache-2.0)</attributionTexts>
     <attributionTexts>Evidence license text for: (EPL-2.0)</attributionTexts>
     <checksums>
-      <algorithm>SHA3-256</algorithm>
-      <checksumValue>7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>SHA512</algorithm>
-      <checksumValue>74a51ff45e4c11df9ba1f0094282c80489649cb157a75fa337992d2d4592a5a1b8cb4525de8db0ae25233553924d76c36e093ea7fa9df4e5b8b07fd2e074efd6</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>SHA3-512</algorithm>
-      <checksumValue>7d584825bc1767dfabe7e82b45ccb7a1119b145fa17e76b885e71429c706cef0a3171bc6575b968eec5da56a7966c02fec5402fcee55097ac01d40c550de9d20</checksumValue>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964</checksumValue>
     </checksums>
     <checksums>
       <algorithm>SHA3-384</algorithm>
       <checksumValue>a1eea7229716487ad2ebe96b2f997a8408f32f14047994fbcc99b49012cf86c96dbd518e5d57a61b0e57dd37dd0b48f5</checksumValue>
     </checksums>
     <checksums>
-      <algorithm>SHA1</algorithm>
-      <checksumValue>9188560f22e0b73070d2efce670c74af2bdf30af</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>MD5</algorithm>
-      <checksumValue>641b6e166f8b33c5e959e2adcc18b1c7</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>BLAKE3</algorithm>
-      <checksumValue>26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>SHA384</algorithm>
-      <checksumValue>d4835048a0f57c74b8fb617d5366ab81376fc92bebe9a93bf24ba7f9da6c9aeeb6179f5d1361f6533211b15f3224cbad</checksumValue>
-    </checksums>
-    <checksums>
-      <algorithm>SHA256</algorithm>
-      <checksumValue>d88bc4e70bfb34d18b5542136639acbb26a8ae2429aa1e47489332fb389cc964</checksumValue>
+      <algorithm>SHA3-256</algorithm>
+      <checksumValue>7478c7cf41c883a04ee89f1813f687886d53fa86f791fff90690c6221e3853aa</checksumValue>
     </checksums>
     <checksums>
       <algorithm>BLAKE2b-256</algorithm>
       <checksumValue>d8779633380c050bccf4e733b763ab2abd8ad2db60b517d47fd29bbf76433237</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA3-512</algorithm>
+      <checksumValue>7d584825bc1767dfabe7e82b45ccb7a1119b145fa17e76b885e71429c706cef0a3171bc6575b968eec5da56a7966c02fec5402fcee55097ac01d40c550de9d20</checksumValue>
     </checksums>
     <checksums>
       <algorithm>BLAKE2b-512</algorithm>
@@ -65,12 +45,33 @@
       <algorithm>BLAKE2b-384</algorithm>
       <checksumValue>e728ba56c2da995a559a178116c594e8bee4894a79ceb4399d8f479e5563cb1942b85936f646d14170717c576b14db7a</checksumValue>
     </checksums>
+    <checksums>
+      <algorithm>SHA384</algorithm>
+      <checksumValue>d4835048a0f57c74b8fb617d5366ab81376fc92bebe9a93bf24ba7f9da6c9aeeb6179f5d1361f6533211b15f3224cbad</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA1</algorithm>
+      <checksumValue>9188560f22e0b73070d2efce670c74af2bdf30af</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>BLAKE3</algorithm>
+      <checksumValue>26cdc7fb3fd65fc3b621a4ef70bc7d2489d5c19e70c76cf7ec20e538df0047cf</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA512</algorithm>
+      <checksumValue>74a51ff45e4c11df9ba1f0094282c80489649cb157a75fa337992d2d4592a5a1b8cb4525de8db0ae25233553924d76c36e093ea7fa9df4e5b8b07fd2e074efd6</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>MD5</algorithm>
+      <checksumValue>641b6e166f8b33c5e959e2adcc18b1c7</checksumValue>
+    </checksums>
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:npm/acme/component@1.0.0</referenceLocator>
-      <referenceType>purl</referenceType>
+      <comment>An external SBOM that describes what this component includes</comment>
+      <referenceCategory>OTHER</referenceCategory>
+      <referenceLocator>https://example.org/support/sbom/portal-server/1.0.0</referenceLocator>
+      <referenceType>http://cyclonedx.org/referenctype/bom</referenceType>
     </externalRefs>
     <externalRefs>
       <comment>Security advisories from the vendor</comment>
@@ -85,14 +86,13 @@
       <referenceType>http://cyclonedx.org/referenctype/documentation</referenceType>
     </externalRefs>
     <externalRefs>
-      <comment>An external SBOM that describes what this component includes</comment>
-      <referenceCategory>OTHER</referenceCategory>
-      <referenceLocator>https://example.org/support/sbom/portal-server/1.0.0</referenceLocator>
-      <referenceType>http://cyclonedx.org/referenctype/bom</referenceType>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:npm/acme/component@1.0.0</referenceLocator>
+      <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>(EPL-2.0)</licenseConcluded>
-    <licenseDeclared>(GPL-2.0 WITH Classpath-exception-2.0 OR EPL-2.0)</licenseDeclared>
+    <licenseDeclared>(EPL-2.0 OR GPL-2.0 WITH Classpath-exception-2.0)</licenseDeclared>
     <name>com.acme:tomcat-catalina</name>
     <originator>Organization: Acme Inc</originator>
     <versionInfo>9.0.14</versionInfo>
@@ -251,15 +251,15 @@
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</referenceLocator>
+      <referenceType>purl</referenceType>
+    </externalRefs>
+    <externalRefs>
       <comment>source: Snyk</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>https://snyk.io/vuln/SNYK-JAVA-COMFASTERXMLJACKSONCORE-32111</referenceLocator>
       <referenceType>advisory</referenceType>
-    </externalRefs>
-    <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.9.4</referenceLocator>
-      <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>NOASSERTION</licenseConcluded>
@@ -296,12 +296,12 @@
   <relationships>
     <spdxElementId>SPDXRef-pkg-npm-acme-component-1.0.0</spdxElementId>
     <relationshipType>ANCESTOR_OF</relationshipType>
-    <relatedSpdxElement>SPDXRef-gnrtd0</relatedSpdxElement>
+    <relatedSpdxElement>SPDXRef-gnrtd1</relatedSpdxElement>
   </relationships>
   <relationships>
     <spdxElementId>SPDXRef-pkg-npm-acme-component-1.0.0</spdxElementId>
     <relationshipType>ANCESTOR_OF</relationshipType>
-    <relatedSpdxElement>SPDXRef-gnrtd1</relatedSpdxElement>
+    <relatedSpdxElement>SPDXRef-gnrtd0</relatedSpdxElement>
   </relationships>
   <relationships>
     <spdxElementId>SPDXRef-pkg-maven-partner-shaded-library-1.0</spdxElementId>

@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -97,7 +96,7 @@ public class ApiConfigurationService
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final List<ConfigurationListener> configurationListeners;
+  private final Provider<Set<ConfigurationListener>> configurationListenersProvider;
 
   private final InsightConfig insightConfig;
 
@@ -116,7 +115,7 @@ public class ApiConfigurationService
   @Inject
   public ApiConfigurationService(
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      List<ConfigurationListener> configurationListeners,
+      Provider<Set<ConfigurationListener>> configurationListenersProvider,
       InsightConfig insightConfig,
       TaskScheduler taskScheduler,
       ProductLicense productLicense,
@@ -126,7 +125,7 @@ public class ApiConfigurationService
       Provider<TelemetrySender> telemetrySenderProvider)
   {
     this.systemConfigurationPropertyDAO = systemConfigurationPropertyDAO;
-    this.configurationListeners = configurationListeners;
+    this.configurationListenersProvider = configurationListenersProvider;
     this.insightConfig = insightConfig;
     this.taskScheduler = taskScheduler;
     this.productLicense = productLicense;
@@ -317,7 +316,8 @@ public class ApiConfigurationService
   }
 
   public void applyConfigurationToClients(Set<String> propertyNames) {
-    configurationListeners.forEach(configurationListener -> configurationListener.configurationChanged(propertyNames));
+    configurationListenersProvider.get()
+        .forEach(listener -> listener.configurationChanged(propertyNames));
   }
 
   public void updateAllClusterNodesFromConfiguration(Set<String> propertyNames) {

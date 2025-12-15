@@ -15,6 +15,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.audit.Audited;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;
 import com.sonatype.insight.license.model.LicensedFeature;
@@ -25,6 +26,7 @@ import com.codahale.metrics.annotation.Timed;
  * @since 1.55
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(SuccessMetricsResource.RESOURCE_PATH)
 @ProductLicenseEnforcementPoint(LicensedFeature.SUCCESS_METRICS)

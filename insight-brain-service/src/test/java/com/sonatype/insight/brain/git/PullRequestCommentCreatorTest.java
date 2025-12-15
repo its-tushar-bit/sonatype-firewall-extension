@@ -6,11 +6,12 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
@@ -383,7 +384,7 @@ public class PullRequestCommentCreatorTest
 
     private final LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
-    private final List<PullRequestPostCommentAction> postCommentActionList = new ArrayList<>();
+    private final Set<PullRequestPostCommentAction> postCommentActionList = new HashSet<>();
 
     private Optional<String> markup = Optional.of("default-markup");
 

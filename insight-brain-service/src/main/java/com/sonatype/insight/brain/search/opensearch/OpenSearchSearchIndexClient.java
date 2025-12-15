@@ -95,6 +95,7 @@ import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.client.transport.endpoints.BooleanResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * OpenSearch support for {@link SearchIndexClient}
@@ -102,6 +103,7 @@ import org.slf4j.LoggerFactory;
  * Note: See {@link com.sonatype.insight.brain.search.SearchModule} for Guice bindings
  */
 @Singleton
+@InvisibleForScanner
 public class OpenSearchSearchIndexClient
     extends AbstractSearchIndexClient
 {

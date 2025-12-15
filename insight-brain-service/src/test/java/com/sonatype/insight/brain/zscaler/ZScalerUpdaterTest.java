@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.util.List;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -19,7 +20,6 @@ import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
-import com.google.inject.name.Names;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,19 +69,22 @@ public class ZScalerUpdaterTest
   @Mock
   private ZScalerClient mockZScalerClient;
 
+  @Mock
+  private HdsClient mockHdsClient;
+
   @Inject
   private ZScalerUpdater underTest;
 
   @Override
   public void configure(Binder binder) {
     binder.bind(ZScalerMaliciousUrlFetcher.class)
-        .annotatedWith(Names.named("dummy"))
         .toInstance(mockZScalerMaliciousUrlFetcher);
     binder.bind(ZScalerClient.class).toInstance(mockZScalerClient);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     binder.bind(ApiZScalerService.class).toInstance(mockApiZScalerService);
     binder.bind(ProductLicense.class).toInstance(mockProductLicense);
     binder.bind(Configuration.class).toInstance(mockConfiguration);
+    binder.bind(HdsClient.class).toInstance(mockHdsClient);
     super.configure(binder);
   }
 

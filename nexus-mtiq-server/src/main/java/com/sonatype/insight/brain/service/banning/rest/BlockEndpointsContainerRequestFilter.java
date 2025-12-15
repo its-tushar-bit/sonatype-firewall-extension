@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.service.banning.rest;
 
 import java.lang.reflect.Method;
 import javax.annotation.Priority;
+import javax.inject.Inject;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.Provider;
@@ -22,8 +22,8 @@ import com.google.common.annotations.VisibleForTesting;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 /**
- * This filter checks for endpoint methods or resource classes annotated with BlockIfMultiTenant and stop the request
- * to send back a NOT_FOUND response
+ * This filter checks for endpoint methods or resource classes annotated with BlockIfMultiTenant and stop the request to
+ * send back a NOT_FOUND response
  */
 @Provider
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
@@ -34,15 +34,16 @@ public class BlockEndpointsContainerRequestFilter
 {
   public static final int PRIORITY = Priorities.AUTHENTICATION / 2;
 
-  @Context
-  private ResourceInfo resInfo;
+  private final javax.inject.Provider<ResourceInfo> resourceInfoProvider;
 
-  public BlockEndpointsContainerRequestFilter() {
+  @Inject
+  public BlockEndpointsContainerRequestFilter(javax.inject.Provider<ResourceInfo> resourceInfoProvider) {
+    this.resourceInfoProvider = resourceInfoProvider;
   }
 
   @VisibleForTesting
   public BlockEndpointsContainerRequestFilter(ResourceInfo resInfo) {
-    this.resInfo = resInfo;
+    this.resourceInfoProvider = () -> resInfo;
   }
 
   @Override
@@ -53,6 +54,7 @@ public class BlockEndpointsContainerRequestFilter
   }
 
   private boolean isClassBlocked() {
+    ResourceInfo resInfo = resourceInfoProvider.get();
     Class<?> clazz = resInfo.getResourceClass();
 
     if (clazz == null) {
@@ -72,6 +74,7 @@ public class BlockEndpointsContainerRequestFilter
   }
 
   private boolean isMethodBlocked() {
+    ResourceInfo resInfo = resourceInfoProvider.get();
     Method method = resInfo.getResourceMethod();
 
     if (method == null) {

@@ -178,7 +178,7 @@ public class HybridSbomPersistenceServiceTest
     hybridSbomPersistenceService = new HybridSbomPersistenceService(
         insightConfig,
         () -> spiedProvider,
-        apiConfigurationService
+        () -> apiConfigurationService
     );
   }
 

@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
@@ -62,7 +62,7 @@ public class TenantManagerTest
   @Mock
   DeletedTenantDAO deletedTenantDAO;
 
-  List<TenantManaged> tenantManagedBeans;
+  Set<TenantManaged> tenantManagedBeans;
 
   Tenant tenant = new Tenant(TENANT_NAME);
 
@@ -72,10 +72,10 @@ public class TenantManagerTest
   @Override
   public void setup() {
     super.setup();
-    tenantManagedBeans = new ArrayList<>();
+    tenantManagedBeans = new HashSet<>();
     tenantManagedBeans.add(job);
 
-    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisioner,
+    underTest = new TenantManager(() -> tenantManagedBeans, () -> lifecycle, databaseProvisioner,
         tenantValidator, deletedTenantDAO, tenantService);
 
     when(tenantValidator.validateTenantExists(tenant)).thenReturn(true);
@@ -154,7 +154,7 @@ public class TenantManagerTest
   public void shouldNotRegister_allTenantsJobs() {
     tenantManagedBeans.add(allTenantsJob);
 
-    underTest = new TenantManager(tenantManagedBeans, () -> lifecycle, databaseProvisioner,
+    underTest = new TenantManager(() -> tenantManagedBeans, () -> lifecycle, databaseProvisioner,
         tenantValidator, deletedTenantDAO, tenantService);
 
     testAsNewTenant(t -> {
@@ -264,7 +264,7 @@ public class TenantManagerTest
     underTest.deregisterTenant(tenant.tenantSlug);
 
     assertThat(underTest.isTenantRegistered(tenant)).isFalse();
-    verify(tenantManagedBeans.get(0), atMostOnce()).deregister();
+    verify(tenantManagedBeans.iterator().next(), atMostOnce()).deregister();
   }
 
   @Test
@@ -280,16 +280,16 @@ public class TenantManagerTest
   public void shouldDeregisterTenantIfTenantSlugIsNotBlank() {
     underTest.deregisterTenant("tenant-slug");
 
-    verify(tenantManagedBeans.get(0), atMostOnce()).deregister();
+    verify(tenantManagedBeans.iterator().next(), atMostOnce()).deregister();
   }
 
   @Test
   public void shouldNotDeregisterTenantIfTenantSlugIsBlank() {
     underTest.deregisterTenant(null);
-    verify(tenantManagedBeans.get(0), never()).deregister();
+    verify(tenantManagedBeans.iterator().next(), never()).deregister();
 
     underTest.deregisterTenant("");
-    verify(tenantManagedBeans.get(0), never()).deregister();
+    verify(tenantManagedBeans.iterator().next(), never()).deregister();
   }
 
   @Test

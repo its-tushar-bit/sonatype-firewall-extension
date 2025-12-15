@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -56,7 +56,7 @@ public class PullRequestCommentCreator
   private final PullRequestLineCommentingService pullRequestLineCommentingService;
 
   // note: the framework will inject an empty list in the event there are no post-comment action classes defined
-  private final List<PullRequestPostCommentAction> pullRequestPostCommentActionList;
+  private final Set<PullRequestPostCommentAction> pullRequestPostCommentActionList;
 
   private final PullRequestLocationDiscoveryService locationDiscoveryService;
 
@@ -76,7 +76,7 @@ public class PullRequestCommentCreator
       final PullRequestCommentingClient pullRequestCommentingClient,
       final PullRequestCommentingMetricsService prCommentingMetricsService,
       final PullRequestLineCommentingService pullRequestLineCommentingService,
-      final List<PullRequestPostCommentAction> pullRequestPostCommentActionList,
+      final Set<PullRequestPostCommentAction> pullRequestPostCommentActionList,
       final PullRequestLocationDiscoveryService locationDiscoveryService,
       final DevelopmentPrioritiesUtilsService developmentPrioritiesUtilsService,
       final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,

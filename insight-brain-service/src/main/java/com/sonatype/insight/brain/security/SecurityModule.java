@@ -9,11 +9,9 @@ import java.util.Collections;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.security.oauth2.JwtAuthenticationFilter;
-import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.security.oauth2.OidcLoginFilter;
 
 import com.google.inject.binder.AnnotatedBindingBuilder;
@@ -56,13 +54,25 @@ public class SecurityModule
     expose(FilterChainResolver.class);
     bind(FilterChainManager.class).to(DefaultFilterChainManager.class).in(Singleton.class);
     bind(Authenticator.class).to(FirstSuccessfulRealmAuthenticator.class);
-    bindRealm().to(InternalRealm.class);
-    bindRealm().to(UserTokenRealm.class);
-    bindRealm().to(LdapRealm.class);
-    bindRealm().to(CrowdRealm.class);
-    bindRealm().to(ReverseProxyRealm.class);
-    bindRealm().to(SamlRealm.class);
-    bindRealm().to(OAuth2Realm.class);
+
+    // Explicitly bind each Realm to the Set<Realm> multibinder
+    // This is necessary because MultiBinderModule skips Realm to avoid conflicts with ShiroModule's multibinder
+    // Order is important - realms are tried in order during authentication
+    bindRealm().to(com.sonatype.insight.brain.security.InternalRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.security.UserTokenRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.configuration.ldap.LdapRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.security.CrowdRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.security.ReverseProxyRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.security.SamlRealm.class);
+    bindRealm().to(com.sonatype.insight.brain.security.oauth2.OAuth2Realm.class);
+
+    // Bind package-private filters that are only used within this package
+    bind(MissingAuthenticationFilter.class);
+    expose(MissingAuthenticationFilter.class);
+    bind(SamlFilter.class);
+    expose(SamlFilter.class);
+    bind(UserFriendlyBasicHttpAuthenticationFilter.class);
+
     binder().requestInjection(new ComponentConfigurator());
   }
 

@@ -17,7 +17,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.subject.PrincipalCollection;
 
 @Named
-class JavaLangErrorHandlerAuthListener
+public class JavaLangErrorHandlerAuthListener
     implements AuthenticationListener
 {
   private final JavaLangErrorHandler javaLangErrorHandler;

@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.api.v2.dto.SsoConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiOidcConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -30,6 +31,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * @since 1.198
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(value = PublicApiPaths.OIDC_CONFIG_RESOURCE_PATH_V2)
 @Tag(name = "Config OIDC",

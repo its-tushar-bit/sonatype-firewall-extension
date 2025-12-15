@@ -24,12 +24,14 @@ import com.sonatype.insight.json.store.JsonUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_CONFIG_ERROR_MSG;
 import static com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService.BAD_DEFAULT_BRANCH_MONITORING_START_TIME;
 import static com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO.NOT_FOUND_ERROR_MSG;
@@ -62,7 +64,10 @@ public class ApiSourceControlConfigurationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(SourceControlConfigurationListener.class).toInstance(mockSourceControlConfigurationListener);
+
+    Multibinder<SourceControlConfigurationListener>
+        multiBinder = newSetBinder(binder, SourceControlConfigurationListener.class);
+    multiBinder.addBinding().toInstance(mockSourceControlConfigurationListener);
     super.configure(binder);
   }
 

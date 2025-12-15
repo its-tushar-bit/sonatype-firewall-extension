@@ -8,13 +8,12 @@ package com.sonatype.insight.brain.audit;
 import java.lang.reflect.Method;
 import javax.annotation.Priority;
 import javax.inject.Inject;
+import javax.inject.Provider;
 import javax.ws.rs.Priorities;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -22,7 +21,6 @@ import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.Application;
 
-import com.google.common.annotations.VisibleForTesting;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 
 /**
@@ -31,7 +29,7 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
  * this request filter is the first opportunity where the request path has been mapped to a REST resource, allowing to
  * reason about the specific operation undertaken by the caller.
  */
-@Provider
+@javax.ws.rs.ext.Provider
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
 @Priority(AuditContainerRequestFilter.PRIORITY)
 @Order(Integer.MAX_VALUE - AuditContainerRequestFilter.PRIORITY)
@@ -48,42 +46,26 @@ public class AuditContainerRequestFilter
 
   private final RepositoryManagerDAO repositoryManagerDAO;
 
-  @Context
-  private ResourceInfo resInfo;
+  private final Provider<ResourceInfo> resourceInfoProvider;
 
-  @VisibleForTesting
-  public AuditContainerRequestFilter(
-      final ApplicationDAO applicationDAO,
-      final OrganizationDAO organizationDAO,
-      final RepositoryDAO repositoryDAO,
-      final RepositoryManagerDAO repositoryManagerDAO,
-      final ResourceInfo resInfo)
-  {
-    this(
-        applicationDAO,
-        organizationDAO,
-        repositoryDAO,
-        repositoryManagerDAO
-    );
-    this.resInfo = resInfo;
-  }
-
-  @VisibleForTesting
   @Inject
   public AuditContainerRequestFilter(
       final ApplicationDAO applicationDAO,
       final OrganizationDAO organizationDAO,
       final RepositoryDAO repositoryDAO,
-      final RepositoryManagerDAO repositoryManagerDAO)
+      final RepositoryManagerDAO repositoryManagerDAO,
+      final Provider<ResourceInfo> resourceInfoProvider)
   {
     this.applicationDAO = applicationDAO;
     this.organizationDAO = organizationDAO;
     this.repositoryDAO = repositoryDAO;
     this.repositoryManagerDAO = repositoryManagerDAO;
+    this.resourceInfoProvider = resourceInfoProvider;
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
+    ResourceInfo resInfo = resourceInfoProvider.get();
     Method method = resInfo.getResourceMethod();
     if (method != null) {
       Audited audited = method.getAnnotation(Audited.class);

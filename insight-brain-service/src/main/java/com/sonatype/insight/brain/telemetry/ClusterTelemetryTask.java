@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -33,7 +33,7 @@ public class ClusterTelemetryTask
 
   private static final String TELEMETRY_SEND_ERROR = "Cluster telemetry task error";
 
-  private final List<TelemetryCollector> clusterTelemetryCollectors;
+  private final Set<TelemetryCollector> clusterTelemetryCollectors;
 
   private final TaskScheduler taskScheduler;
 
@@ -48,7 +48,7 @@ public class ClusterTelemetryTask
       TelemetrySender telemetrySender)
   {
     this.clusterTelemetryCollectors = telemetryCollectorsProvider.getTelemetryCollectors().stream()
-        .filter(TelemetryCollector::isClusterTelemetry).collect(Collectors.toList());
+        .filter(TelemetryCollector::isClusterTelemetry).collect(Collectors.toSet());
     this.taskScheduler = taskScheduler;
     this.telemetrySender = telemetrySender;
   }

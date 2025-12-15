@@ -10,70 +10,70 @@
         </component>
       </components>
     </tools>
-    <component bom-ref="974079bd-9e05-46f7-9c96-070cd6d69afd" type="application">
-      <name>DUMMY-PUBLIC-ID-fb590b6205cb4eafa46b447c756c738a</name>
+    <component type="application" bom-ref="15fc0fe3-5abf-4464-a197-8a8a838d530c">
+      <name>DUMMY-PUBLIC-ID-ba70f8c5cfdd48378a4dafab50aa764e</name>
       <version>1.0.1</version>
     </component>
   </metadata>
   <components>
-    <component bom-ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820" type="library">
+    <component type="library" bom-ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820">
       <group>org.apache.logging.log4j</group>
       <name>log4j-core</name>
       <version>2.13.2</version>
       <licenses>
-        <license bom-ref="ecdb330b-9491-48b4-b429-f87b8e67bdd2">
+        <license bom-ref="0750954c-6d6f-47d0-ac13-1c13c1c84d53">
           <id>Apache-2.0</id>
         </license>
       </licenses>
       <purl>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</purl>
     </component>
-    <component bom-ref="da83d3971bd00a068715210af7ae418b3fef1819" type="library">
+    <component type="library" bom-ref="da83d3971bd00a068715210af7ae418b3fef1819">
       <group>junit</group>
       <name>junit</name>
       <version>4.12</version>
       <licenses>
-        <license bom-ref="24fd507d-1562-47b7-bcbd-23eba45882d7">
+        <license bom-ref="64cafed5-17ad-4a71-84ef-78db948dfbe2">
           <id>EPL-1.0</id>
         </license>
       </licenses>
       <purl>pkg:maven/junit/junit@4.12?type=jar</purl>
     </component>
-    <component bom-ref="473cbbff5cc120e810c1a32cfa9925859f40ce8f" type="application">
+    <component type="application" bom-ref="473cbbff5cc120e810c1a32cfa9925859f40ce8f">
       <group>sonatype</group>
       <name>iq_application_SCM_Test</name>
       <purl>pkg:generic/sonatype/iq_application_SCM_Test</purl>
     </component>
-    <component bom-ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f" type="library">
+    <component type="library" bom-ref="7ae27c3edb8c038436ae11c8ae2bb2d11087923f">
       <group>org.hamcrest</group>
       <name>hamcrest-core</name>
       <version>1.3</version>
       <licenses>
-        <license bom-ref="a09d7609-738c-4f48-820f-0fc392ccf276">
+        <license bom-ref="d0ac1b28-f10e-41c0-a093-25ddd406e43d">
           <id>BSD-2-Clause</id>
         </license>
-        <license bom-ref="925aa763-83d7-4761-ab18-e2283bcb1878">
+        <license bom-ref="b8bb3f73-fa3e-46d7-ab89-80d93f2c3187">
           <id>BSD-3-Clause</id>
         </license>
       </licenses>
       <purl>pkg:maven/org.hamcrest/hamcrest-core@1.3?type=jar</purl>
     </component>
-    <component bom-ref="54eb26493a58d052fd2adabf1ab68b33969d9a56" type="library">
+    <component type="library" bom-ref="54eb26493a58d052fd2adabf1ab68b33969d9a56">
       <group>org.apache.logging.log4j</group>
       <name>log4j-api</name>
       <version>2.13.2</version>
       <licenses>
-        <license bom-ref="2a9c04d5-1414-44a9-9e07-72c42b3f2587">
+        <license bom-ref="6f235dd2-524a-4bba-9b87-8486ab5504f1">
           <id>Apache-2.0</id>
         </license>
       </licenses>
       <purl>pkg:maven/org.apache.logging.log4j/log4j-api@2.13.2?type=jar</purl>
     </component>
-    <component bom-ref="8ef8444bb82551413612a2c5e7c03aa4362e6022" type="library">
+    <component type="library" bom-ref="8ef8444bb82551413612a2c5e7c03aa4362e6022">
       <group>org.yaml</group>
       <name>snakeyaml</name>
       <version>1.29</version>
       <licenses>
-        <license bom-ref="31273fb1-020a-4fcf-b176-16f82ce9757a">
+        <license bom-ref="4ecd3476-db7b-4414-9862-964ee192e735">
           <id>Apache-2.0</id>
         </license>
       </licenses>
@@ -81,10 +81,10 @@
     </component>
   </components>
   <dependencies>
-    <dependency ref="974079bd-9e05-46f7-9c96-070cd6d69afd">
+    <dependency ref="15fc0fe3-5abf-4464-a197-8a8a838d530c">
+      <dependency ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820"/>
       <dependency ref="8ef8444bb82551413612a2c5e7c03aa4362e6022"/>
       <dependency ref="da83d3971bd00a068715210af7ae418b3fef1819"/>
-      <dependency ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820"/>
     </dependency>
     <dependency ref="e4ea175dcdab369a32a59e5977a8a2f6c0047820">
       <dependency ref="54eb26493a58d052fd2adabf1ab68b33969d9a56"/>
@@ -143,7 +143,7 @@
       </affects>
     </vulnerability>
     <vulnerability>
-      <id>CVE-2022-38749</id>
+      <id>CVE-2022-25857</id>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>
@@ -151,7 +151,7 @@
       </affects>
     </vulnerability>
     <vulnerability>
-      <id>CVE-2022-25857</id>
+      <id>CVE-2022-38749</id>
       <affects>
         <target>
           <ref>8ef8444bb82551413612a2c5e7c03aa4362e6022</ref>

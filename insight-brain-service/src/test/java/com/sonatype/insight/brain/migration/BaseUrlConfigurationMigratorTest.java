@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,7 +50,9 @@ public class BaseUrlConfigurationMigratorTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ConfigurationListener.class).toInstance(mockBaseUrlConfigurationListener);
+    // Add the mock listener to the multibinder set
+    Multibinder.newSetBinder(binder, ConfigurationListener.class)
+        .addBinding().toInstance(mockBaseUrlConfigurationListener);
     super.configure(binder);
   }
 

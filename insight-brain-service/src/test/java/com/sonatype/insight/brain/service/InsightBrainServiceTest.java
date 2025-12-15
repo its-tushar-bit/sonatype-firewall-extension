@@ -145,8 +145,6 @@ public class InsightBrainServiceTest
 
   @After
   public void after() {
-    System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
-
     removeBouncyCastleFipsProvider();
   }
 
@@ -510,33 +508,6 @@ public class InsightBrainServiceTest
     clusterTelemetryTask.register();
 
     // Note: this should be disabled again in AbstractBrainServiceTest.cleanupTest()
-  }
-
-  @Test
-  public void testSetSisuUrlCachesToTrueIfNotSet_NotSet() {
-    System.clearProperty(InsightBrainService.SISU_URL_CACHES);
-
-    InsightBrainService.setSisuUrlCachesToTrueIfNotSet();
-
-    assertThat(System.getProperty(InsightBrainService.SISU_URL_CACHES)).isEqualTo("true");
-  }
-
-  @Test
-  public void testSetSisuUrlCachesToTrueIfNotSet_SetToFalse() {
-    System.setProperty(InsightBrainService.SISU_URL_CACHES, "false");
-
-    InsightBrainService.setSisuUrlCachesToTrueIfNotSet();
-
-    assertThat(System.getProperty(InsightBrainService.SISU_URL_CACHES)).isEqualTo("false");
-  }
-
-  @Test
-  public void testSetSisuUrlCachesToTrueIfNotSet_SetToTrue() {
-    System.setProperty(InsightBrainService.SISU_URL_CACHES, "true");
-
-    InsightBrainService.setSisuUrlCachesToTrueIfNotSet();
-
-    assertThat(System.getProperty(InsightBrainService.SISU_URL_CACHES)).isEqualTo("true");
   }
 
   @Test

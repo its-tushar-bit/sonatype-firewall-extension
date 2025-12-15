@@ -63,7 +63,7 @@ public abstract class AbstractHdsClientTest
   protected TelemetryId telemetryId;
 
   @Override
-  public void configure(final Binder binder) {
+  public final void overrideTestBindings(final Binder binder) {
     config = new InsightConfig();
     config.setDatabase(new DatabaseConfig());
     binder.bind(InsightConfig.class).toInstance(config);

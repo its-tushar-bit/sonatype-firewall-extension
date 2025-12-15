@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -24,7 +25,7 @@ import javax.inject.Singleton;
 public class MultiTenantTelemetryCollectorsProvider
     implements TelemetryCollectorsProvider
 {
-  private final List<TelemetryCollector> telemetryCollectors;
+  private final Set<TelemetryCollector> telemetryCollectors;
 
   private static final List<Class> DISABLED_COLLECTORS =
       Arrays.asList(new Class[]{
@@ -33,19 +34,19 @@ public class MultiTenantTelemetryCollectorsProvider
       });
 
   @Inject
-  public MultiTenantTelemetryCollectorsProvider(final List<TelemetryCollector> telemetryCollectors) {
+  public MultiTenantTelemetryCollectorsProvider(final Set<TelemetryCollector> telemetryCollectors) {
     this.telemetryCollectors = filterDisabledCollectors(telemetryCollectors);
   }
 
   @Override
-  public List<TelemetryCollector> getTelemetryCollectors() {
+  public Set<TelemetryCollector> getTelemetryCollectors() {
     return telemetryCollectors;
   }
 
-  private static List<TelemetryCollector> filterDisabledCollectors(final List<TelemetryCollector> telemetryCollectors) {
+  private static Set<TelemetryCollector> filterDisabledCollectors(final Set<TelemetryCollector> telemetryCollectors) {
     return telemetryCollectors.stream()
         .filter(collector -> DISABLED_COLLECTORS.stream()
             .noneMatch(c -> c.isInstance(collector)))
-        .collect(Collectors.toList());
+        .collect(Collectors.toSet());
   }
 }

@@ -53,7 +53,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.nonNull;
 
 @Named
-class ApiSastScanService
+public class ApiSastScanService
 {
   private final SastScanDAO sastScanDAO;
 

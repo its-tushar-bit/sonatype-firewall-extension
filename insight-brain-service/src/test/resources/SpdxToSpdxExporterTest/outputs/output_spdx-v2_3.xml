@@ -131,7 +131,7 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750</referenceLocator>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
@@ -160,7 +160,7 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38749</referenceLocator>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <externalRefs>
@@ -172,7 +172,7 @@
     <externalRefs>
       <comment>source: NVD</comment>
       <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-25857</referenceLocator>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-38750</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
@@ -207,16 +207,16 @@
   <files>
     <SPDXID>SPDXRef-997583b27e554729b7e310678f0b5690-file</SPDXID>
     <checksums>
-      <algorithm>SHA256</algorithm>
-      <checksumValue>4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37</checksumValue>
-    </checksums>
-    <checksums>
       <algorithm>SHA512</algorithm>
       <checksumValue>790bbdde3eee17522cc51f2cd96af908815de0b0965ee30280d198b76195e38a75fdc8b65fe63e3568e48d42fce72d3afbff80b9dd258c6271e2fcca97f0ffda</checksumValue>
     </checksums>
     <checksums>
       <algorithm>SHA1</algorithm>
       <checksumValue>1915a4f74b1f1243ebe1d5e23e915f8a264e9e66</checksumValue>
+    </checksums>
+    <checksums>
+      <algorithm>SHA256</algorithm>
+      <checksumValue>4b1b6e884a83b7e34d165ca44527f5c081ae19eade65c25bf06acb44c693fc37</checksumValue>
     </checksums>
     <checksums>
       <algorithm>MD5</algorithm>

@@ -46,6 +46,9 @@ public class AdminServletTest
   @Override
   public void configure(final Binder binder) {
     super.configure(binder);
+    // Explicit bindings required for test inner classes
+    binder.bind(TestBlockResource.class);
+    binder.bind(TestBlockJob.class);
     binder.bind(ShutdownHandler.class).toInstance(spy(new TestShutdownHandler()));
   }
 

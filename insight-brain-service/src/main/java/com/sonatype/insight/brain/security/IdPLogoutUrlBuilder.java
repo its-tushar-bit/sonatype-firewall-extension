@@ -26,7 +26,7 @@ import org.keycloak.adapters.saml.SamlDeployment.IDP.SingleLogoutService;
  * by the proper resources to trigger the actual logout
  */
 @Named
-class IdPLogoutUrlBuilder
+public class IdPLogoutUrlBuilder
 {
   private final SamlDeploymentManager samlDeploymentManager;
 

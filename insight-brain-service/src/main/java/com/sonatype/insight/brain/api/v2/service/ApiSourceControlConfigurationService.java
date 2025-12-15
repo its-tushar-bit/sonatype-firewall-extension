@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.time.format.DateTimeParseException;
-import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -54,7 +54,7 @@ public class ApiSourceControlConfigurationService
 
   private final SourceControlConfigurationDAO sourceControlConfigurationDAO;
 
-  private final List<SourceControlConfigurationListener> sourceControlConfigurationListeners;
+  private final Set<SourceControlConfigurationListener> sourceControlConfigurationListeners;
 
   private final TaskScheduler taskScheduler;
 
@@ -63,7 +63,7 @@ public class ApiSourceControlConfigurationService
   @Inject
   public ApiSourceControlConfigurationService(
       SourceControlConfigurationDAO sourceControlConfigurationDAO,
-      List<SourceControlConfigurationListener> sourceControlConfigurationListeners,
+      Set<SourceControlConfigurationListener> sourceControlConfigurationListeners,
       TaskScheduler taskScheduler,
       PasswordHandler passwordHandler)
   {

@@ -5,11 +5,12 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.service.TenantManagedInitializer;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.service.TenantManagedInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 import static java.util.Comparator.comparingInt;
 import static java.util.stream.Collectors.toList;
@@ -30,26 +32,27 @@ import static java.util.stream.Collectors.toList;
 @Singleton
 @Priority(TenantManagedInitializer.PRIORITY)
 @Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
+@InvisibleForScanner
 public class MultiTenantTenantManagedInitializer
     implements TenantManagedInitializer
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantTenantManagedInitializer.class);
 
-  private final Collection<TenantManaged> tenantLifecycles;
+  private final Provider<Set<TenantManaged>> tenantLifecyclesProvider;
 
   private final TenantUtil tenantUtil;
 
   @Inject
-  public MultiTenantTenantManagedInitializer(final Collection<TenantManaged> tenantLifecycles,
+  public MultiTenantTenantManagedInitializer(final Provider<Set<TenantManaged>> tenantLifecyclesProvider,
                                              final TenantUtil tenantUtil)
   {
-    this.tenantLifecycles = tenantLifecycles;
+    this.tenantLifecyclesProvider = tenantLifecyclesProvider;
     this.tenantUtil = tenantUtil;
   }
 
   @Override
   public void start() throws Exception {
-    List<TenantManaged> prioritizedLifecycles = tenantLifecycles.stream()
+    List<TenantManaged> prioritizedLifecycles = tenantLifecyclesProvider.get().stream()
         .sorted(comparingInt(TenantManaged::registrationPriority))
         .collect(toList());
 
@@ -72,7 +75,7 @@ public class MultiTenantTenantManagedInitializer
 
   @Override
   public void stop() throws Exception {
-    for (TenantManaged tenantLifecycle : tenantLifecycles) {
+    for (TenantManaged tenantLifecycle : tenantLifecyclesProvider.get()) {
       if (tenantLifecycle instanceof GlobalTenantJob) {
         TenantThreadLocal.runAsGlobal(() -> {
           try {

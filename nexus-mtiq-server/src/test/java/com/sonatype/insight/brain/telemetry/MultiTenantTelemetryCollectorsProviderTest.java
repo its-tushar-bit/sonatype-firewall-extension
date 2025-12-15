@@ -5,8 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -21,10 +20,10 @@ public class MultiTenantTelemetryCollectorsProviderTest
     PropertiesTelemetryCollector enabledCollector = mock(PropertiesTelemetryCollector.class);
 
     MultiTenantTelemetryCollectorsProvider underTest =
-        new MultiTenantTelemetryCollectorsProvider(Arrays.asList(disabledCollector, enabledCollector));
+        new MultiTenantTelemetryCollectorsProvider(Set.of(disabledCollector, enabledCollector));
 
-    List<TelemetryCollector> actual = underTest.getTelemetryCollectors();
+    Set<TelemetryCollector> actual = underTest.getTelemetryCollectors();
     assertThat(actual).hasSize(1);
-    assertThat(actual.get(0)).isInstanceOf(PropertiesTelemetryCollector.class);
+    assertThat(actual.iterator().next()).isInstanceOf(PropertiesTelemetryCollector.class);
   }
 }

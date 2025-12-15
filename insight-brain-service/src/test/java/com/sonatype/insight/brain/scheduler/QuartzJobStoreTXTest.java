@@ -12,8 +12,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
 
 import javax.inject.Inject;
 
@@ -74,11 +72,6 @@ public class QuartzJobStoreTXTest
   private QuartzJobStoreTX quartzJobStoreTXSpy;
 
   private List<SchedulerStateUpdaterThread> schedulerStateUpdaterThreads = new ArrayList<>();
-
-  @Override
-  public void configure(Properties properties) {
-    properties.put("scheduler.name", TaskScheduler.DEFAULT_SCHEDULER_NAME + "-" + UUID.randomUUID());
-  }
 
   @Before
   public void before() {

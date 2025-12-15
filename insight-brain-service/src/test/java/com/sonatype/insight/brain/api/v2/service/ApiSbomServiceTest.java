@@ -102,6 +102,7 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.readFileToString;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.setupScenarioWithMetadataComponentSecurityLicenseAndVex;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatNoException;
@@ -364,6 +365,7 @@ public class ApiSbomServiceTest
     if (outputFormat == SbomFormat.JSON) {
       assertThatJson(sbomContent)
           .whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS)
+          .withOptions(IGNORING_ARRAY_ORDER)
           .isEqualTo(expectedContentIn(outputFileName));
     }
     else {

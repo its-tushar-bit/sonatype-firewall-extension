@@ -25,6 +25,8 @@ import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
+
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
 
 /**
@@ -35,6 +37,7 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
  */
 @Named
 @Singleton
+@InvisibleForScanner
 public class SsoUserService
     implements TenantManaged
 {

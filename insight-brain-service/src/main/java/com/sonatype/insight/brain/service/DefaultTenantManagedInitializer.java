@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collection;
+import java.util.Set;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
@@ -14,6 +14,7 @@ import javax.inject.Singleton;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * This class ensure that, in a single tenant deployment, job registration/creation happens at startup and
@@ -31,13 +32,14 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 @Singleton
 @Priority(TenantManagedInitializer.PRIORITY)
 @Order(Integer.MAX_VALUE - TenantManagedInitializer.PRIORITY)
+@InvisibleForScanner
 public class DefaultTenantManagedInitializer
     implements TenantManagedInitializer
 {
-  private final Collection<TenantManaged> tenantManagedBeans;
+  private final Set<TenantManaged> tenantManagedBeans;
 
   @Inject
-  public DefaultTenantManagedInitializer(final Collection<TenantManaged> tenantManagedBeans) {
+  public DefaultTenantManagedInitializer(final Set<TenantManaged> tenantManagedBeans) {
     this.tenantManagedBeans = tenantManagedBeans;
   }
 

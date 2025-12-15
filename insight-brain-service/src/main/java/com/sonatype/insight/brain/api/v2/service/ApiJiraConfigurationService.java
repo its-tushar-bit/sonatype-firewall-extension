@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -60,7 +60,7 @@ public class ApiJiraConfigurationService
 
   private final PasswordHandler passwordHandler;
 
-  private final List<JiraConfigurationListener> jiraConfigurationListeners;
+  private final Set<JiraConfigurationListener> jiraConfigurationListeners;
 
   private final TaskScheduler taskScheduler;
 
@@ -68,7 +68,7 @@ public class ApiJiraConfigurationService
   public ApiJiraConfigurationService(
       JiraConfigurationDAO jiraConfigurationDAO,
       PasswordHandler passwordHandler,
-      List<JiraConfigurationListener> jiraConfigurationListeners,
+      Set<JiraConfigurationListener> jiraConfigurationListeners,
       TaskScheduler taskScheduler)
   {
     this.jiraConfigurationDAO = jiraConfigurationDAO;

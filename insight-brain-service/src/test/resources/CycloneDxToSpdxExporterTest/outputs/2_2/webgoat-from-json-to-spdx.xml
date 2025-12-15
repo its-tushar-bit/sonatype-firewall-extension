@@ -20,12 +20,6 @@
       <referenceType>purl</referenceType>
     </externalRefs>
     <externalRefs>
-      <comment>source: NVD</comment>
-      <referenceCategory>SECURITY</referenceCategory>
-      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
-      <referenceType>advisory</referenceType>
-    </externalRefs>
-    <externalRefs>
       <comment>source: SONATYPE</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://localhost:8070/ui/links/vln/sonatype-2010-0053</referenceLocator>
@@ -35,6 +29,12 @@
       <comment>source: SOURCE</comment>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://www.source.com/abc-123</referenceLocator>
+      <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <comment>source: NVD</comment>
+      <referenceCategory>SECURITY</referenceCategory>
+      <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-23307</referenceLocator>
       <referenceType>advisory</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>

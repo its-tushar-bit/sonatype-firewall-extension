@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadFactory;
@@ -47,7 +47,7 @@ public class DefaultTelemetrySchedulerTest
   @Before
   public void before() {
     defaultTelemetryScheduler = new DefaultTelemetryScheduler(
-        new DefaultTelemetryCollectorsProvider(Arrays.asList(telemetryCollector1, telemetryCollector2)),
+        new DefaultTelemetryCollectorsProvider(Set.of(telemetryCollector1, telemetryCollector2)),
         telemetrySender, scheduledExecutorService);
   }
 

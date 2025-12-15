@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 import javax.inject.Inject;
@@ -53,7 +53,7 @@ public class ApiProxyServerConfigurationService
 
   private final PasswordHandler passwordHandler;
 
-  private final List<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
+  private final Set<ProxyServerConfigurationListener> proxyServerConfigurationListeners;
 
   private final TaskScheduler taskScheduler;
 
@@ -61,7 +61,7 @@ public class ApiProxyServerConfigurationService
   public ApiProxyServerConfigurationService(
       ProxyServerConfigurationDAO proxyServerConfigurationDAO,
       PasswordHandler passwordHandler,
-      List<ProxyServerConfigurationListener> proxyServerConfigurationListeners,
+      Set<ProxyServerConfigurationListener> proxyServerConfigurationListeners,
       TaskScheduler taskScheduler)
   {
     this.proxyServerConfigurationDAO = proxyServerConfigurationDAO;

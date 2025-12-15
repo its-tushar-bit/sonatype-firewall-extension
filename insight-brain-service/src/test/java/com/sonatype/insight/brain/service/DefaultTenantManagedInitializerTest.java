@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
@@ -22,7 +22,7 @@ public class DefaultTenantManagedInitializerTest
     TenantManaged tenantManaged = mock(TenantManaged.class);
 
     DefaultTenantManagedInitializer initializer =
-        new DefaultTenantManagedInitializer(ImmutableList.of(job1, job2, tenantManaged));
+        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged));
 
     initializer.start();
 
@@ -38,7 +38,7 @@ public class DefaultTenantManagedInitializerTest
     TenantManaged tenantManaged = mock(TenantManaged.class);
 
     DefaultTenantManagedInitializer initializer =
-        new DefaultTenantManagedInitializer(ImmutableList.of(job1, job2, tenantManaged));
+        new DefaultTenantManagedInitializer(ImmutableSet.of(job1, job2, tenantManaged));
 
     initializer.stop();
 

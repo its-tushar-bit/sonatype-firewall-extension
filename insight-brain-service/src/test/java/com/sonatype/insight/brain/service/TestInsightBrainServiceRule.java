@@ -105,9 +105,7 @@ public class TestInsightBrainServiceRule
       // Clear any proxy config set by previous tests
       brain.clearProxyServerConfiguration();
     }
-    if (modules != null) {
-      brain.addModules(modules);
-    }
+    brain.addOverrideModules(modules);
     brain.setConfigurator(configurator);
 
     // Need to set this configuration on DB before server start

@@ -96,7 +96,7 @@ public class AuditContainerRequestFilterTest
     RepositoryDAO repositoryDAO = daoFactory.createRepositoryDAO();
     RepositoryManagerDAO repositoryManagerDAO = daoFactory.createRepositoryManagerDAO();
     auditContainerRequestFilter = new AuditContainerRequestFilter(applicationDAO, organizationDAO, repositoryDAO,
-        repositoryManagerDAO, mockResourceInfo);
+        repositoryManagerDAO, () -> mockResourceInfo);
     organization = tempEntity.newOrganization();
     application = tempEntity.newApplication(organization.getId());
     repositoryManager = tempEntity.newRepositoryManager();

@@ -9,43 +9,40 @@ import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
 
-import org.eclipse.sisu.BeanEntry;
+import com.google.inject.Injector;
+
 import org.quartz.Job;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.spi.JobFactory;
 import org.quartz.spi.TriggerFiredBundle;
 
+/**
+ * A Guice-aware JobFactory that uses Guice's Injector to instantiate Quartz Job classes.
+ * This replaces the SisuAwareJobFactory after removing Sisu dependency.
+ */
 @Named
 @Singleton
-public class SisuAwareJobFactory
+public class GuiceAwareJobFactory
     implements JobFactory
 {
-  private final Iterable<BeanEntry<Named, Job>> entries;
+  private final Injector injector;
 
   @Inject
-  public SisuAwareJobFactory(Iterable<BeanEntry<Named, Job>> entries) {
-    this.entries = entries;
+  public GuiceAwareJobFactory(Injector injector) {
+    this.injector = injector;
   }
 
   @Override
   public Job newJob(TriggerFiredBundle bundle, Scheduler scheduler) throws SchedulerException {
     Class<? extends Job> type = bundle.getJobDetail().getJobClass();
 
-    BeanEntry<Named, Job> beanEntry = locate(type);
-    if (beanEntry == null) {
-      throw new SchedulerException("Missing job component for type: " + type.getName());
+    try {
+      // Use Guice to get or create an instance of the Job class
+      return injector.getInstance(type);
     }
-
-    return beanEntry.getProvider().get();
-  }
-
-  private BeanEntry<Named, Job> locate(Class<? extends Job> jobType) {
-    for (BeanEntry<Named, Job> jobEntry : entries) {
-      if (jobEntry.getImplementationClass().equals(jobType)) {
-        return jobEntry;
-      }
+    catch (Exception e) {
+      throw new SchedulerException("Failed to instantiate job class: " + type.getName(), e);
     }
-    return null;
   }
 }

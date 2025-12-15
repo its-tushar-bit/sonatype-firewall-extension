@@ -10,17 +10,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
-
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import com.sonatype.insight.brain.api.admin.authorization.provider.MultiTenantJwkProvider;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDataUpdater;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -73,8 +70,6 @@ import io.dropwizard.jetty.HttpsConnectorFactory;
 import io.dropwizard.util.Duration;
 import org.eclipse.jetty.server.Server;
 
-import static org.mockito.Mockito.mock;
-
 public class TestMultiTenantInsightBrainService
     extends MultiTenantInsightBrainService
     implements TestInsightBrainService
@@ -105,9 +100,7 @@ public class TestMultiTenantInsightBrainService
 
   private BiConsumer<ServletRequest, ServletResponse> restRequestFilterHandler;
 
-  private MultiTenantJwkProvider multiTenantJwkTestProvider;
-
-  private Collection<Module> extraModules = new ArrayList<>();
+  private final List<Module> overrideModules = new ArrayList<>();
 
   @Override
   public void setHttpPort(final int port) {
@@ -376,26 +369,15 @@ public class TestMultiTenantInsightBrainService
   }
 
   @Override
-  public void addModules(Collection<Module> modules) {
-    extraModules.addAll(modules);
+  public void addOverrideModules(final List<Module> overrideModules) {
+    if (overrideModules != null) {
+      this.overrideModules.addAll(overrideModules);
+    }
   }
 
   @Override
-  public List<Module> modules() {
-    List<Module> modules = new ArrayList<>(extraModules);
-    modules.addAll(super.modules());
-
-    return modules;
-  }
-
-  @Override
-  protected MultiTenantJwkProvider getMultitenantJwkProvider(final InsightConfig insightConfig) {
-    multiTenantJwkTestProvider = mock(MultiTenantJwkProvider.class);
-    return multiTenantJwkTestProvider;
-  }
-
-  protected MultiTenantJwkProvider getMultitenantJwkProvider() {
-    return multiTenantJwkTestProvider;
+  protected List<Module> overrideModules() {
+    return new ArrayList<>(overrideModules);
   }
 
   private void setHdsUrl(InsightConfig config) {

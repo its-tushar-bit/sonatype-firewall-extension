@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -137,10 +137,10 @@ public class JobClassNameTest
   }
 
   @Inject
-  private List<Job> jobs;
+  private Set<Job> jobs;
 
   @Inject
-  private List<InsightJob> insightJobs;
+  private Set<InsightJob> insightJobs;
 
   @Test
   public void testJobShouldImplementInsightJob() {

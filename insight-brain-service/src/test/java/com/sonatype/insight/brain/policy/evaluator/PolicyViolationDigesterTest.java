@@ -20,11 +20,14 @@ import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.policy.conditions.MatchStateConditionType;
 import com.sonatype.insight.brain.model.policy.facts.MatchFact;
 
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PolicyViolationDigesterTest
+    extends AbstractComponentTest
 {
   @Test
   public void testDigest_Nothing() {

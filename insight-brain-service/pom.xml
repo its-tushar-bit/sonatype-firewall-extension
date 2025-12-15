@@ -54,10 +54,6 @@
       <artifactId>guice</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.eclipse.sisu</groupId>
-      <artifactId>org.eclipse.sisu.inject</artifactId>
-    </dependency>
-    <dependency>
       <groupId>javax.inject</groupId>
       <artifactId>javax.inject</artifactId>
       <scope>compile</scope>
@@ -771,6 +767,8 @@
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
             <test.forkId>#${surefire.forkNumber}</test.forkId>
+            <!-- Use cached SPDX license info from JAR to avoid network calls during tests -->
+            <org.spdx.useJARLicenseInfoOnly>true</org.spdx.useJARLicenseInfoOnly>
           </systemPropertyVariables>
         </configuration>
         <executions>
@@ -778,19 +776,6 @@
             <goals>
               <goal>integration-test</goal>
               <goal>verify</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.eclipse.sisu</groupId>
-        <artifactId>sisu-maven-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>index-service</id>
-            <phase>process-classes</phase>
-            <goals>
-              <goal>index</goal>
             </goals>
           </execution>
         </executions>
@@ -954,6 +939,8 @@
                 <include>**/TestProductLicense*</include>
                 <include>**/TestProductLicenseManager*</include>
                 <include>**/TestProductLicenseDetailsCache/*.json</include>
+                <include>**/PolicyEvaluationHelper*</include>
+                <include>**/TestHelperModule*</include>
                 <include>**/TestQuartzJobStoreTx*</include>
                 <include>**/TestTaskScheduler*</include>
                 <include>**/QuartzJobSchedulingServiceRule**</include>
@@ -981,6 +968,8 @@
                 <include>**/TestAuditSession*</include>
                 <include>**/MockCleaner*</include>
                 <include>**/*Test*</include>
+                <include>**/git/render/*Helper*</include>
+                <include>**/utils/RandomGenerator*</include>
                 <include>**/DatabaseContainerRule*</include>
                 <include>**/H2InMemoryDatabaseConfigProvider*</include>
                 <include>**/JWTGenerator*</include>
@@ -1011,34 +1000,6 @@
       </plugin>
     </plugins>
 
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.eclipse.m2e</groupId>
-          <artifactId>lifecycle-mapping</artifactId>
-          <version>1.0.0</version>
-          <configuration>
-            <lifecycleMappingMetadata>
-              <pluginExecutions>
-                <pluginExecution>
-                  <pluginExecutionFilter>
-                    <groupId>org.eclipse.sisu</groupId>
-                    <artifactId>sisu-maven-plugin</artifactId>
-                    <versionRange>[0.3.3,)</versionRange>
-                    <goals>
-                      <goal>index</goal>
-                    </goals>
-                  </pluginExecutionFilter>
-                  <action>
-                    <ignore />
-                  </action>
-                </pluginExecution>
-              </pluginExecutions>
-            </lifecycleMappingMetadata>
-          </configuration>
-        </plugin>
-      </plugins>
-    </pluginManagement>
   </build>
 
   <profiles>

@@ -20,11 +20,13 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.doAnswer;
@@ -53,7 +55,9 @@ public class ApiProxyServerConfigurationServiceTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    Multibinder<ProxyServerConfigurationListener>
+        multiBinder = newSetBinder(binder, ProxyServerConfigurationListener.class);
+    multiBinder.addBinding().toInstance(proxyServerConfigurationListener);
     binder.bind(TaskScheduler.class).toInstance(taskSchedulerMock);
     super.configure(binder);
   }

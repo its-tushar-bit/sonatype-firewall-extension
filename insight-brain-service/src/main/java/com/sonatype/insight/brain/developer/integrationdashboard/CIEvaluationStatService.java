@@ -26,7 +26,7 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
  * @since 1.162
  */
 @Named
-class CIEvaluationStatService
+public class CIEvaluationStatService
 {
   public static final Long CICD_TRIGGERED_EVALUATION_CUT_OFF_MS = 7257600000L;
 

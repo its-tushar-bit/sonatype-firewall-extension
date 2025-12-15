@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-class RepositoryResultsService
+public class RepositoryResultsService
 {
   private static final Logger log = LoggerFactory.getLogger(RepositoryResultsService.class);
 

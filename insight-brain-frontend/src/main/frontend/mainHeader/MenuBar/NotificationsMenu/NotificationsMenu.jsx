@@ -45,7 +45,6 @@ const NotificationsMenu = (props) => {
   };
 
   const handleNotifClick = (notification) => {
-
     if (notification.summaryUrl && notification.summaryUrl.startsWith('#/')) {
       if (!notification.viewed) {
         setNotificationViewed(notification);

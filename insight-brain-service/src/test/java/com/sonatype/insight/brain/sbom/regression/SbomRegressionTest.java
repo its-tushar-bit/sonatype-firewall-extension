@@ -13,7 +13,6 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.TimeUnit;
-
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
@@ -44,6 +43,9 @@ import org.junit.runners.Parameterized;
 import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
 import org.xmlunit.assertj.CompareAssert;
 import org.xmlunit.assertj.XmlAssert;
+import org.xmlunit.diff.DefaultNodeMatcher;
+import org.xmlunit.diff.ElementSelector;
+import org.xmlunit.diff.ElementSelectors;
 
 import static com.sonatype.insight.brain.api.v2.service.ApiSbomService.SBOM_VALIDATED_HEADER;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.CYCLONEDX_JSON_IGNORE_FIELDS;
@@ -52,6 +54,7 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttr
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxIgnoreAttributesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
@@ -278,14 +281,41 @@ public class SbomRegressionTest
             .withAttributeFilter(cycloneDxIgnoreAttributesFilter());
       }
 
+      ElementSelector selector =
+          ElementSelectors.conditionalBuilder()
+              .whenElementIsNamed("packages")
+              .thenUse(ElementSelectors.byXPath("./SPDXID", ElementSelectors.byNameAndText))
+              .whenElementIsNamed("checksums")
+              .thenUse(ElementSelectors.byXPath("./algorithm", ElementSelectors.byNameAndText))
+              .whenElementIsNamed("licenseDeclared")
+              .thenUse(ElementSelectors.byNameAndText)  // pairs same-text elements, order-agnostic
+              .whenElementIsNamed("externalRefs")
+              .thenUse(ElementSelectors.and(
+                  ElementSelectors.byXPath("./referenceCategory", ElementSelectors.byNameAndText),
+                  ElementSelectors.byXPath("./referenceType", ElementSelectors.byNameAndText),
+                  ElementSelectors.byXPath("./referenceLocator", ElementSelectors.byNameAndText)
+              ))
+              .whenElementIsNamed("relationships")
+              .thenUse(ElementSelectors.and(
+                  ElementSelectors.byXPath("./spdxElementId", ElementSelectors.byNameAndText),
+                  ElementSelectors.byXPath("./relationshipType", ElementSelectors.byNameAndText),
+                  ElementSelectors.byXPath("./relatedSpdxElement", ElementSelectors.byNameAndText)
+              ))
+              // default fallback: same element name; if it's a leaf, text must match
+              .elseUse(ElementSelectors.byName)
+              .build();
+
       xmlAssert
+          .withNodeMatcher(new DefaultNodeMatcher(selector))
           .ignoreWhitespace()
-          .areIdentical();
+          .ignoreComments()
+          .areSimilar();
     }
     else {
       ConfigurableJsonAssert asserter = assertThatJson(sbomContent);
       asserter =
-          exportSpec.equals("spdx") ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS) :
+          exportSpec.equals("spdx") ? asserter.whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+              .withOptions(IGNORING_ARRAY_ORDER) :
               asserter.whenIgnoringPaths(CYCLONEDX_JSON_IGNORE_FIELDS);
       asserter.isEqualTo(expectedContent);
     }

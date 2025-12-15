@@ -16,6 +16,7 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiCrowdConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiStatusDTO;
@@ -32,6 +33,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(value = PublicApiPaths.CROWD_CONFIG_RESOURCE_PATH_V2)
 @Tag(name = "Config Crowd",

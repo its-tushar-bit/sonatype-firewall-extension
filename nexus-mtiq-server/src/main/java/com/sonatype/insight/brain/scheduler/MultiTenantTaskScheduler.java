@@ -9,6 +9,7 @@ import java.util.List;
 import javax.annotation.Priority;
 import javax.inject.Inject;
 import javax.inject.Named;
+import javax.inject.Provider;
 import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -42,11 +43,11 @@ public class MultiTenantTaskScheduler
   //Visible for test
   static final String TASK_SCHEDULER_THREAD_POOL_SIZE = "TASK_SCHEDULER_THREAD_POOL_SIZE";
 
-  private final TenantContextJobListener tenantContextJobListener;
+  private final Provider<TenantContextJobListener> tenantContextJobListener;
 
   private final SystemConfigurationPropertyDAO systemConfigurationPropertyDAO;
 
-  private final TenantManager tenantManager;
+  private final Provider<TenantManager> tenantManager;
 
   private final TenantUtil tenantUtil;
 
@@ -59,9 +60,9 @@ public class MultiTenantTaskScheduler
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
-      TenantContextJobListener tenantContextJobListener,
+      Provider<TenantContextJobListener> tenantContextJobListener,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
-      TenantManager tenantManager,
+      Provider<TenantManager> tenantManager,
       TenantUtil tenantUtil,
       ShutdownHandler shutdownHandler,
       QuartzJobSchedulingService quartzJobSchedulingService)
@@ -90,7 +91,7 @@ public class MultiTenantTaskScheduler
   }
 
   private void assertTenantsArePreRegistered() {
-    if (!tenantManager.areTenantsPreRegistered()) {
+    if (!tenantManager.get().areTenantsPreRegistered()) {
       // If this ever fails, ensure TenantManager is started BEFORE MultiTenantTaskScheduler
       System.err.println("Fatal error: Task scheduler is trying to start but tenants are not pre-registered yet");
       System.exit(11);
@@ -131,7 +132,7 @@ public class MultiTenantTaskScheduler
     try {
       Scheduler scheduler = super.createScheduler(schedulerName, jobStoreTX);
       if (scheduler != null) {
-        scheduler.getListenerManager().addJobListener(tenantContextJobListener);
+        scheduler.getListenerManager().addJobListener(tenantContextJobListener.get());
       }
       return scheduler;
     }
@@ -194,7 +195,7 @@ public class MultiTenantTaskScheduler
 
   @Override
   protected JobKey toJobKey(InsightJob insightJob) {
-    return toJobKey(insightJob, tenantManager.getTenant().tenantSlug);
+    return toJobKey(insightJob, tenantManager.get().getTenant().tenantSlug);
   }
 
   protected JobKey toJobKey(InsightJob insightJob, String tenantSlug) {
@@ -203,7 +204,7 @@ public class MultiTenantTaskScheduler
 
   @Override
   protected TriggerKey toTriggerKey(InsightJob insightJob) {
-    return TriggerKey.triggerKey(insightJob.getJobName(), tenantManager.getTenant().tenantSlug);
+    return TriggerKey.triggerKey(insightJob.getJobName(), tenantManager.get().getTenant().tenantSlug);
   }
 
   @Override

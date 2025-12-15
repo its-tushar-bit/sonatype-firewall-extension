@@ -8,9 +8,12 @@ package com.sonatype.insight.brain.api.admin;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 
+import org.apache.commons.lang3.exception.UncheckedException;
 import org.junit.Test;
 
+import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_PROVISIONING_PATH;
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -20,7 +23,7 @@ public class TenantProvisioningResourceTest
 {
   @Test
   public void shouldProvisionTenant() throws Exception {
-    HttpResponse response = provisionTenant(generateTestTenantName());
+    HttpResponse response = provisionTenantViaRest(generateTestTenantName());
 
     assertResponseStatus(204, response);
   }
@@ -28,17 +31,17 @@ public class TenantProvisioningResourceTest
   @Test
   public void shouldSend400_whenTenantAlreadyExists() throws Exception {
     String tenantSlug = generateTestTenantName();
-    HttpResponse response = provisionTenant(tenantSlug);
+    HttpResponse response = provisionTenantViaRest(tenantSlug);
     assertResponseStatus(204, response);
 
-    response = provisionTenant(tenantSlug);
+    response = provisionTenantViaRest(tenantSlug);
     assertResponseStatus(409, response);
     assertThat(response.getBodyText()).isEqualTo("Tenant already exists");
   }
 
   @Test
   public void shouldSend400_whenTenantIsGlobal() throws Exception {
-    HttpResponse response = provisionTenant("global");
+    HttpResponse response = provisionTenantViaRest("global");
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo("Invalid tenant");
@@ -48,7 +51,7 @@ public class TenantProvisioningResourceTest
   public void shouldDeleteTenant() throws Exception {
     String tenantName = generateTestTenantName();
 
-    HttpResponse createResponse = provisionTenant(tenantName);
+    HttpResponse createResponse = provisionTenantViaRest(tenantName);
     assertResponseStatus(204, createResponse);
 
     DeletedTenantDAO deletedTenantDAO = getCLMServer().getInstance(DeletedTenantDAO.class);
@@ -82,7 +85,7 @@ public class TenantProvisioningResourceTest
   public void shouldReturn400_whenTenantAlreadyMarkedForDeletion() throws Exception {
     String tenantName = generateTestTenantName();
 
-    HttpResponse createResponse = provisionTenant(tenantName);
+    HttpResponse createResponse = provisionTenantViaRest(tenantName);
     assertResponseStatus(204, createResponse);
 
     assertResponseStatus(204, deleteTenant(tenantName));
@@ -94,5 +97,29 @@ public class TenantProvisioningResourceTest
     return adminRestRequest(ADMIN_TENANT_PROVISIONING_PATH)
         .parameter(tenantName)
         .delete();
+  }
+
+  protected HttpResponse provisionTenantViaRest(final String tenantName) {
+    setTenantSlug(tenantName);
+
+    try {
+      HttpResponse httpResponse = adminRestRequest(ADMIN_TENANT_PROVISIONING_PATH)
+          .parameter(tenantName)
+          .post();
+
+      TenantTestHelper.testAsNewTenant(tenantName, tenant -> {
+        testProductLicenseRule.insertLicenseIfNeeded();
+      });
+
+      // This just makes an endpoint call which indirectly will ensure the tenant registration process is invoked
+      adminRestRequest(ADMIN_CONFIG_PATH)
+          .parameter(tenantName)
+          .get();
+
+      return httpResponse;
+    }
+    catch (Exception e) {
+      throw new UncheckedException(e);
+    }
   }
 }

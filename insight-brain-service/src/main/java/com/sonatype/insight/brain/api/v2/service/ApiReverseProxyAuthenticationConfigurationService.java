@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -45,14 +45,14 @@ public class ApiReverseProxyAuthenticationConfigurationService
 
   private final ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO;
 
-  private final List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners;
+  private final Set<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners;
 
   private final TaskScheduler taskScheduler;
 
   @Inject
   public ApiReverseProxyAuthenticationConfigurationService(
       ReverseProxyAuthenticationConfigurationDAO reverseProxyAuthenticationConfigurationDAO,
-      List<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners,
+      Set<ReverseProxyAuthenticationConfigurationListener> reverseProxyAuthenticationConfigurationListeners,
       TaskScheduler taskScheduler)
   {
     this.reverseProxyAuthenticationConfigurationDAO = reverseProxyAuthenticationConfigurationDAO;

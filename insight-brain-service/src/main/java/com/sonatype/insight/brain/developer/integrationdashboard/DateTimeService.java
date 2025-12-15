@@ -11,7 +11,7 @@ import java.util.Date;
 import javax.inject.Named;
 
 @Named
-class DateTimeService
+public class DateTimeService
 {
   public Date getCurrentDate() {
     return new Date();

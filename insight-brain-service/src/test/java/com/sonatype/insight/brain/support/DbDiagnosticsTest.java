@@ -32,11 +32,15 @@ public class DbDiagnosticsTest
   public void testGetDBFileInfo_H2() throws Exception {
     DbDiagnostics dbDiagnostics = new DbDiagnostics(databaseRule.getOperationalDataStore());
     String result = dbDiagnostics.getDBFileInfo();
+    String expectedPath = (String) databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH);
+    // getCanonicalPath() resolves symlinks, so on macOS /var becomes /private/var
+    // We need to check for the canonical path to handle this variation
+    String canonicalExpectedPath = new java.io.File(expectedPath).getCanonicalPath();
     assertThat(result)
         .startsWith("-- Database Diagnostics --\n")
         .contains("Database product name: H2")
         .contains("Database product version: ")
-        .contains("Database path: " + databaseRule.getMetadata().get(H2DiskTest.DATABASE_PATH))
+        .contains("Database path: " + canonicalExpectedPath)
         .contains("Total database size: ")
         .contains("Schema version: ")
         .contains("Latency Information")

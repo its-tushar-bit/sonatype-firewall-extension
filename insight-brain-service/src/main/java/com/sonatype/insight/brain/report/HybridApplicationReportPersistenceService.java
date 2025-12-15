@@ -38,7 +38,7 @@ public class HybridApplicationReportPersistenceService
 
   private final List<ApplicationReportPersistenceService> applicationReportPersistenceServices;
 
-  private final ApiConfigurationService apiConfigurationService;
+  private final Provider<ApiConfigurationService> apiConfigurationServiceProvider;
 
   private volatile boolean warnOnNonPrimaryStorageAccess;
 
@@ -46,7 +46,7 @@ public class HybridApplicationReportPersistenceService
   public HybridApplicationReportPersistenceService(
       final InsightConfig config,
       final Provider<ApplicationReportPersistenceServiceProvider> applicationReportPersistenceServiceProviderProvider,
-      final ApiConfigurationService apiConfigurationService)
+      final Provider<ApiConfigurationService> apiConfigurationServiceProvider)
   {
     StorageConfig storageConfig = config.getStorage();
     HybridDataStoreConfig hybridDataStoreConfig = storageConfig == null ? null : storageConfig.getHybridConfig();
@@ -65,8 +65,8 @@ public class HybridApplicationReportPersistenceService
      */
     applicationReportPersistenceServices =
         types.stream().map(t -> applicationReportPersistenceServiceProviderProvider.get().get(t)).toList();
-    this.apiConfigurationService = apiConfigurationService;
-    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+    this.apiConfigurationServiceProvider = apiConfigurationServiceProvider;
+    warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
         SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
   }
 
@@ -320,7 +320,7 @@ public class HybridApplicationReportPersistenceService
   @Override
   public void configurationChanged(final Set<String> propertyNames) {
     if (propertyNames.contains(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS)) {
-      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationService.getConfigurationNoAuthz(
+      warnOnNonPrimaryStorageAccess = (boolean) this.apiConfigurationServiceProvider.get().getConfigurationNoAuthz(
           SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS);
     }
   }

@@ -20,9 +20,11 @@ import com.sonatype.insight.brain.tenancy.TenantUtil;
 import org.apache.directory.api.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 @Named
 @Singleton
+@InvisibleForScanner
 public class MultiTenantEncryptionKeyStore
     implements EncryptionKeyStore, TenantManaged
 {

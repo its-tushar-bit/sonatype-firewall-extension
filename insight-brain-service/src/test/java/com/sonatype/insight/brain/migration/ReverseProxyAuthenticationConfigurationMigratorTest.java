@@ -21,6 +21,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,8 +54,9 @@ public class ReverseProxyAuthenticationConfigurationMigratorTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ReverseProxyAuthenticationConfigurationListener.class)
-        .toInstance(mockReverseProxyAuthenticationConfigurationListener);
+    // Add the mock listener to the multibinder set
+    Multibinder.newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class)
+        .addBinding().toInstance(mockReverseProxyAuthenticationConfigurationListener);
     super.configure(binder);
   }
 

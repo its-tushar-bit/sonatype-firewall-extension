@@ -21,7 +21,7 @@ import org.apache.shiro.subject.PrincipalCollection;
  * cookie-based authentication (successful or otherwise) or anonymous access.
  */
 @Named
-class AuditAuthenticationListener
+public class AuditAuthenticationListener
     implements AuthenticationListener
 {
   @Override

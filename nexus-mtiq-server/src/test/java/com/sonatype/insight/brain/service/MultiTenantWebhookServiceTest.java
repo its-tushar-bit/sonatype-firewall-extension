@@ -42,35 +42,43 @@ public class MultiTenantWebhookServiceTest
 
   @Test
   public void testAddWebhook_http_BadRequestException() {
-    final String secretKey = "some secret key";
-    Webhook webhook = new Webhook();
-    webhook.setUrl("http://localhost");
-    webhook.setSecretKey(secretKey);
-    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+    testAsTestTenant(t -> {
+      configuration.register();
 
-    //Throws bad request exception
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> webhookService.addWebhookNoAuthz(webhook));
+      final String secretKey = "some secret key";
+      Webhook webhook = new Webhook();
+      webhook.setUrl("http://localhost");
+      webhook.setSecretKey(secretKey);
+      webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+
+      //Throws bad request exception
+      assertThatExceptionOfType(BadRequestException.class)
+          .isThrownBy(() -> webhookService.addWebhookNoAuthz(webhook));
+    });
   }
 
   @Test
   public void testAddWebhook_https() throws PlexusCipherException {
-    final String secretKey = "some secret key";
-    Webhook webhook = new Webhook();
-    webhook.setUrl("https://localhost");
-    webhook.setSecretKey(secretKey);
-    webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
-    webhook = webhookService.addWebhookNoAuthz(webhook);
+    testAsTestTenant(t -> {
+      configuration.register();
 
-    webhook = webhookDAO.getByIdNotNull(webhook.getId());
-    assertThat(webhook.getSecretKey()).isNotEqualTo(secretKey);
+      final String secretKey = "some secret key";
+      Webhook webhook = new Webhook();
+      webhook.setUrl("https://localhost");
+      webhook.setSecretKey(secretKey);
+      webhook.setEventTypes(EnumSet.of(APPLICATION_EVALUATION));
+      Webhook savedWebhook = webhookService.addWebhookNoAuthz(webhook);
 
-    synchronized (plexusCipher) {
-      final String decryptedSecretKey = plexusCipher
-          .decrypt(webhook.getSecretKey(), configuration.getWebhookSecretPassphrase());
-      assertThat(decryptedSecretKey).isEqualTo(secretKey);
-    }
+      Webhook retrievedWebhook = webhookDAO.getByIdNotNull(savedWebhook.getId());
+      assertThat(retrievedWebhook.getSecretKey()).isNotEqualTo(secretKey);
 
-    webhookDAO.delete(webhook);
+      synchronized (plexusCipher) {
+        final String decryptedSecretKey = plexusCipher
+            .decrypt(retrievedWebhook.getSecretKey(), configuration.getWebhookSecretPassphrase());
+        assertThat(decryptedSecretKey).isEqualTo(secretKey);
+      }
+
+      webhookDAO.delete(retrievedWebhook);
+    });
   }
 }

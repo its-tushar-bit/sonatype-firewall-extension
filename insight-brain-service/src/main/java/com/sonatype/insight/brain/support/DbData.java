@@ -65,7 +65,7 @@ import static com.sonatype.nexus.git.utils.repository.RepositoryUrlFinderUtils.m
  */
 @Named
 @Singleton
-class DbData
+public class DbData
 {
   private final RepositoryManagerDAO repositoryManagerDAO;
 

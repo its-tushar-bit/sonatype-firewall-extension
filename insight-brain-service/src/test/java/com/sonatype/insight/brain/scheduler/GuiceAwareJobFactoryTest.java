@@ -21,11 +21,11 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-public class SisuAwareJobFactoryTest
+public class GuiceAwareJobFactoryTest
     extends AbstractComponentTest
 {
   @Inject
-  private SisuAwareJobFactory sisuAwareJobFactory;
+  private GuiceAwareJobFactory guiceAwareJobFactory;
 
   @Test
   public void testNewJob_JobClassExists() throws Exception {
@@ -34,9 +34,10 @@ public class SisuAwareJobFactoryTest
     doReturn(TestJob.class).when(jobDetailMock).getJobClass();
     when(triggerFiredBundleMock.getJobDetail()).thenReturn(jobDetailMock);
 
-    Job job = sisuAwareJobFactory.newJob(triggerFiredBundleMock, null);
+    Job job = guiceAwareJobFactory.newJob(triggerFiredBundleMock, null);
 
     assertThat(job).isNotNull();
+    assertThat(job).isInstanceOf(TestJob.class);
   }
 
   @Test
@@ -47,7 +48,7 @@ public class SisuAwareJobFactoryTest
     when(triggerFiredBundleMock.getJobDetail()).thenReturn(jobDetailMock);
 
     assertThatExceptionOfType(SchedulerException.class)
-        .isThrownBy(() -> sisuAwareJobFactory.newJob(triggerFiredBundleMock, null))
-        .withMessage("Missing job component for type: java.lang.Object");
+        .isThrownBy(() -> guiceAwareJobFactory.newJob(triggerFiredBundleMock, null))
+        .withMessageContaining("Failed to instantiate job class: java.lang.Object");
   }
 }

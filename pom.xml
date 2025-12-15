@@ -57,7 +57,6 @@
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.
       https://github.com/sonatype/insight-brain/pull/10613/files#r1394208485
     -->
-    <sisu-inject.version>0.9.0.M3</sisu-inject.version>
     <clm.dto.model.version>2.1.7-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
     <jetty.version>10.0.26</jetty.version>
@@ -586,11 +585,6 @@
         <groupId>com.google.inject</groupId>
         <artifactId>guice</artifactId>
         <version>${guice.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.sisu</groupId>
-        <artifactId>org.eclipse.sisu.inject</artifactId>
-        <version>${sisu-inject.version}</version>
       </dependency>
 
       <dependency>

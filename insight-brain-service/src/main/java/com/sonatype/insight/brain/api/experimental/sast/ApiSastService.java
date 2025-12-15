@@ -14,7 +14,7 @@ import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 @Named
-class ApiSastService
+public class ApiSastService
 {
   private final FeaturesService featuresService;
 

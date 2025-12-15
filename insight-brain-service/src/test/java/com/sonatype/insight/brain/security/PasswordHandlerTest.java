@@ -11,8 +11,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
-import org.eclipse.sisu.launch.InjectedTest;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @Category(SlowTest.class)
 public class PasswordHandlerTest
-    extends InjectedTest
+    extends BrainInjectedTest
 {
   @Rule
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();

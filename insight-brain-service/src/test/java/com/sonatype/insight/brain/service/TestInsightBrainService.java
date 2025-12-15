@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import java.util.Collection;
+import java.util.List;
 
 import com.sonatype.insight.brain.db.DatabaseContainer;
 import com.sonatype.insight.brain.model.configuration.ProxyServerConfiguration;
@@ -62,7 +62,7 @@ public interface TestInsightBrainService
 
   InsightConfig getConfiguration();
 
-  void addModules(Collection<Module> modules);
+  void addOverrideModules(List<Module> overrideModules);
 
   Injector getInjector();
 

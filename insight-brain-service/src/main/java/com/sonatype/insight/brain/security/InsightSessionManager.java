@@ -5,14 +5,14 @@
  */
 package com.sonatype.insight.brain.security;
 
-import java.util.Collection;
+import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Named;
+import javax.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.tenancy.TenantReference;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListener;
 import org.apache.shiro.session.mgt.SessionContext;
@@ -28,7 +28,7 @@ public class InsightSessionManager
   @Inject
   public InsightSessionManager(
       final ShiroSessionDAO shiroSessionDAO,
-      final Collection<SessionListener> sessionListeners)
+      final Set<SessionListener> sessionListeners)
   {
     setSessionDAO(shiroSessionDAO);
     setSessionListeners(sessionListeners);

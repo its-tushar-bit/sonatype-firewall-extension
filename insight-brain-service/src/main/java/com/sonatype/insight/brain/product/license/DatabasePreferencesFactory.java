@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.product.license;
 
 import java.util.prefs.Preferences;
+import javax.enterprise.inject.Typed;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -14,8 +15,6 @@ import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.license.model.CLMLicenseBuilder;
 
 import org.sonatype.licensing.PreferencesFactory;
-
-import org.eclipse.sisu.Typed;
 
 @Named
 @Typed(PreferencesFactory.class)

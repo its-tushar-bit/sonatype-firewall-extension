@@ -275,7 +275,25 @@ public abstract class AbstractHttpRequest<T extends AbstractHttpRequest<T, R>, R
   }
 
   public T part(String name, Object value) {
-    return part(new StringPart(name, new String(toBytes(value), StandardCharsets.UTF_8), "text/plain"));
+    // Before sisu was removed we could send json or plain text and Jackson would still correctly convert JSON to a POJO
+    // however since the removal it will now only convert json to a POJO if the contentType is application/json.
+    // That suggests the version of jackson has changed but actually sending the correct type is something we should do.
+    String contentType = isComplexObject(value) ? MediaType.APPLICATION_JSON : "text/plain";
+    return part(new StringPart(name, new String(toBytes(value), StandardCharsets.UTF_8), contentType));
+  }
+
+  private boolean isComplexObject(Object value) {
+    if (value == null) {
+      return false;
+    }
+    Class<?> clazz = value.getClass();
+    // Primitives, strings, files, and common simple types should use text/plain
+    return !clazz.isPrimitive()
+        && !String.class.isAssignableFrom(clazz)
+        && !Number.class.isAssignableFrom(clazz)
+        && !Boolean.class.isAssignableFrom(clazz)
+        && !clazz.isEnum()
+        && !java.io.File.class.isAssignableFrom(clazz);
   }
 
   public T part(String name, String filename, Object part) {

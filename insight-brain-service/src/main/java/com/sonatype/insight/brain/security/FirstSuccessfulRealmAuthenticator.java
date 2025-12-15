@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
-
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -34,8 +34,8 @@ class FirstSuccessfulRealmAuthenticator
   private static final Logger log = LoggerFactory.getLogger(FirstSuccessfulRealmAuthenticator.class);
 
   @Inject
-  public FirstSuccessfulRealmAuthenticator(Collection<Realm> realms,
-                                           Collection<AuthenticationListener> authenticationListeners)
+  public FirstSuccessfulRealmAuthenticator(Set<Realm> realms,
+                                           Set<AuthenticationListener> authenticationListeners)
   {
     setRealms(realms);
     setAuthenticationListeners(authenticationListeners);

@@ -49,6 +49,7 @@ import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreAttr
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.cycloneDxIgnoreNodesFilter;
 import static com.sonatype.insight.brain.sbom.export.CycloneDxDocumentAssert.assertThatCycloneDx;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 
 public class SpdxToCycloneDxExporterTest
     extends AbstractSbomExporterTest
@@ -139,6 +140,7 @@ public class SpdxToCycloneDxExporterTest
     String actual = spdxToCycloneDxExporter.export();
     assertThatJson(actual)
         .whenIgnoringPaths("components[*].licenses[*].license.bom-ref")
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(expected);
   }
 

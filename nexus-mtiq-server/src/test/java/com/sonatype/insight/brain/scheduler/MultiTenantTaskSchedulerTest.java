@@ -97,9 +97,9 @@ public class MultiTenantTaskSchedulerTest
             mockJobFactory,
             testName.getMethodName(),
             mockQuartzTriggerListener,
-            mockTenantContextJobListener,
+            () -> mockTenantContextJobListener,
             mockSystemConfigurationPropertyDAO,
-            mockTenantManager,
+            () -> mockTenantManager,
             spyTenantUtil,
             mockShutdownHandler,
             mockQuartzJobSchedulingService

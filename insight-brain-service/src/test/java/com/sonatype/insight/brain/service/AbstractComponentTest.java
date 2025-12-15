@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
@@ -26,11 +27,11 @@ import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ApiJiraConfigurationService;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
+import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.DatamartUpdaterState;
 import com.sonatype.insight.brain.dataaccess.PerpetualLockDAO;
 import com.sonatype.insight.brain.dataaccess.TestSamlFactory;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
-import com.sonatype.insight.brain.configuration.saml.SamlConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.saml.SamlPasswordFactory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseThreatGroupDataHelper;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoader;
@@ -87,6 +88,7 @@ import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.context.SharedConfigurationState;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.SAML_ENABLED;
+import static org.apache.commons.io.FileUtils.deleteDirectory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.mockito.ArgumentMatchers.any;
@@ -106,6 +108,9 @@ public class AbstractComponentTest
 
   @Inject
   protected SamlConfigurationService samlConfigurationService;
+
+  @Inject
+  protected InsightWork insightWork;
 
   @Rule
   public MockCleaner mockCleaner = new MockCleaner();
@@ -138,6 +143,7 @@ public class AbstractComponentTest
   @Before
   public void beforeTest() {
     log.info("Before: {}", testName.getMethodName());
+    cleanupInsightWorkFiles();
     setUpTestLicenseThreatGroups();
     setUpSecurity();
   }
@@ -252,11 +258,21 @@ public class AbstractComponentTest
   }
 
   @Override
-  public void configure(Binder binder) {
+  protected void overrideTestBindings(Binder binder) {
+    // Call super to get any parent test bindings
+    super.overrideTestBindings(binder);
+
+    // Bind test-specific implementations in the override module so that
+    // subclass configure() methods can override these bindings
     bindManagedComponentObserver(binder);
     InsightConfig config = new InsightConfig();
     try {
-      config.setSonatypeWork(tempDir.newFolder("sonatype-work").getAbsolutePath());
+      // Get or create the sonatype-work folder - may already exist from previous test in same JVM
+      File sonatypeWorkDir = new File(tempDir.getRoot(), "sonatype-work");
+      if (!sonatypeWorkDir.exists()) {
+        sonatypeWorkDir = tempDir.newFolder("sonatype-work");
+      }
+      config.setSonatypeWork(sonatypeWorkDir.getAbsolutePath());
     }
     catch (IOException e) {
       throw new UncheckedIOException(e);
@@ -278,12 +294,10 @@ public class AbstractComponentTest
     binder.requestStaticInjection(ComponentDetailsLoader.class);
     binder.requestStaticInjection(SystemConfigurationPropertyFeature.class);
     binder.bind(EncryptionKeyStore.class).to(TestEncryptionKeyStore.class);
-    
-    // Ensure SAML tests use the test password factory  
+
+    // Ensure SAML tests use the test password factory
     TestSamlFactory testSamlFactory = new TestSamlFactory();
     binder.bind(SamlPasswordFactory.class).toInstance(testSamlFactory.createSamlPasswordFactory());
-
-    super.configure(binder);
   }
 
   protected void customizeConfig(@SuppressWarnings("unused") InsightConfig config) {
@@ -422,5 +436,22 @@ public class AbstractComponentTest
   private void loadSsoConfiguration() {
     SsoUserService ssoUserService = lookup(SsoUserService.class);
     ssoUserService.loadSsoConfiguration();
+  }
+
+  private void cleanupInsightWorkFiles() {
+    // Clean up SBOM files from previous test runs to ensure test isolation
+    if (insightWork == null) {
+      return;
+    }
+
+    try {
+      File sbomDir = insightWork.getSbomDir();
+      if (sbomDir.exists()) {
+        deleteDirectory(sbomDir);
+      }
+    }
+    catch (IOException e) {
+      throw new UncheckedIOException("Failed to clean up SBOM directory", e);
+    }
   }
 }

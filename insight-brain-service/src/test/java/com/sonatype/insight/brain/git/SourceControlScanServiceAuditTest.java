@@ -35,6 +35,7 @@ import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -71,7 +72,7 @@ public class SourceControlScanServiceAuditTest
 
   @Override
   public void configure(Binder binder) {
-    when(mockGitApiFactory.createGitApi(any(GitRepositoryInfo.class))).thenReturn(mockGitApi);
+    lenient().when(mockGitApiFactory.createGitApi(any(GitRepositoryInfo.class))).thenReturn(mockGitApi);
     binder.bind(GitApiFactory.class).toInstance(mockGitApiFactory);
     mockReportDownloader = new MockReportDownloader(tempDir);
     binder.bind(ReportDownloader.class).toInstance(mockReportDownloader.getMock());

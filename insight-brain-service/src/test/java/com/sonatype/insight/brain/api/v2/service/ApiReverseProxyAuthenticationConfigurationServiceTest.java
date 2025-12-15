@@ -17,12 +17,14 @@ import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import static com.sonatype.insight.brain.api.v2.service.ApiReverseProxyAuthenticationConfigurationService.NO_DTO_ERROR_MSG;
 import static com.sonatype.insight.brain.dataaccess.configuration.ReverseProxyAuthenticationConfigurationDAO.NOT_FOUND_ERROR_MSG;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -50,8 +52,10 @@ public class ApiReverseProxyAuthenticationConfigurationServiceTest
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(ReverseProxyAuthenticationConfigurationListener.class)
-        .toInstance(mockReverseProxyAuthenticationConfigurationListener);
+    Multibinder<ReverseProxyAuthenticationConfigurationListener>
+        multiBinder = newSetBinder(binder, ReverseProxyAuthenticationConfigurationListener.class);
+    multiBinder.addBinding().toInstance(mockReverseProxyAuthenticationConfigurationListener);
+
     super.configure(binder);
   }
 

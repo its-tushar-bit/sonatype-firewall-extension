@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -49,13 +50,15 @@ public class SourceControlConfigurationMigratorTest
 
   @Inject
   private SourceControlConfigurationMigrator sourceControlConfigurationMigrator;
-  
+
   @Mock
   private TaskScheduler mockTaskScheduler;
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(SourceControlConfigurationListener.class).toInstance(mockSourceControlConfigurationListener);
+    // Add the mock listener to the multibinder set
+    Multibinder.newSetBinder(binder, SourceControlConfigurationListener.class)
+        .addBinding().toInstance(mockSourceControlConfigurationListener);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
   }

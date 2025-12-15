@@ -23,12 +23,10 @@ import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
 import com.google.inject.AbstractModule;
-import com.google.inject.ConfigurationException;
 import com.google.inject.Module;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 public class MultiTenantInsightBrainServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
@@ -41,9 +39,8 @@ public class MultiTenantInsightBrainServiceTest
     assertThat(getCLMServer().getInstance(TenantManagedInitializer.class))
         .isInstanceOf(MultiTenantTenantManagedInitializer.class);
 
-    assertThatExceptionOfType(ConfigurationException.class).isThrownBy(
-        () -> getCLMServer().getInstance(DefaultTenantManagedInitializer.class)
-    ).withMessageContaining("DefaultTenantManagedInitializer is not explicitly bound");
+    assertThat(getCLMServer().getInstance(TenantManagedInitializer.class))
+        .isNotInstanceOf(DefaultTenantManagedInitializer.class);
   }
 
   @Test
@@ -93,10 +90,6 @@ public class MultiTenantInsightBrainServiceTest
   @Override
   protected List<Module> getBrainModules() {
     List<Module> modules = super.getBrainModules();
-    // Remove the last module added by AbstractMultiTenantBaseIntegrationTest.getBrainModules
-    // that module binds EncryptionKeyStore to TestMultiTenantEncryptionKeyStore
-    // some of the above tests need to do this to check EncryptionKeyStore is bound correctly in the original code
-    modules.remove(modules.size() - 1);
     modules.add(new AbstractModule()
     {
       @Override

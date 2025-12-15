@@ -47,3 +47,16 @@ func-test:
 # Run specific functional test (usage: just func-test-specific TestClassName#testMethodName)
 func-test-specific TEST:
     {{mvn}} test-compile failsafe:integration-test failsafe:verify -Pdocker-functional-tests -Dapi.version=1.44 -pl insight-brain-java-functional-test -Dit.test={{TEST}}
+
+# Run a particular integration test in insight-brain-service
+it name:
+    {{mvn}} -pl 'insight-brain-service' -Dit.test={{name}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
+
+# Run all integration tests in insight-brain-service
+run-all-its:
+    {{mvn}} verify -pl '!insight-brain-frontend' -DforkCount=12 -DreuseForks=false -Dparallel=classes -DthreadCountClasses=12 -DargLine="-Xmx5g" -Dcheckstyle.skip=true -Dpmd.skip=true -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}}
+
+# Run a particular integration test in nexus-mtiq-server
+mtiq-it name:
+    {{mvn}} -pl 'nexus-mtiq-server' -Dit.test={{name}} -Dmaven.build.cache.dir={{build_cache_dir}} -Dmaven.repo.local={{local_repo_dir}} -Dskip.shaded=true verify
+

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.tenancy;
 
 import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InOrder;
@@ -36,7 +36,7 @@ public class MultiTenantTenantManagedInitializerTest
     TenantManaged job3 = mock(MockTenantManaged.class);
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3), tenantUtil);
+            new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job1, job2, job3), tenantUtil);
 
     initializer.start();
 
@@ -50,7 +50,7 @@ public class MultiTenantTenantManagedInitializerTest
     TenantManaged job = mock(AllTenantsJob.class);
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+            new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job), tenantUtil);
 
     when(tenantUtil.isMtiqBatchMode()).thenReturn(true);
 
@@ -69,7 +69,7 @@ public class MultiTenantTenantManagedInitializerTest
     when(job3.registrationPriority()).thenReturn(1);
 
     MultiTenantTenantManagedInitializer initializer =
-        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2, job3), tenantUtil);
+        new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job1, job2, job3), tenantUtil);
 
     initializer.start();
 
@@ -84,7 +84,7 @@ public class MultiTenantTenantManagedInitializerTest
     TenantManaged job = mock(AllTenantsJob.class);
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+            new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job), tenantUtil);
 
     when(tenantUtil.isMtiqBatchMode()).thenReturn(false);
 
@@ -99,7 +99,7 @@ public class MultiTenantTenantManagedInitializerTest
     TenantManaged job2 = mock(TenantManaged.class);
 
     MultiTenantTenantManagedInitializer
-            initializer = new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
+            initializer = new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job1, job2), tenantUtil);
 
     initializer.stop();
 
@@ -119,7 +119,7 @@ public class MultiTenantTenantManagedInitializerTest
     }).when(job).register();
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+            new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job), tenantUtil);
 
     initializer.start();
 
@@ -138,7 +138,7 @@ public class MultiTenantTenantManagedInitializerTest
     }).when(job).deregister();
 
     MultiTenantTenantManagedInitializer initializer =
-            new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+            new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job), tenantUtil);
 
     initializer.stop();
 
@@ -154,7 +154,7 @@ public class MultiTenantTenantManagedInitializerTest
     when(job2.includeGlobalTenantDuringRegistration()).thenReturn(false);
 
     MultiTenantTenantManagedInitializer initializer =
-        new MultiTenantTenantManagedInitializer(ImmutableList.of(job1, job2), tenantUtil);
+        new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job1, job2), tenantUtil);
 
     initializer.start();
 
@@ -168,7 +168,7 @@ public class MultiTenantTenantManagedInitializerTest
 
     TenantManaged job = mock(MockGlobalBatchTenantManaged.class);
     MultiTenantTenantManagedInitializer initializer =
-        new MultiTenantTenantManagedInitializer(ImmutableList.of(job), tenantUtil);
+        new MultiTenantTenantManagedInitializer(() -> ImmutableSet.of(job), tenantUtil);
 
     initializer.start();
 

@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.assertj.core.util.Maps;
 import org.junit.After;
 import org.junit.Before;
@@ -54,7 +55,9 @@ public class JiraConfigurationMigratorTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(JiraConfigurationListener.class).toInstance(mockJiraConfigurationListener);
+    // Add the mock listener to the multibinder set
+    Multibinder.newSetBinder(binder, JiraConfigurationListener.class)
+        .addBinding().toInstance(mockJiraConfigurationListener);
     super.configure(binder);
   }
 

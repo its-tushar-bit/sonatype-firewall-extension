@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  * are meant to install default or sample data
  */
 @Named
-class NewInstancePopulator
+public class NewInstancePopulator
 {
   private static final Logger log = LoggerFactory.getLogger(NewInstancePopulator.class);
 

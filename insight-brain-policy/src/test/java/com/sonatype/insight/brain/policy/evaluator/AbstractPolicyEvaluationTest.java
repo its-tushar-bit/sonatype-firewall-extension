@@ -31,6 +31,8 @@ import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
+import com.sonatype.insight.brain.dataaccess.search.DefaultSearchIndexManager;
+import com.sonatype.insight.brain.dataaccess.search.SearchIndexManager;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
 import com.sonatype.insight.brain.db.datastore.DataMartDataStore;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -48,12 +50,15 @@ import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionVal
 import com.sonatype.insight.brain.model.policy.facts.ConditionTrigger;
 import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
 import com.sonatype.insight.brain.policy.DroolsGenerator;
+import com.sonatype.insight.brain.validation.DefaultSourceControlSshValidator;
+import com.sonatype.insight.brain.validation.SourceControlSshValidator;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.lqa.LqaFormat;
+import com.sonatype.insight.test.GuiceInjectedTest;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.Binder;
-import org.eclipse.sisu.launch.InjectedTest;
+import com.google.inject.AbstractModule;
+import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.experimental.categories.Category;
@@ -63,7 +68,7 @@ import static org.assertj.core.api.Assertions.fail;
 
 @Category(SlowTest.class)
 public abstract class AbstractPolicyEvaluationTest
-    extends InjectedTest
+    extends GuiceInjectedTest
 {
   @Rule(order = 1)
   public DatabaseRule databaseRule = DatabaseRule.getInstance(AbstractPolicyEvaluationTest.class);
@@ -82,11 +87,6 @@ public abstract class AbstractPolicyEvaluationTest
   @Before
   @Override
   public void setUp() throws Exception {
-    String sisuUrlCaches = System.getProperty("sisu.url.caches");
-    if (sisuUrlCaches == null) {
-      System.setProperty("sisu.url.caches", "true");
-    }
-
     daoFactory = new TestDAOFactory(databaseRule);
 
     SystemConfigurationPropertyFeature.injectDependencies(daoFactory.createSystemConfigurationPropertyDAO());
@@ -99,15 +99,22 @@ public abstract class AbstractPolicyEvaluationTest
   }
 
   @Override
-  public void configure(final Binder binder) {
-    binder.bind(OperationalDataStore.class).toInstance(databaseRule.getOperationalDataStore());
-    binder.bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
-    binder.bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
-    binder.bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
-    binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+  protected Module getOverrideModule() {
+    return new AbstractModule() {
+      @Override
+      protected void configure() {
+        bind(OperationalDataStore.class).toInstance(databaseRule.getOperationalDataStore());
+        bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
+        bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
+        bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
+        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+        bind(SearchIndexManager.class).to(DefaultSearchIndexManager.class);
+        bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);
 
-    binder.requestStaticInjection(ConditionTypes.class);
-    binder.requestStaticInjection(ConditionValueTypes.class);
+        requestStaticInjection(ConditionTypes.class);
+        requestStaticInjection(ConditionValueTypes.class);
+      }
+    };
   }
 
   protected List<PolicyAlert> evaluate(Policy policy, List<Component> components) {

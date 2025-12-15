@@ -15,7 +15,6 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import java.util.stream.Collectors;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -208,7 +207,7 @@ public class HdsMockServer
       ConstraintSecurityHandler secHandler = new ConstraintSecurityHandler();
       secHandler.setAuthenticator(new BasicAuthenticator());
       secHandler.setLoginService(loginService);
-      secHandler.setConstraintMappings(new ConstraintMapping[] { constraintMapping });
+      secHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
       secHandler.setHandler(mainHandler);
 
       mainHandler = secHandler;
@@ -286,19 +285,22 @@ public class HdsMockServer
       capturedRequestHttpHeadersByUri.put(request.getRequestURI(), httpHeaders);
     }
 
-    private void captureRequestHttpBody(HttpServletRequest request) {
+    private boolean captureRequestHttpBody(Request baseRequest, HttpServletRequest request) {
       boolean isPostRequestWithJsonContent =
           "POST".equalsIgnoreCase(request.getMethod()) && request.getContentType() != null
               && request.getContentType().contains("application/json");
       if (isPostRequestWithJsonContent) {
         try {
-          String bodyAsString = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
+          String bodyAsString = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
           capturedRequestBodyByUri.put(request.getRequestURI(), bodyAsString);
+          baseRequest.setHandled(true);
+          return true;
         }
         catch (IOException e) {
           throw new RuntimeException(e);
         }
       }
+      return false;
     }
 
     @Override
@@ -306,7 +308,7 @@ public class HdsMockServer
         throws IOException, ServletException
     {
       captureRequestHttpHeaders(request);
-      captureRequestHttpBody(request);
+      boolean bodyWasCaptured = captureRequestHttpBody(baseRequest, request);
 
       String uri = request.getRequestURI();
       String uriWithParams = uri;
@@ -322,7 +324,9 @@ public class HdsMockServer
         }
         if (mockResponse != null) {
           mockResponse.render(request, response);
-          consume(baseRequest);
+          if (!bodyWasCaptured) {
+            consume(baseRequest);
+          }
         }
         else if (uri.equals("/rest/license") && "GET".equals(request.getMethod())) {
           consume(baseRequest);
@@ -338,7 +342,9 @@ public class HdsMockServer
             sendJson(response, "{}");
           }
           else if ("POST".equals(request.getMethod())) {
-            consume(baseRequest);
+            if (!bodyWasCaptured) {
+              consume(baseRequest);
+            }
           }
         }
         else if (uri.equals("/user-telemetry.js") && "GET".equals(request.getMethod())) {
@@ -346,7 +352,9 @@ public class HdsMockServer
           send(response, "application/javascript", "function noop() {}");
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
-          consume(baseRequest);
+          if (!bodyWasCaptured) {
+            consume(baseRequest);
+          }
           validateLicense(request);
           sendJson(response, "{\"scanId\": \"" + SCAN_ID + "\", \"timeToReport\": 0}");
         }
@@ -391,7 +399,9 @@ public class HdsMockServer
         }
       }
       catch (RequestException e) {
-        consume(baseRequest);
+        if (!bodyWasCaptured) {
+          consume(baseRequest);
+        }
         sendError(response, e.statusCode, e.errorMsg);
       }
     }

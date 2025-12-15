@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
@@ -151,7 +152,7 @@ public class ClusterTelemetryTaskTest
         mockApplicationCategoryTelemetryCollector();
 
     when(telemetryCollectorsProviderMock.getTelemetryCollectors())
-        .thenReturn(List.of(applicationCategoryTelemetryCollectorMock));
+        .thenReturn(Set.of(applicationCategoryTelemetryCollectorMock));
 
     return telemetryCollectorsProviderMock;
   }

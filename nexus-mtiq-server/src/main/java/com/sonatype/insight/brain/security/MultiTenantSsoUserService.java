@@ -13,8 +13,11 @@ import com.sonatype.insight.brain.dataaccess.security.OAuth2UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.SamlUserDAO;
 import com.sonatype.insight.brain.users.MtiqUserDTO;
 
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
+
 @Named
 @Singleton
+@InvisibleForScanner
 public class MultiTenantSsoUserService
     extends SsoUserService
 {

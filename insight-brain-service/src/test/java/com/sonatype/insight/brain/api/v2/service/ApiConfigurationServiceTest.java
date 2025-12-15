@@ -43,6 +43,7 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.assertj.core.util.Maps;
@@ -56,6 +57,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.slf4j.MDC;
 
+import static com.google.inject.multibindings.Multibinder.newSetBinder;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertThrows;
@@ -107,10 +109,16 @@ public class ApiConfigurationServiceTest
     spySystemConfigurationPropertyDAO = spy(daoFactory.createSystemConfigurationPropertyDAO());
     binder.bind(SystemConfigurationPropertyDAO.class).toInstance(spySystemConfigurationPropertyDAO);
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
-    binder.bind(ConfigurationListener.class).toInstance(mockConfigurationListener);
-    binder.bind(TestConfigurationListener.class).toInstance(spy(new TestConfigurationListener()));
+
+    // Use Multibinder to add test listeners to the Set<ConfigurationListener>
+    Multibinder<ConfigurationListener> listenerBinder = newSetBinder(binder, ConfigurationListener.class);
+    listenerBinder.addBinding().toInstance(mockConfigurationListener);
+
+    TestConfigurationListener testListener = spy(new TestConfigurationListener());
+    binder.bind(TestConfigurationListener.class).toInstance(testListener);
+    listenerBinder.addBinding().toInstance(testListener);
+
     binder.bind(TelemetrySender.class).toInstance(mockTelemetrySender);
-    super.configure(binder);
   }
 
   @Test

@@ -36,7 +36,7 @@ import com.sonatype.insight.brain.security.MembershipMappingService;
  * @since 1.18.0
  */
 @Named
-class SidebarService
+public class SidebarService
 {
   private final TagDAO tagDAO;
 

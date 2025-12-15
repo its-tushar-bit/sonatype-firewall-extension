@@ -16,9 +16,11 @@ import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchHttpSearchIndexFixture;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchTransportFactory;
+import com.sonatype.insight.brain.search.opensearch.SingleTenantIndexConfigProvider;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -46,6 +48,7 @@ public class OpenSearchSearchServiceTest
   public void configure(final Binder binder) {
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     binder.bind(OpenSearchTransport.class).toInstance(OpenSearchTransportFactory.create(getHttpOpenSearchConfig()));
+    binder.bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     super.configure(binder);
   }
 

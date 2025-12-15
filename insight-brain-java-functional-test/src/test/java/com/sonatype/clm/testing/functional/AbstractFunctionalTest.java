@@ -837,7 +837,7 @@ public abstract class AbstractFunctionalTest
 
   private void mockHdsVersionScoringResponse() {
     testCLMServer.getHdsServer()
-        .respondWith(new VersionScoringDTO[] {})
+        .respondWith(new VersionScoringDTO[]{})
         .atUri(HDS_BULK_SCORE_VERSIONING_PATH);
   }
 

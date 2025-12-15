@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Provides means to inspect the available features of the tenant.
  */
+@Named
 public class ConfigFeaturesService
 {
   private static final Logger log = LoggerFactory.getLogger(ConfigFeaturesService.class);

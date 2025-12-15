@@ -76,7 +76,7 @@ import org.yaml.snakeyaml.representer.Representer;
  */
 @Named
 @Singleton
-class SystemInfo
+public class SystemInfo
 {
   private static final Logger log = LoggerFactory.getLogger(SystemInfo.class);
 

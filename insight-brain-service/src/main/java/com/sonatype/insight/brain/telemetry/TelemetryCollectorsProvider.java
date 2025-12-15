@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.List;
+import java.util.Set;
 
 public interface TelemetryCollectorsProvider
 {
-  List<TelemetryCollector> getTelemetryCollectors();
+  Set<TelemetryCollector> getTelemetryCollectors();
 }

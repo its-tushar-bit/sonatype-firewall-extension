@@ -182,7 +182,8 @@ public class CLMLicenseManager
       final HdsClient hdsClient,
       final AuditRecorder auditRecorder,
       final TaskScheduler taskScheduler,
-      final DeveloperEnablementService developerEnablementService)
+      final DeveloperEnablementService developerEnablementService,
+      final Set<ProductLicenseListener> productLicenseListeners)
   {
     this.config = config;
     this.migrationTrackerDAO = migrationTrackerDAO;
@@ -196,6 +197,9 @@ public class CLMLicenseManager
     this.auditRecorder = auditRecorder;
     this.taskScheduler = taskScheduler;
     this.developerEnablementService = developerEnablementService;
+
+    // Register all ProductLicenseListener implementations
+    productLicenseListeners.forEach(this::addListener);
   }
 
   public void loadLicense() {

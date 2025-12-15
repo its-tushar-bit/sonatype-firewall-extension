@@ -58,6 +58,7 @@ import org.apache.lucene.search.TotalHits.Relation;
 import org.apache.lucene.store.Directory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
 
 /**
  * Lucene support for {@link SearchIndexClient}
@@ -65,6 +66,7 @@ import org.slf4j.LoggerFactory;
  * Note: See {@link SearchModule} for Guice bindings
  */
 @Singleton
+@InvisibleForScanner
 public class LuceneSearchIndexClient
     extends AbstractSearchIndexClient
 {

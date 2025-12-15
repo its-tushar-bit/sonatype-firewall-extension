@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  * @since 1.8
  */
 @Named
-class ScanTask
+public class ScanTask
     implements Runnable
 {
   public enum State

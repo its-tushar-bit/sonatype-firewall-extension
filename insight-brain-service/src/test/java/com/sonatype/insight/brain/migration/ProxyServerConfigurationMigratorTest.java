@@ -20,6 +20,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
+import com.google.inject.multibindings.Multibinder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -55,7 +56,9 @@ public class ProxyServerConfigurationMigratorTest
 
   @Override
   public void configure(Binder binder) {
-    binder.bind(ProxyServerConfigurationListener.class).toInstance(proxyServerConfigurationListener);
+    // Add the mock listener to the multibinder set
+    Multibinder.newSetBinder(binder, ProxyServerConfigurationListener.class)
+        .addBinding().toInstance(proxyServerConfigurationListener);
     super.configure(binder);
   }
 

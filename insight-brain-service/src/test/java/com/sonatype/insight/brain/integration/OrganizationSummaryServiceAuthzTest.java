@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.integration;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.clm.dto.model.organization.OrganizationSummary;
 import com.sonatype.clm.dto.model.organization.OrganizationSummaryList;
 import com.sonatype.insight.brain.hds.HdsClient;
@@ -33,6 +34,15 @@ public class OrganizationSummaryServiceAuthzTest
     super.configure(binder);
     // Need to mock this for telemetry requests, otherwise the real client takes a while to timeout.
     binder.bind(HdsClient.class).toInstance(mock(HdsClient.class));
+  }
+
+  @Override
+  public void beforeTest() {
+    // Ensure static dependencies are injected before parent's beforeTest() runs
+    StaticInjectionTestHelper.inject(daoFactory);
+    // Call parent's beforeTest which will call setUpSecurity()
+    super.beforeTest();
+    // Create organization after injector is created
     otherOrg = tempEntity.newOrganization("Z");
   }
 

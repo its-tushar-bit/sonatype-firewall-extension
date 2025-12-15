@@ -16,14 +16,14 @@
     <copyrightText>NOASSERTION</copyrightText>
     <downloadLocation>NOASSERTION</downloadLocation>
     <externalRefs>
-      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
-      <referenceLocator>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</referenceLocator>
-      <referenceType>purl</referenceType>
-    </externalRefs>
-    <externalRefs>
       <referenceCategory>SECURITY</referenceCategory>
       <referenceLocator>http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-44832</referenceLocator>
       <referenceType>advisory</referenceType>
+    </externalRefs>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceLocator>pkg:maven/org.apache.logging.log4j/log4j-core@2.13.2?type=jar</referenceLocator>
+      <referenceType>purl</referenceType>
     </externalRefs>
     <filesAnalyzed>false</filesAnalyzed>
     <licenseConcluded>Apache-2.0</licenseConcluded>

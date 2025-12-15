@@ -32,10 +32,7 @@ export default function React2ShellAbout() {
             .
           </NxP>
           <NxP className="iq-react2shell-about__blog-link">
-            <NxTextLink
-              href="https://links.sonatype.com/announcements/react2shell"
-              external
-            >
+            <NxTextLink href="https://links.sonatype.com/announcements/react2shell" external>
               Blog: Serious React2Shell Vulnerabilities Require Immediate Attention
             </NxTextLink>
           </NxP>

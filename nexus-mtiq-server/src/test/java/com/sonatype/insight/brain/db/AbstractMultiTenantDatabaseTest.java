@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.db;
 
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 import javax.inject.Provider;
 
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
@@ -48,7 +48,7 @@ public abstract class AbstractMultiTenantDatabaseTest
 
     DatabaseContainer databaseContainer = databaseRule.getDatabaseContainer();
 
-    Collection<TenantManaged> tenantManagedBeans = Collections.emptyList();
+    Provider<Set<TenantManaged>> tenantManagedBeans = Collections::emptySet;
     Provider<TenantLifecycle> tenantLifecycleProvider = () -> Mockito.mock(TenantLifecycle.class);
     TenantValidator tenantValidator = new TenantValidator(databaseRule.getOperationalDataStore());
     DeletedTenantDAO deletedTenantDAO = daoFactory.createDeletedTenantDAO();

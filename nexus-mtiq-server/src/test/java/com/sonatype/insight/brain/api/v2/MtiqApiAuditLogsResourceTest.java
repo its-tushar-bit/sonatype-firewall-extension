@@ -13,17 +13,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
-
+import java.util.concurrent.TimeUnit;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
+import com.sonatype.insight.brain.organization.OrganizationResource;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
 
@@ -33,6 +35,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 
 public class MtiqApiAuditLogsResourceTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
@@ -94,10 +97,19 @@ public class MtiqApiAuditLogsResourceTest
     testTenantSlug = getTestTenant().tenantSlug;
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-07.log.gz");
     copyTestResource("testTenant", testTenantSlug, "audit-2024-02-08.log.gz");
-    String todayAuditLogContent = FileUtils.readFileToString(
-        new File(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(testTenantSlug)), StandardCharsets.UTF_8);
 
-    HttpResponse response = restRequest().auth(getUser())
+    User user = getUser();
+    // Trigger an audit log write to create the current audit log file.
+    organizationRequest().auth(user).body(new Organization("testOrg")).post();
+
+    String auditLogFileName = MultiTenantAuditLogAppenderFactory.getAuditLogFileName(testTenantSlug);
+    File auditLogFile = new File(auditLogFileName);
+
+    // Wait for logback to flush the audit log to disk.
+    await().atMost(5, TimeUnit.SECONDS).until(auditLogFile::exists);
+    String todayAuditLogContent = FileUtils.readFileToString(auditLogFile, StandardCharsets.UTF_8);
+
+    HttpResponse response = restRequest().auth(user)
         .query("startUtcDate", "2024-02-04")
         .query("endUtcDate", LocalDate.now().toString())
         .get();
@@ -113,6 +125,7 @@ public class MtiqApiAuditLogsResourceTest
     String filepath = getClass().getClassLoader()
         .getResource(getClass().getSimpleName() + "/" + sourceDir + "/" + filename).getFile();
     Path tenantAuditLogDir = Paths.get(MultiTenantAuditLogAppenderFactory.getAuditLogFileName(tenantSlug)).getParent();
+    Files.createDirectories(tenantAuditLogDir);
     Files.copy(new File(filepath).toPath(), Paths.get(tenantAuditLogDir.toString(), filename));
   }
 
@@ -135,5 +148,9 @@ public class MtiqApiAuditLogsResourceTest
     Role role = tenantTemporaryEntity.newRole(false /* global */, Permission.ACCESS_AUDIT_LOG);
     tenantTemporaryEntity.newMembershipMapping(MembershipMapping.GLOBAL_CONTEXT_ID, role.getId(), user.getUsername());
     return user;
+  }
+
+  private HttpRequest organizationRequest() {
+    return super.restRequest().path(OrganizationResource.RESOURCE_PATH);
   }
 }

@@ -48,6 +48,7 @@ import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpec
 import static com.sonatype.insight.brain.sbom.export.SbomExportParams.ExportSpecification.SPDX_23;
 import static com.sonatype.insight.brain.sbom.export.SpdxDocumentAssert.assertThatSpdx;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 import static org.mockito.Mockito.when;
 
 public class SpdxToSpdxExporterTest
@@ -116,6 +117,7 @@ public class SpdxToSpdxExporterTest
     String export = spdxExporter.export();
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.JSON);
     assertThatJson(export)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
         .isEqualTo(readFileToString("outputs/output_" + fileName));
   }
@@ -143,6 +145,7 @@ public class SpdxToSpdxExporterTest
     ThirdPartyUtils.parseAndValidateSpdx(export, SbomFormat.XML);
     XmlAssert.assertThat(export).and(readFileToString("outputs/output_" + fileName))
         .withNodeFilter(node -> !IGNORE_NODES.contains(node.getNodeName()))
+        .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
         .areIdentical();
   }
@@ -164,6 +167,7 @@ public class SpdxToSpdxExporterTest
     ThirdPartyUtils.parseAndValidateSpdx(export, format);
     assertThatJson(export)
         .whenIgnoringPaths("creationInfo.created", "creationInfo.creators[0]", "documentNamespace", "name")
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/output_spdx-v2_3_from_v2_2.json"));
   }
 

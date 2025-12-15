@@ -16,6 +16,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.api.v2.dto.ApiSourceControlConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlConfigurationService;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -37,6 +38,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
  * @since 1.140
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @Path(value = PublicApiPaths.SOURCE_CONTROL_CONFIG_RESOURCE_PATH_V2)
 @Tag(name = "Config Source Control",

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import java.util.List;
+import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,15 +15,15 @@ import javax.inject.Singleton;
 public class DefaultTelemetryCollectorsProvider
     implements TelemetryCollectorsProvider
 {
-  private final List<TelemetryCollector> telemetryCollectors;
+  private final Set<TelemetryCollector> telemetryCollectors;
 
   @Inject
-  public DefaultTelemetryCollectorsProvider(final List<TelemetryCollector> telemetryCollectors) {
+  public DefaultTelemetryCollectorsProvider(final Set<TelemetryCollector> telemetryCollectors) {
     this.telemetryCollectors = telemetryCollectors;
   }
 
   @Override
-  public List<TelemetryCollector> getTelemetryCollectors() {
+  public Set<TelemetryCollector> getTelemetryCollectors() {
     return telemetryCollectors;
   }
 }

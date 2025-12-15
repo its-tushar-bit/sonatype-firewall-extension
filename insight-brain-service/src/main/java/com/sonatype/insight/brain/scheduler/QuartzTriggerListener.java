@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Named
-class QuartzTriggerListener
+public class QuartzTriggerListener
     extends TriggerListenerSupport
 {
   private static final Logger log = LoggerFactory.getLogger(QuartzTriggerListener.class);

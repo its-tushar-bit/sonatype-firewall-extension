@@ -22,6 +22,7 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.product.license.UnlicensedPath;
+import com.sonatype.insight.brain.api.IqOnlyEndpoint;
 import com.sonatype.insight.brain.utils.HttpHeaderUtils;
 
 import com.codahale.metrics.annotation.Timed;
@@ -35,6 +36,7 @@ import static com.sonatype.insight.brain.support.SupportResource.RESOURCE_PATH;
  * @since 1.27
  */
 @Named
+@IqOnlyEndpoint
 @Timed
 @UnlicensedPath
 @Path(RESOURCE_PATH)

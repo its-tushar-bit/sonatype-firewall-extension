@@ -36,9 +36,11 @@ public class SearchModule
     SearchConfig searchConfig = searchConfigSupplier.getSearchConfig();
     if (searchConfig == null) {
       bind(SearchIndexClient.class).to(LuceneSearchIndexClient.class);
+      bind(LuceneSearchIndexClient.class);
     }
     else {
       bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
+      bind(OpenSearchSearchIndexClient.class);
       bind(SearchConfig.class).toInstance(searchConfig);
 
       if (searchConfig instanceof HttpOpenSearchConfig) {

@@ -18,8 +18,8 @@ import com.google.inject.Binder;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 public class LandingServiceTest
     extends AbstractComponentTest
@@ -35,7 +35,7 @@ public class LandingServiceTest
   public void configure(Binder binder) {
     baseUrl = mock(BaseUrl.class);
     binder.bind(BaseUrl.class).toInstance(baseUrl);
-    when(baseUrl.redirect()).thenReturn(UriBuilder.fromUri(BASE_URL));
+    lenient().when(baseUrl.redirect()).thenReturn(UriBuilder.fromUri(BASE_URL));
     super.configure(binder);
   }
 

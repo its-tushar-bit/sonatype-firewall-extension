@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -62,7 +62,7 @@ public class TenantManager
 
   private volatile boolean tenantsPreRegistered = false;
 
-  private final Collection<TenantManaged> tenantManagedBeans;
+  private final Provider<Set<TenantManaged>> tenantManagedBeansProvider;
 
   // This is a provider to prevent circular dependencies between Guice beans
   private final Provider<TenantLifecycle> tenantLifecycle;
@@ -77,14 +77,14 @@ public class TenantManager
 
   @Inject
   public TenantManager(
-      final Collection<TenantManaged> tenantManagedBeans,
+      final Provider<Set<TenantManaged>> tenantManagedBeansProvider,
       final Provider<TenantLifecycle> tenantLifecycle,
       final DatabaseProvisioner databaseProvisioner,
       final TenantValidator tenantValidator,
       final DeletedTenantDAO deletedTenantDAO,
       final TenantService tenantService)
   {
-    this.tenantManagedBeans = tenantManagedBeans;
+    this.tenantManagedBeansProvider = tenantManagedBeansProvider;
     this.tenantLifecycle = tenantLifecycle;
     this.databaseProvisioner = databaseProvisioner;
     this.tenantValidator = tenantValidator;
@@ -259,7 +259,7 @@ public class TenantManager
   }
 
   private void setupTenantJobs() {
-    tenantManagedBeans
+    tenantManagedBeansProvider.get()
         .stream()
         // GlobalTenantJob are initialized on startup by MultiTenantTenantManagedInitializer rather than per tenant.
         .filter(tenantManaged -> !(tenantManaged instanceof GlobalTenantJob))
@@ -298,7 +298,7 @@ public class TenantManager
       return;
     }
 
-    for (TenantManaged tenantManagedBean : tenantManagedBeans) {
+    for (TenantManaged tenantManagedBean : tenantManagedBeansProvider.get()) {
       runAs(new Tenant(tenantSlug), () -> {
         try {
           tenantManagedBean.deregister();

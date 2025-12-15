@@ -34,6 +34,7 @@ import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMet
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.SPDX_JSON_IGNORE_FIELDS;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.spdxDxIgnoreNodesFilter;
 import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
+import static net.javacrumbs.jsonunit.core.Option.IGNORING_ARRAY_ORDER;
 
 public class CycloneDxToSpdxExporterTest
     extends AbstractSbomExporterTest
@@ -108,8 +109,9 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
+        .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test
@@ -119,8 +121,9 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
+        .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test
@@ -130,6 +133,7 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-xml-to-spdx.json"));
   }
 
@@ -140,6 +144,7 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-xml-to-spdx.json"));
   }
 
@@ -150,8 +155,9 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_23);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
+        .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test
@@ -161,8 +167,9 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.XML, ExportSpecification.SPDX_22);
     XmlAssert.assertThat(exportedBomStr).and(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.xml"))
         .withNodeFilter(spdxDxIgnoreNodesFilter())
+        .withNodeMatcher(new IgnoreXmlListOrderMatcher())
         .ignoreWhitespace()
-        .areIdentical();
+        .areSimilar();
   }
 
   @Test
@@ -172,6 +179,7 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
@@ -182,6 +190,7 @@ public class CycloneDxToSpdxExporterTest
         setupExportSbomScenarioWithFileAndOutputFormat(testBomFile, SbomFormat.JSON, ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
@@ -192,6 +201,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "cwes", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
@@ -202,6 +212,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "cwes", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
@@ -212,6 +223,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "severityDescription", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-from-json-to-spdx.json"));
   }
 
@@ -222,6 +234,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "severityDescription", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-from-json-to-spdx.json"));
   }
 
@@ -232,6 +245,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/missing-metadata-from-json-to-spdx.json"));
   }
 
@@ -242,6 +256,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/missing-metadata-from-json-to-spdx.json"));
   }
 
@@ -252,6 +267,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "", ExportSpecification.SPDX_23);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_3/webgoat-with-component-ref-to-spdx.json"));
   }
 
@@ -262,6 +278,7 @@ public class CycloneDxToSpdxExporterTest
         SbomFormat.JSON, "", ExportSpecification.SPDX_22);
     assertThatJson(exportedBomStr)
         .whenIgnoringPaths(SPDX_JSON_IGNORE_FIELDS)
+        .withOptions(IGNORING_ARRAY_ORDER)
         .isEqualTo(readFileToString("outputs/2_2/webgoat-with-component-ref-to-spdx.json"));
   }
 

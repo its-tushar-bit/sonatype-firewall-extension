@@ -6,10 +6,10 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.reflect.Method;
+import javax.inject.Inject;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.ext.Provider;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -26,19 +26,21 @@ import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProp
 public class AdminAuditContainerRequestFilter
     implements ContainerRequestFilter
 {
-  @Context
-  private ResourceInfo resInfo;
+  private final javax.inject.Provider<ResourceInfo> resourceInfoProvider;
 
-  public AdminAuditContainerRequestFilter() {
+  @Inject
+  public AdminAuditContainerRequestFilter(javax.inject.Provider<ResourceInfo> resourceInfoProvider) {
+    this.resourceInfoProvider = resourceInfoProvider;
   }
 
   @VisibleForTesting
   public AdminAuditContainerRequestFilter(ResourceInfo resInfo) {
-    this.resInfo = resInfo;
+    this.resourceInfoProvider = () -> resInfo;
   }
 
   @Override
   public void filter(ContainerRequestContext requestContext) {
+    ResourceInfo resInfo = resourceInfoProvider.get();
     Method method = resInfo.getResourceMethod();
 
     if (method == null) {

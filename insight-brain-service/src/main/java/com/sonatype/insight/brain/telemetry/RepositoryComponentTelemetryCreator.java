@@ -45,7 +45,7 @@ public class RepositoryComponentTelemetryCreator
       final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType)
   {
     sendRepositoryComponentTelemetry(repositoryComponent, policyViolations, repositoryManagerId,
-        repositoryComponentTelemetryEventType, null, Collections.emptyList());
+        repositoryComponentTelemetryEventType, null, null, Collections.emptyList());
   }
 
   public void sendRepositoryComponentTelemetry(
@@ -56,7 +56,7 @@ public class RepositoryComponentTelemetryCreator
       final List<PolicyNotification> policyNotifications)
   {
     sendRepositoryComponentTelemetry(repositoryComponent, policyViolations, repositoryManagerId,
-        repositoryComponentTelemetryEventType, null, policyNotifications);
+        repositoryComponentTelemetryEventType, null, null, policyNotifications);
   }
 
   public void sendRepositoryComponentTelemetry(
@@ -67,7 +67,20 @@ public class RepositoryComponentTelemetryCreator
       final ReleaseQuarantineType releaseQuarantineType)
   {
     sendRepositoryComponentTelemetry(repositoryComponent, policyViolations, repositoryManagerId,
-        repositoryComponentTelemetryEventType, releaseQuarantineType, Collections.emptyList());
+        repositoryComponentTelemetryEventType, releaseQuarantineType, null, Collections.emptyList());
+  }
+
+  public void sendRepositoryComponentTelemetry(
+      final RepositoryComponent repositoryComponent,
+      final List<RepositoryPolicyViolation> policyViolations,
+      final String repositoryManagerId,
+      final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
+      final ReleaseQuarantineType releaseQuarantineType,
+      final String releaseReason,
+      final List<PolicyNotification> policyNotifications)
+  {
+    sendRepositoryComponentTelemetryInternal(repositoryComponent, policyViolations, repositoryManagerId,
+        repositoryComponentTelemetryEventType, releaseQuarantineType, releaseReason, policyNotifications);
   }
 
   public void sendRepositoryComponentTelemetry(TelemetryData repositoryComponentTelemetry) {
@@ -79,23 +92,25 @@ public class RepositoryComponentTelemetryCreator
     telemetrySender.send(repositoryComponentTelemetry);
   }
 
-  private void sendRepositoryComponentTelemetry(
+  private void sendRepositoryComponentTelemetryInternal(
       final RepositoryComponent repositoryComponent,
       final List<RepositoryPolicyViolation> policyViolations,
       final String repositoryManagerId,
       final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
       final ReleaseQuarantineType releaseQuarantineType,
+      final String releaseReason,
       final List<PolicyNotification> policyNotifications)
   {
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
         new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
-            repositoryComponentTelemetryEventType, releaseQuarantineType, policyNotifications);
+            repositoryComponentTelemetryEventType, releaseQuarantineType, releaseReason, policyNotifications);
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT);
     telemetryData.getAttributes().put(POLICY_VIOLATION_TELEMETRY, policyViolationTelemetries);
     telemetryData.getAttributes().put(REPOSITORY_COMPONENT_TELEMETRY, repositoryComponentTelemetry);
+
     telemetrySender.send(telemetryData);
   }
 }

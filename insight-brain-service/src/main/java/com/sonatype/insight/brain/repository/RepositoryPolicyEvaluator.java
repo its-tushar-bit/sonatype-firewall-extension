@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory;
 import com.sonatype.insight.brain.policy.violation.RepositoryPolicyViolationLogger;
 import com.sonatype.insight.brain.scan.matcher.firewall.RepositoryPathnameParser;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -587,10 +588,17 @@ public class RepositoryPolicyEvaluator
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathnameAndWaived(repository.getId(), repositoryComponent.getPathname(), false);
     repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
+
+    ReleaseQuarantineType releaseQuarantineType =
+        forMonitoring ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL;
+    String releaseReason = forMonitoring
+        ? ReleaseReason.MONITORING_ENABLED.getDescription()
+        : ReleaseReason.POLICY_CHANGE.getDescription();
+
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
         repositoryPolicyViolations, repository.getRepositoryManagerId(),
         RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
-        forMonitoring ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL);
+        releaseQuarantineType, releaseReason, Collections.emptyList());
   }
 
   private void sendRepositoryComponentTelemetry(

@@ -179,6 +179,7 @@ public class RepositoryComponentTelemetryCreatorTest
     policyViolation
         .setComponentIdentifier(null);
     policyViolation.setTime(new Date());
+    policyViolation.setPolicyName("Security-Malicious");
     return policyViolation;
   }
 
@@ -300,6 +301,7 @@ public class RepositoryComponentTelemetryCreatorTest
       assertThat(actual.get(i).getActionTypeId()).isEqualTo(expected.get(i).getActionTypeId());
       assertThat(actual.get(i).getThreatLevel()).isEqualTo(expected.get(i).getThreatLevel());
       assertThat(actual.get(i).getThreatCategory()).isEqualTo(expected.get(i).getThreatCategory());
+      assertThat(actual.get(i).getPolicyName()).isEqualTo(expected.get(i).getPolicyName());
       assertConstraints(expected.get(i).getConstraints(), actual.get(i).getConstraints());
     }
   }

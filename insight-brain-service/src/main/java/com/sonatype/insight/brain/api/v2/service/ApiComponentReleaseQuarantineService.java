@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,6 +45,7 @@ import com.sonatype.insight.brain.security.AuthzContext;
 import com.sonatype.insight.brain.security.AuthzContext.Key;
 import com.sonatype.insight.brain.telemetry.PolicyWaiverTelemetryCreator;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -177,7 +179,7 @@ public class ApiComponentReleaseQuarantineService
       repositoryComponentTelemetryCreator
           .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
               repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
-              ReleaseQuarantineType.MANUAL);
+              ReleaseQuarantineType.MANUAL, ReleaseReason.WAIVED.getDescription(), Collections.emptyList());
     }
 
     return componentReleasedFromQuarantineDTO;

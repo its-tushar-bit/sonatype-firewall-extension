@@ -41,11 +41,24 @@ public class RepositoryComponentTelemetry
 
   private final String releaseQuarantineType;
 
+  private final String releaseReason;
+
   public RepositoryComponentTelemetry(
       final String repositoryManagerId,
       final RepositoryComponent repositoryComponent,
       final RepositoryComponentTelemetryEventType eventType,
       final ReleaseQuarantineType releaseQuarantineType,
+      final List<PolicyNotification> policyNotifications)
+  {
+    this(repositoryManagerId, repositoryComponent, eventType, releaseQuarantineType, null, policyNotifications);
+  }
+
+  public RepositoryComponentTelemetry(
+      final String repositoryManagerId,
+      final RepositoryComponent repositoryComponent,
+      final RepositoryComponentTelemetryEventType eventType,
+      final ReleaseQuarantineType releaseQuarantineType,
+      final String releaseReason,
       final List<PolicyNotification> policyNotifications)
   {
     this.repositoryManagerId = repositoryManagerId;
@@ -62,6 +75,7 @@ public class RepositoryComponentTelemetry
         repositoryComponent.getUnquarantineTime() == null ? null : repositoryComponent.getUnquarantineTime().toInstant()
             .toEpochMilli();
     this.releaseQuarantineType = releaseQuarantineType == null ? null : releaseQuarantineType.getDescription();
+    this.releaseReason = releaseReason;
     if (policyNotifications != null) {
       policyNotifications.forEach(policyNotification -> {
         if (!policyNotification.getNotifications().getUserNotifications().isEmpty()) {
@@ -90,6 +104,21 @@ public class RepositoryComponentTelemetry
       final Long releaseQuarantineTime,
       final String releaseQuarantineType)
   {
+    this(repositoryManagerId, repositoryId, componentFormat, componentHash, repositoryComponentTelemetryEventType,
+        quarantineTime, releaseQuarantineTime, releaseQuarantineType, null);
+  }
+
+  public RepositoryComponentTelemetry(
+      final String repositoryManagerId,
+      final String repositoryId,
+      final String componentFormat,
+      final String componentHash,
+      final RepositoryComponentTelemetryEventType repositoryComponentTelemetryEventType,
+      final Long quarantineTime,
+      final Long releaseQuarantineTime,
+      final String releaseQuarantineType,
+      final String releaseReason)
+  {
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryId;
     this.componentFormat = componentFormat;
@@ -98,6 +127,7 @@ public class RepositoryComponentTelemetry
     this.quarantineTime = quarantineTime;
     this.releaseQuarantineTime = releaseQuarantineTime;
     this.releaseQuarantineType = releaseQuarantineType;
+    this.releaseReason = releaseReason;
   }
 
   public String getRepositoryManagerId() {
@@ -136,6 +166,10 @@ public class RepositoryComponentTelemetry
     return releaseQuarantineType;
   }
 
+  public String getReleaseReason() {
+    return releaseReason;
+  }
+
   public enum RepositoryComponentTelemetryEventType
   {
     AUDIT("audit"),
@@ -162,6 +196,25 @@ public class RepositoryComponentTelemetry
     private final String description;
 
     ReleaseQuarantineType(final String description) {
+      this.description = description;
+    }
+
+    public String getDescription() {
+      return description;
+    }
+  }
+
+  public enum ReleaseReason
+  {
+    WAIVED("Waived"),
+    AUTO_RELEASED("Auto-Released"),
+    DELETED("Deleted"),
+    POLICY_CHANGE("Policy-Change"),
+    MONITORING_ENABLED("Monitoring-Enabled");
+
+    private final String description;
+
+    ReleaseReason(final String description) {
       this.description = description;
     }
 

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.repository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -22,6 +23,8 @@ import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
@@ -117,6 +120,14 @@ public class RepositoryComponentDeleteService
 
       if (!repositoryPolicyViolations.isEmpty()) {
         Repository repository = repositoryDAO.getById(component.getRepositoryId());
+
+        // If the component was quarantined, treat deletion as a manual release with "Deleted" reason
+        if (component.isQuarantined()) {
+          repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
+              repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+              ReleaseQuarantineType.MANUAL, ReleaseReason.DELETED.getDescription(), Collections.emptyList());
+        }
+
         repositoryComponentTelemetryCreator
             .sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
                 repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);

@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.dataaccess;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -1055,6 +1057,30 @@ public class TemporaryEntity
     catch (RuntimeException e) {
       e.printStackTrace();
       throw e;
+    }
+    finally {
+      nullifyInstanceFields();
+    }
+  }
+
+  /**
+   * Clear all non-static instance field references to prevent memory leaks.
+   * Each test creates ~142 DAO instances, and without clearing them,
+   * JUnit holds references to all test instances for reporting,
+   * causing significant memory accumulation across test runs.
+   */
+  private void nullifyInstanceFields() {
+    for (Field field : TemporaryEntity.class.getDeclaredFields()) {
+      if (!Modifier.isStatic(field.getModifiers())) {
+        try {
+          field.setAccessible(true);
+          field.set(this, null);
+        }
+        catch (IllegalAccessException e) {
+          e.printStackTrace();
+          //Do not re-throw, this should not block the tests
+        }
+      }
     }
   }
 

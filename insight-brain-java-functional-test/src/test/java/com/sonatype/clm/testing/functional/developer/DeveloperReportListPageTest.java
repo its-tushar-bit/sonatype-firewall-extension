@@ -213,6 +213,35 @@ public class DeveloperReportListPageTest
   }
 
   @Test
+  public void testComponentFilterInputRetainsFocusWhenCleared() {
+    refreshOrOpen(DeveloperReportListPage.url());
+    DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();
+    PrioritiesPage page = new PrioritiesPage();
+    page.componentNameFilter().shouldBe(visible);
+    page.componentNameFilter().click();
+    page.componentNameFilter().shouldBe(focused);
+
+    // Type text in the filter input
+    String filterText = "springframework";
+    page.componentNameFilter().setValue(filterText);
+    page.componentNameFilter().shouldHave(value(filterText));
+    page.componentNameFilter().shouldBe(focused);
+
+    // Clear all characters - THIS IS THE CRITICAL TEST
+    page.componentNameFilter().clear();
+
+    // Verify focus is STILL on the input when empty
+    page.componentNameFilter().shouldBe(focused);
+
+    // Verify input is actually empty
+    page.componentNameFilter().shouldHave(value(""));
+
+    // Verify focus remains even after a short delay (after data loads)
+    sleep(300);
+    page.componentNameFilter().shouldBe(focused);
+  }
+
+  @Test
   public void testPrioritiesReportPage_shouldRetainPaginationStateWhenNavigatedToCDPAndBack() {
     refreshOrOpen(DeveloperReportListPage.url());
     DeveloperReportListPage.reportListTable().findAll(byText("View Priorities")).get(1).click();

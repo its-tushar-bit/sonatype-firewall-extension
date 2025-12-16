@@ -46,6 +46,7 @@ export default function PrioritiesPageTable() {
     integrationType: storedIntegrationType,
     scanIdFromLatestBuildStageEvaluation,
     hasAutoWaiversConfigured,
+    hasUserInteractedWithFilter,
   } = useSelector(selectPrioritiesPageSlice);
 
   const metadata = useSelector(selectApplicationReportMetaData);
@@ -133,7 +134,8 @@ export default function PrioritiesPageTable() {
   }, [integrationType]);
 
   useEffect(() => {
-    if (componentNameFilterValue) {
+    // Only restore focus if user has interacted with the input (not on first render)
+    if (hasUserInteractedWithFilter) {
       const inputId = 'priorities-component-name-filter';
       const inputEl = document.getElementById(inputId);
       if (inputEl) {
@@ -150,6 +152,7 @@ export default function PrioritiesPageTable() {
 
   const filterByComponentName = (filter) => {
     removeDefaultFilters();
+    dispatch(actions.setHasUserInteractedWithFilter(true)); // Mark that user has interacted (persists across remounts)
     dispatch(actions.setComponentNameFilter(filter));
     debouncedFilterComponentNameChange(filter);
   };

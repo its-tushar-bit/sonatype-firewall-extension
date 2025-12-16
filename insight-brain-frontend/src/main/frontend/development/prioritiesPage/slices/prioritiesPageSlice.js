@@ -367,6 +367,13 @@ const setIntegrationType = (state, { payload }) => {
   };
 };
 
+const setHasUserInteractedWithFilter = (state, { payload }) => {
+  return {
+    ...state,
+    hasUserInteractedWithFilter: payload,
+  };
+};
+
 const prioritiesPageSlice = createSlice({
   name: PRIORITIES_PAGE_REDUCER_NAME,
   initialState: initialState(),
@@ -378,6 +385,7 @@ const prioritiesPageSlice = createSlice({
     setHasDefaultFilters,
     savePagination,
     setIntegrationType,
+    setHasUserInteractedWithFilter,
   },
   extraReducers: {
     [loadBranchName.fulfilled]: loadBranchNameFulfilled,
@@ -418,6 +426,7 @@ function initialState() {
     integrationType: null,
     branchName: null,
     visibleCreatePRModalComponentHash: null,
+    hasUserInteractedWithFilter: false,
   };
 }
 

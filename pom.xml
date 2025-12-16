@@ -82,7 +82,7 @@
     <!-- OpenSearch TestContainers 3.x series is for Java 21+ so we are stuck on 2.x for now -->
     <opensearch-testcontainers.version>2.1.3</opensearch-testcontainers.version>
     <staging.autoReleaseAfterClose>true</staging.autoReleaseAfterClose>
-    <aws.java.sdk.version>2.37.1</aws.java.sdk.version>
+    <aws.java.sdk.version>2.39.6</aws.java.sdk.version>
     <opensearch-client.version>2.25.0</opensearch-client.version>
     <!-- Used transitively by various dependencies. OpenSearch requires it to be declared. -->
     <apache.httpclient5.version>5.4.4</apache.httpclient5.version>

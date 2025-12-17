@@ -10,19 +10,18 @@ This package contains example scripts to configure Sonatype IQ Server to run as 
 
 To start the Sonatype IQ Server run the demo script for your operating system:
 
-# Unix
+# Linux
 ./bin/nexus-iq-server server path/to/config.yml
 # Windows
 .\bin\nexus-iq-server.bat server path\to\config.yml
 
 Refer to the example config.yml in this bundle for additional options.
 
-Configuring as a systemd service
-================================
+Content
+=======
 
-This assembly contains example service files that can be used to run the Sonatype IQ Server as a systemd service.  The service files are located in the examples directory of the installation. Below are the steps to configure the service and assume that the service files are located in /opt/sonatype-iq-server.
+The following files and directories are in the installation directory:
 
-You should see the following files and directories in the installation directory:
 README.txt         # This file
 bin/               # Contains Java binaries and the nexus-iq-server script
 conf/              # JDK conf
@@ -33,12 +32,15 @@ legal/             # JDK legal
 lib/               # JDK lib
 release            # JDK release
 
-You will need to create the config.yml file and the sonatype-iq-server.service file and the sonatype-iq-server script (all can be found in the examples directory). The sonatype-iq-server script will require execute permissions. The files also assume you are using a user iqserver to run the service.
+Run as a Service
+================
 
-sudo systemctl link /opt/sonatype-iq-server/sonatype-iq-server.service
-sudo systemctl daemon-reload
-sudo systemctl enable sonatype-iq-server.service
-sudo systemctl start sonatype-iq-server.service
+The Sonatype IQ Server can be Run as a Service, please see our help documentation for details on how to use the service file in the examples directory.
+
+# Linux
+- http://links.sonatype.com/products/nxiq/doc/run-as-a-service-linux
+# Windows
+- http://links.sonatype.com/products/nxiq/doc/run-as-a-service-windows
 
 Migrating from the standalone jar
 =================================

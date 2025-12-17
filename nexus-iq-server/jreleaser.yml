@@ -123,15 +123,37 @@ assemble:
           transform: eula.html
         - path: nexus-iq-server/src/main/resources/ASSEMBLY-README.txt
           transform: README.txt
-        - path: nexus-iq-server/src/main/resources/sonatype-iq-server
+
+        # CLM-37910 - workaround for jreleaser behaviour:
+        # When multiple artifacts have the same 'path' and 'transform' with different 'platform' values,
+        # only the FIRST platform processes the files. All subsequent platforms are filtered with
+        # "filtered by platform {}" message, resulting in missing files in those platform archives.
+        #
+        # As solutions use a platform-specific source file name (different 'path' values) but transform
+        # them all to the same output name. The platform-specific source files are copies committed
+        # to git in src/main/resources/ (sonatype-iq-server-{platform} and sonatype-iq-server-{platform}.service).
+        #
+        # This gives each artifact a unique 'path' to avoid the bug, while achieving identical final
+        # filenames across all Linux platforms via 'transform'.
+
+        # Linux init scripts - platform-specific sources, identical output names
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-aarch64
           transform: examples/sonatype-iq-server
           platform: 'linux-aarch_64'
-        - path: nexus-iq-server/src/main/resources/sonatype-iq-server
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-x86_64
           transform: examples/sonatype-iq-server
           platform: 'linux-x86_64'
-        - path: nexus-iq-server/src/main/resources/sonatype-iq-server.service
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-musl
+          transform: examples/sonatype-iq-server
+          platform: 'linux_musl-x86_64'
+
+        # Linux systemd services - platform-specific sources, identical output names
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-aarch64.service
           transform: examples/sonatype-iq-server.service
           platform: 'linux-aarch_64'
-        - path: nexus-iq-server/src/main/resources/sonatype-iq-server.service
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-x86_64.service
           transform: examples/sonatype-iq-server.service
           platform: 'linux-x86_64'
+        - path: nexus-iq-server/src/main/resources/sonatype-iq-server-musl.service
+          transform: examples/sonatype-iq-server.service
+          platform: 'linux_musl-x86_64'

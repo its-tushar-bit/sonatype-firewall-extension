@@ -99,6 +99,37 @@ public class GitClientFactory
     return gitApiClientFactory.getGitApiClientUtils(provider, configuration);
   }
 
+  @VisibleForTesting
+  void addApiUrlMapping(String repositoryUrl, String apiUrl) {
+    String cacheKey = computeKey(repositoryUrl);
+    apiClientUrlCache.get().put(cacheKey, apiUrl);
+  }
+
+  @VisibleForTesting
+  void addPullRequestInfoClientUrlMapping(String repositoryUrl, String apiUrl) {
+    String cacheKey = computeKey(repositoryUrl);
+    prInfoClientUrlCache.get().put(cacheKey, apiUrl);
+  }
+
+  @VisibleForTesting
+  void clearUrlCaches() {
+    apiClientUrlCache.get().invalidateAll();
+    prInfoClientUrlCache.get().invalidateAll();
+  }
+
+  @VisibleForTesting
+  String getApiUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
+    return getUrl(gitRepositoryInfo, apiClientUrlCache.get(),
+        gri -> getClientUtils(gri.provider, configuration).getApiUrl(gri.normalizedRepositoryUrl, gri.token));
+  }
+
+  @VisibleForTesting
+  String getPullRequestInfoClientUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
+    return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
+        gri -> getClientUtils(gri.provider, configuration)
+            .getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
+  }
+
   /**
    * Cache key is a shorter version of the repository URL containing only the scheme, host, (maybe port) and first path
    * segment (possible a URL context)
@@ -122,38 +153,9 @@ public class GitClientFactory
     return apiUrl;
   }
 
-  private String getApiUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
-    return getUrl(gitRepositoryInfo, apiClientUrlCache.get(),
-        gri -> getClientUtils(gri.provider, configuration).getApiUrl(gri.normalizedRepositoryUrl, gri.token));
-  }
-
-  private String getPullRequestInfoClientUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
-    return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
-        gri -> getClientUtils(gri.provider, configuration)
-            .getPullRequestInfoProviderUrl(gri.normalizedRepositoryUrl, gri.token));
-  }
-
   private String getContributorInfoProviderUrl(final GitRepositoryInfo gitRepositoryInfo, Configuration configuration) {
     return getUrl(gitRepositoryInfo, prInfoClientUrlCache.get(),
         gri -> getClientUtils(gri.provider, configuration)
             .getContributorInfoProviderUrl(gri.normalizedRepositoryUrl));
-  }
-
-  @VisibleForTesting
-  void addApiUrlMapping(String repositoryUrl, String apiUrl) {
-    String cacheKey = computeKey(repositoryUrl);
-    apiClientUrlCache.get().put(cacheKey, apiUrl);
-  }
-
-  @VisibleForTesting
-  void addPullRequestInfoClientUrlMapping(String repositoryUrl, String apiUrl) {
-    String cacheKey = computeKey(repositoryUrl);
-    prInfoClientUrlCache.get().put(cacheKey, apiUrl);
-  }
-
-  @VisibleForTesting
-  void clearUrlCaches() {
-    apiClientUrlCache.get().invalidateAll();
-    prInfoClientUrlCache.get().invalidateAll();
   }
 }

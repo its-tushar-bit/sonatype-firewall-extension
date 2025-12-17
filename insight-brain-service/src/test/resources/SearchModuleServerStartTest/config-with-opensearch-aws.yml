@@ -1,0 +1,4 @@
+search:
+  type: aws
+  domain: https://localhost:9200
+  region: us-east-1

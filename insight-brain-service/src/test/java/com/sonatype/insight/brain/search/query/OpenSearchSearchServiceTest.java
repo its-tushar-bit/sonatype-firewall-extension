@@ -107,4 +107,10 @@ public class OpenSearchSearchServiceTest
     assertThat(searchResultDTO.groupingByDTOS.get(0).searchResultItemDTOS.get(0).applicationId).isEqualTo(app2.getId());
     assertThat(searchResultDTO.searchAfter).isNotNull();
   }
+
+  @Override
+  @Test
+  public void testSearchIndex_TooManyBooleanClauses() {
+    // no-op, this error is not thrown with OpenSearchSearchService
+  }
 }

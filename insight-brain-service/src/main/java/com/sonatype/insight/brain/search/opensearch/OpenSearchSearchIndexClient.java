@@ -53,7 +53,6 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.lucene.document.Document;
-import org.opensearch.client.json.JsonData;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldSort;
 import org.opensearch.client.opensearch._types.OpenSearchException;
@@ -62,8 +61,6 @@ import org.opensearch.client.opensearch._types.SortOptions;
 import org.opensearch.client.opensearch._types.SortOrder;
 import org.opensearch.client.opensearch._types.StoreStats;
 import org.opensearch.client.opensearch._types.mapping.TypeMapping;
-import org.opensearch.client.opensearch.cluster.PutClusterSettingsRequest;
-import org.opensearch.client.opensearch.cluster.PutClusterSettingsResponse;
 import org.opensearch.client.opensearch.core.SearchRequest;
 import org.opensearch.client.opensearch.core.SearchResponse;
 import org.opensearch.client.opensearch.core.search.Hit;
@@ -121,7 +118,7 @@ public class OpenSearchSearchIndexClient
 
   private final ClusterLockManager clusterLockManager;
 
-  private OpenSearchClient openSearchClient;
+  private volatile OpenSearchClient openSearchClient;
 
   private final AtomicLong lastRecordedConnectExceptionEpochMs = new AtomicLong();
 
@@ -163,8 +160,12 @@ public class OpenSearchSearchIndexClient
   @VisibleForTesting
   public OpenSearchClient getClient() {
     if (openSearchClient == null) {
-      openSearchClient = new OpenSearchClient(openSearchTransport);
-      createIndexIfNotExists();
+      synchronized (this) {
+        if (openSearchClient == null) {
+          openSearchClient = new OpenSearchClient(openSearchTransport);
+          createIndexIfNotExists();
+        }
+      }
     }
     return openSearchClient;
   }
@@ -324,8 +325,6 @@ public class OpenSearchSearchIndexClient
     }
 
     try {
-      updateMaxQueryClauseCount();
-
       AuditData.get()
           .setData("searchQuery", searchQuery)
           .setData("searchPageSize", pageSize)
@@ -459,14 +458,9 @@ public class OpenSearchSearchIndexClient
 
   @Override
   protected void updateMaxQueryClauseCount() throws IOException {
-    PutClusterSettingsRequest putClusterSettingsRequest = new PutClusterSettingsRequest.Builder()
-        .persistent("indices.query.bool.max_clause_count", JsonData.of(configuration.getMaxAdvancedSearchClauseCount()))
-        .build();
-    PutClusterSettingsResponse putClusterSettingsResponse =
-        getClient().cluster().putSettings(putClusterSettingsRequest);
-    if (!putClusterSettingsResponse.acknowledged()) {
-      throw new RuntimeException("Max clause count update not acknowledged.");
-    }
+    // No-op: AWS managed OpenSearch does not allow updating the max_clause_count cluster setting.
+    // The default value is typically sufficient, and attempting to update it would cause failures
+    // in AWS managed environments. See CLM-38052.
   }
 
   private void updateIndexAlias(final String newIndex) {

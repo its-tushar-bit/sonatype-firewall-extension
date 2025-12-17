@@ -41,7 +41,7 @@ public class SearchModuleServerStartTest
 
   @Test
   @ManualIqServerInit
-  public void testSearchModule_openSearchConfig() throws Exception {
+  public void testSearchModule_openSearchConfig_http() throws Exception {
     startIqTestServer(new Configurator()
     {
       @Override
@@ -50,7 +50,26 @@ public class SearchModuleServerStartTest
 
       @Override
       public String getConfigFilePath() {
-        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-opensearch.yml")
+        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-opensearch-http.yml")
+            .getFile();
+      }
+    });
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+  }
+
+  @Test
+  @ManualIqServerInit
+  public void testSearchModule_openSearchConfig_aws() throws Exception {
+    startIqTestServer(new Configurator()
+    {
+      @Override
+      public void configure(final InsightConfig config) {
+      }
+
+      @Override
+      public String getConfigFilePath() {
+        return InsightBrainService.class.getResource("/SearchModuleServerStartTest/config-with-opensearch-aws.yml")
             .getFile();
       }
     });

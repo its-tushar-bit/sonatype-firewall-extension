@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.policy.violation.AbstractPolicyViolationLogger;
 import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.telemetry.UserTelemetryRequestLoggingFilter;
 
@@ -626,5 +627,21 @@ public class InsightConfigurationFactoryTest
     assertThat(httpOpenSearchConfig.getUri()).isEqualTo(URI.create("https://example.com:123"));
     assertThat(httpOpenSearchConfig.getUsername()).isEqualTo("john");
     assertThat(httpOpenSearchConfig.getPassword()).isEqualTo("secret");
+  }
+
+  @Test
+  public void testBuild_OpenSearch_Aws() throws Exception {
+    InsightConfig insightConfig = build("config-opensearch-aws.yml");
+
+    SearchConfig searchConfig = insightConfig.getSearchConfig();
+    assertThat(searchConfig).isNotNull();
+    assertThat(searchConfig).isInstanceOf(AwsHttpOpenSearchConfig.class);
+
+    AwsHttpOpenSearchConfig awsHttpOpenSearchConfig = (AwsHttpOpenSearchConfig) searchConfig;
+    assertThat(awsHttpOpenSearchConfig.getDomain()).isEqualTo(URI.create("https://example.com:123"));
+    assertThat(awsHttpOpenSearchConfig.getRegion()).isEqualTo("us-east-1");
+    assertThat(awsHttpOpenSearchConfig.getMaxConcurrency()).isEqualTo(25);
+    assertThat(awsHttpOpenSearchConfig.getConnectionTimeout()).isEqualTo(java.time.Duration.ofSeconds(30));
+    assertThat(awsHttpOpenSearchConfig.getConnectionAcquisitionTimeout()).isEqualTo(java.time.Duration.ofSeconds(30));
   }
 }

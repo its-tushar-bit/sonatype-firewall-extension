@@ -43,6 +43,7 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
@@ -598,6 +599,7 @@ public class DashboardWaiversTest
   }
 
   @Test
+  @Ignore("https://sonatype.atlassian.net/browse/CLM-38143")
   public void testAutoWaiversTable_sortByScope() {
     refreshOrOpen(DashboardPage.urlToWaivers());
     DashboardPage.waitUntilSpinnersGone();

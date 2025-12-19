@@ -1252,6 +1252,26 @@ public class ScanPolicyEvaluator
     return createPolicyEvaluationResult(policyEvaluation, policyViolations, createAlerts);
   }
 
+  /**
+   * Creates a policy evaluation result with optional total component count loading.
+   * This overload fetches policy violations from the database.
+   *
+   * @param policyEvaluation the policy evaluation
+   * @param createAlerts whether to create alerts
+   * @param loadTotalComponentCount whether to load the total component count (reads summary.json if not provided)
+   * @return the policy evaluation result
+   */
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      boolean createAlerts,
+      boolean loadTotalComponentCount)
+  {
+    List<PolicyViolation> policyViolations = policyViolationDAO
+        .getActiveByApplicationIdAndStageId(policyEvaluation.getApplicationId(), policyEvaluation.getStageTypeId());
+    return createPolicyEvaluationResult(policyEvaluation, Collections.emptyList(), policyViolations, createAlerts,
+        null, loadTotalComponentCount);
+  }
+
   public PolicyEvaluationResult createPolicyEvaluationResult(
       PolicyEvaluation policyEvaluation,
       List<PolicyViolation> policyViolations,
@@ -1287,6 +1307,29 @@ public class ScanPolicyEvaluator
       boolean createAlerts,
       ReportEntry summaryReportEntry)
   {
+    return createPolicyEvaluationResult(policyEvaluation, components, policyViolations, createAlerts,
+        summaryReportEntry, true);
+  }
+
+  /**
+   * Creates a policy evaluation result with optional total component count loading.
+   *
+   * @param policyEvaluation the policy evaluation
+   * @param components the components
+   * @param policyViolations the policy violations
+   * @param createAlerts whether to create alerts
+   * @param summaryReportEntry optional pre-loaded summary report entry
+   * @param loadTotalComponentCount whether to load the total component count (reads summary.json if not provided)
+   * @return the policy evaluation result
+   */
+  public PolicyEvaluationResult createPolicyEvaluationResult(
+      PolicyEvaluation policyEvaluation,
+      List<Component> components,
+      List<PolicyViolation> policyViolations,
+      boolean createAlerts,
+      ReportEntry summaryReportEntry,
+      boolean loadTotalComponentCount)
+  {
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
@@ -1296,7 +1339,9 @@ public class ScanPolicyEvaluator
           components, activePolicyViolations);
       policyEvaluationResult.setAlerts(policyAlerts);
     }
-    policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation, summaryReportEntry));
+    if (loadTotalComponentCount) {
+      policyEvaluationResult.setTotalComponentCount(getTotalComponentCount(policyEvaluation, summaryReportEntry));
+    }
     return policyEvaluationResult;
   }
 
@@ -1784,7 +1829,7 @@ public class ScanPolicyEvaluator
         analysisDTO
     );
   }
-  
+
   @VisibleForTesting
   void sendMissingEpssScoreTelemetry(
       final String applicationId,

@@ -258,4 +258,38 @@ public class ApplicationManagementServiceTest
   private String getAlphabeticalSequenceElement(int i) {
     return i < 0 ? "" : getAlphabeticalSequenceElement((i / 26) - 1) + (char) (65 + i % 26);
   }
+
+  @Test
+  public void testGetApplicationManagementSummaries_SkipsTotalComponentCountLoading() {
+    // Given: Applications with policy evaluations
+    Organization org = tempEntity.newOrganization();
+    Application app = tempEntity.newApplication("Test App", "test-app", org.getId());
+    tempEntity.newPolicyEvaluation(app.getId(), "build", "scan-id-123");
+
+    // When: Fetching application management summaries
+    List<ApplicationManagementSummaryDTO> summaries = applicationManagementService
+        .getApplicationManagementSummaries("", ApplicationManagementSummaryOrder.APP_NAME_ASC, 1, RESULTS_PER_PAGE);
+
+    // Then: The method should complete without attempting to read summary.json files
+    // (This test verifies that the optimization doesn't break the API)
+    assertThat(summaries).isNotEmpty();
+    ApplicationManagementSummaryDTO testAppSummary = summaries.stream()
+        .filter(s -> s.getPublicId().equals("test-app"))
+        .findFirst()
+        .orElse(null);
+
+    assertThat(testAppSummary).isNotNull();
+    assertThat(testAppSummary.getPolicyEvaluationsResults()).isNotNull();
+
+    // The policy evaluation results should exist even though totalComponentCount wasn't loaded
+    // (totalComponentCount will be 0 or unset, but other counters should still work)
+    if (!testAppSummary.getPolicyEvaluationsResults().isEmpty()) {
+      testAppSummary.getPolicyEvaluationsResults().values().forEach(result -> {
+        // Verify the result exists and has the expected structure
+        assertThat(result).isNotNull();
+        // Total component count should be 0 since we skip loading it
+        assertThat(result.getTotalComponentCount()).isEqualTo(0);
+      });
+    }
+  }
 }

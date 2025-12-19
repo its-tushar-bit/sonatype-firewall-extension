@@ -147,8 +147,9 @@ public class ApplicationManagementService
       for (PolicyEvaluation policyEvaluation : applicationManagement.getPolicyEvaluations().values()) {
         // Alerts are not needed by the Application Management UI and greatly bloat the JSON response
         // they are also time-consuming when we deal with thousands of applications/evaluations
+        // Total component count is also not needed and causes expensive I/O to read summary.json files
         final PolicyEvaluationResult policyEvaluationResult = scanPolicyEvaluator
-            .createPolicyEvaluationResult(policyEvaluation, false);
+            .createPolicyEvaluationResult(policyEvaluation, false, false);
 
         policyEvaluationResults.put(policyEvaluation.getStageTypeId(), policyEvaluationResult);
       }

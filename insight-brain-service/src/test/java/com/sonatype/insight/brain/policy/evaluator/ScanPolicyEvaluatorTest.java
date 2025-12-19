@@ -6165,4 +6165,26 @@ public class ScanPolicyEvaluatorTest
         .containsEntry("stage_id", "stageId")
         .containsEntry("vulnerabilities_with_missing_epss", "2");
   }
+
+  @Test
+  public void testCreatePolicyEvaluationResult_SkipLoadingTotalComponentCount() throws Exception {
+    // Setup: Create a policy evaluation (report doesn't need to exist since we're skipping the read)
+    String scanId = "test-scan-id";
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(), Stage.ID_BUILD, scanId);
+    List<PolicyViolation> violations = Collections.emptyList();
+
+    // Execute: Call with loadTotalComponentCount=false to skip expensive I/O
+    PolicyEvaluationResult result = scanPolicyEvaluator.createPolicyEvaluationResult(
+        policyEvaluation,
+        Collections.emptyList(),
+        violations,
+        false,
+        null,
+        false  // Skip loading total component count - optimization for /rest/application/services/summary
+    );
+
+    // Verify: Total component count should be 0 (not loaded), but result is valid
+    assertThat(result).isNotNull();
+    assertThat(result.getTotalComponentCount()).isEqualTo(0);
+  }
 }

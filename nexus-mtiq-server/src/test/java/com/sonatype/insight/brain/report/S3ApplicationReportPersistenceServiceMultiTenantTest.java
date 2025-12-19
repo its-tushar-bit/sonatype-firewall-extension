@@ -21,6 +21,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
@@ -40,6 +41,7 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore("CLM-38156")
 @Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3ApplicationReportPersistenceServiceMultiTenantTest

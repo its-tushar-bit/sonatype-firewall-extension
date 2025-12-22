@@ -9,9 +9,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.hds.HdsClientAnalytics;
 import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 public class RepositoryComponentTelemetry
 {
@@ -43,17 +45,30 @@ public class RepositoryComponentTelemetry
 
   private final String releaseReason;
 
+  private final String componentIdentifier;
+
+  private final String componentName;
+
+  private final String componentNamespace;
+
+  private final String componentVersion;
+
+  private final String accountId;
+
   public RepositoryComponentTelemetry(
+      final String accountId,
       final String repositoryManagerId,
       final RepositoryComponent repositoryComponent,
       final RepositoryComponentTelemetryEventType eventType,
       final ReleaseQuarantineType releaseQuarantineType,
       final List<PolicyNotification> policyNotifications)
   {
-    this(repositoryManagerId, repositoryComponent, eventType, releaseQuarantineType, null, policyNotifications);
+    this(accountId, repositoryManagerId, repositoryComponent, eventType, releaseQuarantineType, null,
+        policyNotifications);
   }
 
   public RepositoryComponentTelemetry(
+      final String accountId,
       final String repositoryManagerId,
       final RepositoryComponent repositoryComponent,
       final RepositoryComponentTelemetryEventType eventType,
@@ -61,6 +76,7 @@ public class RepositoryComponentTelemetry
       final String releaseReason,
       final List<PolicyNotification> policyNotifications)
   {
+    this.accountId = accountId;
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryComponent.getRepositoryId();
     this.componentFormat =
@@ -76,6 +92,24 @@ public class RepositoryComponentTelemetry
             .toEpochMilli();
     this.releaseQuarantineType = releaseQuarantineType == null ? null : releaseQuarantineType.getDescription();
     this.releaseReason = releaseReason;
+
+    // Extract component identifier details using PackageUrlIdentifier for robust cross-format extraction
+    if (repositoryComponent.getComponentIdentifier() != null) {
+      this.componentIdentifier =
+          ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier());
+      PackageUrlIdentifier purl =
+          PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
+      this.componentName = purl.getName();
+      this.componentNamespace = purl.getNamespace();
+      this.componentVersion = purl.getVersion();
+    }
+    else {
+      this.componentIdentifier = null;
+      this.componentName = null;
+      this.componentNamespace = null;
+      this.componentVersion = null;
+    }
+
     if (policyNotifications != null) {
       policyNotifications.forEach(policyNotification -> {
         if (!policyNotification.getNotifications().getUserNotifications().isEmpty()) {
@@ -85,10 +119,10 @@ public class RepositoryComponentTelemetry
           notifications.add(ROLE_NOTIFICATION);
         }
         if (!policyNotification.getNotifications().getJiraNotifications().isEmpty()) {
-          notifications.add(WEBHOOK_NOTIFICATION);
+          notifications.add(JIRA_NOTIFICATION);
         }
         if (!policyNotification.getNotifications().getWebhookNotifications().isEmpty()) {
-          notifications.add(JIRA_NOTIFICATION);
+          notifications.add(WEBHOOK_NOTIFICATION);
         }
       });
     }
@@ -119,6 +153,7 @@ public class RepositoryComponentTelemetry
       final String releaseQuarantineType,
       final String releaseReason)
   {
+    this.accountId = null; // Not available in this legacy constructor
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryId;
     this.componentFormat = componentFormat;
@@ -128,6 +163,12 @@ public class RepositoryComponentTelemetry
     this.releaseQuarantineTime = releaseQuarantineTime;
     this.releaseQuarantineType = releaseQuarantineType;
     this.releaseReason = releaseReason;
+
+    // Component identifier fields not available in this constructor
+    this.componentIdentifier = null;
+    this.componentName = null;
+    this.componentNamespace = null;
+    this.componentVersion = null;
   }
 
   public String getRepositoryManagerId() {
@@ -168,6 +209,26 @@ public class RepositoryComponentTelemetry
 
   public String getReleaseReason() {
     return releaseReason;
+  }
+
+  public String getComponentIdentifier() {
+    return componentIdentifier;
+  }
+
+  public String getComponentName() {
+    return componentName;
+  }
+
+  public String getComponentNamespace() {
+    return componentNamespace;
+  }
+
+  public String getComponentVersion() {
+    return componentVersion;
+  }
+
+  public String getAccountId() {
+    return accountId;
   }
 
   public enum RepositoryComponentTelemetryEventType

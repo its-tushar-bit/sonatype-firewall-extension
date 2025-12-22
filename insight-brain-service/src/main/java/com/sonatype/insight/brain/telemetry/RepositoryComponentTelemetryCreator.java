@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.model.policy.notifications.PolicyNotification;
 import com.sonatype.insight.brain.model.repository.RepositoryComponent;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -33,9 +34,15 @@ public class RepositoryComponentTelemetryCreator
 
   private final TelemetrySender telemetrySender;
 
+  private final PendoCache pendoCache;
+
   @Inject
-  public RepositoryComponentTelemetryCreator(final TelemetrySender telemetrySender) {
+  public RepositoryComponentTelemetryCreator(
+      final TelemetrySender telemetrySender,
+      final PendoCache pendoCache)
+  {
     this.telemetrySender = telemetrySender;
+    this.pendoCache = pendoCache;
   }
 
   public void sendRepositoryComponentTelemetry(
@@ -101,10 +108,11 @@ public class RepositoryComponentTelemetryCreator
       final String releaseReason,
       final List<PolicyNotification> policyNotifications)
   {
+    final String accountId = getAccountId();
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
+        new RepositoryComponentTelemetry(accountId, repositoryManagerId, repositoryComponent,
             repositoryComponentTelemetryEventType, releaseQuarantineType, releaseReason, policyNotifications);
 
     TelemetryData telemetryData = new TelemetryData(TelemetryPurpose.REPOSITORY_COMPONENT);
@@ -112,5 +120,27 @@ public class RepositoryComponentTelemetryCreator
     telemetryData.getAttributes().put(REPOSITORY_COMPONENT_TELEMETRY, repositoryComponentTelemetry);
 
     telemetrySender.send(telemetryData);
+  }
+
+  /**
+   * Retrieves the Salesforce Account ID from HDS telemetry properties.
+   * The accountId is tenant-specific and cached per-tenant by PendoCache.
+   *
+   * @return Salesforce Account ID (e.g., "001QO00000sRp3lYAC") or null if not available
+   */
+  private String getAccountId() {
+    try {
+      CustomerTelemetryProperties telemetryProperties = pendoCache.getCustomerTelemetryProperties();
+      if (telemetryProperties != null && telemetryProperties.segmentAttributes != null) {
+        Object accountIdObj = telemetryProperties.segmentAttributes.get("iq_accountId");
+        if (accountIdObj != null && !accountIdObj.toString().startsWith("UNKNOWN-")) {
+          return accountIdObj.toString();
+        }
+      }
+    }
+    catch (Exception e) {
+      log.debug("Failed to retrieve Salesforce accountId for telemetry", e);
+    }
+    return null;
   }
 }

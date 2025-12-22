@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConditionTe
 import com.sonatype.insight.brain.telemetry.PolicyViolationTelemetry.ConstraintTelemetry;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
+import com.sonatype.insight.telemetry.model.CustomerTelemetryProperties;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
@@ -46,6 +47,7 @@ import org.mockito.Mock;
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.POLICY_VIOLATION_TELEMETRY;
 import static com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator.REPOSITORY_COMPONENT_TELEMETRY;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -55,6 +57,9 @@ public class RepositoryComponentTelemetryCreatorTest
   @Mock
   private TelemetrySender telemetrySenderMock;
 
+  @Mock
+  private PendoCache pendoCacheMock;
+
   @Inject
   private RepositoryComponentTelemetryCreator telemetryCreator;
 
@@ -62,6 +67,7 @@ public class RepositoryComponentTelemetryCreatorTest
   public void configure(Binder binder) {
     super.configure(binder);
     binder.bind(TelemetrySender.class).toInstance(telemetrySenderMock);
+    binder.bind(PendoCache.class).toInstance(pendoCacheMock);
   }
 
   @Test
@@ -149,6 +155,111 @@ public class RepositoryComponentTelemetryCreatorTest
   }
 
   @Test
+  public void testComponentIdentifierExtraction_Maven() {
+    final RepositoryComponent repositoryComponent = new RepositoryComponent();
+    repositoryComponent.setRepositoryId("repoid");
+    repositoryComponent.setHash("hash");
+    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("maven",
+        ImmutableMap.of("groupId", "org.springframework", "artifactId", "spring-beans", "version", "5.3.16",
+            "extension", "jar", "classifier", "")));
+    repositoryComponent.setQuarantineTime(new Date());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("maven").contains("spring-beans");
+    assertThat(telemetry.getComponentName()).isEqualTo("spring-beans");
+    assertThat(telemetry.getComponentNamespace()).isEqualTo("org.springframework");
+    assertThat(telemetry.getComponentVersion()).isEqualTo("5.3.16");
+  }
+
+  @Test
+  public void testComponentIdentifierExtraction_Npm() {
+    final RepositoryComponent repositoryComponent = new RepositoryComponent();
+    repositoryComponent.setRepositoryId("repoid");
+    repositoryComponent.setHash("hash");
+    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("npm",
+        ImmutableMap.of("packageId", "lodash", "version", "4.17.21")));
+    repositoryComponent.setQuarantineTime(new Date());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("npm").contains("lodash");
+    assertThat(telemetry.getComponentName()).isEqualTo("lodash");
+    assertThat(telemetry.getComponentNamespace()).isNull();  // npm packages may not have namespace
+    assertThat(telemetry.getComponentVersion()).isEqualTo("4.17.21");
+  }
+
+  @Test
+  public void testComponentIdentifierExtraction_PyPI() {
+    final RepositoryComponent repositoryComponent = new RepositoryComponent();
+    repositoryComponent.setRepositoryId("repoid");
+    repositoryComponent.setHash("hash");
+    repositoryComponent.setComponentIdentifier(new ComponentIdentifier("pypi",
+        ImmutableMap.of("name", "tornado", "version", "6.1", "extension", "whl",
+            "qualifier", "cp37-cp37m-manylinux2010_x86_64")));
+    repositoryComponent.setQuarantineTime(new Date());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getComponentIdentifier()).isNotNull().contains("pypi").contains("tornado");
+    assertThat(telemetry.getComponentName()).isEqualTo("tornado");
+    assertThat(telemetry.getComponentNamespace()).isNull();  // pypi packages typically don't have namespace
+    assertThat(telemetry.getComponentVersion()).isEqualTo("6.1");
+  }
+
+  @Test
+  public void testComponentIdentifierExtraction_NullComponentIdentifier() {
+    final RepositoryComponent repositoryComponent = new RepositoryComponent();
+    repositoryComponent.setRepositoryId("repoid");
+    repositoryComponent.setHash("hash");
+    repositoryComponent.setComponentIdentifier(null);
+    repositoryComponent.setQuarantineTime(new Date());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getComponentIdentifier()).isNull();
+    assertThat(telemetry.getComponentName()).isNull();
+    assertThat(telemetry.getComponentNamespace()).isNull();
+    assertThat(telemetry.getComponentVersion()).isNull();
+  }
+
+  @Test
   public void testSendRepositoryComponentTelemetry_NullDates() {
     final RepositoryComponent repositoryComponent = createComponent();
     repositoryComponent.setQuarantineTime(null);
@@ -219,8 +330,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
-            repositoryComponentTelemetryEventType, null, Collections.emptyList());
+        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+            repositoryComponentTelemetryEventType, null, null, Collections.emptyList());
     assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
         HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
@@ -236,8 +347,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
-            repositoryComponentTelemetryEventType, null, policyNotifications);
+        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+            repositoryComponentTelemetryEventType, null, null, policyNotifications);
     assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
         HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
@@ -253,8 +364,8 @@ public class RepositoryComponentTelemetryCreatorTest
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
         policyViolations.stream().map(PolicyViolationTelemetry::new).collect(Collectors.toList());
     final RepositoryComponentTelemetry repositoryComponentTelemetry =
-        new RepositoryComponentTelemetry(repositoryManagerId, repositoryComponent,
-            repositoryComponentTelemetryEventType, releaseQuarantineType, Collections.emptyList());
+        new RepositoryComponentTelemetry(null, repositoryManagerId, repositoryComponent,
+            repositoryComponentTelemetryEventType, releaseQuarantineType, null, Collections.emptyList());
     assertThat(repositoryComponentTelemetry.getComponentHash()).isEqualTo(
         HdsClientAnalytics.obfuscate(repositoryComponent.getHash()));
     assertTelemetry(policyViolationTelemetries, repositoryComponentTelemetry);
@@ -343,5 +454,133 @@ public class RepositoryComponentTelemetryCreatorTest
   private void assertNotifications(final Set<String> expected, final Set<String> actual) {
     assertThat(actual).isNotNull().hasSize(expected.size());
     assertThat(actual).containsAll(expected);
+  }
+
+  @Test
+  public void testAccountId_WithValidAccountId() {
+    // Setup PendoCache to return valid Salesforce Account ID
+    CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
+    telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "001QO00000sRp3lYAC");
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isEqualTo("001QO00000sRp3lYAC");
+  }
+
+  @Test
+  public void testAccountId_WithNullTelemetryProperties() {
+    // Setup PendoCache to return null
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(null);
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isNull();
+  }
+
+  @Test
+  public void testAccountId_WithNullSegmentAttributes() {
+    // Setup PendoCache to return telemetry properties with null segmentAttributes
+    CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
+    telemetryProperties.segmentAttributes = null;
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isNull();
+  }
+
+  @Test
+  public void testAccountId_WithMissingIqAccountIdKey() {
+    // Setup PendoCache to return telemetry properties without iq_accountId key
+    CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
+    telemetryProperties.segmentAttributes = ImmutableMap.of("someOtherKey", "someValue");
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isNull();
+  }
+
+  @Test
+  public void testAccountId_WithUnknownPrefix() {
+    // Setup PendoCache to return accountId starting with "UNKNOWN-"
+    CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
+    telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "UNKNOWN-12345");
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isNull();
+  }
+
+  @Test
+  public void testAccountId_WithException() {
+    // Setup PendoCache to throw an exception
+    lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenThrow(new RuntimeException("Test exception"));
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getAccountId()).isNull();
   }
 }

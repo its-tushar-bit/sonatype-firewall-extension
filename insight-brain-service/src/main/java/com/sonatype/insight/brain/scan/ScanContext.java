@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.scan;
 
+import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
 import com.sonatype.insight.brain.sbom.SbomSpecification;
 
 /**
@@ -15,7 +16,8 @@ import com.sonatype.insight.brain.sbom.SbomSpecification;
 public record ScanContext(String applicationVersion,
                           boolean isValid,
                           String sbomMetadataId,
-                          SbomSpecification containerImageSbomSpecification)
+                          SbomSpecification containerImageSbomSpecification,
+                          ContainerImageTelemetryMetrics containerImageTelemetryMetrics)
 {
   /**
    * This builder is intended to make constructing a {@link ScanContext} easier by not having to set all fields.
@@ -29,6 +31,8 @@ public record ScanContext(String applicationVersion,
     private boolean isValid;
 
     private SbomSpecification containerImageSbomSpecification;
+
+    private ContainerImageTelemetryMetrics containerImageTelemetryMetrics;
 
     public Builder applicationVersion(final String applicationVersion) {
       this.applicationVersion = applicationVersion;
@@ -50,8 +54,14 @@ public record ScanContext(String applicationVersion,
       return this;
     }
 
+    public Builder containerImageTelemetryMetrics(final ContainerImageTelemetryMetrics containerImageTelemetryMetrics) {
+      this.containerImageTelemetryMetrics = containerImageTelemetryMetrics;
+      return this;
+    }
+
     public ScanContext build() {
-      return new ScanContext(applicationVersion, isValid, sbomMetadataId, containerImageSbomSpecification);
+      return new ScanContext(applicationVersion, isValid, sbomMetadataId, containerImageSbomSpecification,
+          containerImageTelemetryMetrics);
     }
   }
 }

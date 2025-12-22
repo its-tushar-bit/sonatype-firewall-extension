@@ -21,6 +21,7 @@ import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageEvaluationResponse;
 import com.sonatype.insight.brain.api.v2.dto.ApiVerifyOrCreateApplicationForContainerImageFirewallDTO;
+import com.sonatype.insight.brain.container.images.ContainerImageUtils;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
@@ -161,10 +162,14 @@ public class RepositoryContainerImageService
     log.debug("Submitting container image {} for policy evaluation with scan request ID {}",
         applicationPublicIdForContainerImage, scanRequestId);
 
+    ScanContext scanContext = new ScanContext.Builder()
+        .containerImageSbomSpecification(SbomSpecification.CYCLONEDX)
+        .containerImageTelemetryMetrics(ContainerImageUtils.buildContainerImageTelemetryMetrics(bom.getMetadata()))
+        .build();
+
     policyEvaluateService.evaluateWithPolling(scanRequestId, application, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(Stage.ID_PROXY), ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API, scanResult.getScanEntity(),
-        ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent, null,
-        new ScanContext.Builder().containerImageSbomSpecification(SbomSpecification.CYCLONEDX).build());
+        ScannerDriver.THIRD_PARTY_API.getValue(), clientUserAgent, null, scanContext);
 
     FirewallContainerImageEvaluationResponse response = new FirewallContainerImageEvaluationResponse();
     response.setContainerImageId(application.getId());

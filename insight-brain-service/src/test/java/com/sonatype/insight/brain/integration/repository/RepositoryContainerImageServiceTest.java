@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationStatus;
@@ -27,6 +30,7 @@ import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluateService;
 import com.sonatype.insight.brain.policy.evaluator.PolicyEvaluationPollingResultDTO;
+import com.sonatype.insight.brain.scan.ScanContext;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.NotFoundException;
@@ -42,11 +46,21 @@ import org.cyclonedx.model.Component.Type;
 import org.cyclonedx.model.Metadata;
 import org.cyclonedx.model.Property;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.Mock;
 
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.BASE_OS_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.COMPONENTS_COUNT_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.MANIFEST_TYPE_PROPERTY_NAME;
+import static com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics.SCAN_DURATION_MILLISECONDS_PROPERTY_NAME;
 import static com.sonatype.clm.dto.model.repository.container.image.FirewallContainerImageUtils.SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -68,6 +82,9 @@ public class RepositoryContainerImageServiceTest
   @Mock
   private PolicyEvaluateService policyEvaluateServiceMock;
 
+  @Captor
+  private ArgumentCaptor<ScanContext> scanContextCaptor;
+
   @Inject
   private RepositoryContainerImageService service;
 
@@ -76,7 +93,8 @@ public class RepositoryContainerImageServiceTest
     super.configure(binder);
 
     binder.bindInterceptor(Matchers.subclassesOf(PolicyEvaluateService.class), Matchers.any(), invocation -> {
-      if (invocation.getMethod().getName().equals("pollEvaluationResult")) {
+      String methodName = invocation.getMethod().getName();
+      if (methodName.equals("pollEvaluationResult") || methodName.equals("evaluateWithPolling")) {
         return invocation.getMethod().invoke(policyEvaluateServiceMock, invocation.getArguments());
       }
       return invocation.proceed();
@@ -320,7 +338,7 @@ public class RepositoryContainerImageServiceTest
     FirewallContainerImageEvaluationResponse response = service.evaluateContainerImage(
         repositoryManager.getInstanceId(),
         repository.getPublicId(),
-        toJson(createValidBom()),
+        toJson(createValidBom(true)),
         clientUserAgent);
 
     assertThat(response).isNotNull();
@@ -334,6 +352,20 @@ public class RepositoryContainerImageServiceTest
     assertThat(application).isNotNull();
     assertThat(application.getId()).isEqualTo(response.getContainerImageId());
     assertThat(application.getPublicId()).isEqualTo(response.getContainerImagePublicId());
+
+    // Verify ContainerImageTelemetryMetrics were captured and passed to policy evaluation
+    verify(policyEvaluateServiceMock).evaluateWithPolling(anyString(), any(), any(), any(), any(), any(), anyString(),
+        eq(clientUserAgent), isNull(), scanContextCaptor.capture());
+
+    ScanContext capturedScanContext = scanContextCaptor.getValue();
+    assertThat(capturedScanContext).isNotNull();
+    assertThat(capturedScanContext.containerImageTelemetryMetrics()).isNotNull();
+
+    ContainerImageTelemetryMetrics telemetryMetrics = capturedScanContext.containerImageTelemetryMetrics();
+    assertThat(telemetryMetrics.getBaseOs()).isEqualTo("alpine:3.18");
+    assertThat(telemetryMetrics.getComponentsCount()).isEqualTo(150L);
+    assertThat(telemetryMetrics.getManifestMediaType()).isEqualTo("test-media-type");
+    assertThat(telemetryMetrics.getScanDurationMilliseconds()).isEqualTo(5000L);
   }
 
   @Test
@@ -474,6 +506,10 @@ public class RepositoryContainerImageServiceTest
   }
 
   private static Bom createValidBom() {
+    return createValidBom(false);
+  }
+
+  private static Bom createValidBom(boolean includeTelemetry) {
     Bom bom = new Bom();
     Metadata metadata = new Metadata();
 
@@ -483,11 +519,35 @@ public class RepositoryContainerImageServiceTest
 
     metadata.setComponent(component);
 
-    Property property = new Property();
-    property.setName(SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME);
-    property.setValue("https://nexus.example.com");
-    metadata.setProperties(Collections.singletonList(property));
+    List<Property> properties = new ArrayList<>();
+    Property baseUrlProperty = new Property();
+    baseUrlProperty.setName(SONATYPE_NEXUS_REPOSITORY_BASE_URL_PROPERTY_NAME);
+    baseUrlProperty.setValue("https://nexus.example.com");
+    properties.add(baseUrlProperty);
 
+    if (includeTelemetry) {
+      Property baseOsProperty = new Property();
+      baseOsProperty.setName(BASE_OS_PROPERTY_NAME);
+      baseOsProperty.setValue("alpine:3.18");
+      properties.add(baseOsProperty);
+
+      Property componentsCountProperty = new Property();
+      componentsCountProperty.setName(COMPONENTS_COUNT_PROPERTY_NAME);
+      componentsCountProperty.setValue("150");
+      properties.add(componentsCountProperty);
+
+      Property manifestTypeProperty = new Property();
+      manifestTypeProperty.setName(MANIFEST_TYPE_PROPERTY_NAME);
+      manifestTypeProperty.setValue("test-media-type");
+      properties.add(manifestTypeProperty);
+
+      Property scanDurationProperty = new Property();
+      scanDurationProperty.setName(SCAN_DURATION_MILLISECONDS_PROPERTY_NAME);
+      scanDurationProperty.setValue("5000");
+      properties.add(scanDurationProperty);
+    }
+
+    metadata.setProperties(properties);
     bom.setMetadata(metadata);
     return bom;
   }

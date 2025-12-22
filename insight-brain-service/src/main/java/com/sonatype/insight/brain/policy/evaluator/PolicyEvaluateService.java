@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
+import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -63,12 +64,14 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
+import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.brain.telemetry.TelemetryUtils;
 import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.error.exception.PaymentRequiredException;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.insight.telemetry.model.TelemetryData;
+import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.dropwizard.lifecycle.Managed;
@@ -78,11 +81,11 @@ import org.slf4j.LoggerFactory;
 
 import static com.sonatype.clm.dto.model.policy.PolicyEvaluationSubStatus.COMPONENT_ANALYSIS_COMPLETE;
 
-@Named
-@Singleton
 /**
  * Service for policy evaluations for applications.
  */
+@Named
+@Singleton
 public class PolicyEvaluateService
     implements Managed
 {
@@ -128,6 +131,8 @@ public class PolicyEvaluateService
 
   public RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator;
 
+  private final TelemetrySender telemetrySender;
+
   @Inject
   public PolicyEvaluateService(
       ScanPolicyEvaluator scanPolicyEvaluator,
@@ -148,7 +153,8 @@ public class PolicyEvaluateService
       RepositoryDAO repositoryDAO,
       PolicyEvaluationDAO policyEvaluationDAO,
       PolicyViolationDAO policyViolationDAO,
-      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator)
+      RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
+      TelemetrySender telemetrySender)
   {
     this.scanPolicyEvaluator = scanPolicyEvaluator;
     this.policyAlertNotifier = policyAlertNotifier;
@@ -170,6 +176,7 @@ public class PolicyEvaluateService
     this.policyEvaluationDAO = policyEvaluationDAO;
     this.policyViolationDAO = policyViolationDAO;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
+    this.telemetrySender = telemetrySender;
   }
 
   private ExecutorService buildExecutorService() {
@@ -732,12 +739,15 @@ public class PolicyEvaluateService
           policyEvaluationPollingResult = scanAndEvaluate(policyEvaluationPollingResult);
         }
 
+        long elapsed = System.currentTimeMillis() - start;
         log.debug(
             "Evaluated policy for app public id {}, scan id {}, stageTypeId {} in {} ms."
                 + " The status ID of the operation is {}.",
-            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(),
-            System.currentTimeMillis() - start, statusId
-        );
+            app.getPublicId(), getScanId(policyEvaluationPollingResult), stage.getStageTypeId(), elapsed, statusId);
+
+        if (scanContext != null && scanContext.containerImageTelemetryMetrics() != null) {
+          scanContext.containerImageTelemetryMetrics().setPolicyEvaluationDurationMilliseconds(elapsed);
+        }
       }
       catch (Exception e) {
         log.error(
@@ -754,10 +764,10 @@ public class PolicyEvaluateService
 
         // Send REPOSITORY_COMPONENT telemetry for container image
         Repository containerRepository = repositoryDAO.getByContainerImageId(app.getId());
-        boolean isContainerImageApp = stage.getStageTypeId().equals(Stage.ID_PROXY) && containerRepository != null;
+        boolean isFirewallContainerImage = stage.getStageTypeId().equals(Stage.ID_PROXY) && containerRepository != null;
         boolean isPolicyEvaluationCompleted =
             policyEvaluationPollingResult.getStatus().equals(PolicyEvaluationStatus.COMPLETED);
-        if (isContainerImageApp && isPolicyEvaluationCompleted) {
+        if (isFirewallContainerImage && isPolicyEvaluationCompleted) {
           sendRepositoryComponentTelemetryForContainer(policyEvaluationPollingResult, containerRepository);
         }
       }
@@ -890,6 +900,16 @@ public class PolicyEvaluateService
           buildRepositoryComponentTelemetryDataForContainer(policyEvaluationPollingResult, repository);
       repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(
           repositoryComponentTelemetryDataForContainer);
+
+      if (scanContext != null && scanContext.containerImageTelemetryMetrics() != null) {
+        sendContainerImageTelemetryData(scanContext.containerImageTelemetryMetrics());
+      }
+    }
+
+    private void sendContainerImageTelemetryData(final ContainerImageTelemetryMetrics containerImageTelemetryMetrics) {
+      TelemetryData containerTelemetryData = new TelemetryData(TelemetryPurpose.FIREWALL_CONTAINER_IMAGE_EVALUATION);
+      containerTelemetryData.put("container_image_metrics", containerImageTelemetryMetrics);
+      telemetrySender.send(containerTelemetryData);
     }
 
     @VisibleForTesting

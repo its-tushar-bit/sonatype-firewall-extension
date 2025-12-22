@@ -26,6 +26,7 @@ import javax.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.container.image.ContainerImageTelemetryMetrics;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.PolicyAlert;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;
@@ -1452,17 +1453,33 @@ public class PolicyEvaluateServiceTest
 
     String scanRequestId = UUID.randomUUID().toString().replace("-", "");
 
+    ContainerImageTelemetryMetrics containerImageTelemetryMetrics = new ContainerImageTelemetryMetrics();
+    containerImageTelemetryMetrics.setBaseOs("test-os:1234");
+    containerImageTelemetryMetrics.setComponentsCount(10L);
+    containerImageTelemetryMetrics.setManifestMediaType("test-manifest-media-type");
+    containerImageTelemetryMetrics.setScanDurationMilliseconds(10_000L);
+
+    ScanContext scanContext = new ScanContext.Builder()
+        .containerImageTelemetryMetrics(containerImageTelemetryMetrics)
+        .containerImageSbomSpecification(SbomSpecification.CYCLONEDX)
+        .build();
+
     policyEvaluateService.evaluateWithPolling(scanRequestId, app, ClientScanType.SONATYPE_THIRD_PARTY,
         new Stage(Stage.ID_PROXY), ScanTriggerType.SONATYPE_CONTAINER_IMAGE_SCANNER_API, scanResult.getScanEntity(),
-        ScannerDriver.THIRD_PARTY_API.getValue(), null, null,
-        new ScanContext.Builder().containerImageSbomSpecification(SbomSpecification.CYCLONEDX).build());
+        ScannerDriver.THIRD_PARTY_API.getValue(), null, null, scanContext);
 
     PolicyEvaluationPollingResult pollingResult = policyEvaluationHelper
         .awaitEvaluationCompleted(app.getId(), scanRequestId);
 
     List<TelemetryData> telemetryDataValues = telemetryDataArgumentCaptor.getAllValues();
-    TelemetryData telemetryDataForContainer = telemetryDataValues.stream()
+    TelemetryData telemetryDataForContainerComponents = telemetryDataValues.stream()
         .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.REPOSITORY_COMPONENT))
+        .findFirst()
+        .orElse(null);
+
+    TelemetryData telemetryDataForContainerEvaluation = telemetryDataValues.stream()
+        .filter(
+            telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.FIREWALL_CONTAINER_IMAGE_EVALUATION))
         .findFirst()
         .orElse(null);
 
@@ -1473,11 +1490,30 @@ public class PolicyEvaluateServiceTest
     assertThat(pollingResult.getStatus()).isEqualTo(PolicyEvaluationStatus.COMPLETED);
 
     assertThat(telemetryDataValues).isNotEmpty();
-    assertThat(telemetryDataForContainer).isNotNull();
-    assertThat(telemetryDataForContainer.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
-    assertThat(telemetryDataForContainer.getAttributes())
+
+    assertThat(telemetryDataForContainerComponents).isNotNull();
+    assertThat(telemetryDataForContainerComponents.getPurpose()).isEqualTo(TelemetryPurpose.REPOSITORY_COMPONENT);
+    assertThat(telemetryDataForContainerComponents.getAttributes())
         .containsKey(REPOSITORY_COMPONENT_TELEMETRY)
         .containsKey(POLICY_VIOLATION_TELEMETRY);
+
+    assertThat(telemetryDataForContainerEvaluation).isNotNull();
+    assertThat(telemetryDataForContainerEvaluation.getPurpose()).isEqualTo(
+        TelemetryPurpose.FIREWALL_CONTAINER_IMAGE_EVALUATION);
+    assertThat(telemetryDataForContainerEvaluation.getAttributes()).isNotNull();
+
+    ContainerImageTelemetryMetrics telemetryMetricsFromAttributes =
+        (ContainerImageTelemetryMetrics) telemetryDataForContainerEvaluation.getAttributes()
+            .get("container_image_metrics");
+    assertThat(telemetryMetricsFromAttributes).isNotNull();
+    assertThat(telemetryMetricsFromAttributes.getBaseOs()).isEqualTo(containerImageTelemetryMetrics.getBaseOs());
+    assertThat(telemetryMetricsFromAttributes.getComponentsCount()).isEqualTo(
+        containerImageTelemetryMetrics.getComponentsCount());
+    assertThat(telemetryMetricsFromAttributes.getManifestMediaType()).isEqualTo(
+        containerImageTelemetryMetrics.getManifestMediaType());
+    assertThat(telemetryMetricsFromAttributes.getScanDurationMilliseconds()).isEqualTo(
+        containerImageTelemetryMetrics.getScanDurationMilliseconds());
+    assertThat(telemetryMetricsFromAttributes.getPolicyEvaluationDurationMilliseconds()).isGreaterThan(0L);
   }
 
   private PolicyEvaluationReceipt analyzeComponentsWithPolling() throws IOException {

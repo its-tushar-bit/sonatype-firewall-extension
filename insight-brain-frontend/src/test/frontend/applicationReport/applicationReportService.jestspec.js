@@ -1835,6 +1835,96 @@ describe('applicationReportService', function () {
       });
     });
 
+    describe('aggregateReportEntriesWithFilter', function () {
+      it('returns a function that selects highest waived violation when filtering by waived', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['waived']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash1Result = result.filter((r) => r.hash === '1');
+        const hash3Result = result.filter((r) => r.hash === '3');
+
+        expect(hash1Result.length).toBe(1);
+        expect(hash3Result.length).toBe(1);
+
+        // Hash 1 has two waived violations (threat 9 and threat 9), should pick highest
+        expect(hash1Result[0].policyThreatLevel).toBe(9);
+        expect(hash1Result[0].policyName).toMatch(/Policy (4|9)/); // Either Policy 4 or Policy 9
+        expect(hash1Result[0].waived).toBe(true);
+        expect(hash1Result[0].componentIdentifier).toBe('bar');
+
+        // Hash 3 has waived violations, should pick highest
+        expect(hash3Result[0].policyThreatLevel).toBe(5);
+        expect(hash3Result[0].policyName).toBe('Policy 7');
+        expect(hash3Result[0].waived).toBe(true);
+        expect(hash3Result[0].componentIdentifier).toBe('qux');
+      });
+
+      it('returns a function that selects highest waived violation when filtering by waived+legacyViolation', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['waived+legacyViolation']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash7Result = result.filter((r) => r.hash === '7');
+
+        expect(hash7Result.length).toBe(1);
+
+        // Hash 7 has one waived violation (threat 6)
+        expect(hash7Result[0].policyThreatLevel).toBe(6);
+        expect(hash7Result[0].policyName).toBe('Policy 14');
+        expect(hash7Result[0].waived).toBe(true);
+        expect(hash7Result[0].componentIdentifier).toBe('foo3');
+      });
+
+      it('returns default aggregation function when not filtering by waived', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['open']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash1Result = result.filter((r) => r.hash === '1');
+        const hash2Result = result.filter((r) => r.hash === '2');
+
+        expect(hash1Result.length).toBe(1);
+        expect(hash2Result.length).toBe(1);
+
+        // Should use default aggregation (highest non-waived)
+        expect(hash1Result[0].policyThreatLevel).toBe(8);
+        expect(hash1Result[0].policyName).toBe('Policy 6');
+        expect(hash1Result[0].waived).toBe(false);
+
+        expect(hash2Result[0].policyThreatLevel).toBe(4);
+        expect(hash2Result[0].policyName).toBe('Policy 2');
+        expect(hash2Result[0].waived).toBe(false);
+      });
+
+      it('returns default aggregation function when no filters provided', function () {
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(null);
+        const result = aggregateFn(input);
+        const hash1Result = result.filter((r) => r.hash === '1');
+
+        expect(hash1Result.length).toBe(1);
+        expect(hash1Result[0].policyThreatLevel).toBe(8);
+        expect(hash1Result[0].policyName).toBe('Policy 6');
+        expect(hash1Result[0].waived).toBe(false);
+      });
+
+      it('tracks waivedViolations count when filtering by waived', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['waived']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash1Result = result.filter((r) => r.hash === '1');
+
+        expect(hash1Result.length).toBe(1);
+        // Hash 1 has 2 waived violations
+        expect(hash1Result[0].waivedViolations).toBe(2);
+      });
+    });
+
     describe('filterReportEntries', function () {
       it('filters based on exact values and substring matching and can be partially applied', function () {
         const exactValueFilters = {

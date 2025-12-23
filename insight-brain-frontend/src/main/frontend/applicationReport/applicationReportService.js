@@ -450,9 +450,13 @@ function serializeComponentId({ componentIdentifier, pathnames }) {
   }
 }
 
-function highestViolationReducer(highestViolationSoFar, violation) {
-  const isActive = complement(either(isNil, either(prop('waived'), prop('legacyViolation')))),
-    activeViolations = filter(isActive, [highestViolationSoFar, violation]),
+function highestViolationReducer(highestViolationSoFar, violation, includeWaived = false) {
+  // When includeWaived is true, select from waived violations only; otherwise exclude waived/legacy
+  const isActive = includeWaived
+    ? complement(either(isNil, complement(prop('waived'))))
+    : complement(either(isNil, either(prop('waived'), prop('legacyViolation'))));
+
+  const activeViolations = filter(isActive, [highestViolationSoFar, violation]),
     highestActiveViolation =
       activeViolations.length < 2 ? activeViolations[0] : apply(maxBy(prop('policyThreatLevel')))(activeViolations);
   // Add the waivedViolations key if it does not exist yet
@@ -499,6 +503,34 @@ export const aggregateReportEntries = pipe(
   // waived and legacy violation indicators should only be shown on non-violating components
   map(unsetWaivedAndLegacyViolationsOnViolatingEntry)
 );
+
+/**
+ * Takes exactValueFilters and returns an aggregation function that considers waived violations
+ * when the user is filtering by waived status
+ */
+export const aggregateReportEntriesWithFilter = (exactValueFilters) => {
+  // Check if user is filtering ONLY for waived/legacy violations (not including 'open' or 'notViolating')
+  const violationStateFilter = exactValueFilters?.derivedViolationState;
+  const hasOnlyWaivedFilter =
+    violationStateFilter &&
+    violationStateFilter.size > 0 &&
+    !violationStateFilter.has('open') &&
+    !violationStateFilter.has('notViolating') &&
+    (violationStateFilter.has('waived') ||
+      violationStateFilter.has('waived+legacyViolation') ||
+      violationStateFilter.has('legacyViolation'));
+
+  if (hasOnlyWaivedFilter) {
+    // Use a reducer that includes waived violations in the selection
+    // Filter to only include components that have at least one waived violation
+    const reducerWithWaived = (acc, val) => highestViolationReducer(acc, val, true);
+    const hasWaivedViolations = (entry) => entry.waivedViolations > 0 || entry.waived === true;
+    return pipe(reduceBy(reducerWithWaived, null, toKey), values, filter(hasWaivedViolations));
+  } else {
+    // Use the default aggregation logic
+    return aggregateReportEntries;
+  }
+};
 
 /**
  * Take a list of all report entries and return a new list of only entries that have allowed values for all properties

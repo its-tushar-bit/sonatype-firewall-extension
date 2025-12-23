@@ -81,7 +81,7 @@ import {
 import { sortItemsByFields } from '../util/sortUtils';
 
 import {
-  aggregateReportEntries,
+  aggregateReportEntriesWithFilter,
   filterReportEntries,
   getVulnerabilities,
   extendRawDataWithKey,
@@ -431,7 +431,9 @@ function updateDisplayedEntries(state) {
     const filterEntries = filterReportEntries(exactValueFilters, substringFilters, null);
     const sortEntries = pipe(sortItemsByFields(sortFields), reject(propEq('scanError', true)));
     const filteredEntries = filterEntries(allEntries);
-    const unfilteredAggregatedEntries = pipe(aggregateReportEntries, sortEntries)(allEntries);
+    // Use the filter-aware aggregation function that considers waived violations when filtering by waived
+    const aggregateFunction = aggregateReportEntriesWithFilter(exactValueFilters);
+    const unfilteredAggregatedEntries = pipe(aggregateFunction, sortEntries)(allEntries);
     const aggregatedEntries = filterEntries(unfilteredAggregatedEntries);
     const newDisplayedEntries = aggregate ? sortEntries(aggregatedEntries) : sortEntries(filteredEntries);
     // create `aggregatedEntries` prop to be used for navigation and `unfilteredAggregatedEntries` for report reloading

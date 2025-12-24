@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.search;
 
+import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
-import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.service.InsightBrainService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
@@ -55,7 +55,7 @@ public class SearchModuleServerStartTest
       }
     });
     SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
-    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
   }
 
   @Test
@@ -74,6 +74,6 @@ public class SearchModuleServerStartTest
       }
     });
     SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
-    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
   }
 }

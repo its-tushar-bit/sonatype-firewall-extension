@@ -9,9 +9,9 @@ import javax.inject.Inject;
 
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
+import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
-import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Test;
@@ -38,6 +38,6 @@ public class SearchModuleTest
   @Test
   @OpenSearchHttpTest
   public void openSearchHttpTest() {
-    assertThat(searchIndexClient).isInstanceOf(OpenSearchSearchIndexClient.class);
+    assertThat(searchIndexClient).isInstanceOf(HybridSearchIndexClient.class);
   }
 }

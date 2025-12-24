@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.OpenSearchHttpTest;
+import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.IndexConfig;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
@@ -54,7 +55,23 @@ public class MultiTenantOpenSearchSearchIndexClientTest
       multiTenantConfig.setAuth0Config(auth0Config);
       multiTenantConfig.setSearchConfig(searchIndexRule.getSearchConfig());
     });
-    openSearchSearchIndexClient = (OpenSearchSearchIndexClient) getCLMServer().getInstance(SearchIndexClient.class);
+
+    SearchIndexClient searchIndexClient = getCLMServer().getInstance(SearchIndexClient.class);
+
+    // Handle HybridSearchIndexClient - extract the primary (OpenSearch) client
+    if (searchIndexClient instanceof HybridSearchIndexClient) {
+      HybridSearchIndexClient hybridClient = (HybridSearchIndexClient) searchIndexClient;
+      openSearchSearchIndexClient = (OpenSearchSearchIndexClient) hybridClient.getPrimaryClient();
+    }
+    else if (searchIndexClient instanceof OpenSearchSearchIndexClient) {
+      openSearchSearchIndexClient = (OpenSearchSearchIndexClient) searchIndexClient;
+    }
+    else {
+      throw new IllegalStateException(
+          "Expected HybridSearchIndexClient or OpenSearchSearchIndexClient, but got: "
+              + searchIndexClient.getClass().getName());
+    }
+
     indexConfigProvider = getCLMServer().getInstance(MultiTenantIndexConfigProvider.class);
     indexConfig = indexConfigProvider.getIndexConfig();
   }

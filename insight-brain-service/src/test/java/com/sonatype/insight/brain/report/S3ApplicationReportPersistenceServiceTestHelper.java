@@ -143,6 +143,19 @@ public class S3ApplicationReportPersistenceServiceTestHelper
     writeKey(key, content);
   }
 
+  public void writeZipFile(String applicationId, String scanId, byte[] zipContent) {
+    String key = "report/%s/%s/report.zip".formatted(applicationId, scanId);
+    s3Client.putObject(
+        PutObjectRequest.builder().bucket(getBucketName()).key(expectedEffectivePrefix.get() + key).build(),
+        RequestBody.fromBytes(zipContent)
+    );
+  }
+
+  public boolean zipFileExists(String applicationId, String scanId) {
+    String key = "report/%s/%s/report.zip".formatted(applicationId, scanId);
+    return readKey(key) != null;
+  }
+
   @Override
   public void waitForNewFileTime() throws InterruptedException {
     // S3 times come from the Last-Modified HTTP header with gives the appearance of 1-second resolution

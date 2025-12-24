@@ -6,8 +6,12 @@
 
 package com.sonatype.insight.brain.report;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
@@ -42,6 +46,8 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
+import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -172,5 +178,85 @@ public class S3ApplicationReportPersistenceServiceTest
         .when(spyS3AsyncClient).putObject(argThat(indexHtmlMatcher), any(AsyncRequestBody.class));
 
     return new S3ApplicationReportPersistenceService(s3Client, spyS3AsyncClient, insightConfig);
+  }
+
+  @Test
+  public void testGetReportEntity_extractsZipOnFirstAccess() throws Exception {
+    var helper = (S3ApplicationReportPersistenceServiceTestHelper) this.helper;
+    byte[] zipContent = createMockReportZip();
+    helper.writeZipFile(APPLICATION_ID, SCAN_ID, zipContent);
+
+    assertThat(helper.zipFileExists(APPLICATION_ID, SCAN_ID)).isTrue();
+    assertThat(helper.readFromOriginalFiles("index.html")).isNull();
+
+    var entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html");
+    assertThat(entity.exists()).isTrue();
+    helper.assertEntityContents(entity, "<html></html>");
+
+    assertThat(helper.readFromOriginalFiles("index.html")).isEqualTo("<html></html>");
+    assertThat(helper.zipFileExists(APPLICATION_ID, SCAN_ID)).isFalse();
+
+    var dataJsonEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "data.json");
+    assertThat(dataJsonEntity.exists()).isTrue();
+    helper.assertEntityContents(dataJsonEntity, "{\"test\":\"data\"}");
+  }
+
+  @Test
+  public void testGetReportEntity_handlesExtractedFiles() throws Exception {
+    helper.saveEmptyMockReport();
+
+    assertThat(helper.readFromOriginalFiles("index.html")).isEqualTo("<html></html>");
+
+    var entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html");
+    assertThat(entity.exists()).isTrue();
+    helper.assertEntityContents(entity, "<html></html>");
+  }
+
+  @Test
+  public void testGetReportEntity_handlesNonExistentFileAfterExtraction() throws Exception {
+    var helper = (S3ApplicationReportPersistenceServiceTestHelper) this.helper;
+    byte[] zipContent = createMockReportZip();
+    helper.writeZipFile(APPLICATION_ID, SCAN_ID, zipContent);
+
+    var existingEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html");
+    assertThat(existingEntity.exists()).isTrue();
+    assertThat(helper.zipFileExists(APPLICATION_ID, SCAN_ID)).isFalse();
+
+    var nonExistentEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "nonexistent.html");
+    assertThat(nonExistentEntity.exists()).isFalse();
+  }
+
+  @Test
+  public void testGetReportEntity_copyObjectFailureAfterExtraction_zipDeleted() throws Exception {
+    var helper = (S3ApplicationReportPersistenceServiceTestHelper) this.helper;
+    byte[] zipContent = createMockReportZip();
+    helper.writeZipFile(APPLICATION_ID, SCAN_ID, zipContent);
+
+    assertThat(helper.zipFileExists(APPLICATION_ID, SCAN_ID)).isTrue();
+
+    try {
+      service.getReportEntity(APPLICATION_ID, SCAN_ID, "nonexistent.html");
+    }
+    catch (Exception e) {
+      // Expected exception when file not in zip
+    }
+
+    assertThat(helper.zipFileExists(APPLICATION_ID, SCAN_ID)).isFalse();
+    assertThat(helper.readFromOriginalFiles("index.html")).isNotNull();
+    assertThat(helper.readFromOriginalFiles("nonexistent.html")).isNull();
+  }
+
+  private byte[] createMockReportZip() throws Exception {
+    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+    try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+      zos.putNextEntry(new ZipEntry("index.html"));
+      zos.write("<html></html>".getBytes(StandardCharsets.UTF_8));
+      zos.closeEntry();
+
+      zos.putNextEntry(new ZipEntry("data.json"));
+      zos.write("{\"test\":\"data\"}".getBytes(StandardCharsets.UTF_8));
+      zos.closeEntry();
+    }
+    return baos.toByteArray();
   }
 }

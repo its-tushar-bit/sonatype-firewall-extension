@@ -3,6 +3,7 @@
 .project
 .settings/
 .sonatype
+.run/
 target/
 sonatype-work/
 log/

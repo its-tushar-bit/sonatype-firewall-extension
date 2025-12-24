@@ -74,6 +74,10 @@ public class S3ApplicationReportPersistenceService
 
   private static final String CACHE_KEY_FORMAT = CACHE_KEY_PREFIX + "%s";
 
+  private static final String ZIP_FILENAME = "report.zip";
+
+  private static final String ZIP_KEY_FORMAT = BASE_FORMAT + ZIP_FILENAME;
+
   private static final String PDF_FILENAME = "report.pdf";
 
   private static final String VULNERABILITY_SIGNATURE_FILENAME =
@@ -444,6 +448,7 @@ public class S3ApplicationReportPersistenceService
 
   /**
    * Creates a cache copy of the original file. If an original file by this name does not exist, does nothing.
+   * If a report.zip file exists, it will be extracted first.
    */
   @Trace
   private void createLocalCopyFromOriginal(
@@ -464,9 +469,67 @@ public class S3ApplicationReportPersistenceService
         s3Client.copyObject(request);
       }
       catch (NoSuchKeyException e) {
-        // If the original file doesn't exist, we don't need to create a cache copy
+        try {
+          S3ObjectKey zipKey = getZipKey(applicationId, scanId);
+          String zipKeyString = zipKey.toString();
+          if (S3Utils.exists(s3Client, s3DataStoreConfig.getBucketName(), zipKeyString)) {
+            log.info("Original file '{}' not found for applicationId '{}' scanId '{}', but report.zip exists. " +
+                "Extracting zip file to report.files/", name, applicationId, scanId);
+            extractZipFileToS3(applicationId, scanId);
+            try {
+              s3Client.copyObject(request);
+            }
+            catch (NoSuchKeyException ex) {
+              log.info("File '{}' not found in extracted contents for applicationId '{}' scanId '{}'",
+                  name, applicationId, scanId);
+            }
+            deleteByKey(zipKey);
+            log.info("Deleted report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+          }
+        }
+        catch (IOException ex) {
+          throw new RuntimeException(ex);
+        }
       }
     });
+  }
+
+  /**
+   * Extracts a report.zip file from S3 to the report.files/ folder in S3.
+   * The zip file is preserved for transactional safety - caller is responsible for deletion after success.
+   */
+  @Trace
+  private void extractZipFileToS3(final String applicationId, final String scanId) throws IOException {
+    S3ObjectKey zipKey = getZipKey(applicationId, scanId);
+    log.info("Starting extraction of report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+
+    GetObjectRequest getRequest = GetObjectRequest.builder()
+        .bucket(s3DataStoreConfig.getBucketName())
+        .key(zipKey.toString())
+        .build();
+
+    try (InputStream zipInputStream = wrapS3Exception(() -> s3Client.getObject(getRequest));
+         ZipInputStream zis = new ZipInputStream(zipInputStream)) {
+
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        String entryName = entry.getName();
+        if (entryName.endsWith("/")) {
+          continue;
+        }
+
+        log.debug("Extracting file '{}' from report.zip for applicationId '{}' scanId '{}'",
+            entryName, applicationId, scanId);
+        saveOriginalReportFile(applicationId, scanId, entryName, zis);
+      }
+
+      log.info("Successfully extracted report.zip for applicationId '{}' scanId '{}'", applicationId, scanId);
+    }
+    catch (IOException e) {
+      log.error("Error extracting report.zip for applicationId '{}' scanId '{}'. " +
+          "Zip file will remain in S3 for retry.", applicationId, scanId, e);
+      throw e;
+    }
   }
 
   private void deleteByKey(S3ObjectKey key) throws IOException {
@@ -596,6 +659,13 @@ public class S3ApplicationReportPersistenceService
    */
   private S3ObjectKey getOriginalKey(final String applicationId, final String scanId, final String objectName) {
     return new S3ObjectKey(KEY_FORMAT, applicationId, scanId, objectName, s3DataStoreConfig.getObjectKeyPrefix());
+  }
+
+  /**
+   * @return a key referring to the report.zip file
+   */
+  private S3ObjectKey getZipKey(final String applicationId, final String scanId) {
+    return new S3ObjectKey(ZIP_KEY_FORMAT, applicationId, scanId, "", s3DataStoreConfig.getObjectKeyPrefix());
   }
 
   /**

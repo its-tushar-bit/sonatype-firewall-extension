@@ -1346,6 +1346,7 @@
                   <exclude>**/node_modules/**</exclude>
                   <exclude>**/.stylelintrc.js</exclude>
                   <exclude>**/.eslintrc.js</exclude>
+                  <exclude>**/.run/**</exclude>
                   <exclude>**/org/h2/**</exclude>
                   <exclude>**/org/keycloak/**</exclude>
                   <exclude>**/src/main/resources/com/sonatype/insight/brain/legacy.report/**</exclude>

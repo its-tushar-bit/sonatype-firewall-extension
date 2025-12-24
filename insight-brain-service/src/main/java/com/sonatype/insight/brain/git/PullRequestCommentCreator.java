@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -16,9 +17,16 @@ import javax.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
+import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
+import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
+import com.sonatype.insight.brain.scm.event.SourceControlEventType;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -34,6 +42,10 @@ import com.sonatype.nexus.scm.api.model.CommentResponse;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forComment;
+import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forError;
+import static com.sonatype.insight.brain.scm.event.SourceControlEventType.API_ERROR;
 
 @Named
 @Singleton
@@ -68,6 +80,12 @@ public class PullRequestCommentCreator
 
   private final TelemetryUtils telemetryUtils;
 
+  private final SourceControlEventLoggerFactory scmEventLoggerFactory;
+
+  private final ApplicationDAO applicationDAO;
+
+  private final OrganizationDAO organizationDAO;
+
   @Inject
   public PullRequestCommentCreator(
       final GitClientFactory gitClientFactory,
@@ -82,7 +100,10 @@ public class PullRequestCommentCreator
       final PullRequestCommentingEligibilityValidator pullRequestCommentingEligibilityValidator,
       final SourceControlComponentLoader sourceControlComponentLoader,
       final ProductLicense productLicense,
-      TelemetryUtils telemetryUtils)
+      final TelemetryUtils telemetryUtils,
+      final SourceControlEventLoggerFactory scmEventLoggerFactory,
+      final ApplicationDAO applicationDAO,
+      final OrganizationDAO organizationDAO)
   {
     this.gitClientFactory = gitClientFactory;
     this.pullRequestCommentDAO = pullRequestCommentDAO;
@@ -97,6 +118,9 @@ public class PullRequestCommentCreator
     this.sourceControlComponentLoader = sourceControlComponentLoader;
     this.productLicense = productLicense;
     this.telemetryUtils = telemetryUtils;
+    this.scmEventLoggerFactory = scmEventLoggerFactory;
+    this.applicationDAO = applicationDAO;
+    this.organizationDAO = organizationDAO;
   }
 
   public void createPullRequestComment(
@@ -156,6 +180,12 @@ public class PullRequestCommentCreator
       final Map<ComponentIdentifier, RemediationVersionDTO> remediationVersionMap,
       final String contentHash)
   {
+    Application application = applicationDAO.getById(prPolicyEvaluationsDTO.getApplicationId());
+    Organization organization = application != null ? organizationDAO.getById(application.getOrganizationId()) : null;
+
+    PullRequestCommentingLogger scmEventLogger = scmEventLoggerFactory.newLogger(
+        new Date(), application, organization, prPolicyEvaluationsDTO.getGitRepositoryInfo());
+
     PullRequestCommentTelemetry telemetry = new PullRequestCommentTelemetry(
         prPolicyEvaluationsDTO.getApplicationId(), prPolicyEvaluationsDTO.getPullRequestNumber(),
         telemetryUtils.obfuscateIfAdvancedReportingDisabled(prPolicyEvaluationsDTO.getApplicationId()));
@@ -217,6 +247,15 @@ public class PullRequestCommentCreator
                 existingPullRequestComment);
           }
 
+          SourceControlEventType eventType = existingPullRequestComment == null
+              ? SourceControlEventType.PR_COMMENT_CREATED
+              : SourceControlEventType.PR_COMMENT_UPDATED;
+
+          scmEventLogger.add(eventType, forComment(
+              String.valueOf(prPolicyEvaluationsDTO.getPullRequestNumber()),
+              policyViolationDiff.getAppeared().size(),
+              policyViolationDiff.getCleared().size()));
+
           invokePostCommentActions(
               prPolicyEvaluationsDTO.getGitRepositoryInfo(),
               policyViolationDiff,
@@ -234,6 +273,8 @@ public class PullRequestCommentCreator
               auditEvent, prPolicyEvaluationsDTO.getApplicationId(),
               prPolicyEvaluationsDTO.getGitRepositoryInfo().normalizedRepositoryUrl,
               prPolicyEvaluationsDTO.getPullRequestNumber());
+
+          scmEventLogger.log();
         }
       }
       else {
@@ -242,6 +283,9 @@ public class PullRequestCommentCreator
       }
     }
     catch (Exception e) {
+      scmEventLogger.add(API_ERROR, forError("Failed to create or update PR comments: " + e.getMessage()));
+      scmEventLogger.log();
+
       SourceControlException sourceControlException =
           new SourceControlException("Failed to create or update PR comments: " + e.getMessage(), e);
       addLineCommentsCreationException(lineCommentsCreationResult, sourceControlException);

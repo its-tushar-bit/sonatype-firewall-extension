@@ -14,9 +14,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
+import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.development.prioritization.DevelopmentPrioritiesUtilsService;
 import com.sonatype.insight.brain.git.dto.PullRequestLineCommentCreationResult;
+import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
+import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.PolicyViolation;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestComment;
@@ -382,6 +386,15 @@ public class PullRequestCommentCreatorTest
     @Mock
     private ProductLicense mockProductLicense;
 
+    @Mock
+    private SourceControlEventLoggerFactory mockScmEventLoggerFactory;
+
+    @Mock
+    private ApplicationDAO mockApplicationDAO;
+
+    @Mock
+    private OrganizationDAO mockOrganizationDAO;
+
     private final LocationDiscoveryResult locationDiscoveryResult = new LocationDiscoveryResult();
 
     private final Set<PullRequestPostCommentAction> postCommentActionList = new HashSet<>();
@@ -403,6 +416,12 @@ public class PullRequestCommentCreatorTest
       doReturn(Optional.of(mock(CommentResponse.class))).when(mockCommentingClient)
           .createOrUpdateCommentInGitSCM(any(), any(), anyInt(), any(), any(), any());
 
+      doReturn(mock(PullRequestCommentingLogger.class)).when(mockScmEventLoggerFactory)
+          .newLogger(any(), any(), any(), any());
+
+      doReturn(null).when(mockApplicationDAO).getById(anyString());
+      doReturn(null).when(mockOrganizationDAO).getById(anyString());
+
       return new PullRequestCommentCreator(
           mockGitClientFactory,
           mockPullRequestCommentDAO,
@@ -416,7 +435,10 @@ public class PullRequestCommentCreatorTest
           mockPullRequestCommentingEligibilityValidator,
           mockComponentLoader,
           mockProductLicense,
-          telemetryUtils
+          telemetryUtils,
+          mockScmEventLoggerFactory,
+          mockApplicationDAO,
+          mockOrganizationDAO
       );
     }
 

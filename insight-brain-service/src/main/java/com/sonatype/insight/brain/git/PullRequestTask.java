@@ -15,6 +15,8 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.audit.AuditSession;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestDAO;
+import com.sonatype.insight.brain.scm.event.PullRequestCommentingLogger;
+import com.sonatype.insight.brain.scm.event.SourceControlEventLoggerFactory;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestSource;
 import com.sonatype.insight.brain.model.sourcecontrol.PullRequestState;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControlConfiguration;
@@ -34,6 +36,11 @@ import com.sonatype.nexus.iq.manager.PullRequestResult;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forError;
+import static com.sonatype.insight.brain.scm.event.AbstractSourceControlEventLogger.SourceControlEventData.forPullRequest;
+import static com.sonatype.insight.brain.scm.event.SourceControlEventType.API_ERROR;
+import static com.sonatype.insight.brain.scm.event.SourceControlEventType.PR_CREATED;
 
 /**
  * Execute the end-to-end process to clone a repository, attempt to apply remediation changes to the file tree, followed
@@ -59,6 +66,8 @@ public class PullRequestTask
 
   private final SourceControlPullRequestDAO sourceControlPullRequestDAO;
 
+  private final SourceControlEventLoggerFactory scmEventLoggerFactory;
+
   @Inject
   public PullRequestTask(
       final GitClientFactory gitClientFactory,
@@ -67,7 +76,8 @@ public class PullRequestTask
       final AuditRecorder auditRecorder,
       final SourceControlUtils sourceControlUtils,
       final Configuration configuration,
-      final SourceControlPullRequestDAO sourceControlPullRequestDAO)
+      final SourceControlPullRequestDAO sourceControlPullRequestDAO,
+      final SourceControlEventLoggerFactory scmEventLoggerFactory)
   {
     this.gitClientFactory = gitClientFactory;
     this.metrics = metrics;
@@ -76,6 +86,7 @@ public class PullRequestTask
     this.sourceControlUtils = sourceControlUtils;
     this.configuration = configuration;
     this.sourceControlPullRequestDAO = sourceControlPullRequestDAO;
+    this.scmEventLoggerFactory = scmEventLoggerFactory;
   }
 
   public PullRequestResult run(
@@ -92,6 +103,13 @@ public class PullRequestTask
     GitRepositoryInfo gitRepositoryInfo = sourceControlUtils.getGitRepositoryInfoForApplication(applicationId);
     SourceControlConfiguration sourceControlConfiguration = configuration.getSourceControlConfigurationOrDefault();
     maybeUpdateRepoUrlWithUsername(sourceControlConfiguration, gitRepositoryInfo);
+
+    PullRequestCommentingLogger scmEventLogger = scmEventLoggerFactory.newLogger(
+        new Date(),
+        pullRequestRemediationDetails.getApp(),
+        pullRequestRemediationDetails.getApp().getOrganization(),
+        gitRepositoryInfo
+    );
 
     File checkoutDir = null;
     Date start = new Date();
@@ -171,8 +189,13 @@ public class PullRequestTask
         }
         sourceControlPullRequest.setSource(pullRequestSource);
         sourceControlPullRequestDAO.insert(sourceControlPullRequest);
+
+        scmEventLogger.add(PR_CREATED, forPullRequest(String.valueOf(sourceControlPullRequest.getPullRequestId())));
+        scmEventLogger.log();
       }
       else {
+        scmEventLogger.add(API_ERROR, forError("Pull request creation failed: " + enhancedResult.getReasoning()));
+        scmEventLogger.log();
         throw new SourceControlException("Pull request creation failed: " + enhancedResult.getReasoning());
       }
 
@@ -181,6 +204,9 @@ public class PullRequestTask
     }
     catch (Exception e) {
       log.error("Failed to execute pull request, cleaning pull request directory", e);
+      scmEventLogger.add(API_ERROR, forError("Failed to execute pull request: " + e.getMessage()));
+      scmEventLogger.log();
+
       sourceControlUtils.deleteCheckoutDirectory(pullRequestRemediationDetails.getApp());
       metrics.addResult(applicationId, new EnhancedPullRequestResult(new PullRequestResult(), start,
           pullRequestRemediationDetails.getToBeRemediated(),

@@ -1521,4 +1521,168 @@ public class RepositoryPolicyEvaluatorTest
     assertNotifications(notificationsUser1, 1, 5000);
     assertNotifications(notificationsUser2, 0, 1000);
   }
+
+  @Test
+  public void testEvaluate_ManualMavenPathnameParser_PopulatesComponentFields() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Test Maven pathname that requires manual parsing
+    String mavenPathname = "org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar";
+    String hash = "testHash";
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", mavenPathname, hash));
+
+    // Mock HDS response without componentIdentifier (simulates parser failure scenario)
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(
+        null, HashHelper.truncateHash(hash), MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 1);
+    hdsResult.components.add(componentEvaluationData);
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    // Verify component was created with correct identifier parsed from pathname
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
+    assertThat(repositoryComponent).isNotNull();
+
+    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo("maven");
+
+    Map<String, String> coordinates = identifier.getCoordinates();
+    assertThat(coordinates.get("groupId")).isEqualTo("org.apache.logging.log4j");
+    assertThat(coordinates.get("artifactId")).isEqualTo("log4j-core");
+    assertThat(coordinates.get("version")).isEqualTo("2.14.1");
+  }
+
+  @Test
+  public void testEvaluate_ManualMavenPathnameParser_WithoutLeadingSlash() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Test Maven pathname without leading slash
+    String mavenPathname = "com/google/guava/guava/30.1-jre/guava-30.1-jre.jar";
+    String hash = "testHash";
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", mavenPathname, hash));
+
+    // Mock HDS response without componentIdentifier
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(
+        null, HashHelper.truncateHash(hash), MatchState.EXACT, 0, null, null, createSecurityVulnerabilities(), 1);
+    hdsResult.components.add(componentEvaluationData);
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    // Verify component was created with correct identifier
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), mavenPathname);
+    assertThat(repositoryComponent).isNotNull();
+
+    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo("maven");
+
+    Map<String, String> coordinates = identifier.getCoordinates();
+    assertThat(coordinates.get("groupId")).isEqualTo("com.google.guava");
+    assertThat(coordinates.get("artifactId")).isEqualTo("guava");
+    assertThat(coordinates.get("version")).isEqualTo("30.1-jre");
+  }
+
+  @Test
+  public void testEvaluate_ManualMavenPathnameParser_PackageUrlFormat() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Test with packageUrl format (starts with "pkg:")
+    String packageUrl = "pkg:maven/org.springframework/spring-core@5.3.23";
+    String hash = "testHash";
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven", packageUrl, hash));
+
+    // Mock HDS response without componentIdentifier
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(
+        null, HashHelper.truncateHash(hash), MatchState.EXACT, 0, null, null, Collections.emptyList(), 1);
+    hdsResult.components.add(componentEvaluationData);
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    // Verify component was created with correct identifier from packageUrl
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), packageUrl);
+    assertThat(repositoryComponent).isNotNull();
+
+    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo("maven");
+
+    Map<String, String> coordinates = identifier.getCoordinates();
+    assertThat(coordinates.get("groupId")).isEqualTo("org.springframework");
+    assertThat(coordinates.get("artifactId")).isEqualTo("spring-core");
+    assertThat(coordinates.get("version")).isEqualTo("5.3.23");
+  }
+
+  @Test
+  public void testEvaluate_ManualMavenPathnameParser_NpmFormat() {
+    Repository repository = tempEntity.newRepository();
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    // Test npm component pathname
+    String npmPathname = "lodash/-/lodash-4.17.20.tgz";
+    String hash = "testHash";
+
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("npm", npmPathname, hash));
+
+    // Mock HDS response with npm componentIdentifier (npm parser should work)
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = createComponentEvaluationData(
+        ComponentIdentifier.createNpmCoordinates("lodash", "4.17.20"), hash,
+        MatchState.EXACT, 0, null, null, Collections.emptyList(), 1);
+    hdsResult.components.add(componentEvaluationData);
+
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Evaluate policies
+    repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        null /* clientUserAgent */);
+
+    // Verify component was created with npm identifier
+    RepositoryComponent repositoryComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), npmPathname);
+    assertThat(repositoryComponent).isNotNull();
+
+    ComponentIdentifier identifier = repositoryComponent.getComponentIdentifier();
+    assertThat(identifier).isNotNull();
+    assertThat(identifier.getFormat()).isEqualTo("npm");
+
+    Map<String, String> coordinates = identifier.getCoordinates();
+    assertThat(coordinates.get("packageId")).isEqualTo("lodash");
+    assertThat(coordinates.get("version")).isEqualTo("4.17.20");
+  }
 }

@@ -20,6 +20,7 @@ import javax.inject.Named;
 
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
+import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.component.NamedComponentDetails;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.RepositoryComponentEvaluationDataList;
@@ -71,7 +72,9 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.Release
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.dataaccess.TransactionContext;
+import com.sonatype.insight.purl.InvalidPackageURLException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +88,17 @@ import static java.util.stream.Collectors.toMap;
 public class RepositoryPolicyEvaluator
 {
   public static final String HDS_COMPONENT_DETAILS_PATH = "rest/component/details/firewall";
+
+  // Maven pathname parsing constants
+  private static final String PATH_SEPARATOR = "/";
+
+  private static final String GROUP_ID_SEPARATOR = ".";
+
+  private static final String DEFAULT_MAVEN_TYPE = "jar";
+
+  private static final String MAVEN_PURL_FORMAT = "pkg:maven/%s/%s@%s?type=%s";
+
+  private static final String PACKAGE_URL_PREFIX = "pkg:";
 
   private static final Logger log = LoggerFactory.getLogger(RepositoryPolicyEvaluator.class);
 
@@ -252,9 +266,41 @@ public class RepositoryPolicyEvaluator
         Component component = componentDetailsLoader.augmentComponentDetails(componentDetails);
         component.addPathname(componentEvaluationRequest.pathname);
         component.setAnalyzerFeatures(componentEvaluationData.analyzerFeatures);
+
         if (component.getComponentIdentifier() == null) {
-          component.setComponentIdentifier(
-              repositoryPathnameParser.parse(componentEvaluationRequest.pathname, componentEvaluationRequest.format));
+          ComponentIdentifier parsedIdentifier = null;
+          String pathnameToUse = componentEvaluationRequest.pathname;
+
+          // Check if the pathname is actually a packageUrl (starts with "pkg:")
+          if (isPackageUrl(pathnameToUse)) {
+            try {
+              PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(pathnameToUse);
+              parsedIdentifier = packageUrlIdentifier.toComponentIdentifier();
+            }
+            catch (InvalidPackageURLException e) {
+              log.warn("Failed to parse packageUrl: {}", pathnameToUse, e);
+            }
+          }
+
+          // Fall back to pathname parsing if packageUrl parsing failed or pathname is not a packageUrl
+          if (parsedIdentifier == null) {
+            // Ensure pathname starts with "/" for proper parsing
+            if (pathnameToUse != null && !pathnameToUse.startsWith("/") && !isPackageUrl(pathnameToUse)) {
+              pathnameToUse = "/" + pathnameToUse;
+            }
+
+            parsedIdentifier = repositoryPathnameParser.parse(
+                pathnameToUse, componentEvaluationRequest.format);
+
+            // If repositoryPathnameParser failed and format is maven, try manual parsing
+            if (parsedIdentifier == null
+                && ComponentIdentifier.FORMAT_MAVEN.equalsIgnoreCase(componentEvaluationRequest.format)
+                && pathnameToUse != null) {
+              parsedIdentifier = parseMavenPathname(pathnameToUse);
+            }
+          }
+
+          component.setComponentIdentifier(parsedIdentifier);
         }
         components.add(component);
       }
@@ -781,5 +827,69 @@ public class RepositoryPolicyEvaluator
         System.currentTimeMillis() - start);
 
     return result;
+  }
+
+  /**
+   * Check if a pathname string is a Package URL (PURL) format.
+   * Package URLs start with "pkg:" prefix.
+   *
+   * @param pathname the pathname to check
+   * @return true if the pathname is a package URL, false otherwise
+   */
+  private static boolean isPackageUrl(String pathname) {
+    return pathname != null && pathname.startsWith(PACKAGE_URL_PREFIX);
+  }
+
+  /**
+   * Manually parse a Maven repository pathname to extract component coordinates.
+   * Expected format: /groupId/artifactId/version/filename.ext
+   * Example: /org/apache/logging/log4j/log4j-core/2.14.1/log4j-core-2.14.1.jar
+   */
+  private ComponentIdentifier parseMavenPathname(String pathname) {
+    try {
+      // Remove leading slash if present
+      String path = pathname.startsWith(PATH_SEPARATOR) ? pathname.substring(1) : pathname;
+
+      // Split by slashes
+      String[] parts = path.split(PATH_SEPARATOR);
+      if (parts.length < 4) {
+        log.warn("Maven pathname has insufficient parts: {}", pathname);
+        return null;
+      }
+
+      // Last part is the filename (e.g., "log4j-core-2.14.1.jar")
+      String filename = parts[parts.length - 1];
+
+      // Second-to-last is version (e.g., "2.14.1")
+      String version = parts[parts.length - 2];
+
+      // Third-to-last is artifactId (e.g., "log4j-core")
+      String artifactId = parts[parts.length - 3];
+
+      // Everything before that is the groupId (join with dots)
+      StringBuilder groupId = new StringBuilder();
+      for (int i = 0; i < parts.length - 3; i++) {
+        if (i > 0) {
+          groupId.append(GROUP_ID_SEPARATOR);
+        }
+        groupId.append(parts[i]);
+      }
+
+      // Extract type from filename extension
+      String type = DEFAULT_MAVEN_TYPE;
+      int lastDot = filename.lastIndexOf(GROUP_ID_SEPARATOR);
+      if (lastDot > 0) {
+        type = filename.substring(lastDot + 1);
+      }
+
+      // Create a PackageUrl and convert to ComponentIdentifier
+      String purl = String.format(MAVEN_PURL_FORMAT, groupId, artifactId, version, type);
+      PackageUrlIdentifier packageUrlIdentifier = new PackageUrlIdentifier(purl);
+      return packageUrlIdentifier.toComponentIdentifier();
+    }
+    catch (InvalidPackageURLException e) {
+      log.warn("Failed to manually parse Maven pathname: {}", pathname, e);
+      return null;
+    }
   }
 }

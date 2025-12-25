@@ -36,3 +36,19 @@ dependency_tree.txt
 
 # Claude Code local settings
 .claude/settings.local.json
+/COMPONENT_IDENTIFIER_ANALYSIS.md
+/enable-pypi-audit.sh
+/FIREWALL_API_TO_TELEMETRY_FLOW.md
+/MULTI_FORMAT_TELEMETRY_VERIFICATION.md
+/PYPI_SETUP_GUIDE.md
+/REPOSITORY_COMPONENT_TELEMETRY_SUMMARY.md
+/setup-and-test-pypi.sh
+/setup-pypi-repository.sh
+/test-log4j-telemetry.sh
+/test-npm-telemetry.sh
+/test-nuget-telemetry.sh
+/test-pypi-telemetry.sh
+/enable-docker-audit.sh
+/setup-and-test-docker.sh
+/setup-docker-repository.sh
+/test-docker-telemetry.sh

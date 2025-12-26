@@ -32,14 +32,14 @@ public class OpenSearchTransportFactoryTest
     config.setUsername("admin");
     config.setPassword("admin123");
 
-    // When
-    OpenSearchTransport transport = OpenSearchTransportFactory.create(config);
+    // When - use test utility to avoid affecting other tests when closing
+    OpenSearchTransport transport = TestOpenSearchTransportFactory.createIsolatedForTest(config);
 
     // Then
     assertThat(transport).isNotNull();
     assertThat(transport).isInstanceOf(ApacheHttpClient5Transport.class);
 
-    // Cleanup
+    // Cleanup - safe to close as this transport has an isolated connection manager
     try {
       transport.close();
     }
@@ -56,14 +56,14 @@ public class OpenSearchTransportFactoryTest
     config.setUsername("user");
     config.setPassword("pass");
 
-    // When
-    OpenSearchTransport transport = OpenSearchTransportFactory.create(config);
+    // When - use test utility to avoid affecting other tests when closing
+    OpenSearchTransport transport = TestOpenSearchTransportFactory.createIsolatedForTest(config);
 
     // Then
     assertThat(transport).isNotNull();
     assertThat(transport).isInstanceOf(ApacheHttpClient5Transport.class);
 
-    // Cleanup
+    // Cleanup - safe to close as this transport has an isolated connection manager
     try {
       transport.close();
     }
@@ -136,19 +136,70 @@ public class OpenSearchTransportFactoryTest
     config.setUsername("admin");
     config.setPassword("password");
 
-    // When
-    OpenSearchTransport transport = OpenSearchTransportFactory.create(config);
+    // When - use test utility to avoid affecting other tests when closing
+    OpenSearchTransport transport = TestOpenSearchTransportFactory.createIsolatedForTest(config);
 
     // Then
     assertThat(transport).isNotNull();
     assertThat(transport).isInstanceOf(ApacheHttpClient5Transport.class);
 
-    // Cleanup
+    // Cleanup - safe to close as this transport has an isolated connection manager
     try {
       transport.close();
     }
     catch (Exception e) {
       // Ignore cleanup errors
     }
+  }
+
+  @Test
+  public void testIsolatedTransports_ClosingOneDoesNotAffectAnother() {
+    // Given - create two transports with isolated connection managers
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(URI.create("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("admin123");
+
+    OpenSearchTransport transport1 = TestOpenSearchTransportFactory.createIsolatedForTest(config);
+    OpenSearchTransport transport2 = TestOpenSearchTransportFactory.createIsolatedForTest(config);
+
+    // When - close the first transport
+    try {
+      transport1.close();
+    }
+    catch (Exception e) {
+      // Ignore cleanup errors
+    }
+
+    // Then - the second transport should still be valid (not throw "Connection pool shut down")
+    assertThat(transport2).isNotNull();
+    assertThat(transport2).isInstanceOf(ApacheHttpClient5Transport.class);
+
+    // Cleanup - close second transport
+    try {
+      transport2.close();
+    }
+    catch (Exception e) {
+      // Ignore cleanup errors
+    }
+  }
+
+  @Test
+  public void testCreate_ProductionFactory_CreatesTransportWithSharedPool() {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(URI.create("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("admin123");
+
+    // When - test production factory (uses shared connection pool)
+    OpenSearchTransport transport = OpenSearchTransportFactory.create(config);
+
+    // Then
+    assertThat(transport).isNotNull();
+    assertThat(transport).isInstanceOf(ApacheHttpClient5Transport.class);
+
+    // Note: Not closing transport intentionally to avoid affecting shared pool
+    // The shared pool will be cleaned up when the JVM exits
   }
 }

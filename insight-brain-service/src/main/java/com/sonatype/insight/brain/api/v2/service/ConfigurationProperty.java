@@ -308,7 +308,10 @@ public class ConfigurationProperty
       new ConfigurationProperty(SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, Integer.class,
           (p, s) -> s == null ? null : NumberUtils.toInt(s),
           (p, o) -> ConfigurationUtils.integerValueToString(o,
-              SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365))
+              SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS, 1, 365)),
+      new ConfigurationProperty(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, Boolean.class,
+          (p, s) -> ConfigurationUtils.parseBooleanWithDefault(s, false),
+          (p, o) -> Objects.toString(o, null))
   };
 
   protected static final Map<String, ConfigurationProperty> PROPERTY_BY_NAME = Arrays.stream(PROPERTIES).collect(

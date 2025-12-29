@@ -296,7 +296,8 @@ public class ConfigurationInfoTest
         "warnOnNonPrimaryStorageAccess",
         "waiverRequestWorkflowEnabled",
         "userTokenDefaultExpirationDays",
-        "exitOnFatalError"
+        "exitOnFatalError",
+        "maliciousUrlsPartnerAccess"
     );
 
     // Properties included in the config.json in support zip

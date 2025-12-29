@@ -1485,6 +1485,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("userActivityTracking", false);
     expectedFeatureConfigMap.put("waiverRequestWorkflowEnabled", true);
     expectedFeatureConfigMap.put("exitOnFatalError", true);
+    expectedFeatureConfigMap.put("maliciousUrlsPartnerAccess", false);
 
     return expectedFeatureConfigMap;
   }

@@ -402,7 +402,9 @@ public enum SystemConfigurationPropertyFeature
     public void setEnabled(TransactionContext tx, boolean enabled) {
       systemConfigurationPropertyDAO.set(tx, getPropertyName(), Boolean.toString(enabled));
     }
-  };
+  },
+
+  MALICIOUS_URLS_PARTNER_ACCESS(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

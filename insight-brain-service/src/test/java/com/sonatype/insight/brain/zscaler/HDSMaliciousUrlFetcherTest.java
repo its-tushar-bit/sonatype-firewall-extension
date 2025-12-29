@@ -5,28 +5,36 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import javax.inject.Inject;
-
-import com.sonatype.insight.brain.hds.HdsClient;
-import com.sonatype.insight.error.exception.BadGatewayException;
-import com.sonatype.insight.test.LogOutput;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import org.junit.Before;
+import java.util.Map;
+import javax.inject.Inject;
+
+import com.sonatype.insight.brain.hds.HdsClient;
+import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.error.exception.BadGatewayException;
+import com.sonatype.insight.test.LogOutput;
+
+import com.google.inject.Binder;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS;
+import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HDSMaliciousUrlFetcherTest
+    extends AbstractComponentTest
 {
   @Rule
   public LogOutput logOutput = new LogOutput(HDSMaliciousUrlFetcher.class);
@@ -37,26 +45,46 @@ public class HDSMaliciousUrlFetcherTest
   @Inject
   private HDSMaliciousUrlFetcher underTest;
 
-  @Before
-  public void setUp() {
-    underTest = new HDSMaliciousUrlFetcher(hdsClient);
+  @Override
+  public void configure(Binder binder) {
+    binder.bind(HdsClient.class).toInstance(hdsClient);
   }
 
   @Test
-  public void testFetchMaliciousUrls() {
+  public void testFetchMaliciousUrls_withoutPartnerAccessFeatureFlag() {
+    MALICIOUS_URLS_PARTNER_ACCESS.setEnabled(false);
     InputStream expectedResponse = new ByteArrayInputStream("maliciousUrls".getBytes(StandardCharsets.UTF_8));
-    when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/maven"))
+    when(hdsClient.get(eq(InputStream.class), eq("rest/maliciousUrls/active/maven"), eq(emptyMap())))
         .thenReturn(expectedResponse);
 
     InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerSupportedFormat.MAVEN);
 
     assertEquals(expectedResponse, actualResponse);
     assertThat(logOutput).atDebugLevel().contains("Updating zScaler Malicious URLs for format: MAVEN");
+
+    verify(hdsClient).get(eq(InputStream.class), eq("rest/maliciousUrls/active/maven"), eq(emptyMap()));
+  }
+
+  @Test
+  public void testFetchMaliciousUrls_withPartnerAccessFeatureFlag() {
+    MALICIOUS_URLS_PARTNER_ACCESS.setEnabled(true);
+    Map<String, String> queryParams = Map.of("isPartnerAccess", "true");
+
+    InputStream expectedResponse = new ByteArrayInputStream("maliciousUrls".getBytes(StandardCharsets.UTF_8));
+    when(hdsClient.get(eq(InputStream.class), eq("rest/maliciousUrls/active/maven"), eq(queryParams)))
+        .thenReturn(expectedResponse);
+
+    InputStream actualResponse = underTest.fetchMaliciousUrls(ZScalerSupportedFormat.MAVEN);
+
+    assertEquals(expectedResponse, actualResponse);
+    assertThat(logOutput).atDebugLevel().contains("Updating zScaler Malicious URLs for format: MAVEN");
+
+    verify(hdsClient).get(eq(InputStream.class), eq("rest/maliciousUrls/active/maven"), eq(queryParams));
   }
 
   @Test
   public void testFetchMaliciousUrls_badGatewayException() {
-    when(hdsClient.get(InputStream.class, "rest/maliciousUrls/active/npm"))
+    when(hdsClient.get(eq(InputStream.class), eq("rest/maliciousUrls/active/npm"), anyMap()))
         .thenThrow(new BadGatewayException("Bad Gateway"));
 
     InputStream inputStream = underTest.fetchMaliciousUrls(ZScalerSupportedFormat.NPM);

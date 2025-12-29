@@ -30,7 +30,7 @@ public class FeaturePropertiesInfoTest
   public void testGetSystemConfigPropertiesJson_defaultSysConfig() throws IOException {
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(30);
+    assertThat(sysConfigNode.size()).isEqualTo(31);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isFalse();
@@ -64,6 +64,7 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EPSS_DATA).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EXIT_ON_FATAL_ERROR).asBoolean()).isTrue();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS).asBoolean()).isFalse();
   }
 
   @Test
@@ -78,7 +79,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode sysConfigNode = JsonUtils.parse(featurePropertiesInfo.getSystemConfigPropertiesJson());
 
-    assertThat(sysConfigNode.size()).isEqualTo(30);
+    assertThat(sysConfigNode.size()).isEqualTo(31);
     assertThat(sysConfigNode.get(SystemConfigurationProperty.AUTO_WAIVERS).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.BLOCK_NON_ASCII_IN_PATH).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.SKIP_SBOM_IMPORT_VALIDATION).asBoolean()).isTrue();
@@ -112,12 +113,13 @@ public class FeaturePropertiesInfoTest
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EPSS_DATA).asBoolean()).isFalse();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.WARN_ON_NON_PRIMARY_STORAGE_ACCESS).asBoolean()).isTrue();
     assertThat(sysConfigNode.get(SystemConfigurationProperty.EXIT_ON_FATAL_ERROR).asBoolean()).isTrue();
+    assertThat(sysConfigNode.get(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS).asBoolean()).isFalse();
   }
 
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(63);
+    assertThat(featureConfigNode.size()).isEqualTo(64);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -153,6 +155,7 @@ public class FeaturePropertiesInfoTest
               "internalSourceControlPolicyEvaluations": true,
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
+              "maliciousUrlsPartnerAccess":false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -198,7 +201,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(63);
+    assertThat(featureConfigNode.size()).isEqualTo(64);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -234,6 +237,7 @@ public class FeaturePropertiesInfoTest
               "internalSourceControlPolicyEvaluations": true,
               "LDAP_CONFIGURATION": true,
               "logoutAuth0OnLogout": false,
+              "maliciousUrlsPartnerAccess":false,
               "nonBreakingVersionSuggestionTelemetry": true,
               "OAUTH2_ENABLED": false,
               "prioritizedFindingsReport": true,
@@ -285,7 +289,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(53)
+        .hasSize(54)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.zscaler;
 
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -15,6 +17,8 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS;
 
 @Named("hds")
 public class HDSMaliciousUrlFetcher
@@ -35,8 +39,14 @@ public class HDSMaliciousUrlFetcher
   public InputStream fetchMaliciousUrls(ZScalerSupportedFormat format) {
     log.debug("Updating zScaler Malicious URLs for format: {}", format);
     try {
-      return hdsClient.get(InputStream.class, HDS_MALICIOUS_URLS_PATH + "/active/" +
-          format.toString().toLowerCase(Locale.ROOT));
+      String path = HDS_MALICIOUS_URLS_PATH + "/active/" + format.toString().toLowerCase(Locale.ROOT);
+      Map<String, String> queryParams = new HashMap<>();
+
+      if (MALICIOUS_URLS_PARTNER_ACCESS.isEnabled()) {
+        queryParams.put("isPartnerAccess", "true");
+      }
+
+      return hdsClient.get(InputStream.class, path, queryParams);
     }
     catch (BadGatewayException e) {
       log.warn("Failed to get zScaler malicious URLs: {}", e.getMessage(), e);

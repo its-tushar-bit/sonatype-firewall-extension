@@ -306,6 +306,8 @@ public class SystemConfigurationProperty
 
   public static final String EXIT_ON_FATAL_ERROR = "exitOnFatalError";
 
+  public static final String MALICIOUS_URLS_PARTNER_ACCESS = "maliciousUrlsPartnerAccess";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

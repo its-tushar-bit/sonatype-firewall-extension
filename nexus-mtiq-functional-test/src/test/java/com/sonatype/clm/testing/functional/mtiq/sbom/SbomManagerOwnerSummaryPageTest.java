@@ -23,13 +23,11 @@ import com.sonatype.clm.testing.functional.pages.sbom.SbomManagerDashboardPage;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.Owner;
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.license.model.ProductLicenseDetails;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -198,26 +196,6 @@ public class SbomManagerOwnerSummaryPageTest
     PolicyTile policyTile = OwnerSummaryPage.policyTile();
     policyTile.shouldBe(visible);
     policyTile.headerColumns().shouldHave(size(3));
-  }
-
-  @Test
-  @Ignore
-  // SBOM-1143
-  public void testSbomManager_policyTableHiddenWhenDisabled() {
-    SystemConfigurationPropertyFeature.SBOM_POLICIES.setEnabled(false);
-
-    List<Policy> policies = new ArrayList<>();
-    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 1", 10, null, null, null));
-    policies.add(tempEntity.newPolicy(parentOrganization.getId(), "Policy 2", 5, null, null, null));
-
-    refreshOrOpen(SbomManagerDashboardPage.url());
-    SidebarNavigation.sbomManagerOrganizationsNavigationButton().click();
-    OrgsAndPoliciesSidebar orgsAndPoliciesSidebar = new OrgsAndPoliciesSidebar();
-    orgsAndPoliciesSidebar.getOrganizationLink(0).click();
-    isSbomManagerPage();
-
-    PolicyTile policyTile = OwnerSummaryPage.policyTile();
-    policyTile.shouldNotBe(visible);
   }
 
   private void isSbomManagerPage() {

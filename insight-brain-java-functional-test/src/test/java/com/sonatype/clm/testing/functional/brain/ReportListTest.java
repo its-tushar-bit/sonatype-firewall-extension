@@ -38,7 +38,6 @@ import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -273,53 +272,6 @@ public class ReportListTest
     ReportListPage.load().shouldNotBe(visible);
     assertThat(ReportListPage.row(ReportListPage.rows().size()).applicationName().getText())
         .isEqualTo(apps.get(apps.size() - 1).getName());
-  }
-
-  @Test
-  @Ignore // See CLM-30842
-  public void testOrder() {
-    List<Organization> orgs = new ArrayList<>();
-    List<Application> apps = new ArrayList<>();
-    createAlphabeticalOrgsAndApps(orgs, apps);
-    refresh();
-
-    ElementsCollection tableHeaders = ReportListPage.tableHeaders();
-
-    // App name ascending
-    tableHeaders.get(0).click();
-    List<String> names = new ArrayList<>();
-    ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(names).isEqualTo(
-            apps.stream().map(Application::getName).collect(Collectors.toList())
-                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
-
-    // App name descending
-    tableHeaders.get(0).click();
-    names.clear();
-    ReportListPage.consumeAllRows(row -> names.add(row.applicationName().getText()));
-    apps.sort(Comparator.comparing(Application::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(names).isEqualTo(
-            apps.stream().map(Application::getName).collect(Collectors.toList())
-                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
-
-    // Org name ascending
-    tableHeaders.get(1).click();
-    names.clear();
-    ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
-    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER));
-    assertThat(names).isEqualTo(
-            orgs.stream().map(Organization::getName).collect(Collectors.toList())
-                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
-
-    // Org name descending
-    tableHeaders.get(1).click();
-    names.clear();
-    ReportListPage.consumeAllRows(row -> names.add(row.organizationName().getText()));
-    orgs.sort(Comparator.comparing(Organization::getName, String.CASE_INSENSITIVE_ORDER).reversed());
-    assertThat(names).isEqualTo(
-            orgs.stream().map(Organization::getName).collect(Collectors.toList())
-                    .subList(0, ReportListPage.RESULTS_PER_PAGE));
   }
 
   private void createAlphabeticalOrgsAndApps(List<Organization> orgs, List<Application> apps) {

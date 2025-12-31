@@ -23,7 +23,6 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 
 import jakarta.persistence.EntityManagerFactory;
 import org.apache.commons.lang3.NotImplementedException;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -234,30 +233,6 @@ public class LegacyDataStoreMigratorTest
   @H2DiskTest(suppressMigrations = true)
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(databaseRule.getThirdPartyScansDataStore());
-  }
-
-  @Test
-  @H2DiskTest(
-      suppressMigrations = true,
-      copyExistingDatabase = "DataStoreMigratorTest/testMigrate_H2SpecificScript"
-  )
-  @Ignore("This test passes locally but fails on Jenkins JIRA: STL-167")
-  public void testMigrate_H2SpecificScript() throws Exception {
-    DatabaseConfig databaseConfig = getDatabaseConfig("test");
-    String schemaName = "testMigrate_H2SpecificScript".toUpperCase();
-
-    DataSource dataSource = DataSourceProviderFactory
-        .createDataSourceProvider(H2DatabaseEngine.INSTANCE)
-        .getDataSource(databaseConfig, schemaName);
-
-    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(1);
-
-    runDataStoreMigrator(new TestDataStore(databaseConfig, schemaName, schemaName));
-    assertThat(DatabaseUtil.getLegacyDatabaseSchemaVersion(dataSource, schemaName, schemaName)).isEqualTo(2);
-
-    // The h2 specific script creates a table schema_version_h2
-    // There is also postgres specific script that causes an exception if it is executed - this verifies it is not run
-    assertThat(DatabaseUtil.tableExists(dataSource, schemaName, "schema_version_h2")).isTrue();
   }
 
   private void testMigrate_NewDatabase_PopulatesVersion(final DataStore dataStore) throws Exception {

@@ -18,7 +18,6 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.WebElement;
 
@@ -305,39 +304,6 @@ public class OrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(visible, enabled);
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(0).shouldNotBe(visible);
     SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldNotBe(visible);
-  }
-
-  @Ignore("CLM-26304")
-  @Test
-  public void testSourceControlEditor_updateFailure() {
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-    verifyStartNoSourceControl();
-    tempEntity.newSourceControl(rootOrganization.getId(), null, null, SourceControlProvider.GITHUB);
-    refresh();
-
-    SourceControlEditorPage.credentialsFieldset().labels().get(1).click();
-    SourceControlEditorPage.token().setValue(TOKEN);
-
-    //Create the entry to make the insert fail
-    tempEntity.newSourceControl(organization.getId(), null, null, null);
-    SourceControlEditorPage.saveButton().click();
-
-    FormMask.seeAndWaitForDismissal();
-
-    FormUtils.getErrorElement(SourceControlEditorPage.root()).shouldBe(visible)
-        .shouldHave(text(
-            FormUtils.DEFAULT_ERROR_SAVING_DATA_PREFIX + " SourceControl already exists for organization with id: " +
-                organization.getId()));
-
-    //Delete the entry to resolve error condition
-    deleteSourceControl(organization.getId());
-
-    FormUtils.getRetryButton().click();
-    FormMask.seeAndWaitForDismissal();
-
-    SourceControlEditorPage.saveButton().shouldHave(text("Update"));
-    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    SourceControlEditorPage.credentialsFieldset().radioInputs().get(1).shouldBe(selected);
   }
 
   @Test

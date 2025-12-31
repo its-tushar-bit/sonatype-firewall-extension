@@ -29,7 +29,6 @@ import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.text;
@@ -189,22 +188,6 @@ public class LicenseFileDetailsTest
         ComponentLegalPartStatus.ENABLED, componentLicenseFile.getId());
 
     return licenseFileOverview;
-  }
-
-  @Ignore
-  @Test
-  public void testEditLicenseFilesByHash() {
-    refreshOrOpen(
-        ComponentLicenseFileDetailsPage.urlToApplicationScopeByHash(app.getPublicId(), "033e7a20b23ea284d474", 0));
-    doTestEditLicenseFiles("MIT License by hash");
-  }
-
-  @Ignore
-  @Test
-  public void testEditLicenseFilesByComponentIdentifier() throws UnsupportedEncodingException {
-    refreshOrOpen(
-        ComponentLicenseFileDetailsPage.urlToApplicationScopeByComponentIdentifier(app.getPublicId(), componentId, 0));
-    doTestEditLicenseFiles("MIT License by hash");
   }
 
   private void doTestEditLicenseFiles(String content) {

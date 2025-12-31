@@ -23,7 +23,6 @@ import com.sonatype.insight.license.model.Feature;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
@@ -40,7 +39,6 @@ import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toSet;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -71,16 +69,6 @@ public class MTIQFeatureServiceTest
     productLicense = lookup(ProductLicense.class);
     underTest = new MTIQFeatureService(productLicense, configuration, systemConfigurationPropertyDAO, service,
         developerEnablementService);
-  }
-
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-35339
-  @Test
-  public void testRegister_setsFeatureFlags() {
-    underTest.register();
-
-    verify(service, times(28)).disableFeatureNoAuthz(propertyKeyCaptor.capture());
-    List<String> disabledFlagSet = propertyKeyCaptor.getAllValues();
-    assertThat(disabledFlagSet).containsExactlyInAnyOrder(getDisabledSystemConfigurationPropertyFeatures());
   }
 
   @Test

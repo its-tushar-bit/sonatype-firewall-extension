@@ -50,7 +50,6 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebElementCondition;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -249,80 +248,6 @@ public class FirewallOnboardingPageTest
     page.namespaceAttacksDocumentationLink()
         .shouldBe(attribute("href", "http://links.sonatype.com/products/nxiq/doc/preventing-namespace-confusion"))
         .shouldHave(attribute("target", "_blank"));
-  }
-
-  @Ignore // TODO Fix test with correct firewall onboarding flow
-  @Test
-  public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnWelcomeScreen() {
-    refreshOrOpen(FirewallOnboardingPage.url());
-
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    SidebarNavigation.container().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().click();
-    page.incompleteConfigurationModal().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Incomplete Configuration Modal: Welcome Screen");
-
-    page.incompleteConfigurationModal().cancelButton().click();
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    page.shouldBe(visible);
-
-    SidebarNavigation.dashboardNavigationButton().click();
-    page.incompleteConfigurationModal().continueButton().click();
-
-    waitUntilUrl(DashboardPage.url());
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Test
-  @Ignore("CLM-23240")
-  public void testClickingSidebarNavigationLifeCycleLogoIsInterceptedOpensIncompleteConfigurationModal() {
-    refreshOrOpen(FirewallOnboardingPage.url());
-
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    SidebarNavigation.container().shouldBe(visible);
-    SidebarNavigation.openNavigationSidebar();
-    SidebarNavigation.productInfoLink().click();
-    page.incompleteConfigurationModal().shouldBe(visible);
-    page.incompleteConfigurationModal().cancelButton().click();
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    page.shouldBe(visible);
-
-    SidebarNavigation.productInfoLink().click();
-    page.incompleteConfigurationModal().continueButton().click();
-
-    waitUntilUrl(DashboardPage.url());
-    DashboardPage.dashboardContainer().shouldBe(visible);
-  }
-
-  @Ignore // TODO Fix test with correct firewall onboarding flow
-  @Test
-  public void testClickingSidebarNavigationOpensIncompleteConfigurationModalOnOnboardingScreen() {
-    refreshOrOpen(FirewallOnboardingPage.url());
-
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    page.getStartedButton().click();
-    SidebarNavigation.container().shouldBe(visible);
-    SidebarNavigation.legalNavigationButton().click();
-    page.incompleteConfigurationModal().shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Incomplete Configuration Modal: Onboarding Screen");
-
-    page.incompleteConfigurationModal().cancelButton().click();
-    page.incompleteConfigurationModal().shouldNotBe(visible);
-
-    page.shouldBe(visible);
-
-    SidebarNavigation.dashboardNavigationButton().click();
-    page.incompleteConfigurationModal().continueButton().click();
-
-    waitUntilUrl(DashboardPage.url());
-    DashboardPage.dashboardContainer().shouldBe(visible);
   }
 
   @Test

@@ -22,7 +22,6 @@ import com.sonatype.clm.testing.functional.elements.LabelTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile;
 import com.sonatype.clm.testing.functional.elements.LicenseThreatGroupSummaryTile.ApplicableLicenseThreatGroupSection;
 import com.sonatype.clm.testing.functional.elements.NxList;
-import com.sonatype.clm.testing.functional.elements.NxToast;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.PolicyTileList;
@@ -54,7 +53,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.empty;
@@ -161,19 +159,6 @@ public class OrganizationSummaryViewTest
   public void testMoveApplicationLink() {
     ActionDropDown.actionButton().click();
     ActionDropDown.moveOwner().shouldBe(visible);
-  }
-
-  @Ignore("CLM-26143")
-  @Test
-  public void testCopyOrganizationIdToClipboard() {
-    // open the action dropdown
-    ActionDropDown.actionButton().click();
-    ActionDropDown.copyOrgIdButton().shouldBe(visible).click();
-    NxToast toast = new NxToast("success");
-    toast.shouldBe(visible);
-    toast.shouldHave(text("Copied!"));
-    toast.closeButton().shouldBe(visible).click();
-    toast.shouldNotBe(visible);
   }
 
   @Test

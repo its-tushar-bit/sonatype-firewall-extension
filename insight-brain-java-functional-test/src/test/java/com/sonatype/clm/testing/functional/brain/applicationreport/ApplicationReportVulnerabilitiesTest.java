@@ -7,8 +7,6 @@ package com.sonatype.clm.testing.functional.brain.applicationreport;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.Iterator;
-import java.util.Set;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.NxBackButton;
@@ -31,14 +29,10 @@ import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 
-import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.WebDriverRunner;
 import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
-import org.openqa.selenium.WebDriver;
 
 import static com.codeborne.selenide.CollectionCondition.size;
 import static com.codeborne.selenide.Condition.appear;
@@ -46,7 +40,6 @@ import static com.codeborne.selenide.Condition.attribute;
 import static com.codeborne.selenide.Condition.exactText;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationReportVulnerabilitiesTest
     extends AbstractFunctionalTest
@@ -174,48 +167,6 @@ public class ApplicationReportVulnerabilitiesTest
   }
 
   // NOTE This test does not pass in headless mode (e.g. with -Dselenide.headless=true)
-  @Test
-  @Ignore("https://sonatype.atlassian.net/browse/CLM-30528")
-  public void testPrintPreview() {
-    if ("firefox".equals(System.getProperty("browser"))) {
-      // this test is for chrome only
-      return;
-    }
-
-    // wait for data to load
-    vulnerabilitiesPage.title().shouldBe(visible);
-
-    WebDriver driver = WebDriverRunner.getWebDriver();
-    Set<String> existingWindowHandles = driver.getWindowHandles();
-    Set<String> newWindowHandles;
-    Selenide.executeJavaScript("setTimeout(function() { window.print(); }, 0);");
-
-    int maxWaitTime = 5000;
-    int totalWaitTime = 0;
-    int waitLoopInterval = 500;
-    do {
-      newWindowHandles = driver.getWindowHandles();
-      Selenide.sleep(waitLoopInterval);
-      totalWaitTime += waitLoopInterval;
-    }
-    while (totalWaitTime < maxWaitTime && existingWindowHandles.equals(newWindowHandles));
-
-    newWindowHandles.removeAll(existingWindowHandles);
-
-    Iterator<String> handleIterator = newWindowHandles.iterator();
-    assertThat(handleIterator).hasNext();
-
-    String printWindowHandle = newWindowHandles.iterator().next();
-
-    Selenide.switchTo().window(printWindowHandle);
-
-    eyesWatcher.eyesCheck();
-
-    // all attempts to programmatically close just the print window seem to hang the browser, so instead close
-    // the whole browser and re-init the webdriver
-    WebDriverRunner.closeWebDriver();
-  }
-
   @Test
   public void testSecurityIssueLink() {
     final String refId = "CVE-2016-1000031";

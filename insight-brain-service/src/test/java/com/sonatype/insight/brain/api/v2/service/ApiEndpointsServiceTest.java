@@ -6,11 +6,8 @@
 package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.inject.Inject;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -34,8 +31,6 @@ import com.sonatype.insight.brain.version.VersionService;
 import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
-import com.tngtech.archunit.core.domain.JavaClasses;
-import com.tngtech.archunit.core.importer.ClassFileImporter;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -44,12 +39,10 @@ import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -404,33 +397,6 @@ public class ApiEndpointsServiceTest
         "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
     assertEndpoint(openAPI, "/api/v2/ApiEndpointsServiceTestResourceFeatureFlagB/B",
         "Api Endpoints Service Test Resource Feature Flag B", HttpMethod.GET);
-  }
-
-  @Test
-  @Ignore //CLM-35733
-  public void testNoOverlappingTags() {
-    JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
-
-    Stream<Tag> tagsFromClasses = classes.stream()
-        .filter(c -> c.isAnnotatedWith(Tag.class))
-        .map(c -> c.getAnnotationOfType(Tag.class));
-    Stream<Tag> tagsFromMethods = classes.stream()
-        .flatMap(c -> c.getMethods().stream())
-        .filter(m -> m.isAnnotatedWith(Tag.class))
-        .map(m -> m.getAnnotationOfType(Tag.class));
-    Stream<Tag> allTags = Stream.concat(tagsFromClasses, tagsFromMethods);
-
-    Map<String, List<Tag>> tagsByName = allTags.collect(Collectors.groupingBy(Tag::name));
-
-    for (List<Tag> tagsWithSameName : tagsByName.values()) {
-      if (tagsWithSameName.size() > 1) {
-        long tagsWithDescriptions =
-            tagsWithSameName.stream().filter(t -> t.description() != null && !t.description().isEmpty()).count();
-        if (tagsWithDescriptions > 1) {
-          fail("Found multiple @Tag with the same name and different descriptions for: " + tagsWithSameName);
-        }
-      }
-    }
   }
 
   @Test

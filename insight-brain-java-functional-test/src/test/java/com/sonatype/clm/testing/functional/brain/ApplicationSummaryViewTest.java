@@ -16,7 +16,6 @@ import com.sonatype.clm.testing.functional.elements.AccessTile.InheritedAccessLi
 import com.sonatype.clm.testing.functional.elements.ActionDropDown;
 import com.sonatype.clm.testing.functional.elements.CLM;
 import com.sonatype.clm.testing.functional.elements.CategoryTile;
-import com.sonatype.clm.testing.functional.elements.ChangeApplicationIdDialog;
 import com.sonatype.clm.testing.functional.elements.EvaluateApplicationModal;
 import com.sonatype.clm.testing.functional.elements.EvaluationStatusModal;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -28,7 +27,6 @@ import com.sonatype.clm.testing.functional.elements.MoveOwnerDialog;
 import com.sonatype.clm.testing.functional.elements.NxFormSelect;
 import com.sonatype.clm.testing.functional.elements.NxList;
 import com.sonatype.clm.testing.functional.elements.NxToast;
-import com.sonatype.clm.testing.functional.elements.OrgsAndPoliciesSidebar;
 import com.sonatype.clm.testing.functional.elements.OwnerEditorDialog;
 import com.sonatype.clm.testing.functional.elements.SelectContactModal;
 import com.sonatype.clm.testing.functional.elements.SidebarNavigation;
@@ -36,7 +34,6 @@ import com.sonatype.clm.testing.functional.elements.SourceControlTile;
 import com.sonatype.clm.testing.functional.elements.Tooltip;
 import com.sonatype.clm.testing.functional.pages.ApplicationReportPage;
 import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
-import com.sonatype.clm.testing.functional.utils.InputUtils;
 import com.sonatype.clm.testing.functional.utils.NxColor;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationRequest;
@@ -70,7 +67,6 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.WebDriverRunner;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -131,52 +127,6 @@ public class ApplicationSummaryViewTest
         appCpeConfig);
 
     super.init(application);
-  }
-
-  @Test
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
-  public void testApplicationContact() {
-    User tempUser = tempEntity.newUser();
-    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
-    // open and close the contact modal
-    ActionDropDown.actionButton().click();
-    ActionDropDown.selectContact().shouldBe(visible).click();
-    SelectContactModal.body().shouldBe(visible);
-    SelectContactModal.header().shouldHave(SelectContactModal.headerText());
-    SelectContactModal.users().shouldHave(size(0));
-    SelectContactModal.cancelButton().shouldBe(visible).click();
-    SelectContactModal.body().shouldBe(hidden);
-    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
-    // wildcard search returns all users
-    ActionDropDown.actionButton().click();
-    ActionDropDown.selectContact().click();
-    SelectContactModal.searchBox().shouldBe(visible).val("*");
-    SelectContactModal.users().shouldHave(size(2))
-        .shouldHave(texts("Admin Builtin", tempUser.calculateDisplayName()));
-
-    // wildcard suffix search narrows search results
-    SelectContactModal.searchBox().val(tempUser.getFirstName() + "*");
-    SelectContactModal.users().shouldHave(size(1))
-        .shouldHave(texts(tempUser.calculateDisplayName()));
-    // update contact
-    SelectContactModal.userContact(tempUser.calculateDisplayName()).click();
-    SelectContactModal.updateButton().click();
-    SelectContactModal.body().shouldBe(hidden);
-    OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
-    // updated contact is retained upon page refresh
-    refresh();
-    OwnerSummaryPage.summaryTile().contact().shouldHave(text(tempUser.calculateDisplayName()));
-
-    // remove contact
-    ActionDropDown.actionButton().click();
-    ActionDropDown.selectContact().shouldBe(visible).click();
-    SelectContactModal.searchBox().click();
-    SelectContactModal.searchBox().shouldBe(focused);
-    InputUtils.clearInput(SelectContactModal.searchBox());
-    SelectContactModal.updateButton().click();
-    FormMask.seeAndWaitForDismissal();
-    SelectContactModal.body().shouldBe(hidden);
-    OwnerSummaryPage.summaryTile().contact().shouldNotHave(text(tempUser.calculateDisplayName()));
   }
 
   @Test
@@ -405,65 +355,6 @@ public class ApplicationSummaryViewTest
     ActionDropDown.actionButton().click();
     ActionDropDown.moveOwner().shouldBe(visible).shouldHave(text("Move " + application.getName())).click();
     moveAppModal.shouldBe(visible);
-  }
-
-  @Ignore
-  @Test
-  public void testChangeApplicationId() {
-    ChangeApplicationIdDialog changeApplicationIdDialog = new ChangeApplicationIdDialog();
-    changeApplicationIdDialog.shouldBe(hidden);
-    ActionDropDown.actionButton().click();
-    ActionDropDown.changeApplicationId().shouldBe(visible).shouldNotBe(DISABLED).click();
-    changeApplicationIdDialog.shouldBe(visible);
-    changeApplicationIdDialog.currentId().shouldHave(text(application.getPublicId()));
-    changeApplicationIdDialog.newIdDiv().shouldHave(cssClass("pristine"));
-    changeApplicationIdDialog.newId().shouldBe(empty);
-
-    eyesWatcher.eyesCheck("Change application dialog");
-
-    // current id is not a valid input
-    changeApplicationIdDialog.newId().val(application.getPublicId());
-    changeApplicationIdDialog.newIdDiv().shouldHave(cssClass("invalid"));
-    changeApplicationIdDialog.newIdInvalidMessage().shouldBe(visible);
-    // use invalid characters and assert the violation popover message
-    String invalidCharsMessage = "Use valid characters: alphanumeric, \"_\", \".\" or \"-\"";
-    changeApplicationIdDialog.newId().val("*");
-    changeApplicationIdDialog.newIdInvalidMessage().shouldHave(text(invalidCharsMessage)).shouldBe(visible);
-    // assert that the popover violation message for spaces is the same as invalid characters.
-    changeApplicationIdDialog.newId().val("Spaced ID");
-    changeApplicationIdDialog.newIdInvalidMessage().shouldHave(text(invalidCharsMessage)).shouldBe(visible);
-
-    // now change the id to a new, valid one
-    changeApplicationIdDialog.newId().val("newAppId");
-    changeApplicationIdDialog.newIdDiv().shouldNotHave(cssClass("invalid"));
-    changeApplicationIdDialog.newIdInvalidMessage().shouldNotBe(visible);
-    changeApplicationIdDialog.changeButton().shouldNotHave(cssClass("disabled")).shouldBe(enabled).click();
-    FormMask.seeAndWaitForDismissal();
-    changeApplicationIdDialog.shouldBe(hidden);
-    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-    OwnerSummaryPage.summaryTile().publicId().shouldHave(text("newAppId"));
-    // check that sidebar app link is updated
-    OrgsAndPoliciesSidebar sideBar = new OrgsAndPoliciesSidebar();
-    sideBar.getApplicationLink(0).click();
-    waitUntilUrl(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-
-    // log in as a user that doesn't have permission to change the id of this app
-    createUser();
-    grantPermissions(getUsername(), application.getId(), Permission.READ);
-
-    logout();
-    login();
-
-    try {
-      refreshOrOpen(OwnerSummaryPage.url(OwnerType.APPLICATION, "newAppId"));
-      ActionDropDown.actionButton().click();
-      ActionDropDown.changeApplicationId().shouldBe(visible).shouldHave(DISABLED).click();
-      changeApplicationIdDialog.shouldBe(hidden);
-    }
-    finally {
-      logout();
-      loginAsAdmin();
-    }
   }
 
   private void testEvaluateFile(boolean isNotificationsAllowed, String filename) {
@@ -696,30 +587,6 @@ public class ApplicationSummaryViewTest
     tile.content().shouldBe(visible);
 
     tile.itemText().shouldBe(visible);
-  }
-
-  @Test
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
-  public void testSourceControlRepositoryHeader_github() {
-    testSourceControl("http://localhost/my/app", SourceControlProvider.GITHUB, "fa-github");
-  }
-
-  @Test
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
-  public void testSourceControlRepositoryHeader_gitlab() {
-    testSourceControl("http://localhost/my/app", SourceControlProvider.GITLAB, "fa-gitlab");
-  }
-
-  @Test
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
-  public void testSourceControlRepositoryHeader_bitbucket() {
-    testSourceControl("http://localhost/scm/my/app", SourceControlProvider.BITBUCKET, "fa-bitbucket");
-  }
-
-  @Test
-  @Ignore //https://sonatype.atlassian.net/browse/CLM-30527
-  public void testSourceControlRepositoryHeader_azure() {
-    testSourceControl("http://localhost/user/prj/_git/app", SourceControlProvider.AZURE, "fa-git");
   }
 
   private void testSourceControl(String repoUrl, SourceControlProvider provider, String expectedIcon) {

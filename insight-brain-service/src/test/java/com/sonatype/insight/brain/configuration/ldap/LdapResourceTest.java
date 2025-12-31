@@ -27,7 +27,6 @@ import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -224,28 +223,6 @@ public class LdapResourceTest
     testLdapServer.start();
 
     LdapConnection ldapConnection = createLdapConnection();
-    ldapConnection.setPort(testLdapServer.getPort());
-    ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
-    ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());
-    ldapConnection.setSystemPassword(testLdapServer.getSystemUserPassword());
-
-    HttpResponse response = testConnectionRequest(ldapConnection).put();
-    assertResponseStatus(200, response);
-    LdapConnectionStatus status = response.getBody(LdapConnectionStatus.class);
-
-    assertThat(status.getStatus()).as(status.getMessage()).isEqualTo(LdapConnectionStatus.Status.OK);
-  }
-
-  @Test
-  @Ignore("execution-order dependent failures")
-  public void testTestLdapConnection_ldaps() throws Exception {
-    testLdapServer.setAuthenticationSimple();
-    testLdapServer.enableLdaps(getTestResourceFile("/com/sonatype/insight/test/networking/localhost.jks"), "password");
-    testLdapServer.start();
-
-    LdapConnection ldapConnection = createLdapConnection();
-    ldapConnection.setProtocol(LdapProtocol.LDAPS);
-    ldapConnection.setHostname("localhost");
     ldapConnection.setPort(testLdapServer.getPort());
     ldapConnection.setAuthenticationMethod(LdapAuthenticationMethod.SIMPLE);
     ldapConnection.setSystemUsername(testLdapServer.getSystemUserDN());

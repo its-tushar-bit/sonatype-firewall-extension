@@ -12,12 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
-import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLock;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
@@ -43,7 +39,6 @@ import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
@@ -425,96 +420,6 @@ public class DbMigrationCommandTest
   public void testOnError() {
     assertThatExceptionOfType(IllegalStateException.class).isThrownBy(
         () -> dbMigrationCommand.onError(null, null, new IOException("test")));
-  }
-
-  @Test
-  @PostgresTest(suppressMigrations = true)
-  @Ignore // A performance test to run on demand
-  public void testRun_CLM_36044() throws Exception {
-    ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/aggregation.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/dm.sql"));
-    resourceDatabasePopulator
-        .addScript(new ClassPathResource(getClass().getSimpleName() + "/postgres/third_party_scans.sql"));
-
-    OperationalDataStore operationalDataStore = databaseContainerRule.getOperationalDataStore();
-    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
-      resourceDatabasePopulator.populate(connection);
-    }
-    initPostgresToDesiredVersion(operationalDataStore, getClass().getSimpleName() + "/postgres/ods.sql", 397);
-
-    try (Connection connection = operationalDataStore.getDataSource().getConnection()) {
-      connection.setAutoCommit(false);
-
-      String orgQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".organization" +
-          " (organization_id, name, name_lowercase_no_whitespace) " +
-          " VALUES (?, ?, ?)";
-      String orgId = TemporaryEntity.uuid();
-      try (PreparedStatement statement = connection.prepareStatement(orgQuery)) {
-        statement.setString(1, orgId);
-        statement.setString(2, "org name");
-        statement.setString(3, "orgname");
-        statement.execute();
-      }
-
-      String appQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".application" +
-          " (application_id, public_id, public_id_lowercase, name, name_lowercase_no_whitespace, organization_id) " +
-          " VALUES (?, ?, ?, ?, ?, ?)";
-      List<String> applicationIds = new ArrayList<>();
-
-      try (PreparedStatement statement = connection.prepareStatement(appQuery)) {
-        for (int i = 0; i < 1_000_000; i++) {
-          String applicationId = TemporaryEntity.uuid();
-          applicationIds.add(applicationId);
-          statement.setString(1, applicationId);
-          statement.setString(2, "app_public_" + i);
-          statement.setString(3, "app_public_" + i);
-          statement.setString(4, "app name" + i);
-          statement.setString(5, "appname" + i);
-          statement.setString(6, orgId);
-          statement.addBatch();
-
-          if (i > 0 && i % 1000 == 0) {
-            statement.executeBatch();
-            statement.clearBatch();
-          }
-        }
-        statement.executeBatch();
-      }
-
-      String scmUserQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".source_control_user" +
-          " (source_control_user_id, application_id, email) " +
-          " VALUES (?, ?, ?)";
-      Random random = new Random();
-
-      try (PreparedStatement statement = connection.prepareStatement(scmUserQuery)) {
-        for (int i = 0; i < 10_000_000; i++) {
-          statement.setString(1, TemporaryEntity.uuid());
-          statement.setString(2,
-              random.nextDouble() < 0.5 ? TemporaryEntity.uuid() : applicationIds.get(i % applicationIds.size()));
-          statement.setString(3, "user" + i + "@example.com");
-          statement.addBatch();
-
-          if (i > 0 && i % 1000 == 0) {
-            statement.executeBatch();
-            statement.clearBatch();
-          }
-        }
-        statement.executeBatch();
-      }
-
-      connection.commit();
-    }
-
-    long start = System.currentTimeMillis();
-    dbMigrationCommand.run(null, null, insightConfig);
-    long duration = System.currentTimeMillis() - start;
-
-    System.out.println("### Time taken: " + duration + " ms");
-
-    assertMigrated();
   }
 
   private void assertMigrated() {

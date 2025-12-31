@@ -5,25 +5,18 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
-import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.testing.functional.elements.IqAssociationEditor;
 import com.sonatype.clm.testing.functional.elements.IqAssociationEditor.AssociationEditorElement;
-import com.sonatype.clm.testing.functional.elements.OwnerDetailSidebar;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView;
-import com.sonatype.clm.testing.functional.elements.OwnerTreeView.OrganizationNode;
 import com.sonatype.clm.testing.functional.elements.PolicyInheritsToSection;
-import com.sonatype.clm.testing.functional.pages.OwnerSummaryPage;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.Policy;
-import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.model.tag.Tag;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.CollectionCondition.size;
@@ -53,26 +46,6 @@ public class ApplicationPolicyEditorTest
         YE_OLE_ORGANIZATION);
 
     super.init(application);
-  }
-
-  @Test
-  @Ignore
-  public void testParentPolicyChangeReflectedLocally() {
-    tempEntity.newPolicy(application.getParentOwnerId(), "policyName", 5, Action.ID_FAIL, StageTypes.BUILD.getId(),
-        null);
-    refreshOrOpen(OwnerSummaryPage.url(application));
-    OwnerSummaryPage.policyTile().localPolicy("policyName").shouldBe(visible);
-    OrganizationNode organizationNode = OwnerTreeView.organization(0);
-    organizationNode.treeViewElement().shouldBe(visible).click();
-    OwnerSummaryPage.policyTile().localPolicy("policyName").shouldBe(visible).click();
-    PolicyEditorPage.summarySection().policyName().input().clear();
-    PolicyEditorPage.summarySection().policyName().input().sendKeys("policyName2");
-    PolicyEditorPage.savePolicy();
-    OwnerDetailSidebar.backLink().shouldBe(visible).click();
-    organizationNode.application(0).shouldBe(visible).click();
-    OwnerSummaryPage.policyTile().localPolicy("policyName2").shouldBe(visible);
-
-    eyesWatcher.eyesCheck("Policy name changed");
   }
 
   @Test

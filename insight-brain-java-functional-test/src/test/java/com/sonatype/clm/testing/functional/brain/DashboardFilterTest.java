@@ -27,7 +27,6 @@ import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyTypeF
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.PolicyViolationStateFilter;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.SaveFilterDialog;
 import com.sonatype.clm.testing.functional.elements.DashboardFilters.StageFilter;
-import com.sonatype.clm.testing.functional.elements.DashboardViolations;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationTile;
 import com.sonatype.clm.testing.functional.elements.DashboardViolations.ViolationsResults;
 import com.sonatype.clm.testing.functional.elements.DashboardWaivers.WaiverTile;
@@ -72,7 +71,6 @@ import org.joda.time.DateTime;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
@@ -1535,160 +1533,7 @@ public class DashboardFilterTest
   }
 
   // Due to issues with ManageFiltersDropdown, this test is disabled. See CLM-34681
-  @Ignore
-  @Test
-  public void testEscEvents() {
-    // filter container is open
-    DashboardPage.expandFilter();
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // filters are dirty - Esc should not close filterContainer
-    DashboardPage.expandFilter();
-    setSomeFilterValues();
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldBe(visible);
-    DashboardFilters.revertButton().click();
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    DashboardPage.expandFilter();
-    DashboardFilters.manageFiltersDropdown().openMenuButton().click();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldNotBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // filter container, dropdown and delete modal are open
-    DashboardPage.expandFilter();
-    saveFilter("test filter", null, false, false);
-    DashboardFilters.manageFiltersDropdown().openMenuButton().click();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible).option(1).deleteFilterButton().click();
-    DashboardFilters.deleteFilterDialog().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.deleteFilterDialog().shouldNotBe(visible);
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldNotBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // after deleting a filter
-    DashboardPage.expandFilter();
-    DashboardFilters.manageFiltersDropdown().openMenuButton().click();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible).option(1).deleteFilterButton().click();
-    DashboardFilters.deleteFilterDialog().shouldBe(visible).continueButton().click();
-    DashboardFilters.deleteFilterDialog().shouldNotBe(visible);
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.manageFiltersDropdown().dropdownMenu().shouldNotBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // filter container and save modal are open
-    DashboardPage.expandFilter();
-    DashboardFilters.saveButton().shouldNotBe(disabled).click();
-    SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
-    saveDialog.shouldBe(visible);
-    pressEscape();
-    saveDialog.shouldNotBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-    pressEscape();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-  }
-
   // Due to issues with ManageFiltersDropdown, this test is disabled. See CLM-34681
-  @Ignore
-  @Test
-  public void testOffClickEvents() {
-    // clicking within filter panel should not close it
-    DashboardPage.expandFilter();
-    DashboardFilters.applyButton().shouldBe(visible).click();
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    // clicking outside of filter panel should close it
-    DashboardPage.violationsTab().click();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // clicking within filters dropdown should not close it
-    ManageFiltersDropdown manage = DashboardFilters.manageFiltersDropdown();
-    DashboardPage.expandFilter();
-    manage.openMenuButton().click();
-    manage.dropdownMenu().emptyListMessage().shouldBe(visible).click();
-    manage.dropdownMenu().shouldBe(visible);
-
-    // clicking outside of filters dropdown should close it
-    DashboardFilters.applyButton().click();
-    manage.dropdownMenu().shouldNotBe(visible);
-
-    // clicking outside of filter panel should close both filters dropdown and filter panel
-    manage.openMenuButton().click();
-    manage.dropdownMenu().shouldBe(visible);
-    DashboardPage.violationsTab().click();
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-
-    // when filter changes are not applied, clicking outside of filter panel should close filters dropdown
-    // but not filter panel
-    DashboardPage.expandFilter();
-    DashboardFilters.filterContainer().shouldBe(visible);
-    setSomeFilterValues();
-    manage.openMenuButton().click();
-    manage.dropdownMenu().shouldBe(visible);
-    new DashboardViolations().results().mask().shouldBe(visible).click();
-    manage.dropdownMenu().shouldNotBe(visible);
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    // clicking anywhere when Save Filter modal is open, should not close filter panel
-    DashboardFilters.revertButton().shouldNotBe(disabled).click();
-    DashboardFilters.saveButton().shouldNotBe(disabled).click();
-    SaveFilterDialog saveDialog = DashboardFilters.saveFilterDialog();
-    saveDialog.shouldBe(visible);
-
-    DashboardFilters.modalBackdrop().shouldBe(visible).click();
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    saveDialog.header().click();
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    saveDialog.cancelButton().click();
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    DashboardFilters.saveButton().shouldNotBe(disabled).click();
-    saveDialog.nameInput().val("New Filter");
-    saveDialog.saveButton().shouldNotHave(disabled).click();
-    DashboardFilters.filterContainer().shouldBe(visible);
-
-    // clicking anywhere when Delete Filter modal is open, should not close filters dropdown and filter panel
-    manage.openMenuButton().click();
-    manage.dropdownMenu().shouldBe(visible);
-    manage.dropdownMenu().option(1).deleteFilterButton().shouldBe(visible).click();
-
-    DashboardFilters.modalBackdrop().shouldBe(visible).click();
-    manage.dropdownMenu().shouldBe(visible);
-
-    DashboardFilters.deleteFilterDialog().shouldBe(visible).click();
-    manage.dropdownMenu().shouldBe(visible);
-
-    DashboardFilters.deleteFilterDialog().cancelButton().click();
-
-    DashboardFilters.filterContainer().shouldNotBe(visible);
-    DashboardPage.expandFilter();
-    manage.openMenuButton().shouldBe(visible).click();
-    manage.dropdownMenu().shouldBe(visible);
-    manage.dropdownMenu().option(1).deleteFilterButton().shouldBe(visible).click();
-
-    DashboardFilters.deleteFilterDialog().continueButton().click();
-    manage.dropdownMenu().shouldBe(visible);
-  }
-
   @Test
   public void testDisplayModalOverFilter() {
     DashboardPage.expandFilter();

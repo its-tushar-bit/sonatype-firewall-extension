@@ -23,8 +23,6 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.codeborne.selenide.WebElementCondition;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.visible;
@@ -70,17 +68,6 @@ public class SystemNoticeTest
   @Before
   public void setUp() {
     systemNoticeDAO = lookup(SystemNoticeDAO.class);
-  }
-
-  @Test
-  @Ignore
-  public void systemNoticeTest() {
-    disabledSystemNotice_NotShownOnLogin();
-    enabledSystemNotice_ShownOnLogin();
-
-    login(PAGE_URLS[0]);
-    disabledSystemNotice_NotShownOnPages();
-    enabledSystemNotice_ShownOnPages();
   }
 
   @After

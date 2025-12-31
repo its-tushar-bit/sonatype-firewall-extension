@@ -18,12 +18,10 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 
 import com.codeborne.selenide.Selenide;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.disabled;
 import static com.codeborne.selenide.Condition.enabled;
-import static com.codeborne.selenide.Condition.exist;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.selected;
 import static com.codeborne.selenide.Condition.text;
@@ -96,42 +94,6 @@ public class RootOrganizationSourceControlEditorTest
     assertSourceControl(ROOT_ORGANIZATION_ID, null, "secret_key", GITHUB);
   }
 
-  @Ignore("CLM-26304")
-  @Test
-  public void testSourceControlEditor_createFailure() {
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-
-    SourceControlEditorPage.providerSelect().chooseOption(new Option(3, "Github"));
-
-    SourceControlEditorPage.token().shouldBe(enabled);
-
-    SourceControlEditorPage.remediationPullRequestsFieldset().toggle().shouldNotBe(selected);
-    SourceControlEditorPage.pullRequestCommentingFieldset().toggle().shouldBe(selected);
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle().shouldBe(selected);
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle().shouldBe(selected);
-
-    //Create an entry to create error condition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
-    SourceControlEditorPage.saveButton().click();
-
-    FormUtils.getErrorElement(SourceControlEditorPage.root()).shouldBe(visible)
-        .shouldHave(text(
-            FormUtils.DEFAULT_ERROR_SAVING_DATA_PREFIX +
-                " SourceControl already exists for organization with id: " + rootOrganization.getId()));
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
-
-    //Delete the entry to resolve error condition
-    deleteRootOrgSourceControl();
-
-    FormUtils.getRetryButton().click();
-    FormMask.seeAndWaitForDismissal();
-
-    SourceControlEditorPage.saveButton().shouldHave(text("Update"));
-    SourceControlEditorPage.resetButton().shouldBe(enabled);
-    SourceControlEditorPage.token().shouldHave(value(""));
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, null, GITHUB);
-  }
-
   @Test
   public void testSourceControlEditor_update() {
     tempEntity
@@ -147,45 +109,6 @@ public class RootOrganizationSourceControlEditorTest
     SourceControlEditorPage.token().shouldBe(enabled);
 
     SourceControlEditorPage.saveButton().click();
-    FormMask.seeAndWaitForDismissal();
-
-    SourceControlEditorPage.saveButton().shouldHave(text("Update"));
-    SourceControlEditorPage.resetButton().shouldBe(enabled);
-    SourceControlEditorPage.token().shouldHave(value(FAKE_SECRET_KEY));
-    assertSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, SourceControlProvider.GITLAB);
-  }
-
-  @Ignore("CLM-26304")
-  @Test
-  public void testSourceControlEditor_updateFailure() {
-    tempEntity
-        .newSourceControl(ROOT_ORGANIZATION_ID, GITHUB, TOKEN, null, "master", PR_COMMENTING_ON, REMEDIATION_PR_ON,
-            SOURCE_EVALS_ON, STATUS_UPDATES_ON);
-
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-
-    verifyStartWithSourceControl();
-    SourceControlEditorPage.providerSelect().chooseOption(new Option(4, "GitLab"));
-    SourceControlEditorPage.token().shouldBe(enabled);
-    SourceControlEditorPage.remediationPullRequestsFieldset().toggle().should(exist);
-    SourceControlEditorPage.pullRequestCommentingFieldset().toggle().should(exist);
-    SourceControlEditorPage.sourceControlEvaluationsFieldset().toggle().should(exist);
-    SourceControlEditorPage.automatedCommitFeedbackFieldset().toggle().should(exist);
-
-    //Delete the entry to create the failure
-    deleteRootOrgSourceControl();
-    SourceControlEditorPage.saveButton().click();
-
-    FormUtils.getErrorElement(SourceControlEditorPage.root()).shouldBe(visible)
-        .shouldHave(text(
-            FormUtils.DEFAULT_ERROR_SAVING_DATA_PREFIX +
-                " Cannot find SourceControl for organization with id: " + rootOrganization.getId()));
-    assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
-
-    //Create the entry to resolve error condition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
-
-    FormUtils.getRetryButton().click();
     FormMask.seeAndWaitForDismissal();
 
     SourceControlEditorPage.saveButton().shouldHave(text("Update"));
@@ -210,46 +133,6 @@ public class RootOrganizationSourceControlEditorTest
         "Root Organization. This action cannot be undone."));
 
     DeleteModal.continueButton().click();
-    FormMask.seeAndWaitForDismissal();
-    DeleteModal.root().shouldBe(hidden);
-
-    SourceControlEditorPage.providerSelect().shouldBe(visible, enabled);
-    SourceControlEditorPage.token().shouldBe(visible, disabled);
-    SourceControlEditorPage.saveButton().shouldBe(visible);
-    SourceControlEditorPage.saveButton().shouldHave(text("Create"));
-    SourceControlEditorPage.resetButton().shouldBe(disabled);
-    assertSourceControlDoesNotExist(ROOT_ORGANIZATION_ID);
-  }
-
-  @Ignore("CLM-26304")
-  @Test
-  public void testSourceControlEditor_deleteFailure() {
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
-
-    refreshOrOpen(SourceControlEditorPage.url(OwnerType.ORGANIZATION.toString(), organization.getId()));
-
-    verifyStartWithSourceControl();
-    SourceControlEditorPage.resetButton().click();
-
-    DeleteModal.root().shouldBe(visible);
-    DeleteModal.header().shouldHave(text("Reset Source Control"));
-    DeleteModal.body().shouldHave(text("You are about to reset the Source Control configuration for " +
-        "Root Organization. This action cannot be undone."));
-
-    //Delete entry to create error condition
-    deleteRootOrgSourceControl();
-
-    DeleteModal.continueButton().click();
-
-    DeleteModal.error()
-        .shouldHave(text("Cannot find SourceControl for organization with id: " + rootOrganization.getId()));
-    DeleteModal.retryButton().shouldBe(visible, enabled);
-
-    //Recreate the entry to resolve error condition
-    tempEntity.newSourceControl(ROOT_ORGANIZATION_ID, null, TOKEN, GITHUB);
-
-    DeleteModal.retryButton().click();
-
     FormMask.seeAndWaitForDismissal();
     DeleteModal.root().shouldBe(hidden);
 

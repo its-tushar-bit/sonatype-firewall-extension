@@ -269,14 +269,14 @@
             <include>**/*Test.*</include>
           </includes>
           <trimStackTrace>false</trimStackTrace>
-          <reuseForks>true</reuseForks>
+          <reuseForks>false</reuseForks>
           <useUnlimitedThreads>false</useUnlimitedThreads>
           <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
           <!-- 0.25C means 0.25 x number-of-CPUs:
                 8 CPUs -> 2 forks
                16 CPUs -> 4 forks
            -->
-          <forkCount>1</forkCount>
+          <forkCount>0.5C</forkCount>
           <argLine>@{argLine} -Xmx1024M -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <!-- Used by the test MTIQ server to set the work directory (to not use the same work dir across all forks). -->

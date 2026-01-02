@@ -29,7 +29,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
 
 @RunWith(Parameterized.class)
 public class ReverseProxyAuthcTest

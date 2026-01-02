@@ -85,7 +85,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.junit.contrib.java.lang.system.ExpectedSystemExit;
-import org.junit.experimental.categories.Category;
 import org.mockito.MockedStatic;
 import org.quartz.JobPersistenceException;
 

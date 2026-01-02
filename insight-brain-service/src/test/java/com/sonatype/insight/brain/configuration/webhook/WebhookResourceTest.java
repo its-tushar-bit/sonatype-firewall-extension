@@ -4,8 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration.webhook;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Arrays;
 import java.util.Collections;

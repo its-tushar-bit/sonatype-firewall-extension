@@ -25,7 +25,6 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;

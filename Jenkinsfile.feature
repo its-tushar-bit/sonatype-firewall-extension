@@ -236,12 +236,21 @@ pipeline {
           }
         }
 
-        // Static analysis on smaller distributed agent (non-blocking)
+        // Static analysis on smaller distributed agent
         stage('Static Analysis') {
           agent { label 'iq' }
           steps {
             script {
               runDistributedStaticAnalysis()
+            }
+          }
+          post {
+            failure {
+              script {
+                // Ensure static analysis failures fail the entire build
+                currentBuild.result = 'FAILURE'
+                error('Static analysis (Checkstyle/PMD) failed - see logs for violations')
+              }
             }
           }
         }
@@ -1177,6 +1186,10 @@ String buildStaticAnalysisMavenOptions() {
   opts << "-Dmaven.build.cache.enabled=false"
   opts << "-Dmaven.build.cache.remote.enabled=false"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
+
+  // Explicitly fail build on static analysis violations
+  opts << "-Dcheckstyle.failOnViolation=true"
+  opts << "-Dpmd.failOnViolation=true"
 
   return opts.join(' ')
 }

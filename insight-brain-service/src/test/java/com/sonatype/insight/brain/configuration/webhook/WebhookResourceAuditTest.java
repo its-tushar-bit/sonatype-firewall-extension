@@ -21,7 +21,6 @@ import com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 public class WebhookResourceAuditTest
     extends AbstractAuditTest

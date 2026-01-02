@@ -103,7 +103,8 @@ public class ApiSbomServiceAuthzTest
         SbomVersionsApplicationSortableField.IMPORT_DATE, true);
   }
 
-  @Test@Category(PostgresTestCategory.class)
+  @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomMetadataSummaryForApplication_Authorized() {
     Application application = tempEntity.newApplicationWithParent();

@@ -21,7 +21,6 @@ import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.CPE_MATCHING_CONFIGURATION_RESOURCE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.experimental.categories.Category;
 
 public class CpeMatchingConfigurationResourceTest
     extends AbstractResourceTest

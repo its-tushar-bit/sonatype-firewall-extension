@@ -8,7 +8,6 @@ package com.auth0.client.auth;
 import java.io.IOException;
 import java.util.Objects;
 
-
 import com.auth0.exception.Auth0Exception;
 import okhttp3.Call;
 import okhttp3.MediaType;

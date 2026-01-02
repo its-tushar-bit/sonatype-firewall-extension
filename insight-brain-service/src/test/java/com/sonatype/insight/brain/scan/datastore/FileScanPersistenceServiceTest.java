@@ -15,7 +15,6 @@ import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTestHelper.SCAN_ID;

@@ -5,8 +5,6 @@
  */
 package com.sonatype.insight.brain.search;
 
-import org.junit.experimental.categories.Category;
-
 public class LuceneIndexSearchingTest
     extends AbstractIndexSearchingTest
 {

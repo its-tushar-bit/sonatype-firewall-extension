@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

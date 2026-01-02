@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
@@ -19,11 +20,13 @@ import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @H2DiskTest(cleanDatabase = true, suppressMigrations = true)
+@Category(SlowTest.class)
 public class OrganizationAncestorInitialPopulationMigratorTest
     extends AbstractDatabaseTest
 {

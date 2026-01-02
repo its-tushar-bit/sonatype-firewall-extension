@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * These tests are to help avoid a reoccurrence of CLM-24899
  */
+@Category(SlowTest.class)
 public class Antlr4RuntimeCompatibilityTest
     extends AbstractComponentTest
 {

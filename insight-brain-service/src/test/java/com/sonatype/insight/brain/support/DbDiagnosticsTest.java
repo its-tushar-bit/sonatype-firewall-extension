@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -16,6 +16,7 @@ import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.27
@@ -52,6 +53,7 @@ public class DbDiagnosticsTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDBFileInfo_Postgres() throws Exception {
     DbDiagnostics dbDiagnostics = new DbDiagnostics(databaseRule.getOperationalDataStore());

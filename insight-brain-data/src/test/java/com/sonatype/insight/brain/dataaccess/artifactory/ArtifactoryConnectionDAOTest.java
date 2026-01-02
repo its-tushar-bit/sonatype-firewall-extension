@@ -4,11 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.artifactory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Function;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.JPA;
@@ -17,9 +19,11 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class ArtifactoryConnectionDAOTest
     extends AbstractDbDAOTest
 {
@@ -97,6 +101,7 @@ public class ArtifactoryConnectionDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testRotateEncryptedSecrets() throws SQLException {
     tempEntity.newArtifactoryConnection("ownerId1", "baseUrl1", "username1", "passwordOld1".toCharArray());

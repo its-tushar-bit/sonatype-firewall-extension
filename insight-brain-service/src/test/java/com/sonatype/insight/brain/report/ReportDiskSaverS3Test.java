@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.report;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
@@ -19,6 +21,7 @@ import org.mockito.Mock;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class ReportDiskSaverS3Test
     extends AbstractComponentTest
 {

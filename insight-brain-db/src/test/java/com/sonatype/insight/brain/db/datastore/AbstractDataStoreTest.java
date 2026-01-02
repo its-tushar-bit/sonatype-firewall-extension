@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
@@ -17,6 +18,7 @@ import com.sonatype.insight.brain.db.migrations.LiquibaseDataStoreMigrator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
@@ -33,6 +35,7 @@ public abstract class AbstractDataStoreTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest(cleanDatabase = true, suppressMigrations = true)
   public void testInit_Migrate_Postgres() throws Exception {
     ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();

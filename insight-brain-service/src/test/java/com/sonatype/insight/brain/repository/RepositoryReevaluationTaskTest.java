@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -51,6 +52,7 @@ import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class RepositoryReevaluationTaskTest
     extends AbstractComponentTest
 {

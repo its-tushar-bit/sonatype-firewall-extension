@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -19,6 +20,7 @@ import org.apache.commons.dbcp2.BasicDataSource;
 import org.apache.commons.io.IOUtils;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,6 +36,7 @@ public class H2DatabaseBackupTest
       suppressMigrations = true,
       copyExistingDatabase = "H2DatabaseBackupTest/testBackupOperationalDataStore"
   )
+  @Category(SlowTest.class)
   public void testBackup() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("ods");
 

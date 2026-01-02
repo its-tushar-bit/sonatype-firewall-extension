@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.SbomTaxonomy;
 import com.sonatype.insight.brain.AbstractDataTest;
 import com.sonatype.insight.brain.dataaccess.license.MultiLicenseDAO;
@@ -71,6 +72,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class SpdxResultHandlerTest
     extends AbstractDataTest
 {

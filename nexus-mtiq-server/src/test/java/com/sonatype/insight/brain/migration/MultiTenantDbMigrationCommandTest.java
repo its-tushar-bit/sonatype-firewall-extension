@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.migration;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.db.DatabaseContainer;
@@ -12,6 +13,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +27,7 @@ public class MultiTenantDbMigrationCommandTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest(suppressMigrations = false, cleanDatabase = true)
   public void testQuartzTableDoesExist() {
     // do migration (setup global schema) and global quartz table does exist
@@ -34,6 +37,7 @@ public class MultiTenantDbMigrationCommandTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest(suppressMigrations = true, cleanDatabase = true)
   public void testQuartzTableDoesNotExist() {
     // do NOT DO migration (setup global schema) and global quartz table DOES NOT exist

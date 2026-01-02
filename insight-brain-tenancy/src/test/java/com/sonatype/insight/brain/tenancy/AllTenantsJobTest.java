@@ -8,13 +8,11 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -29,7 +27,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-@Category(SlowTest.class)
 public class AllTenantsJobTest extends MultiTenantTestSupport
 {
   @Rule

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +29,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileCoordinateDAO;
@@ -83,6 +85,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.mockito.internal.stubbing.answers.AnswersWithDelay;
 import org.mockito.internal.stubbing.answers.Returns;
@@ -117,6 +120,7 @@ import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class ApiSbomServiceTest
     extends AbstractComponentTest
 {
@@ -489,6 +493,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomMetadataSummaryForApplication_Successful() {
     Application application = tempEntity.newApplicationWithParent();
@@ -593,6 +598,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_NoResults() {
     Application application = tempEntity.newApplicationWithParent();
@@ -610,6 +616,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_WithResults() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -702,6 +709,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -743,6 +751,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromFormatNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -779,6 +788,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_displayNameStoredFromNameAndVersion() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -816,6 +826,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_WithResults_PolicyFeatureFlagOff() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -901,6 +912,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_WithResults_NoPolicyViolations() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -985,6 +997,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -1035,6 +1048,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_LicenseNameFilter() throws IOException {
     Application application = tempEntity.newApplicationWithParent();
@@ -1090,6 +1104,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forLifeCycleProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_LIFECYCLE_SAAS);
@@ -1097,6 +1112,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomAndALPProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER,
@@ -1105,6 +1121,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides_forSbomProduct() throws IOException {
     testProductLicense.setProducts(ProductLicenseDetails.PRODUCT_SBOM_MANAGER);
@@ -1176,6 +1193,7 @@ public class ApiSbomServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_WithResults_EmptyPackageUrl() throws IOException {
     Application application = tempEntity.newApplicationWithParent();

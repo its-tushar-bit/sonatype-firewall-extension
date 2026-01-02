@@ -7,6 +7,8 @@ package com.sonatype.insight.brain.sbom.applications;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
@@ -33,6 +35,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class ApplicationsResourceTest
     extends AbstractResourceTest
 {
@@ -56,6 +61,7 @@ public class ApplicationsResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplicationDetails() throws Exception {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

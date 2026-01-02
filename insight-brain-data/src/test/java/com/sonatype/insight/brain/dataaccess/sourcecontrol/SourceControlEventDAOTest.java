@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -17,6 +18,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -31,12 +33,14 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.sourcecontrol.SourceControlEvent.*;
 import static java.lang.System.currentTimeMillis;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Category(SlowTest.class)
 public class SourceControlEventDAOTest
     extends AbstractDbDAOTest
 {
@@ -1259,6 +1263,7 @@ public class SourceControlEventDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSelectEventsByCriteria_CreatedOnOrAfterFilterPostgres() {
     Organization tempOrganization = tempEntity.newOrganization();

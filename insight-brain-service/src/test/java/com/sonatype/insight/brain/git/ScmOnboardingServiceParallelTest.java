@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -71,6 +73,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class ScmOnboardingServiceParallelTest
     extends AbstractComponentTest
 {

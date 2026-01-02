@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.service;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.regex.Pattern;
 
@@ -13,6 +15,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class MultiTenantServerHeaderFilterTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

@@ -32,7 +32,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 abstract class AbstractApplicationReportPersistenceServiceTest
     extends AbstractComponentTest
 {
@@ -100,6 +99,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   public abstract void testCorrectImplClass();
 
   @Test
+  @Category(SlowTest.class)
   public void testGetReportEntity_exists() throws Exception {
     helper.saveEmptyMockReport();
 
@@ -128,6 +128,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetReportEntity_notExists() throws Exception {
     helper.saveEmptyMockReport();
     long startTime = System.currentTimeMillis();
@@ -156,6 +157,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetReportEntity_existsLocalOnly() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeLocalFile("foo.txt", "foo");
@@ -360,6 +362,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       throws IOException;
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveReportFile_newFile_notInZip() throws Exception {
     helper.saveEmptyMockReport();
     Instant now = Instant.now();
@@ -379,6 +382,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_notInZip() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeLocalFile("file.txt", "old file contents");
@@ -399,6 +403,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_inZip() throws Exception {
     helper.saveMockReport();
     Instant now = Instant.now();
@@ -418,6 +423,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveReportFile_updateFile_inZipAndLocalCache() throws Exception {
     helper.saveMockReport();
     helper.writeLocalFile("bom.json", "old local file contents");
@@ -461,6 +467,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveAdditionalReportFile_newFile() throws Exception {
     helper.saveEmptyMockReport();
     Instant now = Instant.now();
@@ -480,6 +487,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testSaveAdditionalReportFile_updateFile() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeAdditionalFile("file.txt", "old file contents");
@@ -523,6 +531,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetPdfEntity() throws Exception {
     helper.saveEmptyMockReport();
     helper.writePdf("PDF");
@@ -577,6 +586,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetPdfEntity_currentlyEmpty() throws Exception {
     helper.saveEmptyMockReport();
     helper.writePdf("");
@@ -632,6 +642,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetVulnerabilitySignaturesEntity() throws Exception {
     helper.saveEmptyMockReport();
     helper.writeVulnerabilitySignatures("{}");

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.NameableDAOTest;
@@ -426,6 +427,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByApplicationIds_Postgres() {
     testGetByApplicationIds(false);
@@ -470,6 +472,7 @@ public class TagDAOTest extends NameableDAOTest<Tag>
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetTagsUsedByApplications_MoreThanShortMaxValueOnPostgres() throws Exception {
     OperationalDataStore operationalDataStore = databaseRule.getOperationalDataStore();

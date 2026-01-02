@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.policy.evaluator;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +40,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class PolicyAlertEmailerAuditTest
     extends AbstractComponentAuditTest
 {

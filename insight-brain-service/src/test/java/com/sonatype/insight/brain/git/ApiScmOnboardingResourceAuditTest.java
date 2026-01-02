@@ -18,7 +18,10 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.PublicApiPaths.EXPERIMENTAL_ONBOARDING_RESOURCE_PATH;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class ApiScmOnboardingResourceAuditTest
     extends AbstractAuditTest
 {

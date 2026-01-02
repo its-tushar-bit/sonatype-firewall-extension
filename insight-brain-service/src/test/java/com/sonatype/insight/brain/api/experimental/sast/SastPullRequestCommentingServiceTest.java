@@ -5,6 +5,8 @@
  */
 
 package com.sonatype.insight.brain.api.experimental.sast;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -60,6 +62,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class SastPullRequestCommentingServiceTest
     extends AbstractComponentTest
 {

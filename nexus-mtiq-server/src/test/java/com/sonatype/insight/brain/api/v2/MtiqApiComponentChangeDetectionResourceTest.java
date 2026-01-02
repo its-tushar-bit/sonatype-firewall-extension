@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.malware.defense.ApiMalwareComponentEvaluationR
 import com.sonatype.insight.brain.model.ComponentChangeDetectionEvent;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.license.model.LicensedFeature;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.stream.Collectors;
 import org.joda.time.DateTime;
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runners.MethodSorters;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
@@ -44,6 +46,7 @@ import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@Category(SlowTest.class)
 public class MtiqApiComponentChangeDetectionResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

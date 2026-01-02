@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security.oauth2;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -25,6 +27,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantJwtTokenTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

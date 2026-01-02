@@ -11,6 +11,7 @@ import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.clm.dto.model.repository.RepositoryDTO;
+import org.junit.experimental.categories.Category;
 
 public class ArtifactoryRepositoryServiceTest
     extends AbstractRepositoryServiceTest

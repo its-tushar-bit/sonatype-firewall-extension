@@ -17,10 +17,12 @@ import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPr
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_CONFIG_FEATURES_PATH;
 import static com.sonatype.insight.brain.api.v2.ApiConfigFeaturesService.FEATURE_SAAS_LIFECYCLE_SCM_ENABLED;
@@ -28,6 +30,7 @@ import static com.sonatype.insight.brain.model.configuration.SystemConfiguration
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAAS_LIFECYCLE_SCM_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class ConfigFeaturesResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

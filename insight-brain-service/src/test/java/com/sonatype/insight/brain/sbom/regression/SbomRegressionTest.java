@@ -24,7 +24,6 @@ import com.sonatype.insight.brain.api.v2.ApiSbomResource;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomStatusDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequestDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 import com.sonatype.insight.brain.utils.ReportHelper;
@@ -82,7 +81,6 @@ import static org.awaitility.Awaitility.await;
  *
  *  </ul>
  */
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class SbomRegressionTest
     extends AbstractResourceTest

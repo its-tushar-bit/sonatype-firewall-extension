@@ -35,6 +35,7 @@ public class DatabaseAccessTest
 
   @Test(timeout = 20000)
   @H2DiskTest
+  @Category(SlowTest.class)
   public void testConcurrentDatabaseAccess() throws Exception {
     Organization org = new Organization("testConcurrentDatabaseAccess");
     organizationDAO.insert(org);

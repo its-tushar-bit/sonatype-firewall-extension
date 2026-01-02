@@ -5,6 +5,8 @@
  */
 
 package com.sonatype.insight.brain.callflow;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,6 +39,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class ComponentReachabilityServiceTest
     extends AbstractComponentTest
 {

@@ -5,10 +5,13 @@
  */
 package com.sonatype.insight.brain.policy;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ActionTypeResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.policy;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDefaultBranchCommitHistoryDAO;
@@ -39,10 +41,12 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlPullRequestCo
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+@Category(SlowTest.class)
 public class PolicyEvaluationDAOTest
     extends AbstractDbDAOTest
 {
@@ -354,6 +358,7 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetLastByApplicationIdsAndStageIds_InOperatorOptimizationForPostgres() {
     testGetLastByApplicationIdsAndStageIds_InOperatorOptimization(false);
@@ -416,6 +421,7 @@ public class PolicyEvaluationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetLastByApplicationIds_InOperatorOptimizationForPostgres() {
     testGetLastByApplicationIds_InOperatorOptimization(false);

@@ -24,7 +24,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 
-@Category(SlowTest.class)
 public class FileApplicationReportPersistenceServiceTest
     extends AbstractApplicationReportPersistenceServiceTest
 {
@@ -52,6 +51,7 @@ public class FileApplicationReportPersistenceServiceTest
 
   @Test
   @Override
+  @Category(SlowTest.class)
   public void testGetReportLocation() {
     // The output of this API will differ by OS depending on the path separator character
     String suffix = FileSystems.getDefault().getSeparator().equals("\\") ?

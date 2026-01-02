@@ -26,16 +26,19 @@ import com.sonatype.insight.brain.model.security.SamlGroup;
 import com.sonatype.insight.brain.model.security.SamlUser;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import junit.framework.TestCase;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SSO_CONFIGURATION_PATH;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.ISSUER;
 import static com.sonatype.insight.brain.api.admin.SsoConfigurationTestHelper.createSsoConfigurationDTO;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class TenantSsoConfigurationResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

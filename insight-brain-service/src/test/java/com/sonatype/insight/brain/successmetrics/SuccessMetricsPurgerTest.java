@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import jakarta.persistence.LockModeType;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.DataRetentionPolicyDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
@@ -36,6 +37,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import com.google.inject.Binder;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.Mock;
 import org.quartz.JobBuilder;
 import org.quartz.JobExecutionContext;
@@ -167,6 +169,7 @@ public class SuccessMetricsPurgerTest
 
   @Test
   @H2DiskTest(customSettings = "DATABASE_TO_UPPER=FALSE;LOCK_TIMEOUT=50;MV_STORE=FALSE")
+  @Category(SlowTest.class)
   public void testPurgeSuccessMetrics_RetryAfterLockTimeout() throws Exception {
     Organization org = tempEntity.newOrganization();
     dataRetentionPolicyDAO.insert(

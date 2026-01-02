@@ -27,7 +27,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class SbomComponentsResourceAuditTest extends AbstractAuditTest
 {
   private Application app;

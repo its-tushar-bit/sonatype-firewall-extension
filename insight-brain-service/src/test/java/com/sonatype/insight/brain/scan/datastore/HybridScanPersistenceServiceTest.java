@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -52,7 +51,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class HybridScanPersistenceServiceTest
     extends AbstractComponentTest

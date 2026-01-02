@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -23,11 +22,9 @@ import com.sonatype.insight.brain.security.AuthzContext.Key;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class ContextResolverTest
     extends AbstractDataTest
 {

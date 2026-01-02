@@ -172,6 +172,10 @@
           <value>true</value>
         </property>
       </activation>
+      <properties>
+        <!-- Enable Maven build cache on CI (overrides default which disables due to symlinks locally) -->
+        <maven.build.cache.skipCache>false</maven.build.cache.skipCache>
+      </properties>
       <build>
         <plugins>
           <plugin>

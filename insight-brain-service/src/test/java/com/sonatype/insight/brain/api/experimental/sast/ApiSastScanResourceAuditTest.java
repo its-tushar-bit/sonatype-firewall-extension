@@ -15,7 +15,10 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.api.experimental.sast.SastTestUtil.buildTestSastScanRequestDTO;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiSastScanResourceAuditTest
     extends AbstractAuditTest
 {

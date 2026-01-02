@@ -12,7 +12,10 @@ import com.sonatype.insight.brain.model.configuration.SystemNotice;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class SystemNoticeResourceAuditTest
     extends AbstractAuditTest
 {

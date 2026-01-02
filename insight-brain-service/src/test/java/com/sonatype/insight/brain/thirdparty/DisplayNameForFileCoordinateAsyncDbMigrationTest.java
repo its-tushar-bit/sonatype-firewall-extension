@@ -20,8 +20,11 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class DisplayNameForFileCoordinateAsyncDbMigrationTest
     extends AbstractComponentTest
 {

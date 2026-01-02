@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator;
@@ -56,12 +57,14 @@ public class ProprietaryComponentNamePatternMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_H2() throws Exception {
     populateH2Database("data_before");
     testMigrate();
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest(suppressMigrations = true)
   public void testMigrate_Postgres() throws Exception {
     populatePostgresDatabase("data_before");

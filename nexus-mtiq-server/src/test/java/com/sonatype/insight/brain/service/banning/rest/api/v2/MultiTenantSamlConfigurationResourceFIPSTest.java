@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service.banning.rest.api.v2;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.security.EncryptionKeyStore;
 import com.sonatype.insight.brain.security.FIPSConfig;
@@ -16,6 +17,9 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import static com.sonatype.insight.brain.security.FipsTestUtil.insertBouncyCastleFipsProvider;
 import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastleFipsProvider;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantSamlConfigurationResourceFIPSTest
     extends MultiTenantSamlConfigurationResourceTest
 {

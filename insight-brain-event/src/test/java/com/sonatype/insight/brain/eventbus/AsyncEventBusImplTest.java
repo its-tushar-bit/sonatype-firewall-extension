@@ -8,19 +8,16 @@ package com.sonatype.insight.brain.eventbus;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.eventbus.Subscribe;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class AsyncEventBusImplTest
 {
   private AsyncEventBusImpl underTest;

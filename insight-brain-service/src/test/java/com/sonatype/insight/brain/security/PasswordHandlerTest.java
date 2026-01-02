@@ -10,7 +10,6 @@ import javax.inject.Inject;
 import java.security.InvalidKeyException;
 import java.security.NoSuchProviderException;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
 
 import org.junit.Rule;
@@ -24,7 +23,6 @@ import static com.sonatype.insight.brain.security.FipsTestUtil.removeBouncyCastl
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class PasswordHandlerTest
     extends BrainInjectedTest
 {

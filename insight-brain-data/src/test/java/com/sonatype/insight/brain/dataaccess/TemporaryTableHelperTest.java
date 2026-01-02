@@ -4,11 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.DataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -20,10 +22,12 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @PostgresTest(suppressMigrations = true)
+@Category({PostgresTestCategory.class, SlowTest.class})
 public class TemporaryTableHelperTest
     extends AbstractDatabaseTest
 {

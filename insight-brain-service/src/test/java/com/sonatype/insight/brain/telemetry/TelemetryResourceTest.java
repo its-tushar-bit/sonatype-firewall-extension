@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.net.HttpCookie;
 import java.util.Arrays;
@@ -17,6 +19,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class TelemetryResourceTest
     extends AbstractResourceTest
 {

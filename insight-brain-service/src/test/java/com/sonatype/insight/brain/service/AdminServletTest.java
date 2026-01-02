@@ -36,7 +36,10 @@ import static org.awaitility.Awaitility.await;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class AdminServletTest
     extends AbstractBrainServiceIntegrationTest
 {

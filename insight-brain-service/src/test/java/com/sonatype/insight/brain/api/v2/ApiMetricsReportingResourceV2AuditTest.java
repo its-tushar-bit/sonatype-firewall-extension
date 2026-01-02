@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -25,6 +27,7 @@ import org.junit.Test;
 
 import static java.util.Arrays.asList;
 
+@Category(SlowTest.class)
 public class ApiMetricsReportingResourceV2AuditTest
     extends AbstractAuditTest
 {

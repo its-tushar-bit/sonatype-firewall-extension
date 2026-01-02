@@ -15,6 +15,7 @@ import java.util.List;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -104,6 +105,7 @@ public class QuartzJobStoreTXTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testInitialize_Postgres() throws Exception {
     quartzJobStoreTX.initialize();

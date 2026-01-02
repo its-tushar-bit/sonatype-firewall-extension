@@ -4,11 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.sbom.dashboard;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
 import java.util.List;
 
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -31,11 +33,13 @@ import com.google.inject.Inject;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class SbomDashboardServiceTest extends AbstractComponentTest
 {
   @Inject
@@ -54,6 +58,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities() {
     app = tempEntity.newApplicationWithParent(org);
@@ -244,6 +249,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities_Noapps() {
     List<RecentVulnerabilitiesDTO> listOfRecentVulnerabilitiesDTO = service.getRecentHighPriorityVulnerabilities();
@@ -251,6 +257,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomReleaseStatus() {
     app = tempEntity.newApplicationWithParent(org);
@@ -409,6 +416,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportSboms_Noapps() {
     List<RecentImportedSbomsDTO> listOfRecentVulnerabilitiesDTO = service.getRecentSbomsImported();
@@ -416,6 +424,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportSboms() {
     app = tempEntity.newApplicationWithParent(org);

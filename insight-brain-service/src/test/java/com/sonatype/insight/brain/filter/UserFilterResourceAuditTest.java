@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.filter;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -26,6 +28,7 @@ import static com.sonatype.insight.brain.dashboard.DashboardFilterService.ACTIVE
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static com.sonatype.insight.brain.model.security.User.ADMIN_USERNAME;
 
+@Category(SlowTest.class)
 public class UserFilterResourceAuditTest
     extends AbstractAuditTest
 {

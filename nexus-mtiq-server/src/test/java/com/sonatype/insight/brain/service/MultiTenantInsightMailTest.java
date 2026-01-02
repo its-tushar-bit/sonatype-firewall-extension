@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import javax.mail.Message;
 import javax.mail.Session;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -20,6 +21,9 @@ import org.jvnet.mock_javamail.Mailbox;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantInsightMailTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

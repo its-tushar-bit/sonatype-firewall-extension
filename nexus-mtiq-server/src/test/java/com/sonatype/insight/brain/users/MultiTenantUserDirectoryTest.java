@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.users;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.security.UserDirectory;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
@@ -14,6 +15,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantUserDirectoryTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {

@@ -46,6 +46,7 @@ public class LegacyDataStoreMigratorTest
       copyExistingDatabase = "DataStoreMigratorTest/" +
           "testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"
   )
+  @Category(SlowTest.class)
   public void testMigrate_VersionFileUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     File databaseVersionFile = new File(getDatabasePath(), "dm.ver");
     assertThat(databaseVersionFile).isFile();
@@ -64,6 +65,7 @@ public class LegacyDataStoreMigratorTest
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DataStoreMigratorTest/" +
       "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInTheDatabase")
+  @Category(SlowTest.class)
   public void testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInTheDatabase() throws Exception {
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
     // removed this table.
@@ -83,6 +85,7 @@ public class LegacyDataStoreMigratorTest
       copyExistingDatabase = "DataStoreMigratorTest/" +
           "testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile"
   )
+  @Category(SlowTest.class)
   public void testMigrate_CreatesDatabaseBackup_DatabaseVersionStoredInSeparateFile() throws Exception {
     // The migration should fail because schema_incremental_0007.sql drops the license_category table, but we already
     // removed this table.
@@ -102,6 +105,7 @@ public class LegacyDataStoreMigratorTest
       copyExistingDatabase = "DataStoreMigratorTest/" +
           "testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript"
   )
+  @Category(SlowTest.class)
   public void testMigrate_VersionUpdatedWhenMigrationFailsAfterAtLeastOneSuccessfulScript() throws Exception {
     // Note - this test is an H2 database named `test.h2.db` which contains a schema named this
     DatabaseConfig databaseConfig = getDatabaseConfig("test");
@@ -124,6 +128,7 @@ public class LegacyDataStoreMigratorTest
       suppressMigrations = true,
       copyExistingDatabase = "DataStoreMigratorTest/PostIncrementalMigrator"
   )
+  @Category(SlowTest.class)
   public void testMigrate_RunsPostIncrementalMigrators() throws Exception {
     DatabaseConfig databaseConfig = getDatabaseConfig("test");
     File databaseVersionFile = getDatabaseVersionFile(getDatabasePath(), "test");
@@ -141,6 +146,7 @@ public class LegacyDataStoreMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DataStoreMigratorTest/ZipBackupTest")
+  @Category(SlowTest.class)
   public void testMigrate_ZipBackups() throws Exception {
     File databaseDir = getDatabasePath();
 
@@ -162,6 +168,7 @@ public class LegacyDataStoreMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DataStoreMigratorTest/MissingVersion")
+  @Category(SlowTest.class)
   public void testMigrate_MissingVersion() throws Exception {
     File databaseDir = getDatabasePath();
     File databaseVersionFile = getDatabaseVersionFile(databaseDir, "test");
@@ -182,6 +189,7 @@ public class LegacyDataStoreMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringExecute() {
     assertThatThrownBy(() -> newDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runPostIncrementalMigrator("/DataStoreMigratorTest/"
@@ -195,6 +203,7 @@ public class LegacyDataStoreMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_OperationalDataStore_ThrowsExceptionDuringLoad() {
     assertThatThrownBy(() -> newDataStoreMigrator(databaseRule.getOperationalDataStore())
         .runPostIncrementalMigrator("/DataStoreMigratorTest/"
@@ -213,24 +222,28 @@ public class LegacyDataStoreMigratorTest
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_NewAggregationDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(databaseRule.getAggregationDataStore());
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_NewDatamartDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(databaseRule.getDataMartDataStore());
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_NewOperationalDataStoreDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(databaseRule.getOperationalDataStore());
   }
 
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testMigrate_NewThirdPartyScansDatabase_PopulatesVersion() throws Exception {
     testMigrate_NewDatabase_PopulatesVersion(databaseRule.getThirdPartyScansDataStore());
   }

@@ -9,6 +9,8 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.function.Function;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -22,6 +24,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class LdapConnectionDAOTest
     extends AbstractDbDAOTest
 {
@@ -107,6 +112,7 @@ public class LdapConnectionDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testRotateEncryptedSecrets() throws SQLException {
     LdapServer ldapServer2 = tempEntity.newLdapServer("testServer2");

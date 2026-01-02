@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.concurrent;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.git.VerifiableLoggingTestBase;
 
 import com.google.common.collect.ImmutableList;

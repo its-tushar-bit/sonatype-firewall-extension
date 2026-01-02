@@ -26,10 +26,13 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.27
  */
+@Category(SlowTest.class)
 public class SupportResourceTest
     extends AbstractResourceTest
 {

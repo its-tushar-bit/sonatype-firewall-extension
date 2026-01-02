@@ -5,11 +5,13 @@
  */
 package com.sonatype.insight.brain.db.datastore;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.test.LogOutput;
 
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 public class DefaultOperationalDataStoreTest
     extends AbstractDataStoreTest
@@ -25,6 +27,7 @@ public class DefaultOperationalDataStoreTest
   @Test
   @Override
   @H2DiskTest(suppressMigrations = true, copyExistingDatabase = "DefaultOperationalDataStoreTest/Migrate")
+  @Category(SlowTest.class)
   public void testInit_Migrate() {
     super.testInit_Migrate();
   }

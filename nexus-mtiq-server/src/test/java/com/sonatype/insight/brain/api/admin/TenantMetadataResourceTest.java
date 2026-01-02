@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.api.admin;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;
 import com.sonatype.insight.brain.model.security.TenantMetadata;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -19,6 +20,9 @@ import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_METADATA
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class TenantMetadataResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

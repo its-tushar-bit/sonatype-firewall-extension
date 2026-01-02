@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.callflow;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -43,6 +45,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POLICY_THREATS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class PolicyViolationReachabilityServiceTest
     extends AbstractComponentTest
 {

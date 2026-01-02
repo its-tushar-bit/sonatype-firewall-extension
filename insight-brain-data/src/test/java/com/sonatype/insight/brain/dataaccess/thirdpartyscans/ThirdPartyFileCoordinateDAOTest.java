@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -49,7 +50,10 @@ import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDe
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.UNSPECIFIED;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class ThirdPartyFileCoordinateDAOTest
     extends AbstractDbDAOTest
 {
@@ -302,6 +306,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByThirdPartyFileIdAndPackageUrl() {
     ThirdPartyFile tpFile = tempEntity.newThirdPartyFile();
@@ -322,6 +327,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_NoComponents() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -338,6 +344,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithoutVulnerabilitiesAndWithoutLicenses() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -374,6 +381,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithoutVulnerabilitiesAndWithLicenses() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -432,6 +440,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesAndLicenses() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -530,6 +539,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByVulnerabilities() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -591,6 +601,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByPercentage() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -696,6 +707,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByReleaseStatusPercentage() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -818,6 +830,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentsWithVulnerabilitiesSortingByType() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -862,6 +875,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_Pagination() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -906,6 +920,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_FilterByVulnerabilityThreatLevels() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -961,6 +976,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_FilterByDependencyTypes() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -1029,6 +1045,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -1129,6 +1146,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter_SpecialCharacters() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -1223,6 +1241,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameAndDependecyTypeFilters() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -1250,6 +1269,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_LicenseFilter() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -1358,6 +1378,7 @@ public class ThirdPartyFileCoordinateDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_SortByDisplayName() {
     ThirdPartySbomMetadata thirdPartySbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)

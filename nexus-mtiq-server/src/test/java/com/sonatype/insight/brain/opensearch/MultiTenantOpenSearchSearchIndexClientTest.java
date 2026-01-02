@@ -19,9 +19,11 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest
 import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.indices.CreateIndexRequest;
 import org.opensearch.client.opensearch.indices.GetIndexRequest;
@@ -37,6 +39,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
 @OpenSearchHttpTest
+@Category(SlowTest.class)
 public class MultiTenantOpenSearchSearchIndexClientTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

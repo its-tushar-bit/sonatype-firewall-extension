@@ -37,6 +37,7 @@ import com.sonatype.insight.brain.service.Configuration;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.jaxrs.JsonUtils;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.auth0.json.mgmt.users.User;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,6 +45,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_CONFIG_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SESSION_TIMEOUT_MINUTES;
@@ -51,6 +53,7 @@ import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsNewTenan
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class MtiqUserResourceTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {

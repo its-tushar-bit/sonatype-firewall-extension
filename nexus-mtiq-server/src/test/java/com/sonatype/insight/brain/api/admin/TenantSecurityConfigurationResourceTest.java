@@ -19,14 +19,17 @@ import com.sonatype.insight.brain.api.admin.authorization.AuthorizationTestHelpe
 import com.sonatype.insight.brain.api.admin.dto.SecurityConfigurationDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_SECURITY_CONFIG_PATH;
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.SAML_ENABLED;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class TenantSecurityConfigurationResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

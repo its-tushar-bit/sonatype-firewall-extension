@@ -9,6 +9,7 @@ import java.util.Date;
 import javax.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationListSummaryDTO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomApplicationSummaryDTO;
@@ -34,7 +35,10 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApplicationsServiceTest
     extends AbstractComponentTest
 {
@@ -71,6 +75,7 @@ public class ApplicationsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_NoSbom() {
     tempEntity.newApplicationWithParent();
@@ -84,6 +89,7 @@ public class ApplicationsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithResults() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -157,6 +163,7 @@ public class ApplicationsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithResults_ApplicationNameFilter() {
     Application application = tempEntity.newApplicationWithParent();
@@ -256,6 +263,7 @@ public class ApplicationsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
     Application application = tempEntity.newApplicationWithParent();

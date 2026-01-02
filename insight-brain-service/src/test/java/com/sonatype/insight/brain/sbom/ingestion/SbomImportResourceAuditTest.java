@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
@@ -23,7 +24,9 @@ import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class SbomImportResourceAuditTest
     extends AbstractAuditTest
 {

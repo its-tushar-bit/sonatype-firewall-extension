@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.sonatype.insight.brain.AbstractDataTest;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
@@ -22,6 +23,7 @@ import com.sonatype.insight.db.DatabaseConfig;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -48,6 +50,7 @@ public class ResetAdminCommandTest
 
   @Test
   @H2DiskTest
+  @Category(SlowTest.class)
   public void testRun_AdminDoesNotExist() {
     userDAO.delete(getAdmin());
 
@@ -58,6 +61,7 @@ public class ResetAdminCommandTest
 
   @Test
   @H2DiskTest
+  @Category(SlowTest.class)
   public void testRun_AdminExists() {
     User admin = getAdmin();
     admin.setPassword("password");

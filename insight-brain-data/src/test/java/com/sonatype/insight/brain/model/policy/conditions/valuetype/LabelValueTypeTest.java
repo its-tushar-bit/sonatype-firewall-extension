@@ -8,7 +8,6 @@ package com.sonatype.insight.brain.model.policy.conditions.valuetype;
 import java.util.List;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.label.LabelDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -16,11 +15,9 @@ import com.sonatype.insight.brain.model.label.Label;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class LabelValueTypeTest
     extends AbstractDataTest
 {

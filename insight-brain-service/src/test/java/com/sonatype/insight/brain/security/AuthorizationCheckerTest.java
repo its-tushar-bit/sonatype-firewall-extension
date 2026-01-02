@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.sonatype.insight.brain.AbstractDataTest;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.security.MembershipMappingDAO;
 import com.sonatype.insight.brain.dataaccess.security.RoleDAO;
 import com.sonatype.insight.brain.dataaccess.security.RolePermissionDAO;
@@ -30,11 +29,9 @@ import com.sonatype.insight.brain.security.AuthzFilter.Context;
 import com.google.common.collect.Sets;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class AuthorizationCheckerTest
     extends AbstractDataTest
 {

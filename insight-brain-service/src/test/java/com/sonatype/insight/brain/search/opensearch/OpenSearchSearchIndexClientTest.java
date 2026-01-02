@@ -27,10 +27,12 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch.cat.IndicesResponse;
 import org.opensearch.client.opensearch.cat.indices.IndicesRecord;
@@ -53,6 +55,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @OpenSearchHttpTest
+@Category(SlowTest.class)
 public class OpenSearchSearchIndexClientTest
     extends AbstractBrainServiceIntegrationTest
 {

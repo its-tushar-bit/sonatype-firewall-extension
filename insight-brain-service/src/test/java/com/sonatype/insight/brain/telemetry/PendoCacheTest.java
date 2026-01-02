@@ -35,7 +35,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-@Category(SlowTest.class)
 public class PendoCacheTest
     extends AbstractComponentTest
 {
@@ -134,6 +133,7 @@ public class PendoCacheTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetJs_MultiTenant_Expiration() throws Exception {
     PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
 
@@ -225,6 +225,7 @@ public class PendoCacheTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetCustomerTelemetryProperties_MultiTenant_Expiration() throws Exception {
     PendoCache pendoCache = new PendoCache(objectMapper, mockHdsClient, Duration.ofSeconds(2));
 

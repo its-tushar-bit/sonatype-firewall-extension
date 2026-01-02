@@ -67,6 +67,7 @@ import com.sonatype.insight.brain.webhook.TestEventHandler;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.test.LogOutput;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.google.inject.Binder;
 import org.apache.commons.io.FileUtils;
@@ -74,6 +75,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.Mockito;
 
@@ -90,6 +92,7 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class PolicyMonitorTest
     extends AbstractBrainServiceIntegrationTest
 {

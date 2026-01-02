@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.experimental;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Collections;
 import java.util.Set;
@@ -17,6 +19,7 @@ import org.apache.shiro.authz.UnauthorizedException;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class ApiSourceControlEventServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

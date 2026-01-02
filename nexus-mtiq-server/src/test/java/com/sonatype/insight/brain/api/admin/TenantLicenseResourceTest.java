@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.api.admin;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 
 import org.junit.Test;
@@ -14,6 +15,9 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.api.AdminApiPaths.ADMIN_TENANT_LICENSE_PATH;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class TenantLicenseResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

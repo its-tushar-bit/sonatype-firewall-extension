@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.git;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Fail.fail;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class PullRequestPollingSchedulerTest
     extends AbstractMultiTenantDatabaseTest
 {

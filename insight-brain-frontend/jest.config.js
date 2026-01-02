@@ -9,6 +9,10 @@ process.env.TZ = 'America/New_York';
 
 module.exports = {
   roots: ['<rootDir>/src/main/frontend', '<rootDir>/src/test/frontend'],
+  // Auto-detect CPU cores (defaults to cores - 1)
+  // maxWorkers: 2, // Old conservative setting for CI
+  maxWorkers: '87.5%', // 14 workers on 16-core (freed cores from reduced Postgres test parallelization)
+  workerIdleMemoryLimit: '1024MB', // Increased memory per worker for better performance
   transformIgnorePatterns: [
     '/node_modules/(?!(pretty-bytes|@react-hook|@sonatype|@nivo|d3-color|d3-interpolate|d3-scale-chromatic|lodash-es|swagger-ui-react|swagger-client|react-syntax-highlighter)/)',
   ],
@@ -45,4 +49,9 @@ module.exports = {
       },
     ],
   ],
+  // Performance optimizations
+  testTimeout: 30000, // 30s timeout per test (default is 5s)
+  maxConcurrency: 5, // Limit concurrent tests per worker
+  cache: true, // Explicitly enable caching
+  cacheDirectory: '<rootDir>/target/.jest-cache', // Use target dir for cache
 };

@@ -5,6 +5,8 @@
  */
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,6 +29,7 @@ import static com.sonatype.insight.brain.developer.integrationdashboard.Integrat
 import static com.sonatype.insight.brain.developer.integrationdashboard.IntegrationResource.FIVE_YEARS_IN_MS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class IntegrationResourceTest
     extends AbstractAuditTest
 {

@@ -19,7 +19,6 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -57,7 +56,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class HybridSbomPersistenceServiceTest
     extends AbstractComponentTest

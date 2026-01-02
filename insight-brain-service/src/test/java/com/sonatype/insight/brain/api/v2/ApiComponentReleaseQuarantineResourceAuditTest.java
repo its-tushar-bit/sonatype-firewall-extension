@@ -15,6 +15,7 @@ import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditDTO;
 import com.sonatype.insight.brain.audit.AuditEvent;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.model.component.MatchState;
@@ -30,7 +31,9 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import org.awaitility.core.ConditionTimeoutException;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ApiComponentReleaseQuarantineResourceAuditTest
     extends AbstractAuditTest
 {

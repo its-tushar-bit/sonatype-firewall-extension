@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -20,6 +22,7 @@ import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class ApiDataRetentionPolicyResourceAuditTest
     extends AbstractAuditTest
 {

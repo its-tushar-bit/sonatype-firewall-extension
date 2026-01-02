@@ -39,6 +39,7 @@ import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.clm.dto.model.signature.VulnerabilitySignatureAnalysisDTO;
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.TestProductLicenseManager;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -116,6 +117,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.jvnet.mock_javamail.Mailbox;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -144,6 +146,7 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+
 
 public class PolicyEvaluateServiceTest
     extends AbstractComponentTest
@@ -290,6 +293,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluate() throws Exception {
     setBaseUrl("http://localhost");
     createJiraConfiguration(null);
@@ -346,6 +350,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluate_PolicyThreatLevelCounts() throws Exception {
     Policy policy = tempEntity.newPolicy(app, 1, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -442,6 +447,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluate_NotificationEmailModel() throws Exception {
     tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "5"));
@@ -497,6 +503,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluate_ReEvaluateNotifications() throws Exception {
     Policy policy = tempEntity.newPolicy(app, 8, LogicalOperator.AND,
         new Condition(SecurityVulnerabilitySeverityConditionType.ID, ">=", "0"));
@@ -540,17 +547,20 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_CI() throws Exception {
     testEvaluateWithPolling(LicensedFeature.CI_INTEGRATION, IntegrationType.CI,
         ScanTriggerType.CONTINUOUS_INTEGRATION);
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_CLI() throws Exception {
     testEvaluateWithPolling(LicensedFeature.CLI_INTEGRATION, IntegrationType.CLI, ScanTriggerType.CLI);
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_RepoManager() throws Exception {
     testEvaluateWithPolling(LicensedFeature.RM_STAGING_INTEGRATION, IntegrationType.RM,
         ScanTriggerType.REPOSITORY_MANAGER);
@@ -626,6 +636,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_sendThirdPartyScanUsageTelemetry() throws Exception {
     Stage stage = new Stage(Stage.ID_BUILD);
 
@@ -893,6 +904,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_PollEvaluationResult_Success() throws Exception {
     String scanId = simulateReportIsAvailable();
     tempEntity.newPolicyEvaluation(app.getId(), Stage.ID_BUILD, scanId);
@@ -959,6 +971,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_AppPublicIdCaseInsensitive() throws Exception {
     Application app = tempEntity.newApplicationWithParent("THE-public-ID");
     ScanReceipt scanReceipt = new ScanReceipt();
@@ -1165,6 +1178,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_WithReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 
@@ -1217,6 +1231,7 @@ public class PolicyEvaluateServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testEvaluateWithPolling_WithoutReachableVulnerability_And_CompletedComponentAnalysis() throws Exception {
     PolicyEvaluationReceipt componentAnalyzeEvaluationReceipt = analyzeComponentsWithPolling();
 

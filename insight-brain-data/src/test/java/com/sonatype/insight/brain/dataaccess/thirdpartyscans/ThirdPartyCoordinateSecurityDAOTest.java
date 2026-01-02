@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.thirdpartyscans;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -19,6 +20,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -37,6 +39,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentMatchers;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
@@ -45,6 +48,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.spy;
 
+@Category(SlowTest.class)
 public class ThirdPartyCoordinateSecurityDAOTest
     extends AbstractDbDAOTest
 {
@@ -220,6 +224,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetVulnerabilitiesByThreatLevel_NoResults() {
     VulnerabilitiesThreadLevelMetricDTO result =
@@ -248,6 +253,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetVulnerabilitiesByThreatLevel_WithResults() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -364,6 +370,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetVulnerabilitiesByThreatLevel_WithoutFilteringByApplications() {
     ThirdPartySbomMetadata sbomMetadata = SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -418,6 +425,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetVulnerabilitiesByThreatLevel_OnlyActiveSboms() {
     CvssV3Severity severity = CvssV3Severity.LOW;
@@ -487,6 +495,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities_NoResults() {
     List<RecentVulnerabilitiesDTO> result =
@@ -496,6 +505,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities() {
     Application app = application;
@@ -673,6 +683,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities_Duplicates() {
     Application app1 = tempEntity.newApplicationWithParent();
@@ -727,6 +738,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetReleaseStatus() {
     Application app = application;
@@ -895,6 +907,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportedSboms() {
     insertSbomMetadata();
@@ -916,6 +929,7 @@ public class ThirdPartyCoordinateSecurityDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportedSboms_TestSbomsWithoutComponents() {
     insertSbomMetadata();

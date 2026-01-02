@@ -303,11 +303,11 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <reuseForks>true</reuseForks>
-          <!-- 0.5C means 0.5 x number-of-CPUs:
-                8 CPUs -> 4 forks
-               16 CPUs -> 8 forks
+          <!-- 0.25C means 0.25 x number-of-CPUs:
+                8 CPUs -> 2 forks
+               16 CPUs -> 4 forks
            -->
-          <forkCount>0.5C</forkCount>
+          <forkCount>0.25C</forkCount>
         </configuration>
       </plugin>
       <plugin>

@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
@@ -45,7 +44,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.spy;
 
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3ScanPersistenceServiceTest
     extends AbstractScanPersistenceServiceTest

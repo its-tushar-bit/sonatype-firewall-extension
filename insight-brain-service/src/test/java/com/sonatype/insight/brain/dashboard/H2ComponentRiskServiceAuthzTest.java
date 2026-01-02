@@ -4,12 +4,16 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dashboard;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 
+import org.junit.experimental.categories.Category;
+
 @H2InMemoryTest
+@Category(SlowTest.class)
 public class H2ComponentRiskServiceAuthzTest
     extends AbstractComponentRiskServiceAuthzTest
 {

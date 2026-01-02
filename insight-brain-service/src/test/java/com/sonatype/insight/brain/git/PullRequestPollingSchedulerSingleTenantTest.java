@@ -54,6 +54,8 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * This class exists simply because PullRequestPollingSchedulerTest is a subclass of AbstractMultiTenantDatabaseTest
@@ -63,6 +65,7 @@ import static org.mockito.Mockito.when;
  * TemporaryEntity are in this separate test class
  */
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class PullRequestPollingSchedulerSingleTenantTest
     extends AbstractBrainServiceIntegrationTest
 {

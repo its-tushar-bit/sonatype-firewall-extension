@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.container.images;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import javax.inject.Inject;
 
@@ -28,7 +29,9 @@ import com.sonatype.insight.error.exception.BadRequestException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ContainerImageReportServiceTest
     extends AbstractComponentTest
 {

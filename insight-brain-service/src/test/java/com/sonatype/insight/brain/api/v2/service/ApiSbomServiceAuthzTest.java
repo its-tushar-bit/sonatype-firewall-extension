@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -23,9 +25,11 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Category(SlowTest.class)
 public class ApiSbomServiceAuthzTest
     extends AbstractServiceAuthzTest
 {
@@ -99,7 +103,7 @@ public class ApiSbomServiceAuthzTest
         SbomVersionsApplicationSortableField.IMPORT_DATE, true);
   }
 
-  @Test
+  @Test@Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomMetadataSummaryForApplication_Authorized() {
     Application application = tempEntity.newApplicationWithParent();
@@ -146,6 +150,7 @@ public class ApiSbomServiceAuthzTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_Authorized() {
     Application application = tempEntity.newApplicationWithParent();

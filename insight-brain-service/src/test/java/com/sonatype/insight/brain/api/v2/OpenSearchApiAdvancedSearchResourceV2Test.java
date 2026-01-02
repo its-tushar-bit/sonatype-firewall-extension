@@ -9,6 +9,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
@@ -26,6 +27,9 @@ import org.opensearch.testcontainers.OpensearchContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class OpenSearchApiAdvancedSearchResourceV2Test
     extends AbstractApiAdvancedSearchResourceV2Test
 {

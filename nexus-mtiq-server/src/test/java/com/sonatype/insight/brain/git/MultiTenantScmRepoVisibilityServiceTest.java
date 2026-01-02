@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.git;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
@@ -31,6 +32,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantScmRepoVisibilityServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

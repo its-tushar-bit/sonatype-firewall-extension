@@ -5,6 +5,8 @@
  */
 
 package com.sonatype.insight.brain.development.prioritization;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 
@@ -24,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class DevelopmentPrioritiesReportServiceTest
     extends AbstractComponentTest
 {

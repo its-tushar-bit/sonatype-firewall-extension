@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.logging;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -30,12 +32,15 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+import org.junit.experimental.categories.Category;
+
 /*
  * WARNING:
  * These tests run with an MTIQ test server that is not dedicated to these tests.
- * This means the audit logs may contain stuff logged by previous tests, 
+ * This means the audit logs may contain stuff logged by previous tests,
  * so don't expect the audit logs to contain only the lines logged from the tests in this class.
  */
+@Category(SlowTest.class)
 public class MultiTenantAuditLogAppenderFactoryTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {

@@ -10,12 +10,9 @@ import java.util.Collection;
 
 import org.junit.Rule;
 import org.junit.contrib.java.lang.system.EnvironmentVariables;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
-
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import static com.sonatype.insight.brain.security.AuthorizationMembershipQueryStrategy.AUTHORIZATION_CHECKER_MEMBERSHIP_QUERY_STRATEGY_ENV;
 import static com.sonatype.insight.brain.security.AuthorizationPermissionEntityFilterStrategy.AUTHORIZATION_PERMISSION_ENTITY_FILTER_STRATEGY_ENV;
@@ -31,7 +28,6 @@ import static com.sonatype.insight.brain.security.AuthorizationPermissionEntityF
  * <p>
  * This ensures that authorization logic works correctly across all strategy combinations.
  */
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class AuthorizationCheckerStrategyTest
     extends AuthorizationCheckerTest

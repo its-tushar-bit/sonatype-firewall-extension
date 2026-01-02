@@ -15,6 +15,7 @@ import javax.ws.rs.core.Response.Status;
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.v2.dto.SbomsAnalyzedMetricsDTO;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -46,7 +47,10 @@ import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SB
 import static com.sonatype.insight.brain.sbom.dashboard.SbomDashboardResource.SBOM_RELEASE_STATUS;
 import static com.sonatype.insight.brain.utils.SbomMetadataBuilder.newSbomMetadataBuilder;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class SbomDashboardResourceTest extends AbstractResourceTest
 {
   private Application app;
@@ -66,6 +70,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentHighPriorityVulnerabilities() throws Exception {
     ThirdPartyScan thirdPartyScan1 = tempEntity.newThirdPartyScan();
@@ -262,6 +267,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomReleaseStatus() throws Exception {
     ThirdPartyScan thirdPartyScan1 = tempEntity.newThirdPartyScan();
@@ -424,6 +430,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportSboms() throws Exception {
     insertSbomDataAndComponentVulnerabilities();
@@ -444,6 +451,7 @@ public class SbomDashboardResourceTest extends AbstractResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRecentImportSboms_TestSbomsWithoutComponents() throws Exception {
     insertSbomDataAndComponentVulnerabilities();

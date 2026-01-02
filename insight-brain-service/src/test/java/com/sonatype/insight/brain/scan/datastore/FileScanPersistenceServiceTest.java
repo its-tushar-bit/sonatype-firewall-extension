@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.FileSystems;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.InsightWork;
 
 import org.junit.Before;
@@ -23,7 +22,6 @@ import static com.sonatype.insight.brain.scan.datastore.ScanPersistenceServiceTe
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 public class FileScanPersistenceServiceTest
     extends AbstractScanPersistenceServiceTest
 {

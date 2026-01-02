@@ -36,6 +36,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiSbomVulnerabilityAnalysisRequest
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;
 import com.sonatype.insight.brain.api.v2.dto.SecurityVulnerabilityDataDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSbomService;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomComponentSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.SbomVersionsApplicationSortableField;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyCoordinateSecurityDAO;
@@ -67,6 +68,7 @@ import com.sonatype.insight.brain.utils.SbomMetadataBuilder;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.file.SbomFormat;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,6 +77,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType.DIRECT;
@@ -90,6 +93,7 @@ import static net.javacrumbs.jsonunit.assertj.JsonAssertions.assertThatJson;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
+@Category(SlowTest.class)
 public class ApiSbomResourceTest
     extends AbstractResourceTest
 {
@@ -228,6 +232,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomMetadataSummaryForApplication_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -315,6 +320,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_Successful() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -372,6 +378,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_SuccessfulWithDefaultValues() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -477,6 +484,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_VersionNotExists() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -495,6 +503,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_EmptyResults() throws Exception {
     Application app = tempEntity.newApplicationWithParent();
@@ -540,6 +549,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_ComponentNameFilter() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
@@ -593,6 +603,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponentsByThirdPartyFileId_LicenseNameFilter() throws Exception {
     Application application = tempEntity.newApplicationWithParent();
@@ -661,6 +672,7 @@ public class ApiSbomResourceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomComponents_withLicenseOverrides() throws Exception {
     Application application = tempEntity.newApplicationWithParent();

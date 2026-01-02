@@ -3,13 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.hds;
+package com.sonatype.insight.brain.common.test;
 
-/**
- * @deprecated The tested class is deprecated
- */
-@Deprecated
-public class DeprecatedCIResourceProxyTest
-    extends DeprecatedCIResourceTest
+public interface PostgresTestCategory
 {
 }

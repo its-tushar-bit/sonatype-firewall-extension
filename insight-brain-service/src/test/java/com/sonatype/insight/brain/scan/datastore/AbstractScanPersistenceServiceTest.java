@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
+
 public abstract class AbstractScanPersistenceServiceTest
     extends AbstractComponentTest
 {
@@ -256,6 +256,7 @@ public abstract class AbstractScanPersistenceServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testScanEntity_getLastModifiedTime() throws Exception {
     helper.saveMockScan();
     long startTime = System.currentTimeMillis();

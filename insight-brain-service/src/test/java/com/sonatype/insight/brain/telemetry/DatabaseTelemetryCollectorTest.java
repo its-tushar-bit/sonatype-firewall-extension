@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.Map;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
@@ -17,7 +18,10 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class DatabaseTelemetryCollectorTest
     extends AbstractComponentTest
 {
@@ -48,6 +52,7 @@ public class DatabaseTelemetryCollectorTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testCollectData_OdsSizeBytes_ExternalDatabase() {
     Map<String, Object> attributes = telemetryCollector.collectData().getAttributes();

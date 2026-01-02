@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.JPA;
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
@@ -48,6 +50,7 @@ import com.sonatype.insight.scan.file.SbomFormat;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.dataaccess.TemporaryEntity.uuid;
 import static com.sonatype.insight.brain.db.IdUtil.newUUID;
@@ -84,11 +87,13 @@ public class ThirdPartySbomMetadataDAOTest
 
   @Test
   @H2InMemoryTest
+  @Category(SlowTest.class)
   public void testCRUD_H2() {
     testCRUD();
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testCRUD_Postgres() {
     testCRUD();
@@ -230,6 +235,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testDeleteByThirdPartyFileId_Postgres() {
     testDeleteByThirdPartyFileId();
@@ -435,6 +441,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithResults() {
 
@@ -531,6 +538,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithResults_SortByReleaseStatusPercentage() {
     Application application1 = tempEntity.newApplicationWithParent();
@@ -655,6 +663,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetApplications_WithLatestSBOMMetadataInPendingStatus() {
     SbomMetadataBuilder.newSbomMetadataBuilder(daoFactory)
@@ -957,6 +966,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomApplicationVulnerabilities_SortyByField() {
     Organization organization1 = tempEntity.newOrganization("org1");
@@ -1064,6 +1074,7 @@ public class ThirdPartySbomMetadataDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomApplicationVulnerabilities_nullIsValid() {
     Organization organization1 = tempEntity.newOrganization("org1");

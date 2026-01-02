@@ -777,7 +777,6 @@ public class CopyStorageServiceTest
   }
 
   @Test
-  @Category(SlowTest.class)
   @Ignore // Only for on-demand running
   // Tune down noisy logging by modifying src/test/resources/logback-test.xml
   // e.g.

@@ -28,14 +28,17 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.7
  */
+@Category(SlowTest.class)
 public class LdapRealmTest
     extends BrainInjectedTest
 {

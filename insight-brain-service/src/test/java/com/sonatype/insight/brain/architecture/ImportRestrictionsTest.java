@@ -5,12 +5,15 @@
  */
 package com.sonatype.insight.brain.architecture;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
 import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
+@Category(SlowTest.class)
 public class ImportRestrictionsTest
 {
   @Test

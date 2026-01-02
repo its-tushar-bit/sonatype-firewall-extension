@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration.ldap;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * 
  * @since 1.7
  */
+@Category(SlowTest.class)
 public class LdapUserAndGroupMappingTest
     extends BrainInjectedTest
 {

@@ -7,12 +7,14 @@ package com.sonatype.insight.brain.db;
 
 import javax.sql.DataSource;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -80,6 +82,7 @@ public class MultiTenantDataSourceFactoryTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   public void testUseCustomPopulator() {
     MultiTenantDataSourceFactory factory = new TestMultiTenantDataSourceFactory();
     assertThat(factory.createDatabaseSchemaPopulator(testMainDataSource, PostgresDatabaseEngine.INSTANCE, dataStoreId,

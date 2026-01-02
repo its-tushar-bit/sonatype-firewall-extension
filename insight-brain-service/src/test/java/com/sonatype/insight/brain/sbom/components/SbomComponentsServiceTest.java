@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.sbom.components;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.util.Collections;
 import java.util.Date;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyDependencyType;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -38,6 +40,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType.CPE_MATCH;
@@ -50,6 +53,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.junit.Assert.assertThrows;
 
+@Category(SlowTest.class)
 public class SbomComponentsServiceTest
     extends AbstractComponentTest
 {
@@ -473,6 +477,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetSbomMetadataSuccessful() {
     Application application = tempEntity.newApplicationWithParent();
@@ -509,6 +514,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetBomPageMetadata_DisplayName_NotMigrated() {
     migrationTrackerDAO.deleteById(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName());
@@ -529,6 +535,7 @@ public class SbomComponentsServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetBomPageMetadata_DisplayName_Migrated() {
     assertThat(migrationTrackerDAO.isTrackerPresent(DisplayNameForFileCoordinateAsyncDbMigration.class.getSimpleName()))

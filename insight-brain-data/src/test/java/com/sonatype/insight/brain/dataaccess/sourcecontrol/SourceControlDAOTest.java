@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.sql.SQLException;
 import java.time.LocalDateTime;
@@ -20,6 +21,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.DAOSecretRotator;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
@@ -37,6 +39,7 @@ import com.sonatype.nexus.scm.SourceControlProvider;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -53,6 +56,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class SourceControlDAOTest
     extends AbstractDbDAOTest
 {
@@ -1487,6 +1491,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationId_noMatchingApp_postgres() {
     // given: a root organization source control
@@ -1512,6 +1517,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationId_inheritFromRoot_postgres() {
     // given: a hierarchy with all attributes inheriting from the root org
@@ -1573,6 +1579,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationId_CommitStatusEnabled_AllNull_postgres() {
     // given: a hierarchy with commit status enabled set to null
@@ -1615,6 +1622,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationId_inheritFromIntermediateOrg_postgres() {
     // given: a hierarchy with multiple nested organizations
@@ -1682,6 +1690,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationId_inheritFromOrg_postgres() {
     // given: a hierarchy with everything inheriting from parent org
@@ -1743,6 +1752,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testBuildCompositeSourceControlForApplicationid_overrideAll_postgres() {
     // given: a hierarchy with everything overridden in the app source control
@@ -2087,6 +2097,7 @@ public class SourceControlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testRotateEncryptedSecrets() throws SQLException {
     tempEntity.newSourceControl(Organization.ROOT_ORGANIZATION_ID, null, null, SourceControlProvider.GITHUB);

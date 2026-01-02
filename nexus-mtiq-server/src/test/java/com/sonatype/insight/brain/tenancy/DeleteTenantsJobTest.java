@@ -29,11 +29,13 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.InsightJob;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.JobKey;
@@ -52,6 +54,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class DeleteTenantsJobTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

@@ -5,6 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.security.CipherFactory;
@@ -30,6 +31,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 @RunWith(MockitoJUnitRunner.class)
 public class MultiTenantWebhookServiceFIPSTest
     extends MultiTenantWebhookServiceTest

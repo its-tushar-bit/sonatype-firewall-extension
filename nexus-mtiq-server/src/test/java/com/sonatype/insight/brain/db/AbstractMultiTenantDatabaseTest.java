@@ -12,7 +12,6 @@ import javax.inject.Provider;
 
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.api.admin.service.TenantService;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.DAOFactory;
 import com.sonatype.insight.brain.dataaccess.TestDAOFactory;
 import com.sonatype.insight.brain.dataaccess.tenancy.DeletedTenantDAO;
@@ -28,10 +27,8 @@ import com.sonatype.insight.brain.testing.AbstractMultiTenantTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.experimental.categories.Category;
 import org.mockito.Mockito;
 
-@Category(SlowTest.class)
 public abstract class AbstractMultiTenantDatabaseTest
     extends AbstractMultiTenantTest
 {

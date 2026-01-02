@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dashboard.ApplicationRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardComponentRiskService;
 import com.sonatype.insight.brain.dashboard.DashboardViolationRiskService;
@@ -28,6 +29,9 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantInsightBrainServiceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

@@ -17,12 +17,14 @@ import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationReso
 import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.auth0.json.mgmt.users.User;
 import org.apache.shiro.session.mgt.eis.SessionDAO;
 import org.apache.shiro.web.session.mgt.DefaultWebSessionManager;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -31,6 +33,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class MultiTenantUserServiceTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {

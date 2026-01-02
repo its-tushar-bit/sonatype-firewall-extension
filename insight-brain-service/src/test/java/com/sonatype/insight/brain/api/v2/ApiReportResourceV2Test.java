@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.HttpRequest;
@@ -26,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @since 1.94.0
  */
+@Category(SlowTest.class)
 public class ApiReportResourceV2Test
     extends AbstractResourceTest
 {

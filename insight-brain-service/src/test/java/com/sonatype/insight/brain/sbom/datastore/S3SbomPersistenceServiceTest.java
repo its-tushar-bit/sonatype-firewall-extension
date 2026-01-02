@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.inject.Inject;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
@@ -47,7 +46,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Category(SlowTest.class)
 @RunWith(Parameterized.class)
 public class S3SbomPersistenceServiceTest
     extends AbstractComponentTest

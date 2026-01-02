@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.service;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 
@@ -22,6 +24,7 @@ import org.junit.Test;
 
 import static org.mockito.Mockito.mock;
 
+@Category(SlowTest.class)
 public class ApplicationLifecycleAuditTest
     extends AbstractComponentAuditTest
 {

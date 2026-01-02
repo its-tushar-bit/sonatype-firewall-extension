@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess.policy;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -18,6 +19,7 @@ import java.util.Set;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryResultsDetails;
@@ -38,11 +40,13 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+@Category(SlowTest.class)
 public class RepositoryPolicyViolationDAOTest
     extends AbstractDbDAOTest
 {
@@ -189,6 +193,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testDeleteByRepositoryId_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();
@@ -214,6 +219,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRepositoryResultsDetailsNotAggregate_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();
@@ -266,6 +272,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRepositoryResultsDetailsAggregate_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();
@@ -316,6 +323,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRepositoryResultsDetails_FilterQuarantineTime_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();
@@ -387,6 +395,7 @@ public class RepositoryPolicyViolationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetRepositoryResultsDetails_FilterThreatLevel_Postgres() {
     assertThat(dao.isDatabaseEmbedded()).isFalse();

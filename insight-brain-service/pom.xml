@@ -761,13 +761,9 @@
           </includes>
           <trimStackTrace>false</trimStackTrace>
           <reuseForks>true</reuseForks>
-          <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
-          <!-- 0.5C means 0.5 x number-of-CPUs:
-                8 CPUs -> 4 forks
-               16 CPUs -> 8 forks
-           -->
-          <forkCount>0.5C</forkCount>
-          <argLine>@{argLine} -Xmx1536m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
+          <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
+          <forkCount>0.75C</forkCount>
+          <argLine>@{argLine} -Xmx2000m -javaagent:${settings.localRepository}/net/bytebuddy/byte-buddy-agent/${byte-buddy.version}/byte-buddy-agent-${byte-buddy.version}.jar</argLine>
           <systemPropertyVariables>
             <!-- Used by the test IQ server to set the work directory (to not use the same work dir across all forks). -->
             <test.forkId>#${surefire.forkNumber}</test.forkId>

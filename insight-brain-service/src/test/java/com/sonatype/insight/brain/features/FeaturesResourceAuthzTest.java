@@ -4,11 +4,14 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.features;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class FeaturesResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

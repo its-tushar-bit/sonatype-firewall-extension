@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.product.notifications;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.UUID;
 
@@ -12,6 +14,7 @@ import com.sonatype.insight.brain.service.AbstractResourceAuthzTest;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class ProductNotificationResourceAuthzTest
     extends AbstractResourceAuthzTest
 {

@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -117,12 +118,12 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.sonatype.insight.scan.model.ClientScanType;
 import com.sonatype.nexus.scm.SourceControlProvider;
-
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.PENDING;
@@ -1484,6 +1485,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIdsByAncestorIds_Limit_Postgres() {
     testGetIdsByAncestorIds_Limit();
@@ -1540,6 +1542,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByAncestorIds_Paged_Postgres() {
     testGetByAncestorIds_Paged();
@@ -1582,6 +1585,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByAncestorIds_Hierarchy_Postgres() {
     testGetByAncestorIds_Hierarchy();
@@ -1652,6 +1656,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByAncestorIds_Limit_Postgres() {
     testGetByAncestorIds_Limit();
@@ -1760,6 +1765,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDashboardApplicationRisk_Filters() {
     Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
@@ -1789,6 +1795,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDashboardApplicationRisk_Pages() {
     Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
@@ -1835,6 +1842,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDashboardApplicationRisk_EmptyResultWhenNoMatchWithFilter() {
     Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
@@ -1852,6 +1860,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDashboardApplicationRisk_EmptyResultWhenThereIsNoAppId() {
     Policy app1Policy = tempEntity.newPolicy(application.getId(), "app owned policy", 5);
@@ -1869,6 +1878,7 @@ public class ApplicationDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetDashboardApplicationRisk_SortCaseInsensitive() {
     Policy app1Policy = tempEntity.newPolicy(application.getId(), "app1", 5);

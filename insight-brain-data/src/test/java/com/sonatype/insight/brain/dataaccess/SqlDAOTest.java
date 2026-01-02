@@ -4,9 +4,11 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.dataaccess;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.license.LicenseDAO;
 import com.sonatype.insight.brain.dataaccess.successmetrics.SuccessMetricsReportDAO;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartyFileDAO;
@@ -17,13 +19,16 @@ import com.sonatype.insight.brain.model.successmetrics.SuccessMetricsReport;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class SqlDAOTest
     extends AbstractDbDAOTest
 {
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSqlDAOsAreStateless_ODSDatabase() {
     OrganizationDAO beforeDAO = daoFactory.createOrganizationDAO();
@@ -34,6 +39,7 @@ public class SqlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSqlDAOsAreStateless_DatamartDatabase() {
     LicenseDAO beforeDAO = daoFactory.createLicenseDAO();
@@ -49,6 +55,7 @@ public class SqlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSqlDAOsAreStateless_AggregationDatabase() {
     SuccessMetricsReportDAO beforeDAO = daoFactory.createSuccessMetricsReportDAO();
@@ -63,6 +70,7 @@ public class SqlDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSqlDAOsAreStateless_ThirdPartScansDatabase() {
     ThirdPartyFileDAO beforeDAO = daoFactory.createThirdPartyFileDAO();

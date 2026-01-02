@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,6 +95,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  *   </li>
  * </ul>
  */
+@Category(SlowTest.class)
 public class CanonicalSchemaValidationTest
     extends AbstractMultiTenantDatabaseTest
 {

@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.integration.repository;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.clm.dto.model.repository.migration.MigrationDetails;
 import com.sonatype.clm.dto.model.repository.migration.MigrationState;
@@ -19,6 +21,7 @@ import org.junit.Test;
 import static com.sonatype.insight.brain.integration.repository.FirewallMigrationService.PROTOCOL_V1;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class FirewallMigrationResourceTest
     extends AbstractResourceTest
 {

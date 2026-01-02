@@ -8,6 +8,8 @@ package com.sonatype.insight.brain.api.v2;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Stream;
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
@@ -17,6 +19,7 @@ import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.when;
 /**
  * Test that verifies keep-alive spaces are written to CSV during slow processing.
  */
+@Category(SlowTest.class)
 @RunWith(MockitoJUnitRunner.class)
 public class ApiComponentSearchResourceKeepAliveTest
 {

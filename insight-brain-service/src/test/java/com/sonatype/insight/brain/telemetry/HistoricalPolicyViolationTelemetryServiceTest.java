@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.telemetry;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,6 +16,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
 import com.sonatype.clm.dto.model.policy.TriggerReference;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.HistoricalTelemetryStateDAO;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -33,12 +35,14 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import com.google.inject.Binder;
 import org.apache.commons.lang3.time.DateUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class HistoricalPolicyViolationTelemetryServiceTest
     extends AbstractComponentTest
 {
@@ -66,6 +70,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testCollectAndSendPolicyViolationTelemetry_invalidStatus_postgres() {
     testCollectAndSendPolicyViolationTelemetry_invalidStatus();
@@ -145,6 +150,7 @@ public class HistoricalPolicyViolationTelemetryServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testCollectAndSendPolicyViolationTelemetry_postgres() {
     testCollectAndSendPolicyViolationTelemetry();

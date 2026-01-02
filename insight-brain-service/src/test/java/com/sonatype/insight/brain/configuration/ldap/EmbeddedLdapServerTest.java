@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.configuration.ldap;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Hashtable;
 import javax.naming.AuthenticationException;
@@ -13,7 +14,6 @@ import javax.naming.NamingException;
 import javax.naming.directory.InitialDirContext;
 
 import com.sonatype.insight.brain.SslSettings;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.test.networking.SslProperties;
 
 import org.apache.directory.api.ldap.model.constants.SupportedSaslMechanisms;

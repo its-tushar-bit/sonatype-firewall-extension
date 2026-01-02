@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 import com.sonatype.insight.brain.testing.AbstractBrainServiceIntegrationTest;
@@ -17,9 +18,11 @@ import com.google.inject.Module;
 import com.google.inject.multibindings.Multibinder;
 import org.junit.After;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class IqShutdownTest
     extends AbstractBrainServiceIntegrationTest
 {

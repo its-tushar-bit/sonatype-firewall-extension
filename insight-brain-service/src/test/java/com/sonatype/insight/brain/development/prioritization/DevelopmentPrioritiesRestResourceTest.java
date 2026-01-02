@@ -5,6 +5,8 @@
  */
 
 package com.sonatype.insight.brain.development.prioritization;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.IOException;
 
@@ -20,6 +22,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class DevelopmentPrioritiesRestResourceTest
     extends AbstractResourceTest
 {

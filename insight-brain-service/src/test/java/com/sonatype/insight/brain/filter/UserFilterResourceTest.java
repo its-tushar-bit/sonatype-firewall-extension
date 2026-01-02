@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.filter;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Arrays;
 import java.util.List;
@@ -27,6 +29,7 @@ import static com.sonatype.insight.brain.model.filter.UserFilter.ACTIVE_FILTER_N
 import static com.sonatype.insight.brain.model.filter.UserFilterType.ADVANCED_LEGAL_PACK_DASHBOARD;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class UserFilterResourceTest
     extends AbstractResourceTest
 {

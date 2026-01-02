@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.dashboard;
 import java.sql.Connection;
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.TemporaryTableHelperTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -18,6 +19,7 @@ import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(PostgresTestCategory.class)
 @PostgresTest
 public class PostgresComponentRiskServiceTest
     extends AbstractComponentRiskServiceTest

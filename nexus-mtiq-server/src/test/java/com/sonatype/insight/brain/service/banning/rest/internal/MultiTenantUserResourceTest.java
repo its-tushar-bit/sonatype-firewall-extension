@@ -16,11 +16,14 @@ import com.sonatype.insight.brain.security.UserResource;
 import com.sonatype.insight.brain.security.UserService.ChangePasswordDTO;
 import com.sonatype.insight.brain.security.UserService.FindMembersDTO;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class MultiTenantUserResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

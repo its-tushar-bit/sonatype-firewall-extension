@@ -10,14 +10,17 @@ import java.util.function.Consumer;
 
 import javax.inject.Inject;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.stubbing.Answer;
 
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.spy;
 
+@Category(SlowTest.class)
 public class DataMigratorTest
     extends AbstractComponentTest
 {

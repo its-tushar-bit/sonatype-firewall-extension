@@ -16,6 +16,7 @@ import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.IdentificationSource;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.AggregateFile;
 import com.sonatype.insight.brain.model.Application;
@@ -45,7 +46,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class ApplicationComponentDAOTest
     extends AbstractDbDAOTest
 {
@@ -140,6 +144,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering_Postgres() {
     testGetByApplicationIdsAndStageTypeIdsSince_AppFiltering(false);
@@ -151,6 +156,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetByApplicationIdsAndStageTypeIds_AppFiltering_Postgres() {
     testGetByApplicationIdsAndStageTypeIds_AppFiltering(false, null);
@@ -644,6 +650,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_DefaultFilters() {
     long time = System.currentTimeMillis() - 1000;
@@ -669,6 +676,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_ApplicationFilter() {
     long time = System.currentTimeMillis() - 1000;
@@ -728,6 +736,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_StageFilter() {
     long time = System.currentTimeMillis() - 1000;
@@ -790,6 +799,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_TheatCategoryFilter() {
     long time = System.currentTimeMillis() - 1000;
@@ -860,6 +870,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_ThreatLevelFilter() {
     long time = System.currentTimeMillis() - 1000;
@@ -932,6 +943,7 @@ public class ApplicationComponentDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetComponentsRiskFiltered_ViolationStateFilter() {
     long time = System.currentTimeMillis() - 1000;

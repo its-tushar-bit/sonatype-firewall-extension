@@ -11,7 +11,10 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class AutomaticSourceControlConfigurationResourceAuditTest
     extends AbstractAuditTest
 {

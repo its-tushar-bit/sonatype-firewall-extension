@@ -38,6 +38,9 @@ module.exports = function (config) {
 
         // whether to stop suite execution when a spec fails
         stopOnSpecFailure: false,
+
+        // Increase async test timeout for CI environments with resource contention
+        timeoutInterval: 60000, // 60 seconds (default is 5 seconds)
       },
     },
 
@@ -65,6 +68,12 @@ module.exports = function (config) {
     // Concurrency level
     // how many browser should be started simultaneous
     concurrency: Infinity,
+
+    // Increase timeouts for CI environments with resource contention
+    browserNoActivityTimeout: 120000, // 2 minutes
+    captureTimeout: 120000,
+    browserDisconnectTimeout: 30000,
+    browserDisconnectTolerance: 3,
 
     coverageIstanbulReporter: {
       reports: ['text-summary', 'lcovonly'],

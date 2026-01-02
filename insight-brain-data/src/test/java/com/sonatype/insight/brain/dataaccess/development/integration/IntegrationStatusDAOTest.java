@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.sonatype.clm.dto.model.policy.Stage;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 import com.sonatype.insight.brain.model.Application;
@@ -22,6 +23,7 @@ import com.sonatype.insight.brain.model.sourcecontrol.SourceControlDefaultBranch
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -41,6 +43,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_EmptyCollection() {
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
@@ -50,6 +53,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_SingleApplication() {
     List<IntegrationStatusSummary> result = integrationStatusDAO.getIntegrationStatusBulk(
@@ -69,6 +73,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_WithPolicyEvaluations() {
     Application app2 = tempEntity.newApplication("TestApp2", "TestApp2-PublicId", organization.getId());
@@ -95,6 +100,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_WithSourceControlData() {
     Date commitTime = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000L); // 1 day ago
@@ -110,6 +116,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_WithCIIntegration() {
     Application app3 = tempEntity.newApplication("TestApp3", "TestApp3-PublicId", organization.getId());
@@ -129,6 +136,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_CompleteIntegrationScenario() {
     Application fullyIntegratedApp = tempEntity.newApplication("FullyIntegratedApp",
@@ -161,6 +169,7 @@ public class IntegrationStatusDAOTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetIntegrationStatusBulk_PostgreSQL_LargeDataSet() {
     // Creates 100 applications to test the optimization with realistic scale

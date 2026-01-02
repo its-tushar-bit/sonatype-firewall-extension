@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.security;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileStore;
@@ -36,6 +38,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class FIPSKeyManagerTest
 {
   @Rule

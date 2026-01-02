@@ -1,0 +1,1541 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+/**
+ This feature branch Jenkinsfile is intended for validation rather than producing releasable artifacts. It makes use of
+ the Maven Build cache to reduce build time and by default excludes "slow" tests which are test classes that take longer
+ than 50 seconds to run. Heavy tests are distributed across multiple agents to maximize parallelization.
+
+ All of these optimizations can be toggled using Build with Parameters.
+
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  1. INITIALIZE                                                                               │
+ │     • Set env vars                                                                           │
+ │     • Configure MAVEN_CMD                                                                    │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  2. PREPARE                                                            ║ PARALLEL ║          │
+ ├──────────────────────────────────────────────┬───────────────────────────────────────────────┤
+ │  Download Dependencies                       │  Install Node/Yarn                            │
+ │  ─────────────────────                       │  ──────────────────                           │
+ │  • dependency:resolve                        │  • install-node-and-yarn                      │
+ │  • -T 0.75C -U                               │  • yarn install                               │
+ └──────────────────────────────────────────────┴───────────────────────────────────────────────┘
+ │
+ ▼
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  3. BUILD                                                                                    │
+ │     • install -DskipTests                                                                    │
+ │     • Uses build cache, -T 0.75C                                                             │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  4. STASH TEST ARTIFACTS                                                                     │
+ │     • Stash SNAPSHOT JARs and test classes for distributed agents                            │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌──────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  5. TEST                                                               ║ PARALLEL ║          │
+ ├─────────────────────────┬───────────────────────┬───────────────────────────────────────────┤
+ │  Frontend Tests         │  Static Analysis      │  Policy Evaluation (conditional)          │
+ │  ──────────────         │  ───────────────      │  ────────────────────────────             │
+ │  • main agent           │  • agent: iq          │  • nexusPolicyEvaluation                  │
+ │  • Jest + Karma         │  • Checkstyle/PMD     │                                           │
+ │                         │  • License Check      │                                           │
+ ├───────────────────┬────────────┬────────────┬────────────┬────────────┬────────────────────┤
+ │  Postgres Tests   │  Surefire  │  Failsafe  │  Failsafe  │  Failsafe  │  Failsafe          │
+ │  ──────────────   │  ────────  │  1 (A)     │  2 (B-L)   │  3 (M-R)   │  4 (S-Z)           │
+ │  • main agent     │  • main    │  27%       │  25%       │  25%       │  21%               │
+ │  • PostgresTest   │  • surefire│  • iq      │  • iq      │  • iq      │  • iq              │
+ ├───────────────────┴─────────────────┴─────────────────┴─────────────────┴────────────────────┤
+ │  MTIQ Tests • main agent • surefire+failsafe                                                │
+ └──────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  6. TEST - SLOW (conditional: includeSlowTests)                        ║ PARALLEL ║           │
+ ├──────────────────────────────────────────────┬────────────────────────────────────────────────┤
+ │  Slow Tests - Backend                        │  Slow Tests - MTIQ                             │
+ └──────────────────────────────────────────────┴────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  7. COLLECT RESULTS                                                                           │
+ │     • junit: Collect test reports (surefire, failsafe, karma, jest)                           │
+ │     • archiveArtifacts: Test report files                                                     │
+ └───────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  8. BUILD MTIQ IMAGE                                          ║ CONDITIONAL ║                 │
+ │     When: mtiqImagePushEnabled OR *_mtiq job                                                  │
+ │     • Build Docker image                                                                      │
+ │     • Push to RSC registry                                                                    │
+ └───────────────────────────────────────────────────────────────────────────────────────────────┘
+ │
+ ▼
+ ┌───────────────────────────────────────────────────────────────────────────────────────────────┐
+ │  POST ACTIONS                                                                                 │
+ ├───────────────────────────────────────────────────────────────────────────────────────────────┤
+ │  always:                                                                                      │
+ │    • Echo "Pipeline completed"                                                                │
+ └───────────────────────────────────────────────────────────────────────────────────────────────┘
+
+
+ ╔═══════════════════════════════════════════════════════════════════════════════════════════════╗
+ ║  LEGEND                                                                                       ║
+ ╠═══════════════════════════════════════════════════════════════════════════════════════════════╣
+ ║  -T 0.75C    = 75% of CPU cores (12 threads on 16-core)                                       ║
+ ║  -T 2        = 2 Maven threads                                                                ║
+ ║  SlowTest    = Tests >100s excluded by default (param: includeSlowTests)                      ║
+ ║  FE          = insight-brain-frontend                                                         ║
+ ║  MTIQ        = nexus-mtiq-server (Multi-Tenant IQ)                                            ║
+ ║  agent: iq-large = Runs on separate distributed agent                                          ║
+ ╚═══════════════════════════════════════════════════════════════════════════════════════════════╝
+ */
+
+// Configure build parameters and job properties
+configureBranchJob()
+
+// Agent label for distributed test stages
+// Instance type here: https://github.com/sonatype/bnr-jenkins-casc/blob/1ba07ca6a0576a8fa5ed0ff672a7b5c42587fdc2/clouds/zion.yaml#L242
+def DISTRIBUTED_TEST_AGENT = 'iq-large'
+
+pipeline {
+  agent {
+    label 'ubuntu-zion-test'
+  }
+
+  options {
+    timestamps()
+    buildDiscarder(logRotator(
+        numToKeepStr: '10'
+    ))
+  }
+
+  stages {
+    stage('Initialize') {
+      steps {
+        script {
+
+          echo "Pipeline Configuration:"
+          echo "  Branch: ${env.BRANCH_NAME ?: gitBranch(env)}"
+          echo "  Build caching enabled: ${isBuildCachingEnabled()}"
+          echo "  Bundling enabled: ${isBundlingEnabled()}"
+          echo "  Include slow tests: ${params.includeSlowTests}"
+
+          env.BUILD_DIR = env.WORKSPACE
+
+        }
+      }
+    }
+
+    stage('Prepare') {
+      parallel {
+        stage('Download Dependencies') {
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                mvn getDependencyResolveConfig(), 'dependency:resolve'
+              }
+            }
+          }
+        }
+
+        stage('Install Node/Yarn') {
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                // Cache node binaries, node_modules, and yarn cache to speed up builds
+                // Node/Yarn binaries (~200MB) are downloaded fresh each build without caching
+                cache(defaultBranch: 'main',
+                    caches: [
+                        arbitraryFileCache(path: 'insight-brain-frontend/node',
+                            cacheValidityDecidingFile: 'insight-brain-frontend/pom.xml',
+                            compressionMethod: 'TARGZ'),
+                        arbitraryFileCache(path: 'insight-brain-frontend/node_modules',
+                            cacheValidityDecidingFile: 'insight-brain-frontend/yarn.lock',
+                            compressionMethod: 'TARGZ'),
+                        arbitraryFileCache(path: 'insight-brain-frontend/yarn-cache',
+                            compressionMethod: 'TARGZ')
+                    ]) {
+                  // Install node/yarn binaries and download npm dependencies
+                  // Dependencies must be installed here (not just in Build stage) because build cache may skip yarn-install
+                  mvn getFrontEndInstallConfig(),
+                      'com.github.eirslett:frontend-maven-plugin:install-node-and-yarn@install-node-and-yarn com.github.' +
+                          'eirslett:frontend-maven-plugin:yarn@yarn-install'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('Build') {
+      steps {
+        script {
+          dir(env.BUILD_DIR) {
+            withSonatypeDockerRegistry() {
+              withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                       "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+                // No 'clean' - fresh workspace doesn't need it
+                mvn getMavenBuildConfig(), 'install'
+
+                // Stash immediately after build (eliminates separate stage overhead)
+                stashTestArtifacts()
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // Stash Test Artifacts stage removed - now integrated into Build stage above
+
+    stage('Test') {
+      parallel {
+        // Frontend tests on main agent (benefits from cached node/yarn)
+        stage('Frontend Tests') {
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                // Run Jest and Karma tests using cached node/yarn from Prepare stage
+                mvn getFrontEndTestConfig(),
+                    'com.github.eirslett:frontend-maven-plugin:yarn@jest com.github.eirslett:frontend-maven-plugin:yarn@jasmine'
+              }
+            }
+          }
+        }
+
+        stage('Policy Evaluation') {
+          when {
+            expression { shouldRunPolicyEvaluation() }
+          }
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                nexusPolicyEvaluation(
+                    iqStage: 'build',
+                    iqApplication: 'insight-brain',
+                    iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
+                    iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],
+                    failBuildOnNetworkError: true,
+                    reachability: null
+                )
+              }
+            }
+          }
+        }
+
+        // Static analysis on smaller distributed agent (non-blocking)
+        stage('Static Analysis') {
+          agent { label 'iq' }
+          steps {
+            script {
+              runDistributedStaticAnalysis()
+            }
+          }
+        }
+
+        // Backend tests (Surefire + MTIQ + Postgres) on distributed agent
+        stage('Postgres + MTIQ Tests') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          steps {
+            script {
+              runDistributedBackendTests()
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        // Failsafe Tests - split across 4 agents by test class name pattern
+        // Uses -Dit.test=%regex[pattern] syntax (same as Jenkinsfile.main)
+        // Distribution: A (574, 27%), B-L (537, 25%), M-R (538, 25%), S-Z (440, 21%)
+        stage('Failsafe Tests 1 (A)') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          steps {
+            script {
+              runDistributedFailsafeTests('.*/A.*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        stage('Failsafe Tests 2 (B-L)') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          steps {
+            script {
+              runDistributedFailsafeTests('.*/[B-L].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        stage('Failsafe Tests 3 (M-R)') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          steps {
+            script {
+              runDistributedFailsafeTests('.*/[M-R].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+
+        stage('Failsafe Tests 4 (S-Z)') {
+          agent { label DISTRIBUTED_TEST_AGENT }
+          steps {
+            script {
+              runDistributedFailsafeTests('.*/[S-Z].*Test.class')
+            }
+          }
+          post {
+            always {
+              junit testResults: '**/target/failsafe-reports/*.xml', allowEmptyResults: true
+            }
+          }
+        }
+      }
+    }
+
+    stage('Test - Slow') {
+      when {
+        expression { params.includeSlowTests }
+      }
+      parallel {
+        stage('Slow Tests - Backend') {
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                withSonatypeDockerRegistry() {
+                  withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                           "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+                    def opts = buildSlowTestMavenOptions('!insight-brain-frontend,!nexus-mtiq-server')
+                    mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        stage('Slow Tests - MTIQ') {
+          steps {
+            script {
+              dir(env.BUILD_DIR) {
+                withSonatypeDockerRegistry() {
+                  withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+                           "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+                    def opts = buildSlowTestMavenOptions('nexus-mtiq-server')
+                    mvnDirectForTests(opts, 'surefire:test failsafe:integration-test failsafe:verify')
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    stage('Collect Results') {
+      steps {
+        script {
+          dir(env.BUILD_DIR) {
+            junit(
+                testResults: '**/target/surefire-reports/*.xml, **/target/failsafe-reports/*.xml, ' +
+                    '**/target/karma-reports/*.xml, **/target/jest-reports/*.xml',
+                allowEmptyResults: true,
+                healthScaleFactor: 1.0
+            )
+            archiveArtifacts(
+                artifacts: '**/target/*-reports/**',
+                excludes: '**/TEST-*.xml, **/*-output.txt',
+                allowEmptyArchive: true,
+                fingerprint: false
+            )
+          }
+        }
+      }
+    }
+
+    stage('Build MTIQ Image') {
+      when {
+        expression {
+          return params.mtiqImagePushEnabled || currentBuild.fullProjectName.endsWith('_mtiq')
+        }
+      }
+      steps {
+        script {
+          dir(env.BUILD_DIR) {
+            def imageVersion = mtiqImageVersion()
+            def shouldPush = params.mtiqImagePushEnabled || currentBuild.fullProjectName.endsWith('_mtiq')
+            pushMTIQDockerImage(shouldPush, imageVersion)
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+      echo 'Pipeline completed'
+    }
+  }
+}
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+void configureBranchJob() {
+  String projName = currentBuild.fullProjectName
+  boolean mtiqImagePushEnabledByDefault = (projName.toLowerCase().endsWith('/main') || projName.endsWith('_mtiq'))
+
+  List params = [
+      choice(
+          name: 'buildMode',
+          choices: ['FEATURE', 'MAIN'],
+          description: 'Build mode: FEATURE excludes functional tests and SlowTest, uses build caching. ' +
+              'MAIN runs all tests including functional tests, no caching. ' +
+              'Changing this requires a new build to take effect.'
+      ),
+      booleanParam(defaultValue: true,
+          description: 'If checked will use maven build caching to speed up the build (not available on Main)',
+          name: 'buildCachingEnabled'),
+      booleanParam(defaultValue: true,
+          description: 'Only run policy violations when manifests have changed (not available on Main)',
+          name: 'dynamicPolicyEvaluationEnabled'),
+      booleanParam(defaultValue: mtiqImagePushEnabledByDefault,
+          description: 'If checked will push the MTIQ Docker image to RSC for this branch (not available on Main)',
+          name: 'mtiqImagePushEnabled'),
+      booleanParam(defaultValue: false,
+          description: 'If checked will run ReferencePolicyImportIntegrationTest for snapshot builds of feature ' +
+              'branches',
+          name: 'runRefPolicyImportIntTest'),
+      booleanParam(defaultValue: false,
+          description: 'If checked will create bundled artifacts (shade, assembly). Required for releases and MTIQ ' +
+              'image push.',
+          name: 'bundlingEnabled'),
+      booleanParam(defaultValue: false,
+          description: 'If checked will include slow tests (tests taking >100 seconds)',
+          name: 'includeSlowTests')
+  ]
+
+  def propertyList = [copyArtifactPermission("/${projName}"), parameters(params)]
+
+  propertyList.add(disableConcurrentBuilds(abortPrevious: true))
+
+  properties(propertyList)
+}
+
+Map getMavenBuildConfig() {
+  def opts = []
+
+  // Base options
+  opts << "--no-transfer-progress"
+  opts << "-T 0.75C"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.enabled=true"
+    opts << "-Dmaven.build.cache.remote.save.enabled=true"
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    // Activate CI profile to enable frontend build cache (disabled locally due to symlinks)
+    opts << "-Pci-cache-yarn"
+  }
+  else {
+    opts << "-Dmaven.build.cache.remote.enabled=false"
+    opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  }
+
+  // Skip options for faster builds
+  opts << "-DskipTests"
+  opts << "-Dpmd.skip=true"
+  opts << "-Dcheckstyle.skip=true"
+  opts << "-Dsource.skip=true"
+  opts << "-Dmaven.javadoc.skip=true"
+  // Note: Do NOT skip install - forked test processes need artifacts in local repo
+
+  // Bundling
+  if (!isBundlingEnabled()) {
+    opts << "-Dshade.skip=true"
+    opts << "-DskipAssembly=true"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for static analysis (checkstyle, PMD)
+Map getMavenStaticAnalysisConfig() {
+  def opts = []
+
+  // Base options
+  opts << "--no-transfer-progress"
+  opts << "-T 2"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Disable build cache for static analysis (both local and remote)
+  opts << "-Dmaven.build.cache.enabled=false"
+  opts << "-Dmaven.build.cache.remote.enabled=false"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for dependency resolution stage
+Map getDependencyResolveConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 0.75C"
+  // -U flag removed: Feature branches use cached dependencies (saves 1-3 minutes)
+  opts << "-fn"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Skip unnecessary processing during dependency resolution
+  opts << "-DskipTests"
+  opts << "-Dmaven.javadoc.skip=true"
+  opts << "-Dsource.skip=true"
+  opts << "-Dcheckstyle.skip=true"
+  opts << "-Dpmd.skip=true"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for frontend install stage (node/yarn/npm dependencies)
+Map getFrontEndInstallConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-pl insight-brain-frontend"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Use ci-cache-yarn profile to leverage Jenkins job cacher for yarn packages
+  if (isBuildCachingEnabled()) {
+    opts << "-Pci-cache-yarn"
+  }
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for frontend test stages (Jest/Karma)
+Map getFrontEndTestConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-pl insight-brain-frontend"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Use ci-cache-yarn profile for consistency with Build stage
+  if (isBuildCachingEnabled()) {
+    opts << "-Pci-cache-yarn"
+  }
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for Checkstyle analysis
+Map getCheckstyleConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 2"
+  opts << "-Ppre-check"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Disable build cache for static analysis
+  opts << "-Dmaven.build.cache.enabled=false"
+  opts << "-Dmaven.build.cache.remote.enabled=false"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for PMD analysis
+Map getPmdConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 2"
+  opts << "-Ppre-check"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Disable build cache for static analysis
+  opts << "-Dmaven.build.cache.enabled=false"
+  opts << "-Dmaven.build.cache.remote.enabled=false"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for MTIQ Docker image build (insight-brain module with jdks profile)
+Map getMtiqBuildConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-pl :insight-brain"
+  opts << "-Pjdks"
+  opts << "-DskipTests"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+// Get Maven config for MTIQ jreleaser assembly
+Map getMtiqAssembleConfig() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-pl :nexus-mtiq-server"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  return mavenCommon(
+      javaVersion: 'OpenJDK 17',
+      mavenVersion: 'Maven 3.9.x',
+      useEventSpy: false,
+      mavenOptions: opts.join(' ')
+  )
+}
+
+/**
+ * Execute Maven directly using withMaven, bypassing the shared library mvn helper.
+ * This gives us control over JAVA_TOOL_OPTIONS to prevent the Jenkins Maven Event Spy
+ * from being loaded into forked test JVMs.
+ */
+void mvnDirectForTests(String mavenOptions, String goals) {
+  String localRepo = "${env.WORKSPACE}/.zion/repository"
+  String npmConfigFileId = 'rsc-ro-npmrc'
+
+  configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
+    withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+        publisherStrategy: 'EXPLICIT') {
+      String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
+      mvnCmdLine += " -DnpmRegistryURL="
+      mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
+      mvnCmdLine += " -DnodeDownloadRoot=https://repo.sonatype.com/repository/nodejs-dist/"
+      mvnCmdLine += " -DnpmDownloadRoot=https://repo.sonatype.com/repository/npm-all/npm/-/"
+      mvnCmdLine += " -DserverId=rsc-npm-all-ro"
+      mvnCmdLine += " ${mavenOptions}"
+
+      sh mvnCmdLine
+    }
+  }
+}
+
+/**
+ * Build Maven options string for PostgresTestCategory tests.
+ */
+String buildPostgresTestMavenOptions(String moduleList) {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '${moduleList}'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+
+  // Excluded test groups - exclude SlowTest unless includeSlowTests is checked
+  def excludedGroups = []
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Include ONLY PostgresTestCategory
+  opts << "-Dgroups=PostgresTestCategory"
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Build Maven options string for SlowTest category tests.
+ */
+String buildSlowTestMavenOptions(String moduleList) {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '${moduleList}'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+
+  // Include ONLY SlowTest category
+  opts << "-Dgroups=SlowTest"
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Build Maven options for surefire tests (runs on main agent).
+ */
+String buildSurefireTestMavenOptions(List<String> additionalExcludedGroups, String moduleList) {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '${moduleList}'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+
+  // Excluded test groups
+  def excludedGroups = [] + additionalExcludedGroups
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Build Maven options for MTIQ tests (runs on main agent).
+ */
+String buildMtiqTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl 'nexus-mtiq-server'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  // Excluded test groups
+  def excludedGroups = []
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+String mtiqImageVersion() {
+  def dateSection = new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone('UTC'))
+  def buildNumSection = env.BUILD_NUMBER
+  def gitShortHashSection = env.GIT_COMMIT.take(8)
+
+  String branch = gitBranch(env).replaceAll(/[^\w.-]/, '_').take(30)
+  return "branch-${branch}-${env.BUILD_NUMBER}"
+}
+
+void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
+  if (currentBuild.fullProjectName.contains("insight-brain/release")) {
+    echo 'Skipping MTIQ docker image for IQ on-premise release'
+    return
+  }
+
+  echo "MTIQ image version: ${imageVersion}"
+  String iqVersion = getMavenProjectVersion('.')
+  echo "iqVersion:'${iqVersion}'"
+
+  mvn getMtiqBuildConfig(), 'install'
+  mvn getMtiqAssembleConfig(), 'jreleaser:assemble'
+
+  dir("nexus-mtiq-server") {
+    withSonatypeDockerRegistry() {
+      echo "pushMtiqImage: $pushMtiqImage"
+      def pushOption = pushMtiqImage ? " --push " : ""
+
+      sh "docker buildx create --use --driver-opt image=${sonatypeDockerRegistryId()}/moby/buildkit"
+      sh """docker buildx build --platform=linux/amd64,linux/arm64 \
+            --build-arg SONATYPE_PRIVATE_REGISTRY=${sonatypeDockerRegistryId()} \
+            --build-arg IQ_SERVER_VERSION=${iqVersion} \
+            ${pushOption} \
+            --tag ${sonatypeDockerRegistryId()}/mtiq/server:${imageVersion} ."""
+    }
+  }
+}
+
+boolean isBuildCachingEnabled() {
+  return params.buildCachingEnabled
+}
+
+boolean isDynamicPolicyEvaluationEnabled() {
+  return params.dynamicPolicyEvaluationEnabled
+}
+
+boolean isBundlingEnabled() {
+  return params.bundlingEnabled
+}
+
+boolean shouldRunPolicyEvaluation() {
+  if (!isDynamicPolicyEvaluationEnabled()) {
+    return true
+  }
+  return haveDependenciesChanged(['pom.xml', 'package.json', 'yarn.lock'])
+}
+
+/**
+ * Stash the minimum artifacts required to run tests on a remote agent.
+ *
+ * This creates a stash containing:
+ * 1. SNAPSHOT JARs from local Maven repository (~260MB)
+ * 2. Compiled test classes from target directories (~70MB)
+ * 3. pom.xml files for Maven project structure
+ *
+ * Remote agents can unstash these and run tests without rebuilding.
+ * External dependencies are resolved from Nexus (already cached on agents).
+ */
+void stashTestArtifacts() {
+  def version = getMavenProjectVersion('.')
+  def stashDir = "${env.BUILD_DIR}/.test-stash"
+
+  echo "Stashing test artifacts for distributed testing..."
+  echo "  Project version: ${version}"
+  echo "  Build dir: ${env.BUILD_DIR}"
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  // Create a minimal .m2 structure with only SNAPSHOT artifacts
+  // Use parallel copies for speed
+  sh """
+    set -e
+    rm -rf ${stashDir}
+    mkdir -p ${stashDir}/m2-snapshot
+    mkdir -p ${stashDir}/test-classes
+
+    # Find the local Maven repository - check multiple possible locations
+    SNAPSHOT_SRC=""
+    for repo_path in "${env.WORKSPACE}/.zion/repository" "${env.WORKSPACE}/.m2/repository" "\$HOME/.m2/repository"; do
+      if [ -d "\$repo_path/com/sonatype/insight/brain" ]; then
+        SNAPSHOT_SRC="\$repo_path/com/sonatype/insight/brain"
+        echo "  Found SNAPSHOT artifacts in: \$repo_path"
+        break
+      fi
+    done
+
+    if [ -z "\$SNAPSHOT_SRC" ]; then
+      echo "ERROR: Could not find insight-brain artifacts in any Maven repository location"
+      exit 1
+    fi
+
+    SNAPSHOT_DST="${stashDir}/m2-snapshot/com/sonatype/insight/brain"
+
+    # Parallel copy of SNAPSHOT modules (run all copies in background, then wait)
+    echo "Copying SNAPSHOT artifacts in parallel..."
+    pids=""
+    copied_count=0
+    for module_dir in \$SNAPSHOT_SRC/*/; do
+      module_name=\$(basename "\$module_dir")
+      version_dir="\${module_dir}${version}"
+      if [ -d "\$version_dir" ]; then
+        mkdir -p "\$SNAPSHOT_DST/\$module_name"
+        cp -r "\$version_dir" "\$SNAPSHOT_DST/\$module_name/" &
+        pids="\$pids \$!"
+        copied_count=\$((copied_count + 1))
+      fi
+    done
+    # Wait for all SNAPSHOT copies to complete
+    for pid in \$pids; do wait \$pid || exit 1; done
+    echo "  Copied \$copied_count SNAPSHOT module(s)"
+
+    if [ \$copied_count -eq 0 ]; then
+      echo "ERROR: No SNAPSHOT artifacts found for version ${version}"
+      exit 1
+    fi
+
+    # Parallel copy of classes and test-classes directories
+    echo "Copying classes/test-classes in parallel..."
+    pids=""
+    for module in insight-brain-service insight-brain-db insight-brain-data insight-brain-policy \\
+                  insight-brain-common insight-brain-event insight-brain-tenancy nexus-mtiq-server; do
+      mkdir -p "${stashDir}/test-classes/\$module/target"
+      if [ -d "\$module/target/test-classes" ]; then
+        cp -r "\$module/target/test-classes" "${stashDir}/test-classes/\$module/target/" &
+        pids="\$pids \$!"
+      fi
+      if [ -d "\$module/target/classes" ]; then
+        cp -r "\$module/target/classes" "${stashDir}/test-classes/\$module/target/" &
+        pids="\$pids \$!"
+      fi
+    done
+    # Wait for all class copies to complete
+    for pid in \$pids; do wait \$pid || exit 1; done
+    echo "  Copied classes directories"
+
+    # Note: Frontend module not stashed - frontend tests run on main agent with cached node/yarn
+
+    # Copy pom.xml files (fast, no need to parallelize)
+    find . -name 'pom.xml' -not -path '*/target/*' -not -path '*/.test-stash/*' | while read pom; do
+      dir=\$(dirname "\$pom")
+      mkdir -p "${stashDir}/test-classes/\$dir"
+      cp "\$pom" "${stashDir}/test-classes/\$dir/"
+    done
+
+    # Report sizes
+    echo ""
+    echo "=== Stash sizes ==="
+    du -sh ${stashDir}/m2-snapshot || echo "m2-snapshot: empty"
+    du -sh ${stashDir}/test-classes || echo "test-classes: empty"
+  """
+
+  // Create single combined stash (faster than two separate stashes)
+  dir(stashDir) {
+    stash name: 'test-artifacts', includes: '**'
+  }
+
+  echo "Test artifacts stashed successfully."
+}
+
+/**
+ * Unstash and set up test artifacts on a remote agent.
+ *
+ * This restores the stashed artifacts and configures the Maven local repository
+ * to include the SNAPSHOT artifacts from the build agent.
+ *
+ * @return String The path to use for maven.repo.local
+ */
+String unstashTestArtifacts() {
+  def localRepo = "${env.WORKSPACE}/.m2/repository"
+
+  echo "Unstashing test artifacts on remote agent..."
+
+  // Unstash the combined test artifacts
+  unstash 'test-artifacts'
+
+  // Move artifacts into place using parallel operations
+  sh """
+    set -e
+    mkdir -p ${localRepo}
+
+    # Start parallel restore operations
+    pids=""
+
+    # Merge the SNAPSHOT artifacts into the local repo (background)
+    if [ -d "m2-snapshot/com" ]; then
+      cp -r m2-snapshot/com ${localRepo}/ &
+      pids="\$pids \$!"
+    fi
+
+    # Restore classes/test-classes to their original locations (background)
+    if [ -d "test-classes" ]; then
+      (
+        cd test-classes
+        find . -type d -name 'target' | while read target_dir; do
+          module_dir=\$(dirname "\$target_dir")
+          mkdir -p "${env.WORKSPACE}/\$module_dir"
+          cp -r "\$target_dir" "${env.WORKSPACE}/\$module_dir/"
+        done
+      ) &
+      pids="\$pids \$!"
+
+      # Copy pom.xml files (separate background process)
+      (
+        cd test-classes
+        find . -name 'pom.xml' | while read pom; do
+          dir=\$(dirname "\$pom")
+          mkdir -p "${env.WORKSPACE}/\$dir"
+          cp "\$pom" "${env.WORKSPACE}/\$dir/"
+        done
+      ) &
+      pids="\$pids \$!"
+
+      # Restore frontend module (node, node_modules, src)
+      if [ -d "test-classes/insight-brain-frontend" ]; then
+        mkdir -p "${env.WORKSPACE}/insight-brain-frontend"
+        for dir in node node_modules src; do
+          if [ -d "test-classes/insight-brain-frontend/\$dir" ]; then
+            cp -r "test-classes/insight-brain-frontend/\$dir" "${env.WORKSPACE}/insight-brain-frontend/" &
+            pids="\$pids \$!"
+          fi
+        done
+      fi
+    fi
+
+    # Wait for all restore operations to complete
+    for pid in \$pids; do wait \$pid || exit 1; done
+    echo "  Restored all artifacts"
+
+    # Cleanup temp directories
+    rm -rf m2-snapshot test-classes
+
+    echo ""
+    echo "=== Local repo size ==="
+    du -sh ${localRepo}
+  """
+
+  echo "Test artifacts restored successfully."
+  return localRepo
+}
+
+/**
+ * Run static analysis (Checkstyle, PMD, License Check) on a distributed agent.
+ *
+ * This runs on a fresh checkout - no unstash needed since static analysis
+ * only requires source code, not compiled artifacts.
+ */
+void runDistributedStaticAnalysis() {
+  echo "Running distributed static analysis..."
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  def localRepo = "${env.WORKSPACE}/.m2/repository"
+
+  // Run Checkstyle, PMD, and License Check
+  // These only need source code, not compiled artifacts
+  mvnDirectForDistributedTests(buildStaticAnalysisMavenOptions(),
+      'checkstyle:checkstyle checkstyle:check pmd:pmd pmd:check license:check',
+      localRepo)
+}
+
+/**
+ * Build Maven options for distributed static analysis.
+ */
+String buildStaticAnalysisMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 2"
+  opts << "-Ppre-check"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Disable build cache for static analysis
+  opts << "-Dmaven.build.cache.enabled=false"
+  opts << "-Dmaven.build.cache.remote.enabled=false"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+
+  return opts.join(' ')
+}
+
+/**
+ * Run frontend tests (Jest + Karma) on a distributed agent.
+ *
+ * This function:
+ * 1. Unstashes the build artifacts from the main build agent
+ * 2. Runs Jest and Karma tests in parallel
+ */
+void runDistributedFrontendTests() {
+  echo "Running distributed frontend tests..."
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  // Restore stashed artifacts
+  def localRepo = unstashTestArtifacts()
+
+  // Run Jest and Karma in parallel using Maven
+  def opts = buildDistributedFrontendTestMavenOptions()
+  mvnDirectForDistributedTests(opts,
+      'com.github.eirslett:frontend-maven-plugin:yarn@jest com.github.eirslett:frontend-maven-plugin:yarn@jasmine',
+      localRepo)
+}
+
+/**
+ * Build Maven options for distributed frontend test execution.
+ */
+String buildDistributedFrontendTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-pl insight-brain-frontend"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache - read only on distributed agents
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Pci-cache-yarn"
+  }
+
+  return opts.join(' ')
+}
+
+/**
+ * Run backend tests (Surefire + MTIQ + Postgres) on a distributed agent.
+ *
+ * This function:
+ * 1. Unstashes the build artifacts from the main build agent
+ * 2. Runs surefire tests (excluding PostgresTestCategory)
+ * 3. Runs postgres tests (PostgresTestCategory only)
+ * 4. Runs MTIQ tests
+ */
+void runDistributedBackendTests() {
+  echo "Running distributed backend tests (Surefire + MTIQ + Postgres)..."
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  // Restore stashed artifacts
+  def localRepo = unstashTestArtifacts()
+
+  withSonatypeDockerRegistry() {
+    withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+             "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+
+      // Run surefire tests (excluding PostgresTestCategory)
+      echo "Running Surefire tests..."
+      def surefireOpts = buildDistributedSurefireTestMavenOptions()
+      mvnDirectForDistributedTests(surefireOpts, 'surefire:test', localRepo)
+
+      // Run postgres tests (PostgresTestCategory only)
+      echo "Running Postgres tests..."
+      def postgresOpts = buildDistributedPostgresTestMavenOptions()
+      mvnDirectForDistributedTests(postgresOpts, 'surefire:test failsafe:integration-test failsafe:verify', localRepo)
+
+      // Run MTIQ tests
+      echo "Running MTIQ tests..."
+      def mtiqOpts = buildDistributedMtiqTestMavenOptions()
+      mvnDirectForDistributedTests(mtiqOpts, 'surefire:test failsafe:integration-test failsafe:verify', localRepo)
+    }
+  }
+}
+
+/**
+ * Build Maven options for distributed surefire test execution.
+ */
+String buildDistributedSurefireTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '!insight-brain-frontend,!nexus-mtiq-server'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache - read only on distributed agents
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+
+  // Excluded test groups - exclude PostgresTestCategory (run separately) and SlowTest
+  def excludedGroups = ['PostgresTestCategory']
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Build Maven options for distributed postgres test execution.
+ */
+String buildDistributedPostgresTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '!insight-brain-frontend,!nexus-mtiq-server'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache - read only on distributed agents
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+
+  // Include ONLY PostgresTestCategory
+  opts << "-Dgroups=PostgresTestCategory"
+
+  // Excluded test groups
+  def excludedGroups = []
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Build Maven options for distributed MTIQ test execution.
+ */
+String buildDistributedMtiqTestMavenOptions() {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl 'nexus-mtiq-server'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Build cache - read only on distributed agents
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dsurefire.runOrder=alphabetical"
+  opts << "-Dsurefire.rerunFailingTestsCount=2"
+  opts << "-Dsurefire.failOnFlakeCount=5"
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  // Excluded test groups
+  def excludedGroups = []
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Run failsafe tests on a distributed agent.
+ *
+ * This function:
+ * 1. Unstashes the build artifacts from the main build agent
+ * 2. Runs failsafe tests matching the specified pattern
+ *
+ * @param testPattern The test pattern to run (e.g., '[A-G]*Test.java')
+ */
+void runDistributedFailsafeTests(String testPattern) {
+  echo "Running distributed failsafe tests with pattern: ${testPattern}"
+  echo "  Workspace: ${env.WORKSPACE}"
+
+  // Restore stashed artifacts
+  def localRepo = unstashTestArtifacts()
+
+  // Debug: show what we have after unstash
+  sh """
+    echo "=== Workspace contents after unstash ==="
+    ls -la ${env.WORKSPACE}/
+    echo ""
+    echo "=== Module directories ==="
+    ls -la ${env.WORKSPACE}/insight-brain-service/ 2>/dev/null || echo "insight-brain-service not found"
+    echo ""
+    echo "=== Test classes check ==="
+    ls -la ${env.WORKSPACE}/insight-brain-service/target/test-classes/ 2>/dev/null | head -10 || echo "No test-classes found"
+    echo ""
+    echo "=== Pom files ==="
+    find ${env.WORKSPACE} -name 'pom.xml' -not -path '*/.m2/*' | head -10
+  """
+
+  withSonatypeDockerRegistry() {
+    withEnv(["TESTCONTAINERS_HUB_IMAGE_NAME_PREFIX=${sonatypeDockerRegistryId()}/",
+             "TESTCONTAINERS_RYUK_DISABLED=true"]) {
+
+      def opts = buildDistributedTestMavenOptions(['PostgresTestCategory'],
+          '!insight-brain-frontend,!nexus-mtiq-server', testPattern)
+      mvnDirectForDistributedTests(opts, 'failsafe:integration-test failsafe:verify', localRepo)
+    }
+  }
+
+  // Debug: show test reports
+  sh """
+    echo "=== Test reports ==="
+    find ${env.WORKSPACE} -path '*/failsafe-reports/*.xml' 2>/dev/null | head -10 || echo "No failsafe reports found"
+  """
+}
+
+/**
+ * Build Maven options for distributed test execution.
+ */
+String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, String moduleList,
+    String testPattern) {
+  def opts = []
+
+  opts << "--no-transfer-progress"
+  opts << "-T 1"
+  opts << "-pl '${moduleList}'"
+  opts << "-D skip-functional-test"
+  opts << "-D build.number=${env.BUILD_NUMBER}"
+
+  // Test pattern - only run tests matching this pattern
+  // Using %regex[...] syntax (same as Jenkinsfile.main)
+  opts << "-Dit.test=%regex[${testPattern}]"
+
+  // Build cache - read only on distributed agents
+  opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
+  opts << "-Dmaven.build.cache.remote.save.enabled=false"
+  if (isBuildCachingEnabled()) {
+    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+  }
+
+  // Test configuration
+  opts << "-Dfailsafe.runOrder=alphabetical"
+  opts << "-Dfailsafe.rerunFailingTestsCount=2"
+  opts << "-Dfailsafe.failOnFlakeCount=5"
+
+  // Excluded test groups
+  def excludedGroups = [] + additionalExcludedGroups
+  if (!params.includeSlowTests) {
+    excludedGroups << "SlowTest"
+  }
+  if (!params.runRefPolicyImportIntTest) {
+    excludedGroups << "ReferencePolicyImportIntegrationTest"
+  }
+  if (excludedGroups) {
+    opts << "-DexcludedGroups=${excludedGroups.join(',')}"
+  }
+
+  // Docker registry
+  opts << "-Ddocker.registry=${sonatypeDockerRegistryId()}"
+
+  // Error handling
+  opts << "-e"
+  opts << "-C"
+  opts << "-fae"
+  opts << "-Dmaven.test.failure.ignore"
+
+  return opts.join(' ')
+}
+
+/**
+ * Execute Maven for distributed tests with explicit local repo.
+ */
+void mvnDirectForDistributedTests(String mavenOptions, String goals, String localRepo) {
+  String npmConfigFileId = 'rsc-ro-npmrc'
+
+  configFileProvider([configFile(fileId: npmConfigFileId, variable: 'NPM_CONFIG_USERCONFIG')]) {
+    withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml',
+        publisherStrategy: 'EXPLICIT') {
+      String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
+      mvnCmdLine += " -DnpmRegistryURL="
+      mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
+      mvnCmdLine += " -DnodeDownloadRoot=https://repo.sonatype.com/repository/nodejs-dist/"
+      mvnCmdLine += " -DnpmDownloadRoot=https://repo.sonatype.com/repository/npm-all/npm/-/"
+      mvnCmdLine += " -DserverId=rsc-npm-all-ro"
+      mvnCmdLine += " ${mavenOptions}"
+
+      sh mvnCmdLine
+    }
+  }
+}

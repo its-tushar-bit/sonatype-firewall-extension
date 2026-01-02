@@ -4,6 +4,7 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.api.v2.service;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiOwnerDTO;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiPullRequestResults;
 import com.sonatype.insight.brain.api.v2.dto.sourcecontrol.ApiSourceControlDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService.METHOD;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.AutomaticSourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -64,6 +66,7 @@ import com.sonatype.nexus.scm.github.dto.GithubRateLimitsResponse;
 import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -86,6 +89,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@Category(SlowTest.class)
 public class ApiSourceControlServiceTest
     extends AbstractComponentTest
 {
@@ -1351,6 +1355,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_postgres() {
     final SourceControl sourceControl = new SourceControl.Builder()
@@ -1383,6 +1388,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_DoesNotExist_postgres() {
     final SourceControl sourceControl = sourceControlService.getCompositeSourceControlByApplicationId("Fake ID");
@@ -1422,6 +1428,7 @@ public class ApiSourceControlServiceTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testGetCompositeSourceControlByApplicationId_nLevelOwnerHierarchy_postgres() {
     Organization org1 = tempEntity.newOrganization();

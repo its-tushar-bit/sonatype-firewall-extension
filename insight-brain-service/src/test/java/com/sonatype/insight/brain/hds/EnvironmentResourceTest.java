@@ -4,12 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.hds;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;
 
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class EnvironmentResourceTest
     extends AbstractResourceTest
 {

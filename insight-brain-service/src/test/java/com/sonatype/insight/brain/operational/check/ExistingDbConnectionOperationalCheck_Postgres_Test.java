@@ -4,10 +4,15 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.operational.check;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
 
+import org.junit.experimental.categories.Category;
+
 @PostgresTest
+@Category({PostgresTestCategory.class,SlowTest.class})
 @SuppressWarnings("checkstyle:TypeName")
 public class ExistingDbConnectionOperationalCheck_Postgres_Test
     extends AbstractExistingDbOperationalCheckTest

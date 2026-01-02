@@ -36,15 +36,18 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.RuleChain;
 import org.junit.rules.TemporaryFolder;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.offset;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 /**
  * @since 1.7
  */
+@Category(SlowTest.class)
 public class LdapServiceTest
     extends BrainInjectedTest
 {

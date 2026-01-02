@@ -23,8 +23,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import static com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationService.EULA_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertThrows;
+import com.sonatype.insight.brain.common.test.SlowTest;
+import org.junit.experimental.categories.Category;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class ApiZScalerConfigurationServiceTest
     extends AbstractComponentTest
 {

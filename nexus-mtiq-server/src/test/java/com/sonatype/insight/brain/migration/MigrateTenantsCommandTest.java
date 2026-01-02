@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.migration;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.api.admin.service.TenantService;
 import com.sonatype.insight.brain.db.AbstractMultiTenantDatabaseTest;
@@ -27,6 +29,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
+@Category(SlowTest.class)
 public class MigrateTenantsCommandTest
     extends AbstractMultiTenantDatabaseTest
 {

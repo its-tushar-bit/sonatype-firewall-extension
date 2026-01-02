@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.service.banning.rest.api.v2;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
+
 import java.io.File;
 import java.io.StringReader;
 import java.net.URL;
@@ -30,6 +32,9 @@ import org.keycloak.saml.processing.core.util.JAXPValidationUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class MultiTenantSamlConfigurationResourceTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

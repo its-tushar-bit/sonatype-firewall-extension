@@ -8,7 +8,6 @@ package com.auth0.client.auth;
 import java.io.IOException;
 import java.util.Objects;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.auth0.exception.Auth0Exception;
 import okhttp3.Call;
@@ -21,7 +20,6 @@ import okhttp3.ResponseBody;
 import okio.Buffer;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -37,7 +35,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-@Category(SlowTest.class)
 public class Auth0AuthAPITest
 {
   @Mock

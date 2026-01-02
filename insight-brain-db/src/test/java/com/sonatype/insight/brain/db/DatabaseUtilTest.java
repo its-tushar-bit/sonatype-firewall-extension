@@ -5,12 +5,14 @@
  */
 package com.sonatype.insight.brain.db;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.db.DatabaseConfig;
 import com.sonatype.insight.db.DatabaseException;
 import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -23,6 +25,7 @@ public class DatabaseUtilTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   public void testGetDatabaseEngine_PostgreSQL() {
     assertThat(DatabaseUtil.getDatabaseEngine("PostgreSQL")).isEqualTo(PostgresDatabaseEngine.INSTANCE);
   }
@@ -35,6 +38,7 @@ public class DatabaseUtilTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   public void testGetDatabaseEngine_ByConfig_PostgreSQL() {
     DatabaseConfig databaseConfig = new DatabaseConfig();
     databaseConfig.setDriverClassName("org.postgresql.Driver");

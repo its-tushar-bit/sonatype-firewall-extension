@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.security;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.InsightBrainService;
@@ -13,6 +15,7 @@ import com.sonatype.insight.brain.version.VersionResource;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Test;
 
+@Category(SlowTest.class)
 public class TraceMethodBlockFilterTest
     extends AbstractBrainServiceIntegrationTest
 {

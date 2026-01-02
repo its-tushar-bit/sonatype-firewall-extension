@@ -28,6 +28,7 @@ import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.api.v2.dto.remediation.options.ApiVersionChangeOptionType;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;
 import com.sonatype.insight.brain.dashboard.H2ApplicationRiskService;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -111,6 +112,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.rules.TemporaryFolder;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
@@ -513,6 +515,7 @@ public class ReportServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetReportMetadataWithoutDeveloperDashboardFeature() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
@@ -601,6 +604,7 @@ public class ReportServiceTest
   }
 
   @Test
+  @Category(SlowTest.class)
   public void testGetReportMetadataWithDeveloperDashboardFeature() throws Exception {
     final String scanId1 = "ScanId1";
     final String scanId2 = "ScanId2";
@@ -619,11 +623,11 @@ public class ReportServiceTest
 
     Policy appPolicy1 = tempEntity.newPolicy(app.getId(), "app owned policy1", 5);
     PolicyViolation violation1 = tempEntity.newPolicyViolation(eval1, appPolicy1, appPolicy1.getThreatLevel() + 1,
-            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+        PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
 
     Policy appPolicy2 = tempEntity.newPolicy(app.getId(), "app owned policy2", 8);
     PolicyViolation violation2 = tempEntity.newPolicyViolation(eval2, appPolicy2, appPolicy2.getThreatLevel() + 1,
-            PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
+        PolicyThreatCategory.SECURITY, "Group1", "Artifact1", "Version1");
 
     ReportService reportService = createReportService();
 
@@ -663,7 +667,7 @@ public class ReportServiceTest
 
     // Verify response for monitoring/re-evaluation
     PolicyEvaluation eval3 = tempEntity.newPolicyEvaluation(app.getId(), BuildStageType.ID, scanId2,
-            true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
+        true /* isReevaluation */, true/* isForMonitoring */, new Date(System.currentTimeMillis() + 1));
     metadata = reportService.getReportMetadata(app.getPublicId(), scanId2);
     assertThat(metadata.getApplication().getId()).isEqualTo(app.getId());
     assertThat(metadata.getApplication().getOrganizationId()).isEqualTo(app.getOrganizationId());
@@ -682,8 +686,8 @@ public class ReportServiceTest
 
     // Unknown scan id
     assertThatExceptionOfType(NotFoundException.class)
-            .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
-            .withMessage("Could not find a report with ID 12345678");
+        .isThrownBy(() -> reportService.getReportMetadata(app.getPublicId(), "12345678"))
+        .withMessage("Could not find a report with ID 12345678");
   }
 
   @Test

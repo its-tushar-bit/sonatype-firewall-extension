@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.api.admin;
 
 import com.sonatype.insight.brain.HttpResponse;
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.TestShutdownHandler;
@@ -19,6 +20,9 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 
+import org.junit.experimental.categories.Category;
+
+@Category(SlowTest.class)
 public class AdminTasksTenantFilterRedirectTest
     extends AbstractMultiTenantBaseIntegrationTest
 {

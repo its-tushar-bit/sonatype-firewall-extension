@@ -5,6 +5,10 @@
  */
 package com.sonatype.insight.brain.ide;
 
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
+
+@Category(SlowTest.class)
 public class IdeResourceProxyTest
     extends IdeResourceTest
 {

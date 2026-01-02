@@ -16,7 +16,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty.ZSCALER;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
+@Category(SlowTest.class)
 public class ApiZScalerConfigurationServiceAuthzTest
     extends AbstractServiceAuthzTest
 {

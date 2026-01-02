@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import org.junit.experimental.categories.Category;
 
 public class ProprietaryConfigResourceAuditTest
     extends AbstractAuditTest

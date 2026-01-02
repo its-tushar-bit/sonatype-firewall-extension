@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.component;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Date;
 import javax.inject.Inject;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 
+@Category(SlowTest.class)
 public class RepositoryIdentifiedComponentCacheLoaderTest
     extends AbstractComponentTest
 {

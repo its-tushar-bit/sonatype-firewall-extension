@@ -12,11 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 
 import com.google.common.io.Resources;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -27,6 +29,7 @@ public class DatabaseConstraintTest
    */
   @Test
   @H2DiskTest(suppressMigrations = true)
+  @Category(SlowTest.class)
   public void testNoUniqueIndexesDefined() throws IOException {
     URL url = Resources.getResource("db/insight_brain_ods/schema.sql");
     assertThat(url).isNotNull();

@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.aws.s3;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import javax.inject.Inject;
 
@@ -16,6 +18,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class S3AsyncClientProviderTest
     extends AbstractComponentTest
 {

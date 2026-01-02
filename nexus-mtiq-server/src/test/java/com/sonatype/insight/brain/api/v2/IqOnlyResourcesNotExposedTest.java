@@ -11,8 +11,10 @@ import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationResourceTest;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 
@@ -20,6 +22,7 @@ import static org.apache.http.HttpStatus.SC_NOT_FOUND;
  * Integration test to verify that IQ-only resources marked with @IqOnlyEndpoint are not exposed in MTIQ and return 404
  * responses.
  */
+@Category(SlowTest.class)
 public class IqOnlyResourcesNotExposedTest
     extends AbstractMultiTenantBaseIntegrationResourceTest
 {

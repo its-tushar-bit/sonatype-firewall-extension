@@ -4,6 +4,8 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 package com.sonatype.insight.brain.db.migrations;
+import org.junit.experimental.categories.Category;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.List;
 
@@ -23,6 +25,7 @@ import static com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator.g
 import static com.sonatype.insight.brain.db.migrations.LegacyDataStoreMigrator.loadIncrementalScriptResource;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Category(SlowTest.class)
 public class MigrationScriptConstraintsTest
 {
   @Test

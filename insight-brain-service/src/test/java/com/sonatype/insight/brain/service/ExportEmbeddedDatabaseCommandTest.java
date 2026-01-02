@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.DatabaseName;
@@ -184,6 +185,7 @@ public class ExportEmbeddedDatabaseCommandTest
   }
 
   @PostgresTest(suppressMigrations = true)
+  @Category(PostgresTestCategory.class)
   private static class DummyForAnnotation
   {
     // for usage in testRun_DumpImportableIntoPostgres

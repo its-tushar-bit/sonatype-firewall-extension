@@ -9,7 +9,7 @@ import java.sql.Connection;
 import java.util.Date;
 import java.util.List;
 
-import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.db.AbstractDatabaseTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.PostgresTest;
@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Category(SlowTest.class)
 public class QuartzPostgreSQLDelegateTest
     extends AbstractDatabaseTest
 {
@@ -47,6 +46,7 @@ public class QuartzPostgreSQLDelegateTest
   }
 
   @Test
+  @Category(PostgresTestCategory.class)
   @PostgresTest
   public void testSelectTriggerToAcquire() throws Exception {
     String instanceId = "me";

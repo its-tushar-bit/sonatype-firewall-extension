@@ -12,3 +12,7 @@ package*.json eol=lf
 
 # some tests use tmp files as input
 *.tmp eol=lf
+
+# Use bd merge for beads JSONL files
+.beads/issues.jsonl merge=beads
+

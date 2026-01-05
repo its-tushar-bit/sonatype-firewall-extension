@@ -27,6 +27,7 @@ override.tf
 .terraform
 terraform.tfvars
 __pycache__
+.beads
 
 # dep tree that is created as part of IQ for vsCode
 dependency_tree.txt

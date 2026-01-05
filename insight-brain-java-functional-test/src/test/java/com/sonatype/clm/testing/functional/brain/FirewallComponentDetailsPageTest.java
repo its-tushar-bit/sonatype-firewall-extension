@@ -3220,10 +3220,15 @@ public class FirewallComponentDetailsPageTest
         .getFirewallPolicyViolationsTable();
     policyViolationsTable.shouldBe(visible);
 
-    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
-    violationRow1Cells.get(1).click();
-
+    // Create popover object before clicking to allow proper Selenide retry mechanism
     PolicyViolationDetailPopover policyViolationDetailPopover = new PolicyViolationDetailPopover();
+
+    ElementsCollection violationRow1Cells = policyViolationsTable.getCellsByNthRow(1);
+    // After page refresh, ensure the cell is clickable before attempting click
+    // This prevents race condition where React event handlers may not be fully attached yet
+    violationRow1Cells.get(1).shouldBe(visible, enabled).click();
+
+    // Wait for popover to become visible before interacting with it
     policyViolationDetailPopover.shouldBe(visible).applicableWaiversTab().click();
     ListWaiversTable applicableWaiversTableAfterSubmit =
         policyViolationDetailPopover.applicableWaiversInfoTile().getApplicableWaiversTable();

@@ -450,11 +450,16 @@ function serializeComponentId({ componentIdentifier, pathnames }) {
   }
 }
 
-function highestViolationReducer(highestViolationSoFar, violation, includeWaived = false) {
-  // When includeWaived is true, select from waived violations only; otherwise exclude waived/legacy
-  const isActive = includeWaived
-    ? complement(either(isNil, complement(prop('waived'))))
-    : complement(either(isNil, either(prop('waived'), prop('legacyViolation'))));
+function highestViolationReducer(highestViolationSoFar, violation, filterMode = 'default') {
+  // filterMode: 'default' = exclude waived/legacy, 'waived' = include waived, 'legacy' = include legacy, 'both' = include both
+  const isActive =
+    filterMode === 'default'
+      ? complement(either(isNil, either(prop('waived'), prop('legacyViolation')))) // Exclude waived AND legacy
+      : filterMode === 'waived'
+      ? complement(either(isNil, complement(prop('waived')))) // Only waived=true
+      : filterMode === 'legacy'
+      ? complement(either(isNil, complement(prop('legacyViolation')))) // Only legacyViolation=true
+      : complement(isNil); // 'both' mode: include any non-nil violation (waived OR legacy OR both)
 
   const activeViolations = filter(isActive, [highestViolationSoFar, violation]),
     highestActiveViolation =
@@ -505,31 +510,44 @@ export const aggregateReportEntries = pipe(
 );
 
 /**
- * Takes exactValueFilters and returns an aggregation function that considers waived violations
- * when the user is filtering by waived status
+ * Takes exactValueFilters and returns an aggregation function that considers waived/legacy violations
+ * when the user is filtering by waived or legacy status
  */
 export const aggregateReportEntriesWithFilter = (exactValueFilters) => {
-  // Check if user is filtering ONLY for waived/legacy violations (not including 'open' or 'notViolating')
   const violationStateFilter = exactValueFilters?.derivedViolationState;
-  const hasOnlyWaivedFilter =
-    violationStateFilter &&
-    violationStateFilter.size > 0 &&
-    !violationStateFilter.has('open') &&
-    !violationStateFilter.has('notViolating') &&
-    (violationStateFilter.has('waived') ||
-      violationStateFilter.has('waived+legacyViolation') ||
-      violationStateFilter.has('legacyViolation'));
 
-  if (hasOnlyWaivedFilter) {
-    // Use a reducer that includes waived violations in the selection
-    // Filter to only include components that have at least one waived violation
-    const reducerWithWaived = (acc, val) => highestViolationReducer(acc, val, true);
-    const hasWaivedViolations = (entry) => entry.waivedViolations > 0 || entry.waived === true;
-    return pipe(reduceBy(reducerWithWaived, null, toKey), values, filter(hasWaivedViolations));
-  } else {
-    // Use the default aggregation logic
+  // Early returns for default aggregation cases
+  if (
+    !violationStateFilter ||
+    violationStateFilter.size === 0 ||
+    violationStateFilter.has('open') ||
+    violationStateFilter.has('notViolating')
+  ) {
     return aggregateReportEntries;
   }
+
+  // Determine filter mode based on selected violation states
+  const hasWaived = violationStateFilter.has('waived') || violationStateFilter.has('waived+legacyViolation');
+  const hasLegacy = violationStateFilter.has('legacyViolation') || violationStateFilter.has('waived+legacyViolation');
+
+  const filterMode = hasWaived && hasLegacy ? 'both' : hasWaived ? 'waived' : hasLegacy ? 'legacy' : 'default';
+
+  // Return default if no special filtering needed
+  if (filterMode === 'default') {
+    return aggregateReportEntries;
+  }
+
+  // Build custom aggregation with filter - arrow function wrapper to bind filterMode
+  const reducerWithFilter = (acc, val) => highestViolationReducer(acc, val, filterMode);
+
+  // Define filter predicates for each mode using Ramda composition
+  const shouldInclude = {
+    waived: either(pipe(prop('waivedViolations'), gte(__, 1)), prop('waived')),
+    legacy: prop('legacyViolation'),
+    both: either(either(pipe(prop('waivedViolations'), gte(__, 1)), prop('waived')), prop('legacyViolation')),
+  }[filterMode];
+
+  return pipe(reduceBy(reducerWithFilter, null, toKey), values, filter(shouldInclude));
 };
 
 /**

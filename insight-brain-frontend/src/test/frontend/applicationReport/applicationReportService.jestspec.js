@@ -1923,6 +1923,61 @@ describe('applicationReportService', function () {
         // Hash 1 has 2 waived violations
         expect(hash1Result[0].waivedViolations).toBe(2);
       });
+
+      it('returns a function that selects highest legacy violation when filtering by legacy only', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['legacyViolation']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash6Result = result.filter((r) => r.hash === '6');
+        const hash7Result = result.filter((r) => r.hash === '7');
+
+        expect(hash6Result.length).toBe(1);
+        expect(hash7Result.length).toBe(1);
+
+        // Hash 6 has only legacy violations (threat 5)
+        expect(hash6Result[0].policyThreatLevel).toBe(5);
+        expect(hash6Result[0].policyName).toBe('Policy 12');
+        expect(hash6Result[0].legacyViolation).toBe(true);
+        expect(hash6Result[0].waived).toBe(false);
+        expect(hash6Result[0].componentIdentifier).toBe('foo2');
+
+        // Hash 7 has both legacy (threat 5) and waived (threat 6), should pick highest legacy
+        expect(hash7Result[0].policyThreatLevel).toBe(5);
+        expect(hash7Result[0].policyName).toBe('Policy 13');
+        expect(hash7Result[0].legacyViolation).toBe(true);
+        expect(hash7Result[0].waived).toBe(false);
+        expect(hash7Result[0].componentIdentifier).toBe('foo3');
+      });
+
+      it('returns a function that includes both waived and legacy violations when filtering by both', function () {
+        const exactValueFilters = {
+          derivedViolationState: new Set(['waived', 'legacyViolation']),
+        };
+        const aggregateFn = applicationReportService.aggregateReportEntriesWithFilter(exactValueFilters);
+        const result = aggregateFn(input);
+        const hash1Result = result.filter((r) => r.hash === '1');
+        const hash6Result = result.filter((r) => r.hash === '6');
+        const hash7Result = result.filter((r) => r.hash === '7');
+
+        // Should have results for components with waived OR legacy violations
+        expect(hash1Result.length).toBe(1); // Has waived violations
+        expect(hash6Result.length).toBe(1); // Has legacy violations only
+        expect(hash7Result.length).toBe(1); // Has both waived and legacy
+
+        // Hash 1: Should pick highest waived violation (threat 9)
+        expect(hash1Result[0].policyThreatLevel).toBe(9);
+        expect(hash1Result[0].waived).toBe(true);
+
+        // Hash 6: Should pick highest legacy violation (threat 5)
+        expect(hash6Result[0].policyThreatLevel).toBe(5);
+        expect(hash6Result[0].legacyViolation).toBe(true);
+
+        // Hash 7: Should pick highest among waived OR legacy (threat 6 waived > threat 5 legacy)
+        expect(hash7Result[0].policyThreatLevel).toBe(6);
+        expect(hash7Result[0].waived).toBe(true);
+      });
     });
 
     describe('filterReportEntries', function () {

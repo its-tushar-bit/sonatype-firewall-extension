@@ -806,6 +806,9 @@ public class ComponentLoader
         }
         sv.setKevData(dtoSv.getKevData());
         sv.setEpssData(dtoSv.getEpssData());
+        sv.setVector(dtoSv.getCvssVector());
+        sv.setVectorSource(dtoSv.getCvssVectorSource());
+        sv.setThreatTypes(dtoSv.getThreatTypes());
         fillSecurityVulnerabilityCustomData(component, sv);
         component.addSecurityVulnerability(sv);
       }

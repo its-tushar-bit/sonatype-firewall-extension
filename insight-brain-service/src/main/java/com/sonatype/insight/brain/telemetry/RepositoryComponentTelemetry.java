@@ -29,6 +29,8 @@ public class RepositoryComponentTelemetry
 
   private final String repositoryId;
 
+  private final String repositoryName;
+
   private final String componentFormat;
 
   private final String componentHash;
@@ -55,6 +57,54 @@ public class RepositoryComponentTelemetry
 
   private final String accountId;
 
+  // Private constructor for builder
+  private RepositoryComponentTelemetry(Builder builder) {
+    this.accountId = builder.accountId;
+    this.repositoryManagerId = builder.repositoryManagerId;
+    this.repositoryId = builder.repositoryId;
+    // Obfuscate repository name if obfuscator is provided (consistent with application ID obfuscation)
+    this.repositoryName = builder.repositoryName != null && builder.telemetryDataObfuscator != null
+        ? builder.telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(builder.repositoryName)
+        : builder.repositoryName;
+    this.componentFormat = builder.componentFormat;
+    this.componentHash = builder.componentHash != null ? HdsClientAnalytics.obfuscate(builder.componentHash) : null;
+    this.eventType = builder.eventType;
+    this.quarantineTime = builder.quarantineTime;
+    this.releaseQuarantineTime = builder.releaseQuarantineTime;
+    this.releaseQuarantineType = builder.releaseQuarantineType;
+    this.releaseReason = builder.releaseReason;
+    this.componentIdentifier = builder.componentIdentifier;
+    this.componentName = builder.componentName;
+    this.componentNamespace = builder.componentNamespace;
+    this.componentVersion = builder.componentVersion;
+
+    if (builder.policyNotifications != null) {
+      builder.policyNotifications.forEach(policyNotification -> {
+        if (!policyNotification.getNotifications().getUserNotifications().isEmpty()) {
+          notifications.add(USER_NOTIFICATION);
+        }
+        if (!policyNotification.getNotifications().getRoleNotifications().isEmpty()) {
+          notifications.add(ROLE_NOTIFICATION);
+        }
+        if (!policyNotification.getNotifications().getJiraNotifications().isEmpty()) {
+          notifications.add(JIRA_NOTIFICATION);
+        }
+        if (!policyNotification.getNotifications().getWebhookNotifications().isEmpty()) {
+          notifications.add(WEBHOOK_NOTIFICATION);
+        }
+      });
+    }
+  }
+
+  /**
+   * Creates a new Builder for RepositoryComponentTelemetry.
+   *
+   * @return A new Builder instance
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public RepositoryComponentTelemetry(
       final String accountId,
       final String repositoryManagerId,
@@ -79,6 +129,7 @@ public class RepositoryComponentTelemetry
     this.accountId = accountId;
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryComponent.getRepositoryId();
+    this.repositoryName = null; // Not available in this legacy constructor
     this.componentFormat =
         repositoryComponent.getComponentIdentifier() == null ? null : repositoryComponent.getComponentIdentifier()
             .getFormat();
@@ -156,6 +207,7 @@ public class RepositoryComponentTelemetry
     this.accountId = null; // Not available in this legacy constructor
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryId;
+    this.repositoryName = null; // Not available in this legacy constructor
     this.componentFormat = componentFormat;
     this.componentHash =  HdsClientAnalytics.obfuscate(componentHash);
     this.eventType = repositoryComponentTelemetryEventType.getDescription();
@@ -177,6 +229,10 @@ public class RepositoryComponentTelemetry
 
   public String getRepositoryId() {
     return repositoryId;
+  }
+
+  public String getRepositoryName() {
+    return repositoryName;
   }
 
   public String getComponentFormat() {
@@ -281,6 +337,185 @@ public class RepositoryComponentTelemetry
 
     public String getDescription() {
       return description;
+    }
+  }
+
+  /**
+   * Builder for RepositoryComponentTelemetry using Java 17 style.
+   * Provides a fluent API for constructing telemetry objects with optional parameters.
+   */
+  public static class Builder
+  {
+    private String accountId;
+
+    private String repositoryManagerId;
+
+    private String repositoryId;
+
+    private String repositoryName;
+
+    private String componentFormat;
+
+    private String componentHash;
+
+    private String eventType;
+
+    private Long quarantineTime;
+
+    private Long releaseQuarantineTime;
+
+    private String releaseQuarantineType;
+
+    private String releaseReason;
+
+    private String componentIdentifier;
+
+    private String componentName;
+
+    private String componentNamespace;
+
+    private String componentVersion;
+
+    private List<PolicyNotification> policyNotifications;
+
+    private TelemetryDataObfuscator telemetryDataObfuscator;
+
+    private Builder() {
+    }
+
+    public Builder accountId(String accountId) {
+      this.accountId = accountId;
+      return this;
+    }
+
+    public Builder repositoryManagerId(String repositoryManagerId) {
+      this.repositoryManagerId = repositoryManagerId;
+      return this;
+    }
+
+    public Builder repositoryId(String repositoryId) {
+      this.repositoryId = repositoryId;
+      return this;
+    }
+
+    public Builder repositoryName(String repositoryName) {
+      this.repositoryName = repositoryName;
+      return this;
+    }
+
+    public Builder componentFormat(String componentFormat) {
+      this.componentFormat = componentFormat;
+      return this;
+    }
+
+    public Builder componentHash(String componentHash) {
+      this.componentHash = componentHash;
+      return this;
+    }
+
+    public Builder eventType(String eventType) {
+      this.eventType = eventType;
+      return this;
+    }
+
+    public Builder eventType(RepositoryComponentTelemetryEventType eventType) {
+      this.eventType = eventType != null ? eventType.getDescription() : null;
+      return this;
+    }
+
+    public Builder quarantineTime(Long quarantineTime) {
+      this.quarantineTime = quarantineTime;
+      return this;
+    }
+
+    public Builder releaseQuarantineTime(Long releaseQuarantineTime) {
+      this.releaseQuarantineTime = releaseQuarantineTime;
+      return this;
+    }
+
+    public Builder releaseQuarantineType(String releaseQuarantineType) {
+      this.releaseQuarantineType = releaseQuarantineType;
+      return this;
+    }
+
+    public Builder releaseQuarantineType(ReleaseQuarantineType releaseQuarantineType) {
+      this.releaseQuarantineType = releaseQuarantineType != null ? releaseQuarantineType.getDescription() : null;
+      return this;
+    }
+
+    public Builder releaseReason(String releaseReason) {
+      this.releaseReason = releaseReason;
+      return this;
+    }
+
+    public Builder componentIdentifier(String componentIdentifier) {
+      this.componentIdentifier = componentIdentifier;
+      return this;
+    }
+
+    public Builder componentName(String componentName) {
+      this.componentName = componentName;
+      return this;
+    }
+
+    public Builder componentNamespace(String componentNamespace) {
+      this.componentNamespace = componentNamespace;
+      return this;
+    }
+
+    public Builder componentVersion(String componentVersion) {
+      this.componentVersion = componentVersion;
+      return this;
+    }
+
+    public Builder policyNotifications(List<PolicyNotification> policyNotifications) {
+      this.policyNotifications = policyNotifications;
+      return this;
+    }
+
+    public Builder telemetryDataObfuscator(TelemetryDataObfuscator telemetryDataObfuscator) {
+      this.telemetryDataObfuscator = telemetryDataObfuscator;
+      return this;
+    }
+
+    /**
+     * Populates builder fields from a RepositoryComponent.
+     * This is a convenience method for the common case of creating telemetry from a component.
+     *
+     * @param repositoryComponent The repository component to extract data from
+     * @return This builder instance
+     */
+    public Builder fromRepositoryComponent(RepositoryComponent repositoryComponent) {
+      if (repositoryComponent == null) {
+        return this;
+      }
+
+      this.repositoryId = repositoryComponent.getRepositoryId();
+      this.componentHash = repositoryComponent.getHash();
+
+      if (repositoryComponent.getComponentIdentifier() != null) {
+        this.componentFormat = repositoryComponent.getComponentIdentifier().getFormat();
+        this.componentIdentifier = ComponentIdentifierAdapter.toJson(repositoryComponent.getComponentIdentifier());
+        PackageUrlIdentifier purl =
+            PackageUrlIdentifier.fromComponentIdentifier(repositoryComponent.getComponentIdentifier());
+        this.componentName = purl.getName();
+        this.componentNamespace = purl.getNamespace();
+        this.componentVersion = purl.getVersion();
+      }
+
+      if (repositoryComponent.getQuarantineTime() != null) {
+        this.quarantineTime = repositoryComponent.getQuarantineTime().toInstant().toEpochMilli();
+      }
+
+      if (repositoryComponent.getUnquarantineTime() != null) {
+        this.releaseQuarantineTime = repositoryComponent.getUnquarantineTime().toInstant().toEpochMilli();
+      }
+
+      return this;
+    }
+
+    public RepositoryComponentTelemetry build() {
+      return new RepositoryComponentTelemetry(this);
     }
   }
 }

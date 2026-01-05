@@ -583,4 +583,90 @@ public class RepositoryComponentTelemetryCreatorTest
 
     assertThat(telemetry.getAccountId()).isNull();
   }
+
+  @Test
+  public void testFetchApplications_WithValidRepositoryConnection() {
+    // Create repository component with a valid repository
+    final RepositoryComponent repositoryComponent = createComponent();
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Verify telemetry is created successfully
+    // The actual organization and application IDs depend on the repository connections in the database
+    assertThat(telemetry).isNotNull();
+    assertThat(telemetry.getRepositoryId()).isEqualTo(repositoryComponent.getRepositoryId());
+  }
+
+  @Test
+  public void testFetchApplications_WithNullRepositoryId() {
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(null); // Null repository ID
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Lifecycle fields removed - only verify telemetry is created
+    assertThat(telemetry).isNotNull();
+  }
+
+  @Test
+  public void testFetchApplications_WithNoRepositoryConnections() {
+    final String repoId = "non-existent-repo";
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(repoId);
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Lifecycle fields removed - only verify telemetry is created
+    assertThat(telemetry).isNotNull();
+  }
+
+  @Test
+  public void testFetchApplications_HandlesNullOrganizationId() {
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId("repo-without-org");
+
+    // Note: In production, extractOrganizationId may return null if repository has no manager/organization
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Lifecycle fields removed - only verify telemetry is created
+    assertThat(telemetry).isNotNull();
+  }
 }

@@ -124,13 +124,15 @@ public class RepositoryComponentDeleteService
         // If the component was quarantined, treat deletion as a manual release with "Deleted" reason
         if (component.isQuarantined()) {
           repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
-              repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+              repository.getRepositoryManagerId(), repository.getPublicId(),
+              RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
               ReleaseQuarantineType.MANUAL, ReleaseReason.DELETED.getDescription(), Collections.emptyList());
         }
 
         repositoryComponentTelemetryCreator
             .sendRepositoryComponentTelemetry(component, repositoryPolicyViolations,
-                repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.DELETE);
+                repository.getRepositoryManagerId(), repository.getPublicId(),
+                RepositoryComponentTelemetryEventType.DELETE, Collections.emptyList(), null);
       }
     }
   }

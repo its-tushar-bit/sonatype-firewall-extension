@@ -177,7 +177,16 @@ public class RepositoryPolicyEvaluator
       RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
   {
     return evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
-        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */);
+        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */, null);
+  }
+
+  public RepositoryComponentEvaluationDataList evaluateForAutomaticRelease(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, false /* withQuarantine */,
+        true /* persistEvaluationResults */, null /* clientUserAgent */, true /* forMonitoring */,
+        ReleaseReason.AUTO_RELEASED);
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -187,7 +196,7 @@ public class RepositoryPolicyEvaluator
       final String clientUserAgent)
   {
     return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, true /* persistEvaluationResults */,
-        clientUserAgent, false /* forMonitoring */);
+        clientUserAgent, false /* forMonitoring */, null);
   }
 
   public RepositoryComponentEvaluationDataList evaluate(
@@ -198,13 +207,26 @@ public class RepositoryPolicyEvaluator
       String clientUserAgent,
       boolean forMonitoring)
   {
+    return evaluate(repository, componentEvaluationDataRequestList, withQuarantine, persistEvaluationResults,
+        clientUserAgent, forMonitoring, null);
+  }
+
+  private RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      boolean withQuarantine,
+      boolean persistEvaluationResults,
+      String clientUserAgent,
+      boolean forMonitoring,
+      ReleaseReason explicitReleaseReason)
+  {
     long start = System.currentTimeMillis();
 
     ComponentEvaluationDataList componentDetailsFromHdsList =
         getComponentDetailsFromHds(repository, withQuarantine, componentEvaluationDataRequestList, clientUserAgent);
 
     RepositoryComponentEvaluationDataList result = evaluate(repository, componentEvaluationDataRequestList,
-        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults, forMonitoring);
+        componentDetailsFromHdsList, withQuarantine, persistEvaluationResults, forMonitoring, explicitReleaseReason);
 
     log.debug("Evaluated {} components with quarantine {} for repository {}:{} ({}) because of {} in {} ms.",
         componentEvaluationDataRequestList.components.size(), withQuarantine, repository.getRepositoryManagerId(),
@@ -221,6 +243,19 @@ public class RepositoryPolicyEvaluator
       boolean withQuarantine,
       boolean persistEvaluationResults,
       boolean forMonitoring)
+  {
+    return evaluate(repository, componentEvaluationDataRequestList, componentDetailsFromHds, withQuarantine,
+        persistEvaluationResults, forMonitoring, null);
+  }
+
+  private RepositoryComponentEvaluationDataList evaluate(
+      Repository repository,
+      RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList,
+      ComponentEvaluationDataList componentDetailsFromHds,
+      boolean withQuarantine,
+      boolean persistEvaluationResults,
+      boolean forMonitoring,
+      ReleaseReason explicitReleaseReason)
   {
     long start = System.currentTimeMillis();
 
@@ -364,6 +399,7 @@ public class RepositoryPolicyEvaluator
               withQuarantine,
               shouldSendNotifications,
               forMonitoring,
+              explicitReleaseReason,
               event,
               activeAlerts,
               waivedAlerts,
@@ -512,6 +548,7 @@ public class RepositoryPolicyEvaluator
       boolean canBeQuarantined,
       boolean isNotificationsToBeSent,
       boolean forMonitoring,
+      ReleaseReason explicitReleaseReason,
       CreateRepositoryPolicyViolationsEvent event,
       List<PolicyAlert> activeAlerts,
       List<PolicyAlert> waivedAlerts,
@@ -536,11 +573,12 @@ public class RepositoryPolicyEvaluator
       persistPolicyViolations(tx, repository, evaluationTime, component, policies,
           policyViolationLogger, event, allPolicyAlertsByComponent, policyWaiversByComponent);
       repositoryComponent = persistRepositoryComponent(tx, repository, evaluationTime, component,
-          canBeQuarantined, forMonitoring, activeAlerts);
+          canBeQuarantined, forMonitoring, explicitReleaseReason, activeAlerts);
 
       tx.commit();
 
-      sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository, isNotificationsToBeSent);
+      sendRepositoryComponentTelemetry(policyNotifications, repositoryComponent, repository,
+          isNotificationsToBeSent, component);
       AuditData.get().commitSubEvents();
       policyViolationLogger.log();
     }
@@ -554,6 +592,7 @@ public class RepositoryPolicyEvaluator
       Component component,
       boolean canBeQuarantined,
       boolean forMonitoring,
+      ReleaseReason explicitReleaseReason,
       List<PolicyAlert> activeAlerts)
   {
     String pathname = component.getPathnames().get(0);
@@ -603,7 +642,7 @@ public class RepositoryPolicyEvaluator
       if (repositoryComponent.isQuarantined() && !shouldQuarantine(activeAlerts, component)) {
         // The component is quarantined, but it doesn't have any policy violations/alerts that would quarantine it
         // anymore.
-        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring);
+        unquarantineComponent(repository, repositoryComponent, evaluationTime, forMonitoring, explicitReleaseReason);
       }
 
       repositoryComponentDAO.update(tx, repositoryComponent);
@@ -615,7 +654,8 @@ public class RepositoryPolicyEvaluator
       Repository repository,
       RepositoryComponent repositoryComponent,
       Date evaluationTime,
-      boolean forMonitoring)
+      boolean forMonitoring,
+      ReleaseReason explicitReleaseReason)
   {
     if (AuditData.get().getEvent() != null && !AuditData.get().getEvent().equals(AuditEvent.RELEASE_QUARANTINE)) {
       try (AuditSession auditSession = AuditData.get().recordSubEvent(AuditEvent.RELEASE_QUARANTINE, false)) {
@@ -637,12 +677,20 @@ public class RepositoryPolicyEvaluator
 
     ReleaseQuarantineType releaseQuarantineType =
         forMonitoring ? ReleaseQuarantineType.AUTO : ReleaseQuarantineType.MANUAL;
-    String releaseReason = forMonitoring
-        ? ReleaseReason.MONITORING_ENABLED.getDescription()
-        : ReleaseReason.POLICY_CHANGE.getDescription();
+
+    // Use explicit release reason if provided, otherwise derive from forMonitoring flag
+    String releaseReason;
+    if (explicitReleaseReason != null) {
+      releaseReason = explicitReleaseReason.getDescription();
+    }
+    else {
+      releaseReason = forMonitoring
+          ? ReleaseReason.MONITORING_ENABLED.getDescription()
+          : ReleaseReason.POLICY_CHANGE.getDescription();
+    }
 
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
-        repositoryPolicyViolations, repository.getRepositoryManagerId(),
+        repositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
         RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
         releaseQuarantineType, releaseReason, Collections.emptyList());
   }
@@ -651,16 +699,18 @@ public class RepositoryPolicyEvaluator
       final List<PolicyNotification> policyNotifications,
       final RepositoryComponent repositoryComponent,
       final Repository repository,
-      final boolean isNotificationsToBeSent)
+      final boolean isNotificationsToBeSent,
+      final Component component)
   {
     List<RepositoryPolicyViolation> repositoryPolicyViolations = repositoryPolicyViolationDAO
         .getActiveByRepositoryIdAndPathname(repository.getId(), repositoryComponent.getPathname());
     repositoryPolicyViolationDAO.loadConstraintFacts(repositoryPolicyViolations);
     repositoryComponentTelemetryCreator.sendRepositoryComponentTelemetry(repositoryComponent,
-        repositoryPolicyViolations, repository.getRepositoryManagerId(),
+        repositoryPolicyViolations, repository.getRepositoryManagerId(), repository.getPublicId(),
         repositoryComponent.isQuarantined() ? RepositoryComponentTelemetryEventType.QUARANTINE
             : RepositoryComponentTelemetryEventType.AUDIT,
-        isNotificationsToBeSent ? policyNotifications : Collections.emptyList());
+        isNotificationsToBeSent ? policyNotifications : Collections.emptyList(),
+        component);
   }
 
   private void persistPolicyViolations(
@@ -749,6 +799,22 @@ public class RepositoryPolicyEvaluator
     }
   }
 
+  /**
+   * Creates a RepositoryPolicyViolation from a policy alert.
+   *
+   * <p>The actionTypeId will be set to the first non-NOTIFY action (FAIL or WARN). If the policy
+   * has only NOTIFY actions, actionTypeId will remain null. This is intentional behavior for Firewall,
+   * as NOTIFY-only policies don't represent quarantine or warning actions for repository components.</p>
+   *
+   * @param policyAlert The policy alert containing actions
+   * @param policy The policy that was triggered
+   * @param componentFact The component fact from policy evaluation
+   * @param pathname The repository pathname of the component
+   * @param repository The repository where the violation occurred
+   * @param evaluationTime The time of policy evaluation
+   * @param policyWaiver Optional policy waiver (can be null)
+   * @return RepositoryPolicyViolation with actionTypeId set to FAIL/WARN, or null if only NOTIFY actions exist
+   */
   private RepositoryPolicyViolation createRepositoryPolicyViolation(
       PolicyAlert policyAlert,
       Policy policy,
@@ -763,11 +829,17 @@ public class RepositoryPolicyEvaluator
     RepositoryPolicyViolation policyViolation = new RepositoryPolicyViolation(repository.getId(), pathname,
         evaluationTime, policy.getId(), policy.getName(), policyFact.getThreatLevel(), threatCategory,
         componentFact.getHash(), componentFact.getComponentIdentifier(), componentFact.getConstraintFacts());
+
+    // Don't save notification data into policy violations here because we don't want to send notifications for
+    // policy violations on repository components. At least not yet.
+    //
+    // Set actionTypeId to the first FAIL or WARN action (skip NOTIFY actions).
+    // Note: actionTypeId will be null if policy has only NOTIFY actions.
+    // This is expected behavior - Firewall intentionally excludes NOTIFY-only actions as they
+    // don't represent quarantine/warn behavior for repository components.
     for (Action action : policyAlert.getActions()) {
-      // Don't save notification data into policy violations here because we don't want to send notifications for
-      // policy violations on repository components. At least not yet.
       if (!Action.ID_NOTIFY.equals(action.getActionTypeId())) {
-        policyViolation.setActionTypeId(action.getActionTypeId());
+        policyViolation.setActionTypeId(action.getActionTypeId());  // Will be Action.ID_FAIL or Action.ID_WARN
         break;
       }
     }

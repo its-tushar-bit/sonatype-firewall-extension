@@ -123,7 +123,7 @@ public class RepositoryComponentDeleteServiceTest
 
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.DELETE));
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.DELETE), any(), any());
   }
 
   @Test
@@ -305,7 +305,7 @@ public class RepositoryComponentDeleteServiceTest
     // then: telemetry is only sent for components with violations
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.DELETE));
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.DELETE), any(), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 

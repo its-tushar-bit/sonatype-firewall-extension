@@ -218,9 +218,9 @@ public class AutomaticQuarantineRelease
     try {
       auditRepositoryComponentEvaluationList(repository, evaluationRequestList);
       // Part of the policy evaluation, the component is unquarantined if it doesn't have any policy violations that
-      // require quarantine.
+      // require quarantine. Use evaluateForAutomaticRelease to properly set AUTO_RELEASED as the release reason.
       RepositoryComponentEvaluationDataList evaluationResults =
-          repositoryPolicyEvaluator.evaluateForMonitoring(repository, evaluationRequestList);
+          repositoryPolicyEvaluator.evaluateForAutomaticRelease(repository, evaluationRequestList);
 
       int unquarantinedComponentsCount = (int) evaluationResults.componentEvalResults.stream()
           .filter(componentEvaluationData -> !componentEvaluationData.quarantine).count();

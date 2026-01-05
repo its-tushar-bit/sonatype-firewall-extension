@@ -106,6 +106,8 @@ import com.sonatype.insight.brain.policy.violation.PolicyViolationLogEvent;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.security.CurrentUser;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseQuarantineType;
+import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.ReleaseReason;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetry.RepositoryComponentTelemetryEventType;
 import com.sonatype.insight.brain.telemetry.RepositoryComponentTelemetryCreator;
 import com.sonatype.insight.brain.webhook.TestEventHandler;
@@ -119,6 +121,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.jvnet.mock_javamail.Mailbox;
+import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.hamcrest.MockitoHamcrest;
 
@@ -130,6 +133,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -364,8 +368,9 @@ public class RepositoryPolicyEvaluatorTest
     assertRepositoryComponent(repository, 2);
 
     verify(repositoryComponentTelemetryCreator, times(4))
-        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
-            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
+            eq(Collections.emptyList()), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -498,8 +503,9 @@ public class RepositoryPolicyEvaluatorTest
     assertRepositoryComponent(repository, 2);
 
     verify(repositoryComponentTelemetryCreator, times(4))
-        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
-            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
+            eq(Collections.emptyList()), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -801,7 +807,8 @@ public class RepositoryPolicyEvaluatorTest
 
     verify(repositoryComponentTelemetryCreator, times(1))
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.QUARANTINE), eq(Collections.emptyList()));
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.QUARANTINE),
+            eq(Collections.emptyList()), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -954,8 +961,9 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     verify(repositoryComponentTelemetryCreator, times(2))
-        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
-            RepositoryComponentTelemetryEventType.QUARANTINE), (List) MockitoHamcrest.argThat(hasSize(2)));
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.QUARANTINE),
+            (List) MockitoHamcrest.argThat(hasSize(2)), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -985,8 +993,9 @@ public class RepositoryPolicyEvaluatorTest
         null /* clientUserAgent */);
 
     verify(repositoryComponentTelemetryCreator, times(2))
-        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), eq(
-            RepositoryComponentTelemetryEventType.AUDIT), eq(Collections.emptyList()));
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.AUDIT),
+            eq(Collections.emptyList()), any());
     verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 
@@ -1135,8 +1144,8 @@ public class RepositoryPolicyEvaluatorTest
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true, null);
 
     verify(repositoryComponentTelemetryCreator, times(1))
-        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()), any(),
-            (List) MockitoHamcrest.argThat(hasSize(0)));
+        .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
+            eq(repository.getPublicId()), any(), (List) MockitoHamcrest.argThat(hasSize(0)), any());
 
     List<RepositoryComponent> repositoryComponents = repositoryComponentDAO.getByRepositoryId(repository.getId());
 
@@ -1684,5 +1693,65 @@ public class RepositoryPolicyEvaluatorTest
     Map<String, String> coordinates = identifier.getCoordinates();
     assertThat(coordinates.get("packageId")).isEqualTo("lodash");
     assertThat(coordinates.get("version")).isEqualTo("4.17.20");
+  }
+
+  @Test
+  public void testEvaluateForAutomaticRelease() {
+    Repository repository = tempEntity.newRepository();
+    Policy policy = tempEntity.newPolicy(repository.getId());
+
+    // Create a component that was previously quarantined
+    RepositoryComponent quarantinedComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), "testPath", new Date());
+    quarantinedComponent.setQuarantineTime(new Date());
+    repositoryComponentDAO.update(quarantinedComponent);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+    componentEvaluationDataRequestList.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+
+    // Prepare request and mock the HDS request - component now has no violations
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    componentEvaluationDataRequestList.components
+        .add(new RepositoryComponentEvaluationDataRequest("maven2", quarantinedComponent.getPathname(),
+            quarantinedComponent.getHash()));
+    hdsResult.components.add(createComponentEvaluationData(
+        quarantinedComponent.getComponentIdentifier(), quarantinedComponent.getHash(),
+        MatchState.EXACT, 0 /* index */, null /* declaredLicenseSet */, null /* observedLicenseSet */,
+        Collections.emptyList(), 1 /* popularity */));
+    mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
+
+    // Delete the policy so the component will be automatically released
+    policyDAO.delete(policy);
+
+    // Call evaluateForAutomaticRelease
+    repositoryPolicyEvaluator.evaluateForAutomaticRelease(repository, componentEvaluationDataRequestList);
+
+    // Verify component is no longer quarantined
+    RepositoryComponent updatedComponent =
+        repositoryComponentDAO.getByRepositoryIdAndPathname(repository.getId(), quarantinedComponent.getPathname());
+    assertThat(updatedComponent).isNotNull();
+    assertThat(updatedComponent.isQuarantined()).isFalse();
+    assertThat(updatedComponent.getUnquarantineTime()).isNotNull();
+
+    // Verify telemetry calls in order
+    InOrder inOrder = inOrder(repositoryComponentTelemetryCreator);
+
+    // First call: RELEASE_QUARANTINE telemetry with ReleaseReason.AUTO_RELEASED
+    inOrder.verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), eq(Collections.emptyList()),
+            eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
+            eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
+            eq(ReleaseQuarantineType.AUTO), eq(ReleaseReason.AUTO_RELEASED.getDescription()),
+            eq(Collections.emptyList()));
+
+    // Second call: AUDIT telemetry after evaluation (component is no longer quarantined)
+    inOrder.verify(repositoryComponentTelemetryCreator)
+        .sendRepositoryComponentTelemetry(any(RepositoryComponent.class), eq(Collections.emptyList()),
+            eq(repository.getRepositoryManagerId()), eq(repository.getPublicId()),
+            eq(RepositoryComponentTelemetryEventType.AUDIT),
+            eq(Collections.emptyList()), any(Component.class));
+
+    verifyNoMoreInteractions(repositoryComponentTelemetryCreator);
   }
 }

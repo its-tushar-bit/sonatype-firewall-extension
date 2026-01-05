@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.model.policy;
 
 import java.util.Date;
 import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -183,11 +184,24 @@ public class PolicyViolation
     this.seenByMonitoringEvaluation = seenByMonitoringEvaluation;
   }
 
+  /**
+   * Lifecycle semantics: excludes legacy violations (treat as warnings).
+   * For Firewall enforcement, use {@link #isActiveForFirewall()}.
+   */
   @Transient
   public boolean isActive() {
     return !isFixed() && !isWaived() && !isLegacyViolation();
   }
-  
+
+  /**
+   * Firewall semantics: ignores legacy violations completely.
+   * Unlike {@link #isActive()}, legacy violations are treated as active (not excluded).
+   */
+  @Transient
+  public boolean isActiveForFirewall() {
+    return !isFixed() && !isWaived();
+  }
+
   @Transient
   public boolean isAutoWaived() {
     return isWaived() && autoPolicyWaiverId != null;

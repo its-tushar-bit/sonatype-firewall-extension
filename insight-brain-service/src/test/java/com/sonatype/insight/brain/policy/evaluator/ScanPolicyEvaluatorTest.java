@@ -4746,11 +4746,15 @@ public class ScanPolicyEvaluatorTest
     applicationDAO.update(application);
 
     // This is what disabling legacy violations performs for an application
-    policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
-      policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
-      policyViolation.setLegacyViolationTime(null);
-      policyViolationDAO.update(policyViolation);
-    });
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+        policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
+        policyViolation.setLegacyViolationTime(null);
+        policyViolationDAO.update(tx, policyViolation);
+      });
+      tx.commit();
+    }
 
     scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
         ClientScanType.SONATYPE, false);
@@ -5323,11 +5327,15 @@ public class ScanPolicyEvaluatorTest
 
     // This is what enabling legacy violations performs for an application
     Date currentDate = new Date();
-    policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
-      policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
-      policyViolation.setLegacyViolationTime(currentDate);
-      policyViolationDAO.update(policyViolation);
-    });
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      policyViolationDAO.getByApplicationId(application.getId()).forEach(policyViolation -> {
+        policyViolationDAO.loadConstraintFacts(Collections.singletonList(policyViolation));
+        policyViolation.setLegacyViolationTime(currentDate);
+        policyViolationDAO.update(tx, policyViolation);
+      });
+      tx.commit();
+    }
 
     clearInvocations(mockTelemetrySender);
     if (!isReevaluation) {
@@ -6185,5 +6193,84 @@ public class ScanPolicyEvaluatorTest
     // Verify: Total component count should be 0 (not loaded), but result is valid
     assertThat(result).isNotNull();
     assertThat(result.getTotalComponentCount()).isEqualTo(0);
+  }
+
+  @Test
+  public void testEvaluate_FirewallContext_LegacyViolationsEnforced() throws Exception {
+    // Firewall should enforce ALL legacy violations regardless of severity
+    Stage proxyStage = new Stage(Stage.ID_PROXY);
+    Repository repository = createTestRepository();
+    organization.setRelatedRepositoryId(repository.getId());
+    organizationDAO.update(organization);
+
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policy.getActions().put(Stage.ID_PROXY, Action.ID_FAIL);
+    policy.setOwnerId(repository.getId());
+    policyDAO.update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, proxyStage,
+        ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
+
+    // Mark all violations as legacy
+    List<PolicyViolation> allViolations = results.allViolations;
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      for (PolicyViolation violation : allViolations) {
+        violation.setLegacyViolationTime(new Date());
+        policyViolationDAO.update(tx, violation);
+      }
+      tx.commit();
+    }
+
+    // Re-evaluate to get active violations with legacy flag applied
+    results = scanPolicyEvaluator.evaluate(application, scanId, proxyStage,
+        ScanTriggerType.REPOSITORY_MANAGER, ClientScanType.SONATYPE, false);
+
+    // Verify ALL legacy violations are included (Firewall ignores legacy flag)
+    List<PolicyViolation> activeViolations = results.activeViolations;
+    long legacyCount = activeViolations.stream()
+        .filter(PolicyViolation::isLegacyViolation)
+        .count();
+
+    assertThat(legacyCount).isEqualTo(allViolations.size());
+    assertThat(activeViolations.size()).isEqualTo(allViolations.size());
+  }
+
+  @Test
+  public void testEvaluate_LifecycleContext_LegacyViolationsExcluded() throws Exception {
+    // Lifecycle should exclude ALL legacy violations
+    Stage buildStage = new Stage(Stage.ID_BUILD);
+    Policy policy = newSecurityPolicy();
+    policy.setLegacyViolationAllowed(true);
+    policyDAO.update(policy);
+
+    String scanId = simulateReportIsAvailable("report");
+    ScanPolicyEvaluatorResults results = scanPolicyEvaluator.evaluate(application, scanId, buildStage,
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    // Mark all violations as legacy
+    List<PolicyViolation> allViolations = results.allViolations;
+    try (TransactionContext tx = policyViolationDAO.createTransactionContext()) {
+      tx.begin();
+      for (PolicyViolation violation : allViolations) {
+        violation.setLegacyViolationTime(new Date());
+        policyViolationDAO.update(tx, violation);
+      }
+      tx.commit();
+    }
+
+    // Re-evaluate
+    results = scanPolicyEvaluator.evaluate(application, scanId, buildStage,
+        ScanTriggerType.CLI, ClientScanType.SONATYPE, false);
+
+    // Verify NO legacy violations are in active alerts (Lifecycle behavior)
+    List<PolicyViolation> activeViolations = results.activeViolations;
+    long legacyInActiveCount = activeViolations.stream()
+        .filter(PolicyViolation::isLegacyViolation)
+        .count();
+
+    assertThat(legacyInActiveCount).isEqualTo(0);
   }
 }

@@ -709,6 +709,199 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testActiveByApplicationIdAndStageIdAndActionId_ProxyStage_IncludesAllLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        ProxyStageType.ID, "scan-1");
+
+    // High-severity legacy violation
+    PolicyViolation highSeverityLegacy = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    highSeverityLegacy.setThreatLevel(10);
+    highSeverityLegacy.setActionTypeId(Action.ID_FAIL);
+    highSeverityLegacy.setLegacyViolationTime(new Date());
+    dao.update(highSeverityLegacy);
+
+    // Low-severity legacy violation
+    PolicyViolation lowSeverityLegacy = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    lowSeverityLegacy.setThreatLevel(3);
+    lowSeverityLegacy.setActionTypeId(Action.ID_FAIL);
+    lowSeverityLegacy.setLegacyViolationTime(new Date());
+    dao.update(lowSeverityLegacy);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+        application.getId(), ProxyStageType.ID, Action.ID_FAIL);
+
+    // Firewall includes ALL legacy violations regardless of severity
+    assertThat(violations).hasSize(2);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(highSeverityLegacy.getId(), lowSeverityLegacy.getId());
+  }
+
+  @Test
+  public void testActiveByApplicationIdAndStageIdAndActionId_ProxyStage_ExcludesFixedAndWaived() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        ProxyStageType.ID, "scan-1");
+
+    // Legacy violation (should be included)
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setActionTypeId(Action.ID_FAIL);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Fixed legacy violation (should be excluded)
+    PolicyViolation fixedLegacy = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    fixedLegacy.setActionTypeId(Action.ID_FAIL);
+    fixedLegacy.setLegacyViolationTime(new Date());
+    fixedLegacy.setFixTime(new Date());
+    dao.update(fixedLegacy);
+
+    // Waived legacy violation (should be excluded)
+    PolicyViolation waivedLegacy = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    waivedLegacy.setActionTypeId(Action.ID_FAIL);
+    waivedLegacy.setLegacyViolationTime(new Date());
+    waivedLegacy.setWaiveTime(new Date());
+    dao.update(waivedLegacy);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+        application.getId(), ProxyStageType.ID, Action.ID_FAIL);
+
+    // Firewall only excludes fixed/waived, includes legacy
+    assertThat(violations).hasSize(1);
+    assertThat(violations.get(0).getId()).isEqualTo(legacyViolation.getId());
+  }
+
+  @Test
+  public void testActiveByApplicationIdAndStageIdAndActionId_BuildStage_ExcludesAllLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        BuildStageType.ID, "scan-1");
+
+    // Legacy violation in build stage (Lifecycle)
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setThreatLevel(10);
+    legacyViolation.setActionTypeId(Action.ID_FAIL);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndActionId(
+        application.getId(), BuildStageType.ID, Action.ID_FAIL);
+
+    // Lifecycle excludes ALL legacy violations
+    assertThat(violations).isEmpty();
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdAndStageId_ProxyStage_IncludesLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        ProxyStageType.ID, "scan-1");
+
+    // Create legacy violation
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setThreatLevel(9);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Create regular violation
+    PolicyViolation regularViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    regularViolation.setThreatLevel(8);
+    dao.update(regularViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(
+        application.getId(), ProxyStageType.ID);
+
+    // Firewall includes ALL violations (legacy and regular)
+    assertThat(violations).hasSize(2);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(legacyViolation.getId(), regularViolation.getId());
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdAndStageId_BuildStage_ExcludesLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        BuildStageType.ID, "scan-1");
+
+    // Create legacy violation
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setThreatLevel(9);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Create regular violation
+    PolicyViolation regularViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    regularViolation.setThreatLevel(8);
+    dao.update(regularViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageId(
+        application.getId(), BuildStageType.ID);
+
+    // Lifecycle excludes legacy violations
+    assertThat(violations).hasSize(1);
+    assertThat(violations.get(0).getId()).isEqualTo(regularViolation.getId());
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdAndStageIdAndHash_ProxyStage_IncludesLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        ProxyStageType.ID, "scan-1");
+
+    String testHash = "test-hash-123";
+
+    // Create legacy violation with specific hash
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setHash(testHash);
+    legacyViolation.setThreatLevel(9);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Create regular violation with same hash
+    PolicyViolation regularViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    regularViolation.setHash(testHash);
+    regularViolation.setThreatLevel(8);
+    dao.update(regularViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndHash(
+        application.getId(), ProxyStageType.ID, testHash);
+
+    // Firewall includes ALL violations for this hash (legacy and regular)
+    assertThat(violations).hasSize(2);
+    assertThat(violations).extracting(PolicyViolation::getId)
+        .containsExactlyInAnyOrder(legacyViolation.getId(), regularViolation.getId());
+  }
+
+  @Test
+  public void testGetActiveByApplicationIdAndStageIdAndHash_BuildStage_ExcludesLegacy() {
+    Policy policy = tempEntity.newPolicy(application);
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(application.getId(),
+        BuildStageType.ID, "scan-1");
+
+    String testHash = "test-hash-123";
+
+    // Create legacy violation with specific hash
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    legacyViolation.setHash(testHash);
+    legacyViolation.setThreatLevel(9);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Create regular violation with same hash
+    PolicyViolation regularViolation = tempEntity.newPolicyViolation(policyEvaluation, policy);
+    regularViolation.setHash(testHash);
+    regularViolation.setThreatLevel(8);
+    dao.update(regularViolation);
+
+    List<PolicyViolation> violations = dao.getActiveByApplicationIdAndStageIdAndHash(
+        application.getId(), BuildStageType.ID, testHash);
+
+    // Lifecycle excludes legacy violations
+    assertThat(violations).hasSize(1);
+    assertThat(violations.get(0).getId()).isEqualTo(regularViolation.getId());
+  }
+
+  @Test
   public void testGetActiveByApplicationIdAndStageIdAndHash() {
     Policy policy = tempEntity.newPolicy(application);
 
@@ -2167,6 +2360,35 @@ public class PolicyViolationDAOTest
   }
 
   @Test
+  public void testGetContainerImagesInQuarantine_IncludesLegacyViolations() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
+        app1.getId(), ProxyStageType.ID, "scan-1");
+
+    // Create legacy violation with fail action
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(
+        policyEvaluation, policy, 8, PolicyThreatCategory.SECURITY,
+        "test-group-id", "test-artifact-id1", "v1", "test-hash", FailActionType.ID);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    List<ContainerImageInQuarantineData> results = dao.getContainerImagesInQuarantine(1, 10);
+
+    // Firewall should include legacy violations in quarantine list
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).applicationId()).isEqualTo(app1.getId());
+    assertThat(results.get(0).policyViolationCount()).isEqualTo(1);
+  }
+
+  @Test
   public void getContainerImagesQuarantinedCount() {
     RepositoryManager repoManager = tempEntity.newRepositoryManager();
     Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
@@ -2203,6 +2425,31 @@ public class PolicyViolationDAOTest
         "scan-1");
 
     assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(2);
+  }
+
+  @Test
+  public void testGetContainerImagesQuarantinedCount_IncludesLegacyViolations() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation = tempEntity.newPolicyEvaluation(
+        app1.getId(), ProxyStageType.ID, "scan-1");
+
+    // Create legacy violation with fail action
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(
+        policyEvaluation, policy, 8, PolicyThreatCategory.SECURITY,
+        "test-group-id", "test-artifact-id1", "v1", "test-hash", FailActionType.ID);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    // Firewall should count legacy violations as quarantined
+    assertThat(dao.getContainerImagesQuarantinedCount()).isEqualTo(1);
   }
 
   @Test
@@ -2369,7 +2616,8 @@ public class PolicyViolationDAOTest
     Collection<String> repoId = Collections.singleton(repo1.getId());
     Collection<String> applicationIds = Arrays.asList(app1.getId(), app2.getId(), app3.getId());
 
-    // Test VIOLATION_STATE_OPEN - should return only open violations (not waived, not legacy)
+    // Test VIOLATION_STATE_OPEN - should return only open violations (not waived)
+    // Note: Legacy violations ARE included in Firewall (legacy flag is ignored)
     RepositoryResultsForImageContainerFilter filterOpen = getDetailsFilter();
     filterOpen.violationStateFilters = Collections.singleton("VIOLATION_STATE_OPEN");
     List<RepositoryResultsForImageContainer> resultOpen = 
@@ -2401,5 +2649,44 @@ public class PolicyViolationDAOTest
     RepositoryResultsForImageContainer waivedResult = resultWaived.get(0);
     assertThat(waivedResult.quarantineTime).isNull();
 
+  }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainer_OpenFilter_IncludesLegacy() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Application app2 = tempEntity.newApplication("app2", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    // App1: Regular open violation
+    PolicyEvaluation eval1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+    tempEntity.newPolicyViolation(eval1, policy, 8, PolicyThreatCategory.SECURITY,
+        "group1", "artifact1", "v1", "hash1", FailActionType.ID);
+
+    // App2: Legacy violation (should be included in OPEN filter for Firewall)
+    PolicyEvaluation eval2 = tempEntity.newPolicyEvaluation(app2.getId(), ProxyStageType.ID, "scan-2");
+    PolicyViolation legacyViolation = tempEntity.newPolicyViolation(eval2, policy, 9,
+        PolicyThreatCategory.SECURITY, "group2", "artifact2", "v1", "hash2", FailActionType.ID);
+    legacyViolation.setLegacyViolationTime(new Date());
+    dao.update(legacyViolation);
+
+    Collection<String> repoIds = Collections.singleton(repo1.getId());
+    Collection<String> appIds = Arrays.asList(app1.getId(), app2.getId());
+
+    RepositoryResultsForImageContainerFilter filter = getDetailsFilter();
+    filter.violationStateFilters = Collections.singleton("VIOLATION_STATE_OPEN");
+
+    List<RepositoryResultsForImageContainer> results =
+        dao.getRepositoryResultsForImageContainerAggregate(repoIds, appIds, filter);
+
+    // Both regular AND legacy violations should be included in OPEN filter for Firewall
+    assertThat(results)
+        .extracting(r -> r.applicationPublicId)
+        .containsExactlyInAnyOrder(app1.getPublicId(), app2.getPublicId());
   }
 }

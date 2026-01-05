@@ -918,7 +918,7 @@ public class ScanPolicyEvaluator
 
       policyViolationLogger.log();
 
-      results.activeViolations = filterActivePolicyViolations(results.allViolations);
+      results.activeViolations = filterActivePolicyViolations(results.allViolations, policyEvaluation.getStageTypeId());
 
       String purgeScanFiles = configuration.getPurgeScanFiles();
       if (purgeScanFiles == null) {
@@ -1333,7 +1333,8 @@ public class ScanPolicyEvaluator
     PolicyEvaluationResult policyEvaluationResult = new PolicyEvaluationResult();
     calculateCounters(policyEvaluationResult, policyViolations);
     if (createAlerts) {
-      List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations);
+      List<PolicyViolation> activePolicyViolations = filterActivePolicyViolations(policyViolations,
+          policyEvaluation.getStageTypeId());
       List<PolicyAlert> policyAlerts = createPolicyAlerts(policyEvaluation.getApplicationId(),
           policyEvaluation.getScanId(), policyEvaluation.getStageTypeId(), policyEvaluation.isForMonitoring(),
           components, activePolicyViolations);
@@ -1345,8 +1346,26 @@ public class ScanPolicyEvaluator
     return policyEvaluationResult;
   }
 
-  private List<PolicyViolation> filterActivePolicyViolations(List<PolicyViolation> policyViolations) {
-    return policyViolations.stream().filter(PolicyViolation::isActive).collect(toList());
+  /**
+   * Stage-aware filtering: Firewall ignores legacy violations completely,
+   * Lifecycle excludes legacy violations.
+   */
+  private List<PolicyViolation> filterActivePolicyViolations(
+      List<PolicyViolation> policyViolations,
+      String stageTypeId)
+  {
+    boolean isFirewallContext = Stage.ID_PROXY.equals(stageTypeId);
+
+    if (isFirewallContext) {
+      return policyViolations.stream()
+          .filter(PolicyViolation::isActiveForFirewall)
+          .collect(toList());
+    }
+    else {
+      return policyViolations.stream()
+          .filter(PolicyViolation::isActive)
+          .collect(toList());
+    }
   }
 
   /**

@@ -190,6 +190,42 @@ public class PolicyViolationTest
   }
 
   @Test
+  public void testIsActiveForFirewall_Legacy() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 7,
+        PolicyThreatCategory.SECURITY, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    policyViolation.setLegacyViolationTime(new Date());
+
+    // Firewall enforces legacy violations (ignores legacy flag)
+    assertThat(policyViolation.isActiveForFirewall()).isTrue();
+  }
+
+  @Test
+  public void testIsActiveForFirewall_NonLegacy() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 5,
+        PolicyThreatCategory.SECURITY, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+
+    assertThat(policyViolation.isActiveForFirewall()).isTrue();
+  }
+
+  @Test
+  public void testIsActiveForFirewall_Fixed() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 7,
+        PolicyThreatCategory.SECURITY, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    policyViolation.setFixTime(new Date());
+
+    assertThat(policyViolation.isActiveForFirewall()).isFalse();
+  }
+
+  @Test
+  public void testIsActiveForFirewall_Waived() {
+    PolicyViolation policyViolation = new PolicyViolation(evaluation, "policyId", "policyName", 7,
+        PolicyThreatCategory.SECURITY, "hash", MAVEN_IDENTIFIER, createConstraintFacts(1), "filename");
+    policyViolation.setWaiveTime(new Date());
+
+    assertThat(policyViolation.isActiveForFirewall()).isFalse();
+  }
+
+  @Test
   public void testGetFixOrWaiveTime_BothNull() {
     PolicyViolation violation = new PolicyViolation();
 

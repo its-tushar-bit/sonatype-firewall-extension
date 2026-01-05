@@ -145,13 +145,29 @@ public class PolicyViolationDAO
     return getList(tx, sQuery, applicationId, stageTypeId);
   }
 
+  /**
+   * Returns violations to enforce based on stage-specific semantics.
+   * Firewall (proxy): Ignores legacy violations completely (treats as active).
+   * Lifecycle (build/release): Excludes all legacy violations.
+   */
   public List<PolicyViolation> getActiveByApplicationIdAndStageId(String applicationId, String stageTypeId) {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+
+    if (!ProxyStageType.ID.equals(stageTypeId)) {
+      // Lifecycle: exclude legacy violations
+      sQuery += " AND entity.legacyViolationTime IS NULL";
+    }
+
     return getList(sQuery, applicationId, stageTypeId);
   }
 
+  /**
+   * Returns violations to enforce based on stage-specific semantics.
+   * Firewall (proxy): Ignores legacy violations completely (treats as active).
+   * Lifecycle (build/release): Excludes all legacy violations.
+   */
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndActionId(
       String applicationId,
       String stageTypeId,
@@ -159,10 +175,21 @@ public class PolicyViolationDAO
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.actionTypeId=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+
+    if (!ProxyStageType.ID.equals(stageTypeId)) {
+      // Lifecycle: exclude legacy violations
+      sQuery += " AND entity.legacyViolationTime IS NULL";
+    }
+
     return getList(sQuery, applicationId, stageTypeId, actionTypeId);
   }
 
+  /**
+   * Returns violations to enforce based on stage-specific semantics.
+   * Firewall (proxy): Ignores legacy violations completely (treats as active).
+   * Lifecycle (build/release): Excludes all legacy violations.
+   */
   public List<PolicyViolation> getActiveByApplicationIdAndStageIdAndHash(
       String applicationId,
       String stageTypeId,
@@ -170,7 +197,13 @@ public class PolicyViolationDAO
   {
     String sQuery = "SELECT entity FROM PolicyViolation entity" + //
         " WHERE entity.applicationId=?1 AND entity.stageTypeId=?2 AND entity.hash=?3" + //
-        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL AND entity.legacyViolationTime IS NULL";
+        " AND entity.fixTime IS NULL AND entity.waiveTime IS NULL";
+
+    if (!ProxyStageType.ID.equals(stageTypeId)) {
+      // Lifecycle: exclude legacy violations
+      sQuery += " AND entity.legacyViolationTime IS NULL";
+    }
+
     return getList(sQuery, applicationId, stageTypeId, hash);
   }
 
@@ -476,7 +509,7 @@ public class PolicyViolationDAO
             break;
           case "VIOLATION_STATE_OPEN":
             query.append(filterCount > 1 ? " OR" : " AND (");
-            query.append(" pv.waive_time IS NULL AND pv.legacy_violation_time IS NULL");
+            query.append(" pv.waive_time IS NULL");
             break;
           case "VIOLATION_STATE_QUARANTINED":
             query.append(filterCount > 1 ? " OR" : " AND (");
@@ -1360,7 +1393,6 @@ public class PolicyViolationDAO
           AND pv.stage_type_id = 'proxy'
           AND pv.action_type_id = 'fail'
           AND pv.waive_time IS NULL
-          AND pv.legacy_violation_time IS NULL
           AND pv.fix_time IS NULL
         """, getDatabaseSchema());
 
@@ -1382,7 +1414,6 @@ public class PolicyViolationDAO
             WHERE pv.stage_type_id = 'proxy'
               AND pv.action_type_id = 'fail'
               AND pv.waive_time IS NULL
-              AND pv.legacy_violation_time IS NULL
               AND pv.fix_time IS NULL
             GROUP BY pv.application_id
         )

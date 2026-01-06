@@ -129,7 +129,11 @@ export const SystemPreferencesMenu = ({
       <NavLink
         stateName="waivedComponentUpgradesConfiguration"
         id="system-configuration-waived-component-upgrades"
-        showIf={CONFIGURE_SYSTEM && isMonitoringSupported && !isSbomManagerOnlyLicense}
+        showIf={
+          CONFIGURE_SYSTEM &&
+          (isMonitoringSupported || isStandaloneFirewall || isFirewallOnlyLicense) &&
+          !isSbomManagerOnlyLicense
+        }
         prefix={firewallPrefix}
       >
         Waived Components

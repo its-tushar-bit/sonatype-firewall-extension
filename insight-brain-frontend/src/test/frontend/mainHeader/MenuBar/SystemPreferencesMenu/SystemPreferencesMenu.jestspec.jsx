@@ -286,17 +286,8 @@ describe('SystemPreferencesMenu', () => {
   //   });
   // });
 
-  describe('sbomManagerOnly license', () => {
-    it('should not display "Waived Components" if "isSbomManagerOnlyLicense" is true', () => {
-      render(
-        <SystemPreferencesMenu permissions={permissions} isMonitoringSupported={true} isSbomManagerOnlyLicense={true} />
-      );
-      const button = screen.getByRole('button');
-      fireEvent.click(button);
-      expect(screen.queryByText('Waived Components')).toBeNull();
-    });
-
-    it('should display "Waived Components" if "isSbomManagerOnlyLicense" is false', () => {
+  describe('Waived Components', () => {
+    it('should display "Waived Components" when CONFIGURE_SYSTEM and isMonitoringSupported are true and isSbomManagerOnlyLicense is false', () => {
       render(
         <SystemPreferencesMenu
           permissions={permissions}
@@ -306,9 +297,104 @@ describe('SystemPreferencesMenu', () => {
       );
       const button = screen.getByRole('button');
       fireEvent.click(button);
-      expect(screen.queryByText('Waived Components')).toBeInTheDocument();
+      expect(screen.getByText('Waived Components')).toBeInTheDocument();
     });
 
+    it('should display "Waived Components" when CONFIGURE_SYSTEM and isStandaloneFirewall are true and isSbomManagerOnlyLicense is false', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isStandaloneFirewall={true} isSbomManagerOnlyLicense={false} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.getByText('Waived Components')).toBeInTheDocument();
+    });
+
+    it('should display "Waived Components" when CONFIGURE_SYSTEM and isFirewallOnlyLicense are true and isSbomManagerOnlyLicense is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isFirewallOnlyLicense={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.getByText('Waived Components')).toBeInTheDocument();
+    });
+
+    it('should display "Waived Components" when all firewall flags are true and isSbomManagerOnlyLicense is false', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isMonitoringSupported={true}
+          isStandaloneFirewall={true}
+          isFirewallOnlyLicense={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.getByText('Waived Components')).toBeInTheDocument();
+    });
+
+    it('should not display "Waived Components" when CONFIGURE_SYSTEM is false', () => {
+      const noConfigPermissions = { ...permissions, CONFIGURE_SYSTEM: false };
+      render(
+        <SystemPreferencesMenu
+          permissions={noConfigPermissions}
+          isMonitoringSupported={true}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+
+    it('should not display "Waived Components" when none of isMonitoringSupported, isStandaloneFirewall, or isFirewallOnlyLicense are true', () => {
+      render(
+        <SystemPreferencesMenu
+          permissions={permissions}
+          isMonitoringSupported={false}
+          isStandaloneFirewall={false}
+          isFirewallOnlyLicense={false}
+          isSbomManagerOnlyLicense={false}
+        />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+
+    it('should not display "Waived Components" when isSbomManagerOnlyLicense is true even if isMonitoringSupported is true', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isMonitoringSupported={true} isSbomManagerOnlyLicense={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+
+    it('should not display "Waived Components" when isSbomManagerOnlyLicense is true even if isStandaloneFirewall is true', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isStandaloneFirewall={true} isSbomManagerOnlyLicense={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+
+    it('should not display "Waived Components" when isSbomManagerOnlyLicense is true even if isFirewallOnlyLicense is true', () => {
+      render(
+        <SystemPreferencesMenu permissions={permissions} isFirewallOnlyLicense={true} isSbomManagerOnlyLicense={true} />
+      );
+      const button = screen.getByRole('button');
+      fireEvent.click(button);
+      expect(screen.queryByText('Waived Components')).toBeNull();
+    });
+  });
+
+  describe('sbomManagerOnly license', () => {
     it('should not display "Atlassian Crowd" if "isSbomManagerOnlyLicense" is true', () => {
       render(
         <SystemPreferencesMenu

@@ -235,7 +235,7 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
     echo "MTIQ image version: ${imageVersion}"
     String iqVersion = getMavenProjectVersion('.')
     echo "iqVersion:'${iqVersion}'"
-    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks'
+    mvn jreleaserConfig(""), ' -pl :insight-brain -Pjdks -Pjenkins'
     mvn jreleaserConfig(""), ' -pl :nexus-mtiq-server jreleaser:assemble'
 
     dir("nexus-mtiq-server") {

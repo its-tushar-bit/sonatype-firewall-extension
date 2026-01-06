@@ -652,6 +652,7 @@ Map getMtiqBuildConfig() {
   opts << "--no-transfer-progress"
   opts << "-pl :insight-brain"
   opts << "-Pjdks"
+  opts << "-Pjenkins"
   opts << "-DskipTests"
   opts << "-D build.number=${env.BUILD_NUMBER}"
 

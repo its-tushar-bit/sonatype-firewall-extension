@@ -449,7 +449,7 @@ export default function OwnerSideNav() {
                   renderFilteredResults(filteredEntries)
                 ) : (
                   <>
-                    {renderRepositoriesNavigationItem()}
+                    {isStandaloneFirewall && renderRepositoriesNavigationItem()}
                     {isFirewallSupported && !isSbomManager && (
                       <>
                         {renderRepositoryManagers(displayedOrganization)}

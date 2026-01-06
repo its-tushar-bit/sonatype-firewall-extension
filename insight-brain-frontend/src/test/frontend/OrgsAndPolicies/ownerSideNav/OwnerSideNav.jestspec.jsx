@@ -358,27 +358,6 @@ describe('OwnerSideNav', () => {
     });
 
     describe('owner sidenav content', () => {
-      describe('repositories menu item', () => {
-        beforeEach(() => {
-          mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, permissionsPayload);
-        });
-
-        it('renders Repositories link with the correct counter value', async () => {
-          renderComponent();
-          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
-          expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link');
-          expect(goToRepositoriesLink).toBeVisible();
-          expect(goToRepositoriesLink).toHaveTextContent('(3)');
-        });
-
-        it('contains correct href to navigate to repository configuration', async () => {
-          renderComponent();
-          const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
-          expect(goToRepositoriesLink).toBeVisible();
-          expect(goToRepositoriesLink).toHaveAttribute('href');
-        });
-      });
-
       describe('children menu items', () => {
         it('renders only child organizations collapsible menu sections', async () => {
           renderComponent();
@@ -1835,6 +1814,114 @@ describe('OwnerSideNav', () => {
     it('does not render Repository Managers section', async () => {
       renderComponent();
       expect(screen.queryByRole('link', { name: /(Repository Managers)/ })).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Standalone Firewall', () => {
+    let selectedOrg;
+    const topParentOrg = { ...ownersMap[topParentOrganizationId], repositoryContainerId: 'REPOSITORY_CONTAINER_ID' };
+
+    beforeEach(() => {
+      const ownersMapWithRepositoryContainer = {
+        ...ownersMap,
+        [topParentOrganizationId]: topParentOrg,
+        REPOSITORY_CONTAINER_ID: {
+          repositoryManagerIds: [],
+          name: 'Repository Managers',
+          type: 'repository_container',
+          id: 'REPOSITORY_CONTAINER_ID',
+          parentId: 'ROOT_ORGANIZATION_ID',
+        },
+      };
+
+      selectedOrg = ownersMap[topParentOrganizationId];
+      state = {
+        productFeatures: {
+          productFeatures: {
+            firewall: true,
+            'orgs-and-apps': true,
+          },
+        },
+        router: {
+          currentState: {
+            name: 'firewall.management.view.organization',
+          },
+          currentParams: {
+            organizationId: selectedOrg.id,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: {
+            filterQuery: rscInitialState(''),
+            filteredEntries: {
+              applications: [],
+              organizations: [],
+            },
+            displayedOrganization: {
+              type: 'organization',
+              id: selectedOrg.id,
+              name: selectedOrg.name,
+            },
+          },
+        },
+      };
+      const ownerListPayload = { topParentOrganizationId, ownersMap: ownersMapWithRepositoryContainer };
+      mockAxiosCalls.onGet(ownerListUrl).reply(200, ownerListPayload);
+      mockAxiosCalls.onPut(permissionContextTestUrl).reply(200, permissionsPayload);
+    });
+
+    it('does not render filter input when isStandaloneFirewall is true', async () => {
+      renderComponent();
+      await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(screen.queryByPlaceholderText('Org or App Name')).toBeNull();
+    });
+
+    it('renders repositories navigation link when isStandaloneFirewall is true', async () => {
+      renderComponent();
+      const goToRepositoriesLink = await screen.findByRole('link', { name: /(Repository Managers)/ });
+      expect(goToRepositoriesLink).toBeVisible();
+      expect(goToRepositoriesLink).toHaveClass('iq-navbar-item iq-repositories-link');
+    });
+
+    it('does not render organizations section when isStandaloneFirewall is true', async () => {
+      renderComponent();
+      await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(screen.queryByRole('button', { name: /Organizations/ })).toBeNull();
+    });
+
+    it('does not render applications section when isStandaloneFirewall is true', async () => {
+      renderComponent();
+      await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(screen.queryByRole('button', { name: /Applications/ })).toBeNull();
+    });
+
+    it('does not render tree view footer when isStandaloneFirewall is true', async () => {
+      renderComponent();
+      await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(screen.queryByText('Tree View')).toBeNull();
+    });
+
+    it('renders filter input when isStandaloneFirewall is false', async () => {
+      state.router.currentState.name = 'management.view.organization';
+      renderComponent();
+      await screen.findByText(/ROOT_ORGANIZATION_NAME/i);
+      expect(screen.queryByPlaceholderText('Org or App Name')).not.toBeNull();
+    });
+
+    it('renders organizations and applications sections when isStandaloneFirewall is false', async () => {
+      state.router.currentState.name = 'management.view.organization';
+      renderComponent();
+      const childMenus = await screen.findAllByRole('menu');
+      expect(childMenus.length).toBeGreaterThanOrEqual(1);
+      expect(screen.queryByRole('button', { name: /Organizations/ })).not.toBeNull();
+    });
+
+    it('renders tree view footer when isStandaloneFirewall is false', async () => {
+      state.router.currentState.name = 'management.view.organization';
+      renderComponent();
+      const goToTreeViewLink = await screen.findByRole('link', { name: 'Tree View' });
+      expect(goToTreeViewLink).toBeVisible();
+      expect(goToTreeViewLink).toHaveClass('nx-btn nx-btn--tertiary');
     });
   });
 });

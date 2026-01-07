@@ -1,0 +1,113 @@
+/*
+ * Copyright (c) 2011-present Sonatype, Inc. All rights reserved.
+ * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
+ * "Sonatype" is a trademark of Sonatype, Inc.
+ */
+@Library(['private-pipeline-library', 'jenkins-shared', 'iq-pipeline-library']) _
+
+def updateMain = false
+
+pipeline {
+  agent { label InsightConstants.AGENT_LABEL }
+
+  parameters {
+    string(name: 'RELEASE_BRANCH_NAME', description: 'Name of the release branch to create (e.g., release-1.199.0-01)')
+    string(name: 'START_POINT', defaultValue: 'main', description: 'Source branch or commit SHA to create the release branch from')
+    string(name: 'DEFAULT_BRANCH', defaultValue: 'main', description: 'Target branch to bump version on after release branch is created (typically main)')
+    string(name: 'NEXT_VERSION', defaultValue: '', description: 'Next development version to set on DEFAULT_BRANCH (e.g., 1.200.0-SNAPSHOT). Leave empty to skip version bump.')
+    booleanParam(name: 'DRY_RUN', defaultValue: true, description: 'When enabled, simulates the run without pushing any changes to remote')
+  }
+
+  stages {
+    stage('Pre requirements') {
+      steps {
+        script {
+          // Set updateMain based on NEXT_VERSION parameter
+          updateMain = NEXT_VERSION?.trim()?.length() > 0
+
+          def requiredProperties = [RELEASE_BRANCH_NAME]
+          requiredProperties.each { val ->
+            if ("${val}"?.trim().length() == 0) {
+              throw new Exception('RELEASE_BRANCH_NAME is required')
+            }
+          }
+          def displayParams = [Branch: RELEASE_BRANCH_NAME]
+          if (DRY_RUN) {
+            displayParams['Mode'] = 'DRY-RUN'
+          }
+          setBuildDisplayName(displayParams)
+        }
+
+        runSafely 'git config --global push.default simple'
+        runSafely "git config user.email 'sonatype-zion@sonatype.com'"
+        runSafely "git config user.name 'Sonatype Zion'"
+      }
+    }
+
+    stage('Create release branch') {
+      steps {
+        runSafely "git checkout ${START_POINT}"
+        runSafely "git checkout -b ${RELEASE_BRANCH_NAME} ${START_POINT}"
+      }
+    }
+
+    stage('Set main development version') {
+      when {
+        expression { updateMain }
+      }
+      steps {
+        runSafely "git checkout ${DEFAULT_BRANCH}"
+        withMaven(jdk: 'OpenJDK 17', maven: 'Maven 3.9.x', mavenSettingsConfig: 'private-settings.xml') {
+          runSafely "./set-version.sh ${NEXT_VERSION}"
+        }
+
+        gitCommit("Bump version to: ${NEXT_VERSION}")
+      }
+    }
+
+    stage('Push release branch') {
+      steps {
+        script {
+          if (DRY_RUN) {
+            echo "DRY_RUN: Would push branch ${RELEASE_BRANCH_NAME} to origin"
+          } else {
+            sshagent(credentials: [sonatypeZionCredentialsId()]) {
+              runSafely "git push -u origin ${RELEASE_BRANCH_NAME}"
+            }
+          }
+        }
+      }
+    }
+
+    stage('Push main branch') {
+      when {
+        expression { updateMain }
+      }
+      steps {
+        script {
+          if (DRY_RUN) {
+            echo "DRY_RUN: Would push ${DEFAULT_BRANCH} branch with version ${NEXT_VERSION} to origin"
+          } else {
+            sshagent(credentials: [sonatypeZionCredentialsId()]) {
+              runSafely "git checkout ${DEFAULT_BRANCH} && git pull --rebase"
+              runSafely "git push -u origin ${DEFAULT_BRANCH}"
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      cleanWs()
+    }
+  }
+}
+
+private void gitCommit(commitMessage) {
+  sshagent(credentials: [sonatypeZionCredentialsId()]) {
+    runSafely 'git add -u'
+    // Don't perform commit if no changes.
+    runSafely "git diff-index --quiet HEAD || git commit -m \"${commitMessage}\""
+  }
+}

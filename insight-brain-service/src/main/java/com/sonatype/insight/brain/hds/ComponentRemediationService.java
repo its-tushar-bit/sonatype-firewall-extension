@@ -84,7 +84,7 @@ public class ComponentRemediationService
       // The above two are here to be logically consistent.
       // InnerSource specific remediation types
       ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING,
-      ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING,
+      ApiVersionChangeOptionType.INNER_SOURCE_LATEST,
       // The below are the actual types to be in the `versionChanges` list.
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
       ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,

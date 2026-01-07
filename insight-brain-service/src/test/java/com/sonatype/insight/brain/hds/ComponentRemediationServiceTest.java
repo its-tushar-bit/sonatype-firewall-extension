@@ -1857,4 +1857,18 @@ public class ComponentRemediationServiceTest
         ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING);
     assertThat(dto.suggestedVersionChange.getIsGolden()).isFalse();
   }
+
+  @Test
+  public void testPREFERABLE_TYPE_ORDER_containsCorrectTypes() {
+    assertThat(ComponentRemediationService.PREFERABLE_TYPE_ORDER).containsExactly(
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING_WITH_DEPENDENCIES,
+        ApiVersionChangeOptionType.RECOMMENDED_NON_BREAKING,
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST_NON_BREAKING,
+        ApiVersionChangeOptionType.INNER_SOURCE_LATEST,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS_WITH_DEPENDENCIES,
+        ApiVersionChangeOptionType.NEXT_NO_VIOLATIONS,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING_WITH_DEPENDENCIES,
+        ApiVersionChangeOptionType.NEXT_NON_FAILING
+    );
+  }
 }

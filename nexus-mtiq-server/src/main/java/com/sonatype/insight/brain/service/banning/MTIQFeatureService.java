@@ -68,7 +68,6 @@ public class MTIQFeatureService
       SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API,
       SystemConfigurationPropertyFeature.CROWD_INTEGRATION,
       SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE,
-      SystemConfigurationPropertyFeature.CODE_INSIGHTS,
       SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
       SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
       SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,

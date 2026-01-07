@@ -94,10 +94,18 @@ public class BitbucketCodeInsightsService
       final String branch,
       final LocationDiscoveryResult locationDiscoveryResult)
   {
-    // The SCM must support Code Insights (i.e. Bitbucket) to continue
+    // Early return if the SCM provider doesn't support Code Insights.
+    // Code Insights is a Bitbucket Server/Data Center specific feature that provides enhanced
+    // reporting with inline annotations. Other SCM providers (GitHub, GitLab, Azure DevOps, etc.)
+    // do not support this feature and will gracefully skip this step.
     if (!gitRepositoryInfo.provider.supportsCodeInsights()) {
       return;
     }
+
+    // Early return if the CODE_INSIGHTS feature flag is disabled. When disabled, Bitbucket operations continue to
+    // work normally - this only affects the creation of Code Insight reports. Other SCM features like PR commenting,
+    // line commenting, and branch monitoring are independent and unaffected by this flag.
+    // See SystemConfigurationPropertyFeature.CODE_INSIGHTS for more details.
     if (!SystemConfigurationPropertyFeature.CODE_INSIGHTS.isEnabled()) {
       return;
     }

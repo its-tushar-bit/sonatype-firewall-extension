@@ -53,7 +53,7 @@ public abstract class AbstractSourceControlEventLogger
 
   private final String formattedLogTimestamp;
 
-  private List<SourceControlEventData> eventData = new LinkedList<>();
+  private final List<SourceControlEventData> eventData = new LinkedList<>();
 
   protected AbstractSourceControlEventLogger(
       final Date logTimestamp,
@@ -81,7 +81,7 @@ public abstract class AbstractSourceControlEventLogger
 
   public void log() {
     eventData.forEach(data -> SCM_EVENT_LOGGER.info(toString(data)));
-    eventData = new LinkedList<>();
+    eventData.clear();
   }
 
   protected SourceControlEventLogDTO createSourceControlEventLogDTO(final SourceControlEventData data) {

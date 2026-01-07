@@ -52,7 +52,7 @@ public class SourceControlEventLoggerFactory
   private void logPotentialMisconfiguration() {
     if (TENANT_UTIL.isMultiTenant()) {
       if (!getLogger(SCM_EVENT_LOGGER_NAME).isInfoEnabled()) {
-        log.info("Disabling source control logging for logger {}. Instance is MTIQ but logger is disabled.",
+        log.warn("Disabling source control logging for logger {}. Instance is MTIQ but logger is disabled.",
             SCM_EVENT_LOGGER_NAME);
       }
     }

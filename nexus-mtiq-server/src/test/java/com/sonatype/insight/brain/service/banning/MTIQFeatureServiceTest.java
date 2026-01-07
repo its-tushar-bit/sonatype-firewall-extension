@@ -128,7 +128,6 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.DEPENDENCY_DATA_IN_API,
         SystemConfigurationPropertyFeature.CROWD_INTEGRATION,
         SystemConfigurationPropertyFeature.COMPONENT_SEARCH_API_WITH_INNERSOURCE,
-        SystemConfigurationPropertyFeature.CODE_INSIGHTS,
         SystemConfigurationPropertyFeature.LDAP_CONFIGURATION,
         SystemConfigurationPropertyFeature.SCAN_NPM_DEV_AND_OPT_DEPENDENCIES,
         SystemConfigurationPropertyFeature.SCAN_POM_FILES_IN_META_INF_DIRECTORY,
@@ -185,6 +184,13 @@ public class MTIQFeatureServiceTest
     verify(service).enableFeatureNoAuthz(SystemConfigurationPropertyFeature.LOGOUT_AUTH0_ON_LOGOUT.getPropertyName());
   }
 
+  @Test
+  public void testGetFeatures_containsCodeInsights() {
+    underTest.register();
+
+    verify(service).enableFeatureNoAuthz(SystemConfigurationPropertyFeature.CODE_INSIGHTS.getPropertyName());
+  }
+
   private String[] getDisabledSystemConfigurationPropertyFeatures() {
     List<SystemConfigurationPropertyFeature> enabledFeatures =
         Arrays.asList(getEnabledSystemConfigurationPropertyFeatures());
@@ -202,6 +208,7 @@ public class MTIQFeatureServiceTest
         SystemConfigurationPropertyFeature.ADVANCED_SEARCH_ENABLED,
         SystemConfigurationPropertyFeature.AUTOMATIC_APPLICATION_CONFIGURATION,
         SystemConfigurationPropertyFeature.AUTOMATIC_SCM_CONFIGURATION,
+        SystemConfigurationPropertyFeature.CODE_INSIGHTS,
         SystemConfigurationPropertyFeature.DASHBOARD_CAN_BE_ENABLED,
         SystemConfigurationPropertyFeature.DEFAULT_BRANCH_MONITORING,
         SystemConfigurationPropertyFeature.DEVELOPMENT_DASHBOARD_METRIC_COLLECTION,

@@ -34,8 +34,110 @@ public interface SearchConfig
    */
   void validate();
 
-  class AwsHttpOpenSearchConfig
+  /**
+   * Abstract base class for OpenSearch configurations that provides common bulk indexing
+   * configuration fields, getters/setters, and validation logic.
+   */
+  abstract class AbstractSearchConfig
       implements SearchConfig
+  {
+    // Common bulk indexing configuration fields
+    private Integer bulkBatchSize;
+
+    private Integer bulkBatchDelayMs;
+
+    private Integer bulkMaxRetries;
+
+    private Integer bulkRetryBackoffSeconds;
+
+    /**
+     * @return the default batch size for bulk operations
+     */
+    protected abstract int getDefaultBulkBatchSize();
+
+    /**
+     * @return the default delay in milliseconds between batches
+     */
+    protected abstract int getDefaultBulkBatchDelayMs();
+
+    /**
+     * @return the default maximum number of retries for bulk operations
+     */
+    protected abstract int getDefaultBulkMaxRetries();
+
+    /**
+     * @return the default retry backoff in seconds
+     */
+    protected abstract int getDefaultBulkRetryBackoffSeconds();
+
+    /**
+     * @return the maximum allowed retry backoff in seconds
+     */
+    public abstract int getMaxBulkRetryBackoffSeconds();
+
+    public Integer getBulkBatchSize() {
+      return bulkBatchSize != null ? bulkBatchSize : getDefaultBulkBatchSize();
+    }
+
+    public void setBulkBatchSize(final Integer bulkBatchSize) {
+      this.bulkBatchSize = bulkBatchSize;
+    }
+
+    public Integer getBulkBatchDelayMs() {
+      return bulkBatchDelayMs != null ? bulkBatchDelayMs : getDefaultBulkBatchDelayMs();
+    }
+
+    public void setBulkBatchDelayMs(final Integer bulkBatchDelayMs) {
+      this.bulkBatchDelayMs = bulkBatchDelayMs;
+    }
+
+    public Integer getBulkMaxRetries() {
+      return bulkMaxRetries != null ? bulkMaxRetries : getDefaultBulkMaxRetries();
+    }
+
+    public void setBulkMaxRetries(final Integer bulkMaxRetries) {
+      this.bulkMaxRetries = bulkMaxRetries;
+    }
+
+    public Integer getBulkRetryBackoffSeconds() {
+      return bulkRetryBackoffSeconds != null ? bulkRetryBackoffSeconds : getDefaultBulkRetryBackoffSeconds();
+    }
+
+    public void setBulkRetryBackoffSeconds(final Integer bulkRetryBackoffSeconds) {
+      this.bulkRetryBackoffSeconds = bulkRetryBackoffSeconds;
+    }
+
+    /**
+     * Validates bulk indexing configuration parameters.
+     * Subclasses should call this method from their validate() implementation.
+     *
+     * @throws OpenSearchConfigurationException if bulk configuration is invalid
+     */
+    protected void validateBulkConfig() {
+      if (bulkBatchSize != null && bulkBatchSize < 1) {
+        throw new OpenSearchConfigurationException(
+            "bulkBatchSize must be at least 1, but was: " + bulkBatchSize);
+      }
+
+      if (bulkBatchDelayMs != null && bulkBatchDelayMs < 0) {
+        throw new OpenSearchConfigurationException(
+            "bulkBatchDelayMs must not be negative, but was: " + bulkBatchDelayMs);
+      }
+
+      if (bulkMaxRetries != null && bulkMaxRetries < 0) {
+        throw new OpenSearchConfigurationException(
+            "bulkMaxRetries must not be negative, but was: " + bulkMaxRetries);
+      }
+
+      if (bulkRetryBackoffSeconds != null && bulkRetryBackoffSeconds < 0) {
+        throw new OpenSearchConfigurationException(
+            "bulkRetryBackoffSeconds must not be negative, but was: " + bulkRetryBackoffSeconds);
+      }
+    }
+  }
+
+  class AwsHttpOpenSearchConfig
+      extends AbstractSearchConfig
   {
     private static final Pattern AWS_REGION_PATTERN = Pattern.compile("^[a-z]{2}-[a-z]+-\\d{1}$");
 
@@ -44,6 +146,17 @@ public interface SearchConfig
     private static final Duration DEFAULT_CONNECTION_TIMEOUT = Duration.ofSeconds(30);
 
     private static final Duration DEFAULT_CONNECTION_ACQUISITION_TIMEOUT = Duration.ofSeconds(10);
+
+    // Bulk indexing throttling defaults
+    private static final int DEFAULT_BULK_BATCH_SIZE = 5000;
+
+    private static final int DEFAULT_BULK_BATCH_DELAY_MS = 250;
+
+    private static final int DEFAULT_BULK_MAX_RETRIES = 15;
+
+    private static final int DEFAULT_BULK_RETRY_BACKOFF_SECONDS = 5;
+
+    private static final int MAX_BULK_RETRY_BACKOFF_SECONDS = 600;
 
     private URI domain;
 
@@ -97,6 +210,41 @@ public interface SearchConfig
     }
 
     @Override
+    protected int getDefaultBulkBatchSize() {
+      return DEFAULT_BULK_BATCH_SIZE;
+    }
+
+    @Override
+    protected int getDefaultBulkBatchDelayMs() {
+      return DEFAULT_BULK_BATCH_DELAY_MS;
+    }
+
+    @Override
+    protected int getDefaultBulkMaxRetries() {
+      return DEFAULT_BULK_MAX_RETRIES;
+    }
+
+    @Override
+    protected int getDefaultBulkRetryBackoffSeconds() {
+      return DEFAULT_BULK_RETRY_BACKOFF_SECONDS;
+    }
+
+    /**
+     * Returns the upper bound allowed for bulk retry backoff.
+     * <p>
+     * This value is intentionally a fixed constant rather than a configurable
+     * property. It serves as a safety cap to prevent misconfiguration that
+     * could lead to excessively long backoff periods (e.g., hours or days)
+     * which would severely degrade indexing throughput and cause operational issues.
+     * The 600-second (10-minute) maximum ensures that even with aggressive
+     * exponential backoff configurations, the system remains responsive.
+     */
+    @Override
+    public int getMaxBulkRetryBackoffSeconds() {
+      return MAX_BULK_RETRY_BACKOFF_SECONDS;
+    }
+
+    @Override
     public void validate() {
       if (domain == null) {
         throw new OpenSearchConfigurationException("AWS OpenSearch domain URI is required");
@@ -136,12 +284,25 @@ public interface SearchConfig
         throw new OpenSearchConfigurationException(
             "connectionAcquisitionTimeout must not be negative");
       }
+
+      validateBulkConfig();
     }
   }
 
   class HttpOpenSearchConfig
-      implements SearchConfig
+      extends AbstractSearchConfig
   {
+    // Bulk indexing throttling defaults
+    private static final int DEFAULT_BULK_BATCH_SIZE = 10000;
+
+    private static final int DEFAULT_BULK_BATCH_DELAY_MS = 0;
+
+    private static final int DEFAULT_BULK_MAX_RETRIES = 0;
+
+    private static final int DEFAULT_BULK_RETRY_BACKOFF_SECONDS = 0;
+
+    private static final int MAX_BULK_RETRY_BACKOFF_SECONDS = 30;
+
     private URI uri;
 
     private String username;
@@ -173,6 +334,40 @@ public interface SearchConfig
     }
 
     @Override
+    protected int getDefaultBulkBatchSize() {
+      return DEFAULT_BULK_BATCH_SIZE;
+    }
+
+    @Override
+    protected int getDefaultBulkBatchDelayMs() {
+      return DEFAULT_BULK_BATCH_DELAY_MS;
+    }
+
+    @Override
+    protected int getDefaultBulkMaxRetries() {
+      return DEFAULT_BULK_MAX_RETRIES;
+    }
+
+    @Override
+    protected int getDefaultBulkRetryBackoffSeconds() {
+      return DEFAULT_BULK_RETRY_BACKOFF_SECONDS;
+    }
+
+    /**
+     * Returns the upper bound allowed for bulk retry backoff.
+     * <p>
+     * This value is intentionally a fixed constant rather than a configurable
+     * property. It serves as a safety cap to prevent misconfiguration that
+     * could lead to excessively long backoff periods which would degrade throughput.
+     * The 30-second maximum for HTTP OpenSearch is lower than AWS (600s) since
+     * self-managed instances typically have more predictable performance characteristics.
+     */
+    @Override
+    public int getMaxBulkRetryBackoffSeconds() {
+      return MAX_BULK_RETRY_BACKOFF_SECONDS;
+    }
+
+    @Override
     public void validate() {
       if (uri == null) {
         throw new OpenSearchConfigurationException("OpenSearch URI is required");
@@ -196,6 +391,8 @@ public interface SearchConfig
       if (StringUtils.isBlank(password)) {
         throw new OpenSearchConfigurationException("OpenSearch password is required");
       }
+
+      validateBulkConfig();
     }
   }
 }

@@ -46,10 +46,15 @@ public class OpenSearchIndexSearchingTest
 
   @Override
   public void configure(final Binder binder) {
+    HttpOpenSearchConfig searchConfig = getHttpOpenSearchConfig();
+
+    // Bind SearchConfig for OpenSearchSearchIndexClient constructor
+    binder.bind(SearchConfig.class).toInstance(searchConfig);
+
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     // Use test utility to create isolated transport - prevents "Connection pool shut down" errors
     binder.bind(OpenSearchTransport.class).toInstance(
-        TestOpenSearchTransportFactory.createIsolatedForTest(getHttpOpenSearchConfig()));
+        TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
     binder.bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     super.configure(binder);
   }

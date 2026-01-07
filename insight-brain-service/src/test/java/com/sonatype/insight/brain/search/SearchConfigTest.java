@@ -183,6 +183,110 @@ public class SearchConfigTest
   }
 
   @Test
+  public void testAwsConfig_BulkConfigurationDefaults() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+
+    // When/Then - Should use default bulk configuration values
+    assertThat(config.getBulkBatchSize()).isEqualTo(5000);
+    assertThat(config.getBulkBatchDelayMs()).isEqualTo(250);
+    assertThat(config.getBulkMaxRetries()).isEqualTo(15);
+    assertThat(config.getBulkRetryBackoffSeconds()).isEqualTo(5);
+    assertThat(config.getMaxBulkRetryBackoffSeconds()).isEqualTo(600);
+  }
+
+  @Test
+  public void testAwsConfig_BulkConfigurationCustomValues() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkBatchSize(1000);
+    config.setBulkBatchDelayMs(100);
+    config.setBulkMaxRetries(5);
+    config.setBulkRetryBackoffSeconds(10);
+
+    // When/Then - Should use custom bulk configuration values
+    assertThatCode(config::validate).doesNotThrowAnyException();
+    assertThat(config.getBulkBatchSize()).isEqualTo(1000);
+    assertThat(config.getBulkBatchDelayMs()).isEqualTo(100);
+    assertThat(config.getBulkMaxRetries()).isEqualTo(5);
+    assertThat(config.getBulkRetryBackoffSeconds()).isEqualTo(10);
+  }
+
+  @Test
+  public void testAwsConfig_ZeroBulkBatchSize_ThrowsException() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkBatchSize(0);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchSize must be at least 1");
+  }
+
+  @Test
+  public void testAwsConfig_NegativeBulkBatchSize_ThrowsException() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkBatchSize(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchSize must be at least 1");
+  }
+
+  @Test
+  public void testAwsConfig_NegativeBulkBatchDelayMs_ThrowsException() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkBatchDelayMs(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchDelayMs must not be negative");
+  }
+
+  @Test
+  public void testAwsConfig_NegativeBulkMaxRetries_ThrowsException() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkMaxRetries(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkMaxRetries must not be negative");
+  }
+
+  @Test
+  public void testAwsConfig_NegativeBulkRetryBackoffSeconds_ThrowsException() throws Exception {
+    // Given
+    AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
+    config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
+    config.setRegion("us-east-1");
+    config.setBulkRetryBackoffSeconds(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkRetryBackoffSeconds must not be negative");
+  }
+
+  @Test
   public void testHttpConfig_Valid() throws Exception {
     // Given
     HttpOpenSearchConfig config = new HttpOpenSearchConfig();
@@ -299,5 +403,116 @@ public class SearchConfigTest
     assertThatThrownBy(config::validate)
         .isInstanceOf(OpenSearchConfigurationException.class)
         .hasMessageContaining("password is required");
+  }
+
+  @Test
+  public void testHttpConfig_BulkConfigurationDefaults() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+
+    // When/Then - Should use default bulk configuration values
+    assertThat(config.getBulkBatchSize()).isEqualTo(10000);
+    assertThat(config.getBulkBatchDelayMs()).isEqualTo(0);
+    assertThat(config.getBulkMaxRetries()).isEqualTo(0);
+    assertThat(config.getBulkRetryBackoffSeconds()).isEqualTo(0);
+    assertThat(config.getMaxBulkRetryBackoffSeconds()).isEqualTo(30);
+  }
+
+  @Test
+  public void testHttpConfig_BulkConfigurationCustomValues() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkBatchSize(5000);
+    config.setBulkBatchDelayMs(50);
+    config.setBulkMaxRetries(3);
+    config.setBulkRetryBackoffSeconds(2);
+
+    // When/Then - Should use custom bulk configuration values
+    assertThatCode(config::validate).doesNotThrowAnyException();
+    assertThat(config.getBulkBatchSize()).isEqualTo(5000);
+    assertThat(config.getBulkBatchDelayMs()).isEqualTo(50);
+    assertThat(config.getBulkMaxRetries()).isEqualTo(3);
+    assertThat(config.getBulkRetryBackoffSeconds()).isEqualTo(2);
+  }
+
+  @Test
+  public void testHttpConfig_ZeroBulkBatchSize_ThrowsException() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkBatchSize(0);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchSize must be at least 1");
+  }
+
+  @Test
+  public void testHttpConfig_NegativeBulkBatchSize_ThrowsException() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkBatchSize(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchSize must be at least 1");
+  }
+
+  @Test
+  public void testHttpConfig_NegativeBulkBatchDelayMs_ThrowsException() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkBatchDelayMs(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkBatchDelayMs must not be negative");
+  }
+
+  @Test
+  public void testHttpConfig_NegativeBulkMaxRetries_ThrowsException() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkMaxRetries(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkMaxRetries must not be negative");
+  }
+
+  @Test
+  public void testHttpConfig_NegativeBulkRetryBackoffSeconds_ThrowsException() throws Exception {
+    // Given
+    HttpOpenSearchConfig config = new HttpOpenSearchConfig();
+    config.setUri(new URI("https://localhost:9200"));
+    config.setUsername("admin");
+    config.setPassword("secret");
+    config.setBulkRetryBackoffSeconds(-1);
+
+    // When/Then
+    assertThatThrownBy(config::validate)
+        .isInstanceOf(OpenSearchConfigurationException.class)
+        .hasMessageContaining("bulkRetryBackoffSeconds must not be negative");
   }
 }

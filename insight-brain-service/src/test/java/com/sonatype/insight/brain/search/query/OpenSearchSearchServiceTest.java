@@ -14,6 +14,7 @@ import com.sonatype.insight.brain.model.security.MembershipMapping;
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.Role;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
+import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.IndexConfigProvider;
@@ -46,10 +47,15 @@ public class OpenSearchSearchServiceTest
 
   @Override
   public void configure(final Binder binder) {
+    HttpOpenSearchConfig searchConfig = getHttpOpenSearchConfig();
+
+    // Bind SearchConfig for OpenSearchSearchIndexClient constructor
+    binder.bind(SearchConfig.class).toInstance(searchConfig);
+
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     // Use test utility to create isolated transport - prevents "Connection pool shut down" errors
     binder.bind(OpenSearchTransport.class).toInstance(
-        TestOpenSearchTransportFactory.createIsolatedForTest(getHttpOpenSearchConfig()));
+        TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
     binder.bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
     super.configure(binder);
   }

@@ -36,6 +36,8 @@ import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetad
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.search.ConversionHelper;
+import com.sonatype.insight.brain.search.SearchConfig;
+import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.AbstractSearchIndexClient;
 import com.sonatype.insight.brain.search.index.FieldIdentifier;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
@@ -124,6 +126,8 @@ public class OpenSearchSearchIndexClient
 
   private final AtomicReference<Duration> currentCooldown = new AtomicReference<>(INITIAL_COOLDOWN);
 
+  private final SearchConfig searchConfig;
+
   @Inject
   public OpenSearchSearchIndexClient(
       final ApplicationDAO applicationDAO,
@@ -146,6 +150,7 @@ public class OpenSearchSearchIndexClient
       final OpenSearchTransport openSearchTransport,
       final IndexConfigProvider indexConfigProvider,
       final ClusterLockManager clusterLockManager,
+      final SearchConfig searchConfig,
       final ShutdownHandler shutdownHandler)
   {
     super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
@@ -155,6 +160,7 @@ public class OpenSearchSearchIndexClient
     this.openSearchTransport = openSearchTransport;
     this.indexConfigProvider = indexConfigProvider;
     this.clusterLockManager = clusterLockManager;
+    this.searchConfig = searchConfig;
   }
 
   @VisibleForTesting
@@ -184,18 +190,30 @@ public class OpenSearchSearchIndexClient
       IndexConfig indexConfig = indexConfigProvider.getIndexConfig();
 
       clusterLock.lock();
-      doPopulateIndex(new OpenSearchIndexingContext(ownerDAO, conversionHelper, () -> {
+      doPopulateIndex(createIndexingContext(() -> {
         IndexConfig newIndexConfig = new IndexConfig();
         newIndexConfig.setIndexMapping(indexConfig.getIndexMapping());
         newIndexConfig.setIndexName(newIndexName);
         return newIndexConfig;
-      }, getClient()));
+      }));
       updateIndexAlias(newIndexName);
       indexRotated = true;
 
       log.info("all indexing complete");
     }
     catch (Exception e) {
+      // Check if this is a rate limit error (may be wrapped in RuntimeException)
+      Throwable cause = e;
+      while (cause != null) {
+        if (cause instanceof Exception causeException && OpenSearchIndexingContext.isRateLimitError(causeException)) {
+          log.error("Rate limit error during index population after retries. " +
+              "Consider increasing bulkBatchDelayMs, bulkRetryBackoffSeconds, or " +
+              "decreasing bulkBatchSize in AWS OpenSearch config. " +
+              "New index '{}' will be deleted.", newIndexName);
+          break;
+        }
+        cause = cause.getCause();
+      }
       throw new SearchIndexException("Error creating search index", e);
     }
     finally {
@@ -204,6 +222,7 @@ public class OpenSearchSearchIndexClient
       }
       else {
         if (newIndexCreated) {
+          log.info("Index rotation did not complete. Cleaning up new index '{}'", newIndexName);
           deleteIndex(newIndexName);
         }
       }
@@ -220,8 +239,7 @@ public class OpenSearchSearchIndexClient
     }
     try (ClusterLock clusterLock = clusterLockManager.createForSearchIndexUpdate()) {
       if (clusterLock.tryLock()) {
-        processSearchIndexChanges(searchIndexChanges,
-            new OpenSearchIndexingContext(ownerDAO, conversionHelper, indexConfigProvider, getClient()));
+        processSearchIndexChanges(searchIndexChanges, createIndexingContext(indexConfigProvider));
       }
     }
     catch (Exception e) {
@@ -587,5 +605,27 @@ public class OpenSearchSearchIndexClient
     catch (Exception e) {
       throw new RuntimeException(String.format("Error creating OpenSearch index: '%s'", name), e);
     }
+  }
+
+  private OpenSearchIndexingContext createIndexingContext(IndexConfigProvider configProvider) {
+    // Get bulk configuration from AbstractSearchConfig
+    if (!(searchConfig instanceof SearchConfig.AbstractSearchConfig abstractConfig)) {
+      throw new IllegalStateException("Unknown search config type: " + searchConfig.getClass());
+    }
+
+    int batchSize = abstractConfig.getBulkBatchSize();
+    int batchDelayMs = abstractConfig.getBulkBatchDelayMs();
+    int maxRetries = abstractConfig.getBulkMaxRetries();
+    int retryBackoffMs = abstractConfig.getBulkRetryBackoffSeconds() * 1000;
+    int maxRetryBackoffMs = abstractConfig.getMaxBulkRetryBackoffSeconds() * 1000;
+
+    String configType = searchConfig instanceof AwsHttpOpenSearchConfig ? "AWS" : "HTTP";
+    log.debug(
+        "Using {} OpenSearch bulk settings: batchSize={}, batchDelayMs={}, " +
+            "maxRetries={}, retryBackoffMs={}, maxRetryBackoffMs={}",
+        configType, batchSize, batchDelayMs, maxRetries, retryBackoffMs, maxRetryBackoffMs);
+
+    return new OpenSearchIndexingContext(ownerDAO, conversionHelper, configProvider, getClient(),
+        batchSize, batchDelayMs, maxRetries, retryBackoffMs, maxRetryBackoffMs);
   }
 }

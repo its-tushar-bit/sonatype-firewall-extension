@@ -12,6 +12,7 @@ import java.util.List;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.index.SearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.OpenSearchHttpSearchIndexFixture;
@@ -39,10 +40,15 @@ public class OpenSearchApiAdvancedSearchResourceV2Test
 
   @Override
   public void configure(final Binder binder) {
+    HttpOpenSearchConfig searchConfig = getHttpOpenSearchConfig();
+
+    // Bind SearchConfig for OpenSearchSearchIndexClient constructor
+    binder.bind(SearchConfig.class).toInstance(searchConfig);
+
     binder.bind(SearchIndexClient.class).to(OpenSearchSearchIndexClient.class);
     // Use test utility to create isolated transport - prevents "Connection pool shut down" errors
     binder.bind(OpenSearchTransport.class).toInstance(
-        TestOpenSearchTransportFactory.createIsolatedForTest(getHttpOpenSearchConfig()));
+        TestOpenSearchTransportFactory.createIsolatedForTest(searchConfig));
     super.configure(binder);
   }
 

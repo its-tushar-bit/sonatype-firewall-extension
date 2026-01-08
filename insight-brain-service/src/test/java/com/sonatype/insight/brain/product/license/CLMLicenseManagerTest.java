@@ -1528,6 +1528,17 @@ public class CLMLicenseManagerTest
   }
 
   @Test
+  public void testInstallLicense_MaliciousUrlsPartnerAccessFeatureFromHds() throws Exception {
+    mockHdsProductLicenseDetails(withFeatures());
+    installLicense();
+    assertThat(productLicense.getFeatures()).doesNotContain(LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS);
+
+    mockHdsProductLicenseDetails(withFeatures(LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS));
+    installLicense();
+    assertThat(productLicense.getFeatures()).contains(LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS);
+  }
+
+  @Test
   public void testNotifyListener_LoadLicense() {
     ProductLicenseListener listener = mock(ProductLicenseListener.class);
     clmLicenseManager.addListener(listener);

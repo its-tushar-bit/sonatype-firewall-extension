@@ -93,6 +93,7 @@ public class MTIQFeatureServiceTest
     expectedFeatures.remove(LicensedFeature.CPE_MATCHING);
 
     expectedFeatures.remove(LicensedFeature.MALWARE_DEFENSE);
+    expectedFeatures.remove(LicensedFeature.MALICIOUS_URLS_PARTNER_ACCESS);
 
     // only test if it was enabled that it's expected
     if (!SystemConfigurationPropertyFeature.SAML_ENABLED.isEnabled()) {

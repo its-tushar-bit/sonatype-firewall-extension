@@ -19,6 +19,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 
 import com.google.inject.Binder;
+import com.sonatype.insight.test.ContainerRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -28,8 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.mockito.ArgumentMatcher;
-import org.testcontainers.containers.localstack.LocalStackContainer;
-import org.testcontainers.containers.localstack.LocalStackContainer.Service;
+import org.testcontainers.localstack.LocalStackContainer;
 import org.testcontainers.utility.DockerImageName;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -63,7 +63,8 @@ public class S3ApplicationReportPersistenceServiceTest
   private static final String REGION = "us-east-2";
 
   @ClassRule
-  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+  public static ContainerRule<LocalStackContainer> localstack =
+      new ContainerRule<>(new LocalStackContainer(LOCALSTACK_IMAGE).withServices("s3"));
 
   @BeforeClass
   public static void createBucket() {
@@ -74,12 +75,12 @@ public class S3ApplicationReportPersistenceServiceTest
 
   private static S3Client createS3Client() {
     return S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
+        .endpointOverride(localstack.getContainer().getEndpoint())
         .region(Region.of(REGION))
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
+                localstack.getContainer().getAccessKey(),
+                localstack.getContainer().getSecretKey()
             )))
         .build();
   }
@@ -124,7 +125,7 @@ public class S3ApplicationReportPersistenceServiceTest
     s3Config.setBucketName(BUCKET_NAME);
     s3Config.setRegion(REGION);
     s3Config.setObjectKeyPrefix(prefix);
-    s3Config.setEndpoint(localstack.getEndpoint());
+    s3Config.setEndpoint(localstack.getContainer().getEndpoint());
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
   }
@@ -144,8 +145,8 @@ public class S3ApplicationReportPersistenceServiceTest
   public void configure(Binder binder) {
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
-        localstack.getAccessKey(),
-        localstack.getSecretKey()
+        localstack.getContainer().getAccessKey(),
+        localstack.getContainer().getSecretKey()
     ));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }

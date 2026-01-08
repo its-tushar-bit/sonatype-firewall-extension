@@ -25,7 +25,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;

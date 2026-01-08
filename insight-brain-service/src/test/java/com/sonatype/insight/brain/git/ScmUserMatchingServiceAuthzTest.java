@@ -14,7 +14,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 

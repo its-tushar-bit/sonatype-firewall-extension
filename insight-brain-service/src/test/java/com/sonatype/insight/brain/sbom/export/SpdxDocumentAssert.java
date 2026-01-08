@@ -32,7 +32,7 @@ import org.spdx.library.model.SpdxCreatorInformation;
 import org.spdx.library.model.SpdxDocument;
 import org.spdx.library.model.SpdxPackage;
 import org.spdx.library.model.license.AnyLicenseInfo;
-import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.assertj.core.api.Assertions.within;
 import static org.xmlunit.assertj.error.ShouldNotHaveThrown.shouldNotHaveThrown;

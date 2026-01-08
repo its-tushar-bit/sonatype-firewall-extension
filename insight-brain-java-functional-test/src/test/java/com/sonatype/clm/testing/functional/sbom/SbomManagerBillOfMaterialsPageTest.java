@@ -54,7 +54,7 @@ import org.junit.Test;
 import org.openqa.selenium.NoSuchElementException;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.FluentWait;
-import org.testcontainers.shaded.org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FileUtils;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.codeborne.selenide.CollectionCondition.size;

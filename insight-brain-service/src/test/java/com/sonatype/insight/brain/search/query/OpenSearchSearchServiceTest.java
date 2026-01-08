@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.search.opensearch.TestOpenSearchTransportFacto
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.test.ContainerRule;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -42,8 +43,8 @@ public class OpenSearchSearchServiceTest
     extends AbstractSearchServiceTest
 {
   @ClassRule
-  public static OpensearchContainer opensearchContainer =
-      new OpensearchContainer<>(OpenSearchHttpSearchIndexFixture.OPENSEARCH_IMAGE);
+  public static ContainerRule<OpensearchContainer<?>> opensearchContainer =
+      new ContainerRule<>(new OpensearchContainer<>(OpenSearchHttpSearchIndexFixture.OPENSEARCH_IMAGE));
 
   @Override
   public void configure(final Binder binder) {
@@ -76,10 +77,10 @@ public class OpenSearchSearchServiceTest
 
   private static HttpOpenSearchConfig getHttpOpenSearchConfig() {
     HttpOpenSearchConfig httpOpenSearchConfig = new HttpOpenSearchConfig();
-    String httpAddress = opensearchContainer.getHttpHostAddress();
+    String httpAddress = opensearchContainer.getContainer().getHttpHostAddress();
     httpOpenSearchConfig.setUri(URI.create(httpAddress));
-    httpOpenSearchConfig.setUsername(opensearchContainer.getUsername());
-    httpOpenSearchConfig.setPassword(opensearchContainer.getPassword());
+    httpOpenSearchConfig.setUsername(opensearchContainer.getContainer().getUsername());
+    httpOpenSearchConfig.setPassword(opensearchContainer.getContainer().getPassword());
     return httpOpenSearchConfig;
   }
 

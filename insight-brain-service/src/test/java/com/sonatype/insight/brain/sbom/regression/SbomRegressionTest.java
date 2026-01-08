@@ -38,7 +38,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.xmlunit.assertj.CompareAssert;
 import org.xmlunit.assertj.XmlAssert;
 import org.xmlunit.diff.DefaultNodeMatcher;

@@ -53,7 +53,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
+import com.google.common.collect.Lists;
 
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.FORMAT_MAVEN;
 import static com.sonatype.insight.brain.git.PullRequestCommentingService.MINIMUM_THREAT_LEVEL;

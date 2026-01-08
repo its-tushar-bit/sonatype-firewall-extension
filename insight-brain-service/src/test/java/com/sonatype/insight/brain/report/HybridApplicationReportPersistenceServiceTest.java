@@ -33,6 +33,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.HybridDataStoreConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
 import com.sonatype.insight.brain.utils.ReportHelper;
+import com.sonatype.insight.test.ContainerRule;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.inject.Binder;
@@ -86,7 +87,8 @@ public class HybridApplicationReportPersistenceServiceTest
   private static final String OTHER_NAME = "someOtherName";
 
   @ClassRule
-  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+  public static ContainerRule<LocalStackContainer> localstack =
+      new ContainerRule<>(new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3));
 
   @Inject
   private S3Client s3Client;
@@ -127,20 +129,20 @@ public class HybridApplicationReportPersistenceServiceTest
   public void configure(final Binder binder) {
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
-        localstack.getAccessKey(),
-        localstack.getSecretKey()
+        localstack.getContainer().getAccessKey(),
+        localstack.getContainer().getSecretKey()
     ));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
 
   private static S3Client createS3Client() {
     return S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
+        .endpointOverride(localstack.getContainer().getEndpoint())
         .region(Region.of(REGION))
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
+                localstack.getContainer().getAccessKey(),
+                localstack.getContainer().getSecretKey()
             )))
         .build();
   }
@@ -157,7 +159,7 @@ public class HybridApplicationReportPersistenceServiceTest
     S3DataStoreConfig s3DataStoreConfig = new S3DataStoreConfig();
     s3DataStoreConfig.setBucketName(BUCKET_NAME);
     s3DataStoreConfig.setRegion(REGION);
-    s3DataStoreConfig.setEndpoint(localstack.getEndpoint());
+    s3DataStoreConfig.setEndpoint(localstack.getContainer().getEndpoint());
     storageConfig.setS3Config(s3DataStoreConfig);
   }
 

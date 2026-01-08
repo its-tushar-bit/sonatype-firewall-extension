@@ -12,6 +12,7 @@ import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.test.ContainerRule;
 
 import com.google.inject.Binder;
 import org.junit.After;
@@ -41,7 +42,8 @@ public class ReportPurgerS3Test
   private static final String REGION = "us-east-2";
 
   @ClassRule
-  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+  public static ContainerRule<LocalStackContainer> localstack =
+      new ContainerRule<>(new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3));
 
   @Inject
   private S3Client s3Client;
@@ -58,12 +60,12 @@ public class ReportPurgerS3Test
 
   private static S3Client createS3Client() {
     return S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
+        .endpointOverride(localstack.getContainer().getEndpoint())
         .region(Region.of(REGION))
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
+                localstack.getContainer().getAccessKey(),
+                localstack.getContainer().getSecretKey()
             )))
         .build();
   }
@@ -82,7 +84,7 @@ public class ReportPurgerS3Test
     var s3Config = new S3DataStoreConfig();
     s3Config.setBucketName(BUCKET_NAME);
     s3Config.setRegion(REGION);
-    s3Config.setEndpoint(localstack.getEndpoint());
+    s3Config.setEndpoint(localstack.getContainer().getEndpoint());
     storageConfig.setS3Config(s3Config);
     storageConfig.setType(DataStoreType.S3);
   }
@@ -91,8 +93,8 @@ public class ReportPurgerS3Test
   public void configure(Binder binder) {
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
-        localstack.getAccessKey(),
-        localstack.getSecretKey()
+        localstack.getContainer().getAccessKey(),
+        localstack.getContainer().getSecretKey()
     ));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }

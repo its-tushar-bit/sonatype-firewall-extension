@@ -56,6 +56,7 @@ import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig
 import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.json.store.JsonUtils;
+import com.sonatype.insight.test.ContainerRule;
 import com.sonatype.insight.test.LogOutput;
 
 import ch.qos.logback.classic.Level;
@@ -108,7 +109,8 @@ public class CopyStorageServiceTest
   private static final String REGION = "us-east-2";
 
   @ClassRule
-  public static LocalStackContainer localstack = new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3);
+  public static ContainerRule<LocalStackContainer> localstack =
+      new ContainerRule<>(new LocalStackContainer(LOCALSTACK_IMAGE).withServices(Service.S3));
 
   @Rule
   public LogOutput logOutput = new LogOutput(CopyStorageService.class);
@@ -165,8 +167,8 @@ public class CopyStorageServiceTest
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
     super.configure(binder);
     AwsCredentialsProvider awsCredentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create(
-        localstack.getAccessKey(),
-        localstack.getSecretKey()
+        localstack.getContainer().getAccessKey(),
+        localstack.getContainer().getSecretKey()
     ));
     binder.bind(AwsCredentialsProvider.class).toInstance(awsCredentialsProvider);
   }
@@ -182,7 +184,7 @@ public class CopyStorageServiceTest
     S3DataStoreConfig s3DataStoreConfig = new S3DataStoreConfig();
     s3DataStoreConfig.setBucketName(BUCKET_NAME);
     s3DataStoreConfig.setRegion(REGION);
-    s3DataStoreConfig.setEndpoint(localstack.getEndpoint());
+    s3DataStoreConfig.setEndpoint(localstack.getContainer().getEndpoint());
     storageConfig.setS3Config(s3DataStoreConfig);
   }
 
@@ -195,12 +197,12 @@ public class CopyStorageServiceTest
 
   private static S3Client createS3Client() {
     return S3Client.builder()
-        .endpointOverride(localstack.getEndpoint())
+        .endpointOverride(localstack.getContainer().getEndpoint())
         .region(Region.of(REGION))
         .credentialsProvider(
             StaticCredentialsProvider.create(AwsBasicCredentials.create(
-                localstack.getAccessKey(),
-                localstack.getSecretKey()
+                localstack.getContainer().getAccessKey(),
+                localstack.getContainer().getSecretKey()
             )))
         .build();
   }

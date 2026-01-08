@@ -28,7 +28,7 @@ import com.sonatype.insight.dataaccess.TransactionContext;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.dataaccess.development.prioritization.DevelopmentPrioritizationComponentInfoDAO.BATCH_INSERT_SIZE_LIMIT;
 import static org.assertj.core.api.Assertions.assertThat;

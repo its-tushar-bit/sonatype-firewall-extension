@@ -41,7 +41,7 @@ import org.cyclonedx.model.Bom;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 import org.xmlunit.assertj.XmlAssert;
 
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;

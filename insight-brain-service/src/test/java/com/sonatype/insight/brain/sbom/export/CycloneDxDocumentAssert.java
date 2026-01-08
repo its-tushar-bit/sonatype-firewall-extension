@@ -19,7 +19,7 @@ import org.assertj.core.api.Assertions;
 import org.cyclonedx.model.Bom;
 import org.cyclonedx.model.Component;
 import org.cyclonedx.model.vulnerability.Vulnerability;
-import org.testcontainers.shaded.org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import static org.assertj.core.api.Assertions.within;
 

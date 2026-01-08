@@ -14,7 +14,7 @@ import com.sonatype.insight.license.model.LicensedFeature;
 
 import com.google.inject.Binder;
 import org.junit.Test;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;

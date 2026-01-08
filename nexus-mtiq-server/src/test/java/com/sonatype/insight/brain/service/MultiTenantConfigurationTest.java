@@ -35,7 +35,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap;
 
 import static com.sonatype.insight.brain.tenancy.Tenant.GLOBAL_TENANT;
 import static com.sonatype.insight.brain.tenancy.TenantTestHelper.testAsTenant;

@@ -41,7 +41,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.testcontainers.shaded.com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

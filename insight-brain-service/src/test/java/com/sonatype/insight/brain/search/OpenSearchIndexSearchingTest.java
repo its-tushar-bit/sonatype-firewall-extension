@@ -22,6 +22,7 @@ import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.search.opensearch.SingleTenantIndexConfigProvider;
 import com.sonatype.insight.brain.search.opensearch.TestOpenSearchTransportFactory;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.test.ContainerRule;
 
 import com.google.inject.Binder;
 import org.junit.Before;
@@ -41,8 +42,8 @@ public class OpenSearchIndexSearchingTest
     extends AbstractIndexSearchingTest
 {
   @ClassRule
-  public static OpensearchContainer opensearchContainer =
-      new OpensearchContainer<>(OpenSearchHttpSearchIndexFixture.OPENSEARCH_IMAGE);
+  public static ContainerRule<OpensearchContainer<?>> opensearchContainer =
+      new ContainerRule<>(new OpensearchContainer<>(OpenSearchHttpSearchIndexFixture.OPENSEARCH_IMAGE));
 
   @Override
   public void configure(final Binder binder) {
@@ -75,10 +76,10 @@ public class OpenSearchIndexSearchingTest
 
   private static HttpOpenSearchConfig getHttpOpenSearchConfig() {
     HttpOpenSearchConfig httpOpenSearchConfig = new HttpOpenSearchConfig();
-    String httpAddress = opensearchContainer.getHttpHostAddress();
+    String httpAddress = opensearchContainer.getContainer().getHttpHostAddress();
     httpOpenSearchConfig.setUri(URI.create(httpAddress));
-    httpOpenSearchConfig.setUsername(opensearchContainer.getUsername());
-    httpOpenSearchConfig.setPassword(opensearchContainer.getPassword());
+    httpOpenSearchConfig.setUsername(opensearchContainer.getContainer().getUsername());
+    httpOpenSearchConfig.setPassword(opensearchContainer.getContainer().getPassword());
     return httpOpenSearchConfig;
   }
 
@@ -135,7 +136,7 @@ public class OpenSearchIndexSearchingTest
   @Test
   public void testUpdateIndex_DoesNotFloodTheLogs() {
     try {
-      opensearchContainer.stop();
+      opensearchContainer.getContainer().stop();
       await().atMost(Duration.ofSeconds(10)).until(() -> {
         try {
           openSearchSearchIndexClient.getClient().indices().getAlias();
@@ -156,7 +157,7 @@ public class OpenSearchIndexSearchingTest
       assertThatNoException().isThrownBy(openSearchSearchIndexClient::updateIndex);
     }
     finally {
-      opensearchContainer.start();
+      opensearchContainer.getContainer().start();
     }
   }
 }

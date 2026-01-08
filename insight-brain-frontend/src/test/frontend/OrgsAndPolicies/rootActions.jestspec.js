@@ -108,9 +108,10 @@ describe('rootSlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/fulfilled',
         ]);
 
@@ -151,9 +152,10 @@ describe('rootSlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/fulfilled',
         ]);
 
@@ -173,9 +175,10 @@ describe('rootSlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/fulfilled',
         ]);
 
@@ -191,9 +194,10 @@ describe('rootSlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(2);
+        expect(actions.length).toBe(3);
         expect(actions).toHaveActionTypesInOrder([
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/rejected',
         ]);
         done();

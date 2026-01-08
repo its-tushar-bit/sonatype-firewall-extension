@@ -147,6 +147,146 @@ describe('OwnerSummary', () => {
       expect(screen.queryByText('Provided Contact Display Name')).not.toBeInTheDocument();
     });
 
+    it('renders limited firewall access alert when showLimitedFirewallAccessAlert is true and in firewall mode', async () => {
+      const state = {
+        ...preloadedState,
+        router: {
+          currentState: {
+            name: 'firewall.management.view.organization',
+            url: '/firewall/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: { displayedOrganization: { synthetic: false } },
+          root: {
+            showLimitedFirewallAccessAlert: true,
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast',
+            },
+          },
+        },
+      };
+      renderComponent(state);
+      expect(
+        await screen.findByText(/You have limited access to Repository Firewall based on your current permissions/)
+      ).toBeVisible();
+      expect(screen.getByText(/Some data or settings may not be visible. Contact your administrator/)).toBeVisible();
+      expect(screen.queryByText('broadcast')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+    });
+
+    it('does NOT render limited firewall access alert when showLimitedFirewallAccessAlert is false in firewall mode', async () => {
+      const state = {
+        ...preloadedState,
+        router: {
+          currentState: {
+            name: 'firewall.management.view.organization',
+            url: '/firewall/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: { displayedOrganization: { synthetic: false } },
+          root: {
+            showLimitedFirewallAccessAlert: false,
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast',
+            },
+          },
+        },
+      };
+      renderComponent(state);
+      expect(await screen.findByText('broadcast')).toBeVisible();
+      const alertMessage = screen.queryByText(/You have limited access to Repository Firewall/);
+      expect(alertMessage).not.toBeInTheDocument();
+    });
+
+    it('does NOT render limited firewall access alert when showLimitedFirewallAccessAlert is true but NOT in firewall mode', async () => {
+      const state = {
+        ...preloadedState,
+        router: {
+          currentState: {
+            name: 'management.view.organization',
+            url: '/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: { displayedOrganization: { synthetic: false } },
+          root: {
+            showLimitedFirewallAccessAlert: true,
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast',
+            },
+          },
+        },
+      };
+      renderComponent(state);
+      expect(await screen.findByText('broadcast')).toBeVisible();
+      // Should NOT show the firewall alert because we're not in firewall mode
+      const alertMessage = screen.queryByText(/You have limited access to Repository Firewall/);
+      expect(alertMessage).not.toBeInTheDocument();
+    });
+
+    it('renders insufficient permissions tree when synthetic is true, even if showLimitedFirewallAccessAlert is also true in firewall mode', async () => {
+      const stateWithBothTrue = {
+        ...preloadedState,
+        router: {
+          currentState: {
+            name: 'firewall.management.view.organization',
+            url: '/firewall/organization/{organizationId}',
+            data: {
+              title: 'Organization Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            organizationId: ownerId,
+          },
+        },
+        orgsAndPolicies: {
+          ownerSideNav: { displayedOrganization: { synthetic: true } },
+          root: {
+            showLimitedFirewallAccessAlert: true,
+            selectedOwner: {
+              id: ownerId,
+              name: 'broadcast',
+            },
+          },
+        },
+      };
+      renderComponent(stateWithBothTrue);
+      const treeMessage = await screen.findByText(
+        'View all organizations and applications on which you have permissions. Click on the link for the org or app below to access details.'
+      );
+      expect(treeMessage).toBeVisible();
+      expect(screen.queryByTestId('owner-summary-action-dropdown-container')).not.toBeInTheDocument();
+      // Should show tree, not the firewall alert
+      expect(screen.queryByText(/You have limited access to Repository Firewall/)).not.toBeInTheDocument();
+    });
+
     it("does NOT render an SBOM tile because it's on the organization page", async () => {
       const stateSBOMtrue = {
         ...preloadedState,
@@ -356,6 +496,73 @@ describe('OwnerSummary', () => {
       expect(await screen.findByText('a-aws 4-lll app filter')).toBeVisible();
       expect(await screen.findByText('(a-aws-4-lll_app_filter)')).toBeVisible();
       expect(await screen.findByText('Provided Contact Display Name')).toBeVisible();
+    });
+
+    it('does NOT render limited firewall access alert when showLimitedFirewallAccessAlert is true (firewall mode only for organizations)', async () => {
+      preloadedState = {
+        router: {
+          currentState: {
+            name: 'management.view.application',
+            url: '/application/{applicationPublicId}',
+            data: {
+              title: 'Application Management',
+              viewportSized: true,
+            },
+          },
+          currentParams: {
+            applicationPublicId: 'a-aws-4-lll_app_filter',
+          },
+        },
+        orgsAndPolicies: {
+          sourceControl: {
+            data: {
+              repositoryUrl: null,
+              provider: {
+                value: null,
+                parentValue: 'github',
+              },
+              token: {
+                value: null,
+              },
+            },
+          },
+          root: {
+            showLimitedFirewallAccessAlert: true,
+            selectedOwner: {
+              id: ownerId,
+              publicId: 'a-aws-4-lll_app_filter',
+              name: 'a-aws 4-lll app filter',
+            },
+          },
+        },
+      };
+
+      axiosMock.onGet(getApplicationsUrl()).reply(200, [
+        {
+          id: ownerId,
+          name: 'a-aws 4-lll app filter',
+          organizationId: '1b3066fd0c6f4f4785a5bcb27a9652e4',
+          organizationName: '4-level-org',
+          publicId: 'a-aws-4-lll_app_filter',
+        },
+      ]);
+      axiosMock.onGet(getDashboardStageUrl()).reply(200, []);
+      axiosMock.onGet(getApplicationSummaryUrl('a-aws-4-lll_app_filter')).reply(200, {
+        id: ownerId,
+        name: 'a-aws 4-lll app filter',
+        organizationId: '1b3066fd0c6f4f4785a5bcb27a9652e4',
+        organizationName: '4-level-org',
+        publicId: 'a-aws-4-lll_app_filter',
+        policyEvaluations: {},
+        policyEvaluationsResults: {},
+      });
+
+      renderComponent(preloadedState);
+
+      expect(await screen.findByText('a-aws 4-lll app filter')).toBeVisible();
+      // Should NOT show the firewall alert when viewing an application (only for organizations/firewall mode)
+      const alertMessage = screen.queryByText(/You have limited access to Repository Firewall/);
+      expect(alertMessage).not.toBeInTheDocument();
     });
   });
 

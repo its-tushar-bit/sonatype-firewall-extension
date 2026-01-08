@@ -28,6 +28,7 @@ import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.SummarySection;
 import com.sonatype.clm.testing.functional.elements.ThreatDropdownSelector;
 import com.sonatype.clm.testing.functional.pages.DashboardPage;
+import com.sonatype.clm.testing.functional.pages.OwnerSummaryPageWithLimitedVisibility;
 import com.sonatype.clm.testing.functional.pages.PolicyEditorPage;
 import com.sonatype.clm.testing.functional.pages.RepositoriesSummaryPage;
 import com.sonatype.clm.testing.functional.utils.ScrollUtil;
@@ -401,12 +402,29 @@ public class RepositoryContainerPolicyEditorTest
       refreshOrOpen(DashboardPage.url());
       logout();
       login(user.getUsername(), user.getPassword());
-      refreshOrOpen(RepositoriesSummaryPage.url());
+      refreshOrOpen(OwnerSummaryPageWithLimitedVisibility.baseUrl());
       RepositoriesSummaryPage.getErrorAlert().shouldHave(text("Insufficient permissions"));
     }
     finally {
       logout();
+      refreshOrOpen(OwnerSummaryPageWithLimitedVisibility.baseUrl());
+      loginAsAdmin();
+    }
+  }
+
+  @Test
+  public void testUnauthorizedFirewallUserCannotAddAndEditPolicy() {
+    try {
+      User user = tempEntity.newUser("username", "john", "doe", "john@doe");
+      refreshOrOpen(DashboardPage.url());
+      logout();
+      login(user.getUsername(), user.getPassword());
       refreshOrOpen(RepositoriesSummaryPage.url());
+      RepositoriesSummaryPage.getFirewallPermissionBanner().shouldBe(visible);
+    }
+    finally {
+      logout();
+      RepositoriesSummaryPage.getFirewallPermissionBanner().shouldNotBe(visible);
       loginAsAdmin();
     }
   }

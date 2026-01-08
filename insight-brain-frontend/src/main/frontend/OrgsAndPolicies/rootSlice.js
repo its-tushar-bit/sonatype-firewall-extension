@@ -33,6 +33,7 @@ export const initialState = {
   loadError: null,
   selectedOwner: {},
   policiesByOwner: null,
+  showLimitedFirewallAccessAlert: false,
 };
 
 const setSelectedOwnerContact = (state, { payload }) => {
@@ -46,6 +47,21 @@ const selectedOwnerParentOrganizationUpdated = (
   state.selectedOwner.organizationName = organizationName;
   state.selectedOwner.organizationId = organizationId;
   state.selectedOwner.parentOrganizationId = parentOrganizationId;
+};
+
+const setShowLimitedFirewallAccessAlert = (state, { payload }) => {
+  state.showLimitedFirewallAccessAlert = payload;
+};
+
+const handleOwnerLoadError = (error, dispatch, rejectWithValue, shouldHandleAlert = true) => {
+  if (shouldHandleAlert) {
+    if (error?.response?.status === 403) {
+      dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(true));
+    } else {
+      dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(false));
+    }
+  }
+  return rejectWithValue(error);
 };
 
 const loadApplicablePoliciesByOwner = createAsyncThunk(
@@ -66,7 +82,7 @@ const loadApplicablePoliciesByOwner = createAsyncThunk(
 
 const loadSelectedOwner = createAsyncThunk(
   `${REDUCER_NAME}/loadSelectedOwner`,
-  (forceReload, { getState, rejectWithValue }) => {
+  (forceReload, { getState, rejectWithValue, dispatch }) => {
     const state = getState();
     const isApp = selectIsApplication(state);
     const isRepositories = selectIsRepositoriesRelated(state);
@@ -78,25 +94,36 @@ const loadSelectedOwner = createAsyncThunk(
     const shouldReloadOwner =
       forceReload || (entityId && entityId !== (isApp ? selectedOwner.publicId : selectedOwner.id));
     if (!shouldReloadOwner) {
+      // Reset limited firewall access alert flag when returning cached repository-related data
+      // to prevent stale state from previous navigations
+      if (isRepositories && selectedOwner.id) {
+        dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(false));
+      }
       return Promise.resolve(selectedOwner);
     }
     if (isRepositories) {
       if (isRepositoryManager) {
         return axios
           .get(getRepositoryManagerById(entityId))
-          .then((response) => ({
-            ...response.data,
-            type: 'repository_manager',
-          }))
-          .catch(rejectWithValue);
+          .then((response) => {
+            dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(false));
+            return {
+              ...response.data,
+              type: 'repository_manager',
+            };
+          })
+          .catch((error) => handleOwnerLoadError(error, dispatch, rejectWithValue));
       } else if (isRepositoryContainer) {
         return axios
           .get(getRepositoryContainer())
-          .then((response) => ({
-            ...response.data,
-            type: 'repository_container',
-          }))
-          .catch(rejectWithValue);
+          .then((response) => {
+            dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(false));
+            return {
+              ...response.data,
+              type: 'repository_container',
+            };
+          })
+          .catch((error) => handleOwnerLoadError(error, dispatch, rejectWithValue));
       } else if (isRepository) {
         return axios
           .get(getRepositoryInfoUrl(entityId))
@@ -113,11 +140,14 @@ const loadSelectedOwner = createAsyncThunk(
       ? axios.get(getApplicationSummaryUrl(entityId))
       : axios.get(getOrganizationUrl(entityId));
     return loadOwnerPromise
-      .then((response) => ({
-        ...response.data,
-        type: isApp ? 'application' : 'organization',
-      }))
-      .catch(rejectWithValue);
+      .then((response) => {
+        dispatch(rootSlice.actions.setShowLimitedFirewallAccessAlert(false));
+        return {
+          ...response.data,
+          type: isApp ? 'application' : 'organization',
+        };
+      })
+      .catch((error) => handleOwnerLoadError(error, dispatch, rejectWithValue));
   }
 );
 
@@ -143,6 +173,7 @@ const rootSlice = createSlice({
   reducers: {
     setSelectedOwnerContact,
     selectedOwnerParentOrganizationUpdated,
+    setShowLimitedFirewallAccessAlert,
   },
   extraReducers: {
     [loadSelectedOwner.pending]: loadSelectedOwnerRequested,

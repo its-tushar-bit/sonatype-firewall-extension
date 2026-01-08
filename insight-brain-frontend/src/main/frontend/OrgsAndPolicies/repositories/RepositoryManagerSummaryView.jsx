@@ -9,10 +9,12 @@ import { getAddIconUrl } from 'MainRoot/util/CLMLocation';
 import { NxLoadWrapper, NxPageTitle, NxH1, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faCubes } from '@fortawesome/pro-solid-svg-icons';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import {
   selectSelectedOwner,
   selectLoadError as selectLoadSelectedOwnerError,
   selectEntityId,
+  selectShowLimitedFirewallAccessAlert,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import PoliciesTile from 'MainRoot/OrgsAndPolicies/ownerSummary/policiesTile/PoliciesTile';
 
@@ -31,6 +33,7 @@ export default function RepositoryManagerSummaryView() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const entityId = useSelector(selectEntityId);
   const owner = useSelector(selectSelectedOwner);
+  const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
   const getIconUrl = () => getAddIconUrl('repository_manager', owner.id) + `?${Math.random()}`;
@@ -41,37 +44,41 @@ export default function RepositoryManagerSummaryView() {
     }
   }, [entityId]);
 
-  return (
-    <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
-      <div id="repository-page">
-        <header>
-          <NxPageTitle id="repositories-summary" className="iq-page-title">
-            <NxH1>
-              <span className="nx-icon">
-                <img src={getIconUrl()} />
-              </span>
-              <span>{owner.name}</span>
-            </NxH1>
-            <div className="nx-btn-bar">
-              <ActionDropdown />
-            </div>
-          </NxPageTitle>
-          <RepositoryManagerPills />
-        </header>
+  function repositoryManagerSummary() {
+    return (
+      <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
+        <div id="repository-page">
+          <header>
+            <NxPageTitle id="repositories-summary" className="iq-page-title">
+              <NxH1>
+                <span className="nx-icon">
+                  <img src={getIconUrl()} />
+                </span>
+                <span>{owner.name}</span>
+              </NxH1>
+              <div className="nx-btn-bar">
+                <ActionDropdown />
+              </div>
+            </NxPageTitle>
+            <RepositoryManagerPills />
+          </header>
 
-        <div
-          className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
-          id="repositories-summary-sections"
-        >
-          <div id="scrollable-content">
-            <RepositoriesConfigurationTile />
-            <PoliciesTile />
-            <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
-            <AccessTile />
+          <div
+            className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
+            id="repositories-summary-sections"
+          >
+            <div id="scrollable-content">
+              <RepositoriesConfigurationTile />
+              <PoliciesTile />
+              <NamespaceConfusionProtectionTile sortFilterSectionValues={`repository-manager_${entityId}`} />
+              <AccessTile />
+            </div>
           </div>
         </div>
-      </div>
-      <DeleteOwnerModal />
-    </NxLoadWrapper>
-  );
+        <DeleteOwnerModal />
+      </NxLoadWrapper>
+    );
+  }
+
+  return showLimitedFirewallAccessAlert ? <LimitedFirewallAccessAlert /> : repositoryManagerSummary();
 }

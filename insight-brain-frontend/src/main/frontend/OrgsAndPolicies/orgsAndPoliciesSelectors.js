@@ -109,3 +109,8 @@ export const selectSelectedOwnerTypeAndId = createSelector(selectSelectedOwner, 
   ownerType: has('publicId', owner) ? 'application' : 'organization',
   ownerId: owner?.id,
 }));
+
+export const selectShowLimitedFirewallAccessAlert = createSelector(
+  selectRootSlice,
+  prop('showLimitedFirewallAccessAlert')
+);

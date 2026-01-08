@@ -13,9 +13,11 @@ import { actions } from 'MainRoot/OrgsAndPolicies/ownerSummarySlice';
 import { useDispatch, useSelector } from 'react-redux';
 import RepositoriesPills from 'MainRoot/OrgsAndPolicies/repositories/RepositoriesPills';
 import { selectLoadError, selectLoading } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
+import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import {
   selectLoadError as selectLoadSelectedOwnerError,
   selectSelectedOwner,
+  selectShowLimitedFirewallAccessAlert,
 } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 
 export default function RepositoriesSummaryView() {
@@ -24,6 +26,7 @@ export default function RepositoriesSummaryView() {
   const loadError = useSelector(selectLoadError);
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const owner = useSelector(selectSelectedOwner);
+  const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert);
 
   const doLoad = () => dispatch(actions.loadOwnerSummary());
 
@@ -34,30 +37,34 @@ export default function RepositoriesSummaryView() {
     }
   }, []);
 
-  return (
-    <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
-      <div id="repository-page">
-        <header>
-          <NxPageTitle id="repositories-summary" className="iq-page-title">
-            <NxH1>
-              <span>{owner.name}</span>
-            </NxH1>
-          </NxPageTitle>
-          <RepositoriesPills />
-        </header>
+  function repositoriesSummary() {
+    return (
+      <NxLoadWrapper loading={loading} error={loadError || loadSelectedOwnerError} retryHandler={doLoad}>
+        <div id="repository-page">
+          <header>
+            <NxPageTitle id="repositories-summary" className="iq-page-title">
+              <NxH1>
+                <span>{owner.name}</span>
+              </NxH1>
+            </NxPageTitle>
+            <RepositoriesPills />
+          </header>
 
-        <div
-          className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
-          id="repositories-summary-sections"
-        >
-          <div id="scrollable-content">
-            <RepositoriesConfigurationTile />
-            <PoliciesTile />
-            <NamespaceConfusionProtectionTile />
-            <AccessTile />
+          <div
+            className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
+            id="repositories-summary-sections"
+          >
+            <div id="scrollable-content">
+              <RepositoriesConfigurationTile />
+              <PoliciesTile />
+              <NamespaceConfusionProtectionTile />
+              <AccessTile />
+            </div>
           </div>
         </div>
-      </div>
-    </NxLoadWrapper>
-  );
+      </NxLoadWrapper>
+    );
+  }
+
+  return showLimitedFirewallAccessAlert ? <LimitedFirewallAccessAlert /> : repositoriesSummary();
 }

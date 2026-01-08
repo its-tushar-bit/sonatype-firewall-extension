@@ -259,10 +259,11 @@ describe('policySlice actions', () => {
 
       const dispatchedActions = store.getActions();
 
-      expect(dispatchedActions.length).toBe(12);
+      expect(dispatchedActions.length).toBe(13);
       expect(dispatchedActions).toHaveActionTypesInOrder([
         'policy/loadPolicyEditor/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'policy/checkEditIqPermission/pending',
         'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
@@ -275,7 +276,7 @@ describe('policySlice actions', () => {
         'constraint/loadConstraint/rejected',
       ]);
 
-      expect(dispatchedActions[10].payload).toEqual({
+      expect(dispatchedActions[11].payload).toEqual({
         isInherited: undefined,
         originalProxyStageAction: undefined,
         siblings: [
@@ -342,7 +343,7 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
         expect(actions).toHaveActionType('policy/loadCategoriesForPolicy/pending');
-        expect(actions[13].payload).toEqual(expect.objectContaining({ isOrgOwner: true }));
+        expect(actions[14].payload).toEqual(expect.objectContaining({ isOrgOwner: true }));
 
         done();
       });
@@ -367,10 +368,11 @@ describe('policySlice actions', () => {
 
         const actions = store.getActions();
 
-        expect(actions.length).toBe(16);
+        expect(actions.length).toBe(17);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/fulfilled',
           'policy/checkEditIqPermission/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',
@@ -387,7 +389,7 @@ describe('policySlice actions', () => {
           'policy/loadCategoriesForPolicy/rejected',
         ]);
 
-        expect(actions[13].payload).toEqual({
+        expect(actions[14].payload).toEqual({
           siblings: [
             {
               id: '4d6b4ac75ea148b2aa6ca36e6899cc78',
@@ -486,10 +488,11 @@ describe('policySlice actions', () => {
         expect(axios.get).toHaveBeenCalledTimes(2);
 
         const actions = store.getActions();
-        expect(actions.length).toBe(8);
+        expect(actions.length).toBe(9);
         expect(actions).toHaveActionTypesInOrder([
           'policy/loadPolicyEditor/pending',
           'orgsAndPolicies/loadSelectedOwner/pending',
+          'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
           'orgsAndPolicies/loadSelectedOwner/fulfilled',
           'policy/checkEditIqPermission/pending',
           'orgsAndPolicies/loadApplicablePoliciesByOwner/pending',

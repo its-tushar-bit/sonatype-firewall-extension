@@ -12,6 +12,7 @@ import com.sonatype.clm.testing.functional.elements.PillButton;
 import com.sonatype.clm.testing.functional.elements.PolicyTile;
 import com.sonatype.clm.testing.functional.elements.RepositoriesSummaryTile;
 import com.sonatype.clm.testing.functional.elements.RepositoryConfigurationTile;
+import com.sonatype.clm.testing.functional.elements.firewall.FirewallInsufficientPermissionBanner;
 import com.sonatype.clm.testing.functional.utils.BaseUrl;
 
 public class RepositoriesSummaryPage
@@ -66,5 +67,9 @@ public class RepositoriesSummaryPage
 
   public static NxAlert getErrorAlert() {
     return new NxAlert(".nx-alert.nx-alert--error");
+  }
+
+  public static FirewallInsufficientPermissionBanner getFirewallPermissionBanner() {
+    return new FirewallInsufficientPermissionBanner();
   }
 }

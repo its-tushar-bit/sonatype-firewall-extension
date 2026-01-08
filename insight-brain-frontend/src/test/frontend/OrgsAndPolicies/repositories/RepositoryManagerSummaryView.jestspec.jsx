@@ -292,4 +292,51 @@ describe('RepositoryManagerSummaryView', () => {
 
     expect(accessTile).toBeVisible();
   });
+
+  describe('Limited Firewall Access Alert', () => {
+    it('shows limited firewall access alert when showLimitedFirewallAccessAlert is true', async () => {
+      // Mock the repository manager API to return 403, which will set showLimitedFirewallAccessAlert to true
+      axiosMock.onGet(getRepositoryManagerById(ownerId)).reply(403, { message: 'Forbidden' });
+      axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { policiesByOwner: [] });
+
+      renderComponent(preloadedState);
+
+      expect(
+        await screen.findByText(/You have limited access to Repository Firewall based on your current permissions/)
+      ).toBeVisible();
+      expect(screen.getByText(/Some data or settings may not be visible. Contact your administrator/)).toBeVisible();
+    });
+
+    it('does not show limited firewall access alert when showLimitedFirewallAccessAlert is false', async () => {
+      preloadedState.orgsAndPolicies.root = {
+        ...preloadedState.orgsAndPolicies.root,
+        showLimitedFirewallAccessAlert: false,
+        selectedOwner: ownerInfo,
+      };
+
+      renderComponent(preloadedState);
+
+      expect(await screen.findByRole('heading', { name: /repo-manager-name/ })).toBeVisible();
+      expect(
+        screen.queryByText(/You have limited access to Repository Firewall based on your current permissions/)
+      ).not.toBeInTheDocument();
+    });
+
+    it('hides tiles when showing limited firewall access alert', async () => {
+      // Mock the repository manager API to return 403, which will set showLimitedFirewallAccessAlert to true
+      axiosMock.onGet(getRepositoryManagerById(ownerId)).reply(403, { message: 'Forbidden' });
+      axiosMock.onGet(getApplicablePolicies(ownerType, ownerId)).reply(200, { policiesByOwner: [] });
+
+      renderComponent(preloadedState);
+
+      expect(
+        await screen.findByText(/You have limited access to Repository Firewall based on your current permissions/)
+      ).toBeVisible();
+
+      // Verify tiles are not rendered when alert is shown
+      expect(screen.queryByTestId('repositories_configuration')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('repositories_access')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('policies-tile')).not.toBeInTheDocument();
+    });
+  });
 });

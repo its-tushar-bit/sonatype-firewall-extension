@@ -99,11 +99,12 @@ describe('ChangeApplicationIdModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/changeApplicationId/changeApplicationId/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewAppId',
@@ -112,7 +113,7 @@ describe('ChangeApplicationIdModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(9);
       expect(actions).toHaveActionType('ownerActions/changeApplicationId/closeModal');
 
       done();

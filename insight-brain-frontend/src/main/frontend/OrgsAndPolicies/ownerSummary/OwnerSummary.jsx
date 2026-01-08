@@ -9,9 +9,13 @@ import { NxH1, NxPageTitle, NxLoadWrapper, NxFontAwesomeIcon, NxTextLink } from 
 import { faUser } from '@fortawesome/free-solid-svg-icons';
 import { findIconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { getOwnerImageUrl } from 'MainRoot/util/CLMContextLocation';
+import LimitedFirewallAccessAlert from 'MainRoot/react/LimitedFirewallAccessAlert';
 import { selectLoading, selectLoadError } from 'MainRoot/OrgsAndPolicies/ownerSummarySelectors';
-import { selectLoadError as selectLoadSelectedOwnerError } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
-import { selectIsApplication, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
+import {
+  selectLoadError as selectLoadSelectedOwnerError,
+  selectShowLimitedFirewallAccessAlert,
+} from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
+import { selectIsApplication, selectIsFirewall, selectIsSbomManager } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectSelectedOwner, selectEntityId } from 'MainRoot/OrgsAndPolicies/orgsAndPoliciesSelectors';
 import { selectRepositoryUrl, selectScmProviderIcon } from 'MainRoot/OrgsAndPolicies/sourceControlSelectors';
 import {
@@ -93,10 +97,12 @@ export default function OwnerSummary() {
   const loadSelectedOwnerError = useSelector(selectLoadSelectedOwnerError);
   const owner = useSelector(selectSelectedOwner);
   const isApp = useSelector(selectIsApplication);
+  const isFirewall = useSelector(selectIsFirewall);
   const repositoryUrl = useSelector(selectRepositoryUrl);
   const scmProviderIcon = useSelector(selectScmProviderIcon);
   const entityId = useSelector(selectEntityId);
   const isSyntheticOrg = useSelector(selectIsDisplayedOrganizationSynthetic) && !isApp;
+  const showLimitedFirewallAccessAlert = useSelector(selectShowLimitedFirewallAccessAlert) && isFirewall;
   const isSbomManager = useSelector(selectIsSbomManager);
   const noSbomManagerEnabledError = useSelector(selectNoSbomManagerEnabledError);
   const isSbomContinuousMonitoringUiEnabled = useSelector(selectIsSbomContinuousMonitoringUiEnabled);
@@ -114,56 +120,62 @@ export default function OwnerSummary() {
     }
   }, [entityId]);
 
-  return isSyntheticOrg ? (
-    <InsufficientPermissionOwnerHierarchyTree />
-  ) : (
-    <NxLoadWrapper loading={loadingOwnerSummaryAndEntityId} error={error} retryHandler={doLoad}>
-      <div id="owner-summary">
-        <NxPageTitle className="iq-page-title">
-          <NxH1>
-            <span className="nx-icon">
-              <img src={getOwnerImageUrl(owner)} />
-            </span>
-            <span>{owner.name}</span>
-            {isApp && <span className="iq-owner-public-id"> ({owner.publicId})</span>}
-          </NxH1>
-          {owner.contact && (
-            <NxPageTitle.Description>
-              <NxFontAwesomeIcon icon={faUser} className="iq-owner-contact-icon" /> {owner.contact.displayName}
-            </NxPageTitle.Description>
+  function ownerSummary() {
+    return (
+      <NxLoadWrapper loading={loadingOwnerSummaryAndEntityId} error={error} retryHandler={doLoad}>
+        <div id="owner-summary">
+          <NxPageTitle className="iq-page-title">
+            <NxH1>
+              <span className="nx-icon">
+                <img src={getOwnerImageUrl(owner)} />
+              </span>
+              <span>{owner.name}</span>
+              {isApp && <span className="iq-owner-public-id"> ({owner.publicId})</span>}
+            </NxH1>
+            {owner.contact && (
+              <NxPageTitle.Description>
+                <NxFontAwesomeIcon icon={faUser} className="iq-owner-contact-icon" /> {owner.contact.displayName}
+              </NxPageTitle.Description>
+            )}
+            <div className="nx-btn-bar" data-testid="owner-summary-action-dropdown-container">
+              <ActionDropdown />
+            </div>
+          </NxPageTitle>
+          {isApp && repositoryUrl && (
+            <div className="page-repository-url nx-truncate-ellipsis">
+              <NxFontAwesomeIcon icon={findIconDefinition({ prefix: 'fab', iconName: scmProviderIcon })} />
+              <NxTextLink external href={repositoryUrl}>
+                {repositoryUrl}
+              </NxTextLink>
+            </div>
           )}
-          <div className="nx-btn-bar" data-testid="owner-summary-action-dropdown-container">
-            <ActionDropdown />
-          </div>
-        </NxPageTitle>
-        {isApp && repositoryUrl && (
-          <div className="page-repository-url nx-truncate-ellipsis">
-            <NxFontAwesomeIcon icon={findIconDefinition({ prefix: 'fab', iconName: scmProviderIcon })} />
-            <NxTextLink external href={repositoryUrl}>
-              {repositoryUrl}
-            </NxTextLink>
-          </div>
-        )}
-        <OwnerSummaryPills />
-      </div>
-      <div
-        className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
-        id="owner-summary-sections"
-      >
-        {isSbomManager
-          ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported)
-          : DefaultTiles()}
-        {renderPublicDataSourcesTile(isPublicDataEnabled, hasSbomManagerLicenseOnly)}
-      </div>
-      <DeleteOwnerModal />
-      <LegacyViolationModal />
-      <ChangeApplicationIdModal />
-      <RevokeLegacyViolationModal />
-      <ImportPoliciesModal />
-      <ImportSbomModal />
-      <MoveOwnerModal />
-      <SelectContactModal />
-      <EvaluateApplicationModal />
-    </NxLoadWrapper>
-  );
+          <OwnerSummaryPills />
+        </div>
+        <div
+          className="iq-tile-scroll-container iq-tile-scroll-container--owner-summary-view nx-viewport-sized__scrollable"
+          id="owner-summary-sections"
+        >
+          {isSbomManager
+            ? SbomManagerTiles(isApp, isSbomContinuousMonitoringUiEnabled, isSbomPoliciesSupported)
+            : DefaultTiles()}
+          {renderPublicDataSourcesTile(isPublicDataEnabled, hasSbomManagerLicenseOnly)}
+        </div>
+        <DeleteOwnerModal />
+        <LegacyViolationModal />
+        <ChangeApplicationIdModal />
+        <RevokeLegacyViolationModal />
+        <ImportPoliciesModal />
+        <ImportSbomModal />
+        <MoveOwnerModal />
+        <SelectContactModal />
+        <EvaluateApplicationModal />
+      </NxLoadWrapper>
+    );
+  }
+
+  if (isSyntheticOrg) {
+    return <InsufficientPermissionOwnerHierarchyTree />;
+  }
+
+  return showLimitedFirewallAccessAlert ? <LimitedFirewallAccessAlert /> : ownerSummary();
 }

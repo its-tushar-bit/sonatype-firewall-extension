@@ -288,11 +288,12 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/createOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewEntry',
@@ -301,7 +302,7 @@ describe('ownerModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(9);
       expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
@@ -332,11 +333,12 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/createOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerSideNav/updateOwnersMapWithNewEntry',
@@ -345,7 +347,7 @@ describe('ownerModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(8);
+      expect(actions.length).toBe(9);
       expect(actions).toHaveActionType('ownerActions/ownerModal/closeModal');
 
       done();
@@ -374,11 +376,12 @@ describe('ownerModal actions', () => {
       expect(mock.history.put[0].url).toBe(getOrganizationsUrl());
 
       const actions = store.getActions();
-      expect(actions.length).toBe(6);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
@@ -386,11 +389,12 @@ describe('ownerModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
@@ -426,11 +430,12 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(6);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
@@ -438,11 +443,12 @@ describe('ownerModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
@@ -476,11 +482,12 @@ describe('ownerModal actions', () => {
 
       const actions = store.getActions();
 
-      expect(actions.length).toBe(6);
+      expect(actions.length).toBe(7);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',
@@ -488,11 +495,12 @@ describe('ownerModal actions', () => {
 
       jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
 
-      expect(actions.length).toBe(7);
+      expect(actions.length).toBe(8);
       expect(actions).toHaveActionTypesInOrder([
         'ownerActions/ownerModal/editCurrentOwner/pending',
         'ownerActions/updateOwner/pending',
         'orgsAndPolicies/loadSelectedOwner/pending',
+        'orgsAndPolicies/setShowLimitedFirewallAccessAlert',
         'orgsAndPolicies/loadSelectedOwner/fulfilled',
         'ownerActions/updateOwner/fulfilled',
         'ownerActions/ownerModal/editCurrentOwner/fulfilled',

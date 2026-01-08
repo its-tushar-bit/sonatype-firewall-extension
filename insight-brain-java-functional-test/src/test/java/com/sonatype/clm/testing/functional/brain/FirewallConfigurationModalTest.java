@@ -62,6 +62,55 @@ public class FirewallConfigurationModalTest
   }
 
   @Test
+  public void testFirewallConfigurationModal_InfoAlertAndReadMoreLink() {
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+
+    firewallAutoUnquarantinePage.shouldBe(visible);
+
+    final FirewallAutoUnquarantineStatus firewallAutoUnquarantineStatus
+        = firewallAutoUnquarantinePage.firewallAutoUnquarantineStatus();
+    firewallAutoUnquarantineStatus.shouldBe(visible);
+
+    FirewallConfigurationModal firewallConfigurationModal = firewallAutoUnquarantinePage.firewallConfigurationModal();
+    firewallConfigurationModal.shouldBe(hidden);
+
+    //open modal
+    firewallAutoUnquarantineStatus.configureLink().click();
+
+    //verify modal is visible
+    firewallConfigurationModal.shouldBe(visible);
+
+    //verify info alert is displayed
+    firewallConfigurationModal.infoAlert().shouldBe(visible);
+    firewallConfigurationModal.infoAlert()
+        .shouldHave(Condition.text(
+            "Components will only auto-release from quarantine if its status changes within the 14 day window."
+            )
+        );
+
+    //verify "Read More" link is displayed
+    firewallConfigurationModal.readMoreLink().shouldBe(visible);
+    firewallConfigurationModal.readMoreLink().shouldHave(Condition.text("Read More"));
+
+    //verify link has correct href
+    firewallConfigurationModal.readMoreLink()
+        .shouldHave(Condition.attribute("href",
+            "https://links.sonatype.com/products/firewall/doc/automatic-quarantine-release"));
+
+    //verify link opens in new tab
+    firewallConfigurationModal.readMoreLink()
+        .shouldHave(Condition.attribute("target", "_blank"));
+
+    //verify link has security attributes
+    firewallConfigurationModal.readMoreLink()
+        .shouldHave(Condition.attribute("rel", "noreferrer"));
+
+    //close modal
+    firewallConfigurationModal.cancelButton().click();
+    firewallConfigurationModal.shouldBe(hidden);
+  }
+
+  @Test
   public void testFirewallConfigurationModal_DefaultValues() {
     refreshOrOpen(FirewallAutoUnquarantinePage.url());
 

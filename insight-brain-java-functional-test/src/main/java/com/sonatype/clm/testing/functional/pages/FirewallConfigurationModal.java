@@ -53,4 +53,12 @@ public class FirewallConfigurationModal
   public SelenideElement modalContent() {
     return child(".nx-modal-content");
   }
+
+  public SelenideElement infoAlert() {
+    return child(".nx-alert--info");
+  }
+
+  public SelenideElement readMoreLink() {
+    return child(".nx-alert--info a.nx-text-link--external");
+  }
 }

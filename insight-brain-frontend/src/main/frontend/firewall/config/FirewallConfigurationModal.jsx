@@ -5,10 +5,13 @@
  */
 
 import React from 'react';
-import { NxFieldset, NxStatefulForm, NxModal, NxToggle } from '@sonatype/react-shared-components';
+import { NxFieldset, NxStatefulForm, NxModal, NxToggle, NxAlert, NxTextLink } from '@sonatype/react-shared-components';
 import * as PropTypes from 'prop-types';
 import { INTEGRITY_RATING_POLICY_TYPE_ID } from './firewallConfigurationModalReducer';
 import { MSG_NO_CHANGES_TO_SAVE } from 'MainRoot/util/constants';
+import { faGavel } from '@fortawesome/pro-solid-svg-icons';
+import { faCircleInfo, faInfo } from '@fortawesome/pro-light-svg-icons';
+import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 
 export default function FirewallConfigurationModal(props) {
   // Actions
@@ -44,6 +47,12 @@ export default function FirewallConfigurationModal(props) {
         <header className="nx-modal-header">
           <h2 className="nx-h2">Auto Release From Quarantine Configuration</h2>
         </header>
+        <NxAlert className="nx-alert--info" icon={faInfoCircle}>
+          Components will only auto-release from quarantine if its status changes within the 14 day window.
+          <NxTextLink external href="https://links.sonatype.com/products/firewall/doc/automatic-quarantine-release">
+            Read More
+          </NxTextLink>
+        </NxAlert>
         <div className="nx-modal-content">
           <NxFieldset
             isRequired

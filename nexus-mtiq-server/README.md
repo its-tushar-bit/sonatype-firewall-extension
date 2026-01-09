@@ -43,3 +43,5 @@ docker build \
 
 ### Running the MTIQ image locally
 Coming soon on k8s!
+
+In the meantime, follow this instructions: https://sonatype.atlassian.net/wiki/x/IYEFEQ

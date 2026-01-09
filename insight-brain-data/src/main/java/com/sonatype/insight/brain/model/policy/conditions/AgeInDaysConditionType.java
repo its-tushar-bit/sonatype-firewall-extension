@@ -89,7 +89,7 @@ public class AgeInDaysConditionType
 
   @Override
   public boolean isAutoUnquarantineSupported() {
-    return false;
+    return true;
   }
 
   @Override

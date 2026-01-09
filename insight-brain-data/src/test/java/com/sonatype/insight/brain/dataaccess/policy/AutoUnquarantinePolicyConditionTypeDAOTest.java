@@ -10,6 +10,7 @@ import java.util.List;
 import com.sonatype.insight.brain.dataaccess.AbstractDbDAOTest;
 import com.sonatype.insight.brain.model.policy.AutoUnquarantinePolicyConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
+import com.sonatype.insight.brain.model.policy.conditions.DataSourceConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
 import com.sonatype.insight.error.exception.BadRequestException;
@@ -71,11 +72,24 @@ public class AutoUnquarantinePolicyConditionTypeDAOTest
   public void testInsert_notSupportedConditionType() {
     // SETUP
     final AutoUnquarantinePolicyConditionType entity =
-        new AutoUnquarantinePolicyConditionType(AgeInDaysConditionType.ID);
+        new AutoUnquarantinePolicyConditionType(DataSourceConditionType.ID);
 
     // EXECUTE & Verify
     assertThatThrownBy(() -> dao.insert(entity)).isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Condition type with id 'AgeInDays' does not support auto release from quarantine.");
+        .hasMessage("Condition type with id 'DataSource' does not support auto release from quarantine.");
+  }
+
+  @Test
+  public void testInsert_ageSupportedConditionType() {
+    // SETUP
+    final String id = new AgeInDaysConditionType().getId();
+    final AutoUnquarantinePolicyConditionType entity = new AutoUnquarantinePolicyConditionType(id);
+
+    // EXECUTE
+    dao.insert(entity);
+
+    // VERIFY
+    assertThat(dao.getById(id).getId()).isEqualTo(id);
   }
 
   @Test

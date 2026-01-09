@@ -70,6 +70,7 @@ import com.sonatype.insight.brain.model.policy.Constraint;
 import com.sonatype.insight.brain.model.policy.LogicalOperator;
 import com.sonatype.insight.brain.model.policy.Policy;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
+import com.sonatype.insight.brain.model.policy.conditions.AgeInDaysConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.IntegrityRatingConditionType;
 import com.sonatype.insight.brain.model.policy.conditions.LicenseConditionType;
@@ -463,8 +464,9 @@ public class ApiFirewallServiceTest
         .hasSize(1)
         .containsOnly(IntegrityRatingConditionType.ID);
     assertThat(telemetrySent.disabledConditionTypes)
-        .hasSize(10)
-        .containsExactlyInAnyOrder(SecurityVulnerabilityCategoryConditionType.ID,
+        .hasSize(11)
+        .containsExactlyInAnyOrder(
+            AgeInDaysConditionType.ID, SecurityVulnerabilityCategoryConditionType.ID,
             SecurityVulnerabilitySeverityConditionType.ID, LicenseConditionType.ID, LicenseThreatGroupConditionType.ID,
             MatchStateConditionType.ID, SecurityVulnerabilityResearchConditionType.ID,
             SecurityVulnerabilityCustomCVSSVectorStringConditionType.ID,

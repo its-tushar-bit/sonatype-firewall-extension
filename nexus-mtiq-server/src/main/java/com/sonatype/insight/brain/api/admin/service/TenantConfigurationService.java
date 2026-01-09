@@ -65,7 +65,8 @@ public class TenantConfigurationService
       EPSS_DATA,
       SESSION_TIMEOUT_MINUTES,
       USER_ACTIVITY_TRACKING,
-      USER_TOKEN_DEFAULT_EXPIRATION_DAYS
+      USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
+      MALICIOUS_URLS_PARTNER_ACCESS
   );
 
   // Visible for testing

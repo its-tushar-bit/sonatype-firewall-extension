@@ -1692,4 +1692,34 @@ public class ApiConfigFeaturesServiceTest
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING)).isTrue();
   }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_MaliciousUrlsPartnerAccess() {
+    assertThat(service.getSystemConfigurationPropertyFeature(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS))
+        .isEqualTo(SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS);
+  }
+
+  @Test
+  public void testEnableFeature_MaliciousUrlsPartnerAccess_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_MaliciousUrlsPartnerAccess_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS))
+        .isInstanceOf(BadRequestException.class).hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_MaliciousUrlsPartnerAccess() {
+    SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(MALICIOUS_URLS_PARTNER_ACCESS, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS)
+        .getValue()).isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.MALICIOUS_URLS_PARTNER_ACCESS)).isTrue();
+  }
 }

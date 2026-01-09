@@ -218,7 +218,8 @@ public class Configuration
         SystemConfigurationProperty.THIRD_PARTY_KEV_LOOKUP,
         SystemConfigurationProperty.EPSS_DATA,
         SystemConfigurationProperty.INTEGRATIONS_SUPPORTED_VERSION_COUNT,
-        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS
+        SystemConfigurationProperty.USER_TOKEN_DEFAULT_EXPIRATION_DAYS,
+        SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS
         )
     );
     configCache.putOrRemoveIfNull(PROXY_SERVER_CONFIGURATION, proxyServerConfigurationDAO.get());

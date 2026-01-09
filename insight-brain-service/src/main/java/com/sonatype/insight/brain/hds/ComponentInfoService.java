@@ -292,6 +292,18 @@ public class ComponentInfoService
     policyMaxThreatLevelsByCategory = getMaxPolicyThreatLevelsByCategory(policyAlerts, policiesById);
     componentDetails.setPolicyMaxThreatLevelsByCategory(maxPolicyThreatLevelToString(policyMaxThreatLevelsByCategory));
 
+    if (identifier != null) {
+      try {
+        String packageUrl = PackageUrlIdentifier.toPackageUrl(identifier);
+        componentDetails.setPackageUrl(packageUrl);
+      }
+      catch (RuntimeException e) {
+        // Some component identifiers may have invalid names for Package URL format
+        // Log and continue without setting packageUrl
+        log.debug("Could not generate packageUrl for identifier {}: {}", identifier, e.getMessage());
+      }
+    }
+
     log.debug("Loaded component details for {}, hash {}, in {} ms.", identifier, hash, System.currentTimeMillis()
         - start);
 
@@ -988,6 +1000,22 @@ public class ComponentInfoService
     }
 
     if (componentDetailsList != null && CollectionUtils.isNotEmpty(componentDetailsList.getList())) {
+      // Set packageUrl for each component in the list
+      for (ComponentDetails componentDetails : componentDetailsList.getList()) {
+        ComponentIdentifier componentIdentifier = componentDetails.getComponentIdentifier();
+        if (componentIdentifier != null) {
+          try {
+            String packageUrl = PackageUrlIdentifier.toPackageUrl(componentIdentifier);
+            componentDetails.setPackageUrl(packageUrl);
+          }
+          catch (RuntimeException e) {
+            // Some component identifiers may have invalid names for Package URL format
+            // Log and continue without setting packageUrl
+            log.debug("Could not generate packageUrl for identifier {}: {}", componentIdentifier, e.getMessage());
+          }
+        }
+      }
+
       log.debug("Loaded component details list for {} versions of component identifier {} in {} ms.",
           componentDetailsList.getList().size(), identifier, System.currentTimeMillis() - start);
     }

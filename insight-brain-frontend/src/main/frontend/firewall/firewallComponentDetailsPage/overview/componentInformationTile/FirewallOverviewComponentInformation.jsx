@@ -24,6 +24,7 @@ export default function FirewallOverviewComponentInformation() {
     identificationSource,
     componentCategories,
     website,
+    packageUrl,
   } = componentDetails;
 
   const repositorySourceMessage = path(['sourceResponse', 'sourceMessage'], versionExplorerData);
@@ -78,7 +79,9 @@ export default function FirewallOverviewComponentInformation() {
     <>
       {repositorySourceAlert}
       <NxTile id="firewall-overview-component-information-tile" className="iq-component-information-tile">
-        {!isUnknown && <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} />}
+        {!isUnknown && (
+          <ComponentCoordinatesPopover displayName={displayName} componentFormat={format} packageUrl={packageUrl} />
+        )}
         <NxTile.Header>
           <div className="nx-tile-header__title">
             <h2 className="nx-h2">Component Information</h2>

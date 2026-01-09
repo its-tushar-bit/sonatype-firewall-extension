@@ -3386,6 +3386,7 @@ public class ComponentInfoServiceTest
     details.setDeclaredLicenses(license);
     details.setObservedLicenses(license);
     details.setSecurityVulnerabilities(Collections.emptyList());
+    details.setPackageUrl("pkg:maven/g/a@v?classifier=c&type=e");
 
     ComponentDetailsList result = componentInfoService.getComponentDetailsList(componentIdentifier, app,
         IdentificationSource.EXTERNAL_REPO.getId(), scanId, DependencyType.DIRECT, true).getLeft();
@@ -3571,6 +3572,49 @@ public class ComponentInfoServiceTest
     assertThat(componentDetails.getDeclaredLicenses()).isEmpty();
     assertThat(componentDetails.getObservedLicenses()).isEmpty();
     assertThat(componentDetails.getEffectiveLicenses()).isEmpty();
+  }
+
+  @Test
+  public void testGetComponentDetailsList_PackageUrl_WithIdentifier() {
+    // Given: Component with identifier (format-agnostic, using Maven as example)
+    ComponentIdentifier identifier = ComponentIdentifier.createMavenCoordinates("org.springframework",
+        "spring-core", "4.3.0.RELEASE");
+    ComponentDetails hdsComponentDetails = newNamedComponentDetails(identifier);
+
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, identifier);
+
+    // When: Getting component details list
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(
+        identifier, null, null, null, null, true).getLeft();
+
+    // Then: Package URL should be set (format doesn't matter for this service)
+    assertThat(result.getList()).hasSize(1);
+    assertThat(result.getList().get(0).getPackageUrl()).isNotNull();
+    assertThat(result.getList().get(0).getPackageUrl()).startsWith("pkg:maven/");
+  }
+
+  @Test
+  public void testGetComponentDetailsList_PackageUrl_NullIdentifier() {
+    // Given: Component with null identifier (hash-only component)
+    ComponentDetails hdsComponentDetails = new ComponentDetails();
+    hdsComponentDetails.setHash("test-hash");
+    hdsComponentDetails.setComponentIdentifier(null);
+
+    ComponentDetailsList hdsComponentDetailsList = new ComponentDetailsList();
+    hdsComponentDetailsList.setList(Collections.singletonList(hdsComponentDetails));
+
+    ComponentIdentifier queryIdentifier = ComponentIdentifier.createMavenCoordinates("g1", "a1", "1.0");
+    mockHdsGetComponentDetailsList(hdsComponentDetailsList, queryIdentifier);
+
+    // When: Getting component details list where a component has null identifier
+    ComponentDetailsList result = componentInfoService.getComponentDetailsList(
+        queryIdentifier, null, null, null, null, true).getLeft();
+
+    // Then: Package URL should not be set for component with null identifier
+    assertThat(result.getList()).hasSize(1);
+    assertThat(result.getList().get(0).getPackageUrl()).isNull();
   }
 
   private void mockHdsGetVersionScoringData() {

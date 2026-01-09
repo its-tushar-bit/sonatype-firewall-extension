@@ -29,6 +29,9 @@ describe('NewerReportAvailable', () => {
         scanId: givenScanIdForReport,
         publicId: givenPublicAppIdForReport,
       },
+      currentState: {
+        name: 'applicationReport.policy',
+      },
     },
     latestReportForStage: getInitialState(),
     applicationReport: givenApplicationReportForStageOtherThanDevelop(),
@@ -73,6 +76,60 @@ describe('NewerReportAvailable', () => {
     const warning = screen.queryAllByTestId('new-report-available-warning');
     expect(warning.length).toBe(0);
     expect(aptrinsicSpy).not.toHaveBeenCalled();
+  });
+
+  it('should use firewall.containerReport state when viewing Firewall Docker report', () => {
+    renderComponent({
+      router: {
+        currentParams: {
+          scanId: givenScanIdForReport,
+          publicId: givenPublicAppIdForReport,
+        },
+        currentState: {
+          name: 'firewall.containerReport',
+        },
+      },
+      latestReportForStage: givenALaterReportExists(),
+    });
+
+    const warning = screen.getByTestId('new-report-available-warning');
+    expect(warning).toBeVisible();
+
+    // Verify it uses firewall.containerReport state
+    expect(hrefSpy).toHaveBeenCalledWith('firewall.containerReport', {
+      scanId: givenScanIdForLatestReport,
+      publicId: givenPublicAppIdForReport,
+    });
+
+    const link = screen.getByRole('link', { name: 'Click here' });
+    expect(link).toBeVisible();
+    expect(link).toHaveAttribute('href', givenLatestReportLink);
+
+    expect(aptrinsicSpy).toHaveBeenCalledWith('track', 'EXPIRED_APP_REPORT_BANNER_SHOWN', {});
+  });
+
+  it('should default to applicationReport.policy for unknown contexts', () => {
+    renderComponent({
+      router: {
+        currentParams: {
+          scanId: givenScanIdForReport,
+          publicId: givenPublicAppIdForReport,
+        },
+        currentState: {
+          name: 'someOtherState.somePage',
+        },
+      },
+      latestReportForStage: givenALaterReportExists(),
+    });
+
+    const warning = screen.getByTestId('new-report-available-warning');
+    expect(warning).toBeVisible();
+
+    // Should fallback to applicationReport.policy
+    expect(hrefSpy).toHaveBeenCalledWith('applicationReport.policy', {
+      scanId: givenScanIdForLatestReport,
+      publicId: givenPublicAppIdForReport,
+    });
   });
 
   function renderComponent(stateOverrides = {}) {

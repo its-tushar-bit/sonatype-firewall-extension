@@ -6,7 +6,7 @@
 
 import React, { useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { selectRouterCurrentParams } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectRouterCurrentParams, selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { NxTextLink, NxWarningAlert } from '@sonatype/react-shared-components';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import { selectLatestReportForStageId } from 'MainRoot/applicationReport/latestReportForStageSelectors';
@@ -24,10 +24,17 @@ const selectShouldShowNewReportMessage = createSelector(
 
 export function NewerReportAvailable() {
   const EXPIRED_APP_REPORT_BANNER_SHOWN = 'EXPIRED_APP_REPORT_BANNER_SHOWN';
+  const FIREWALL_REPORT_ROUTE = 'firewall.containerReport';
   const uiRouterState = useRouterState();
   const { publicId } = useSelector(selectRouterCurrentParams);
   const newScanId = useSelector(selectLatestReportForStageId);
+  const currentRouteName = useSelector(selectCurrentRouteName);
   const shouldShowNewReportMessage = useSelector(selectShouldShowNewReportMessage);
+
+  // If the current route is the firewall container report, we want to redirect to the firewall report page.
+  // else we want to redirect to the application report page (i.e., the policy report page for the lifecycle).
+  const isFirewallContainerReport = currentRouteName === FIREWALL_REPORT_ROUTE;
+  const targetState = isFirewallContainerReport ? FIREWALL_REPORT_ROUTE : 'applicationReport.policy';
 
   useEffect(() => {
     if (shouldShowNewReportMessage) {
@@ -44,7 +51,7 @@ export function NewerReportAvailable() {
       <p>
         A new version of this report is available.{' '}
         <NxTextLink
-          href={uiRouterState.href('applicationReport.policy', {
+          href={uiRouterState.href(targetState, {
             publicId,
             scanId: newScanId,
           })}

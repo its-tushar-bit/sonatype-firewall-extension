@@ -22,6 +22,7 @@ import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
 import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerRepositoryResultsPage/ContainerRepositoryResultsPage';
 import AddContainerImageWaiverPage from './containerImageWaiver/AddContainerImageWaiverPage';
+import UserTokensConfiguration from '../configuration/userTokensConfiguration/UserTokensConfiguration';
 
 export default angular
   .module('firewallModule', [])
@@ -33,6 +34,7 @@ export default angular
   .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$state']))
   .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$state']))
   .component('addContainerImageWaiverPage', iqReact2Angular(AddContainerImageWaiverPage, [], ['$state']))
+  .component('userTokensConfiguration', iqReact2Angular(UserTokensConfiguration, [], []))
   .config(routes);
 
 const vulnerabilitiesRouteCommonProps = {

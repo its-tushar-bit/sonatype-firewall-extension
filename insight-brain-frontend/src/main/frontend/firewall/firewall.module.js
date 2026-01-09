@@ -538,6 +538,19 @@ function routes($stateProvider, $urlServiceProvider) {
         isDirty: ['baseUrlConfiguration', 'isDirty'],
       },
     })
+    .state('firewall.userTokensConfiguration', {
+      component: 'userTokensConfiguration',
+      url: '/userTokensConfiguration',
+      data: {
+        title: 'User Tokens',
+        isDirty: ['userTokensConfiguration', 'isDirty'],
+      },
+      resolve: {
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
+      },
+    })
     .state('firewall.gettingStarted', {
       component: 'gettingStarted',
       url: '/gettingStarted',
@@ -927,6 +940,10 @@ function routes($stateProvider, $urlServiceProvider) {
 
   $urlServiceProvider.rules.when('/malware-defense/proxyConfig', (matchValues, _urlParts, router) =>
     router.stateService.go('firewall.proxyConfig', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/userTokensConfiguration', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.userTokensConfiguration', matchValues)
   );
 
   $urlServiceProvider.rules.when('/malware-defense/webhooks/list', (matchValues, _urlParts, router) =>

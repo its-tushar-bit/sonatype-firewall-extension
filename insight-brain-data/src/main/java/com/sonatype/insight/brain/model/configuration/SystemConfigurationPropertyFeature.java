@@ -404,7 +404,9 @@ public enum SystemConfigurationPropertyFeature
     }
   },
 
-  MALICIOUS_URLS_PARTNER_ACCESS(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, false);
+  MALICIOUS_URLS_PARTNER_ACCESS(SystemConfigurationProperty.MALICIOUS_URLS_PARTNER_ACCESS, false),
+
+  GITHUB_APP_AUTHENTICATION(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION, false);
 
   public static final String NXIQ_ENABLE_UNAUTHENTICATED_PAGES_ENV_VAR = "NXIQ_ENABLE_UNAUTHENTICATED_PAGES";
 

@@ -308,6 +308,8 @@ public class SystemConfigurationProperty
 
   public static final String MALICIOUS_URLS_PARTNER_ACCESS = "maliciousUrlsPartnerAccess";
 
+  public static final String GITHUB_APP_AUTHENTICATION = "githubAppAuthentication";
+
   @Id
   @Column(name = "system_configuration_property_id")
   private String id;

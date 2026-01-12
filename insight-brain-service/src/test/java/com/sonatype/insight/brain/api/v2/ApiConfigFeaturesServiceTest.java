@@ -1446,6 +1446,7 @@ public class ApiConfigFeaturesServiceTest
     expectedFeatureConfigMap.put("enableSsoOnly", false);
     expectedFeatureConfigMap.put("enableUnauthenticatedPages", true);
     expectedFeatureConfigMap.put("expireWaiverWhenRemediationAvailable", false);
+    expectedFeatureConfigMap.put("githubAppAuthentication", false);
     expectedFeatureConfigMap.put("innerSourceRepositoryIntegration", true);
     expectedFeatureConfigMap.put("innerSourceTransitiveWaiver", true);
     expectedFeatureConfigMap.put("internalFirewallOnboardingEnabled", false);
@@ -1691,6 +1692,77 @@ public class ApiConfigFeaturesServiceTest
     assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.USER_ACTIVITY_TRACKING).getValue())
         .isEqualTo("true");
     assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.USER_ACTIVITY_TRACKING)).isTrue();
+  }
+
+  @Test
+  public void testGetSystemConfigurationPropertyFeature_GithubAppAuthentication() {
+    // All input variants for the feature
+    List<SystemConfigurationPropertyFeature> actual = List.of(
+        service.getSystemConfigurationPropertyFeature("githubAppAuthentication"),
+        service.getSystemConfigurationPropertyFeature("github-app-authentication"),
+        service.getSystemConfigurationPropertyFeature("Github-App-Authentication"),
+        service.getSystemConfigurationPropertyFeature("GITHUB-APP-AUTHENTICATION")
+    );
+
+    // Assert all map to GITHUB_APP_AUTHENTICATION
+    assertThat(actual).allMatch(feature ->
+        feature.equals(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION));
+  }
+
+  @Test
+  public void testEnableFeature_GithubAppAuthentication() {
+    service.enableFeature(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION)
+        .getValue()).isEqualTo("true");
+  }
+
+  @Test
+  public void testEnableFeature_GithubAppAuthentication_AlreadyEnabled() {
+    service.enableFeature(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION);
+    assertThatThrownBy(() -> service.enableFeature(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already enabled.");
+  }
+
+  @Test
+  public void testDisableFeature_GithubAppAuthentication() {
+    tempEntity.newSystemConfigurationProperty(
+        SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION.getPropertyName(), "true");
+    service.disableFeature(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION))
+        .isNull();
+  }
+
+  @Test
+  public void testDisabledByDefaultFeature_GithubAppAuthentication() {
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION))
+        .isNull();
+  }
+
+  @Test
+  public void testDisableFeature_GithubAppAuthentication_AlreadyDisabled() {
+    assertThatThrownBy(() -> service.disableFeature(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION))
+        .isInstanceOf(BadRequestException.class)
+        .hasMessage("Feature is already disabled.");
+  }
+
+  @Test
+  public void testIsEnabled_GithubAppAuthentication_DisabledByDefault() {
+    // Disabled by default
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION))
+        .isNull();
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION)).isFalse();
+  }
+
+  @Test
+  public void testIsEnabled_GithubAppAuthentication() {
+    final SystemConfigurationProperty systemConfigurationProperty =
+        new SystemConfigurationProperty(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION, "true");
+    systemConfigurationPropertyDAO.insert(systemConfigurationProperty);
+    assertThat(systemConfigurationPropertyDAO.getByName(SystemConfigurationProperty.GITHUB_APP_AUTHENTICATION)
+        .getValue())
+        .isEqualTo("true");
+    assertThat(service.isFeatureEnabled(SystemConfigurationPropertyFeature.GITHUB_APP_AUTHENTICATION)).isTrue();
   }
 
   @Test

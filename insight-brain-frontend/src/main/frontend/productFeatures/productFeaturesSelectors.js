@@ -307,3 +307,8 @@ export const selectIsUserManagementPagesEnabled = createSelector(
 export const selectIsWaiverRequestWorkflowEnabled = createSelector(selectProductFeatures, (features) => {
   return propOr(false, 'waiver-request-workflow-enabled')(features);
 });
+
+export const selectIsGithubAppAuthenticationEnabled = createSelector(
+  selectProductFeatures,
+  propOr(false, 'github-app-authentication')
+);

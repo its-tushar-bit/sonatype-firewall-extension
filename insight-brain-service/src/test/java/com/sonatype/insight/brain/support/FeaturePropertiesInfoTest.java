@@ -119,7 +119,7 @@ public class FeaturePropertiesInfoTest
   @Test
   public void testGetFeatureConfigPropertiesJson_defaultFeatureConfig() throws IOException {
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
-    assertThat(featureConfigNode.size()).isEqualTo(64);
+    assertThat(featureConfigNode.size()).isEqualTo(65);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -149,6 +149,7 @@ public class FeaturePropertiesInfoTest
               "enableUnauthenticatedPages": true,
               "exitOnFatalError": true,
               "expireWaiverWhenRemediationAvailable": false,
+              "githubAppAuthentication": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
               "internalFirewallOnboardingEnabled": false,
@@ -201,7 +202,7 @@ public class FeaturePropertiesInfoTest
 
     JsonNode featureConfigNode = JsonUtils.parse(featurePropertiesInfo.getFeatureConfigPropertiesJson());
 
-    assertThat(featureConfigNode.size()).isEqualTo(64);
+    assertThat(featureConfigNode.size()).isEqualTo(65);
     assertThat(featureConfigNode).isEqualTo(JsonUtils.parse(
         """
             {
@@ -231,6 +232,7 @@ public class FeaturePropertiesInfoTest
               "enableUnauthenticatedPages": true,
               "exitOnFatalError": true,
               "expireWaiverWhenRemediationAvailable": false,
+              "githubAppAuthentication": false,
               "innerSourceRepositoryIntegration": true,
               "innerSourceTransitiveWaiver": true,
               "internalFirewallOnboardingEnabled": false,
@@ -289,7 +291,7 @@ public class FeaturePropertiesInfoTest
     Map<String, Boolean> featureConfigMap = featurePropertiesInfo.getFeatureConfigProperties(filteredFeatures);
 
     assertThat(featureConfigMap)
-        .hasSize(54)
+        .hasSize(55)
         .doesNotContainKeys(
             "SUCCESS_METRICS_CONFIGURATION",
             "PRODUCT_LICENSE_CONFIGURATION",

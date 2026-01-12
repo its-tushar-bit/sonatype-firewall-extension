@@ -312,6 +312,16 @@ public class PolicyWaiverDAO
     return getList(tx, sQuery, policyId, ownerIds);
   }
 
+  public List<PolicyWaiver> getByIds(Set<String> waiverIds) {
+    if (waiverIds == null || waiverIds.isEmpty()) {
+      return List.of();
+    }
+    String sQuery = """
+        SELECT entity FROM PolicyWaiver entity
+        WHERE entity.id IN (?1)""";
+    return getListWithSqlInClause(waiverIds, ids -> getList(sQuery, ids));
+  }
+
   @Override
   public void insert(TransactionContext tx, PolicyWaiver entity) {
     setComponentMatchStrategyIfNeeded(entity);

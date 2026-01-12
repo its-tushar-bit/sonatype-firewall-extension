@@ -3,16 +3,24 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.dto;
+package com.sonatype.insight.brain.componentsearch.dto;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 import javax.ws.rs.core.UriBuilder;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;
 import com.sonatype.insight.brain.utils.CsvWritable;
+import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DTO representing an application containing a matched component.
@@ -20,72 +28,57 @@ import org.apache.commons.lang3.StringUtils;
 @Schema(description = "Application containing a matched component")
 public class ApplicationComponentMatchDTO implements CsvWritable
 {
-  @Schema(description = "Application public ID", example = "my-application")
+  private static final Logger log = LoggerFactory.getLogger(ApplicationComponentMatchDTO.class);
+
+  private static final ThreadLocal<SimpleDateFormat> CSV_DATE_FORMATTER = ThreadLocal.withInitial(() -> {
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+    return sdf;
+  });
+
   private final String applicationPublicId;
 
-  @Schema(description = "Application name for display")
   private final String applicationName;
 
-  @Schema(description = "Application internal ID")
   private final String applicationInternalId;
 
-  @Schema(description = "Report stage", example = "build")
   private final String stage;
 
-  @Schema(description = "Evaluation date (ISO 8601)")
-  private final String evaluationDate;
+  @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "UTC")
+  private final Date evaluationDate;
 
-  @Schema(description = "Component Package URL", example = "pkg:npm/lodash@4.17.21")
   private final String packageUrl;
 
-  @Schema(description = "Component display name", example = "lodash-4.17.21")
   private final String componentDisplayName;
 
-  @Schema(description = "Component hash")
   private final String hash;
 
-  @Schema(description = "Matched component name")
-  private final String matchedName;
+  private final String cveId;
 
-  @Schema(description = "Matched component version")
-  private final String matchedVersion;
-
-  @Schema(description = "Vulnerability IDs (comma-separated)", example = "CVE-2025-55182, sonatype-2025-007429")
-  private final String vulnerabilityIds;
-
-  @Schema(description = "Recommended action", example = "Upgrade to 19.0.1")
   private final String recommendedAction;
 
-  @Schema(description = "Recommended version", example = "19.0.1")
-  private final String recommendedVersion;
+  private final boolean activeWaiver;
 
-  @Schema(description = "Active waiver", example = "Yes")
-  private final String activeWaiver;
+  private final boolean violating;
 
-  @Schema(description = "Implicated files", example = "Yes")
-  private final String implicatedFiles;
-
-  @Schema(description = "Report ID")
   private final String reportId;
 
   private String baseUrl;
 
+  @JsonCreator
   public ApplicationComponentMatchDTO(
       @JsonProperty("applicationPublicId") String applicationPublicId,
       @JsonProperty("applicationName") String applicationName,
       @JsonProperty("applicationInternalId") String applicationInternalId,
       @JsonProperty("stage") String stage,
-      @JsonProperty("evaluationDate") String evaluationDate,
+      @JsonProperty("evaluationDate") Date evaluationDate,
       @JsonProperty("packageUrl") String packageUrl,
       @JsonProperty("componentDisplayName") String componentDisplayName,
       @JsonProperty("hash") String hash,
-      @JsonProperty("matchedName") String matchedName,
-      @JsonProperty("matchedVersion") String matchedVersion,
-      @JsonProperty("vulnerabilityIds") String vulnerabilityIds,
+      @JsonProperty("cveId") String cveId,
       @JsonProperty("recommendedAction") String recommendedAction,
-      @JsonProperty("recommendedVersion") String recommendedVersion,
-      @JsonProperty("activeWaiver") String activeWaiver,
-      @JsonProperty("implicatedFiles") String implicatedFiles,
+      @JsonProperty("activeWaiver") boolean activeWaiver,
+      @JsonProperty("violating") boolean violating,
       @JsonProperty("reportId") String reportId)
   {
     this.applicationPublicId = applicationPublicId;
@@ -96,13 +89,10 @@ public class ApplicationComponentMatchDTO implements CsvWritable
     this.packageUrl = packageUrl;
     this.componentDisplayName = componentDisplayName;
     this.hash = hash;
-    this.matchedName = matchedName;
-    this.matchedVersion = matchedVersion;
-    this.vulnerabilityIds = vulnerabilityIds;
+    this.cveId = cveId;
     this.recommendedAction = recommendedAction;
-    this.recommendedVersion = recommendedVersion;
     this.activeWaiver = activeWaiver;
-    this.implicatedFiles = implicatedFiles;
+    this.violating = violating;
     this.reportId = reportId;
   }
 
@@ -122,7 +112,7 @@ public class ApplicationComponentMatchDTO implements CsvWritable
     return stage;
   }
 
-  public String getEvaluationDate() {
+  public Date getEvaluationDate() {
     return evaluationDate;
   }
 
@@ -138,32 +128,20 @@ public class ApplicationComponentMatchDTO implements CsvWritable
     return hash;
   }
 
-  public String getMatchedName() {
-    return matchedName;
-  }
-
-  public String getMatchedVersion() {
-    return matchedVersion;
-  }
-
-  public String getVulnerabilityIds() {
-    return vulnerabilityIds;
+  public String getCveId() {
+    return cveId;
   }
 
   public String getRecommendedAction() {
     return recommendedAction;
   }
 
-  public String getRecommendedVersion() {
-    return recommendedVersion;
-  }
-
-  public String getActiveWaiver() {
+  public boolean getActiveWaiver() {
     return activeWaiver;
   }
 
-  public String getImplicatedFiles() {
-    return implicatedFiles;
+  public boolean getViolating() {
+    return violating;
   }
 
   public String getReportId() {
@@ -181,19 +159,35 @@ public class ApplicationComponentMatchDTO implements CsvWritable
   @Override
   public String toCsvLine() {
     String evaluationUrl = buildEvaluationUrl();
+    String formattedDate = evaluationDate != null ? CSV_DATE_FORMATTER.get().format(evaluationDate) : "";
     return joiner.join(
         formatField(applicationName),
-        formatField(applicationInternalId),
+        formatField(applicationPublicId),
+        formatField(stage),
         formatField(componentDisplayName),
-        formatField(matchedVersion),
-        formatField(vulnerabilityIds),
+        formatField(extractVersionFromPackageUrl(packageUrl)),
+        formatField(cveId),
         formatField(recommendedAction),
-        formatField(recommendedVersion),
-        formatField(evaluationDate),
-        formatField(activeWaiver),
-        formatField(implicatedFiles),
+        formatField(formattedDate),
+        formatField(activeWaiver ? "True" : "False"),
+        formatField(violating ? "True" : "False"),
         formatField(evaluationUrl)
     );
+  }
+
+  private String extractVersionFromPackageUrl(String purl) {
+    if (purl == null || purl.isEmpty()) {
+      return "";
+    }
+    try {
+      PackageUrlIdentifier purlIdentifier = new PackageUrlIdentifier(purl);
+      String version = purlIdentifier.getVersion();
+      return version != null ? version : "";
+    }
+    catch (Exception e) {
+      log.warn("Failed to extract version from package URL: {}", purl, e);
+      return "";
+    }
   }
 
   private String buildEvaluationUrl() {

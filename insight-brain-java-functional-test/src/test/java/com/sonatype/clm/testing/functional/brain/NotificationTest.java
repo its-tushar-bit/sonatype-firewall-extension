@@ -67,7 +67,7 @@ public class NotificationTest
 
     // CLM-37984: React2Shell notification navigates to report page
     notificationMenu.notificationListItem(0).click();
-    waitUntilUrl(BaseUrl.resolvePageUrl("/reports/react2shell"));
+    waitUntilUrl(BaseUrl.resolvePageUrl("/reports/react2shell?cveId=CVE-2025-55182"));
 
     // Navigate back to reports list
     refreshOrOpen(ReportListPage.url());

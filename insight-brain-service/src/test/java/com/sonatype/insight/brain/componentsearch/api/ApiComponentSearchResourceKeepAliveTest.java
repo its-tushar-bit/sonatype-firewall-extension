@@ -3,35 +3,34 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2;
+package com.sonatype.insight.brain.componentsearch.api;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
-import com.sonatype.insight.brain.common.test.SlowTest;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
-import com.sonatype.insight.brain.dto.ApplicationComponentMatchDTO;
-import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
+import com.sonatype.insight.brain.componentsearch.dto.ApplicationComponentMatchDTO;
+import com.sonatype.insight.brain.componentsearch.service.CveAffectedComponentSearchService;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 /**
  * Test that verifies keep-alive spaces are written to CSV during slow processing.
  */
-@Category(SlowTest.class)
 @RunWith(MockitoJUnitRunner.class)
 public class ApiComponentSearchResourceKeepAliveTest
 {
@@ -61,18 +60,15 @@ public class ApiComponentSearchResourceKeepAliveTest
         appId,                          // applicationPublicId
         appName,                        // applicationName
         appId,                          // applicationInternalId
-        null,                           // stage
-        "2024-12-11T10:00:00Z",        // evaluationDate
-        null,                           // packageUrl
+        "build",                        // stage
+        new Date(1733914800000L),       // evaluationDate (2024-12-11T10:00:00Z)
+        "pkg:maven/com.example/lib@1.0.0", // packageUrl
         "com.example:lib",             // componentDisplayName
-        null,                           // hash
-        null,                           // matchedName
-        "1.0.0",                       // matchedVersion
-        "CVE-2025-55182",              // vulnerabilityIds
-        "Upgrade",                      // recommendedAction
-        "2.0.0",                       // recommendedVersion
-        "false",                        // activeWaiver
-        "src/Main.java",               // implicatedFiles
+        "abc123",                       // hash
+        "CVE-2025-55182",              // cveId
+        "Upgrade to 2.0.0",            // recommendedAction
+        false,                          // activeWaiver
+        true,                           // violating
         reportId                        // reportId
     );
     dto.setBaseUrl("http://localhost:8070");
@@ -98,10 +94,11 @@ public class ApiComponentSearchResourceKeepAliveTest
         new TimedRecord(null, 600)      // 600ms EOF delay - 3 keep-alive spaces on Record3
     );
 
-    when(cveAffectedComponentSearchService.find(eq("CVE-2025-55182")))
+    when(cveAffectedComponentSearchService.searchCveAffectedComponentsStreaming(any()))
         .thenReturn(createTimedStream(records));
 
-    resource.streamCsvReport(mockHttpServletResponse, KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);
+    resource.streamCsvReport(Set.of("CVE-2025-55182"), mockHttpServletResponse,
+        KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);
 
     String actualOutput = outputStream.toString("UTF-8");
     String[] lines = actualOutput.split("\r\n");

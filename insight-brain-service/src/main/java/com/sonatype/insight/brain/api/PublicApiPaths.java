@@ -51,6 +51,8 @@ public class PublicApiPaths
 
   public static final String SEARCH_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "search/component";
 
+  public static final String COMPONENT_SEARCH_RESOURCE_PATH = API_VERSION_PATH_V2 + "componentSearch";
+
   public static final String REPORTS_RESOURCE_PATH_V2 = API_VERSION_PATH_V2 + "reports";
 
   public static final String REPORT_DATA_RESOURCE_PATH_V2 = API_VERSION_PATH_V2

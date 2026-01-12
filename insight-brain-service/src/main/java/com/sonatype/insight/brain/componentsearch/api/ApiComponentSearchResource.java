@@ -3,13 +3,14 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-package com.sonatype.insight.brain.api.v2;
+package com.sonatype.insight.brain.componentsearch.api;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Set;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -18,22 +19,32 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
+import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.Audited;
-import com.sonatype.insight.brain.service.CveAffectedComponentSearchService;
+import com.sonatype.insight.brain.componentsearch.dto.ComponentSearchPageResultDTO;
+import com.sonatype.insight.brain.componentsearch.model.ComponentMatchSortField;
+import com.sonatype.insight.brain.componentsearch.service.CveAffectedComponentSearchService;
+import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.codahale.metrics.annotation.Timed;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +59,7 @@ import static javax.ws.rs.core.HttpHeaders.CONTENT_DISPOSITION;
  */
 @Named
 @Timed
-@Path(ApiComponentSearchResource.RESOURCE_PATH)
+@Path(PublicApiPaths.COMPONENT_SEARCH_RESOURCE_PATH)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Component Search", description = "Search applications containing specific components")
@@ -56,16 +67,17 @@ public class ApiComponentSearchResource
 {
   private static final Logger log = LoggerFactory.getLogger(ApiComponentSearchResource.class);
 
-  public static final String RESOURCE_PATH = "api/v2/componentSearch";
-
+  /**
+   * CVE identifier for the React2Shell vulnerability.
+   */
   private static final String REACT2SHELL_CVE_ID = "CVE-2025-55182";
 
   private static final String REPORT_FILE_PREFIX = "react2shell-vulnerability-report";
 
   private static final String CSV_HEADER =
-      "Application Name,Application ID,Component Name,Component Version," +
-          "Vulnerability ID,Recommended Action,Recommended Version,Last Evaluation," +
-          "Active Waiver,Implicated Files,Evaluation,";
+      "Application Name,Application ID,Stage,Component Name,Component Version," +
+          "Vulnerability ID,Recommended Action,Last Evaluation," +
+          "Active Waiver,Violating,Evaluation,";
 
   // 2 KB - note that we want to flush frequently to avoid timeouts
   private static final int STREAM_BUFFER_SIZE = 2048;
@@ -100,7 +112,10 @@ public class ApiComponentSearchResource
   @Produces(TEXT_CSV)
   @Operation(
       description = "Export component search results as CSV (streaming). " +
-          "Identifies applications containing components affected by CVE-2025-55182. " +
+          "Identifies applications containing components affected by one or more CVEs. " +
+          "Multiple CVE IDs can be specified using multiple cveId query parameters " +
+          "(e.g., ?cveId=CVE-2025-1&cveId=CVE-2025-2). " +
+          "If no CVE ID is specified, defaults to CVE-2025-55182 (React2Shell) for backwards compatibility. " +
           "Results are streamed to avoid memory issues with large datasets. " +
           "Keep-alive mechanism prevents ALB timeouts during long-running queries. " +
           "<p>" +
@@ -108,7 +123,17 @@ public class ApiComponentSearchResource
   )
   @ApiResponse(responseCode = "200", description = "CSV file containing the component search results")
   @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
-  public void exportComponentSearchReport(@Context HttpServletResponse httpServletResponse) throws IOException {
+  public void exportComponentSearchReport(
+      @Parameter(description = "CVE identifier(s). Can be specified multiple times for multiple CVEs. " +
+          "Defaults to CVE-2025-55182 if not specified.",
+          example = "CVE-2025-55182", required = false)
+      @QueryParam("cveId") Set<String> cveIds,
+      @Context HttpServletResponse httpServletResponse) throws IOException
+  {
+    if (CollectionUtils.isEmpty(cveIds)) {
+      cveIds = Set.of(REACT2SHELL_CVE_ID);
+    }
+
     String filename = generateCsvFilename(REPORT_FILE_PREFIX);
 
     // Configure response headers - must be set before writing any content
@@ -117,7 +142,7 @@ public class ApiComponentSearchResource
     httpServletResponse.setHeader(CACHE_CONTROL, "public, max-age=" + CACHE_MAX_AGE_SECONDS);
     httpServletResponse.setBufferSize(0); // Disable buffering for immediate streaming
 
-    streamCsvReport(httpServletResponse, KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);
+    streamCsvReport(cveIds, httpServletResponse, KEEP_ALIVE_INTERVAL_MS, KEEP_ALIVE_CHECK_INTERVAL_MS);
   }
 
   private String generateCsvFilename(final String prefix) {
@@ -126,6 +151,7 @@ public class ApiComponentSearchResource
   }
 
   void streamCsvReport(
+      final Set<String> cveIds,
       final HttpServletResponse httpServletResponse,
       final long keepAliveIntervalMs,
       final long keepAliveCheckIntervalMs) throws IOException
@@ -146,7 +172,7 @@ public class ApiComponentSearchResource
 
       try {
         // Stream data rows as they're produced
-        cveAffectedComponentSearchService.find(REACT2SHELL_CVE_ID)
+        cveAffectedComponentSearchService.searchCveAffectedComponentsStreaming(cveIds)
             .forEach(applicationComponentMatchDTO -> {
               try {
                 String dataLine = applicationComponentMatchDTO.toCsvLine();
@@ -226,5 +252,57 @@ public class ApiComponentSearchResource
         log.error("Unexpected error in keep-alive task", e);
       }
     }, keepAliveCheckIntervalMs, keepAliveCheckIntervalMs, TimeUnit.MILLISECONDS);
+  }
+
+  @GET
+  @Path("/cveAffectedComponents")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Operation(
+      description = "Retrieve paginated list of applications containing components affected by one or more CVEs. " +
+          "Multiple CVE IDs can be specified using multiple cveId query parameters " +
+          "(e.g., ?cveId=CVE-2025-1&cveId=CVE-2025-2). " +
+          "Default page number is 1, default page size is 10. " +
+          "Results can be sorted by any column. " +
+          "Default sorting (when sortBy is not specified): applicationName (asc), " +
+          "then componentName (asc), then cveId (asc). " +
+          "When sortBy is explicitly specified, only single-field sorting is applied " +
+          "with the specified sortOrder (default: asc). " +
+          "<p>" +
+          "Permissions Required: View IQ Elements"
+  )
+  @ApiResponse(responseCode = "200", description = "Paginated list of affected applications and components")
+  @Audited(AuditEvent.VIEW_COMPONENT_INFORMATION)
+  public ComponentSearchPageResultDTO getCveAffectedComponents(
+          @Parameter(description = "CVE identifier(s). Can be specified multiple times for multiple CVEs.",
+              example = "CVE-2025-55182", required = true)
+          @QueryParam("cveId") Set<String> cveIds,
+
+          @Parameter(description = "Page number (1-indexed, minimum: 1, default: 1)")
+          @QueryParam("pageNumber") @DefaultValue("1") @Min(1) Integer pageNumber,
+
+          @Parameter(description = "Number of items per page (1-1000, default: 10)")
+          @QueryParam("pageSize") @DefaultValue("10") @Min(1) @Max(1000) Integer pageSize,
+
+          @Parameter(description = "Sort field: applicationName, applicationId, componentName, " +
+              "evaluationDate, stage, activeWaiver, violating, cveId. " +
+              "When not specified, sorts by applicationName (asc), then componentName (asc), then cveId (asc)")
+          @QueryParam("sortBy") ComponentMatchSortField sortBy,
+
+          @Parameter(description = "Sort order: asc or desc, default: asc")
+          @QueryParam("sortOrder") @DefaultValue("asc") String sortOrder)
+  {
+    if (CollectionUtils.isEmpty(cveIds)) {
+      throw new BadRequestException("At least one CVE ID is required");
+    }
+
+    validateSortOrder(sortOrder);
+    return cveAffectedComponentSearchService.searchCveAffectedComponentsPaginated(
+        cveIds, pageNumber, pageSize, sortBy, sortOrder);
+  }
+
+  private void validateSortOrder(final String sortOrder) {
+    if (!"asc".equalsIgnoreCase(sortOrder) && !"desc".equalsIgnoreCase(sortOrder)) {
+      throw new BadRequestException("sortOrder must be either 'asc' or 'desc'");
+    }
   }
 }

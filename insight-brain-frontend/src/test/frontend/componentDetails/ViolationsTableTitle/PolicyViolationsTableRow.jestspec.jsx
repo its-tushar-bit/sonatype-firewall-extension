@@ -263,9 +263,9 @@ describe('PolicyViolationsTableRow', () => {
 
       it("Should render small text - Multiple expiring waivers is today's range", () => {
         const date = new Date();
-        date.setHours(date.getHours() + 1); // Add 1 hour
+        date.setHours(date.getHours() + 1); // Add 1 hour (same day)
         const date1 = new Date();
-        date1.setHours(date1.getHours() + 23); // Add 23 hour
+        date1.setDate(date1.getDate() + 1); // Add 1 day (next calendar day)
 
         const state = {
           ...defaultState,

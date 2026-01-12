@@ -23,13 +23,13 @@ const routerMiddleware = () => (next) => (action) => {
 
   switch (action.type) {
     case STATE_GO:
-      return $state.go(resolvedToState, payload.params, payload.options).then(next(action));
+      return $state.go(resolvedToState, payload.params, payload.options).then(() => next(action));
 
     case STATE_RELOAD:
-      return $state.reload(payload).then(next(action));
+      return $state.reload(payload).then(() => next(action));
 
     case STATE_TRANSITION_TO:
-      return $state.transitionTo(resolvedToState, payload.params, payload.options).then(next(action));
+      return $state.transitionTo(resolvedToState, payload.params, payload.options).then(() => next(action));
 
     default:
       return next(action);

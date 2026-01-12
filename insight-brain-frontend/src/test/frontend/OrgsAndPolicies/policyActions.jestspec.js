@@ -677,7 +677,7 @@ describe('policySlice actions', () => {
       });
     });
 
-    it('creates a new policy which is also the organization owner', (done) => {
+    it('creates a new policy which is also the organization owner', async () => {
       selectIsEditModeSpy.mockReturnValue(false);
       mockAxiosCalls({
         post: {
@@ -688,23 +688,31 @@ describe('policySlice actions', () => {
         },
       });
 
-      store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy })).then(() => {
-        jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-        expect(axios.post).toHaveBeenCalledTimes(1);
-        expect(axios.post).toHaveBeenCalledWith(expect.any(String), currentPolicyData);
-        expect(axios.put).toHaveBeenCalledTimes(1);
-        const categoriesWithoutIsApplied = categories.filter(prop('isApplied')).map(omit(['isApplied']));
-        expect(axios.put).toHaveBeenCalledTimes(1);
-        expect(axios.put).toHaveBeenCalledWith(expect.any(String), categoriesWithoutIsApplied);
-        const actions = store.getActions();
+      await store.dispatch(actions.savePolicy({ onSaveExistingPolicy: onSaveSpy }));
 
-        expect(actions.length).toBe(3);
-        expect(actions).toHaveActionTypesInOrder(['policy/savePolicy/pending', 'policy/savePolicy/fulfilled']);
-        expect(actions[1].payload).toBeUndefined();
-        expect(onSaveSpy).not.toHaveBeenCalled();
+      // Advance timers and run all pending promises
+      jest.advanceTimersByTime(SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
+      await Promise.resolve(); // Let the promise chain complete
 
-        done();
-      });
+      expect(axios.post).toHaveBeenCalledTimes(1);
+      expect(axios.post).toHaveBeenCalledWith(expect.any(String), currentPolicyData);
+      expect(axios.put).toHaveBeenCalledTimes(1);
+      const categoriesWithoutIsApplied = categories.filter(prop('isApplied')).map(omit(['isApplied']));
+      expect(axios.put).toHaveBeenCalledTimes(1);
+      expect(axios.put).toHaveBeenCalledWith(expect.any(String), categoriesWithoutIsApplied);
+      const dispatchedActions = store.getActions();
+
+      // Verify stateReload is dispatched after success timer (NEXUS-46170)
+      expect(dispatchedActions.length).toBe(4);
+      expect(dispatchedActions).toHaveActionTypesInOrder([
+        'policy/savePolicy/pending',
+        'policy/savePolicy/fulfilled',
+        'policy/saveMaskTimerDone',
+        '@@reduxUiRouter/stateReload',
+      ]);
+      expect(dispatchedActions[1].payload).toBeUndefined();
+      expect(dispatchedActions[3].payload).toBeUndefined(); // stateReload called with no args
+      expect(onSaveSpy).not.toHaveBeenCalled();
     });
 
     it('dispatches rejected action if savePolicy request fails', (done) => {

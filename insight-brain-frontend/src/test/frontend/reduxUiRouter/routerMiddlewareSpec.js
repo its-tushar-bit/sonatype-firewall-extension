@@ -36,13 +36,16 @@ describe('routerMiddleware', function () {
     };
 
     $state.go.and.returnValue({
-      then: successSpy,
+      then: function (callback) {
+        callback();
+        return successSpy();
+      },
     });
 
     routerMiddleware(next)(action);
     expect($state.go).toHaveBeenCalledWith('toState', 'testParams', 'testOptions');
-    expect(successSpy).toHaveBeenCalledWith('nextReturnValue');
     expect(next).toHaveBeenCalledWith(action);
+    expect(successSpy).toHaveBeenCalled();
   });
 
   it('calls $state.reload on @@reduxUiRouter/stateReload actions, and passes action to next middleware', function () {
@@ -52,13 +55,35 @@ describe('routerMiddleware', function () {
     };
 
     $state.reload.and.returnValue({
-      then: successSpy,
+      then: function (callback) {
+        callback();
+        return successSpy();
+      },
     });
 
     routerMiddleware(next)(action);
     expect($state.reload).toHaveBeenCalledWith('state to reload');
-    expect(successSpy).toHaveBeenCalledWith('nextReturnValue');
     expect(next).toHaveBeenCalledWith(action);
+    expect(successSpy).toHaveBeenCalled();
+  });
+
+  it('calls $state.reload with undefined when no state specified', function () {
+    var action = {
+      type: '@@reduxUiRouter/stateReload',
+      payload: undefined,
+    };
+
+    $state.reload.and.returnValue({
+      then: function (callback) {
+        callback();
+        return successSpy();
+      },
+    });
+
+    routerMiddleware(next)(action);
+    expect($state.reload).toHaveBeenCalledWith(undefined);
+    expect(next).toHaveBeenCalledWith(action);
+    expect(successSpy).toHaveBeenCalled();
   });
 
   it('calls $state.transitionTo on @@reduxUiRouter/transitionTo actions, and passes action to next middleware', function () {
@@ -72,12 +97,15 @@ describe('routerMiddleware', function () {
     };
 
     $state.transitionTo.and.returnValue({
-      then: successSpy,
+      then: function (callback) {
+        callback();
+        return successSpy();
+      },
     });
 
     routerMiddleware(next)(action);
     expect($state.transitionTo).toHaveBeenCalledWith('toState', 'testParams', 'testOptions');
-    expect(successSpy).toHaveBeenCalledWith('nextReturnValue');
     expect(next).toHaveBeenCalledWith(action);
+    expect(successSpy).toHaveBeenCalled();
   });
 });

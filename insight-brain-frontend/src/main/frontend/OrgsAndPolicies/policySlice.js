@@ -24,11 +24,7 @@ import {
   reverse,
 } from 'ramda';
 import { createAsyncThunk, createSlice, unwrapResult } from '@reduxjs/toolkit';
-import {
-  SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS,
-  nxTextInputStateHelpers,
-  combineValidationErrors,
-} from '@sonatype/react-shared-components';
+import { nxTextInputStateHelpers, combineValidationErrors } from '@sonatype/react-shared-components';
 import {
   validateDuplicatedValue,
   validateMaxLength,
@@ -588,12 +584,6 @@ const checkEditIqPermissionFailed = (state) => {
   state.hasEditIqPermission = false;
 };
 
-function reloadPageAfterDuration(dispatch) {
-  setTimeout(() => {
-    dispatch(stateReload());
-  }, SUBMIT_MASK_SUCCESS_VISIBLE_TIME_MS);
-}
-
 const removeHashKeys = omit(['$$hashKey']);
 const removeNotificationHashKeys = map(removeHashKeys);
 
@@ -646,7 +636,10 @@ const savePolicy = createAsyncThunk(`${REDUCER_NAME}/savePolicy`, (_, { getState
     )
     .then(() => {
       if (!isEditMode) {
-        return reloadPageAfterDuration(dispatch);
+        startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone).then(() => {
+          dispatch(stateReload());
+        });
+        return;
       }
       startSaveMaskSuccessTimer(dispatch, actions.saveMaskTimerDone);
       return { isEditMode };

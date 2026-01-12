@@ -22,9 +22,10 @@ import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
 import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerRepositoryResultsPage/ContainerRepositoryResultsPage';
 import AddContainerImageWaiverPage from './containerImageWaiver/AddContainerImageWaiverPage';
+import configurationModule from '../configuration/module';
 
 export default angular
-  .module('firewallModule', [])
+  .module('firewallModule', [configurationModule.name])
   .component('firewall', firewall)
   .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$state']))
   .component('firewallAutoUnquarantinePage', iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$state']))
@@ -538,6 +539,19 @@ function routes($stateProvider, $urlServiceProvider) {
         isDirty: ['baseUrlConfiguration', 'isDirty'],
       },
     })
+    .state('firewall.userTokensConfiguration', {
+      component: 'userTokensConfiguration',
+      url: '/userTokensConfiguration',
+      data: {
+        title: 'User Tokens',
+        isDirty: ['userTokensConfiguration', 'isDirty'],
+      },
+      resolve: {
+        isAuthorized: function () {
+          return isAuthorized(['CONFIGURE_SYSTEM']);
+        },
+      },
+    })
     .state('firewall.gettingStarted', {
       component: 'gettingStarted',
       url: '/gettingStarted',
@@ -927,6 +941,10 @@ function routes($stateProvider, $urlServiceProvider) {
 
   $urlServiceProvider.rules.when('/malware-defense/proxyConfig', (matchValues, _urlParts, router) =>
     router.stateService.go('firewall.proxyConfig', matchValues)
+  );
+
+  $urlServiceProvider.rules.when('/malware-defense/userTokensConfiguration', (matchValues, _urlParts, router) =>
+    router.stateService.go('firewall.userTokensConfiguration', matchValues)
   );
 
   $urlServiceProvider.rules.when('/malware-defense/webhooks/list', (matchValues, _urlParts, router) =>

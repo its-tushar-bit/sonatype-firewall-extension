@@ -23,13 +23,14 @@ export const NavLink = ({
   if (!showIf) {
     return null;
   }
+  const resolvedPrefix = prefix && !prefix.endsWith('.') ? `${prefix}.` : prefix;
+  const fullStateName = resolvedPrefix + stateName;
   const classes = classnames('nx-dropdown-link', props.className, {
-    active: includes(stateName),
+    active: includes(fullStateName),
     disabled: disabled,
   });
-  const resolvedPrefix = prefix && !prefix.endsWith('.') ? `${prefix}.` : prefix;
 
-  let linkHref = stateName ? hrefFromStateName(resolvedPrefix + stateName) : href;
+  let linkHref = stateName ? hrefFromStateName(fullStateName) : href;
   if (disabled) {
     linkHref = undefined;
   }

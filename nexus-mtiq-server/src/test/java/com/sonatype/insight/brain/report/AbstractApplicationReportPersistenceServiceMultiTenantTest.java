@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.service.AbstractMultiTenantBaseIntegrationTest;
 import com.sonatype.insight.brain.service.TestInsightBrainService.Configurator;
 import com.sonatype.insight.brain.tenancy.Tenant;
+import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -315,38 +316,39 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
         // Note: can't use assertThat(stream) because it closes the stream before the assertions are run
         var entities = stream.toArray(ReportEntity[]::new);
 
-        assertThat(entities).allMatch(wrapException(ReportEntity::exists)).satisfiesExactlyInAnyOrder(
-            wrapException(entity -> {
-              // overwritten bom.json should be present, not the original
-              assertThat(entity.getName()).isEqualTo("bom.json");
-              helper.assertEntityContents(entity, "overwritten bom file contents");
-            }),
-            wrapException(entity -> {
-              // original index.html should be present since it's not overwritten (note index.html is created by
-              // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
-              assertThat(entity.getName()).isEqualTo("index.html");
-              helper.assertEntityContents(entity, "<html></html>");
-            }),
-            wrapException(entity -> {
-              // original licenses.json
-              assertThat(entity.getName()).isEqualTo("licenses.json");
-              helper.assertEntityContents(entity, "report1 licenses\n");
-            }),
-            wrapException(entity -> {
-              // new file from cache dir
-              assertThat(entity.getName()).isEqualTo("new-file.txt");
-              helper.assertEntityContents(entity, "new file contents 1");
-            }),
-            wrapException(entity -> {
-              // new file from additional files dir
-              assertThat(entity.getName()).isEqualTo("foo.txt");
-              helper.assertEntityContents(entity, "foo1");
-            }),
-            wrapException(entity -> {
-              // new file from additional files dir
-              assertThat(entity.getName()).isEqualTo("bar.txt");
-              helper.assertEntityContents(entity, "bar1");
-            })
+        assertThat(entities).allMatch(wrapException((PredicateWithException<ReportEntity>) BaseReportEntity::exists))
+            .satisfiesExactlyInAnyOrder(
+                wrapException(entity -> {
+                  // overwritten bom.json should be present, not the original
+                  assertThat(entity.getName()).isEqualTo("bom.json");
+                  helper.assertEntityContents(entity, "overwritten bom file contents");
+                }),
+                wrapException(entity -> {
+                  // original index.html should be present since it's not overwritten (note index.html is created by
+                  // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
+                  assertThat(entity.getName()).isEqualTo("index.html");
+                  helper.assertEntityContents(entity, "<html></html>");
+                }),
+                wrapException(entity -> {
+                  // original licenses.json
+                  assertThat(entity.getName()).isEqualTo("licenses.json");
+                  helper.assertEntityContents(entity, "report1 licenses\n");
+                }),
+                wrapException(entity -> {
+                  // new file from cache dir
+                  assertThat(entity.getName()).isEqualTo("new-file.txt");
+                  helper.assertEntityContents(entity, "new file contents 1");
+                }),
+                wrapException(entity -> {
+                  // new file from additional files dir
+                  assertThat(entity.getName()).isEqualTo("foo.txt");
+                  helper.assertEntityContents(entity, "foo1");
+                }),
+                wrapException(entity -> {
+                  // new file from additional files dir
+                  assertThat(entity.getName()).isEqualTo("bar.txt");
+                  helper.assertEntityContents(entity, "bar1");
+                })
         );
       }
     });
@@ -356,38 +358,39 @@ public abstract class AbstractApplicationReportPersistenceServiceMultiTenantTest
         // Note: can't use assertThat(stream) because it closes the stream before the assertions are run
         var entities = stream.toArray(ReportEntity[]::new);
 
-        assertThat(entities).allMatch(wrapException(ReportEntity::exists)).satisfiesExactlyInAnyOrder(
-            wrapException(entity -> {
-              // original bom.json
-              assertThat(entity.getName()).isEqualTo("bom.json");
-              helper.assertEntityContents(entity, "report2 bom\n");
-            }),
-            wrapException(entity -> {
-              // overwritten licenses.json
-              assertThat(entity.getName()).isEqualTo("licenses.json");
-              helper.assertEntityContents(entity, "overwritten license file contents");
-            }),
-            wrapException(entity -> {
-              // original index.html should be present since it's not overwritten (note index.html is created by
-              // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
-              assertThat(entity.getName()).isEqualTo("index.html");
-              helper.assertEntityContents(entity, "<html></html>");
-            }),
-            wrapException(entity -> {
-              // new file from cache dir
-              assertThat(entity.getName()).isEqualTo("new-file.txt");
-              helper.assertEntityContents(entity, "new file contents 2");
-            }),
-            wrapException(entity -> {
-              // new file from additional files dir
-              assertThat(entity.getName()).isEqualTo("foo.txt");
-              helper.assertEntityContents(entity, "foo2");
-            }),
-            wrapException(entity -> {
-              // new file from additional files dir
-              assertThat(entity.getName()).isEqualTo("baz.txt");
-              helper.assertEntityContents(entity, "baz2");
-            })
+        assertThat(entities).allMatch(wrapException((PredicateWithException<ReportEntity>) BaseReportEntity::exists))
+            .satisfiesExactlyInAnyOrder(
+                wrapException(entity -> {
+                  // original bom.json
+                  assertThat(entity.getName()).isEqualTo("bom.json");
+                  helper.assertEntityContents(entity, "report2 bom\n");
+                }),
+                wrapException(entity -> {
+                  // overwritten licenses.json
+                  assertThat(entity.getName()).isEqualTo("licenses.json");
+                  helper.assertEntityContents(entity, "overwritten license file contents");
+                }),
+                wrapException(entity -> {
+                  // original index.html should be present since it's not overwritten (note index.html is created by
+                  // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
+                  assertThat(entity.getName()).isEqualTo("index.html");
+                  helper.assertEntityContents(entity, "<html></html>");
+                }),
+                wrapException(entity -> {
+                  // new file from cache dir
+                  assertThat(entity.getName()).isEqualTo("new-file.txt");
+                  helper.assertEntityContents(entity, "new file contents 2");
+                }),
+                wrapException(entity -> {
+                  // new file from additional files dir
+                  assertThat(entity.getName()).isEqualTo("foo.txt");
+                  helper.assertEntityContents(entity, "foo2");
+                }),
+                wrapException(entity -> {
+                  // new file from additional files dir
+                  assertThat(entity.getName()).isEqualTo("baz.txt");
+                  helper.assertEntityContents(entity, "baz2");
+                })
         );
       }
     });

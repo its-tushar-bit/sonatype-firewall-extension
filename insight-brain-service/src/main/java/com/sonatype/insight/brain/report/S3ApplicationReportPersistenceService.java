@@ -12,6 +12,7 @@ import java.io.OutputStream;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -94,7 +95,15 @@ public class S3ApplicationReportPersistenceService
   {
     protected final S3ObjectKey key;
 
-    private volatile Metadata metadata;
+    /**
+     * Cached metadata for this entity to reduce S3 API calls.
+     * <ul>
+     *   <li>{@code null} - metadata has not been fetched yet</li>
+     *   <li>{@link Optional#empty()} - entity does not exist in S3</li>
+     *   <li>{@link Optional#of(Metadata)} - entity exists with the cached metadata</li>
+     * </ul>
+     */
+    private volatile Optional<Metadata> metadata;
 
     public S3ReportEntity(final S3ObjectKey key) {
       this.key = key;
@@ -103,27 +112,33 @@ public class S3ApplicationReportPersistenceService
     @Override
     @Trace
     public boolean exists() throws IOException {
-      try {
-        getS3Metadata();
-        return true;
+      return getS3Metadata().isPresent();
+    }
+
+    @Override
+    @SuppressWarnings("OptionalAssignedToNull")
+    public boolean exists(final MetadataSource source) throws IOException {
+      if (source == MetadataSource.CACHED && metadata != null) {
+        return metadata.isPresent();
       }
-      catch (IOException e) {
-        if (e.getCause() instanceof NoSuchKeyException) {
-          return false;
-        }
-        else {
-          throw e;
-        }
-      }
+      return exists();
     }
 
     @Override
     public long getTime() throws IOException {
-      return getTime(getS3Metadata());
+      return getS3Metadata().orElseThrow(() -> new IOException("File does not exist")).lastModifiedEpochTime();
     }
 
-    public long getTime(final S3Object s3Metadata) {
-      return s3Metadata.lastModified().toEpochMilli();
+    @Override
+    @SuppressWarnings("OptionalAssignedToNull")
+    public long getTime(final MetadataSource source) throws IOException {
+      if (source == MetadataSource.CACHED && metadata != null) {
+        Long time = metadata.orElseThrow(() -> new IOException("File does not exist")).lastModifiedEpochTime();
+        if (time != null) {
+          return time;
+        }
+      }
+      return getTime();
     }
 
     @Override
@@ -133,35 +148,40 @@ public class S3ApplicationReportPersistenceService
 
     @Override
     public long length() throws IOException {
-      return length(getS3Metadata());
-    }
-
-    public long length(final S3Object s3Metadata) {
-      return s3Metadata.size();
+      return getS3Metadata().orElseThrow(() -> new IOException("File does not exist")).sizeInBytes();
     }
 
     @Override
-    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
-      try {
-        S3Object s3Metadata = getS3Metadata();
-        return new Metadata(s3Metadata.lastModified().toEpochMilli(), s3Metadata.size());
-      }
-      catch (IOException e) {
-        if (e.getCause() instanceof NoSuchKeyException) {
-          return null;
-        }
-        else {
-          throw e;
+    @SuppressWarnings("OptionalAssignedToNull")
+    public long length(final MetadataSource source) throws IOException {
+      if (source == MetadataSource.CACHED && metadata != null) {
+        Long length = metadata.orElseThrow(() -> new IOException("File does not exist")).sizeInBytes();
+        if (length != null) {
+          return length;
         }
       }
+      return length();
     }
 
     @Override
-    public Metadata getLastMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
-      if (metadata == null) {
-        metadata = getMetadata();
+    public Optional<Metadata> getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+      return getS3Metadata();
+    }
+
+    @Override
+    @SuppressWarnings("OptionalAssignedToNull")
+    public Optional<Metadata> getMetadata(final MetadataSource source, final MetadataAttribute... metadataAttributes)
+        throws IOException
+    {
+      if (source == MetadataSource.CACHED && metadata != null) {
+        return metadata;
       }
-      return metadata;
+      return getMetadata(metadataAttributes);
+    }
+
+    @Override
+    public void setMetadata(final Optional<Metadata> metadata) {
+      this.metadata = metadata;
     }
 
     @Override
@@ -188,22 +208,33 @@ public class S3ApplicationReportPersistenceService
       return S3ApplicationReportPersistenceService.class;
     }
 
-    protected S3Object getS3Metadata() throws IOException {
-      S3Object s3Object = wrapS3Exception(() -> {
-        HeadObjectRequest request = HeadObjectRequest.builder()
-            .bucket(s3DataStoreConfig.getBucketName())
-            .key(key.toString())
-            .build();
+    protected Optional<Metadata> getS3Metadata() throws IOException {
+      try {
+        S3Object s3Object = wrapS3Exception(() -> {
+          HeadObjectRequest request = HeadObjectRequest.builder()
+              .bucket(s3DataStoreConfig.getBucketName())
+              .key(key.toString())
+              .build();
 
-        HeadObjectResponse response = s3Client.headObject(request);
+          HeadObjectResponse response = s3Client.headObject(request);
 
-        return S3Object.builder()
-            .size(response.contentLength())
-            .lastModified(response.lastModified())
-            .build();
-      });
-      metadata = new Metadata(s3Object.lastModified().toEpochMilli(), s3Object.size());
-      return s3Object;
+          return S3Object.builder()
+              .size(response.contentLength())
+              .lastModified(response.lastModified())
+              .build();
+        });
+        metadata = Optional.of(new Metadata(s3Object.lastModified().toEpochMilli(), s3Object.size()));
+        return metadata;
+      }
+      catch (IOException e) {
+        if (e.getCause() instanceof NoSuchKeyException) {
+          metadata = Optional.empty();
+          return metadata;
+        }
+        else {
+          throw e;
+        }
+      }
     }
   }
 
@@ -424,7 +455,10 @@ public class S3ApplicationReportPersistenceService
     ReportEntity entity = getCacheReportEntity(applicationId, scanId, name);
 
     if (!entity.exists()) {
-      createLocalCopyFromOriginal(applicationId, scanId, name);
+      if (createLocalCopyFromOriginal(applicationId, scanId, name)) {
+        // Set the metadata to indicate the entity exists
+        entity.setMetadata(Optional.of(new Metadata(null, null)));
+      }
     }
 
     return entity;
@@ -451,11 +485,16 @@ public class S3ApplicationReportPersistenceService
    * If a report.zip file exists, it will be extracted first.
    */
   @Trace
-  private void createLocalCopyFromOriginal(
+  private boolean createLocalCopyFromOriginal(
       final String applicationId,
       final String scanId,
       final String name) throws IOException
   {
+    var ref = new Object()
+    {
+      boolean copied = false;
+    };
+    
     var request = CopyObjectRequest.builder()
         .sourceBucket(s3DataStoreConfig.getBucketName())
         .sourceKey(getOriginalKey(applicationId, scanId, name).toString())
@@ -467,6 +506,7 @@ public class S3ApplicationReportPersistenceService
     wrapS3Exception(() -> {
       try {
         s3Client.copyObject(request);
+        ref.copied = true;
       }
       catch (NoSuchKeyException e) {
         try {
@@ -478,6 +518,7 @@ public class S3ApplicationReportPersistenceService
             extractZipFileToS3(applicationId, scanId);
             try {
               s3Client.copyObject(request);
+              ref.copied = true;
             }
             catch (NoSuchKeyException ex) {
               log.info("File '{}' not found in extracted contents for applicationId '{}' scanId '{}'",
@@ -492,6 +533,7 @@ public class S3ApplicationReportPersistenceService
         }
       }
     });
+    return ref.copied;
   }
 
   /**

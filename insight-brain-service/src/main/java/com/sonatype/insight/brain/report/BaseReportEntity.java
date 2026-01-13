@@ -9,6 +9,7 @@ package com.sonatype.insight.brain.report;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Optional;
 
 /**
  * Representation of an individual, persisted file that makes up an application report (such as bom.json). Note that
@@ -20,31 +21,90 @@ import java.io.OutputStream;
 public interface BaseReportEntity
 {
   /**
-   * @return whether or not the file exists in the underlying storage
+   * @return whether the file exists in the underlying storage
+   * @throws IOException if there is an error reading the file's metadata
    */
   boolean exists() throws IOException;
 
   /**
+   * @param source the source of metadata to use
+   * @return whether the file exists in the underlying storage
+   * @throws IOException if there is an error reading the file's metadata
+   * @implNote The default implementation ignores the {@code source} parameter and always fetches
+   *           fresh metadata from the underlying storage (equivalent to {@link MetadataSource#FETCH}).
+   *           Implementations that support caching should override this method.
+   */
+  default boolean exists(MetadataSource source) throws IOException {
+    return exists();
+  }
+
+  /**
    * @return the last modified time of the file
-   * @throws IOException if the file does not exist or if there is an error reading the file's metadata
+   * @throws IOException if the file does not exist, or if there is an error reading the file's metadata
    */
   long getTime() throws IOException;
 
   /**
+   * @param source the source of metadata to use
+   * @return the last modified time of the file
+   * @throws IOException if the file does not exist, or if there is an error reading the file's metadata
+   * @implNote The default implementation ignores the {@code source} parameter and always fetches
+   *           fresh metadata from the underlying storage (equivalent to {@link MetadataSource#FETCH}).
+   *           Implementations that support caching should override this method.
+   */
+  default long getTime(MetadataSource source) throws IOException {
+    return getTime();
+  }
+
+  /**
    * @return the length of the file in bytes
+   * @throws IOException if the file does not exist, or if there is an error reading the file's metadata
    */
   long length() throws IOException;
 
   /**
-   * @return at least the requested metadata for the report entity or null if it does not exist
+   * @param source the source of metadata to use
+   * @return the length of the file in bytes
+   * @throws IOException if the file does not exist, or if there is an error reading the file's metadata
+   * @implNote The default implementation ignores the {@code source} parameter and always fetches
+   *           fresh metadata from the underlying storage (equivalent to {@link MetadataSource#FETCH}).
+   *           Implementations that support caching should override this method.
    */
-  Metadata getMetadata(MetadataAttribute... metadataAttributes) throws IOException;
+  default long length(MetadataSource source) throws IOException {
+    return length();
+  }
 
   /**
-   * @return the last requested metadata for the report entity, by default, this is the same as {@code getMetadata}
+   * @param metadataAttributes the minimal metadata attributes to retrieve
+   * @return at least the requested metadata for the report entity or empty if it does not exist
+   * @throws IOException if there is an error reading the file's metadata
    */
-  default Metadata getLastMetadata(MetadataAttribute... metadataAttributes) throws IOException {
+  Optional<Metadata> getMetadata(MetadataAttribute... metadataAttributes) throws IOException;
+
+  /**
+   * @param source             the source of metadata to use
+   * @param metadataAttributes the minimal metadata attributes to retrieve
+   * @return at least the requested metadata for the report entity or empty if it does not exist
+   * @throws IOException if there is an error reading the file's metadata
+   * @implNote The default implementation ignores the {@code source} parameter and always fetches
+   *           fresh metadata from the underlying storage (equivalent to {@link MetadataSource#FETCH}).
+   *           Implementations that support caching should override this method.
+   */
+  default Optional<Metadata> getMetadata(MetadataSource source, MetadataAttribute... metadataAttributes)
+      throws IOException
+  {
     return getMetadata(metadataAttributes);
+  }
+
+  /**
+   * This method is intended to allow the cached metadata to be set in cases where we know something about it from other
+   * sources, e.g., if we've just successfully copied the file from one location to another, then we know it exists
+   *
+   * @param metadata the metadata to set, null should clear the cached metadata
+   */
+  @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
+  default void setMetadata(Optional<Metadata> metadata) {
+    // no-op by default
   }
 
   /**
@@ -58,7 +118,7 @@ public interface BaseReportEntity
    * thrown.
    */
   InputStream getInputStream() throws IOException;
-  
+
   /**
    * The primary {@link ApplicationReportPersistenceService} class that handles this.
    */

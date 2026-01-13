@@ -11,16 +11,24 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
+import java.nio.file.NoSuchFileException;
 import java.time.Instant;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Stream;
 import javax.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
+import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
+import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
+import com.sonatype.insight.brain.model.policy.stages.BuildStageType;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -30,6 +38,7 @@ import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServ
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 abstract class AbstractApplicationReportPersistenceServiceTest
@@ -246,28 +255,29 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       // Note: can't use assertThat(stream) because it closes the stream before the assertions are run
       var entities = stream.toArray(ReportEntity[]::new);
 
-      assertThat(entities).allMatch(wrapException(ReportEntity::exists)).satisfiesExactlyInAnyOrder(
-          wrapException(entity -> {
-            // overwritten bom.json should be present, not the original
-            assertThat(entity.getName()).isEqualTo("bom.json");
-            helper.assertEntityContents(entity, "overwritten file contents");
-          }),
-          wrapException(entity -> {
-            // original index.html should be present since it's not overwritten (note index.html is created by
-            // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
-            assertThat(entity.getName()).isEqualTo("index.html");
-            helper.assertEntityContents(entity, "<html></html>");
-          }),
-          wrapException(entity -> {
-            // new file from cache dir
-            assertThat(entity.getName()).isEqualTo("new-file.txt");
-            helper.assertEntityContents(entity, "new file contents");
-          }),
-          wrapException(entity -> {
-            // new file from additional files dir
-            assertThat(entity.getName()).isEqualTo("foo.txt");
-            helper.assertEntityContents(entity, "foobar");
-          })
+      assertThat(entities).allMatch(wrapException((PredicateWithException<ReportEntity>) BaseReportEntity::exists))
+          .satisfiesExactlyInAnyOrder(
+              wrapException(entity -> {
+                // overwritten bom.json should be present, not the original
+                assertThat(entity.getName()).isEqualTo("bom.json");
+                helper.assertEntityContents(entity, "overwritten file contents");
+              }),
+              wrapException(entity -> {
+                // original index.html should be present since it's not overwritten (note index.html is created by
+                // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
+                assertThat(entity.getName()).isEqualTo("index.html");
+                helper.assertEntityContents(entity, "<html></html>");
+              }),
+              wrapException(entity -> {
+                // new file from cache dir
+                assertThat(entity.getName()).isEqualTo("new-file.txt");
+                helper.assertEntityContents(entity, "new file contents");
+              }),
+              wrapException(entity -> {
+                // new file from additional files dir
+                assertThat(entity.getName()).isEqualTo("foo.txt");
+                helper.assertEntityContents(entity, "foobar");
+              })
       );
     }
   }
@@ -283,18 +293,19 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       // Note: can't use assertThat(stream) because it closes the stream before the assertions are run
       var entities = stream.toArray(ReportEntity[]::new);
 
-      assertThat(entities).allMatch(wrapException(ReportEntity::exists)).satisfiesExactlyInAnyOrder(
-          wrapException(entity -> {
-            // original bom.json should be present
-            assertThat(entity.getName()).isEqualTo("bom.json");
-            helper.assertEntityContents(entity, "{}\n");
-          }),
-          wrapException(entity -> {
-            // original index.html should be present since it's not overwritten (note index.html is created by
-            // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
-            assertThat(entity.getName()).isEqualTo("index.html");
-            helper.assertEntityContents(entity, "<html></html>");
-          })
+      assertThat(entities).allMatch(wrapException((PredicateWithException<ReportEntity>) BaseReportEntity::exists))
+          .satisfiesExactlyInAnyOrder(
+              wrapException(entity -> {
+                // original bom.json should be present
+                assertThat(entity.getName()).isEqualTo("bom.json");
+                helper.assertEntityContents(entity, "{}\n");
+              }),
+              wrapException(entity -> {
+                // original index.html should be present since it's not overwritten (note index.html is created by
+                // ReportHelper.saveMockReport, it's not in the src/test/resources/… dir)
+                assertThat(entity.getName()).isEqualTo("index.html");
+                helper.assertEntityContents(entity, "<html></html>");
+              })
       );
     }
   }
@@ -834,7 +845,7 @@ abstract class AbstractApplicationReportPersistenceServiceTest
     helper.writePdf("pdf");
     helper.writeVulnerabilitySignatures("vulnerability signatures");
 
-    assertThat(service.getReportEntity(APPLICATION_ID, SCAN_ID, "doesNotExist").getMetadata()).isNull();
+    assertThat(service.getReportEntity(APPLICATION_ID, SCAN_ID, "doesNotExist").getMetadata()).isEmpty();
     assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html"));
     assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "additional.txt"));
     assertMetadataEqualsDirectCalls(service.getReportEntity(APPLICATION_ID, SCAN_ID, "local.txt"));
@@ -849,11 +860,101 @@ abstract class AbstractApplicationReportPersistenceServiceTest
   }
 
   private void assertMetadataEqualsDirectCalls(final BaseReportEntity reportEntity) throws Exception {
-    Metadata metadata = reportEntity.getMetadata(
+    Optional<Metadata> metadata = reportEntity.getMetadata(
         MetadataAttribute.LAST_MODIFIED_EPOCH_TIME,
         MetadataAttribute.SIZE_IN_BYTES
     );
-    assertThat(metadata.lastModifiedEpochTime()).isEqualTo(reportEntity.getTime());
-    assertThat(metadata.sizeInBytes()).isEqualTo(reportEntity.length());
+    assertThat(metadata).isPresent();
+    assertThat(metadata.get().lastModifiedEpochTime()).isEqualTo(reportEntity.getTime());
+    assertThat(metadata.get().sizeInBytes()).isEqualTo(reportEntity.length());
+  }
+
+  @Test
+  public void testGetMetadata_NoAttributes() throws Exception {
+    helper.saveEmptyMockReport();
+
+    ReportEntity reportEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "index.html");
+    assertThat(reportEntity.getMetadata()).isPresent();
+
+    ReportEntity nonExistingReportEntity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "doesNotExist");
+    assertThat(nonExistingReportEntity.getMetadata()).isEmpty();
+  }
+
+  @Test
+  public void testMetadataSource_Cached() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+
+    for (ReportFile reportFile : ReportFile.values()) {
+      ReportEntity reportEntity;
+      try {
+        reportEntity =
+            service.getReportEntity(application.getId(), eval.getScanId(), reportFile.getName());
+      }
+      catch (NoSuchFileException noSuchFileException) {
+        continue;
+      }
+      assertThat(reportEntity.getMetadata(MetadataSource.CACHED)).isEmpty();
+      assertThat(reportEntity.exists(MetadataSource.CACHED)).isFalse();
+      assertThatExceptionOfType(IOException.class)
+          .isThrownBy(() -> reportEntity.getTime(MetadataSource.CACHED))
+          .withMessageContaining("File does not exist");
+      assertThatExceptionOfType(IOException.class)
+          .isThrownBy(() -> reportEntity.length(MetadataSource.CACHED))
+          .withMessageContaining("File does not exist");
+    }
+
+    createReport(service, eval, 1);
+
+    for (ReportFile reportFile : ReportFile.values()) {
+      ReportEntity reportEntity = service.getReportEntity(application.getId(), eval.getScanId(), reportFile.getName());
+      assertThat(reportEntity.getMetadata(MetadataSource.CACHED)).isPresent();
+      assertThat(reportEntity.exists(MetadataSource.CACHED)).isTrue();
+      assertThat(reportEntity.getTime(MetadataSource.CACHED)).isGreaterThan(0);
+      assertThat(reportEntity.length(MetadataSource.CACHED)).isGreaterThan(0);
+    }
+  }
+
+  @Test
+  public void testMetadataSource_Fetch() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+
+    for (ReportFile reportFile : ReportFile.values()) {
+      ReportEntity reportEntity;
+      try {
+        reportEntity =
+            service.getReportEntity(application.getId(), eval.getScanId(), reportFile.getName());
+      }
+      catch (NoSuchFileException noSuchFileException) {
+        continue;
+      }
+      assertThat(reportEntity.getMetadata(MetadataSource.FETCH)).isEmpty();
+      assertThat(reportEntity.exists(MetadataSource.FETCH)).isFalse();
+      assertThatExceptionOfType(IOException.class)
+          .isThrownBy(() -> reportEntity.getTime(MetadataSource.FETCH))
+          .withMessageContaining("File does not exist");
+      assertThatExceptionOfType(IOException.class)
+          .isThrownBy(() -> reportEntity.length(MetadataSource.FETCH))
+          .withMessageContaining("File does not exist");
+    }
+
+    createReport(service, eval, 1);
+
+    for (ReportFile reportFile : ReportFile.values()) {
+      ReportEntity reportEntity = service.getReportEntity(application.getId(), eval.getScanId(), reportFile.getName());
+      assertThat(reportEntity.getMetadata(MetadataSource.FETCH)).isPresent();
+      assertThat(reportEntity.exists(MetadataSource.FETCH)).isTrue();
+      assertThat(reportEntity.getTime(MetadataSource.FETCH)).isGreaterThan(0);
+      assertThat(reportEntity.length(MetadataSource.FETCH)).isGreaterThan(0);
+    }
   }
 }

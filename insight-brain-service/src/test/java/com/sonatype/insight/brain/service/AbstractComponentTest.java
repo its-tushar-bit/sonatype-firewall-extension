@@ -6,12 +6,17 @@
 package com.sonatype.insight.brain.service;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -39,6 +44,7 @@ import com.sonatype.insight.brain.hds.TelemetryId;
 import com.sonatype.insight.brain.model.PerpetualLock;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.valuetype.ConditionValueTypes;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -46,6 +52,9 @@ import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.product.license.ProductLicenseDetailsCache;
 import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.product.license.TestProductLicenseDetailsCache;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFile;
+import com.sonatype.insight.brain.report.ApplicationReport.ReportFileLocationType;
+import com.sonatype.insight.brain.report.ApplicationReportPersistenceService;
 import com.sonatype.insight.brain.scheduler.QuartzJobSchedulingServiceRule;
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
@@ -57,6 +66,7 @@ import com.sonatype.insight.brain.security.SsoUserService;
 import com.sonatype.insight.brain.security.TestEncryptionKeyStore;
 import com.sonatype.insight.brain.sourcecontrol.SourceControlLoadBalancer;
 import com.sonatype.insight.brain.testing.BrainInjectedTest;
+import com.sonatype.insight.brain.utils.ReportHelper;
 import com.sonatype.insight.json.store.JsonUtils;
 import org.sonatype.licensing.product.ProductLicenseManager;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;
@@ -453,5 +463,65 @@ public class AbstractComponentTest
     catch (IOException e) {
       throw new UncheckedIOException("Failed to clean up SBOM directory", e);
     }
+  }
+
+  public void createReport(
+      final ApplicationReportPersistenceService service,
+      final PolicyEvaluation eval,
+      final int contentSizeInBytes)
+      throws Exception
+  {
+    String reportZipName = "report.zip";
+    Path zipPath = tempDir.getRoot().toPath().resolve(reportZipName);
+    ReportHelper.createEmptyZip(zipPath);
+    for (ReportFile reportFile : ReportFile.values()) {
+      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
+        ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()),
+            createRandomInputStream(contentSizeInBytes));
+      }
+    }
+    // Create report.zip
+    try (InputStream inputStream = new FileInputStream(zipPath.toFile())) {
+      service.saveOriginalReport(eval.getApplicationId(), eval.getScanId(), inputStream);
+    }
+    for (ReportFile reportFile : ReportFile.values()) {
+      // Create report.cache
+      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
+          reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
+        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
+          service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
+        }
+      }
+      // Create additional.files
+      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
+        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
+          service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
+        }
+      }
+    }
+    // Create report.pdf
+    try (InputStream inputStream = createRandomInputStream(contentSizeInBytes);
+         OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
+             .getOutputStream()) {
+      inputStream.transferTo(outputStream);
+    }
+  }
+
+  public InputStream createRandomInputStream(final int numberOfBytes) {
+    return new InputStream()
+    {
+      private final Random random = new Random();
+
+      private int remaining = numberOfBytes;
+
+      @Override
+      public int read() {
+        if (remaining <= 0) {
+          return -1;
+        }
+        remaining--;
+        return random.nextInt(256);
+      }
+    };
   }
 }

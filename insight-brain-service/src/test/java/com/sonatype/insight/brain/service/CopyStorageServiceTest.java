@@ -13,7 +13,6 @@ import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -810,7 +809,8 @@ public class CopyStorageServiceTest
         );
         // Create some large files
         createScan(eval, reportIdx % 20 == 0 ? (int) (20 * MB) : 1024);
-        createReport(eval, reportIdx % 20 == 0 ? (int) (MB) : 1024);
+        createReport(applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1)), eval,
+            reportIdx % 20 == 0 ? (int) (MB) : 1024);
 
         ThirdPartySbomMetadata sbom = tempEntity.newThirdPartySbomMetadata(
             app.getId(),
@@ -993,48 +993,7 @@ public class CopyStorageServiceTest
   }
 
   private void createReport(final PolicyEvaluation eval) throws Exception {
-    createReport(eval, 1024);
-  }
-
-  private void createReport(final PolicyEvaluation eval, final int contentSizeInBytes)
-      throws Exception
-  {
-    String reportZipName = "report.zip";
-    Path zipPath = tempDir.getRoot().toPath().resolve(reportZipName);
-    ReportHelper.createEmptyZip(zipPath);
-    for (ReportFile reportFile : ReportFile.values()) {
-      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
-        ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()),
-            createRandomInputStream(contentSizeInBytes));
-      }
-    }
-    ApplicationReportPersistenceService service =
-        applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1));
-    // Create report.zip
-    try (InputStream inputStream = new FileInputStream(zipPath.toFile())) {
-      service.saveOriginalReport(eval.getApplicationId(), eval.getScanId(), inputStream);
-    }
-    for (ReportFile reportFile : ReportFile.values()) {
-      // Create report.cache
-      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
-          reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
-        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
-          service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
-        }
-      }
-      // Create additional.files
-      if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
-          service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
-        }
-      }
-    }
-    // Create report.pdf
-    try (InputStream inputStream = createRandomInputStream(contentSizeInBytes);
-         OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
-             .getOutputStream()) {
-      inputStream.transferTo(outputStream);
-    }
+    createReport(applicationReportPersistenceServiceProvider.get(dataStoreTypes.get(1)), eval, 1024);
   }
 
   private void createSbom(final ThirdPartySbomMetadata sbomMetadata) throws Exception {
@@ -1055,23 +1014,5 @@ public class CopyStorageServiceTest
          OutputStream outputStream = sbomEntity.getOutputStream()) {
       inputStream.transferTo(outputStream);
     }
-  }
-
-  private InputStream createRandomInputStream(final int numberOfBytes) {
-    return new InputStream()
-    {
-      private final Random random = new Random();
-
-      private int remaining = numberOfBytes;
-
-      @Override
-      public int read() {
-        if (remaining <= 0) {
-          return -1;
-        }
-        remaining--;
-        return random.nextInt(256);
-      }
-    };
   }
 }

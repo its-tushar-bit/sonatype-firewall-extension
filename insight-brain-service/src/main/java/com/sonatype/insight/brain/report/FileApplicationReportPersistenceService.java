@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -108,18 +109,21 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+    public Optional<Metadata> getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
       if (!exists()) {
-        return null;
+        return Optional.empty();
+      }
+      if (metadataAttributes.length == 0) {
+        return Optional.of(new Metadata(null, null));
       }
       String attributeNames = Set.of(metadataAttributes).stream()
           .map(MetadataAttribute::getFileAttributeName)
           .collect(Collectors.joining(","));
       Map<String, Object> fileAttributes = Files.readAttributes(entityPath, attributeNames);
-      return new Metadata(
+      return Optional.of(new Metadata(
           ((FileTime) fileAttributes.get(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME.getFileAttributeName())).toMillis(),
           (Long) fileAttributes.get(MetadataAttribute.SIZE_IN_BYTES.getFileAttributeName())
-      );
+      ));
     }
 
     @Override
@@ -166,7 +170,7 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    public boolean exists() throws IOException {
+    public boolean exists() {
       // this service only creates these entities if the entry exists
       return true;
     }
@@ -185,25 +189,25 @@ public class FileApplicationReportPersistenceService
     }
 
     @Override
-    public long length() throws IOException {
+    public long length() {
       return entry.getSize();
     }
 
     @Override
-    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
+    public Optional<Metadata> getMetadata(final MetadataAttribute... metadataAttributes) throws IOException {
       if (!exists()) {
-        return null;
+        return Optional.empty();
       }
       Set<MetadataAttribute> metadataAttributesSet = Set.of(metadataAttributes);
-      return new Metadata(
+      return Optional.of(new Metadata(
           metadataAttributesSet.contains(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME) ? getTime() : null,
           metadataAttributesSet.contains(MetadataAttribute.SIZE_IN_BYTES) ? length() : null
-      );
+      ));
     }
 
     @Override
     @Trace
-    public OutputStream getOutputStream() throws IOException {
+    public OutputStream getOutputStream() {
       throw new UnsupportedOperationException("Overwriting original report files is not supported");
     }
 

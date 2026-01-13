@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -73,8 +74,8 @@ public class ReportBundleUpdaterTest
     }
 
     @Override
-    public Metadata getMetadata(final MetadataAttribute... metadataAttributes) {
-      return null;
+    public Optional<Metadata> getMetadata(final MetadataAttribute... metadataAttributes) {
+      return Optional.empty();
     }
 
     @Override

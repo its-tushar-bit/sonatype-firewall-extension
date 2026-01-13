@@ -142,13 +142,9 @@ public class ApplicationReport
 
   public ReportEntry getEntry(final String name) throws IOException {
     ReportEntity entity = getEntity(name);
-
-    // Some persistence services, such as S3, store the last retrieved metadata for a report entity
-    // If we already got this metadata when getting the report entity, then re-use it for efficiency
-    Metadata metadata = entity.getLastMetadata(MetadataAttribute.LAST_MODIFIED_EPOCH_TIME);
-    if (metadata != null) {
+    if (entity.exists(MetadataSource.CACHED)) {
       try (var stream = entity.getInputStream()) {
-        return new ReportEntry(name, metadata.lastModifiedEpochTime(), stream.readAllBytes());
+        return new ReportEntry(name, entity.getTime(MetadataSource.CACHED), stream.readAllBytes());
       }
     }
     else {
@@ -194,10 +190,9 @@ public class ApplicationReport
 
   public ReportEntry extractEntry(String name) throws IOException {
     ReportEntity entity = getEntity(name);
-
-    if (entity.exists()) {
+    if (entity.exists(MetadataSource.CACHED)) {
       try (var stream = entity.getInputStream()) {
-        return new ReportEntry(name, entity.getTime(), stream.readAllBytes());
+        return new ReportEntry(name, entity.getTime(MetadataSource.CACHED), stream.readAllBytes());
       }
     }
     else {
@@ -229,8 +224,8 @@ public class ApplicationReport
   }
 
   public ReportType getType() throws IOException {
-    boolean hasSecurityJson = getEntity(SECURITY_JSON.getName()).exists();
-    boolean hasLicensesJson = getEntity(LICENSES_JSON.getName()).exists();
+    boolean hasSecurityJson = getEntity(SECURITY_JSON.getName()).exists(MetadataSource.CACHED);
+    boolean hasLicensesJson = getEntity(LICENSES_JSON.getName()).exists(MetadataSource.CACHED);
 
     if (!hasSecurityJson && !hasLicensesJson) {
       return ReportType.ERROR;
@@ -244,7 +239,7 @@ public class ApplicationReport
   public Properties getTemplateProperties() throws IOException {
     ReportEntity entity = getEntity(TEMPLATE_PROPERTIES.getName());
     Properties props = new Properties();
-    if (entity.exists()) {
+    if (entity.exists(MetadataSource.CACHED)) {
       try (var stream = entity.getInputStream()) {
         props.load(stream);
       }

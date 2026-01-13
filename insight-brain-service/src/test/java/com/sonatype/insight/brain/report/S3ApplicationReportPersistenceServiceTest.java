@@ -7,9 +7,11 @@
 package com.sonatype.insight.brain.report;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
@@ -17,9 +19,9 @@ import javax.inject.Inject;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig.DataStoreType;
 import com.sonatype.insight.brain.service.config.StorageConfig.S3DataStoreConfig;
+import com.sonatype.insight.test.ContainerRule;
 
 import com.google.inject.Binder;
-import com.sonatype.insight.test.ContainerRule;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -40,6 +42,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -47,10 +50,13 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @RunWith(Parameterized.class)
 public class S3ApplicationReportPersistenceServiceTest
@@ -256,5 +262,237 @@ public class S3ApplicationReportPersistenceServiceTest
       zos.closeEntry();
     }
     return baos.toByteArray();
+  }
+
+  @Test
+  public void testGetMetadata_WithCachedMetadataSource() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("test.txt", "content");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+    ReportEntity entity = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "test.txt");
+
+    // First call to getMetadata with MetadataSource.CACHED - should call headObject to populate cache
+    Optional<Metadata> metadata1 =
+        entity.getMetadata(MetadataSource.CACHED, MetadataAttribute.LAST_MODIFIED_EPOCH_TIME);
+    assertThat(metadata1).isPresent();
+    assertThat(metadata1.get().lastModifiedEpochTime()).isGreaterThan(0);
+
+    // Verify headObject was called once (from getReportEntity -> doGetReportEntity -> entity.exists())
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+
+    // Second call to getMetadata with MetadataSource.CACHED - should use cached metadata without calling S3
+    Optional<Metadata> metadata2 =
+        entity.getMetadata(MetadataSource.CACHED, MetadataAttribute.LAST_MODIFIED_EPOCH_TIME);
+    assertThat(metadata2).isPresent();
+    assertThat(metadata2.get().lastModifiedEpochTime()).isEqualTo(metadata1.get().lastModifiedEpochTime());
+
+    // Verify headObject was still only called once (cached metadata was used)
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+
+    // Third call with different attributes - should still use cache
+    Optional<Metadata> metadata3 = entity.getMetadata(MetadataSource.CACHED,
+        MetadataAttribute.LAST_MODIFIED_EPOCH_TIME,
+        MetadataAttribute.SIZE_IN_BYTES
+    );
+    assertThat(metadata3).isPresent();
+    assertThat(metadata3.get().lastModifiedEpochTime()).isEqualTo(metadata1.get().lastModifiedEpochTime());
+    assertThat(metadata3.get().sizeInBytes()).isGreaterThan(0);
+
+    // Still only one headObject call
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+  }
+
+  @Test
+  public void testGetMetadata_MultipleEntities_IndependentCaches() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("file1.txt", "content1");
+    helper.writeAdditionalFile("file2.txt", "content2");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    // Get two different entities
+    ReportEntity entity1 = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "file1.txt");
+    ReportEntity entity2 = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "file2.txt");
+
+    // Each entity.exists() call will make one headObject call
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+
+    // Get metadata for entity1 - should use cached metadata from exists() call
+    Optional<Metadata> m1 = entity1.getMetadata(MetadataSource.CACHED);
+    assertThat(m1).isPresent();
+
+    // Get metadata for entity2 - should use cached metadata from exists() call
+    Optional<Metadata> m2 = entity2.getMetadata(MetadataSource.CACHED);
+    assertThat(m2).isPresent();
+
+    // Still only 2 headObject calls total
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+
+    // Call getMetadata again on both entities with MetadataSource.CACHED
+    entity1.getMetadata(MetadataSource.CACHED);
+    entity2.getMetadata(MetadataSource.CACHED);
+
+    // Still only 2 headObject calls - both used cached metadata
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+  }
+
+  @Test
+  public void testGetMetadata_ComparingMetadataSources() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("test.txt", "content");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    ReportEntity entity = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "test.txt");
+
+    // exists() made 1 headObject call
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+
+    // Call getMetadata with MetadataSource.FETCH - should make a NEW S3 call each time
+    entity.getMetadata();
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+
+    Optional<Metadata> m2 = entity.getMetadata(MetadataSource.FETCH);
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class));
+
+    // But getMetadata with MetadataSource.CACHED should NOT make additional calls
+    Optional<Metadata> m3 = entity.getMetadata(MetadataSource.CACHED);
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class));
+
+    Optional<Metadata> m4 = entity.getMetadata(MetadataSource.CACHED);
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class));
+
+    assertThat(m3.get().lastModifiedEpochTime()).isEqualTo(m2.get().lastModifiedEpochTime());
+    assertThat(m4.get().lastModifiedEpochTime()).isEqualTo(m2.get().lastModifiedEpochTime());
+  }
+
+  @Test
+  public void testGetMetadata_MixedFetchAndCachedCalls() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("test.txt", "original content");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    ReportEntity entity = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "test.txt");
+
+    // exists() made 1 headObject call during getReportEntity
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+
+    // Call with CACHED - should use the cached metadata from getReportEntity
+    Optional<Metadata> cachedMeta1 = entity.getMetadata(MetadataSource.CACHED);
+    assertThat(cachedMeta1).isPresent();
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class)); // Still only 1 call
+
+    // Call with FETCH - should make a NEW S3 call
+    Optional<Metadata> fetchedMeta1 = entity.getMetadata(MetadataSource.FETCH);
+    assertThat(fetchedMeta1).isPresent();
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class)); // Now 2 calls
+
+    // Call with CACHED again - should use the updated cache from the FETCH call
+    Optional<Metadata> cachedMeta2 = entity.getMetadata(MetadataSource.CACHED);
+    assertThat(cachedMeta2).isPresent();
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class)); // Still 2 calls
+
+    // Call with FETCH again - should make another NEW S3 call
+    Optional<Metadata> fetchedMeta2 = entity.getMetadata(MetadataSource.FETCH);
+    assertThat(fetchedMeta2).isPresent();
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class)); // Now 3 calls
+
+    // All metadata should be consistent since the file hasn't changed
+    assertThat(cachedMeta1.get().lastModifiedEpochTime()).isEqualTo(fetchedMeta1.get().lastModifiedEpochTime());
+    assertThat(cachedMeta2.get().lastModifiedEpochTime()).isEqualTo(fetchedMeta1.get().lastModifiedEpochTime());
+    assertThat(fetchedMeta2.get().lastModifiedEpochTime()).isEqualTo(fetchedMeta1.get().lastModifiedEpochTime());
+
+    // Verify the same pattern works for exists()
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class));
+
+    boolean existsCached = entity.exists(MetadataSource.CACHED);
+    assertThat(existsCached).isTrue();
+    verify(spyS3Client, times(3)).headObject(any(HeadObjectRequest.class)); // No new call
+
+    boolean existsFetch = entity.exists(MetadataSource.FETCH);
+    assertThat(existsFetch).isTrue();
+    verify(spyS3Client, times(4)).headObject(any(HeadObjectRequest.class)); // New call
+
+    boolean existsCached2 = entity.exists(MetadataSource.CACHED);
+    assertThat(existsCached2).isTrue();
+    verify(spyS3Client, times(4)).headObject(any(HeadObjectRequest.class)); // No new call
+  }
+
+  @Test
+  public void testGetTime_WithMetadataSource() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("test.txt", "content");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    ReportEntity entity = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "test.txt");
+
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+    // CACHED - should use cache
+    long timeCached = entity.getTime(MetadataSource.CACHED);
+    assertThat(timeCached).isGreaterThan(0);
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+    // FETCH - should make new S3 call
+    long timeFetch = entity.getTime(MetadataSource.FETCH);
+    assertThat(timeFetch).isEqualTo(timeCached);
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+  }
+
+  @Test
+  public void testLength_WithMetadataSource() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("test.txt", "content");
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    ReportEntity entity = spyService.getReportEntity(APPLICATION_ID, SCAN_ID, "test.txt");
+
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+    // CACHED - should use cache
+    long lengthCached = entity.length(MetadataSource.CACHED);
+    assertThat(lengthCached).isEqualTo("content".length());
+    verify(spyS3Client, times(1)).headObject(any(HeadObjectRequest.class));
+    // FETCH - should make new S3 call
+    long lengthFetch = entity.length(MetadataSource.FETCH);
+    assertThat(lengthFetch).isEqualTo(lengthCached);
+    verify(spyS3Client, times(2)).headObject(any(HeadObjectRequest.class));
+  }
+
+  @Test
+  public void testGetTime_OnNonExistentFile_ThrowsException() throws Exception {
+    helper.saveEmptyMockReport();
+    ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "nonexistent.txt");
+
+    assertThat(entity.exists(MetadataSource.CACHED)).isFalse();
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> entity.getTime(MetadataSource.CACHED))
+        .withMessage("File does not exist");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> entity.getTime(MetadataSource.FETCH))
+        .withMessage("File does not exist");
+  }
+
+  @Test
+  public void testLength_OnNonExistentFile_ThrowsException() throws Exception {
+    helper.saveEmptyMockReport();
+    ReportEntity entity = service.getReportEntity(APPLICATION_ID, SCAN_ID, "nonexistent.txt");
+
+    assertThat(entity.exists(MetadataSource.CACHED)).isFalse();
+
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> entity.length(MetadataSource.CACHED))
+        .withMessage("File does not exist");
+    assertThatExceptionOfType(IOException.class)
+        .isThrownBy(() -> entity.length(MetadataSource.FETCH))
+        .withMessage("File does not exist");
   }
 }

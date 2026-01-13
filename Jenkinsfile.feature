@@ -224,7 +224,7 @@ pipeline {
             script {
               dir(env.BUILD_DIR) {
                 nexusPolicyEvaluation(
-                    iqStage: 'build',
+                    iqStage: 'develop',
                     iqApplication: 'insight-brain',
                     iqScanPatterns: [[scanPattern: 'insight-brain-frontend/target/webpack-modules']],
                     iqModuleExcludes: [[moduleExclude: '**/test/**'], [moduleExclude: '**/test-classes/**/module.xml']],

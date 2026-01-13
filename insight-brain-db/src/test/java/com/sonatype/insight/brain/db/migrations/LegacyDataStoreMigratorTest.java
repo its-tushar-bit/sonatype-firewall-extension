@@ -401,4 +401,18 @@ public class LegacyDataStoreMigratorTest
       throw new Exception();
     }
   }
+
+  @Test
+  public void testGetDatabasePath_NonH2DatabaseURL() {
+    DatabaseConfig databaseConfig = new DatabaseConfig();
+    databaseConfig.setUrl("jdbc:postgresql://localhost:5432/iq_db");
+    databaseConfig.setUsername("postgres");
+
+    assertThatThrownBy(() -> com.sonatype.insight.brain.db.H2DatabaseUtil.getDatabasePath(databaseConfig))
+        .isInstanceOf(IllegalArgumentException.class)
+        .hasMessageContaining("Cannot process non-H2 database")
+        .hasMessageContaining("jdbc:postgresql://localhost:5432/iq_db")
+        .hasMessageContaining("Check database configuration")
+        .hasMessageContaining("properly initialized");
+  }
 }

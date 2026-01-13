@@ -19,7 +19,9 @@ public class H2DatabaseUtil
   public static File getDatabasePath(DatabaseConfig databaseConfig) {
     String url = databaseConfig.getUrl();
     if (!url.startsWith(H2_URL_PREFIX)) {
-      throw new IllegalArgumentException("Not an H2 database URL: '" + url + "'");
+      throw new IllegalArgumentException(
+          "Cannot process non-H2 database: " + url + ". " +
+              "Check database configuration and ensure the database is properly initialized.");
     }
 
     String databaseDir = url.substring(H2_URL_PREFIX.length());

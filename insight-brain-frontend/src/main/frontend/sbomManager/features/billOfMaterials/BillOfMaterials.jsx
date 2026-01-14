@@ -11,6 +11,10 @@ import {
   NxPageMain,
   NxPageTitle,
   NxStatefulSegmentedButton,
+  NxStatefulTabs,
+  NxTab,
+  NxTabList,
+  NxTabPanel,
   NxTextLink,
   NxTooltip,
   NxWarningAlert,
@@ -51,6 +55,7 @@ import {
   exportPDFIsDisabledDueToValidationErrors,
 } from '../messages';
 import InvalidSbomTooltipWrapper from 'MainRoot/sbomManager/features/sbomExport/InvalidSbomTooltipWrapper';
+import OriginalBomViewer from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/OriginalBomViewer';
 
 import './billOfMaterials.scss';
 
@@ -260,14 +265,25 @@ export default function BillOfMaterials() {
               </div>
             </NxPageTitle.Description>
           </NxPageTitle>
-          <SummaryTile
-            releaseStatusPercentage={releaseStatusPercentage}
-            componentSummary={componentSummary}
-            vulnerabilitiesSummary={vulnerabilitiesSummary}
-            policyViolationSummary={policyViolationSummary}
-            isSbomPoliciesSupported={isSbomPoliciesSupported}
-          />
-          <BillOfMaterialsComponentsTile />
+          <NxStatefulTabs defaultActiveTab={0}>
+            <NxTabList>
+              <NxTab>Report</NxTab>
+              <NxTab>Original BOM</NxTab>
+            </NxTabList>
+            <NxTabPanel>
+              <SummaryTile
+                releaseStatusPercentage={releaseStatusPercentage}
+                componentSummary={componentSummary}
+                vulnerabilitiesSummary={vulnerabilitiesSummary}
+                policyViolationSummary={policyViolationSummary}
+                isSbomPoliciesSupported={isSbomPoliciesSupported}
+              />
+              <BillOfMaterialsComponentsTile />
+            </NxTabPanel>
+            <NxTabPanel>
+              <OriginalBomViewer internalAppId={internalAppId} sbomVersion={currentSbomVersion} />
+            </NxTabPanel>
+          </NxStatefulTabs>
         </LoadWrapper>
       </NxPageMain>
     </>

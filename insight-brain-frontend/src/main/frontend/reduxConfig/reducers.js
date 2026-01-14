@@ -128,6 +128,7 @@ import userActivitySlice from '../configuration/userActivityOverview/userActivit
 import userSessionSlice from '../user/userSessionSlice';
 import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
+import originalBomViewerSlice from '../sbomManager/features/billOfMaterials/originalBom/originalBomViewerSlice';
 
 export default combineReducers({
   stages: stagesReducer,
@@ -254,4 +255,5 @@ export default combineReducers({
   userSession: userSessionSlice,
   mainHeader: mainHeaderSlice,
   appError: appErrorSlice,
+  originalBomViewer: originalBomViewerSlice,
 });

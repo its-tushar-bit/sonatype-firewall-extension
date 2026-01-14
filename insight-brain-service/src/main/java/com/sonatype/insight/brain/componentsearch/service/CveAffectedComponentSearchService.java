@@ -21,6 +21,8 @@ import javax.inject.Singleton;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
+import com.google.common.collect.Tables;
+import org.apache.commons.lang3.tuple.Pair;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
 import com.sonatype.clm.dto.model.policy.ConstraintFact;
@@ -32,7 +34,7 @@ import com.sonatype.insight.brain.componentsearch.model.ComponentMatchSortField;
 import com.sonatype.insight.brain.dataaccess.ApplicationComponentDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyEvaluationDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;
-import com.sonatype.insight.brain.hds.AffectedComponentDTO;
+import com.sonatype.insight.brain.hds.AffectedCoordinates;
 import com.sonatype.insight.brain.hds.CveAffectedComponentsService;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.ApplicationComponent;
@@ -42,7 +44,6 @@ import com.sonatype.insight.brain.model.policy.StageType;
 import com.sonatype.insight.brain.organization.ApplicationService;
 import com.sonatype.insight.brain.policy.StageTypeService;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -129,12 +130,13 @@ public class CveAffectedComponentSearchService
   }
 
   public Stream<ApplicationComponentMatchDTO> searchCveAffectedComponentsStreaming(final Set<String> cveIds) {
-    Map<String, Set<AffectedComponentDTO>> cveToComponentsMap = getAffectedComponentsMap(cveIds);
-    if (cveToComponentsMap.isEmpty()) {
+    Map<String, Set<AffectedCoordinates>> cveToCoordinatesMap =
+        cveAffectedComponentsService.fetchAffectedComponentsForMultipleCves(cveIds);
+    if (cveToCoordinatesMap.isEmpty()) {
       return Stream.empty();
     }
 
-    Set<AffectedComponentDTO> allAffectedComponents = cveToComponentsMap.values().stream()
+    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values().stream()
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
@@ -157,8 +159,8 @@ public class CveAffectedComponentSearchService
           List<ApplicationComponentMatchDTO> appMatches = processApplication(
               application,
               evaluations,
-              allAffectedComponents,
-              cveToComponentsMap
+              allAffectedCoordinates,
+              cveToCoordinatesMap
           );
 
           return appMatches.stream();
@@ -195,12 +197,13 @@ public class CveAffectedComponentSearchService
   }
 
   private List<ApplicationComponentMatchDTO> findMatches(final Set<String> cveIds) {
-    Map<String, Set<AffectedComponentDTO>> cveToComponentsMap = getAffectedComponentsMap(cveIds);
-    if (cveToComponentsMap.isEmpty()) {
+    Map<String, Set<AffectedCoordinates>> cveToCoordinatesMap =
+        cveAffectedComponentsService.fetchAffectedComponentsForMultipleCves(cveIds);
+    if (cveToCoordinatesMap.isEmpty()) {
       return new ArrayList<>();
     }
 
-    Set<AffectedComponentDTO> allAffectedComponents = cveToComponentsMap.values().stream()
+    Set<AffectedCoordinates> allAffectedCoordinates = cveToCoordinatesMap.values().stream()
         .flatMap(Set::stream)
         .collect(Collectors.toSet());
 
@@ -215,27 +218,10 @@ public class CveAffectedComponentSearchService
         .map(application -> processApplication(
             application,
             latestEvaluationsByAppId.get(application.getId()),
-            allAffectedComponents,
-            cveToComponentsMap))
+            allAffectedCoordinates,
+            cveToCoordinatesMap))
         .flatMap(List::stream)
         .collect(Collectors.toList());
-  }
-
-  private Map<String, Set<AffectedComponentDTO>> getAffectedComponentsMap(final Set<String> cveIds) {
-    Map<String, Set<AffectedComponentDTO>> cveToComponentsMap = new HashMap<>();
-    for (String cveId : cveIds) {
-      List<AffectedComponentDTO> affectedComponents = cveAffectedComponentsService.getAffectedComponents(cveId);
-      if (CollectionUtils.isNotEmpty(affectedComponents)) {
-        cveToComponentsMap.put(cveId, Set.copyOf(affectedComponents));
-        log.debug("CVE {}: Found {} affected components from HDS", cveId, affectedComponents.size());
-        if (log.isTraceEnabled()) {
-          affectedComponents.forEach(dto ->
-              log.trace("  Affected: format={}, namespace={}, name={}, version={}",
-                  dto.format(), dto.namespace(), dto.name(), dto.version()));
-        }
-      }
-    }
-    return cveToComponentsMap;
   }
 
   private Map<String, List<PolicyEvaluation>> getLatestEvaluations(final List<Application> applications) {
@@ -261,8 +247,8 @@ public class CveAffectedComponentSearchService
   private List<ApplicationComponentMatchDTO> processApplication(
       final Application application,
       final List<PolicyEvaluation> evaluations,
-      final Set<AffectedComponentDTO> affectedComponents,
-      final Map<String, Set<AffectedComponentDTO>> cveToComponentsMap)
+      final Set<AffectedCoordinates> affectedCoordinates,
+      final Map<String, Set<AffectedCoordinates>> cveToCoordinatesMap)
   {
     if (evaluations == null || evaluations.isEmpty()) {
       return List.of();
@@ -281,7 +267,7 @@ public class CveAffectedComponentSearchService
           evaluation.getStageTypeId()
       );
 
-      List<ApplicationComponent> matchingComponents = filterMatchingComponents(appComponents, affectedComponents);
+      List<ApplicationComponent> matchingComponents = filterMatchingComponents(appComponents, affectedCoordinates);
 
       if (!matchingComponents.isEmpty()) {
         componentsByStage.put(evaluation.getStageTypeId(), matchingComponents);
@@ -311,11 +297,10 @@ public class CveAffectedComponentSearchService
     policyViolationDAO.loadConstraintFacts(filteredViolations);
 
     List<PolicyViolation> cveFilteredViolations = filteredViolations.stream()
-        .filter(v -> violationContainsAnyCve(v, cveToComponentsMap.keySet()))
+        .filter(v -> violationContainsAnyCve(v, cveToCoordinatesMap.keySet()))
         .toList();
 
-    Map<String, List<PolicyViolation>> violationsByHash = cveFilteredViolations.stream()
-        .collect(Collectors.groupingBy(PolicyViolation::getHash));
+    Table<String, String, List<PolicyViolation>> violationsByHashAndCve = buildViolationTable(cveFilteredViolations);
 
     List<ApplicationComponentMatchDTO> allMatches = new ArrayList<>();
 
@@ -332,20 +317,24 @@ public class CveAffectedComponentSearchService
           continue;
         }
 
-        AffectedComponentDTO affectedComponent = AffectedComponentDTO.fromComponentIdentifier(componentIdentifier);
-        List<PolicyViolation> componentViolations = violationsByHash.getOrDefault(component.getHash(), List.of());
+        AffectedCoordinates componentCoords = AffectedCoordinates.fromComponentIdentifier(componentIdentifier);
 
-        for (Map.Entry<String, Set<AffectedComponentDTO>> entry : cveToComponentsMap.entrySet()) {
+        for (Map.Entry<String, Set<AffectedCoordinates>> entry : cveToCoordinatesMap.entrySet()) {
           String cveId = entry.getKey();
-          Set<AffectedComponentDTO> affectedByThisCve = entry.getValue();
+          Set<AffectedCoordinates> affectedByThisCve = entry.getValue();
 
-          if (affectedByThisCve.contains(affectedComponent)) {
+          if (affectedByThisCve.contains(componentCoords)) {
+            List<PolicyViolation> cveSpecificViolations = violationsByHashAndCve.get(component.getHash(), cveId);
+            if (cveSpecificViolations == null) {
+              cveSpecificViolations = List.of();
+            }
+
             ApplicationComponentMatchDTO match = dtoBuilder.buildMatch(
                 application,
                 evaluation,
                 component,
                 cveId,
-                componentViolations
+                cveSpecificViolations
             );
 
             if (match != null) {
@@ -361,7 +350,7 @@ public class CveAffectedComponentSearchService
 
   private List<ApplicationComponent> filterMatchingComponents(
       final List<ApplicationComponent> components,
-      final Set<AffectedComponentDTO> affectedComponents)
+      final Set<AffectedCoordinates> affectedCoordinates)
   {
     return components.stream()
         .filter(component -> {
@@ -369,9 +358,8 @@ public class CveAffectedComponentSearchService
           if (componentIdentifier == null) {
             return false;
           }
-          AffectedComponentDTO affectedComponent =
-              AffectedComponentDTO.fromComponentIdentifier(componentIdentifier);
-          return affectedComponents.contains(affectedComponent);
+          AffectedCoordinates componentCoords = AffectedCoordinates.fromComponentIdentifier(componentIdentifier);
+          return affectedCoordinates.contains(componentCoords);
         })
         .toList();
   }
@@ -432,5 +420,36 @@ public class CveAffectedComponentSearchService
       }
     }
     return false;
+  }
+
+  /**
+   * @return Table indexed by (componentHash, cveId) containing lists of PolicyViolations
+   */
+  private Table<String, String, List<PolicyViolation>> buildViolationTable(final List<PolicyViolation> violations) {
+    return violations.stream()
+        .flatMap(violation -> getCveIds(violation).stream()
+            .map(cveId -> Pair.of(violation, cveId)))
+        .collect(Tables.toTable(
+            pair -> pair.getLeft().getHash(),
+            Pair::getRight,
+            pair -> List.of(pair.getLeft()),
+            (list1, list2) -> Stream.of(list1, list2).flatMap(List::stream).toList(),
+            HashBasedTable::create
+        ));
+  }
+
+  private Set<String> getCveIds(final PolicyViolation violation) {
+    List<ConstraintFact> constraintFacts = violation.getConstraintFacts();
+    if (constraintFacts == null) {
+      return Set.of();
+    }
+
+    return constraintFacts.stream()
+        .filter(cf -> cf.getConditionFacts() != null)
+        .flatMap(cf -> cf.getConditionFacts().stream())
+        .filter(cf -> cf.getReference() != null)
+        .filter(cf -> TriggerReference.Type.SECURITY_VULNERABILITY_REFID == cf.getReference().getType())
+        .map(cf -> cf.getReference().getValue())
+        .collect(Collectors.toSet());
   }
 }

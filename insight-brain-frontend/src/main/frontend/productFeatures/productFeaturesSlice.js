@@ -36,7 +36,7 @@ const fetchProductFeaturesIfNeededPending = (state) => {
 };
 
 const fetchProductFeaturesIfNeededRejected = (state, { payload }) => {
-  state.loading = true;
+  state.loading = false;
   state.loadError = Messages.getHttpErrorMessage(payload);
 };
 

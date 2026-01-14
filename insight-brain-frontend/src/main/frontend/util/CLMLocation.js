@@ -1827,4 +1827,26 @@ function getUserTelemetryPrefix() {
 export const getUserTelemetryConfig = () => `${getUserTelemetryPrefix()}/config`;
 export const getUserTelemetryJavascript = () => `${getUserTelemetryPrefix()}/javascript`;
 export const getUserTelemetryProxy = () => `${getUserTelemetryPrefix()}/events`;
-export const getReact2ShellReportDownloadUrl = () => uriTemplate`/api/v2/componentSearch/downloadComponentSearchReport`;
+export const getReact2ShellReportDownloadUrl = (cveIds) => {
+  const cveIdParams = cveIds.map((id) => `cveId=${encodeURIComponent(id)}`).join('&');
+  return uriTemplate`/api/v2/componentSearch/downloadComponentSearchReport` + `?${cveIdParams}`;
+};
+
+export const getReact2ShellReportDataUrl = (
+  cveIds,
+  pageNumber = 1,
+  pageSize = 50,
+  sortBy = null,
+  sortOrder = 'asc'
+) => {
+  const cveIdParams = cveIds.map((id) => `cveId=${encodeURIComponent(id)}`).join('&');
+  const otherParams = toURIParams({
+    pageNumber,
+    pageSize,
+    sortBy,
+    sortOrder,
+  });
+  return uriTemplate`/api/v2/componentSearch/cveAffectedComponents` + `?${cveIdParams}&${otherParams}`;
+};
+export const getApplicationReportDeepLinkUrl = (applicationId, scanId) =>
+  uriTemplate`/ui/links/application/${applicationId}/report/${scanId}`;

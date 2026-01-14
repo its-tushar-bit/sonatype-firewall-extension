@@ -103,7 +103,9 @@ import enterpriseReportingDashboardSlice from 'MainRoot/enterpriseReporting/dash
 import enterpriseReportingLandingPageSlice from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import enterpriseReportingSupportInfoSlice from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSlice';
 import enterpriseReportingFilterSlice from 'MainRoot/enterpriseReporting/filter/enterpriseReportingFilterSlice';
+import operationalReportingLandingPageSlice from 'MainRoot/operationalReporting/operationalReportingLandingPageSlice';
 import sastReportSlice from 'MainRoot/sastScan/sastScanSlice';
+import react2ShellSlice from 'MainRoot/report/react2shell/react2ShellSlice';
 import billOfMaterialsComponentsTileSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsComponentsTile/billOfMaterialsComponentsTileSlice';
 import billsOfMaterialsPageSlice from 'MainRoot/sbomManager/features/billOfMaterials/billOfMaterialsSlice';
 import sbomComponenDetailsSlice from 'MainRoot/sbomManager/features/componentDetails/componentDetailsSlice';
@@ -230,7 +232,9 @@ export default combineReducers({
   enterpriseReportingLandingPage: enterpriseReportingLandingPageSlice,
   enterpriseReportingSupportInfo: enterpriseReportingSupportInfoSlice,
   enterpriseReportingFilter: enterpriseReportingFilterSlice,
+  operationalReportingLandingPage: operationalReportingLandingPageSlice,
   sast: sastReportSlice,
+  react2Shell: react2ShellSlice,
   billOfMaterialsComponentsTile: billOfMaterialsComponentsTileSlice,
   billOfMaterialsPage: billsOfMaterialsPageSlice,
   sbomExport: sbomExportSlice,

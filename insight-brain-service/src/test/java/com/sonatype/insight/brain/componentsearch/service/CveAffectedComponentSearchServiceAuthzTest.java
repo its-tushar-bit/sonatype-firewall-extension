@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.componentsearch.dto.ApplicationComponentMatchD
 import com.sonatype.insight.brain.componentsearch.dto.ComponentSearchPageResultDTO;
 import com.sonatype.insight.brain.componentsearch.model.ComponentMatchSortField;
 import com.sonatype.insight.brain.hds.AffectedComponentDTO;
+import com.sonatype.insight.brain.hds.AffectedComponentList;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
@@ -118,11 +119,11 @@ public class CveAffectedComponentSearchServiceAuthzTest
 
   private void setupHdsMocks() {
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0"),
-        new AffectedComponentDTO("maven", "com.example", "another-lib", "2.0.0")
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
+        new AffectedComponentDTO("maven", "com.example", "another-lib", "2.0.0", null)
     );
-    hdsMockServer.respondWith(affectedComponents)
-        .atUri("/rest/vulnerability/affected/" + CVE_ID);
+    hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
 
     String vulnDataJson = """
         {
@@ -326,11 +327,11 @@ public class CveAffectedComponentSearchServiceAuthzTest
 
     // Update HDS mock to include this component as affected
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0"),
-        new AffectedComponentDTO("maven", "com.example", "non-violating-lib", "1.5.0")
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
+        new AffectedComponentDTO("maven", "com.example", "non-violating-lib", "1.5.0", null)
     );
-    hdsMockServer.respondWith(affectedComponents)
-        .atUri("/rest/vulnerability/affected/" + CVE_ID);
+    hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
 
     List<ApplicationComponentMatchDTO> results = cveAffectedComponentSearchService
         .searchCveAffectedComponentsStreaming(CVE_IDS)
@@ -423,11 +424,11 @@ public class CveAffectedComponentSearchServiceAuthzTest
 
     // Update HDS mock to include this component as affected
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0"),
-        new AffectedComponentDTO("maven", "com.example", "violating-lib", "2.0.0")
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null),
+        new AffectedComponentDTO("maven", "com.example", "violating-lib", "2.0.0", null)
     );
-    hdsMockServer.respondWith(affectedComponents)
-        .atUri("/rest/vulnerability/affected/" + CVE_ID);
+    hdsMockServer.respondWith(new AffectedComponentList(affectedComponents, null, null))
+        .atUri("/rest/vulnerability/affected?refId=" + CVE_ID).withoutLicense();
 
     List<ApplicationComponentMatchDTO> results = cveAffectedComponentSearchService
         .searchCveAffectedComponentsStreaming(CVE_IDS)

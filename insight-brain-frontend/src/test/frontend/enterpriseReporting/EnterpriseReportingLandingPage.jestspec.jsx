@@ -53,7 +53,7 @@ describe('EnterpriseReportingLandingPage', () => {
     renderPage();
 
     const loadingSpinners = screen.getAllByText('Loading…');
-    expect(loadingSpinners.length).toBe(3); //1 loading spinner per dashboard category + telemetryInfo
+    expect(loadingSpinners.length).toBe(4); //1 loading spinner per dashboard category (Rapid Response Reports, Enterprise Dashboards, Data Insights) + telemetryInfo
     expect(screen.getByRole('heading', { name: 'Enterprise Dashboards' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Data Insights' })).toBeInTheDocument();
     expect(await screen.findByRole('heading', { name: 'Contact Us' })).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe('EnterpriseReportingLandingPage', () => {
         });
         expect(screen.getByRole('button', { name: dashboard.accessButtonText })).toBeInTheDocument();
         if (dashboard.spotlight) {
-          expect(screen.queryByText('NEW')).toBeInTheDocument();
+          expect(screen.getAllByText('NEW').length).toBeGreaterThan(0);
         }
       }
     });
@@ -140,7 +140,7 @@ describe('EnterpriseReportingLandingPage', () => {
       expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
     const errorMessages = screen.getAllByText('An error occurred loading data. Unauthorized');
-    expect(errorMessages.length).toBe(2); //error message for each dashboard category
+    expect(errorMessages.length).toBe(3); //error message for each dashboard category (Rapid Response Reports, Enterprise Dashboards, Data Insights)
   });
 
   it('shows error when there license does not have integrated-enterprise-reporting', async () => {
@@ -154,7 +154,7 @@ describe('EnterpriseReportingLandingPage', () => {
     const errorMessages = screen.getAllByText(
       'An error occurred loading data. Enterprise Reporting feature not supported'
     );
-    expect(errorMessages.length).toBe(2); //error message for each dashboard category
+    expect(errorMessages.length).toBe(3); //error message for each dashboard category (Rapid Response Reports, Enterprise Dashboards, Data Insights)
   });
 
   it('resets dashboard state on loading', () => {
@@ -226,7 +226,7 @@ describe('EnterpriseReportingLandingPage', () => {
       axiosMock.onGet(getTelemetryStatusUrl()).reply(400, 'Bad Request');
       renderPage();
 
-      expect(screen.getAllByText('Loading…').length).toBe(3);
+      expect(screen.getAllByText('Loading…').length).toBe(4);
       await waitFor(() => {
         expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
         expect(screen.queryByRole('status')).not.toBeInTheDocument();

@@ -5,22 +5,46 @@
  */
 
 import React from 'react';
-import { NxButton, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
+import PropTypes from 'prop-types';
+import { NxFontAwesomeIcon, NxPageTitle, NxH1 } from '@sonatype/react-shared-components';
 import { faDownload } from '@fortawesome/pro-solid-svg-icons';
 import { getReact2ShellReportDownloadUrl } from 'MainRoot/util/CLMLocation';
+import { sendGainsightCustomEvent } from 'MainRoot/util/gainsightUtils';
 
-export default function React2ShellHeader() {
-  const downloadUrl = getReact2ShellReportDownloadUrl();
+const REACT2SHELL_CSV_DOWNLOADED = 'react2shell_csv_downloaded';
+
+export default function React2ShellHeader({ cveIds }) {
+  const downloadUrl = getReact2ShellReportDownloadUrl(cveIds);
+
+  const handleDownloadClick = () => {
+    sendGainsightCustomEvent(REACT2SHELL_CSV_DOWNLOADED);
+  };
+
+  const getCveDisplayText = () => {
+    return `Affected Components for ${cveIds.join(', ')}`;
+  };
 
   return (
-    <div className="nx-page-title">
-      <h1 className="nx-h1">React2Shell Impact Report</h1>
+    <NxPageTitle>
+      <NxPageTitle.Headings>
+        <NxH1>React2Shell Impact Report</NxH1>
+      </NxPageTitle.Headings>
+      {getCveDisplayText() && <NxPageTitle.Description>{getCveDisplayText()}</NxPageTitle.Description>}
       <div className="nx-btn-bar">
-        <a href={downloadUrl} download="react2shell-report.csv" className="nx-btn nx-btn--tertiary">
+        <a
+          href={downloadUrl}
+          download="react2shell-report.csv"
+          className="nx-btn nx-btn--tertiary"
+          onClick={handleDownloadClick}
+        >
           <NxFontAwesomeIcon icon={faDownload} />
           <span>Download CSV</span>
         </a>
       </div>
-    </div>
+    </NxPageTitle>
   );
 }
+
+React2ShellHeader.propTypes = {
+  cveIds: PropTypes.arrayOf(PropTypes.string),
+};

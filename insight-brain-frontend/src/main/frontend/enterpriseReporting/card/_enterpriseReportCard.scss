@@ -58,6 +58,12 @@
         background-color: var(--nx-swatch-teal-40);
       }
     }
+    &.warning {
+      background-color: var(--nx-swatch-orange-40);
+      @include nx-dark-mode-helpers.dark-mode {
+        background-color: var(--nx-swatch-orange-50);
+      }
+    }
     .nx-icon.custom-positioning {
       margin-top: -2px;
     }

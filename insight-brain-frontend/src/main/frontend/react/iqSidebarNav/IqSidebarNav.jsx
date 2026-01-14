@@ -56,6 +56,7 @@ function IqSidebarNav(props) {
 
   const apiHref = uiRouterState.href('api');
   const enterpriseReportingHref = uiRouterState.href('enterpriseReporting');
+  const operationalReportingHref = uiRouterState.href('operationalReporting');
   const dashboardHref = uiRouterState.href('dashboard.overview.violations');
   const orgsPoliciesHref = uiRouterState.href('management.view');
   const reportsHref = uiRouterState.href('violations');
@@ -181,6 +182,16 @@ function IqSidebarNav(props) {
                 icon={faChartPie}
                 text="Enterprise Reporting"
                 href={enterpriseReportingHref}
+              />
+            )}
+            {isLicensed && !isIntegratedEnterpriseReportingSupported && (
+              <NxGlobalSidebar2NavigationLink
+                isSelected={isSelected('operationalReporting')}
+                id="operational-reporting-button"
+                className="iq-operational-reporting-nav-link"
+                icon={faChartArea}
+                text="Operational Reporting"
+                href={operationalReportingHref}
               />
             )}
             {isApiPageEnabled && (

@@ -35,6 +35,7 @@ import baseUrlConfigurationModule from './configuration/baseUrl/module';
 import baseUrlNotSetNoticeModule from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/module';
 import sourceControlRateLimitsModule from 'MainRoot/OrgsAndPolicies/sourceControlRateLimits/module';
 import enterpriseReportingModule from 'MainRoot/enterpriseReporting/module';
+import operationalReportingModule from 'MainRoot/operationalReporting/module';
 import sastScanModule from 'MainRoot/sastScan/module';
 import prioritiesPageModule from 'MainRoot/development/prioritiesPage/priorities.page.module';
 import sbomManagerModule from 'MainRoot/sbomManager/sbom.manager.module';
@@ -71,6 +72,7 @@ export default angular
     baseUrlNotSetNoticeModule.name,
     sourceControlRateLimitsModule.name,
     enterpriseReportingModule.name,
+    operationalReportingModule.name,
     sastScanModule.name,
     sbomManagerModule.name,
     prioritiesPageModule.name,

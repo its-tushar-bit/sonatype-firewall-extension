@@ -47,6 +47,7 @@ import com.sonatype.insight.json.store.JsonUtils;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import io.dropwizard.lifecycle.Managed;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -281,6 +282,39 @@ public class HdsClient
     return internalGet(retry, clazz, buildUri(null, path, queryParams, uriParams), clientUserAgent);
   }
 
+  public <T> T getWithMultimap(
+      Class<T> clazz, String path, Multimap<String, String> queryParams, String... uriParams)
+  {
+    return getWithMultimap(retryCreator.apply(path), clazz, path, queryParams, uriParams);
+  }
+
+  public <T> T getWithMultimap(
+      Retry retry, Class<T> clazz, String path, Multimap<String, String> queryParams, String... uriParams)
+  {
+    return internalGet(retry, clazz, buildUriWithMultimap(null, path, queryParams, uriParams), null);
+  }
+
+  public <T> T getWithMultimap(
+      Class<T> clazz,
+      String path,
+      String clientUserAgent,
+      Multimap<String, String> queryParams,
+      String... uriParams)
+  {
+    return getWithMultimap(retryCreator.apply(path), clazz, path, clientUserAgent, queryParams, uriParams);
+  }
+
+  public <T> T getWithMultimap(
+      Retry retry,
+      Class<T> clazz,
+      String path,
+      String clientUserAgent,
+      Multimap<String, String> queryParams,
+      String... uriParams)
+  {
+    return internalGet(retry, clazz, buildUriWithMultimap(null, path, queryParams, uriParams), clientUserAgent);
+  }
+
   public <T> T get(Class<T> clazz, String url) {
     return get(retryCreator.apply(url), clazz, url);
   }
@@ -356,6 +390,57 @@ public class HdsClient
       String... uriParams) throws IOException
   {
     String url = buildUri(request, path, queryParams, uriParams);
+    HttpUriRequest cloudReq = createRequest(request, url, analytics);
+    HttpResponse response = execute(retry, cloudReq);
+    RelayResponse<T> relayResponse = new RelayResponse<>(fromHttpResponse(response, clazz));
+    if (response.getEntity() != null && response.getEntity().getContentType() != null) {
+      relayResponse.contentType = response.getEntity().getContentType().getValue();
+    }
+    return relayResponse;
+  }
+
+  public <T> RelayResponse<T> relayWithMultimap(
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
+    return relayWithMultimap(retryCreator.apply(path), request, clazz, path, queryParams, uriParams);
+  }
+
+  public <T> RelayResponse<T> relayWithMultimap(
+      Retry retry,
+      HttpServletRequest request,
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
+    return relayWithMultimap(retry, request, null, clazz, path, queryParams, uriParams);
+  }
+
+  public <T> RelayResponse<T> relayWithMultimap(
+      HttpServletRequest request,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
+    return relayWithMultimap(retryCreator.apply(path), request, analytics, clazz, path, queryParams, uriParams);
+  }
+
+  public <T> RelayResponse<T> relayWithMultimap(
+      Retry retry,
+      HttpServletRequest request,
+      HdsClientAnalytics analytics,
+      Class<T> clazz,
+      String path,
+      Multimap<String, String> queryParams,
+      String... uriParams) throws IOException
+  {
+    String url = buildUriWithMultimap(request, path, queryParams, uriParams);
     HttpUriRequest cloudReq = createRequest(request, url, analytics);
     HttpResponse response = execute(retry, cloudReq);
     RelayResponse<T> relayResponse = new RelayResponse<>(fromHttpResponse(response, clazz));
@@ -863,6 +948,31 @@ public class HdsClient
         // Jersey 1.18+ sees the "{" and "}" (e.g. a JSON object) as defining a template parameter, to avoid that we
         // encode the curly braces
 
+        String paramValue = queryParam.getValue();
+        if (paramValue != null) {
+          uriBuilder.queryParam(queryParam.getKey(), paramValue.replace("{", "%7B").replace("}", "%7D"));
+        }
+      }
+    }
+
+    return uriBuilder.build((Object[]) uriParams).toString();
+  }
+
+  private String buildUriWithMultimap(String path, Multimap<String, String> queryParams, String... uriParams) {
+    return buildUriWithMultimap(null, path, queryParams, uriParams);
+  }
+
+  private String buildUriWithMultimap(
+      HttpServletRequest base, String path, Multimap<String, String> queryParams, String... uriParams)
+  {
+    UriBuilder uriBuilder = UriBuilder.fromUri(config.getServerUrl());
+    uriBuilder.path(path);
+    if (base != null && queryParams == null) {
+      uriBuilder.replaceQuery(base.getQueryString());
+    }
+
+    if (queryParams != null) {
+      for (Entry<String, String> queryParam : queryParams.entries()) {
         String paramValue = queryParam.getValue();
         if (paramValue != null) {
           uriBuilder.queryParam(queryParam.getKey(), paramValue.replace("{", "%7B").replace("}", "%7D"));

@@ -1166,4 +1166,126 @@ public class HdsClientTest
           new String[]{});
     }).withMessage("The product license is invalid.");
   }
+
+  @Test
+  public void testGetWithMultimap_ClientUserAgentOnRequests() {
+    String testPath = "/rest/test";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+    String clientUserAgent = "testClientUserAgent";
+    com.google.common.collect.Multimap<String, String> queryParams = com.google.common.collect.HashMultimap.create();
+    queryParams.put("refId", "CVE-2025-1");
+    queryParams.put("refId", "CVE-2025-2");
+
+    client.getWithMultimap(InputStream.class, testPath, clientUserAgent, queryParams, new String[]{});
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(clientUserAgent);
+  }
+
+  @Test
+  public void testGetWithMultimap_EncodeQueryParameters() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        response.setStatus(HttpStatus.OK_200);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println(request.getQueryString());
+        baseRequest.setHandled(true);
+      }
+    };
+
+    com.google.common.collect.Multimap<String, String> queryParams = com.google.common.collect.HashMultimap.create();
+    queryParams.put("refId", "CVE-2025-55182");
+    queryParams.put("refId", "CVE-2025-55183");
+    queryParams.put("filter", "{ }+&;/?:@=<>#%|\\^~[]`");
+
+    String result = client.getWithMultimap(String.class, "/rest/vulnerability/affected", queryParams);
+
+    assertThat(result).contains("refId=CVE-2025-55182");
+    assertThat(result).contains("refId=CVE-2025-55183");
+    assertThat(result).contains("filter=%7B+%7D%2B%26%3B%2F%3F%3A%40%3D%3C%3E%23%25%7C%5C%5E~%5B%5D%60");
+  }
+
+  @Test
+  public void testGetWithMultimap_MultipleValuesForSameKey() throws Exception {
+    final String[] queryString = {""};
+
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+        queryString[0] = request.getQueryString();
+        baseRequest.setHandled(true);
+      }
+    };
+
+    com.google.common.collect.Multimap<String, String> queryParams = com.google.common.collect.HashMultimap.create();
+    queryParams.put("refId", "CVE-2025-1");
+    queryParams.put("refId", "CVE-2025-2");
+    queryParams.put("refId", "CVE-2025-3");
+
+    client.getWithMultimap(InputStream.class, "/rest/test", queryParams);
+
+    assertThat(queryString[0]).contains("refId=CVE-2025-1");
+    assertThat(queryString[0]).contains("refId=CVE-2025-2");
+    assertThat(queryString[0]).contains("refId=CVE-2025-3");
+  }
+
+  @Test
+  public void testRelayWithMultimap_ClientUserAgentOnRequests() throws Exception {
+    String testPath = "/rest/test";
+    String testClientUserAgent = "client_user_agent";
+
+    Map<String, String> headers = setHttpHeaderCaptorRequestHandler();
+
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeaderNames())
+        .thenReturn(Collections.enumeration(Collections.singletonList(HttpHeaders.USER_AGENT)));
+    when(request.getHeader(eq(HttpHeaders.USER_AGENT))).thenReturn(testClientUserAgent);
+    when(request.getMethod()).thenReturn("GET");
+
+    com.google.common.collect.Multimap<String, String> queryParams = com.google.common.collect.HashMultimap.create();
+    queryParams.put("refId", "CVE-2025-1");
+    queryParams.put("refId", "CVE-2025-2");
+
+    client.relayWithMultimap(request, InputStream.class, testPath, queryParams, new String[]{});
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+
+    client.relayWithMultimap(request, null, InputStream.class, testPath, queryParams, new String[]{});
+    assertThat(headers.get(HdsClient.CLM_CLIENT_USER_AGENT_HEADER)).isEqualTo(testClientUserAgent);
+  }
+
+  @Test
+  public void testRelayWithMultimap_EncodeQueryParameters() throws Exception {
+    handler = new AbstractHandler()
+    {
+      @Override
+      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+          throws IOException
+      {
+        response.setStatus(HttpStatus.OK_200);
+        response.setContentType("text/plain;charset=UTF-8");
+        response.getWriter().println(request.getQueryString());
+        baseRequest.setHandled(true);
+      }
+    };
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getMethod()).thenReturn("GET");
+    when(httpServletRequest.getHeaderNames()).thenReturn(Collections.enumeration(Collections.emptyList()));
+
+    com.google.common.collect.Multimap<String, String> queryParams = com.google.common.collect.HashMultimap.create();
+    queryParams.put("refId", "CVE-2025-55182");
+    queryParams.put("refId", "CVE-2025-55183");
+    queryParams.put("name", "{\"format\":\"a-name\",\"version\":\"1.8.14\"}");
+
+    String requestUri = client.relayWithMultimap(httpServletRequest, String.class, "/rest/ci/componentDetails",
+        queryParams).content;
+
+    assertThat("&" + requestUri).contains("refId=CVE-2025-55182", "refId=CVE-2025-55183");
+    assertThat("&" + requestUri).contains("name=%7B%22format%22%3A%22a-name%22%2C%22version%22%3A%221.8.14%22%7D");
+  }
 }

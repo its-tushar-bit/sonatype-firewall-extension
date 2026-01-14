@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import {
   NxFontAwesomeIcon,
   NxH1,
@@ -16,7 +16,6 @@ import {
   NxTooltip,
   NxCard,
   NxStatefulInfoAlert,
-  NxWarningAlert,
 } from '@sonatype/react-shared-components';
 import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
 import { faCalendar } from '@fortawesome/free-regular-svg-icons';
@@ -25,9 +24,9 @@ import { faLightbulbOn, faQuestionCircle } from '@fortawesome/pro-regular-svg-ic
 import classnames from 'classnames';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
 import EnterpriseReportContactCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportContactCard';
+import React2ShellReportCard from 'MainRoot/enterpriseReporting/card/React2ShellReportCard';
 import EnterpriseReportingSupportInfo from 'MainRoot/enterpriseReporting/supportInfo/EnterpiseReportingSupportInfo';
 import { selectEnterpriseReportingSupportInfo } from 'MainRoot/enterpriseReporting/supportInfo/enterpriseReportingSupportInfoSelectors';
 import {
@@ -44,7 +43,6 @@ import {
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
-  const routerState = useRouterState();
   const { iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
   const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
   const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
@@ -55,16 +53,6 @@ export default function EnterpriseReportingLandingPage() {
   const isLoading = loading || loadingFeatures;
   const licenseError = useSelector(selectEnterpriseReportingLicenseError);
   const error = licenseError || loadError;
-
-  // React2Shell banner dismissal state
-  const [showReact2ShellBanner, setShowReact2ShellBanner] = useState(() => {
-    return localStorage.getItem('react2shell-banner-dismissed') !== 'true';
-  });
-
-  const handleDismissReact2ShellBanner = () => {
-    localStorage.setItem('react2shell-banner-dismissed', 'true');
-    setShowReact2ShellBanner(false);
-  };
 
   const load = () => {
     dispatch(dashboardActions.reset());
@@ -81,9 +69,9 @@ export default function EnterpriseReportingLandingPage() {
   const dataInsightsTooltipText = `Data Insights reveal specific/singular open-source trends and test data like EOL, AI/ML use, scoring
     and tech diversity.`;
 
-  const statusIndicatorText = telemetryStatus.advancedReportingEnabled ? 'On' : 'Off';
+  const statusIndicatorText = telemetryStatus?.advancedReportingEnabled ? 'On' : 'Off';
   const statusIndicatorClassNames = classnames('nx-status-indicator', {
-    'nx-status-indicator--positive': telemetryStatus.advancedReportingEnabled,
+    'nx-status-indicator--positive': telemetryStatus?.advancedReportingEnabled,
   });
 
   const boldFeatureText = (feature) =>
@@ -134,16 +122,20 @@ export default function EnterpriseReportingLandingPage() {
           </NxP>
         </NxPageTitle.Description>
       </NxPageTitle>
-      {showReact2ShellBanner && (
-        <NxWarningAlert onClose={handleDismissReact2ShellBanner} className="iq-react2shell-banner">
-          <strong>React2Shell:</strong> A severe flaw in React Server Components could allow attackers to run arbitrary
-          code. Check your applications now to understand your exposure and remediate quickly.{' '}
-          <NxTextLink href={routerState.href('react2ShellReport')}>React2Shell Impact Report</NxTextLink>
-        </NxWarningAlert>
-      )}
       <NxStatefulInfoAlert>
         Dashboards and Insights may appear incomplete and/or nonfunctional if there is insufficient data.
       </NxStatefulInfoAlert>
+      <NxH2>
+        <span className="iq-enterprise-reporting__dashboard-grouping__title">Rapid Response Reports</span>
+        <NxTooltip title="Rapid Response Reports provide quick insights into critical security vulnerabilities affecting your organization.">
+          <NxFontAwesomeIcon icon={faInfoCircle} className="iq-enterprise-reporting__dashboard-grouping__icon" />
+        </NxTooltip>
+      </NxH2>
+      <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
+        <NxCard.Container className="iq-enterprise-reporting-card__container">
+          <React2ShellReportCard />
+        </NxCard.Container>
+      </NxLoadWrapper>
       <NxH2>
         <span className="iq-enterprise-reporting__dashboard-grouping__title">Enterprise Dashboards</span>
         <NxTooltip title={enterpriseTooltipText}>

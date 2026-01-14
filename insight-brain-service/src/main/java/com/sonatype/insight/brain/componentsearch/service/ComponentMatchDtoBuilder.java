@@ -47,7 +47,7 @@ public class ComponentMatchDtoBuilder
   {
     String componentHash = component.getHash();
     boolean hasViolation = !componentViolations.isEmpty();
-    boolean isWaived = componentViolations.stream().allMatch(PolicyViolation::isWaived);
+    boolean isWaived = hasViolation && componentViolations.stream().allMatch(PolicyViolation::isWaived);
     Date evaluationDate = evaluation.getTime();
 
     ComponentIdentifier componentIdentifier = component.getComponentIdentifier();

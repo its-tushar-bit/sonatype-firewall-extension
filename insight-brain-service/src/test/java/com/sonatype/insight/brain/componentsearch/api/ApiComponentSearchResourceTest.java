@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.componentsearch.dto.ComponentSearchPageResultDTO;
 import com.sonatype.insight.brain.hds.AffectedComponentDTO;
+import com.sonatype.insight.brain.hds.AffectedComponentList;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.policy.stages.StageTypes;
@@ -168,11 +169,13 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
     );
 
     // HDS returns empty list - no components affected by this CVE
-    hdsRespondWith(List.of())
-        .atUri("/rest/vulnerability/affected/CVE-2025-99999");
+    hdsRespondWith(new AffectedComponentList(List.of(), null, null))
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-99999")
+        .withoutLicense();
 
     hdsRespondWith("{\"vulnerabilities\":{}}")
-        .atUri("/rest/vulnerability/details/json");
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     HttpResponse response = restRequest()
         .path("/downloadComponentSearchReport")
@@ -267,10 +270,12 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
 
   private void setupHdsMocksForStandardSearch() {
     List<AffectedComponentDTO> affectedComponents = List.of(
-        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0")
+        new AffectedComponentDTO("maven", "com.example", "vulnerable-lib", "1.0.0", null)
     );
-    hdsRespondWith(affectedComponents)
-        .atUri("/rest/vulnerability/affected/CVE-2025-55182");
+    AffectedComponentList response = new AffectedComponentList(affectedComponents, null, null);
+    hdsRespondWith(response)
+        .atUri("/rest/vulnerability/affected?refId=CVE-2025-55182")
+        .withoutLicense();
 
     String vulnDataJson = """
         {
@@ -284,7 +289,8 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
         }
         """;
     hdsRespondWith(vulnDataJson)
-        .atUri("/rest/vulnerability/details/json");
+        .atUri("/rest/vulnerability/details/json")
+        .withoutLicense();
 
     ComponentNearestFixedVersions fixedVersions = new ComponentNearestFixedVersions();
     fixedVersions.setPackageUrl("pkg:maven/com.example/vulnerable-lib@1.0.0?type=jar");
@@ -295,6 +301,7 @@ public class ApiComponentSearchResourceTest extends AbstractResourceTest
     fixedVersions.setSecurityIssues(new HashSet<>(List.of(range)));
 
     hdsRespondWith(List.of(fixedVersions))
-        .atUri("/api/v2/component/nearestFixedVersions");
+        .atUri("/api/v2/component/nearestFixedVersions")
+        .withoutLicense();
   }
 }

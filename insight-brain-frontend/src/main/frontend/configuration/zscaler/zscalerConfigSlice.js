@@ -54,7 +54,7 @@ export const initialState = {
   loadError: null,
   saveError: null,
   deleteError: null,
-  testConfigError: false,
+  testConfigError: null,
   testConfigSuccess: false,
   showDeleteModal: false,
   mustReenterPassword: false,
@@ -270,16 +270,16 @@ function testConfigFulfilled(state) {
   return {
     ...state,
     submitMaskState: true,
-    testConfigError: false,
+    testConfigError: null,
     testConfigSuccess: true,
   };
 }
 
-function testConfigFailed(state) {
+function testConfigFailed(state, { payload }) {
   return {
     ...state,
     submitMaskState: null,
-    testConfigError: true,
+    testConfigError: Messages.getHttpErrorMessage(payload),
     testConfigSuccess: false,
   };
 }

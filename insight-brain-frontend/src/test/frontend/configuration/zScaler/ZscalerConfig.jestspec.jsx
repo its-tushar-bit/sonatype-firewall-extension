@@ -40,7 +40,7 @@ describe('ZscalerConfig', () => {
     loadError: null,
     saveError: null,
     deleteError: null,
-    testConfigError: false,
+    testConfigError: null,
     testConfigSuccess: false,
     showDeleteModal: false,
     mustReenterPassword: false,
@@ -342,10 +342,11 @@ describe('ZscalerConfig', () => {
     expect(alert[1]).toHaveTextContent('Connection to Zscaler successful.');
   });
 
-  it('renders error alert when testConfigError is true', async () => {
+  it('renders error alert when testConfigError has an error message', async () => {
     renderComponent(
       setState({
-        testConfigError: true,
+        testConfigError:
+          'Insufficient ZScaler permissions. The user account must have both CUSTOM_URL_CAT and OVERRIDE_EXISTING_CAT permissions with READ_WRITE access.',
         hasAllRequiredData: true,
         isDirty: true,
         eulaState: {
@@ -360,9 +361,8 @@ describe('ZscalerConfig', () => {
 
     const alert = screen.getByRole('alert');
     expect(alert).toBeInTheDocument();
-    expect(alert).toHaveTextContent(
-      'Unable to establish the connection to Zscaler as the connection is not configured. Test Zscaler ' +
-        'configuration failed. Learn more about the Zscaler integrationRetry'
-    );
+    // Now shows the actual backend error message
+    expect(alert).toHaveTextContent('Test Zscaler configuration failed.');
+    expect(alert).toHaveTextContent('Insufficient ZScaler permissions');
   });
 });

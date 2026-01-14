@@ -9,7 +9,7 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.rules.ExternalResource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.containing;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -25,10 +25,6 @@ public class ZScalerMockServerRule
   private WireMockServer zScalerMockServer;
 
   public static final String AUTHENTICATED_SESSION_PATH = "/api/v1/authenticatedSession";
-
-  public static final String ADMIN_USERS_ME = "/api/v1/adminUsers/me";
-
-  public static final String ADMIN_ROLES = "/api/v1/adminRoles";
 
   public static final String URL_CATEGORIES_PATH = "/api/v1/urlCategories";
 
@@ -80,56 +76,15 @@ public class ZScalerMockServerRule
                 .withBody(responseBody)));
 
     if (statusCode == 200) {
-      mockGetCurrentAdminUser(200, "{\"role\":{\"id\":\"mock-role-id\"}}");
-      mockGetAdminRoleDetails(200, "{\"featurePermissions\":" +
-          "{\"OVERRIDE_EXISTING_CAT\":\"READ_WRITE\",\"CUSTOM_URL_CAT\":\"READ_WRITE\"}}");
+      mockCreateCustomUrlCategory(200,
+          "{\"id\":\"test-category-id\",\"configuredName\":\"sonatype-permission-test-123\"," +
+              "\"urls\":[\"permission-test-1-123.sonatype-validation.invalid\"]}");
+      mockGetCustomUrlCategories(200,
+          "[{\"id\":\"test-category-id\",\"configuredName\":\"sonatype-permission-test-123\"," +
+              "\"urls\":[\"permission-test-1-123.sonatype-validation.invalid\"]}]");
+      mockUpdateCustomUrlCategories(200, "{}");
+      mockDeleteCustomUrlCategory(204, "");
     }
-  }
-
-  public void mockAuthenticationWithRolesAndPermissions(
-      int statusCode, String responseBody,
-      int adminUsersStatusCode, String adminUsersResponseBody,
-      int adminRolesStatusCode, String adminRolesResponseBody)
-  {
-    zScalerMockServer.stubFor(
-        post(urlPathMatching(AUTHENTICATED_SESSION_PATH))
-            .withHeader("Content-Type", equalTo("application/json")) // Match Content-Type header
-            .withRequestBody(matchingJsonPath("$.username", matching(".*"))) // Match any username
-            .withRequestBody(matchingJsonPath("$.password", matching(".*"))) // Match any password
-            .withRequestBody(matchingJsonPath("$.apiKey", matching(".*"))) // Match any apiKey
-            .withRequestBody(matchingJsonPath("$.timestamp", matching(".*"))) // Match any timestamp
-            .willReturn(aResponse()
-                .withStatus(statusCode)
-                .withHeader("Content-Type", "application/json")
-                .withHeader("Set-Cookie", "JSESSIONID=mock-session-id")
-                .withBody(responseBody)));
-
-    if (statusCode == 200) {
-      mockGetCurrentAdminUser(adminUsersStatusCode, adminUsersResponseBody);
-      mockGetAdminRoleDetails(adminRolesStatusCode, adminRolesResponseBody);
-    }
-  }
-
-  public void mockGetCurrentAdminUser(int statusCode, String responseBody) {
-    zScalerMockServer.stubFor(
-        get(urlPathMatching(ADMIN_USERS_ME))
-            .withHeader("Cookie", containing("JSESSIONID=mock-session-id"))
-            .willReturn(aResponse()
-                .withStatus(statusCode)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody))
-    );
-  }
-
-  public void mockGetAdminRoleDetails(int statusCode, String responseBody) {
-    zScalerMockServer.stubFor(
-        get(urlPathMatching(ADMIN_ROLES + "/mock-role-id"))
-            .withHeader("Cookie", containing("JSESSIONID=mock-session-id"))
-            .willReturn(aResponse()
-                .withStatus(statusCode)
-                .withHeader("Content-Type", "application/json")
-                .withBody(responseBody))
-    );
   }
 
   public void mockGetQuota(int statusCode, String responseBody) {
@@ -159,6 +114,14 @@ public class ZScalerMockServerRule
 
   public void mockUpdateCustomUrlCategories(int statusCode, String responseBody) {
     zScalerMockServer.stubFor(put(urlPathMatching(URL_CATEGORIES_PATH + "/.*"))
+        .willReturn(aResponse()
+            .withStatus(statusCode)
+            .withHeader("Content-Type", "application/json")
+            .withBody(responseBody)));
+  }
+
+  public void mockDeleteCustomUrlCategory(int statusCode, String responseBody) {
+    zScalerMockServer.stubFor(delete(urlPathMatching(URL_CATEGORIES_PATH + "/.*"))
         .willReturn(aResponse()
             .withStatus(statusCode)
             .withHeader("Content-Type", "application/json")

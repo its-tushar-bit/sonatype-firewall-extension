@@ -20,7 +20,6 @@ import com.sonatype.insight.brain.service.ZScalerMockServerRule;
 import com.sonatype.insight.brain.zscaler.ApiZScalerConfigurationDTO;
 import com.sonatype.insight.brain.zscaler.ZScalerCategory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.matching.NegativeRegexPattern;
 import com.github.tomakehurst.wiremock.matching.RegexPattern;
@@ -175,12 +174,16 @@ public class ApiZScalerConfigurationResourceTest
     request.setHostname(zScalerMockServer.getBaseUrl());
     request.setApiKey("cajgffdcgkej");
 
-    zScalerMockServer.mockAuthenticationWithRolesAndPermissions(
-        200, "{\"token\":\"mock-token\"}",
-        200, "{\"role\":{\"id\":\"mock-role-id\"}}",
-        200, "{\"featurePermissions\":" +
-            "{\"OVERRIDE_EXISTING_CAT\":\"READ_WRITE\",\"CUSTOM_URL_CAT\":\"READ_WRITE\"}}"
-    );
+    // Mock authentication and functional permission test operations
+    zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
+    // Mock create test category (for permission test)
+    zScalerMockServer.mockCreateCustomUrlCategory(200,
+        "{\"id\":\"test-category-id\",\"configuredName\":\"sonatype-permission-test-123\"," +
+            "\"urls\":[\"permission-test-1-123.sonatype-validation.invalid\"]}");
+    // Mock update test category (for OVERRIDE_EXISTING_CAT permission test)
+    zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
+    // Mock delete test category (cleanup)
+    zScalerMockServer.mockDeleteCustomUrlCategory(204, "");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
     assertResponseStatus(204, response);
@@ -194,18 +197,16 @@ public class ApiZScalerConfigurationResourceTest
     request.setHostname(zScalerMockServer.getBaseUrl());
     request.setApiKey("cajgffdcgkej");
 
-    zScalerMockServer.mockAuthenticationWithRolesAndPermissions(
-        200, "{\"token\":\"mock-token\"}",
-        200, "{\"role\":{\"id\":\"mock-role-id\"}}",
-        200, "{\"featurePermissions\":" +
-            "{\"FTP_CONTROL\":\"READ_WRITE\",\"SSL_POLICY\":\"READ_WRITE\"}}"
-    );
+    zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
+    // Override the create category mock to return 403 (permission denied)
+    zScalerMockServer.mockCreateCustomUrlCategory(403, "{\"error\":\"Forbidden - insufficient permissions\"}");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/testConfig").body(request).post();
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText())
-        .isEqualTo("Insufficient permissions: OVERRIDE_EXISTING_CAT is missing");
+        .contains("Insufficient ZScaler permissions")
+        .contains("CUSTOM_URL_CAT");
   }
 
   @Test
@@ -248,7 +249,9 @@ public class ApiZScalerConfigurationResourceTest
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetQuota(200, "{\"uniqueUrlsProvisioned\":\"1000\", \"remainingUrlsQuota\":\"10\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of(mavenCategory)));
+    // Functional permission test no longer runs during update operations
+    zScalerMockServer.mockGetCustomUrlCategories(200,
+        new ObjectMapper().writeValueAsString(List.of(mavenCategory)));
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
     zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
 
@@ -297,7 +300,6 @@ public class ApiZScalerConfigurationResourceTest
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(500, "{\"error\":\"Internal Server Error\"}");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
@@ -312,8 +314,6 @@ public class ApiZScalerConfigurationResourceTest
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
-    zScalerMockServer.mockUpdateCustomUrlCategories(500, "{\"error\":\"Update failed\"}");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
@@ -328,8 +328,6 @@ public class ApiZScalerConfigurationResourceTest
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
-    zScalerMockServer.mockCreateCustomUrlCategory(500, "{\"error\":\"Creation failed\"}");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
 
@@ -344,8 +342,11 @@ public class ApiZScalerConfigurationResourceTest
         false, false, false);
 
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(200, "[]");
+    // Functional permission test no longer runs during update operations
+    zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of()));
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
+    zScalerMockServer.mockCreateCustomUrlCategory(200,
+        "{\"id\":\"created-category-id\",\"configuredName\":\"sonatype-maven-shadow-download-defense\",\"urls\":[]}");
     zScalerMockServer.mockActivateChanges(500, "{\"error\":\"Activation failed\"}");
 
     HttpResponse response = restRequest().path(ZSCALER_CONFIG_RESOURCE_PATH_V2 + "/update/MAVEN").post();
@@ -368,7 +369,9 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withQueryParam("customOnly", equalTo("true")));
 
-    // Account for update of configured format and delete of MAVEN/NPM/PYPI with real URLs
+    // Account for:
+    // - 4 POSTs from update operation (update configured format and delete of MAVEN/NPM/PYPI with real URLs)
+    // Note: Functional permission test no longer runs during update operations
     zScalerMockServer.getWireMockServer().verify(4, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
     // Account for delete of NUGET format only (uses placeholder)
@@ -414,7 +417,9 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.getWireMockServer().verify(getRequestedFor(urlPathMatching("/api/v1/urlCategories"))
         .withQueryParam("customOnly", equalTo("true")));
 
-    // Account for delete of MAVEN/NPM/PYPI/NUGET formats (use real URLs)
+    // Account for:
+    // - 3 POSTs from delete operation (delete of MAVEN/NPM/PYPI formats with real URLs)
+    // Note: Functional permission test no longer runs during delete operations
     zScalerMockServer.getWireMockServer()
         .verify(3, postRequestedFor(urlPathMatching("/api/v1/urlCategories"))
             .withRequestBody(new NegativeRegexPattern(".*placeholder.*")));
@@ -426,7 +431,7 @@ public class ApiZScalerConfigurationResourceTest
     zScalerMockServer.getWireMockServer().verify(postRequestedFor(urlPathMatching("/api/v1/status/activate")));
   }
 
-  private void setupExpectedCalls() throws JsonProcessingException {
+  private void setupExpectedCalls() {
     String username = "username";
     String password = passwordHandler.encryptPassword("password");
     String apiKey = "cajgffdcgkej";
@@ -434,8 +439,10 @@ public class ApiZScalerConfigurationResourceTest
         false, false, false);
     zScalerMockServer.mockAuthentication(200, "{\"token\":\"mock-token\"}");
     zScalerMockServer.mockGetQuota(200, "{\"uniqueUrlsProvisioned\":\"1000\", \"remainingUrlsQuota\":\"10\"}");
-    zScalerMockServer.mockGetCustomUrlCategories(200, new ObjectMapper().writeValueAsString(List.of()));
+    // Don't override getCustomUrlCategories - let the functional test mock handle it
     zScalerMockServer.mockUpdateCustomUrlCategories(200, "{\"status\":\"success\"}");
+    zScalerMockServer.mockCreateCustomUrlCategory(200,
+        "{\"id\":\"created-category-id\",\"configuredName\":\"sonatype-maven-shadow-download-defense\",\"urls\":[]}");
     zScalerMockServer.mockActivateChanges(200, "{\"status\":\"success\"}");
   }
 

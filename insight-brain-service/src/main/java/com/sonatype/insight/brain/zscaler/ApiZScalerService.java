@@ -54,6 +54,8 @@ public class ApiZScalerService
 
   private ZScalerClient zScalerClient;
 
+  private ZScalerPermissionValidator zScalerPermissionValidator;
+
   private final com.sonatype.insight.brain.service.Configuration configuration;
 
   @Inject
@@ -63,6 +65,7 @@ public class ApiZScalerService
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient,
+      final ZScalerPermissionValidator zScalerPermissionValidator,
       final com.sonatype.insight.brain.service.Configuration configuration)
   {
     this.zScalerConfigurationDAO = zScalerConfigurationDAO;
@@ -70,6 +73,7 @@ public class ApiZScalerService
     this.zScalerMetricsDAO = zScalerMetricsDAO;
     this.passwordHandler = passwordHandler;
     this.zScalerClient = zScalerClient;
+    this.zScalerPermissionValidator = zScalerPermissionValidator;
     this.configuration = configuration;
     this.quotaCache = CacheBuilder.newBuilder()
         .expireAfterWrite(1, TimeUnit.HOURS)
@@ -83,10 +87,12 @@ public class ApiZScalerService
       final ZScalerMetricsDAO zScalerMetricsDAO,
       final PasswordHandler passwordHandler,
       final ZScalerClient zScalerClient,
+      final ZScalerPermissionValidator zScalerPermissionValidator,
       final com.sonatype.insight.brain.service.Configuration configuration,
       final Cache<String, ZScalerQuota> cache)
   {
-    this(zScalerConfigurationDAO, zscalerFormatDAO, zScalerMetricsDAO, passwordHandler, zScalerClient, configuration);
+    this(zScalerConfigurationDAO, zscalerFormatDAO, zScalerMetricsDAO, passwordHandler, zScalerClient,
+        zScalerPermissionValidator, configuration);
     this.quotaCache = cache;
   }
 
@@ -114,6 +120,16 @@ public class ApiZScalerService
     authenticate(configuration.getHostname(), configuration.getUsername(), decryptedPassword,
         configuration.getApikey());
     return configuration.getHostname();
+  }
+
+  public void authenticateAndValidatePermissions(
+      final String hostname,
+      final String username,
+      final String password,
+      final String apiKey)
+  {
+    authenticate(hostname, username, password, apiKey);
+    zScalerPermissionValidator.validatePermissions(hostname);
   }
 
   public void activate() {
@@ -202,22 +218,59 @@ public class ApiZScalerService
           .findFirst()
           .orElse(null);
 
+      ZScalerOperationResult<?> result;
       if (existingCategory != null) {
         String categoryId = existingCategory.getId();
         log.info("Category {} with id {} already exists, updating with {} URLs",
             categoryName, categoryId, urlsForCategory.size());
-        zScalerClient.updateCustomUrlCategories(baseUrl, categoryName, categoryId, urlsForCategory);
+        result = zScalerClient.updateCustomUrlCategories(baseUrl, categoryName, categoryId, urlsForCategory);
       }
       else {
         log.info("Category {} does not exist, creating with {} URLs", categoryName, urlsForCategory.size());
-        zScalerClient.createCustomUrlCategory(baseUrl, categoryName, urlsForCategory);
+        result = zScalerClient.createCustomUrlCategory(baseUrl, categoryName, urlsForCategory);
+      }
+
+      if (!result.isSuccess()) {
+        handleCategoryOperationFailure(result, categoryName, selectedFormat);
       }
     }
 
     // Clean up unused categories (categories with index >= numCategoriesNeeded)
     cleanupUnusedCategories(baseUrl, indexedCategories, numCategoriesNeeded);
-
     updateMetrics(selectedFormat, activeUrls, allowedUrls);
+  }
+
+  private void handleCategoryOperationFailure(
+      final ZScalerOperationResult<?> result,
+      final String categoryName,
+      final ZScalerSupportedFormat format)
+  {
+    String errorMessage = result.getMessage() != null ? result.getMessage() : "Unknown error";
+    String exceptionMessage;
+
+    if (result.isForbidden()) {
+      exceptionMessage = "ZScaler integration is broken due to insufficient permissions. " +
+          "The ZScaler user account must have CUSTOM_URL_CAT and OVERRIDE_EXISTING_CAT permissions " +
+          "with READ_WRITE access. " +
+          "Error: " + errorMessage;
+
+      log.error("Category '{}' for format {}: {}", categoryName, format, exceptionMessage);
+      throw new BadRequestException(exceptionMessage);
+    }
+
+    if (result.isBadRequest() && result.isQuotaError()) {
+      exceptionMessage = "ZScaler quota is full. Cannot update category '" + categoryName + "'. " +
+          "Error: " + errorMessage;
+
+      log.error("Category '{}' for format {}: {}", categoryName, format, exceptionMessage);
+      throw new BadRequestException(exceptionMessage);
+    }
+
+    exceptionMessage = "ZScaler integration failure. Cannot update category '" + categoryName + "'. " +
+        "Status: " + result.getStatusCode() + ", Error: " + errorMessage;
+
+    log.error("Category '{}' for format {}: {}", categoryName, format, exceptionMessage);
+    throw new BadRequestException(exceptionMessage);
   }
 
   private void updateMetrics(

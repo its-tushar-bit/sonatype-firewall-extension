@@ -54,6 +54,9 @@ public class ApiZScalerServiceTest
   @Mock
   private ZScalerClient client;
 
+  @Mock
+  private ZScalerPermissionValidator permissionValidator;
+
   @Rule
   public LogOutput logOutput = new LogOutput(ApiZScalerService.class);
 
@@ -92,8 +95,15 @@ public class ApiZScalerServiceTest
     // Default: return null so the service uses the default value (25000)
     when(configuration.getZScalerMaxUrlsPerCategory()).thenReturn(null);
 
+    ZScalerCategory mockCategory = new ZScalerCategory();
+    mockCategory.setId("mock-category-id");
+    when(client.createCustomUrlCategory(anyString(), anyString(), anyList()))
+        .thenReturn(ZScalerOperationResult.success(200, mockCategory));
+    when(client.updateCustomUrlCategories(anyString(), anyString(), anyString(), anyList()))
+        .thenReturn(ZScalerOperationResult.success(200));
+
     underTest = Mockito.spy(new ApiZScalerService(configurationDAO, zscalerFormatDAO,
-        metricsDAO, passwordHandler, client, configuration, cache));
+        metricsDAO, passwordHandler, client, permissionValidator, configuration, cache));
   }
 
   @Test

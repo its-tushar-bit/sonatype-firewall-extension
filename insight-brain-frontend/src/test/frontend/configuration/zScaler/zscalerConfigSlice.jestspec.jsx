@@ -207,23 +207,34 @@ describe('zscalerConfigSlice', () => {
     it('rejected', () => {
       const state = Object.freeze({
         submitMaskState: false,
-        testConfigError: false,
+        testConfigError: null,
         testConfigSuccess: true,
       });
 
+      const errorPayload = {
+        response: {
+          status: 400,
+          data: {
+            message: 'Insufficient ZScaler permissions',
+          },
+        },
+      };
+
       const newState = reducer(state, {
         type: 'zscalerConfig/testConfig/rejected',
+        payload: errorPayload,
       });
 
       expect(newState.submitMaskState).toBe(null);
-      expect(newState.testConfigError).toBe(true);
+      expect(newState.testConfigError).toBeTruthy();
+      expect(typeof newState.testConfigError).toBe('string');
       expect(newState.testConfigSuccess).toBe(false);
     });
 
     it('fulfilled', () => {
       const state = Object.freeze({
         submitMaskState: false,
-        testConfigError: true,
+        testConfigError: 'Some error message',
         testConfigSuccess: false,
       });
 
@@ -232,7 +243,7 @@ describe('zscalerConfigSlice', () => {
       });
 
       expect(newState.submitMaskState).toBe(true);
-      expect(newState.testConfigError).toEqual(false);
+      expect(newState.testConfigError).toBeNull();
       expect(newState.testConfigSuccess).toEqual(true);
     });
   });

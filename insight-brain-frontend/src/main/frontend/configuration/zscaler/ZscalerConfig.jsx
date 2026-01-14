@@ -41,9 +41,7 @@ const AUTH_ERROR_MESSAGE =
   'It appears you do not have permission to access this page. ' +
   'If you believe this to be incorrect please contact your administrator.';
 
-const TEST_CONFIG_ERROR_MESSAGE =
-  'Unable to establish the connection to Zscaler as the connection is not configured. ' +
-  'Test Zscaler configuration failed.';
+const TEST_CONFIG_ERROR_TITLE = 'Test Zscaler configuration failed.';
 
 const TEST_CONFIG_SUCCESS_MESSAGE = 'Connection to Zscaler successful.';
 
@@ -367,11 +365,7 @@ export default function ZscalerConfig(props) {
             </NxFieldset>
             {testConfigSuccess && <NxSuccessAlert>{TEST_CONFIG_SUCCESS_MESSAGE}</NxSuccessAlert>}
             {testConfigError && (
-              <NxLoadError
-                titleMessage={TEST_CONFIG_ERROR_MESSAGE}
-                error={learnMoreAboutZscalerLink}
-                retryHandler={testConfig}
-              />
+              <NxLoadError titleMessage={TEST_CONFIG_ERROR_TITLE} error={testConfigError} retryHandler={testConfig} />
             )}
           </NxTile.Content>
         </NxStatefulForm>
@@ -422,7 +416,7 @@ ZscalerConfig.propTypes = {
   loadError: LoadError.propTypes.error,
   saveError: LoadError.propTypes.error,
   deleteError: LoadError.propTypes.error,
-  testConfigError: PropTypes.bool.isRequired,
+  testConfigError: LoadError.propTypes.error,
   testConfigSuccess: PropTypes.bool.isRequired,
   serverData: PropTypes.any,
   zscalerConfigLimitsState: PropTypes.shape({

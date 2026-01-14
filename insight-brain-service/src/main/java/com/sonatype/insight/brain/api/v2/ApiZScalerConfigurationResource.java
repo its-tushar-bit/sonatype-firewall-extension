@@ -164,7 +164,7 @@ public class ApiZScalerConfigurationResource
           useParameterTypeSchema = true)
       ApiZScalerConfigurationDTO configurationDTO)
   {
-    zScalerService.authenticate(configurationDTO.getHostname(),
+    zScalerService.authenticateAndValidatePermissions(configurationDTO.getHostname(),
         configurationDTO.getUsername(), configurationDTO.getPassword(), configurationDTO.getApiKey());
   }
 

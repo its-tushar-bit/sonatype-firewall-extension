@@ -288,6 +288,8 @@ public class RepositoryPolicyViolationDAO
         sQuery.append(" AND component.match_state_id = ?" + matchStateFilterParamPosition);
       }
 
+      sQuery.append(addFormatExclusionFilters(detailsFilter.formatExclusionPatterns));
+
       sQuery.append(validateAndAddSortFields(detailsFilter.sortFields));
 
       int offset = (detailsFilter.page - 1) * detailsFilter.pageSize;
@@ -360,7 +362,8 @@ public class RepositoryPolicyViolationDAO
           addSearchFilters(detailsFilter.searchFilters, searchFiltersParamStartPosition) +
           (!detailsFilter.matchStateFilter.isEmpty() ?
               " AND component.match_state_id = ?" + matchStateFilterParamPosition : "") +
-          " GROUP BY repository.repository_manager_id, component.repository_id, component.pathname";
+              addFormatExclusionFilters(detailsFilter.formatExclusionPatterns) +
+              " GROUP BY repository.repository_manager_id, component.repository_id, component.pathname";
 
       // Incremented page size to help UI determine whether to enable / disable NextPage button
       int pageSize = detailsFilter.pageSize + 1;
@@ -558,5 +561,27 @@ public class RepositoryPolicyViolationDAO
       default:
         return "";
     }
+  }
+
+  private String addFormatExclusionFilters(Map<String, List<String>> formatExclusionPatterns) {
+    StringBuilder query = new StringBuilder();
+    for (Entry<String, List<String>> entry : formatExclusionPatterns.entrySet()) {
+      String format = entry.getKey();
+      List<String> patternList = entry.getValue();
+
+      if (CollectionUtils.isEmpty(patternList)) {
+        continue;
+      }
+
+      for (String pattern : patternList) {
+        query.append(addFormatExclusionFilter(format, pattern));
+      }
+    }
+    return query.toString();
+  }
+
+  private String addFormatExclusionFilter(String format, String pattern) {
+    return " AND NOT (repository.format = '" + format +
+        "' AND LOWER(component.pathname) LIKE '" + pattern.toLowerCase() + "')";
   }
 }

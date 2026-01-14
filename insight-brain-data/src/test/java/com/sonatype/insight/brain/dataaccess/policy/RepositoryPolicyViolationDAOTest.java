@@ -14,6 +14,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -255,6 +256,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.searchFilters = Collections.emptyMap();
     repositoryResultsDetailsFilter.matchStateFilter = "";
     repositoryResultsDetailsFilter.aggregate = false;
+    repositoryResultsDetailsFilter.formatExclusionPatterns = Collections.emptyMap();
 
     List<RepositoryResultsDetails> repositoryResultsDetails =
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
@@ -307,6 +309,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.searchFilters = Collections.emptyMap();
     repositoryResultsDetailsFilter.matchStateFilter = "";
     repositoryResultsDetailsFilter.aggregate = true;
+    repositoryResultsDetailsFilter.formatExclusionPatterns = Collections.emptyMap();
 
     List<RepositoryResultsDetails> repositoryResultsDetails =
         dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
@@ -368,6 +371,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.violationStateFilters = new HashSet<>();
     repositoryResultsDetailsFilter.searchFilters = new HashMap<>();
     repositoryResultsDetailsFilter.matchStateFilter = "";
+    repositoryResultsDetailsFilter.formatExclusionPatterns = Collections.emptyMap();
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
@@ -522,6 +526,7 @@ public class RepositoryPolicyViolationDAOTest
     repositoryResultsDetailsFilter.violationStateFilters = new HashSet<>();
     repositoryResultsDetailsFilter.searchFilters = new HashMap<>();
     repositoryResultsDetailsFilter.matchStateFilter = "";
+    repositoryResultsDetailsFilter.formatExclusionPatterns = Collections.emptyMap();
     List<RepositoryResultsDetails> repositoryResultsDetails;
 
     repositoryResultsDetails = dao.getRepositoryResultsDetails(repositoryIds, repositoryResultsDetailsFilter);
@@ -577,5 +582,161 @@ public class RepositoryPolicyViolationDAOTest
             repositoryComponent.getUnquarantineTime() == null) ? repositoryComponent.getQuarantineTime() : null,
         repositoryPolicyViolation.isWaived()
     );
+  }
+
+  @Test
+  public void testGetRepositoryResultsDetails_ExcludesNuGetJsonFiles_H2() {
+    testGetRepositoryResultsDetails_ExcludesNuGetJsonFiles();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetRepositoryResultsDetails_ExcludesNuGetJsonFiles_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetails_ExcludesNuGetJsonFiles();
+  }
+
+  private void testGetRepositoryResultsDetails_ExcludesNuGetJsonFiles() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository nugetRepository = tempEntity.newRepository(repositoryManager, "nuget-repo", "nuget");
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "test-policy", 10);
+
+    // Create NuGet components - one JSON file (should be excluded) and one DLL file (should be included)
+    ComponentIdentifier jsonComponent = ComponentIdentifier.createNugetCoordinates("TestPackage", "1.0.0");
+    ComponentIdentifier dllComponent = ComponentIdentifier.createNugetCoordinates("TestPackage", "1.0.0");
+
+    RepositoryComponent jsonComp = tempEntity.newRepositoryComponent(
+        nugetRepository.getId(), MatchState.EXACT, "testpackage/1.0.0/testpackage.1.0.0.json", "hash1",
+        jsonComponent, false);
+    RepositoryComponent dllComp = tempEntity.newRepositoryComponent(
+        nugetRepository.getId(), MatchState.EXACT, "testpackage/1.0.0/testpackage.dll", "hash2",
+        dllComponent, false);
+
+    // Create policy violations for both components
+    tempEntity.newRepositoryPolicyViolation(
+        nugetRepository.getId(), policy.getThreatLevel(), jsonComp.getPathname(), false,
+        policy.getId(), policy.getName(), jsonComp.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(
+        nugetRepository.getId(), policy.getThreatLevel(), dllComp.getPathname(), false,
+        policy.getId(), policy.getName(), dllComp.getComponentIdentifier());
+
+    // Query for repository results
+    Set<String> repositoryIds = ImmutableSet.of(nugetRepository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 10;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+    filter.formatExclusionPatterns = Map.of("nuget", List.of("%.json"));
+
+    List<RepositoryResultsDetails> results = dao.getRepositoryResultsDetails(repositoryIds, filter);
+
+    // Verify that only the DLL component is returned (JSON should be filtered out)
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).pathname).isEqualTo(dllComp.getPathname());
+    assertThat(results.get(0).pathname).doesNotContain(".json");
+  }
+
+  /**
+   * Integration test to verify NuGet JSON files are excluded from aggregated repository results
+   */
+  @Test
+  public void testGetRepositoryResultsDetailsAggregate_ExcludesNuGetJsonFiles_H2() {
+    testGetRepositoryResultsDetailsAggregate_ExcludesNuGetJsonFiles();
+  }
+
+  @Test
+  @Category(PostgresTestCategory.class)
+  @PostgresTest
+  public void testGetRepositoryResultsDetailsAggregate_ExcludesNuGetJsonFiles_Postgres() {
+    assertThat(dao.isDatabaseEmbedded()).isFalse();
+    testGetRepositoryResultsDetailsAggregate_ExcludesNuGetJsonFiles();
+  }
+
+  private void testGetRepositoryResultsDetailsAggregate_ExcludesNuGetJsonFiles() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository nugetRepository = tempEntity.newRepository(repositoryManager, "nuget-repo", "nuget");
+    Policy p1 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy1", 10);
+    Policy p2 = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "policy2", 8);
+
+    // Create NuGet components - one JSON file (should be excluded) and one DLL file (should be included)
+    ComponentIdentifier jsonComponent = ComponentIdentifier.createNugetCoordinates("TestPackage", "1.0.0");
+    ComponentIdentifier dllComponent = ComponentIdentifier.createNugetCoordinates("TestPackage", "1.0.0");
+
+    RepositoryComponent jsonComp = tempEntity.newRepositoryComponent(
+        nugetRepository.getId(), MatchState.EXACT, "testpackage/1.0.0/testpackage.1.0.0.json", "hash1",
+        jsonComponent, false);
+    RepositoryComponent dllComp = tempEntity.newRepositoryComponent(
+        nugetRepository.getId(), MatchState.EXACT, "testpackage/1.0.0/testpackage.dll", "hash2",
+        dllComponent, false);
+
+    // Create multiple policy violations for both components
+    tempEntity.newRepositoryPolicyViolation(nugetRepository.getId(), p1.getThreatLevel(), jsonComp.getPathname(),
+        false, p1.getId(), p1.getName(), jsonComp.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(nugetRepository.getId(), p2.getThreatLevel(), jsonComp.getPathname(),
+        false, p2.getId(), p2.getName(), jsonComp.getComponentIdentifier());
+    tempEntity.newRepositoryPolicyViolation(
+        nugetRepository.getId(), p1.getThreatLevel(), dllComp.getPathname(), false,
+        p1.getId(), p1.getName(), dllComp.getComponentIdentifier());
+
+    // Query for aggregated repository results
+    Set<String> repositoryIds = ImmutableSet.of(nugetRepository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 10;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = true;
+    filter.formatExclusionPatterns = Map.of("nuget", List.of("%.json"));
+
+    List<RepositoryResultsDetails> results = dao.getRepositoryResultsDetails(repositoryIds, filter);
+
+    // Verify that only the DLL component is returned (JSON should be filtered out even with multiple violations)
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).pathname).isEqualTo(dllComp.getPathname());
+    assertThat(results.get(0).pathname).doesNotContain(".json");
+  }
+
+  /**
+   * Test that non-NuGet repositories are not affected by the JSON exclusion filter
+   */
+  @Test
+  public void testGetRepositoryResultsDetails_NonNuGetRepositoriesNotAffected() {
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository mavenRepository = tempEntity.newRepository(repositoryManager, "maven-repo", "maven");
+    Policy policy = tempEntity.newPolicy(Organization.ROOT_ORGANIZATION_ID, "test-policy", 10);
+
+    // Create a Maven component with .json extension (should NOT be filtered)
+    ComponentIdentifier jsonComponent = ComponentIdentifier.createMavenCoordinates("com.test", "artifact", "1.0.0");
+    RepositoryComponent jsonComp = tempEntity.newRepositoryComponent(
+        mavenRepository.getId(), MatchState.EXACT, "com/test/artifact/1.0.0/artifact-1.0.0.json", "hash1",
+        jsonComponent, false);
+
+    tempEntity.newRepositoryPolicyViolation(
+        mavenRepository.getId(), policy.getThreatLevel(), jsonComp.getPathname(), false,
+        policy.getId(), policy.getName(), jsonComp.getComponentIdentifier());
+
+    // Query for repository results
+    Set<String> repositoryIds = ImmutableSet.of(mavenRepository.getId());
+    RepositoryResultsDetailsFilter filter = new RepositoryResultsDetailsFilter();
+    filter.page = 1;
+    filter.pageSize = 10;
+    filter.violationStateFilters = new HashSet<>();
+    filter.searchFilters = Collections.emptyMap();
+    filter.matchStateFilter = "";
+    filter.aggregate = false;
+    // No format exclusions for Maven - JSON files should be included
+    filter.formatExclusionPatterns = Collections.emptyMap();
+
+    List<RepositoryResultsDetails> results = dao.getRepositoryResultsDetails(repositoryIds, filter);
+
+    // Verify that Maven JSON file is NOT filtered out
+    assertThat(results).hasSize(1);
+    assertThat(results.get(0).pathname).isEqualTo(jsonComp.getPathname());
+    assertThat(results.get(0).pathname).contains(".json");
   }
 }

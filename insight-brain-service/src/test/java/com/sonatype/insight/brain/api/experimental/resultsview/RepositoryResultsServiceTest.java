@@ -910,6 +910,8 @@ public class RepositoryResultsServiceTest
     map.put("COMPONENT_COORDINATES", "g3");
     assertThat(filter.searchFilters).isEqualTo(map);
     assertThat(filter.sortFields).isEqualTo(detailsRequest.sortFields);
+    assertThat(filter.formatExclusionPatterns).isNotNull();
+    assertThat(filter.formatExclusionPatterns).containsEntry("nuget", List.of("%.json"));
   }
 
   @Test

@@ -756,4 +756,15 @@ public abstract class AbstractCycloneDxExporter
   private ThirdPartyScan getThirdPartyScan() {
     return thirdPartyScanDAO.getByThirdPartyFileId(exportParams.sbomMetadata.getThirdPartyFileId());
   }
+
+  protected void cleanupLegacyVulnerabilitiesFromBomComponents(Bom bom) {
+    if (bom.getComponents() != null) {
+      bom.getComponents().stream()
+              .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities"))
+              .forEach(c -> c.getExtensions().remove("vulnerabilities"));
+    }
+    else {
+      bom.setComponents(Collections.emptyList());
+    }
+  }
 }

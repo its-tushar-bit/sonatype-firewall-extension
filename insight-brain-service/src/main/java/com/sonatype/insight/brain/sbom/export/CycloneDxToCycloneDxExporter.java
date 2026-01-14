@@ -77,16 +77,7 @@ public class CycloneDxToCycloneDxExporter
   public String export() {
     try (InputStream gis = getOriginalSbomContent()) {
       Bom bom = SbomCycloneDxUtils.parseContentStreamNoValidation(gis);
-
-      // This is a version 1.1 vulnerabilities extensions
-      // (https://github.com/CycloneDX/specification/blob/1.6/schema/ext/vulnerability-1.0.xsd)
-      // related fix that is not properly handled by the cyclonedx-java library when converting to newer versions.
-      if (bom.getComponents() != null) {
-        bom.getComponents().stream()
-            .filter(c -> c.getExtensions() != null && c.getExtensions().containsKey("vulnerabilities")).forEach(c -> {
-              c.getExtensions().remove("vulnerabilities");
-            });
-      }
+      cleanupLegacyVulnerabilitiesFromBomComponents(bom);
       return generateTargetSbomString(mergeCurrentDatabaseState(bom));
     }
     catch (IOException | ParseException | GeneratorException e) {

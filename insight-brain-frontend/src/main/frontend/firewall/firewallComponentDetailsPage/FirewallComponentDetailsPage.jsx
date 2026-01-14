@@ -4,12 +4,12 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
 import ComponentDetailsTabs from '../../componentDetails/ComponentDetailsTabs';
 import {
-  ComponentDetailsReportInfo,
   ComponentDetailsHeader,
+  ComponentDetailsReportInfo,
   ComponentDetailsTags,
   Title,
 } from '../../componentDetails/ComponentDetailsHeader';
@@ -25,8 +25,8 @@ import FirewallPolicyViolationDetailsPopover from './policyViolations/policyViol
 
 import { selectIsStandaloneFirewall, selectRouterPrevState } from 'MainRoot/reduxUiRouter/routerSelectors';
 import {
-  selectFirewallComponentDetailsPageRouteParams,
   selectFirewallComponentDetailsPage,
+  selectFirewallComponentDetailsPageRouteParams,
 } from '../firewallSelectors';
 import { selectLabels } from 'MainRoot/componentDetails/componentDetailsSelectors';
 
@@ -78,13 +78,16 @@ export default function FirewallComponentDetailsPage() {
 
   const uiRouterState = useRouterState();
 
-  const prevStateIsRepositoryReport = prevState?.name?.includes('firewall.repository-report');
+  // Capture the initial prevState only once when component mounts
+  // This prevents back button text from changing when navigating between tabs
+  const [initialPrevStateIsRepositoryReport] = useState(() => prevState?.name?.includes('firewall.repository-report'));
+
   const href = uiRouterState.href('firewall.repository-report', {
     repositoryId: routeParams.repositoryId,
   });
 
   const backButtonParams =
-    !prevStateIsRepositoryReport && isStandaloneFirewall
+    !initialPrevStateIsRepositoryReport && isStandaloneFirewall
       ? { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' }
       : { text: 'Back to Repository Results', href };
 

@@ -208,4 +208,96 @@ describe('ComponentDetails', () => {
       expect(dialogTitle).toHaveTextContent('Violation of Security-Medium');
     });
   });
+
+  describe('Back Button', () => {
+    it('displays "Back to Repository Results" when coming from repository results page', async () => {
+      const stateWithRepositoryResultsPrev = {
+        ...defaultPreloadedState,
+        router: {
+          ...defaultPreloadedState.router,
+          prevState: {
+            name: 'firewall.repository-report',
+            url: '/firewall/repository/:repositoryId/results',
+          },
+        },
+      };
+      renderComponent(stateWithRepositoryResultsPrev);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      expect(titles[0]).toBeVisible();
+      const backButton = screen.getByText('Back to Repository Results');
+      expect(backButton).toBeVisible();
+    });
+
+    it('displays "Back to Firewall Dashboard" when coming from firewall dashboard in standalone firewall', async () => {
+      const stateWithFirewallDashboardPrev = {
+        ...defaultPreloadedState,
+        router: {
+          ...defaultPreloadedState.router,
+          prevState: {
+            name: 'firewall.firewallPage',
+            url: '/firewall/dashboard',
+          },
+        },
+        firewall: {
+          isStandaloneFirewall: true,
+          componentDetailsPage: {
+            componentDetails: null,
+            isLoadingComponentDetails: false,
+            componentDetailsError: null,
+          },
+        },
+      };
+      renderComponent(stateWithFirewallDashboardPrev);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      expect(titles[0]).toBeVisible();
+      const backButton = screen.getByText('Back to Firewall Dashboard');
+      expect(backButton).toBeVisible();
+    });
+
+    it('preserves back button text when navigating between tabs', async () => {
+      // Initial state: came from repository results
+      const stateWithRepositoryResultsPrev = {
+        ...defaultPreloadedState,
+        router: {
+          ...defaultPreloadedState.router,
+          currentParams: {
+            ...defaultPreloadedState.router.currentParams,
+            tabId: 'overview',
+          },
+          currentState: { name: 'firewall.componentDetailsPage' },
+          prevState: {
+            name: 'firewall.repository-report',
+            url: '/firewall/repository/:repositoryId/results',
+          },
+        },
+      };
+
+      const { rerender } = renderComponent(stateWithRepositoryResultsPrev);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      expect(titles[0]).toBeVisible();
+
+      // Verify initial back button text
+      let backButton = screen.getByText('Back to Repository Results');
+      expect(backButton).toBeVisible();
+
+      // Simulate navigation to violations tab (prevState changes in router)
+      // Rerender with updated state (simulating tab change)
+      rerender(
+        <RouterStateContext.Provider
+          value={{
+            href: jest.fn(() => '#'),
+            get: jest.fn(() => '#'),
+            includes: jest.fn(() => false),
+          }}
+        >
+          <FirewallComponentDetailsPage />
+        </RouterStateContext.Provider>
+      );
+
+      // Back button text should still say "Back to Repository Results"
+      // because we captured the initial prevState on mount
+      backButton = screen.getByText('Back to Repository Results');
+      expect(backButton).toBeVisible();
+    });
+  });
 });

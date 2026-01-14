@@ -129,6 +129,7 @@ owner-side-nav.nx-viewport-sized__container {
     border-bottom: 1px solid;
     border-radius: 0;
     padding-left: 0;
+    padding-right: var(--nx-spacing-4x);
     margin-left: var(--nx-spacing-4x);
 
     &.active {

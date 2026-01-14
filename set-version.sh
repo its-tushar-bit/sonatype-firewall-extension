@@ -17,7 +17,14 @@ if [ -z "$newVersion" ]; then
     exit 1
 fi
 
-exec mvn org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
+mvn org.codehaus.mojo:versions-maven-plugin:2.16.2:set \
     -DnewVersion="$newVersion" \
-    -DgenerateBackupFiles=false \
+    -DgenerateBackupPoms=false \
     -DprocessAllModules=true
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Maven versions:set command failed"
+    exit 1
+fi
+
+echo "Version successfully updated to $newVersion"

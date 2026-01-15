@@ -27,6 +27,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.openqa.selenium.Keys;
 
@@ -279,6 +280,7 @@ public class ZscalerConfigPageTest
   }
 
   @Test
+  @Ignore("NEXUS-50209")
   public void testSendTestConfig() {
     refreshOrOpen(ZscalerConfigPage.url());
     page.testConfig().shouldHave(attribute("aria-disabled", "true"));

@@ -146,6 +146,16 @@ public class PolicyViolationTelemetry
             telemetry.cvssAttackVector = ConstraintFactsUtil.parseAttackVectorFromCvssVector(vuln.getVector());
           }
 
+          // Enrich malwareAttackVector if missing
+          if (telemetry.malwareAttackVector == null && vuln.getAttackVector() != null) {
+            telemetry.malwareAttackVector = vuln.getAttackVector();
+          }
+
+          // Enrich malware severity if missing
+          if (telemetry.malwareSeverity == null && vuln.getSeverityDescription() != null) {
+            telemetry.malwareSeverity = vuln.getSeverityDescription();
+          }
+
           // Enrich vulnerabilityCategory if missing
           if (telemetry.vulnerabilityCategory == null && vuln.getVulnerabilityCategories() != null &&
               !vuln.getVulnerabilityCategories().isEmpty()) {

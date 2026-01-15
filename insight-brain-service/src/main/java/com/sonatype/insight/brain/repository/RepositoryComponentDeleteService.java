@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.integration.repository.FirewallIgnorePatternService;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
@@ -54,6 +55,8 @@ public class RepositoryComponentDeleteService
 
   private final RepositoryDAO repositoryDAO;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   @Inject
   public RepositoryComponentDeleteService(
       FirewallIgnorePatternService firewallIgnorePatternService,
@@ -62,7 +65,8 @@ public class RepositoryComponentDeleteService
       PolicyWaiverDAO policyWaiverDAO,
       ComponentLabelDAO componentLabelDAO,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
-      RepositoryDAO repositoryDAO)
+      RepositoryDAO repositoryDAO,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.firewallIgnorePatternService = firewallIgnorePatternService;
     this.repositoryPolicyViolationDAO = repositoryPolicyViolationDAO;
@@ -71,6 +75,7 @@ public class RepositoryComponentDeleteService
     this.componentLabelDAO = componentLabelDAO;
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
     this.repositoryDAO = repositoryDAO;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
   }
 
   public void deleteUnknownIgnoredComponents(Repository repository) {

@@ -258,6 +258,168 @@ public class ConstraintFactsUtilTest
     assertThat(cveData.hasCveData()).isTrue(); // Has CVE number
   }
 
+  @Test
+  public void testExtractCveData_WithMalwareSeverity() throws Exception {
+    // Malware with severity description
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-12345");
+    triggerData.put("severity", 10.0);
+    triggerData.put("severityDescription", "Malicious");
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(10.0);
+    assertThat(cveData.malwareSeverity()).isEqualTo("Malicious");
+    assertThat(cveData.malwareAttackVector()).isNull();
+    assertThat(cveData.cvssAttackVector()).isNull();
+    assertThat(cveData.threatTypes()).isNull();
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_WithMalwareAttackVector() throws Exception {
+    // Malware with attack vector
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-12345");
+    triggerData.put("severity", 10.0);
+    triggerData.put("attackVector", "Trojan");
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(10.0);
+    assertThat(cveData.malwareSeverity()).isNull();
+    assertThat(cveData.malwareAttackVector()).isEqualTo("Trojan");
+    assertThat(cveData.cvssAttackVector()).isNull();
+    assertThat(cveData.threatTypes()).isNull();
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_WithThreatTypes_NotAvailableInTriggerData() throws Exception {
+    // Threat types are NOT available in trigger data (only refId is in AbstractTriggerSecurityVulnerability)
+    // They must be enriched from Component data via PolicyViolationTelemetry.enrichCveDataFromComponent()
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-12345");
+    triggerData.put("severity", 10.0);
+    // Even if we manually add threatTypes to trigger data for testing, they should NOT be extracted
+    List<String> threatTypes = List.of("secrets_exfiltration", "backdoor", "crypto_miner");
+    triggerData.put("threatTypes", threatTypes);
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(10.0);
+    assertThat(cveData.malwareSeverity()).isNull();
+    assertThat(cveData.malwareAttackVector()).isNull();
+    assertThat(cveData.cvssAttackVector()).isNull();
+    assertThat(cveData.threatTypes()).isNull(); // Should be null - not extracted from trigger data
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_WithAllMalwareFields_ThreatTypesNotExtracted() throws Exception {
+    // Malware with severity description and attack vector (both available in trigger data)
+    // Threat types are NOT available in trigger data and must be enriched from Component
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-12345");
+    triggerData.put("severity", 10.0);
+    triggerData.put("severityDescription", "Malicious");
+    triggerData.put("attackVector", "Brandjack");
+    // Even if manually added for testing, threatTypes should NOT be extracted
+    List<String> threatTypes = List.of("secrets_exfiltration", "backdoor");
+    triggerData.put("threatTypes", threatTypes);
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(10.0);
+    assertThat(cveData.malwareSeverity()).isEqualTo("Malicious");
+    assertThat(cveData.malwareAttackVector()).isEqualTo("Brandjack");
+    assertThat(cveData.cvssAttackVector()).isNull();
+    assertThat(cveData.threatTypes()).isNull(); // Should be null - not extracted from trigger data
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_WithModerateSeverity() throws Exception {
+    // Malware with "Moderate" severity
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-67890");
+    triggerData.put("severity", 5.0);
+    triggerData.put("severityDescription", "Moderate");
+    triggerData.put("attackVector", "Hijack");
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-67890");
+    assertThat(cveData.cvssScore()).isEqualTo(5.0);
+    assertThat(cveData.malwareSeverity()).isEqualTo("Moderate");
+    assertThat(cveData.malwareAttackVector()).isEqualTo("Hijack");
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_WithEmptyThreatTypes_StillNotExtracted() throws Exception {
+    // Threat types are NOT extracted from trigger data, even if present (empty or not)
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "sonatype-2024-12345");
+    triggerData.put("severity", 10.0);
+    triggerData.put("threatTypes", new ArrayList<>()); // Empty list
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("sonatype-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(10.0);
+    assertThat(cveData.threatTypes()).isNull(); // Should be null - not extracted from trigger data
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
+  @Test
+  public void testExtractCveData_MixedCveAndMalwareFields() throws Exception {
+    // CVE with CVSS vector and malware-specific fields
+    Map<String, Object> triggerData = new HashMap<>();
+    triggerData.put("refId", "CVE-2024-12345");
+    triggerData.put("severity", 9.8);
+    triggerData.put("vulnerabilityCategoryId", "ARBITRARY_CODE_EXECUTION");
+    triggerData.put("vectorString", "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H");
+    // Also has malware fields (edge case)
+    triggerData.put("severityDescription", "Critical");
+    triggerData.put("attackVector", "Remote");
+
+    List<ConstraintFact> constraintFacts = createConstraintFactsFromTriggerData(triggerData);
+
+    CveData cveData = ConstraintFactsUtil.extractCveData(constraintFacts);
+
+    assertThat(cveData).isNotNull();
+    assertThat(cveData.cveNumber()).isEqualTo("CVE-2024-12345");
+    assertThat(cveData.cvssScore()).isEqualTo(9.8);
+    assertThat(cveData.vulnerabilityCategory()).isEqualTo("ARBITRARY_CODE_EXECUTION");
+    assertThat(cveData.cvssAttackVector()).isEqualTo("Network"); // Parsed from vectorString
+    assertThat(cveData.malwareSeverity()).isEqualTo("Critical");
+    assertThat(cveData.malwareAttackVector()).isEqualTo("Remote");
+    assertThat(cveData.hasCveData()).isTrue();
+  }
+
   // Helper methods
 
   private List<ConstraintFact> createConstraintFactsWithCve(

@@ -831,6 +831,47 @@ public class ComponentLoaderTest
   }
 
   @Test
+  public void testGetComponent_SecurityVulnerabilityAttackVectorAndThreatTypes() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("sonatype-2024-12345", "sonatype", 10F);
+    securityVulnerability.setAttackVector("Trojan");
+    securityVulnerability.setThreatTypes(List.of("backdoor", "secrets_exfiltration", "crypto_miner"));
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getAttackVector()).isEqualTo("Trojan");
+    assertThat(foundSecurityVulnerability.getThreatTypes())
+        .containsExactly("backdoor", "secrets_exfiltration", "crypto_miner");
+  }
+
+  @Test
+  public void testGetComponent_SecurityVulnerabilityWithNullAttackVector() {
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent
+        .setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3", "", "jar"));
+    com.sonatype.clm.dto.model.SecurityVulnerability securityVulnerability =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2024-12345", "cve", 9.8F);
+    securityVulnerability.setAttackVector(null); // Explicitly set to null
+    securityVulnerability.setThreatTypes(List.of("backdoor"));
+    matchedComponent.setSecurityVulnerabilities(Collections.singletonList(securityVulnerability));
+
+    Component component = componentLoader.getComponent(matchedComponent, true);
+
+    assertThat(component.getSecurityVulnerabilities()).hasSize(1);
+    SecurityVulnerability foundSecurityVulnerability = component.getSecurityVulnerabilities().get(0);
+    assertThat(foundSecurityVulnerability.getAttackVector()).isNull(); // Should handle null gracefully
+    assertThat(foundSecurityVulnerability.getThreatTypes()).containsExactly("backdoor");
+  }
+
+  @Test
   public void testGetComponent_SecurityVulnerabilityCustomRemediation() {
     MatchedComponent matchedComponent = new MatchedComponent();
     matchedComponent.setHash(COMP_HASH);

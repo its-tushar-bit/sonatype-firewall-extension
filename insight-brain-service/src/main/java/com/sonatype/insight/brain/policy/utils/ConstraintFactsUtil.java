@@ -99,7 +99,9 @@ public final class ConstraintFactsUtil
       cvssAttackVector = parseAttackVectorFromCvssVector(vectorString);
     }
 
-    // Threat types are not available in constraint facts - they must be enriched from HDS
+    // Threat types are NOT available in constraint facts (trigger data only contains refId).
+    // They must be enriched from Component's SecurityVulnerability list via
+    // PolicyViolationTelemetry.enrichCveDataFromComponent()
     return new CveData(cveNumber, cvssScore, vulnerabilityCategory, malwareSeverity,
         malwareAttackVector, cvssAttackVector, null);
   }

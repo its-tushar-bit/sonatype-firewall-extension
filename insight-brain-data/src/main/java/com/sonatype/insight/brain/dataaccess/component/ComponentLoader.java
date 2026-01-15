@@ -809,6 +809,8 @@ public class ComponentLoader
         sv.setVector(dtoSv.getCvssVector());
         sv.setVectorSource(dtoSv.getCvssVectorSource());
         sv.setThreatTypes(dtoSv.getThreatTypes());
+        sv.setAttackVector(dtoSv.getAttackVector());
+
         fillSecurityVulnerabilityCustomData(component, sv);
         component.addSecurityVulnerability(sv);
       }

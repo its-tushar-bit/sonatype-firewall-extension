@@ -161,8 +161,8 @@ public class ApiComponentReleaseQuarantineServiceTest
     verify(policyWaiverTelemetryCreator).sendRepositoryWaiverTelemetry(any(), any());
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE), eq(ReleaseQuarantineType.MANUAL),
-            eq("Waived"), any());
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
+            eq(ReleaseQuarantineType.MANUAL), eq("Waived"), eq(Collections.emptyList()));
   }
 
   @Test
@@ -250,8 +250,8 @@ public class ApiComponentReleaseQuarantineServiceTest
     verifyNoInteractions(policyWaiverTelemetryCreator);
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
-            eq(ReleaseQuarantineType.MANUAL), eq("Waived"), any());
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
+            eq(ReleaseQuarantineType.MANUAL), eq("Waived"), eq(Collections.emptyList()));
   }
 
   @Test
@@ -311,8 +311,8 @@ public class ApiComponentReleaseQuarantineServiceTest
     verify(policyWaiverTelemetryCreator).sendRepositoryWaiverTelemetry(any(), any());
     verify(repositoryComponentTelemetryCreator)
         .sendRepositoryComponentTelemetry(any(), any(), eq(repository.getRepositoryManagerId()),
-            eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE), eq(ReleaseQuarantineType.MANUAL),
-            eq("Waived"), any());
+            eq(repository.getPublicId()), eq(RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE),
+            eq(ReleaseQuarantineType.MANUAL), eq("Waived"), eq(Collections.emptyList()));
   }
 
   private RepositoryPolicyViolation createRepositoryPolicyViolation(

@@ -31,6 +31,7 @@ import com.sonatype.insight.brain.dataaccess.policy.PolicyWaiverDAO;
 import com.sonatype.insight.brain.dataaccess.policy.RepositoryPolicyViolationDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryComponentDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
+import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.model.policy.PolicyWaiver;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;
 import com.sonatype.insight.brain.model.repository.Repository;
@@ -84,6 +85,8 @@ public class ApiComponentReleaseQuarantineService
 
   private final PolicyWaiverDAO policyWaiverDAO;
 
+  private final ComponentDetailsLoaderFactory componentDetailsLoaderFactory;
+
   @Inject
   public ApiComponentReleaseQuarantineService(
       RepositoryDAO repositoryDAO,
@@ -93,7 +96,8 @@ public class ApiComponentReleaseQuarantineService
       PolicyWaiverTelemetryCreator policyWaiverTelemetryCreator,
       RepositoryComponentTelemetryCreator repositoryComponentTelemetryCreator,
       PolicyDAO policyDAO,
-      PolicyWaiverDAO policyWaiverDAO)
+      PolicyWaiverDAO policyWaiverDAO,
+      ComponentDetailsLoaderFactory componentDetailsLoaderFactory)
   {
     this.repositoryDAO = repositoryDAO;
     this.repositoryComponentDAO = repositoryComponentDAO;
@@ -103,6 +107,7 @@ public class ApiComponentReleaseQuarantineService
     this.repositoryComponentTelemetryCreator = repositoryComponentTelemetryCreator;
     this.policyDAO = policyDAO;
     this.policyWaiverDAO = policyWaiverDAO;
+    this.componentDetailsLoaderFactory = componentDetailsLoaderFactory;
   }
 
   public ApiComponentReleasedFromQuarantineDTO releaseQuarantineWithoutReEval(
@@ -178,7 +183,8 @@ public class ApiComponentReleaseQuarantineService
 
       repositoryComponentTelemetryCreator
           .sendRepositoryComponentTelemetry(repositoryComponent, repositoryPolicyViolations,
-              repository.getRepositoryManagerId(), RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+              repository.getRepositoryManagerId(), repository.getPublicId(),
+              RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
               ReleaseQuarantineType.MANUAL, ReleaseReason.WAIVED.getDescription(), Collections.emptyList());
     }
 

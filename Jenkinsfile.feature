@@ -923,7 +923,7 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
   String iqVersion = getMavenProjectVersion('.')
   echo "iqVersion:'${iqVersion}'"
 
-  mvn getMtiqBuildConfig(), 'install'
+  mvn getMtiqBuildConfig(), 'jdks:setup-jdks install'
   mvn getMtiqAssembleConfig(), 'jreleaser:assemble'
 
   dir("nexus-mtiq-server") {

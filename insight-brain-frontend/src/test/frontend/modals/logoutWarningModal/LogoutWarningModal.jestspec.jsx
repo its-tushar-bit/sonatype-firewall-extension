@@ -26,10 +26,13 @@ describe('LogoutWarningModal', () => {
         secondsLeft: 120,
         intervalId: null,
       },
-      user: {
-        currentUser: {
+      userSession: {
+        data: {
           sessionTimeoutMilliseconds: 30 * 60 * 1000,
         },
+        loading: false,
+        error: null,
+        shouldDisplayPasswordWarning: false,
       },
     };
     const mockNotification = jest.fn();
@@ -90,8 +93,8 @@ describe('LogoutWarningModal', () => {
 
   it('displays the correct session timeout', () => {
     const preloadedState = {
-      user: {
-        currentUser: {
+      userSession: {
+        data: {
           sessionTimeoutMilliseconds: 45 * 60 * 1000,
         },
       },
@@ -104,8 +107,8 @@ describe('LogoutWarningModal', () => {
 
   it('displays generic inactivity text when session timeout is not a number', () => {
     const preloadedState = {
-      user: {
-        currentUser: {
+      userSession: {
+        data: {
           sessionTimeoutMilliseconds: null,
         },
       },

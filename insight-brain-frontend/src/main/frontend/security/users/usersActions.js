@@ -20,6 +20,7 @@ import {
 import { stateGo } from '../../reduxUiRouter/routerActions';
 import { actions as productFeaturesActions } from '../../productFeatures/productFeaturesSlice';
 import { selectIsUserManagementPagesEnabled, selectTenantMode } from '../../productFeatures/productFeaturesSelectors';
+import { handlePasswordChangeForUser } from '../../user/userSessionSlice';
 import {
   USER_SET_FIRST_NAME,
   USER_SET_LAST_NAME,
@@ -252,9 +253,8 @@ export function resetPassword(userId, username) {
     return axios
       .put(getUserResetPasswordByIdUrl(userId))
       .then(({ data }) => {
-        const userActions = require('../../user/userActions').default;
         dispatch(resetFulfilled(data));
-        dispatch(userActions.passwordChangedForUser({ username }));
+        dispatch(handlePasswordChangeForUser(username));
 
         startResetPasswordMaskSuccessTimer(dispatch);
       })

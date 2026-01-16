@@ -36,14 +36,15 @@ import {
   selectIsSbomManagerOnlyLicense,
   selectIsFirewallOnlyLicense,
   selectLoadingProducts,
+  selectProductEdition,
 } from 'MainRoot/productFeatures/productLicenseSelectors';
 import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 import { waitForLogin } from 'MainRoot/user/userSessionUtils';
-import { selectIsLoggedIn } from 'MainRoot/user/userSelectors';
+import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
 import { selectIsLicensed } from 'MainRoot/productFeatures/productLicenseSelectors';
 import IqSidebarNav from 'MainRoot/react/iqSidebarNav/IqSidebarNav';
 
-export default function NavigationContainer({ productEdition, clmServerVersion, $rootScope, $state }) {
+export default function NavigationContainer({ clmServerVersion, $rootScope, $state }) {
   const dispatch = useDispatch();
   const store = useStore();
   const [currentState, setCurrentState] = useState($state.current);
@@ -55,6 +56,7 @@ export default function NavigationContainer({ productEdition, clmServerVersion, 
     return () => unsubscribe();
   }, [$rootScope, $state]);
 
+  const productEdition = useSelector(selectProductEdition);
   const isAdvancedSearchEnabled = useSelector(selectIsAdvancedSearchEnabled);
   const isSuccessMetricsEnabled = useSelector(selectIsSuccessMetricsEnabled);
   const isFirewallSupported = useSelector(selectIsFirewallSupportedForNavigationContainer);
@@ -82,7 +84,7 @@ export default function NavigationContainer({ productEdition, clmServerVersion, 
 
   useEffect(() => {
     const { loadUnconfiguredRepoManagers } = firewallOnboardingActions;
-    waitForLogin(store).then(function () {
+    waitForLogin().then(function () {
       dispatch(loadAdvancedSearchConfig());
       dispatch(loadSuccessMetricsConfig());
       dispatch(loadProductLicense());
@@ -142,7 +144,6 @@ export default function NavigationContainer({ productEdition, clmServerVersion, 
 }
 
 NavigationContainer.propTypes = {
-  productEdition: PropTypes.string,
   clmServerVersion: PropTypes.string,
   $rootScope: PropTypes.object.isRequired,
   $state: PropTypes.object.isRequired,

@@ -5,47 +5,39 @@
  */
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import PropTypes from 'prop-types';
 import UserMenu from './UserMenu';
 import { showUserTokenModal } from './UserToken/userTokenActions';
 import { selectIsStandaloneDeveloper } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectCurrentUser, selectIsDefaultUser, selectCanChangePassword } from 'MainRoot/user/userSessionSelectors';
+import { selectChangePasswordStatus, selectChangePasswordErrorMessage } from './changePasswordModalSelectors';
+import { actions as changePasswordActions } from './changePasswordModalSlice';
+import { logout } from 'MainRoot/user/userSessionSlice';
 
-const mapDispatchToProps = (dispatch, { userActions }) =>
+const mapDispatchToProps = (dispatch) =>
   bindActionCreators(
     {
-      loadUser: userActions.loadUser,
-      onLogout: userActions.logout,
-      onChangePassword: userActions.changePassword,
-      resetPasswordStatus: userActions.resetChangedPasswordStatus,
+      onLogout: logout,
+      onChangePassword: changePasswordActions.changePassword,
+      resetPasswordStatus: changePasswordActions.resetStatus,
       onManageUserToken: showUserTokenModal,
     },
     dispatch
   );
 
 const mapStateToProps = (state) => {
-  const user = state.user;
   const userToken = state.userToken;
 
   return {
-    user: user.currentUser,
-    isDefaultUser: user.isDefaultUser,
+    user: selectCurrentUser(state),
+    isDefaultUser: selectIsDefaultUser(state),
     isUserTokenModalVisible: userToken.isUserTokenModalVisible,
-    canChangePassword: user.canChangePassword,
-    changePasswordStatus: user.changePasswordStatus,
-    changePasswordErrorMessage: user.changePasswordErrorMessage,
+    canChangePassword: selectCanChangePassword(state),
+    changePasswordStatus: selectChangePasswordStatus(state),
+    changePasswordErrorMessage: selectChangePasswordErrorMessage(state),
     isStandaloneDeveloper: selectIsStandaloneDeveloper(state),
   };
 };
 
 const UserMenuContainer = connect(mapStateToProps, mapDispatchToProps)(UserMenu);
-
-UserMenuContainer.propTypes = {
-  userActions: PropTypes.shape({
-    loadUser: PropTypes.func,
-    logout: PropTypes.func,
-    changePassword: PropTypes.func,
-    resetPasswordStatus: PropTypes.func,
-  }),
-};
 
 export default UserMenuContainer;

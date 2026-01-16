@@ -5,12 +5,14 @@
  */
 
 export function requestNotificationPermission() {
+  const Notification = window.Notification;
   if (Notification && Notification.permission === 'default') {
     Notification.requestPermission();
   }
 }
 
 export function showNotification(message, body = {}) {
+  const Notification = window.Notification;
   if (Notification && Notification.permission === 'granted') {
     new Notification(message, body);
   } else {

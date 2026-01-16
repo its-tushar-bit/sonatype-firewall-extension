@@ -6,7 +6,7 @@
 import React from 'react';
 import { NxButton, NxButtonBar, NxFooter, NxH2, NxModal, NxWarningAlert } from '@sonatype/react-shared-components';
 import { useDispatch, useSelector } from 'react-redux';
-import { selectSessionTimeoutMilliseconds } from 'MainRoot/user/userSelectors';
+import { selectSessionTimeoutMilliseconds } from 'MainRoot/user/userSessionSelectors';
 import { selectLogoutWarningModalSlice } from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSelectors';
 import { actions } from 'MainRoot/modals/logoutWarningModal/logoutWarningModalSlice';
 

@@ -263,3 +263,24 @@ export const selectHideBackButtonParam = createSelector(selectRouterCurrentParam
 export const selectIsBulkWaivePage = createSelector(selectCurrentRouteName, (currentRouteName) =>
   currentRouteName?.toLowerCase().includes('bulkwaive')
 );
+
+/**
+ * Checks if the current route has unsaved changes.
+ * The route's isDirty configuration can be either:
+ * - An array representing a state path (e.g., ['featureName', 'isPageDirty'])
+ * - A selector function (e.g., selectIsDirty)
+ */
+export const selectIsCurrentRouteDirty = createSelector(
+  selectRouterState,
+  (state) => state,
+  (currentState, state) => {
+    const isDirtyLookup = currentState.data && currentState.data.isDirty;
+
+    // isDirtyLookup can either be an array (state property path) or a selector function
+    return Array.isArray(isDirtyLookup)
+      ? path(isDirtyLookup, state)
+      : typeof isDirtyLookup === 'function'
+      ? isDirtyLookup(state)
+      : false;
+  }
+);

@@ -16,7 +16,6 @@ import { PRODUCT_NAMES } from './useProductInfo';
 
 export const MenuBar = ({
   majorMinorVersion = '',
-  userActions,
   permissions = {},
   isWebhooksSupported = false,
   isSourceControlSupported,
@@ -111,7 +110,7 @@ export const MenuBar = ({
         />
       )}
       <SolutionSwitcherContainer />
-      <UserMenu userActions={userActions} />
+      <UserMenu />
     </GlobalHeader>
   );
 };
@@ -120,11 +119,6 @@ MenuBar.propTypes = {
   permissions: PropTypes.object,
   isWebhooksSupported: PropTypes.bool,
   isSourceControlSupported: PropTypes.bool,
-  userActions: PropTypes.shape({
-    loadUser: PropTypes.func,
-    logout: PropTypes.func,
-    changePassword: PropTypes.func,
-  }).isRequired,
   majorMinorVersion: PropTypes.string,
   login: PropTypes.func,
   isLoggedIn: PropTypes.bool,

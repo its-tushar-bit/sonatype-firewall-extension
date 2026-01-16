@@ -439,5 +439,6 @@ public class ArtifactoryRepositoryBaseConfigurationsPageTest
     SidebarNavigation.dashboardNavigationButton().click();
     UnsavedModal unsavedChangesModal = new UnsavedModal();
     unsavedChangesModal.shouldBe(visible);
+    unsavedChangesModal.cancelButton().click();
   }
 }

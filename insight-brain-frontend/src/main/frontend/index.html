@@ -35,7 +35,6 @@
       <toast-container></toast-container>
       <navigation-container
         ng-if="!$state.params.embeddable"
-        product-edition="productEdition"
         clm-server-version='CLM_SERVER_VERSION'
       ></navigation-container>
       <main-header ng-if="!$state.params.embeddable" clm-server-version='CLM_SERVER_VERSION'></main-header>
@@ -52,7 +51,7 @@
               <p>Please try to reload the page, if the problem persists contact your server administrator. ({{error}})</p>
             </div>
           </div>
-          <iq-footer ng-if="!$state.current.data.hideFooter" product-edition="productEdition" clm-server-version='CLM_SERVER_VERSION'></iq-footer>
+          <iq-footer ng-if="!$state.current.data.hideFooter" clm-server-version='CLM_SERVER_VERSION'></iq-footer>
         </div>
       </div>
     </div>

@@ -4,58 +4,40 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-/*
- * TODO: TECHNICAL DEBT - State Duplication Between userSession and user
- *
- * Currently, user session data is stored in TWO places in Redux state:
- * 1. state.userSession.data (this slice) - handles async session fetching
- * 2. state.user.currentUser (userReducer.js) - handles UI concerns (password changes, warnings)
- *
- * This duplication exists because userSessionSlice was added in Oct 2025 to refactor session
- * management from module-scoped promises to Redux, but the migration was incomplete.
- *
- * PLAN: Consolidate into state.userSession and eliminate state.user
- * - Move password change logic and UI state (shouldDisplayNotice, canChangePassword, etc.) into this slice
- * - Migrate all code that uses state.user selectors to use state.userSession
- * - Remove userReducer.js and userActions.js once migration is complete
- *
- * TEMPORARY WORKAROUND:
- * - fetchUserSession dispatches LOAD_USER_FULFILLED to keep both slices in sync
- * - This dispatch should be REMOVED once state.user is eliminated
- * - See lines 30-36 below for the temporary sync logic
- */
-
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
-import { getSessionUrl } from 'MainRoot/util/CLMLocation';
-import { LOAD_USER_FULFILLED } from './userActions';
+import { getSessionUrl, getShouldDisplayDefaultPasswordWarning, getSessionLogoutUrl } from 'MainRoot/util/CLMLocation';
+import { isAuthorized } from 'MainRoot/util/permissionService';
+import { submitTelemetryData } from 'MainRoot/util/telemetryUtils';
+import { logoutRedirection } from 'MainRoot/util/urlUtil';
+import { actions as unsavedChangesModalActions } from 'MainRoot/modals/unsavedChangesModal/unsavedChangesModalSlice';
+import pendoService from 'MainRoot/pendo/mainBundlePendoService';
+import { selectShouldDisplayPasswordWarning, selectUsername } from './userSessionSelectors';
+import { selectIsCurrentRouteDirty } from 'MainRoot/reduxUiRouter/routerSelectors';
 
 const REDUCER_NAME = 'userSession';
 
 const initialState = {
+  // User session data from server
   data: null,
   loading: false,
   error: null,
+
+  // Password warning UI state
+  shouldDisplayPasswordWarning: false,
 };
 
 export const fetchUserSession = createAsyncThunk(
   `${REDUCER_NAME}/fetchUserSession`,
   async (waitForLogin = true, { rejectWithValue, dispatch }) => {
     try {
-      // waitForLogin is passed in as a request configuration here so that axios interceptors can look for it
+      // waitForLogin is passed in as request configuration so that axios interceptors can look for it
       // when deciding whether to show the login modal
       const response = await axios.get(getSessionUrl(), { waitForLogin });
 
-      // TODO: REMOVE THIS DISPATCH when state.user is eliminated (see file header comment)
-      // Temporary workaround to keep state.user.currentUser in sync with state.userSession.data
-      // This dispatch ensures selectIsLoggedIn (which reads from state.user) works correctly
-      dispatch({
-        type: LOAD_USER_FULFILLED,
-        payload: {
-          currentUser: response.data,
-          shouldDisplayWarning: false, // This will be handled by userActions if needed
-        },
-      });
+      // Automatically fetch password warning for all users
+      // The fetchPasswordWarning thunk will check if they have admin permissions
+      dispatch(fetchPasswordWarning());
 
       return response.data;
     } catch (error) {
@@ -70,29 +52,76 @@ export const fetchUserSession = createAsyncThunk(
   }
 );
 
-// Action creator that ensures user is logged in
-// Returns a promise that resolves immediately if user is already logged in,
-// or once user logs in if they're not
-export const ensureUserLoggedIn = createAsyncThunk(
-  `${REDUCER_NAME}/ensureUserLoggedIn`,
-  async (_, { getState, dispatch }) => {
+const fetchPasswordWarning = createAsyncThunk(`${REDUCER_NAME}/fetchPasswordWarning`, async () => {
+  try {
+    const isAdmin = await isAuthorized(['CONFIGURE_SYSTEM']);
+    if (isAdmin) {
+      const response = await axios.get(getShouldDisplayDefaultPasswordWarning());
+      const shouldDisplay = !!response.data;
+      if (shouldDisplay) {
+        submitTelemetryData('ADMIN_PASSWORD_CHANGE', { action: 'WARNING_SHOWN' });
+      }
+      return shouldDisplay;
+    }
+    return false;
+  } catch (error) {
+    // If this call fails, don't show the warning
+    return false;
+  }
+});
+
+// Logout - checks for unsaved changes before logging out
+export const logout = createAsyncThunk(`${REDUCER_NAME}/logout`, async (_, { getState, dispatch }) => {
+  const state = getState();
+  const isCurrentRouteDirty = selectIsCurrentRouteDirty(state);
+
+  if (isCurrentRouteDirty) {
+    // Show unsaved changes modal, then logout if confirmed
+    await dispatch(unsavedChangesModalActions.open());
+  }
+
+  await pendoService.flush();
+  const resultServerLogout = await axios.delete(getSessionLogoutUrl());
+
+  // Clear any onbeforeunload handlers to avoid being prevented to leave the current page by using redirection.
+  // Otherwise a browser blocking alert dialog will appear
+  window.onbeforeunload = null;
+
+  let toLocation;
+  if (resultServerLogout?.error) {
+    toLocation = {
+      headers: {},
+      error: resultServerLogout.error.message,
+    };
+  } else {
+    toLocation = resultServerLogout.headers['Location'] || resultServerLogout.headers['location'];
+  }
+  logoutRedirection(toLocation);
+});
+
+/**
+ * Handles password change completion - checks if we should clear the default admin password warning.
+ * Call this after a user's password has been successfully changed.
+ *
+ * @param {string|undefined} username - Username of the user whose password was changed.
+ *                                      If undefined, uses the current logged-in user's username.
+ */
+export const handlePasswordChangeForUser = createAsyncThunk(
+  `${REDUCER_NAME}/handlePasswordChangeForUser`,
+  async (username, { getState, dispatch }) => {
     const state = getState();
+    const shouldDisplayWarning = selectShouldDisplayPasswordWarning(state);
 
-    // If user is already logged in, return immediately
-    if (state.userSession.data) {
-      return state.userSession.data;
+    // Resolve the username - if not provided, use current user's username
+    const isDefaultAdminUser = (username ?? selectUsername(state)) === 'admin';
+
+    // Only clear warning and fire events if:
+    // 1. The warning is currently displayed (meaning current user is an admin)
+    // 2. The password that was changed belongs to the 'admin' user
+    if (shouldDisplayWarning && isDefaultAdminUser) {
+      submitTelemetryData('ADMIN_PASSWORD_CHANGE', { action: 'PASSWORD_CHANGED_FROM_DEFAULT' });
+      dispatch(clearPasswordWarning());
     }
-
-    // Otherwise, dispatch fetchUserSession and wait for it to complete
-    const result = await dispatch(fetchUserSession(true));
-
-    // Return the user data from the fulfilled action
-    if (fetchUserSession.fulfilled.match(result)) {
-      return result.payload;
-    }
-
-    // If it was rejected, throw to propagate the error
-    throw result.error;
   }
 );
 
@@ -101,9 +130,13 @@ const userSessionSlice = createSlice({
   initialState,
   reducers: {
     resetUserSession: () => initialState,
+    clearPasswordWarning: (state) => {
+      state.shouldDisplayPasswordWarning = false;
+    },
   },
   extraReducers: (builder) => {
     builder
+      // User session fetching
       .addCase(fetchUserSession.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -115,14 +148,25 @@ const userSessionSlice = createSlice({
       .addCase(fetchUserSession.rejected, (state, { payload }) => {
         state.loading = false;
         state.error = payload;
+      })
+      // Password warning fetching
+      .addCase(fetchPasswordWarning.fulfilled, (state, { payload }) => {
+        state.shouldDisplayPasswordWarning = payload;
+      })
+      .addCase(fetchPasswordWarning.rejected, (state) => {
+        state.shouldDisplayPasswordWarning = false;
       });
   },
 });
 
+export const { clearPasswordWarning } = userSessionSlice.actions;
+
 export const actions = {
   ...userSessionSlice.actions,
   fetchUserSession,
-  ensureUserLoggedIn,
+  fetchPasswordWarning,
+  logout,
+  handlePasswordChangeForUser,
 };
 
 export default userSessionSlice.reducer;

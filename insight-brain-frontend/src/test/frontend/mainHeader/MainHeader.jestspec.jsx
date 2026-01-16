@@ -12,16 +12,14 @@ import * as permissionService from 'MainRoot/util/permissionService';
 import * as routerStateContext from 'MainRoot/react/RouterStateContext';
 
 describe('MainHeader', () => {
-  let mockUserActions, fetchUserSessionSpy, ensureUserLoggedInSpy, getValidPermissionsSpy, routerContextMock;
+  let fetchUserSessionSpy, getValidPermissionsSpy, routerContextMock;
 
   const defaultState = {
-    user: {
-      username: null,
-    },
     userSession: {
       data: null,
       loading: false,
       error: null,
+      shouldDisplayPasswordWarning: false,
     },
     productFeatures: {
       productFeatures: {
@@ -42,24 +40,9 @@ describe('MainHeader', () => {
   };
 
   beforeEach(() => {
-    // Mock userActions as thunks that return promises
-    mockUserActions = {
-      loadUser: jest.fn(() => () => Promise.resolve()),
-      logout: jest.fn(() => () => Promise.resolve()),
-      changePassword: jest.fn(() => () => Promise.resolve()),
-      resetChangedPasswordStatus: jest.fn(() => () => Promise.resolve()),
-    };
-
     fetchUserSessionSpy = jest
       .spyOn(userSessionSlice.actions, 'fetchUserSession')
       .mockReturnValue(() => Promise.resolve());
-    // Mock ensureUserLoggedIn to return a fulfilled action (as Redux Toolkit async thunks do)
-    ensureUserLoggedInSpy = jest.spyOn(userSessionSlice, 'ensureUserLoggedIn').mockReturnValue(() =>
-      Promise.resolve({
-        type: 'userSession/ensureUserLoggedIn/fulfilled',
-        payload: { username: 'testuser' },
-      })
-    );
     getValidPermissionsSpy = jest.spyOn(permissionService, 'getValidPermissions').mockResolvedValue([]);
     jest.spyOn(routeStateUtilService, 'stateRequiresAuthentication').mockResolvedValue(true);
 
@@ -73,7 +56,7 @@ describe('MainHeader', () => {
   });
 
   const renderComponent = (state = defaultState, props = {}) => {
-    return render(<MainHeader clmServerVersion="1.234.5" userActions={mockUserActions} {...props} />, {
+    return render(<MainHeader clmServerVersion="1.234.5" {...props} />, {
       preloadedState: state,
     });
   };
@@ -97,9 +80,9 @@ describe('MainHeader', () => {
     it('shows user menu when authenticated', () => {
       const stateWithUser = {
         ...defaultState,
-        user: {
-          username: 'testuser',
-          currentUser: { username: 'testuser', displayName: 'Test User' },
+        userSession: {
+          ...defaultState.userSession,
+          data: { username: 'testuser', displayName: 'Test User' },
         },
       };
 
@@ -133,9 +116,9 @@ describe('MainHeader', () => {
     it('does not show login button when authenticated', async () => {
       const stateWithUser = {
         ...defaultState,
-        user: {
-          username: 'testuser',
-          currentUser: { username: 'testuser' },
+        userSession: {
+          ...defaultState.userSession,
+          data: { username: 'testuser' },
         },
       };
 
@@ -179,26 +162,19 @@ describe('MainHeader', () => {
     });
 
     it('loads permissions after login', async () => {
-      ensureUserLoggedInSpy.mockReturnValue(() =>
-        Promise.resolve({
-          type: 'userSession/ensureUserLoggedIn/fulfilled',
-          payload: { username: 'testuser' },
-        })
-      );
       getValidPermissionsSpy.mockResolvedValue(['CONFIGURE_SYSTEM', 'MANAGE_PROPRIETARY']);
 
       const stateWithUser = {
         ...defaultState,
-        user: {
-          username: 'testuser',
-          currentUser: { username: 'testuser' },
+        userSession: {
+          ...defaultState.userSession,
+          data: { username: 'testuser' },
         },
       };
 
       renderComponent(stateWithUser);
 
       await waitFor(() => {
-        expect(ensureUserLoggedInSpy).toHaveBeenCalled();
         expect(getValidPermissionsSpy).toHaveBeenCalledWith([
           'CONFIGURE_SYSTEM',
           'MANAGE_PROPRIETARY',
@@ -210,31 +186,22 @@ describe('MainHeader', () => {
     });
 
     it('handles permission loading errors gracefully', async () => {
-      // Mock ensureUserLoggedIn to return a rejected action (as Redux Toolkit async thunks do)
-      ensureUserLoggedInSpy.mockReturnValue(() =>
-        Promise.resolve({
-          type: 'userSession/ensureUserLoggedIn/rejected',
-          error: { message: 'Login failed' },
-        })
-      );
+      getValidPermissionsSpy.mockRejectedValue('Permission API error');
 
       const stateWithUser = {
         ...defaultState,
-        user: {
-          username: 'testuser',
-          currentUser: { username: 'testuser' },
+        userSession: {
+          ...defaultState.userSession,
+          data: { username: 'testuser' },
         },
       };
 
-      renderComponent(stateWithUser);
+      const { store } = renderComponent(stateWithUser);
 
-      // Verify that permissions are not loaded when login fails
       await waitFor(() => {
-        expect(ensureUserLoggedInSpy).toHaveBeenCalled();
+        const state = store.getState();
+        expect(state.mainHeader.loadError).toBe('Permission API error');
       });
-
-      // getValidPermissions should not be called if ensureUserLoggedIn fails
-      expect(getValidPermissionsSpy).not.toHaveBeenCalled();
     });
   });
 });

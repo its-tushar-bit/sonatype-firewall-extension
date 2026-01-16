@@ -54,7 +54,16 @@ describe('InnerSourceRepositoryBaseConfigurations', () => {
       },
     };
 
-    axiosMock.onGet(getRepositoryConnectionUrl(ownerType, ownerId, null)).reply(200, {});
+    axiosMock.onGet(getRepositoryConnectionUrl(ownerType, ownerId, null)).reply(200, {
+      repositoryConnectionStatus: {
+        allowChange: true,
+        allowOverride: true,
+        enabled: null,
+        inheritedFromOrgEnabled: false,
+        inheritedFromOrganizationId: 'ROOT_ORGANIZATION_ID',
+        inheritedFromOrganizationName: 'Root Organization',
+      },
+    });
     axiosMock.onPut(getRepositoryConnectionUrl(ownerType, ownerId, null)).reply(200, {});
   });
 

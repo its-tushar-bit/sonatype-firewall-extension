@@ -9,7 +9,7 @@ import reducer from './reducers';
 
 const middleware = [routerMiddleware];
 
-if (process.env.NODE_ENV !== 'production' && window.console && window.console.log.apply) {
+if (process.env.NODE_ENV === 'development' && window.console && window.console.log.apply) {
   const createLogger = require('redux-logger').createLogger;
   const logger = createLogger({ level: 'info', collapsed: true, diff: false });
   middleware.push(logger);

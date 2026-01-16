@@ -29,10 +29,13 @@ describe('sessionExpirationManager', () => {
         secondsLeft: null,
         intervalId: null,
       },
-      user: {
-        currentUser: {
+      userSession: {
+        data: {
           sessionTimeoutMilliseconds: 30 * 60 * 1000,
         },
+        loading: false,
+        error: null,
+        shouldDisplayPasswordWarning: false,
       },
     };
     const mockNotification = jest.fn();

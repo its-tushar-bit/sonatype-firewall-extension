@@ -13,6 +13,8 @@ import * as routeSelectors from 'MainRoot/reduxUiRouter/routerSelectors';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
 import * as routerContext from 'MainRoot/react/RouterStateContext';
 import * as Locations from 'MainRoot/util/CLMLocation';
+import * as userSessionUtils from 'MainRoot/user/userSessionUtils';
+import store from 'MainRoot/reduxConfig/store';
 
 const { userInput, initialState } = nxTextInputStateHelpers;
 
@@ -28,7 +30,6 @@ describe('LoginModal', () => {
     useSelectorLoginStateSpy,
     useSelectorLoginSubmitStateSpy,
     mockRouteStateNameIncludesVulnerabilitySearch,
-    mockRouteStateNameIncludesQuaratineComponent,
     loginState,
     loginSubmitState;
 
@@ -58,10 +59,6 @@ describe('LoginModal', () => {
       name: 'vulnerabilitySearch',
     };
 
-    mockRouteStateNameIncludesQuaratineComponent = {
-      name: 'firewall.quarantinedComponentReport',
-    };
-
     useSelectorLoginSubmitStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalSubmitState');
     useSelectorLoginStateSpy = jest.spyOn(userLoginSelectors, 'selectLoginModalState').mockImplementation((state) => {
       const originalSelection = originalLoginStateSelector(state);
@@ -81,9 +78,21 @@ describe('LoginModal', () => {
   });
 
   it('does NOT render Vulnerability Lookup link but does render a cancel button if license exists and user is on a page that does not require authentication', () => {
-    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-    useSelectorLoginStateSpy.mockReturnValue(loginState);
-    renderComponent();
+    render(<LoginModal />, {
+      preloadedState: {
+        router: {
+          currentState: { name: 'vulnerabilitySearch' },
+          currentParams: {},
+        },
+        userLogin: {
+          loginModalState: loginState,
+          loginModalSubmitState: loginSubmitState,
+        },
+        productLicense: {
+          installed: true,
+        },
+      },
+    });
 
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeNull();
@@ -101,20 +110,33 @@ describe('LoginModal', () => {
 
   it('renders Vulnerability Lookup link in index but NOT cancel button when unauthenticated pages is enabled', () => {
     let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
-    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
     });
-    useSelectorLoginStateSpy.mockReturnValue(loginState);
-    renderComponent();
+    render(<LoginModal />, {
+      preloadedState: {
+        router: {
+          currentState: { name: 'index' },
+          currentParams: {},
+        },
+        userLogin: {
+          loginModalState: loginState,
+          loginModalSubmitState: loginSubmitState,
+        },
+        productLicense: {
+          installed: true,
+          license: {
+            products: ['Sonatype Lifecycle'],
+          },
+        },
+      },
+    });
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeVisible();
   });
 
   it('gets the href for Vulnerability Link', () => {
-    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
-    useSelectorLoginStateSpy.mockReturnValue(loginState);
     let hrefSpy = jest.fn().mockImplementation((args) => `href-${args}`);
     let includesSpy = jest.fn().mockReturnValue(false);
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
@@ -122,7 +144,25 @@ describe('LoginModal', () => {
       includes: includesSpy,
     });
 
-    renderComponent();
+    render(<LoginModal />, {
+      preloadedState: {
+        router: {
+          currentState: { name: 'index' },
+          currentParams: {},
+        },
+        userLogin: {
+          loginModalState: loginState,
+          loginModalSubmitState: loginSubmitState,
+        },
+        productLicense: {
+          installed: true,
+          license: {
+            products: ['Sonatype Lifecycle'],
+          },
+        },
+      },
+    });
+
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toHaveAttribute(
       'href',
       'href-vulnerabilitySearch'
@@ -146,18 +186,28 @@ describe('LoginModal', () => {
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
     });
-    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
-    useSelectorLoginStateSpy.mockImplementation((state) => {
-      const originalSelection = originalLoginStateSelector(state);
-      return {
-        ...originalSelection,
-        showLoginModal: true,
-        isLicensed: true,
-        isUnauthenticatedPagesEnabled: true,
-        products: ['Sonatype SBOM Manager', 'Sonatype Lifecycle'],
-      };
+    render(<LoginModal />, {
+      preloadedState: {
+        router: {
+          currentState: { name: 'index' },
+          currentParams: {},
+        },
+        userLogin: {
+          loginModalState: {
+            ...loginState,
+            isLicensed: true,
+            isUnauthenticatedPagesEnabled: true,
+          },
+          loginModalSubmitState: loginSubmitState,
+        },
+        productLicense: {
+          installed: true,
+          license: {
+            products: ['Sonatype SBOM Manager', 'Sonatype Lifecycle'],
+          },
+        },
+      },
     });
-    renderComponent();
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeVisible();
@@ -190,18 +240,28 @@ describe('LoginModal', () => {
     jest.spyOn(routerContext, 'useRouterState').mockReturnValue({
       href: hrefSpy,
     });
-    jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue({ name: 'index' });
-    useSelectorLoginStateSpy.mockImplementation((state) => {
-      const originalSelection = originalLoginStateSelector(state);
-      return {
-        ...originalSelection,
-        showLoginModal: true,
-        isLicensed: true,
-        isUnauthenticatedPagesEnabled: true,
-        products: ['Sonatype Repository Firewall', 'Sonatype Firewall for Artifactory'],
-      };
+    render(<LoginModal />, {
+      preloadedState: {
+        router: {
+          currentState: { name: 'index' },
+          currentParams: {},
+        },
+        userLogin: {
+          loginModalState: {
+            ...loginState,
+            isLicensed: true,
+            isUnauthenticatedPagesEnabled: true,
+          },
+          loginModalSubmitState: loginSubmitState,
+        },
+        productLicense: {
+          installed: true,
+          license: {
+            products: ['Sonatype Repository Firewall', 'Sonatype Firewall for Artifactory'],
+          },
+        },
+      },
     });
-    renderComponent();
 
     expect(screen.queryByRole('button', { name: 'Cancel' })).toBeNull();
     expect(screen.queryByRole('link', { name: 'Vulnerability Lookup' })).toBeVisible();
@@ -266,9 +326,21 @@ describe('LoginModal', () => {
     });
 
     it('dismisses the modal when cancel button is clicked and route is vulnerabilitySearch', () => {
-      jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesVulnerabilitySearch);
-      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
-      renderComponent();
+      render(<LoginModal />, {
+        preloadedState: {
+          router: {
+            currentState: { name: 'vulnerabilitySearch' },
+            currentParams: {},
+          },
+          userLogin: {
+            loginModalState: { ...loginState, showSso: true },
+            loginModalSubmitState: loginSubmitState,
+          },
+          productLicense: {
+            installed: true,
+          },
+        },
+      });
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       fireEvent.click(cancelButton);
@@ -277,9 +349,21 @@ describe('LoginModal', () => {
     });
 
     it('dismisses the modal when cancel button is clicked and route is quarantinedComponentReport', () => {
-      jest.spyOn(routeSelectors, 'selectRouterState').mockReturnValue(mockRouteStateNameIncludesQuaratineComponent);
-      useSelectorLoginStateSpy.mockReturnValue({ ...loginState, showSso: true });
-      renderComponent();
+      render(<LoginModal />, {
+        preloadedState: {
+          router: {
+            currentState: { name: 'firewall.quarantinedComponentReport' },
+            currentParams: {},
+          },
+          userLogin: {
+            loginModalState: { ...loginState, showSso: true },
+            loginModalSubmitState: loginSubmitState,
+          },
+          productLicense: {
+            installed: true,
+          },
+        },
+      });
 
       const cancelButton = screen.getByRole('button', { name: 'Cancel' });
       fireEvent.click(cancelButton);
@@ -357,7 +441,7 @@ describe('LoginModal', () => {
   });
 
   describe('authenticate action integration tests', () => {
-    let axiosMock, assignSpy;
+    let axiosMock, assignSpy, authenticateSpy;
 
     beforeAll(() => {
       axiosMock = axiosMockAdapter();
@@ -365,19 +449,24 @@ describe('LoginModal', () => {
 
     beforeEach(() => {
       assignSpy = jest.spyOn(Locations, 'assign').mockImplementation(() => {});
+      authenticateSpy = jest.spyOn(userSessionUtils, 'authenticate');
     });
 
     afterEach(() => {
       assignSpy.mockRestore();
+      authenticateSpy.mockRestore();
     });
 
     it('opens login modal when authenticate is called without SSO', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+      axiosMock.onGet(Locations.getSessionUrl()).reply(200, { username: 'test' });
 
-      const { store } = render(<LoginModal />);
+      // Use the real global store for both the component and userSessionUtils
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate(null, null));
+      userSessionUtils.authenticate(null, null);
 
+      // Login modal should open
       await waitFor(() => {
         const state = store.getState();
         expect(state.userLogin.loginModalState.showLoginModal).toBe(true);
@@ -387,10 +476,11 @@ describe('LoginModal', () => {
 
     it('opens login modal with SSO button when SAML is available and SSO-only is disabled', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+      axiosMock.onGet(Locations.getSessionUrl()).reply(200, { username: 'test' });
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+      userSessionUtils.authenticate('SAML', '/saml/login');
 
       await waitFor(() => {
         const state = store.getState();
@@ -402,10 +492,11 @@ describe('LoginModal', () => {
 
     it('opens login modal with SSO button when OIDC is available and SSO-only is disabled', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, []);
+      axiosMock.onGet(Locations.getSessionUrl()).reply(200, { username: 'test' });
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('OIDC', '/oidc/login'));
+      userSessionUtils.authenticate('OIDC', '/oidc/login');
 
       await waitFor(() => {
         const state = store.getState();
@@ -418,9 +509,9 @@ describe('LoginModal', () => {
     it('redirects to IdP when SSO-only is enabled and SAML is available', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+      await userSessionUtils.authenticate('SAML', '/saml/login');
 
       await waitFor(() => {
         expect(assignSpy).toHaveBeenCalledWith('/saml/login');
@@ -430,9 +521,9 @@ describe('LoginModal', () => {
     it('redirects to IdP when SSO-only is enabled and OIDC is available', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('OIDC', '/oidc/login'));
+      await userSessionUtils.authenticate('OIDC', '/oidc/login');
 
       await waitFor(() => {
         expect(assignSpy).toHaveBeenCalledWith('/oidc/login');
@@ -441,11 +532,12 @@ describe('LoginModal', () => {
 
     it('opens login modal even when SSO-only is enabled if on backupLogin route', async () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
+      axiosMock.onGet(Locations.getSessionUrl()).reply(200, { username: 'test' });
       window.location.hash = '#/backupLogin';
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+      userSessionUtils.authenticate('SAML', '/saml/login');
 
       await waitFor(() => {
         const state = store.getState();
@@ -460,9 +552,9 @@ describe('LoginModal', () => {
       axiosMock.onGet(Locations.getEnableSsoOnly()).reply(200, ['enable-sso-only']);
       window.location.hash = '#/applications/app123/report/scanId456';
 
-      const { store } = render(<LoginModal />);
+      render(<LoginModal />, { store });
 
-      await store.dispatch(actions.authenticate('SAML', '/saml/login'));
+      await userSessionUtils.authenticate('SAML', '/saml/login');
 
       const expectedHash = encodeURIComponent('#/applications/app123/report/scanId456');
       await waitFor(() => {

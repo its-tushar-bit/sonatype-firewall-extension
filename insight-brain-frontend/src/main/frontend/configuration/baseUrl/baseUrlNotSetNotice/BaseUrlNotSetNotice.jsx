@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { actions } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
 import { selectShouldDisplayNotice } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
 import { selectIsBaseUrlConfigurationEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
-import { selectCurrentUser } from 'MainRoot/user/userSelectors';
+import { selectCurrentUser } from 'MainRoot/user/userSessionSelectors';
 
 export default function BaseUrlNotSetNotice() {
   const dispatch = useDispatch();

@@ -16,6 +16,11 @@ describe('Footer', () => {
         'multi-tenant': false,
       },
     },
+    productLicense: {
+      license: {
+        productEdition: 'Lifecycle',
+      },
+    },
   };
 
   beforeEach(() => {
@@ -42,6 +47,11 @@ describe('Footer', () => {
             'multi-tenant': true,
           },
         },
+        productLicense: {
+          license: {
+            productEdition: 'Lifecycle',
+          },
+        },
       };
 
       renderComponent(preloadedState);
@@ -54,6 +64,11 @@ describe('Footer', () => {
       const preloadedState = {
         productFeatures: {
           productFeatures: {},
+        },
+        productLicense: {
+          license: {
+            productEdition: 'Lifecycle',
+          },
         },
       };
 

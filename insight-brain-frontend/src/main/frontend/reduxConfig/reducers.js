@@ -9,7 +9,6 @@ import dashboardReducer from '../dashboard/dashboardReducer';
 import manageFiltersReducer from '../dashboard/filter/manageFiltersReducer';
 import dashboardFilterReducer from '../dashboard/filter/dashboardFilterReducer';
 import applicationReportReducer from '../applicationReport/applicationReportReducer';
-import userReducer from '../user/userReducer';
 import vulnerabilitySearchReducer from '../vulnerabilitySearch/vulnerabilitySearchReducer';
 import vulnerabilityDetailsModalReducer from '../vulnerabilityDetails/vulnerabilityDetailsModalReducer';
 import zscalerConfigReducer from 'MainRoot/configuration/zscaler/zscalerConfigSlice';
@@ -128,6 +127,7 @@ import unsavedChangesModalSlice from 'MainRoot/modals/unsavedChangesModal/unsave
 import addContainerImageWaiverPageSlice from 'MainRoot/firewall/containerImageWaiver/addContainerImageWaiverPageSlice';
 import userActivitySlice from '../configuration/userActivityOverview/userActivitySlice';
 import userSessionSlice from '../user/userSessionSlice';
+import changePasswordModalSlice from '../mainHeader/MenuBar/UserMenu/changePasswordModalSlice';
 import mainHeaderSlice from '../mainHeader/mainHeaderSlice';
 import appErrorSlice from '../session/appErrorSlice';
 import originalBomViewerSlice from '../sbomManager/features/billOfMaterials/originalBom/originalBomViewerSlice';
@@ -140,7 +140,6 @@ export default combineReducers({
   dashboardFilter: dashboardFilterReducer,
   sidebarNavList: sidebarNavListReducer,
   applicationReport: applicationReportReducer,
-  user: userReducer,
   userConfiguration: userConfigurationReducer,
   vulnerabilityDetailsModal: vulnerabilityDetailsModalReducer,
   vulnerabilitySearch: vulnerabilitySearchReducer,
@@ -257,6 +256,7 @@ export default combineReducers({
   addContainerImageWaiverPage: addContainerImageWaiverPageSlice,
   userActivity: userActivitySlice,
   userSession: userSessionSlice,
+  changePasswordModal: changePasswordModalSlice,
   mainHeader: mainHeaderSlice,
   appError: appErrorSlice,
   originalBomViewer: originalBomViewerSlice,

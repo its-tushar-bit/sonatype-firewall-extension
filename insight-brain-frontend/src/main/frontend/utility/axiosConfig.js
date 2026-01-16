@@ -7,15 +7,10 @@ import axios from 'axios';
 import isIqIframe from '../util/isIqFrame';
 import { setServerDate } from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, getRequests, rejectAll, settleAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
+import store from 'MainRoot/reduxConfig/store';
+import { authenticate } from 'MainRoot/user/userSessionUtils';
 
-/**
- * @param rootScope    Angular's $rootScope variable.
- * @param window     Angular's $window variable.
- * @param loginModalActions    loginModalActions (Redux action creators for login modal)
- * @param store    Redux store
- **/
-
-export const attachAxiosInterceptors = (rootScope, window, loginModalActions, store) => {
+export const attachAxiosInterceptors = () => {
   // http interceptor
   axios.interceptors.response.use(
     (response) => {
@@ -47,14 +42,8 @@ export const attachAxiosInterceptors = (rootScope, window, loginModalActions, st
               // we only want to pop up the dialog for the first error, as many requests may be sent asynchronously, for
               // the other messages, the data will be added to the queue, but the dialog portion will be ignored
               if (getRequests().length === 1) {
-                // Dispatch authenticate action and wait for user to log in
-                store
-                  .dispatch(
-                    loginModalActions.authenticate(
-                      error.response.headers['www-authenticate'],
-                      error.response.headers['x-sso-login-url']
-                    )
-                  )
+                // Show login modal and wait for user to log in
+                authenticate(error.response.headers['www-authenticate'], error.response.headers['x-sso-login-url'])
                   .then(() => {
                     // User logged in successfully, replay all queued requests
                     settleAll();

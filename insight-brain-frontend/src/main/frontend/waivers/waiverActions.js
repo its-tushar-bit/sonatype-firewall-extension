@@ -473,23 +473,29 @@ export function loadSimilarWaivers(id) {
 }
 
 export const cancelBulkWaive = () => {
-  return (dispatch, getState) => {
+  return async (dispatch, getState) => {
     const state = getState();
     const { publicId, scanId, hash } = selectRouterCurrentParams(state);
     const isPrioritiesPageContainer = selectIsPrioritiesPageContainer(state);
     const prioritiesPageContainerName = selectPrioritiesPageContainerName(state);
 
-    if (hash) {
-      if (isPrioritiesPageContainer) {
-        dispatch(stateGo(`${prioritiesPageContainerName}.componentDetails.violations`, { publicId, scanId, hash }));
+    try {
+      if (hash) {
+        if (isPrioritiesPageContainer) {
+          await dispatch(
+            stateGo(`${prioritiesPageContainerName}.componentDetails.violations`, { publicId, scanId, hash })
+          );
+        } else {
+          await dispatch(stateGo('applicationReport.componentDetails.violations', { publicId, scanId, hash }));
+        }
       } else {
-        dispatch(stateGo('applicationReport.componentDetails.violations', { publicId, scanId, hash }));
+        await dispatch(stateGo('applicationReport.policy', { publicId, scanId }));
       }
-    } else {
-      dispatch(stateGo('applicationReport.policy', { publicId, scanId }));
-    }
 
-    dispatch(waiverActions.resetWaiverConfiguration());
+      dispatch(waiverActions.resetWaiverConfiguration());
+    } catch {
+      // Unsaved Changes Modal was cancelled, don't reset
+    }
   };
 };
 

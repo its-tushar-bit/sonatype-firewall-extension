@@ -56,10 +56,13 @@ describe('NavigationContainer', () => {
         products: ['Sonatype Lifecycle'],
       },
     },
-    user: {
-      currentUser: {
+    userSession: {
+      data: {
         username: 'testuser',
       },
+      loading: false,
+      error: null,
+      shouldDisplayPasswordWarning: false,
     },
   };
 
@@ -114,8 +117,9 @@ describe('NavigationContainer', () => {
   it('hides licensed navigation links when user is not logged in', () => {
     const notLoggedInState = {
       ...defaultPreloadedState,
-      user: {
-        currentUser: null,
+      userSession: {
+        ...defaultPreloadedState.userSession,
+        data: null,
       },
     };
 

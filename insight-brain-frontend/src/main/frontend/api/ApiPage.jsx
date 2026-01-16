@@ -23,7 +23,7 @@ import { selectApiPageSlice } from 'MainRoot/api/apiPageSelectors';
 import { actions } from 'MainRoot/api/apiPageSlice';
 import { BASE_URL } from 'MainRoot/util/urlUtil';
 import { fetchUser } from 'MainRoot/user/userSessionUtils';
-import { selectCurrentUser } from 'MainRoot/user/userSelectors';
+import { selectCurrentUser } from 'MainRoot/user/userSessionSelectors';
 
 export default function ApiPage() {
   const dispatch = useDispatch();
@@ -52,7 +52,7 @@ export default function ApiPage() {
     // and doesn't want to be nagged or auto-logged out due to what looks like inactivity
     // but is actually just them sending raw API requests.
     if (currentUser) {
-      setTimeout(() => fetchUser(store, false), 0);
+      setTimeout(() => fetchUser(false), 0);
     }
 
     return request;

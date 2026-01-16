@@ -12,14 +12,4 @@ export const selectSystemNotice = prop('systemNoticeConfiguration');
 export const selectLoginModalState = createSelector(selectLoginModal, prop('loginModalState'));
 export const selectLoginModalSubmitState = createSelector(selectLoginModal, prop('loginModalSubmitState'));
 export const selectSystemNoticeServerData = createSelector(selectSystemNotice, prop('serverData'));
-
-// Selectors for login modal state properties
-export const selectIsUnauthenticatedPagesEnabled = createSelector(
-  selectLoginModalState,
-  prop('isUnauthenticatedPagesEnabled')
-);
-export const selectIsQuarantinedComponentViewAnonymousAccessEnabled = createSelector(
-  selectLoginModalState,
-  prop('isQuarantinedComponentViewAnonymousAccessEnabled')
-);
 export const selectSsoLoginUrl = createSelector(selectLoginModalState, prop('ssoLoginUrl'));

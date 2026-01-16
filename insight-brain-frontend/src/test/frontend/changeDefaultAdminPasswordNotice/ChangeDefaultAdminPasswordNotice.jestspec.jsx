@@ -9,12 +9,13 @@ import ChangeDefaultAdminPasswordNotice from 'MainRoot/changeDefaultAdminPasswor
 
 describe('ChangeDefaultAdminPasswordNotice', () => {
   const defaultPreloadedState = {
-    user: {
-      currentUser: {
+    userSession: {
+      data: {
         username: 'admin',
       },
-      isDefaultUser: false,
-      shouldDisplayNotice: false,
+      shouldDisplayPasswordWarning: false,
+      loading: false,
+      error: null,
     },
   };
 
@@ -33,10 +34,12 @@ describe('ChangeDefaultAdminPasswordNotice', () => {
   it('renders notice when shouldDisplayNotice is true and user is default admin', () => {
     const stateWithNotice = {
       ...defaultPreloadedState,
-      user: {
-        ...defaultPreloadedState.user,
-        isDefaultUser: true,
-        shouldDisplayNotice: true,
+      userSession: {
+        ...defaultPreloadedState.userSession,
+        data: {
+          username: 'admin',
+        },
+        shouldDisplayPasswordWarning: true,
       },
     };
 
@@ -51,10 +54,12 @@ describe('ChangeDefaultAdminPasswordNotice', () => {
   it('renders notice when shouldDisplayNotice is true and user is not default admin', () => {
     const stateWithNotice = {
       ...defaultPreloadedState,
-      user: {
-        ...defaultPreloadedState.user,
-        isDefaultUser: false,
-        shouldDisplayNotice: true,
+      userSession: {
+        ...defaultPreloadedState.userSession,
+        data: {
+          username: 'otheruser',
+        },
+        shouldDisplayPasswordWarning: true,
       },
     };
 
@@ -71,9 +76,9 @@ describe('ChangeDefaultAdminPasswordNotice', () => {
   it('renders with correct ID and CSS classes', () => {
     const stateWithNotice = {
       ...defaultPreloadedState,
-      user: {
-        ...defaultPreloadedState.user,
-        shouldDisplayNotice: true,
+      userSession: {
+        ...defaultPreloadedState.userSession,
+        shouldDisplayPasswordWarning: true,
       },
     };
 

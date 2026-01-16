@@ -6,8 +6,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import { getValidPermissions } from 'MainRoot/util/permissionService';
 import { stateRequiresAuthentication } from 'MainRoot/utility/services/routeStateUtilService';
-import { ensureUserLoggedIn } from 'MainRoot/user/userSessionSlice';
-import { selectIsLoggedIn } from 'MainRoot/user/userSelectors';
+import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
 
 const REDUCER_NAME = 'mainHeader';
 
@@ -27,33 +26,22 @@ export const initialState = {
 };
 
 // Async thunk to load permissions
-export const loadPermissions = createAsyncThunk(
-  `${REDUCER_NAME}/loadPermissions`,
-  async (_, { dispatch, rejectWithValue }) => {
-    try {
-      // Wait for user to be logged in before fetching permissions
-      const loginResult = await dispatch(ensureUserLoggedIn());
+export const loadPermissions = createAsyncThunk(`${REDUCER_NAME}/loadPermissions`, async (_, { rejectWithValue }) => {
+  try {
+    // Let the axios interceptor handle authentication if needed
+    const data = await getValidPermissions(MAIN_HEADER_PERMISSIONS);
 
-      // Check if ensureUserLoggedIn was rejected
-      // loginResult will have a type property like "userSession/ensureUserLoggedIn/rejected" if it failed
-      if (loginResult.type && loginResult.type.endsWith('/rejected')) {
-        return rejectWithValue(loginResult.error || 'Failed to ensure user is logged in');
-      }
+    // Convert array to object for easier lookup
+    const perms = {};
+    data.forEach((permission) => {
+      perms[permission] = true;
+    });
 
-      const data = await getValidPermissions(MAIN_HEADER_PERMISSIONS);
-
-      // Convert array to object for easier lookup
-      const perms = {};
-      data.forEach((permission) => {
-        perms[permission] = true;
-      });
-
-      return perms;
-    } catch (error) {
-      return rejectWithValue(error);
-    }
+    return perms;
+  } catch (error) {
+    return rejectWithValue(error || 'Failed to load permissions');
   }
-);
+});
 
 // Async thunk to check if login button should be shown
 export const checkShowLoginButton = createAsyncThunk(

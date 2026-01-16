@@ -8,4 +8,4 @@ import Footer from './Footer';
 
 export default angular
   .module('footerModule', [])
-  .component('iqFooter', iqReact2Angular(Footer, ['productEdition', 'clmServerVersion'], ['$state']));
+  .component('iqFooter', iqReact2Angular(Footer, ['clmServerVersion'], ['$state']));

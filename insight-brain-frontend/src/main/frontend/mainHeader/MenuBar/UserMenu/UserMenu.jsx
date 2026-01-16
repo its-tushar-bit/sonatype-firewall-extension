@@ -22,7 +22,6 @@ import UserDetailsModal from './UserDetailsModal';
 const UserMenu = ({
   user,
   isUserTokenModalVisible,
-  loadUser,
   onLogout,
   canChangePassword,
   onChangePassword,
@@ -32,7 +31,6 @@ const UserMenu = ({
   onManageUserToken,
   isStandaloneDeveloper,
 }) => {
-  useEffect(() => void loadUser(), []);
   const [isChangePasswordModalVisible, setIsChangePasswordModalVisible] = useState(false);
   const [isUserDetailsModalVisible, setIsUserDetailsModalVisible] = useState(false);
   const [isDisplayThemeModalVisible, setIsDisplayThemeModalVisible] = useState(false);
@@ -107,7 +105,6 @@ UserMenu.propTypes = {
   isDefaultUser: PropTypes.bool,
   canChangePassword: PropTypes.bool,
   isUserTokenModalVisible: PropTypes.bool,
-  loadUser: PropTypes.func,
   onLogout: PropTypes.func,
   onManageUserToken: PropTypes.func,
   onOpenUserDetails: PropTypes.func,

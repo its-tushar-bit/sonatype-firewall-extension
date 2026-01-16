@@ -7,13 +7,13 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { faWarning } from '@fortawesome/pro-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { selectIsDefaultUser, selectShouldDisplayNotice } from 'MainRoot/user/userSelectors';
+import { selectShouldDisplayPasswordWarning, selectIsDefaultUser } from 'MainRoot/user/userSessionSelectors';
 
 export default function ChangeDefaultAdminPasswordNotice() {
+  const shouldDisplayWarning = useSelector(selectShouldDisplayPasswordWarning);
   const isDefaultUser = useSelector(selectIsDefaultUser);
-  const shouldDisplayNotice = useSelector(selectShouldDisplayNotice);
 
-  if (!shouldDisplayNotice) {
+  if (!shouldDisplayWarning) {
     return null;
   }
 

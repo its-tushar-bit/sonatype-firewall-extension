@@ -6,7 +6,7 @@
 
 import React from 'react';
 import * as baseUrlConfigurationSelectors from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSelectors';
-import * as userSelectors from 'MainRoot/user/userSelectors';
+import * as userSessionSelectors from 'MainRoot/user/userSessionSelectors';
 import { render, screen } from 'TestRoot/SpecUtil';
 import BaseUrlNotSetNotice from 'MainRoot/configuration/baseUrl/baseUrlNotSetNotice/BaseUrlNotSetNotice';
 import { actions } from 'MainRoot/configuration/baseUrl/baseUrlConfigurationSlice';
@@ -33,28 +33,28 @@ describe('BaseUrlNotSetNotice component', () => {
     });
 
     it('should dispatch a load if it is an admin user and single tenant', () => {
-      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
+      jest.spyOn(userSessionSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
       jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).toHaveBeenCalled();
     });
 
     it('should not dispatch a load if it is multi tenant', () => {
-      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
+      jest.spyOn(userSessionSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: true });
       jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(false);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
     it('should not dispatch a load if it is not authenticated', () => {
-      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: false });
+      jest.spyOn(userSessionSelectors, 'selectCurrentUser').mockReturnValue({ authenticated: false });
       jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();
     });
 
     it('should not dispatch a load if there is no current user', () => {
-      jest.spyOn(userSelectors, 'selectCurrentUser').mockReturnValue(null);
+      jest.spyOn(userSessionSelectors, 'selectCurrentUser').mockReturnValue(null);
       jest.spyOn(productFeaturesSelectors, 'selectIsBaseUrlConfigurationEnabled').mockReturnValue(true);
       renderComponent();
       expect(loadSpy).not.toHaveBeenCalled();

@@ -666,6 +666,10 @@ const savePolicyFulfilled = (state, { payload }) => {
     state.siblings[index] = state.currentPolicy;
   } else {
     state.currentPolicy = initialState.currentPolicy;
+    state.categories = initialState.categories;
+    state.originalCategories = initialState.originalCategories;
+    state.hasPolicyCategories = initialState.hasPolicyCategories;
+    state.originalHasPolicyCategories = initialState.originalHasPolicyCategories;
   }
 };
 

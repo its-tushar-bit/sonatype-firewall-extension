@@ -30,9 +30,10 @@ import {
 } from 'MainRoot/reduxUiRouter/routerSelectors';
 import { selectFirewallComponentDetailsPageRouteParams } from 'MainRoot/firewall/firewallSelectors';
 import { selectIsExpireWhenRemediationAvailableWaiversEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { selectCurrentUser } from 'MainRoot/user/userSessionSelectors';
 
 function mapStateToProps(state) {
-  const { addWaiver, violation, router, user, waivers } = state;
+  const { addWaiver, violation, router, waivers } = state;
   const isFirewall = selectIsFirewall(state);
   const isFirewallOrRepositoryComponent = selectIsFirewallOrRepository(state);
   const isStandaloneDeveloper = selectIsStandaloneDeveloper(state);
@@ -56,7 +57,7 @@ function mapStateToProps(state) {
     loadError: addWaiver.loadError || waivers.waiverReasons.loadError,
     prevStateName: router.prevState.name,
     prevParams: router.prevParams,
-    currentUser: user?.currentUser?.displayName,
+    currentUser: selectCurrentUser(state)?.displayName,
     isFirewall,
     isFirewallOrRepositoryComponent,
     repositoryId,

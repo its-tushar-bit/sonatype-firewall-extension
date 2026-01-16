@@ -21,33 +21,34 @@ import {
   NxTextLink,
 } from '@sonatype/react-shared-components';
 import { selectLoginModalState, selectLoginModalSubmitState, selectSystemNoticeServerData } from './userLoginSelectors';
-import { selectRouterState } from 'MainRoot/reduxUiRouter/routerSelectors';
+import { selectCurrentRouteName } from 'MainRoot/reduxUiRouter/routerSelectors';
 import * as sbomManagerUtil from 'MainRoot/sbomManager/sbomManagerUtil';
-import { isFirewallOnlyLicenseProduct } from 'MainRoot/productFeatures/productLicenseSelectors';
+import {
+  isFirewallOnlyLicenseProduct,
+  selectIsLicenseInstalled,
+  selectProducts as selectProductsFromLicense,
+} from 'MainRoot/productFeatures/productLicenseSelectors';
 
 export default function LoginModal() {
   // State selectors
   const dispatch = useDispatch();
-  const routeState = useSelector(selectRouterState);
+  const uiRouterState = useRouterState();
   const systemNotice = useSelector(selectSystemNoticeServerData);
-  const {
-    isLicensed,
-    products,
-    showSso,
-    showLoginModal,
-    username,
-    password,
-    isUnauthenticatedPagesEnabled,
-  } = useSelector(selectLoginModalState);
+  const { showSso, showLoginModal, username, password, isUnauthenticatedPagesEnabled } = useSelector(
+    selectLoginModalState
+  );
   const { loginSubmitError, loginSubmitMaskState } = useSelector(selectLoginModalSubmitState);
+  const isLicensed = useSelector(selectIsLicenseInstalled);
+  const products = useSelector(selectProductsFromLicense);
   const isFirewallOnlyLicense = isFirewallOnlyLicenseProduct(products);
   const resolvedVulnState = isFirewallOnlyLicense ? 'firewall.vulnerabilitySearch' : 'vulnerabilitySearch';
-
-  const uiRouterState = useRouterState();
 
   const vulnSearchHref = uiRouterState.href(resolvedVulnState);
 
   const { userInput } = nxTextInputStateHelpers;
+
+  // defaulting to 'root' in case initial page load redirect hasn't completed yet
+  const currentRouteName = useSelector(selectCurrentRouteName) || 'root';
 
   // Modal and form logic
   const isFormValid =
@@ -59,8 +60,15 @@ export default function LoginModal() {
 
   const renderVulnerabilityLink =
     isLicensed &&
-    isUnauthenticatedPagesEnabled &&
-    not(includes(routeState.name, ['vulnerabilitySearchDetail', 'vulnerabilitySearch'])) &&
+    isUnauthenticatedPagesEnabled === true &&
+    not(
+      includes(currentRouteName, [
+        'vulnerabilitySearchDetail',
+        'vulnerabilitySearch',
+        'firewall.vulnerabilitySearch',
+        'firewall.vulnerabilitySearchDetail',
+      ])
+    ) &&
     !isSbomManagerOnlyLicense;
 
   const userInputValidator = (val) => {
@@ -102,7 +110,7 @@ export default function LoginModal() {
   };
 
   const isShowCancel =
-    includes(routeState.name, [
+    includes(currentRouteName, [
       'vulnerabilitySearchDetail',
       'vulnerabilitySearch',
       'firewall.quarantinedComponentReport',

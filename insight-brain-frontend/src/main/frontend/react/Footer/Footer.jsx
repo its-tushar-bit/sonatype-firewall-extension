@@ -10,7 +10,10 @@ import { getReleaseVersion } from 'MainRoot/util/versionUtil';
 import { useSelector } from 'react-redux';
 
 import { selectIsShowVersionEnabled } from 'MainRoot/productFeatures/productFeaturesSelectors';
-export default function Footer({ productEdition, clmServerVersion }) {
+import { selectProductEdition } from 'MainRoot/productFeatures/productLicenseSelectors';
+
+export default function Footer({ clmServerVersion }) {
+  const productEdition = useSelector(selectProductEdition);
   const releaseNumber = getReleaseVersion(clmServerVersion);
   const isShowVersionEnabled = useSelector(selectIsShowVersionEnabled);
 
@@ -27,6 +30,5 @@ export default function Footer({ productEdition, clmServerVersion }) {
 }
 
 Footer.propTypes = {
-  productEdition: PropTypes.string,
   clmServerVersion: PropTypes.string,
 };

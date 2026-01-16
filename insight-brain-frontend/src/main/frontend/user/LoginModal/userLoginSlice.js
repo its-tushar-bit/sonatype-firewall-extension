@@ -10,26 +10,15 @@ import { getSessionUrl, assign } from 'MainRoot/util/CLMLocation';
 import { Messages } from 'MainRoot/util/CommonServices';
 import { pathSet } from 'MainRoot/util/reduxToolkitUtil';
 import { nxTextInputStateHelpers } from '@sonatype/react-shared-components';
-import { actions as productFeaturesActions } from 'MainRoot/productFeatures/productFeaturesSlice';
-import { unwrapResult } from '@reduxjs/toolkit';
-import { clearRequests, rejectAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
-import { selectIsLicenseInstalled, selectProducts } from 'MainRoot/productFeatures/productLicenseSelectors';
-import {
-  selectIsUnauthenticatedPagesEnabled,
-  selectIsQuarantinedComponentViewAnonymousAccessEnabled,
-  selectSsoLoginUrl,
-} from 'MainRoot/user/LoginModal/userLoginSelectors';
-import { actions as userSessionActions, ensureUserLoggedIn } from 'MainRoot/user/userSessionSlice';
+import { rejectAll } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
+import { selectSsoLoginUrl } from 'MainRoot/user/LoginModal/userLoginSelectors';
+import { actions as userSessionActions } from 'MainRoot/user/userSessionSlice';
 
 const REDUCER_NAME = 'userLogin';
 const { initialState: rscInitialState } = nxTextInputStateHelpers;
 
 function redirect(destination) {
   assign(destination);
-}
-
-function isBackupLogin() {
-  return window.location.hash === '#/backupLogin';
 }
 
 export function redirectToIdP(ssoLoginUrl) {
@@ -44,8 +33,6 @@ export const initialState = Object.freeze({
   loginModalState: {
     username: rscInitialState(''),
     password: rscInitialState(''),
-    isLicensed: false,
-    products: [],
     showLoginModal: false,
     showSso: false,
     ssoLoginUrl: null,
@@ -88,42 +75,8 @@ const onClickSSO = () => {
   };
 };
 
-const authenticate = (wwwAuthenticateHeader, ssoLoginUrl) => {
-  return async (dispatch) => {
-    let isSsoOnlyEnabled = false;
-    try {
-      isSsoOnlyEnabled = await dispatch(productFeaturesActions.loadIsSsoOnlyEnabled()).then(unwrapResult);
-    } catch (error) {
-      isSsoOnlyEnabled = false;
-    }
-
-    const hasSso =
-      wwwAuthenticateHeader && (wwwAuthenticateHeader.includes('SAML') || wwwAuthenticateHeader.includes('OIDC'));
-
-    if (isSsoOnlyEnabled && hasSso && !isBackupLogin()) {
-      clearRequests();
-      redirectToIdP(ssoLoginUrl);
-      return;
-    }
-
-    dispatch(open(hasSso, ssoLoginUrl));
-    return dispatch(ensureUserLoggedIn());
-  };
-};
-
 const open = (showSsoButton, ssoLoginUrl) => {
-  return (dispatch, getState) => {
-    const state = getState();
-    const isLicensed = selectIsLicenseInstalled(state);
-    const products = selectProducts(state);
-    const isUnauthenticatedPagesEnabled = selectIsUnauthenticatedPagesEnabled(state);
-    const isQuarantinedComponentViewEnabled = selectIsQuarantinedComponentViewAnonymousAccessEnabled(state);
-
-    dispatch(actions.setIsLicensed(isLicensed));
-    dispatch(actions.setProducts(products));
-    dispatch(actions.setUnauthenticatedPagesEnabled(isUnauthenticatedPagesEnabled));
-    dispatch(actions.setQuarantinedComponentViewAnonymousAccessEnabled(isQuarantinedComponentViewEnabled));
-
+  return (dispatch) => {
     dispatch(actions.setShowLoginModal(true));
     dispatch(actions.setShowSso(showSsoButton));
     dispatch(actions.setSsoLoginUrl(ssoLoginUrl));
@@ -175,8 +128,6 @@ const resetLoginSubmitState = (state) => {
     loginModalState: {
       username: rscInitialState(''),
       password: rscInitialState(''),
-      isLicensed: false,
-      products: [],
       showLoginModal: false,
       showSso: false,
       isFormValid: false,
@@ -198,8 +149,6 @@ const userLoginSlice = createSlice({
     resetLoginSubmitState: resetLoginSubmitState,
     setUsername: pathSet(['loginModalState', 'username']),
     setPassword: pathSet(['loginModalState', 'password']),
-    setIsLicensed: pathSet(['loginModalState', 'isLicensed']),
-    setProducts: pathSet(['loginModalState', 'products']),
     setShowLoginModal: pathSet(['loginModalState', 'showLoginModal']),
     setShowSso: pathSet(['loginModalState', 'showSso']),
     setSsoLoginUrl: pathSet(['loginModalState', 'ssoLoginUrl']),
@@ -222,7 +171,6 @@ export const actions = {
   submitUserLogin,
   onSubmit,
   onClickSSO,
-  authenticate,
   open,
   dismiss,
 };

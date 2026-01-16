@@ -26,8 +26,12 @@
     </sonar.coverage.exclusions>
     <sonar.tests>src/test/frontend</sonar.tests>
     <sonar.javascript.lcov.reportPaths>${project.build.directory}/coverage/lcov.info</sonar.javascript.lcov.reportPaths>
-    <!--- disable frontend build cache until the cache extension can handle symlinks in node_modules as a cache output -->
-    <maven.build.cache.skipCache>true</maven.build.cache.skipCache>
+    <!--
+      Disable frontend build cache until the cache extension can handle symlinks in node_modules as a cache output.
+      When cache is enabled (true), skip it for frontend (true).
+      When cache is disabled (false), don't try to skip as this would result in an error.
+    -->
+    <maven.build.cache.skipCache>${maven.build.cache.enabled}</maven.build.cache.skipCache>
   </properties>
 
   <build>

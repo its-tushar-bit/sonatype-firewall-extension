@@ -5,7 +5,7 @@
  */
 import React, { useEffect, useMemo } from 'react';
 import PropTypes from 'prop-types';
-import { useSelector, useStore, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import MenuBar from './MenuBar/MenuBar.jsx';
 import {
   selectIsAutomationSupported,
@@ -43,17 +43,13 @@ import {
   selectIsStandaloneSbomManager,
   selectCurrentRouteName,
 } from 'MainRoot/reduxUiRouter/routerSelectors';
-import { fetchUser } from 'MainRoot/user/userSessionUtils';
-import { selectIsLoggedIn } from 'MainRoot/user/userSelectors';
+import { selectIsLoggedIn } from 'MainRoot/user/userSessionSelectors';
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { actions } from './mainHeaderSlice';
 import { selectPermissions, selectShouldShowLoginButton } from './mainHeaderSelectors';
-import userActions from 'MainRoot/user/userActions';
-import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import { actions as userSessionActions } from 'MainRoot/user/userSessionSlice';
 
 export function MainHeader({ clmServerVersion = '' }) {
-  const store = useStore();
   const dispatch = useDispatch();
   const globalMajorMinorVersion = useMemo(
     () => (clmServerVersion ? `${clmServerVersion}` : '').split('.').splice(0, 2).join('.'),
@@ -150,7 +146,6 @@ export function MainHeader({ clmServerVersion = '' }) {
       hasLifecycleLicense={hasLifecycleLicense}
       hasRoutesResolved={hasRoutesResolved}
       hasAuditorLicense={hasAuditorLicense}
-      userActions={userActions}
     />
   );
 }

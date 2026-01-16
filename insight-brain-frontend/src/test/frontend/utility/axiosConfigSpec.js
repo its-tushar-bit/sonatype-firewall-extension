@@ -4,12 +4,13 @@
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
 
-import { actions as loginModalActions } from 'MainRoot/user/LoginModal/userLoginSlice';
 import * as isIqIframeUtil from 'MainRoot/util/isIqFrame';
 import * as sessionExpirationManager from 'MainRoot/session/sessionExpirationManager';
 import { addRequest, clearRequests, getRequests } from 'MainRoot/utility/services/unauthenticatedRequestQueue';
 import axios from 'axios';
+import * as userSessionUtils from 'MainRoot/user/userSessionUtils';
 import { attachAxiosInterceptors } from 'MainRoot/utility/axiosConfig';
+import store from 'MainRoot/reduxConfig/store';
 
 describe('axiosConfig', () => {
   let mockSessionExpired;
@@ -19,7 +20,7 @@ describe('axiosConfig', () => {
   });
 
   describe('attachAxiosInterceptors', () => {
-    let $window, attachInterceptors, mockRootScope, mockStore;
+    let $window, attachInterceptors, mockReduxState, authenticateSpy;
 
     beforeEach(() => {
       $window = {
@@ -36,12 +37,8 @@ describe('axiosConfig', () => {
       // Set up the mock on the real window.top object
       window.top.sessionExpired = mockSessionExpired;
 
-      // Create mock rootScope for axiosConfig
-      // axiosConfig checks rootScope.username to detect session expiration
-      mockRootScope = {};
-
       // Create a mock Redux state that can be modified
-      let mockReduxState = {
+      mockReduxState = {
         userSession: {
           data: null,
         },
@@ -51,25 +48,8 @@ describe('axiosConfig', () => {
         userLogin: {},
       };
 
-      // Create mock store
-      mockStore = {
-        dispatch: jasmine.createSpy('dispatch').and.callFake((action) => {
-          if (typeof action === 'function') {
-            return action(mockStore.dispatch, mockStore.getState);
-          }
-
-          if (action && action.type === 'appError/setError') {
-            mockReduxState.appError.error = action.payload;
-          } else if (action && action.type === 'appError/clearError') {
-            mockReduxState.appError.error = null;
-          } else if (action && action.type === 'userSession/fetchUserSession/fulfilled') {
-            mockReduxState.userSession.data = action.payload;
-          }
-
-          return action;
-        }),
-        getState: jasmine.createSpy('getState').and.callFake(() => mockReduxState),
-      };
+      // Spy on store.getState to return our mock state
+      spyOn(store, 'getState').and.returnValue(mockReduxState);
 
       // Spy on axios interceptor methods
       spyOn(axios.interceptors.response, 'use').and.callThrough();
@@ -89,11 +69,11 @@ describe('axiosConfig', () => {
       // Set up axios adapter to use our mock
       axios.defaults.adapter = mockAxiosAdapter;
 
-      // Spy on loginModalActions.authenticate and make it return a promise
-      spyOn(loginModalActions, 'authenticate').and.returnValue(() => Promise.resolve());
+      // Spy on userSessionUtils.authenticate
+      authenticateSpy = spyOn(userSessionUtils, 'authenticate').and.returnValue(Promise.resolve());
 
-      // attachAxiosInterceptors signature: (rootScope, window, loginModalActions, store)
-      attachInterceptors = () => attachAxiosInterceptors(mockRootScope, $window, loginModalActions, mockStore);
+      // attachAxiosInterceptors now takes no parameters
+      attachInterceptors = () => attachAxiosInterceptors();
     });
 
     afterEach(() => {
@@ -249,7 +229,7 @@ describe('axiosConfig', () => {
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = { response: { status: 401 } };
             // Set username in Redux state to simulate existing session
-            mockStore.getState().userSession.data = { username: 'previous_session_username' };
+            mockReduxState.userSession.data = { username: 'previous_session_username' };
 
             const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
             interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
@@ -291,6 +271,11 @@ describe('axiosConfig', () => {
         );
 
         describe('intercepts a request that is waiting for login and is rejected due to authentication', () => {
+          beforeEach(() => {
+            // Mock isIqIframe to return false so we don't trigger sessionExpired
+            spyOn(isIqIframeUtil, 'default').and.returnValue(false);
+          });
+
           it('adds the request to the unauthenticatedRequestsQueue if it was waiting for login', (done) => {
             const authenticationInterceptor = getAuthenticationInterceptor();
             const errorFromRequest = {
@@ -328,7 +313,7 @@ describe('axiosConfig', () => {
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith(undefined, undefined);
+                expect(authenticateSpy).toHaveBeenCalledOnceWith(undefined, undefined);
                 done();
               });
             });
@@ -349,7 +334,7 @@ describe('axiosConfig', () => {
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith('SAML', '/saml/login');
+                expect(authenticateSpy).toHaveBeenCalledOnceWith('SAML', '/saml/login');
                 done();
               });
             });
@@ -370,7 +355,7 @@ describe('axiosConfig', () => {
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(() => {
-                expect(loginModalActions.authenticate).toHaveBeenCalledOnceWith('OIDC', '/oidc/login');
+                expect(authenticateSpy).toHaveBeenCalledOnceWith('OIDC', '/oidc/login');
                 done();
               });
             });
@@ -385,14 +370,14 @@ describe('axiosConfig', () => {
               });
 
               // Reset the spy and mock authenticate to return a controllable promise and add an additional request
-              loginModalActions.authenticate.and.callFake(() => {
+              authenticateSpy.and.callFake(() => {
                 // Add a second request to the queue when authenticate is called
                 addRequest(
                   () => newRequestedPromise,
                   () => {}
                 );
-                // Return a thunk that returns the authentication promise
-                return () => authenticationPromise;
+                // Return the authentication promise directly (no longer a thunk)
+                return authenticationPromise;
               });
 
               const authenticationInterceptor = getAuthenticationInterceptor();
@@ -429,24 +414,26 @@ describe('axiosConfig', () => {
             });
 
             it('clears any remaining requests if authentication is not successful or cancelled', (done) => {
+              // Mock authenticate to return a rejected promise (cancelled/failed authentication)
+              authenticateSpy.and.returnValue(Promise.reject(new Error('Authentication cancelled')));
+
               const authenticationInterceptor = getAuthenticationInterceptor();
               const errorFromRequest = {
                 response: {
                   status: 401,
                   headers: {},
+                  config: { url: '/api/test' },
                 },
               };
 
               const interceptorResolution = authenticationInterceptor.rejected(errorFromRequest);
 
               interceptorResolution.then(promiseShouldNotBeResolvedFailure, () => {
-                expect(getRequests().length).toBe(0);
-                done();
-              });
-              // Simulate cancelled authentication
-              mockStore.dispatch({
-                type: 'userLogin/setAuthenticationFlowStatus',
-                payload: { status: 'cancelled', requestId: '123' },
+                // Wait a tick to allow rejectAll() to complete
+                setTimeout(() => {
+                  expect(getRequests().length).toBe(0);
+                  done();
+                }, 0);
               });
             });
           });

@@ -134,8 +134,13 @@ export default function withLdapHeader(WrappedComponent, { formId }) {
       return isConnectionTab ? saveConnection() : saveUserAndGroupSettings();
     }
 
-    function cancel() {
-      stateGo('ldap-list');
+    async function cancel() {
+      try {
+        await stateGo('ldap-list');
+      } catch {
+        // Unsaved Changed Modal was cancelled
+        return;
+      }
       return resetForm();
     }
 

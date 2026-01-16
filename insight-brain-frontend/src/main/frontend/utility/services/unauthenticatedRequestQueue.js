@@ -45,6 +45,6 @@ export const settleAll = () => {
 };
 
 export const rejectAll = () => {
-  rejects.forEach((reject) => reject('logout cancelled'));
+  rejects.forEach((reject) => reject('login cancelled'));
   clearRequests();
 };

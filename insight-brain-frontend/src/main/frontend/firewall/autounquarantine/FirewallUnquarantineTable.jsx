@@ -25,6 +25,7 @@ export default function FirewallUnquarantineTable(props) {
     setAutoUnquarantineGridPage,
     setAutoUnquarantineGridSorting,
     selectReleaseQuarantineComponent,
+    goToRepositoryComponentDetailsPage,
   } = props;
 
   // autoUnquarantineState.autoUnquarantineGridState
@@ -99,8 +100,22 @@ export default function FirewallUnquarantineTable(props) {
         >
           {releaseQuarantineList &&
             releaseQuarantineList.map((row, index) => {
+              // Modified to goToRepositoryComponentDetailsPage to render the navigation instead of adding to redux store
               return (
-                <NxTableRow isClickable={true} key={index} onClick={() => selectReleaseQuarantineComponent(index)}>
+                <NxTableRow
+                  isClickable={true}
+                  key={index}
+                  onClick={() =>
+                    goToRepositoryComponentDetailsPage(
+                      row.repositoryId,
+                      row.componentIdentifier,
+                      row.hash,
+                      row.matchState,
+                      row.pathname,
+                      row.componentDisplayText
+                    )
+                  }
+                >
                   <NxTableCell>
                     <NxOverflowTooltip title={row.componentDisplayText}>
                       <div className="nx-truncate-ellipsis">{row.componentDisplayText}</div>
@@ -149,5 +164,5 @@ FirewallUnquarantineTable.propTypes = {
   currentPage: PropTypes.number,
   sortDir: PropTypes.string,
   sortField: PropTypes.string,
-  selectReleaseQuarantineComponent: PropTypes.func.isRequired,
+  goToRepositoryComponentDetailsPage: PropTypes.func.isRequired,
 };

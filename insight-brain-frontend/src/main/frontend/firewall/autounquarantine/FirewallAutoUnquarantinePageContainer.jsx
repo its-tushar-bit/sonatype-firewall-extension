@@ -13,6 +13,7 @@ import {
   selectReleaseQuarantineComponent,
   setAutoUnquarantineGridPage,
   setAutoUnquarantineGridSorting,
+  goToRepositoryComponentDetailsPage,
 } from '../firewallActions';
 
 function mapStateToProps({ firewall }) {
@@ -42,6 +43,7 @@ const mapDispatchToProps = {
   setAutoUnquarantineGridSorting,
   openConfigurationModal,
   selectReleaseQuarantineComponent,
+  goToRepositoryComponentDetailsPage,
 };
 
 export default connect(mapStateToProps, mapDispatchToProps)(FirewallAutoUnquarantinePage);

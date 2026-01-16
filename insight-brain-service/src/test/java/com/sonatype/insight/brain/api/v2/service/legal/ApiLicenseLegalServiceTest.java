@@ -82,6 +82,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.hds.ComponentDetailsLoaderFactory;
 import com.sonatype.insight.brain.hds.ComponentInfoService;
 import com.sonatype.insight.brain.model.Application;
@@ -318,12 +320,15 @@ public class ApiLicenseLegalServiceTest
     VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO =
         daoFactory.createVulnerabilityCustomCvssSeverityDAO();
     MultiLicenseDAO multiLicenseDAO = daoFactory.createMultiLicenseDAO();
+    VulnerabilityGroupDAO vulnerabilityGroupDAO = daoFactory.createVulnerabilityGroupDAO();
+    VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO =
+        daoFactory.createVulnerabilityGroupVulnerabilityDAO();
 
     ComponentLoaderFactory componentLoaderFactory =
         new ComponentLoaderFactory(multiLicenseDAO, licenseThreatGroupDAO, licenseThreatGroupLicenseDAO,
             licenseOverrideDAO, securityVulnerabilityOverrideDAO, ownerDAO, componentLabelDAO,
             vulnerabilityCustomRemediationDAO, vulnerabilityCustomCweDAO, vulnerabilityCustomCvssVectorDAO,
-            vulnerabilityCustomCvssSeverityDAO);
+            vulnerabilityCustomCvssSeverityDAO, vulnerabilityGroupDAO, vulnerabilityGroupVulnerabilityDAO);
 
     ComponentInfoService componentInfoService =
         new ComponentInfoService(null, null,

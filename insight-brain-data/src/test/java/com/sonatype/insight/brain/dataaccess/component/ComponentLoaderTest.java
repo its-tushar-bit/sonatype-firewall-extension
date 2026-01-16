@@ -34,6 +34,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.component.Component;
@@ -55,6 +57,7 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 
@@ -102,6 +105,10 @@ public class ComponentLoaderTest
 
   private LicenseOverrideDAO licenseOverrideDAO;
 
+  private VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  private VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
+
   private ComponentLoaderFactory componentLoaderFactory;
 
   private ComponentLoader componentLoader;
@@ -124,12 +131,14 @@ public class ComponentLoaderTest
     labelDAO = daoFactory.createLabelDAO();
     componentLabelDAO = daoFactory.createComponentLabelDAO();
     licenseOverrideDAO = daoFactory.createLicenseOverrideDAO();
+    vulnerabilityGroupDAO = daoFactory.createVulnerabilityGroupDAO();
+    vulnerabilityGroupVulnerabilityDAO = daoFactory.createVulnerabilityGroupVulnerabilityDAO();
 
     componentLoaderFactory =
         new ComponentLoaderFactory(multiLicenseDAO, licenseThreatGroupDAO, licenseThreatGroupLicenseDAO,
             licenseOverrideDAO, securityVulnerabilityOverrideDAO, ownerDAO, componentLabelDAO,
             vulnerabilityCustomRemediationDAO, vulnerabilityCustomCweDAO, vulnerabilityCustomCvssVectorDAO,
-            vulnerabilityCustomCvssSeverityDAO);
+            vulnerabilityCustomCvssSeverityDAO, vulnerabilityGroupDAO, vulnerabilityGroupVulnerabilityDAO);
 
     componentLoader = componentLoaderFactory.createComponentLoader(application);
 
@@ -1173,6 +1182,51 @@ public class ComponentLoaderTest
     assertThat(foundSv3.getRefId()).isEqualTo("CVE-2024-103");
     assertThat(foundSv3.getKevData()).isNull();
     assertThat(foundSv3.getEpssData()).isNull();
+  }
+
+  public void testGetComponent_LoadsVulnerabilityGroupVulnerabilities() {
+    // Create vulnerability groups at different hierarchy levels
+    VulnerabilityGroup appGroup = tempEntity.newVulnerabilityGroup("App VG", application.getId());
+    tempEntity.newVulnerabilityGroupVulnerability(appGroup.getId(), "CVE-2021-1234");
+    tempEntity.newVulnerabilityGroupVulnerability(appGroup.getId(), "CVE-2021-5678");
+
+    VulnerabilityGroup orgGroup = tempEntity.newVulnerabilityGroup("Org VG", organization.getId());
+    tempEntity.newVulnerabilityGroupVulnerability(orgGroup.getId(), "CVE-2022-9999");
+
+    VulnerabilityGroup rootGroup = tempEntity.newVulnerabilityGroup("Root VG", organization.getParentOrganizationId());
+    tempEntity.newVulnerabilityGroupVulnerability(rootGroup.getId(), "CVE-2023-0001");
+
+    // Create a component with security vulnerabilities
+    MatchedComponent matchedComponent = new MatchedComponent();
+    matchedComponent.setHash(COMP_HASH);
+    matchedComponent.setComponentIdentifier(ComponentIdentifier.createMavenCoordinates("gid", "aid", "1.2.3"));
+    matchedComponent.setMatchState("exact");
+    com.sonatype.clm.dto.model.SecurityVulnerability sv1 =
+        new com.sonatype.clm.dto.model.SecurityVulnerability("CVE-2021-1234", "nvd", 7.5f);
+    matchedComponent.addSecurityVulnerability(sv1);
+
+    // Load the component
+    final Component component = componentLoader.getComponent(matchedComponent, true);
+
+    // Verify vulnerability group data is loaded
+    assertThat(component.getVulnerabilityGroupVulnerabilities()).isNotEmpty();
+    assertThat(component.getVulnerabilityGroupVulnerabilities()).containsKeys(appGroup.getId(), orgGroup.getId(),
+        rootGroup.getId());
+
+    // Verify the app group vulnerabilities
+    assertThat(component.getVulnerabilityGroupVulnerabilities().get(appGroup.getId()))
+        .extracting("vulnerabilityRefId")
+        .containsExactlyInAnyOrder("CVE-2021-1234", "CVE-2021-5678");
+
+    // Verify the org group vulnerabilities
+    assertThat(component.getVulnerabilityGroupVulnerabilities().get(orgGroup.getId()))
+        .extracting("vulnerabilityRefId")
+        .containsExactlyInAnyOrder("CVE-2022-9999");
+
+    // Verify the root group vulnerabilities
+    assertThat(component.getVulnerabilityGroupVulnerabilities().get(rootGroup.getId()))
+        .extracting("vulnerabilityRefId")
+        .containsExactlyInAnyOrder("CVE-2023-0001");
   }
 
   private void assertLicenseOverrideIsTheExpected(MatchedComponent matchedComponent, String licenseOverrideId) {

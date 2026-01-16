@@ -82,8 +82,7 @@ public class ConditionTypesTestHelper
         new SecurityVulnerabilityCweConditionType(),
         new SecurityVulnerabilityCustomRemediationConditionType(),
         new IacControlConditionType(daoFactory.createThirdPartyVulnerabilityDAO()),
-        new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO(),
-            daoFactory.createVulnerabilityGroupVulnerabilityDAO(), daoFactory.createOwnerDAO()),
+        new VulnerabilityGroupConditionType(daoFactory.createVulnerabilityGroupDAO(), daoFactory.createOwnerDAO()),
         new SecurityVulnerabilityCustomCVSSVectorStringConditionType(),
         new ComponentEndOfLifeConditionType(), //
         new DerivativeAiModelConditionType(),

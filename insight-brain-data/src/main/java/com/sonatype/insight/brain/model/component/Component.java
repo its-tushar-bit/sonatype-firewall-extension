@@ -31,6 +31,7 @@ import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.model.license.LicenseOverrideStatus;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;
 import com.sonatype.insight.brain.model.policy.ComponentIdentifierAndHashComparable;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -64,6 +65,8 @@ public class Component
   private LicenseOverrideStatus licenseOverrideStatus;
 
   private List<SecurityVulnerability> securityVulnerabilities;
+
+  private Map<String, List<VulnerabilityGroupVulnerability>> vulnerabilityGroupVulnerabilities;
 
   private Integer relativePopularity;
 
@@ -152,6 +155,19 @@ public class Component
       securityVulnerabilities = new ArrayList<>();
     }
     securityVulnerabilities.add(securityVulnerability);
+  }
+
+  public Map<String, List<VulnerabilityGroupVulnerability>> getVulnerabilityGroupVulnerabilities() {
+    if (vulnerabilityGroupVulnerabilities == null) {
+      return Collections.emptyMap();
+    }
+    return vulnerabilityGroupVulnerabilities;
+  }
+
+  public void setVulnerabilityGroupVulnerabilities(
+      final Map<String, List<VulnerabilityGroupVulnerability>> vulnerabilityGroupVulnerabilities)
+  {
+    this.vulnerabilityGroupVulnerabilities = vulnerabilityGroupVulnerabilities;
   }
 
   @JsonIgnore

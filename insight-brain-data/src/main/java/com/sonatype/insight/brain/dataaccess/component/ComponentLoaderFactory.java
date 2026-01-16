@@ -19,6 +19,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Owner;
 
 @Named
@@ -46,6 +48,10 @@ public class ComponentLoaderFactory
 
   private final ComponentLabelDAO componentLabelDAO;
 
+  private final VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
+
   @Inject
   public ComponentLoaderFactory(
       final MultiLicenseDAO multiLicenseDAO,
@@ -58,7 +64,9 @@ public class ComponentLoaderFactory
       final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO,
       final VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO,
       final VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO,
-      final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO)
+      final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO,
+      final VulnerabilityGroupDAO vulnerabilityGroupDAO,
+      final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO)
   {
     this.ownerDAO = ownerDAO;
     this.multiLicenseDAO = multiLicenseDAO;
@@ -71,12 +79,14 @@ public class ComponentLoaderFactory
     this.vulnerabilityCustomCweDAO = vulnerabilityCustomCweDAO;
     this.vulnerabilityCustomCvssVectorDAO = vulnerabilityCustomCvssVectorDAO;
     this.vulnerabilityCustomCvssSeverityDAO = vulnerabilityCustomCvssSeverityDAO;
+    this.vulnerabilityGroupDAO = vulnerabilityGroupDAO;
+    this.vulnerabilityGroupVulnerabilityDAO = vulnerabilityGroupVulnerabilityDAO;
   }
 
   public ComponentLoader createComponentLoader(Owner owner) {
     return new ComponentLoader(owner, multiLicenseDAO, licenseThreatGroupDAO, licenseThreatGroupLicenseDAO,
         licenseOverrideDAO, securityVulnerabilityOverrideDAO, ownerDAO, componentLabelDAO,
         vulnerabilityCustomRemediationDAO, vulnerabilityCustomCweDAO, vulnerabilityCustomCvssVectorDAO,
-        vulnerabilityCustomCvssSeverityDAO);
+        vulnerabilityCustomCvssSeverityDAO, vulnerabilityGroupDAO, vulnerabilityGroupVulnerabilityDAO);
   }
 }

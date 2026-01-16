@@ -44,6 +44,8 @@ import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCv
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCvssVectorDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomCweDAO;
 import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityCustomRemediationDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupDAO;
+import com.sonatype.insight.brain.dataaccess.vulnerability.VulnerabilityGroupVulnerabilityDAO;
 import com.sonatype.insight.brain.model.Owner;
 import com.sonatype.insight.brain.model.component.Component;
 import com.sonatype.insight.brain.model.component.ComponentCategory;
@@ -68,6 +70,8 @@ import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssSev
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCvssVector;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomCwe;
 import com.sonatype.insight.brain.model.vulnerability.VulnerabilityCustomRemediation;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroup;
+import com.sonatype.insight.brain.model.vulnerability.VulnerabilityGroupVulnerability;
 import com.sonatype.insight.json.store.JsonUtils;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityDetectionType;
 import com.sonatype.insight.vulnerability.model.SecurityVulnerabilityResearchType;
@@ -79,6 +83,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 public class ComponentLoader
@@ -113,6 +118,10 @@ public class ComponentLoader
 
   private final ComponentLabelDAO componentLabelDAO;
 
+  private final VulnerabilityGroupDAO vulnerabilityGroupDAO;
+
+  private final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO;
+
   private final Owner owner;
 
   private List<String> ownerIds;
@@ -135,6 +144,8 @@ public class ComponentLoader
 
   private Map<SimpleEntry<String, ComponentIdentifier>, VulnerabilityCustomCvssSeverity> customCvssSeverities;
 
+  private Map<String, List<VulnerabilityGroupVulnerability>> vulnerabilityGroupVulnerabilitiesByGroupId;
+
   public ComponentLoader(
       final Owner owner,
       final MultiLicenseDAO multiLicenseDAO,
@@ -147,7 +158,9 @@ public class ComponentLoader
       final VulnerabilityCustomRemediationDAO vulnerabilityCustomRemediationDAO,
       final VulnerabilityCustomCweDAO vulnerabilityCustomCweDAO,
       final VulnerabilityCustomCvssVectorDAO vulnerabilityCustomCvssVectorDAO,
-      final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO)
+      final VulnerabilityCustomCvssSeverityDAO vulnerabilityCustomCvssSeverityDAO,
+      final VulnerabilityGroupDAO vulnerabilityGroupDAO,
+      final VulnerabilityGroupVulnerabilityDAO vulnerabilityGroupVulnerabilityDAO)
   {
     this.ownerDAO = ownerDAO;
     this.multiLicenseDAO = multiLicenseDAO;
@@ -160,6 +173,8 @@ public class ComponentLoader
     this.vulnerabilityCustomCweDAO = vulnerabilityCustomCweDAO;
     this.vulnerabilityCustomCvssVectorDAO = vulnerabilityCustomCvssVectorDAO;
     this.vulnerabilityCustomCvssSeverityDAO = vulnerabilityCustomCvssSeverityDAO;
+    this.vulnerabilityGroupDAO = vulnerabilityGroupDAO;
+    this.vulnerabilityGroupVulnerabilityDAO = vulnerabilityGroupVulnerabilityDAO;
     this.owner = owner;
   }
 
@@ -216,6 +231,34 @@ public class ComponentLoader
       }
     }
     return securityVulnerabilityOverridesByHash;
+  }
+
+  private Map<String, List<VulnerabilityGroupVulnerability>> getVulnerabilityGroupVulnerabilities() {
+    if (vulnerabilityGroupVulnerabilitiesByGroupId == null) {
+      vulnerabilityGroupVulnerabilitiesByGroupId = new HashMap<>();
+
+      List<String> ownerIds = getOwnerIds();
+      if (ownerIds.isEmpty()) {
+        return vulnerabilityGroupVulnerabilitiesByGroupId;
+      }
+
+      List<VulnerabilityGroup> allGroups = vulnerabilityGroupDAO.getByOwnerIds(ownerIds);
+      if (allGroups.isEmpty()) {
+        return vulnerabilityGroupVulnerabilitiesByGroupId;
+      }
+
+      List<String> groupIds = allGroups.stream().map(VulnerabilityGroup::getId).collect(toList());
+
+      List<VulnerabilityGroupVulnerability> allVulnerabilities =
+          vulnerabilityGroupVulnerabilityDAO.getByGroupIds(groupIds);
+
+      for (VulnerabilityGroupVulnerability vulnerabilityGroupVulnerability : allVulnerabilities) {
+        vulnerabilityGroupVulnerabilitiesByGroupId
+            .computeIfAbsent(vulnerabilityGroupVulnerability.getVulnerabilityGroupId(), k -> new ArrayList<>())
+            .add(vulnerabilityGroupVulnerability);
+      }
+    }
+    return vulnerabilityGroupVulnerabilitiesByGroupId;
   }
 
   private void processJsonLicenseData(
@@ -706,13 +749,21 @@ public class ComponentLoader
     result.addAll(componentsByHash.values());
     result.addAll(unhashedComponents);
 
-    // Load license threat group and label data
+    // Load license threat group, label data and vulnerability group vulnerabilities
     for (Component component : result) {
       setNotDeclaredLicensesForClaimedComponent(component);
       loadLicenseThreatGroups(component);
       loadComponentLabels(component);
+      loadVulnerabilityGroupVulnerabilities(component);
     }
     return result;
+  }
+
+  private void loadVulnerabilityGroupVulnerabilities(final Component component) {
+    var vulnGroupData = getVulnerabilityGroupVulnerabilities();
+    if (!vulnGroupData.isEmpty()) {
+      component.setVulnerabilityGroupVulnerabilities(vulnGroupData);
+    }
   }
 
   @VisibleForTesting
@@ -834,6 +885,7 @@ public class ComponentLoader
     }
 
     loadComponentLabels(component);
+    loadVulnerabilityGroupVulnerabilities(component);
 
     component.setDerivedFromAiModel(componentInfo.getDerivedFromAiModel());
     component.setAiModelContentTypes(componentInfo.getAiModelContentTypes());
@@ -849,6 +901,7 @@ public class ComponentLoader
     loadLicenseOverride(component, false);
 
     loadLicenseThreatGroups(component);
+    loadVulnerabilityGroupVulnerabilities(component);
 
     return component;
   }

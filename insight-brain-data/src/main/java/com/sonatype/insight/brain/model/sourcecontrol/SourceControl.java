@@ -108,6 +108,19 @@ public class SourceControl
   @Column(name = "inner_source_automated_updates_enabled")
   private Boolean innerSourceAutomatedUpdatesEnabled;
 
+  @Column(name = "github_app_id")
+  private String githubAppId;
+
+  @Column(name = "authentication_type")
+  @Enumerated(EnumType.STRING)
+  private AuthenticationType authenticationType;
+
+  public enum AuthenticationType
+  {
+    PAT,
+    GITHUB_APP
+  }
+
   public SourceControl() {
   }
 
@@ -340,6 +353,22 @@ public class SourceControl
     this.innerSourceAutomatedUpdatesEnabled = innerSourceAutomatedUpdatesEnabled;
   }
 
+  public String getGithubAppId() {
+    return githubAppId;
+  }
+
+  public void setGithubAppId(final String githubAppId) {
+    this.githubAppId = githubAppId;
+  }
+
+  public AuthenticationType getAuthenticationType() {
+    return authenticationType;
+  }
+
+  public void setAuthenticationType(final AuthenticationType authenticationType) {
+    this.authenticationType = authenticationType;
+  }
+
   public static class Builder
   {
     private String ownerId;
@@ -381,6 +410,8 @@ public class SourceControl
     private Boolean manualPullRequestsEnabled;
 
     private Boolean innerSourceAutomatedUpdatesEnabled;
+
+    private AuthenticationType authenticationType;
 
     public Builder setOwnerId(final String ownerId) {
       this.ownerId = ownerId;
@@ -482,6 +513,11 @@ public class SourceControl
       return this;
     }
 
+    public Builder setAuthenticationType(final AuthenticationType authenticationType) {
+      this.authenticationType = authenticationType;
+      return this;
+    }
+
     public SourceControl build() {
       SourceControl sourceControl =
           new SourceControl(ownerId, repositoryUrl, repositorySshUrl, username, token, provider,
@@ -490,6 +526,7 @@ public class SourceControl
               manualPullRequestsEnabled, innerSourceAutomatedUpdatesEnabled, closePrOnFailedChecksEnabled,
               closePrAfterDaysOpenEnabled, closePrAfterDays);
       sourceControl.setPullRequestPollTime(pullRequestPollTime);
+      sourceControl.setAuthenticationType(authenticationType);
       return sourceControl;
     }
   }
@@ -524,6 +561,8 @@ public class SourceControl
             coalesce(accumulator.getManualPullRequestsEnabled(), other.getManualPullRequestsEnabled()));
     accumulator.setInnerSourceAutomatedUpdatesEnabled(
         coalesce(accumulator.getInnerSourceAutomatedUpdatesEnabled(), other.getInnerSourceAutomatedUpdatesEnabled()));
+    accumulator.setGithubAppId(coalesce(accumulator.getGithubAppId(), other.getGithubAppId()));
+    accumulator.setAuthenticationType(coalesce(accumulator.getAuthenticationType(), other.getAuthenticationType()));
   }
 
   private static int coalesce(int value1, int value2) {
@@ -564,6 +603,8 @@ public class SourceControl
         ", commitStatusEnabled=" + commitStatusEnabled +
         ", manualPullRequestsEnabled=" + manualPullRequestsEnabled +
         ", innerSourceAutomatedUpdatesEnabled=" + innerSourceAutomatedUpdatesEnabled +
+        ", authenticationType=" + authenticationType +
+        ", githubAppId='" + githubAppId + '\'' +
         '}';
   }
 }

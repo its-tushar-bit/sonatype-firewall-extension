@@ -760,6 +760,23 @@ INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_i
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a5', 'ROOT_ORGANIZATION_ID', 'continuous-monitoring', true, 90);
 INSERT INTO data_retention_policy (data_retention_policy_id, owner_id, context_id, purging_enabled, max_age_in_days) VALUES('5575c590071c438c95ff3980ee9c71a6', 'ROOT_ORGANIZATION_ID', 'success-metrics', true, 365);
 
+-- Since 1.201
+-- GitHub App registration and installation data
+CREATE TABLE github_app (
+  github_app_id VARCHAR(50) NOT NULL,
+  owner_id VARCHAR(50) NOT NULL,
+  app_id INTEGER NOT NULL,
+  slug VARCHAR(256),
+  client_id VARCHAR(256) NOT NULL,
+  client_secret VARCHAR(512) NOT NULL,
+  private_key TEXT NOT NULL,
+  installation_id BIGINT NOT NULL,
+  CONSTRAINT github_app_pk PRIMARY KEY (github_app_id),
+  CONSTRAINT github_app_owner_id_uk UNIQUE (owner_id),
+  CONSTRAINT github_app_installation_id_uk UNIQUE (installation_id),
+  CONSTRAINT github_app_app_id_uk UNIQUE (app_id)
+);
+
 -- source control repository data associated with an organization or application (owner)
 CREATE TABLE source_control (
   source_control_id varchar(50) NOT NULL,
@@ -785,8 +802,11 @@ CREATE TABLE source_control (
   close_pr_on_failed_checks_enabled boolean,
   close_pr_after_days_open_enabled boolean,
   close_pr_after_days INTEGER NULL,
+  github_app_id VARCHAR(50),
+  authentication_type VARCHAR(20) DEFAULT 'PAT',
   CONSTRAINT source_control_pk PRIMARY KEY (source_control_id),
-  CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id)
+  CONSTRAINT source_control_owner_id_uk UNIQUE (owner_id),
+  CONSTRAINT source_control_github_app_fk FOREIGN KEY (github_app_id) REFERENCES github_app(github_app_id)
 );
 CREATE INDEX source_control_normalized_repository_url_idx ON source_control(normalized_repository_url);
 

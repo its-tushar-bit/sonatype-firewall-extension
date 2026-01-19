@@ -113,6 +113,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -852,6 +853,11 @@ public class TestDAOFactory
   @Override
   public UserTokenDAO createUserTokenDAO() {
     return new UserTokenDAO(dataStoreProvider.getOperationalDataStore());
+  }
+
+  @Override
+  public GitHubAppDAO createGitHubAppDAO() {
+    return new GitHubAppDAO(dataStoreProvider.getOperationalDataStore());
   }
 
   @Override

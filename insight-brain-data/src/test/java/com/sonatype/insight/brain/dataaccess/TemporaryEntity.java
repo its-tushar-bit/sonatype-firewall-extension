@@ -151,6 +151,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -212,6 +213,7 @@ import com.sonatype.insight.brain.model.artifactory.ArtifactoryConnection;
 import com.sonatype.insight.brain.model.component.HashComponentIdentifier;
 import com.sonatype.insight.brain.model.component.MatchState;
 import com.sonatype.insight.brain.model.component.RepositoryIdentifiedComponent;
+import com.sonatype.insight.brain.model.githubapp.GitHubApp;
 import com.sonatype.insight.brain.model.configuration.CallFlowAnalysisConfig;
 import com.sonatype.insight.brain.model.configuration.CpeMatchingConfiguration;
 import com.sonatype.insight.brain.model.configuration.FirewallIgnorePatterns;
@@ -708,6 +710,8 @@ public class TemporaryEntity
 
   private RepositoryContainerDAO repositoryContainerDAO;
 
+  private GitHubAppDAO gitHubAppDAO;
+
   private Collection<String> persistedUserSessionIds;
 
   private Collection<DeletedTenant> deletedTenants;
@@ -976,6 +980,7 @@ public class TemporaryEntity
       delete(sourceControlUserActivityDAO.getAll(), sourceControlUserActivityDAO);
       delete(sourceControlUserDAO.getAll(), sourceControlUserDAO);
       delete(sourceControlDAO.getAll(), sourceControlDAO);
+      delete(gitHubAppDAO.getAll(), gitHubAppDAO);
       deleteSamlConfiguration();
       delete(thirdPartySbomMetadataDAO.getAll(), thirdPartySbomMetadataDAO);
       delete(thirdPartyScanDAO.getAll(), thirdPartyScanDAO);
@@ -4583,6 +4588,25 @@ public class TemporaryEntity
     return sourceControl;
   }
 
+  public GitHubApp newGitHubApp(String ownerId) {
+    GitHubApp gitHubApp = new GitHubApp();
+    gitHubApp.setId(uuid());
+    gitHubApp.setOwnerId(ownerId);
+    gitHubApp.setAppId(12345);
+    gitHubApp.setSlug("test-app");
+    gitHubApp.setClientId("Iv1.1234567890abcdef");
+    gitHubApp.setClientSecret("client-secret-test");
+    gitHubApp.setPrivateKey("test-private-key");
+    // Generate unique installation ID to avoid collisions
+    gitHubApp.setInstallationId(System.currentTimeMillis() + (long)(Math.random() * 10000));
+    return newGitHubApp(gitHubApp);
+  }
+
+  public GitHubApp newGitHubApp(GitHubApp gitHubApp) {
+    gitHubAppDAO.insert(gitHubApp);
+    return gitHubApp;
+  }
+
   public SystemConfigurationProperty newSystemConfigurationProperty(String name, String value) {
     systemConfigurationPropertyDAO.set(name, value);
     return systemConfigurationPropertyDAO.getByName(name);
@@ -6598,6 +6622,7 @@ public class TemporaryEntity
     zScalerConfigurationDAO = daoFactory.createZScalerConfigurationDAO();
     zscalerFormatDAO = daoFactory.createZscalerFormatDAO();
     repositoryContainerDAO = daoFactory.createRepositoryContainerDAO();
+    gitHubAppDAO = daoFactory.createGitHubAppDAO();
   }
 
   private void initializeDataMartDataStoreDAOs() {

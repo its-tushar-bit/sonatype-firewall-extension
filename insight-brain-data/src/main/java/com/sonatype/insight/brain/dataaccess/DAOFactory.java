@@ -110,6 +110,7 @@ import com.sonatype.insight.brain.dataaccess.security.SamlUserGroupDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserTokenDAO;
+import com.sonatype.insight.brain.dataaccess.githubapp.GitHubAppDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.ScmUserMappingsDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlDAO;
@@ -346,6 +347,8 @@ public interface DAOFactory
   UserDAO createUserDAO();
 
   UserTokenDAO createUserTokenDAO();
+
+  GitHubAppDAO createGitHubAppDAO();
 
   SourceControlConfigurationDAO createSourceControlConfigurationDAO();
 

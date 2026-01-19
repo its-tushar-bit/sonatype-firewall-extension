@@ -1526,7 +1526,7 @@ public class ReportServiceTest
     appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
 
     ReportMetadataDTO metadata = new ReportMetadataDTO();
-    reportService.setContainerScannerMode(appReport, metadata);
+    reportService.setContainerScannerMode(appReport.getEntry(SUMMARY_JSON.getName()), metadata);
 
     assertThat(metadata.getContainerScanningMode()).isNull();
   }
@@ -1542,7 +1542,7 @@ public class ReportServiceTest
     appReport.saveReportEntry(SUMMARY_JSON.getName(), summary);
 
     ReportMetadataDTO metadata = new ReportMetadataDTO();
-    reportService.setContainerScannerMode(appReport, metadata);
+    reportService.setContainerScannerMode(appReport.getEntry(SUMMARY_JSON.getName()), metadata);
 
     assertThat(metadata.getContainerScanningMode()).isEqualTo("sonatype");
   }

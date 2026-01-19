@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Named;
 
@@ -54,10 +55,16 @@ public class ReportComponentService
     try (ClusterLock clusterLock = clusterLockManager.createForPolicyEvaluation(application, scanId)) {
       clusterLock.lock();
       applicationReport = reportService.fetchReport(application, scanId, stageTypeId);
-      final ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
-      final ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
-      final ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
-      final ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+      Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+          LICENSES_JSON.getName(),
+          SECURITY_JSON.getName(),
+          BOM_JSON.getName(),
+          DEPENDENCIES_JSON.getName()
+      ));
+      final ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
+      final ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
+      final ReportEntry bomReportEntry = entries.get(BOM_JSON.getName());
+      final ReportEntry dependenciesReportEntry = entries.get(DEPENDENCIES_JSON.getName());
 
       if (bomReportEntry == null || securityReportEntry == null || licenseReportEntry == null
           || dependenciesReportEntry == null) {
@@ -74,10 +81,16 @@ public class ReportComponentService
 
   public List<Component> getReportComponents(String scanId, Application owner) throws IOException {
     ApplicationReport applicationReport = reportService.getReport(owner.getId(), scanId);
-    ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
-    ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
-    ReportEntry bomReportEntry = applicationReport.getEntry(BOM_JSON.getName());
-    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        LICENSES_JSON.getName(),
+        SECURITY_JSON.getName(),
+        BOM_JSON.getName(),
+        DEPENDENCIES_JSON.getName()
+    ));
+    ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
+    ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
+    ReportEntry bomReportEntry = entries.get(BOM_JSON.getName());
+    ReportEntry dependenciesReportEntry = entries.get(DEPENDENCIES_JSON.getName());
     List<Component> components = componentLoaderFactory.createComponentLoader(owner)
         .getAll((licenseReportEntry == null) ? null : licenseReportEntry.buf,
             (securityReportEntry == null) ? null : securityReportEntry.buf,

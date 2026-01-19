@@ -109,6 +109,17 @@ public class S3ApplicationReportPersistenceService
       this.key = key;
     }
 
+    /**
+     * Constructor that accepts pre-fetched metadata from ListObjectsV2 to avoid additional headObject calls.
+     *
+     * @param key the S3 object key
+     * @param metadata metadata from a previous S3 operation (e.g., ListObjectsV2)
+     */
+    public S3ReportEntity(final S3ObjectKey key, final Optional<Metadata> metadata) {
+      this.key = key;
+      this.metadata = metadata;
+    }
+
     @Override
     @Trace
     public boolean exists() throws IOException {
@@ -410,14 +421,14 @@ public class S3ApplicationReportPersistenceService
   @Override
   @Trace
   public boolean reportExists(final String applicationId, final String scanId) throws IOException {
-    if (S3Utils.exists(s3Client, s3DataStoreConfig.getBucketName(),
-        getAdditionalObjectKey(applicationId, scanId, CopyStorageService.COPY_MARKER).toString())) {
-      return false;
-    }
     try (var objects = S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(),
-        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId), 1)) {
-      // Do we have at least one object saved for this app and scan
-      return objects.findFirst().isPresent();
+        s3DataStoreConfig.getObjectKeyPrefix() + String.format(BASE_FORMAT, applicationId, scanId))) {
+      Set<S3Object> s3Objects = objects.collect(Collectors.toSet());
+      if (s3Objects.stream().anyMatch(s3Object -> s3Object.key().endsWith(CopyStorageService.COPY_MARKER))) {
+        return false;
+      }
+      // Do we have at least one object saved for this app and scan which isn't the copy marker
+      return !s3Objects.isEmpty();
     }
   }
 
@@ -692,7 +703,12 @@ public class S3ApplicationReportPersistenceService
   {
     return S3Utils.getS3Objects(s3Client, s3DataStoreConfig.getBucketName(), prefix)
         .map(s3Object -> {
-          return new S3ReportEntity(keyParser.apply(s3Object.key()));
+          // Extract metadata from ListObjectsV2 response to avoid additional headObject calls
+          Metadata metadata = new Metadata(
+              s3Object.lastModified().toEpochMilli(),
+              s3Object.size()
+          );
+          return new S3ReportEntity(keyParser.apply(s3Object.key()), Optional.of(metadata));
         });
   }
 

@@ -14,7 +14,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
@@ -100,10 +99,14 @@ public class ReportDataReader
       final List<BillOfMaterialsRowDTO> bomRows =
           readData(bomEntry, new TypeReference<>() { });
       if (bomRows != null && !bomRows.isEmpty()) {
-        ReportEntry securityReportEntry = applicationReport.getEntry(SECURITY_JSON.getName());
+        Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+            SECURITY_JSON.getName(),
+            LICENSES_JSON.getName()
+        ));
+        ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
         final List<HealthCheckReportSecurityRowDTO> securityRows =
             readData(securityReportEntry, new TypeReference<>() { });
-        ReportEntry licenseReportEntry = applicationReport.getEntry(LICENSES_JSON.getName());
+        ReportEntry licenseReportEntry = entries.get(LICENSES_JSON.getName());
         final List<HealthCheckReportRowDTO> licenseRows =
             readData(licenseReportEntry, new TypeReference<>() { });
         prepareComponentData(bomRows, securityRows, licenseRows, reportData);

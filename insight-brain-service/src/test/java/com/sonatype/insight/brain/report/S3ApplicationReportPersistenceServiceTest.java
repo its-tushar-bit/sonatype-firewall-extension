@@ -12,6 +12,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.inject.Inject;
@@ -494,5 +496,56 @@ public class S3ApplicationReportPersistenceServiceTest
     assertThatExceptionOfType(IOException.class)
         .isThrownBy(() -> entity.length(MetadataSource.FETCH))
         .withMessage("File does not exist");
+  }
+
+  @Test
+  public void testGetAllReportEntities_PrefetchesMetadata() throws Exception {
+    helper.saveEmptyMockReport();
+    helper.writeAdditionalFile("file.txt", "content");
+
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    try (Stream<ReportEntity> entities = spyService.getAllReportEntities(APPLICATION_ID, SCAN_ID)) {
+      List<ReportEntity> entityList = entities.collect(Collectors.toList());
+      assertThat(entityList).isNotEmpty();
+
+      // Access metadata on entities - should NOT make headObject calls because metadata was prefetched
+      for (ReportEntity entity : entityList) {
+        assertThat(entity.getMetadata(MetadataSource.CACHED)).isPresent();
+        assertThat(entity.exists(MetadataSource.CACHED)).isTrue();
+        assertThat(entity.getTime(MetadataSource.CACHED)).isGreaterThan(0);
+        assertThat(entity.length(MetadataSource.CACHED)).isGreaterThan(0);
+      }
+
+      // Verify no headObject calls were made (all metadata came from ListObjectsV2)
+      verify(spyS3Client, times(0)).headObject(any(HeadObjectRequest.class));
+    }
+  }
+
+  @Test
+  public void testGetOriginalReportEntities_PrefetchesMetadata() throws Exception {
+    helper.saveEmptyMockReport();
+
+    S3Client spyS3Client = spy(s3Client);
+    S3ApplicationReportPersistenceService spyService =
+        new S3ApplicationReportPersistenceService(spyS3Client, s3AsyncClient, insightConfig);
+
+    try (Stream<ReportEntity> entities = spyService.getOriginalReportEntities(APPLICATION_ID, SCAN_ID)) {
+      List<ReportEntity> entityList = entities.collect(Collectors.toList());
+      assertThat(entityList).isNotEmpty();
+
+      // Access metadata on entities - should NOT make headObject calls
+      for (ReportEntity entity : entityList) {
+        assertThat(entity.getMetadata(MetadataSource.CACHED)).isPresent();
+        assertThat(entity.exists(MetadataSource.CACHED)).isTrue();
+        assertThat(entity.getTime(MetadataSource.CACHED)).isGreaterThan(0);
+        assertThat(entity.length(MetadataSource.CACHED)).isGreaterThan(0);
+      }
+
+      // Verify no headObject calls were made
+      verify(spyS3Client, times(0)).headObject(any(HeadObjectRequest.class));
+    }
   }
 }

@@ -152,9 +152,14 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
-    ReportEntry countsEntry = applicationReport.getEntry(DATA_JSON.getName());
-    ReportEntry policyThreatsEntry = applicationReport.getEntry(POLICY_THREATS.getName());
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        BOM_JSON.getName(),
+        DATA_JSON.getName(),
+        POLICY_THREATS.getName()
+    ));
+    ReportEntry bomEntry = entries.get(BOM_JSON.getName());
+    ReportEntry countsEntry = entries.get(DATA_JSON.getName());
+    ReportEntry policyThreatsEntry = entries.get(POLICY_THREATS.getName());
 
     if (bomEntry == null || policyThreatsEntry == null || countsEntry == null) {
       throw new BadRequestException(
@@ -200,9 +205,12 @@ public class ApiReportDataServiceV2
     String appId = application.getId();
 
     ApplicationReport applicationReport = reportService.getReport(appId, scanId);
-    ReportEntry dependenciesEntry =
-        applicationReport.getEntry(DEPENDENCIES_JSON.getName());
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        DEPENDENCIES_JSON.getName(),
+        BOM_JSON.getName()
+    ));
+    ReportEntry dependenciesEntry = entries.get(DEPENDENCIES_JSON.getName());
+    ReportEntry bomEntry = entries.get(BOM_JSON.getName());
     if (dependenciesEntry != null && bomEntry != null) {
       JsonNode dependenciesNode = JsonUtils.parse(dependenciesEntry.buf);
       JsonNode bomNode = JsonUtils.parse(bomEntry.buf);
@@ -440,11 +448,18 @@ public class ApiReportDataServiceV2
     Application app = appDAO.getByPublicIdNotNull(applicationPublicId);
     ApplicationReport applicationReport = reportService.getReport(app.getId(), scanId);
 
-    ReportEntry bomEntry = applicationReport.getEntry(BOM_JSON.getName());
-    ReportEntry securityEntry = applicationReport.getEntry(SECURITY_JSON.getName());
-    ReportEntry licenseEntry = applicationReport.getEntry(LICENSES_JSON.getName());
-    ReportEntry dataEntry = applicationReport.getEntry(DATA_JSON.getName());
-    ReportEntry dependenciesReportEntry = applicationReport.getEntry(DEPENDENCIES_JSON.getName());
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        BOM_JSON.getName(),
+        SECURITY_JSON.getName(),
+        LICENSES_JSON.getName(),
+        DATA_JSON.getName(),
+        DEPENDENCIES_JSON.getName()
+    ));
+    ReportEntry bomEntry = entries.get(BOM_JSON.getName());
+    ReportEntry securityEntry = entries.get(SECURITY_JSON.getName());
+    ReportEntry licenseEntry = entries.get(LICENSES_JSON.getName());
+    ReportEntry dataEntry = entries.get(DATA_JSON.getName());
+    ReportEntry dependenciesReportEntry = entries.get(DEPENDENCIES_JSON.getName());
 
     if (bomEntry == null || securityEntry == null || licenseEntry == null || dataEntry == null ||
         dependenciesReportEntry == null) {

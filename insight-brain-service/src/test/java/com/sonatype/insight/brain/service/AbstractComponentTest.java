@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -471,13 +472,24 @@ public class AbstractComponentTest
       final int contentSizeInBytes)
       throws Exception
   {
+    createReport(service, eval, null, contentSizeInBytes, null);
+  }
+
+  public void createReport(
+      final ApplicationReportPersistenceService service,
+      final PolicyEvaluation eval,
+      final String prefix,
+      final int contentSizeInBytes,
+      final String suffix)
+      throws Exception
+  {
     String reportZipName = "report.zip";
     Path zipPath = tempDir.getRoot().toPath().resolve(reportZipName);
     ReportHelper.createEmptyZip(zipPath);
     for (ReportFile reportFile : ReportFile.values()) {
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL)) {
         ReportHelper.addToZip(zipPath, zipPath.resolve(reportFile.getName()),
-            createRandomInputStream(contentSizeInBytes));
+            createRandomInputStream(prefix, contentSizeInBytes, suffix));
       }
     }
     // Create report.zip
@@ -488,19 +500,19 @@ public class AbstractComponentTest
       // Create report.cache
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ORIGINAL) ||
           reportFile.getLocationTypes().contains(ReportFileLocationType.CACHE)) {
-        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
+        try (InputStream content = createRandomInputStream(prefix, contentSizeInBytes, suffix)) {
           service.saveReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
       // Create additional.files
       if (reportFile.getLocationTypes().contains(ReportFileLocationType.ADDITIONAL)) {
-        try (InputStream content = createRandomInputStream(contentSizeInBytes)) {
+        try (InputStream content = createRandomInputStream(prefix, contentSizeInBytes, suffix)) {
           service.saveAdditionalReportFile(eval.getApplicationId(), eval.getScanId(), reportFile.getName(), content);
         }
       }
     }
     // Create report.pdf
-    try (InputStream inputStream = createRandomInputStream(contentSizeInBytes);
+    try (InputStream inputStream = createRandomInputStream(prefix, contentSizeInBytes, suffix);
          OutputStream outputStream = service.getPdfEntity(eval.getApplicationId(), eval.getScanId())
              .getOutputStream()) {
       inputStream.transferTo(outputStream);
@@ -508,19 +520,49 @@ public class AbstractComponentTest
   }
 
   public InputStream createRandomInputStream(final int numberOfBytes) {
+    return createRandomInputStream(null, numberOfBytes, null);
+  }
+
+  public InputStream createRandomInputStream(
+      final String prefix,
+      final int numberOfBytes,
+      final String suffix)
+  {
+    byte[] prefixBytes = prefix != null ? prefix.getBytes(StandardCharsets.UTF_8) : new byte[0];
+    byte[] suffixBytes = suffix != null ? suffix.getBytes(StandardCharsets.UTF_8) : new byte[0];
     return new InputStream()
     {
+      private static final char[] ALLOWED_CHARS =
+          "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
+
       private final Random random = new Random();
 
-      private int remaining = numberOfBytes;
+      private int prefixIndex = 0;
+
+      private int randomRemaining = numberOfBytes;
+
+      private int suffixIndex = 0;
 
       @Override
       public int read() {
-        if (remaining <= 0) {
-          return -1;
+        // 1. Read prefix
+        if (prefixIndex < prefixBytes.length) {
+          return prefixBytes[prefixIndex++] & 0xFF;
         }
-        remaining--;
-        return random.nextInt(256);
+
+        // 2. Read random bytes
+        if (randomRemaining > 0) {
+          randomRemaining--;
+          return ALLOWED_CHARS[random.nextInt(ALLOWED_CHARS.length)];
+        }
+
+        // 3. Read suffix
+        if (suffixIndex < suffixBytes.length) {
+          return suffixBytes[suffixIndex++] & 0xFF;
+        }
+
+        // 4. End of stream
+        return -1;
       }
     };
   }

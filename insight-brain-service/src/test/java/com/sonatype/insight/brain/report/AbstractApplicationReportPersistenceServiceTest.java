@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.NoSuchFileException;
 import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -30,9 +32,13 @@ import com.sonatype.insight.brain.service.CopyStorageService;
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.testing.FunctionUtils.PredicateWithException;
 
+import com.fasterxml.jackson.databind.node.ContainerNode;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
+import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.APPLICATION_ID;
 import static com.sonatype.insight.brain.report.ApplicationReportPersistenceServiceTestHelper.SCAN_ID;
 import static com.sonatype.insight.brain.testing.FunctionUtils.wrapException;
@@ -956,5 +962,138 @@ abstract class AbstractApplicationReportPersistenceServiceTest
       assertThat(reportEntity.getTime(MetadataSource.FETCH)).isGreaterThan(0);
       assertThat(reportEntity.length(MetadataSource.FETCH)).isGreaterThan(0);
     }
+  }
+
+  @Test
+  public void testGetEntries_BatchRead() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, 1);
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    // Read multiple entries in a batch
+    Map<String, ReportEntry> entries = report.getEntries(List.of(
+        BOM_JSON.getName(),
+        SECURITY_JSON.getName(),
+        LICENSES_JSON.getName()
+    ));
+
+    // Verify all entries were loaded
+    assertThat(entries).hasSize(3);
+    assertThat(entries.get(BOM_JSON.getName())).isNotNull();
+    assertThat(entries.get(SECURITY_JSON.getName())).isNotNull();
+    assertThat(entries.get(LICENSES_JSON.getName())).isNotNull();
+
+    // Verify content is correct
+    assertThat(entries.get(BOM_JSON.getName()).buf).isNotEmpty();
+    assertThat(entries.get(SECURITY_JSON.getName()).buf).isNotEmpty();
+    assertThat(entries.get(LICENSES_JSON.getName()).buf).isNotEmpty();
+  }
+
+  @Test
+  public void testGetEntries_EmptyList() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, 1);
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    Map<String, ReportEntry> entries = report.getEntries(List.of());
+
+    assertThat(entries).isEmpty();
+  }
+
+  @Test
+  public void testGetEntries_NonExistentFile() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, 1);
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    Map<String, ReportEntry> entries = report.getEntries(List.of(
+        BOM_JSON.getName(),
+        "nonexistent.json"
+    ));
+
+    assertThat(entries).hasSize(2);
+    assertThat(entries.get(BOM_JSON.getName())).isNotNull();
+    assertThat(entries.get("nonexistent.json")).isNull();
+  }
+
+  @Test
+  public void testLoadReportEntries_BatchRead() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    // Load and parse multiple JSON entries in a batch
+    Map<String, ContainerNode<?>> entries = report.loadReportEntries(List.of(
+        BOM_JSON.getName(),
+        SECURITY_JSON.getName(),
+        LICENSES_JSON.getName()
+    ));
+
+    // Verify all entries were loaded and parsed
+    assertThat(entries).hasSize(3);
+    assertThat(entries.get(BOM_JSON.getName())).isNotNull();
+    assertThat(entries.get(SECURITY_JSON.getName())).isNotNull();
+    assertThat(entries.get(LICENSES_JSON.getName())).isNotNull();
+
+    // Verify they are valid JSON nodes
+    assertThat(entries.get(BOM_JSON.getName()).get("aaData")).isNotNull();
+    assertThat(entries.get(SECURITY_JSON.getName()).get("aaData")).isNotNull();
+    assertThat(entries.get(LICENSES_JSON.getName()).get("aaData")).isNotNull();
+  }
+
+  @Test
+  public void testLoadReportEntries_EmptyList() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    Map<String, ContainerNode<?>> entries = report.loadReportEntries(List.of());
+
+    assertThat(entries).isEmpty();
+  }
+
+  @Test
+  public void testLoadReportEntries_NonExistentFile() throws Exception {
+    Application application = tempEntity.newApplicationWithParent();
+    PolicyEvaluation eval = tempEntity.newPolicyEvaluation(
+        application.getId(),
+        BuildStageType.ID,
+        TemporaryEntity.uuid()
+    );
+    createReport(service, eval, "{\"aaData\":\"", 1, "\"}");
+    ApplicationReport report = new ApplicationReport(service, application, eval.getScanId());
+
+    // Note that ApplicationReport.loadReportEntries which calls ApplicationReport.loadReportEntry is different to
+    // ApplicationReport.getEntries which calls ApplicationReport.getEntry
+    // in that ApplicationReport.getEntry guards against missing files whilst ApplicationReport.loadReportEntry does not
+    assertThatExceptionOfType(IOException.class).isThrownBy(() -> report.loadReportEntries(List.of(
+        BOM_JSON.getName(),
+        "nonexistent.json"
+    )));
   }
 }

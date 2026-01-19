@@ -309,9 +309,11 @@ public class ReportService
     final ApplicationReport applicationReport = getReport(appId, scanId);
     ReportEntry reportEntry = null;
     try {
-      reportEntry = applicationReport.getEntry(name);
       if (SECURITY_JSON.getName().equals(name)) {
-        reportEntry = loadCombinedSecurityData(reportEntry, applicationReport);
+        reportEntry = loadCombinedSecurityData(applicationReport);
+      }
+      else {
+        reportEntry = applicationReport.getEntry(name);
       }
     }
     catch (final Exception e) {
@@ -345,20 +347,25 @@ public class ReportService
     return buf != null ? buf.toString() : path;
   }
 
-  private ReportEntry loadCombinedSecurityData(ReportEntry reportEntry, ApplicationReport applicationReport)
+  private ReportEntry loadCombinedSecurityData(ApplicationReport applicationReport)
       throws IOException
   {
-    ReportEntry thirdPartyReportEntry = applicationReport.getEntry(THIRD_PARTY_SECURITY_JSON.getName());
-    if (reportEntry != null && thirdPartyReportEntry != null) {
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        SECURITY_JSON.getName(),
+        THIRD_PARTY_SECURITY_JSON.getName()
+    ));
+    ReportEntry securityReportEntry = entries.get(SECURITY_JSON.getName());
+    ReportEntry thirdPartyReportEntry = entries.get(THIRD_PARTY_SECURITY_JSON.getName());
+    if (securityReportEntry != null && thirdPartyReportEntry != null) {
       ContainerNode<?> thirdPartySecurityNode = JsonUtils.parse(thirdPartyReportEntry.buf);
-      ContainerNode<?> securityNode = JsonUtils.parse(reportEntry.buf);
+      ContainerNode<?> securityNode = JsonUtils.parse(securityReportEntry.buf);
       ArrayNode thirdPartySecurityRootNode = (ArrayNode) thirdPartySecurityNode.get("aaData");
       ArrayNode securityRootNode = (ArrayNode) securityNode.get("aaData");
       securityRootNode.addAll(thirdPartySecurityRootNode);
 
-      return new ReportEntry(SECURITY_JSON.getName(), reportEntry.time, JsonUtils.generate(securityNode));
+      return new ReportEntry(SECURITY_JSON.getName(), securityReportEntry.time, JsonUtils.generate(securityNode));
     }
-    return reportEntry;
+    return securityReportEntry;
   }
 
   @Trace
@@ -407,7 +414,12 @@ public class ReportService
     metadata.setApplication(application);
 
     ApplicationReport applicationReport = getReport(application, scanId);
-    final ContainerNode<?> data = JsonUtils.parse(applicationReport.getEntry(DATA_JSON.getName()).buf);
+    Map<String, ReportEntry> entries = applicationReport.getEntries(List.of(
+        DATA_JSON.getName(),
+        TEMPLATE_PROPERTIES.getName(),
+        SUMMARY_JSON.getName()
+    ));
+    final ContainerNode<?> data = JsonUtils.parse(entries.get(DATA_JSON.getName()).buf);
     boolean expandedCoverage = data.path("globals").path("expandedCoverage").booleanValue();
     if (expandedCoverage) {
       throw new BadRequestException(
@@ -434,7 +446,7 @@ public class ReportService
     }
 
     // For NVS where a scanLabel is set for the application name and the stage name doesn't matter
-    if (applicationReport.getEntry(TEMPLATE_PROPERTIES.getName()) != null) {
+    if (entries.get(TEMPLATE_PROPERTIES.getName()) != null) {
       JsonNode scanLabelNode = data.path("scanLabel");
       if (scanLabelNode.isTextual()) {
         metadata.getApplication().setName(scanLabelNode.asText());
@@ -442,16 +454,15 @@ public class ReportService
       }
     }
 
-    setContainerScannerMode(applicationReport, metadata);
+    setContainerScannerMode(entries.get(SUMMARY_JSON.getName()), metadata);
 
     return metadata;
   }
 
   // visible for testing
-  void setContainerScannerMode(ApplicationReport applicationReport, ReportMetadataDTO metadata)
+  void setContainerScannerMode(ReportEntry reportSummary, ReportMetadataDTO metadata)
       throws IOException
   {
-    ReportEntry reportSummary = applicationReport.getEntry(SUMMARY_JSON.getName());
     if (reportSummary == null) {
       return;
     }
@@ -657,17 +668,28 @@ public class ReportService
   {
     long start = System.currentTimeMillis();
 
-    ContainerNode<?> bomJsonData = applicationReport.loadReportEntry(BOM_JSON.getName());
-    ContainerNode<?> dataJson = applicationReport.loadReportEntry(DATA_JSON.getName());
-    ContainerNode<?> summaryJsonData = applicationReport.loadReportEntry(SUMMARY_JSON.getName());
+    // Load all required report entries in parallel for improved performance
+    Map<String, ContainerNode<?>> entries = applicationReport.loadReportEntries(List.of(
+        BOM_JSON.getName(),
+        DATA_JSON.getName(),
+        SUMMARY_JSON.getName(),
+        LICENSES_JSON.getName(),
+        SECURITY_JSON.getName(),
+        DEPENDENCIES_JSON.getName(),
+        PARTIAL_MATCHED_JSON.getName()
+    ));
+
+    ContainerNode<?> bomJsonData = entries.get(BOM_JSON.getName());
+    ContainerNode<?> dataJson = entries.get(DATA_JSON.getName());
+    ContainerNode<?> summaryJsonData = entries.get(SUMMARY_JSON.getName());
 
     Map<String, HashComponentIdentifier> claimedComponentsByHash =
         applyClaimedComponents(bomJsonData, dataJson, summaryJsonData, cpeResultsTelemetry);
 
     // must start from un-edited data
-    ContainerNode<?> licensesJsonData = applicationReport.loadReportEntry(LICENSES_JSON.getName());
-    ContainerNode<?> securityJsonData = applicationReport.loadReportEntry(SECURITY_JSON.getName());
-    ContainerNode<?> dependenciesJsonData = applicationReport.loadReportEntry(DEPENDENCIES_JSON.getName());
+    ContainerNode<?> licensesJsonData = entries.get(LICENSES_JSON.getName());
+    ContainerNode<?> securityJsonData = entries.get(SECURITY_JSON.getName());
+    ContainerNode<?> dependenciesJsonData = entries.get(DEPENDENCIES_JSON.getName());
     thirdPartyComponentDAO.updateReport(bomJsonData, licensesJsonData, securityJsonData, dataJson, summaryJsonData,
         applicationReport);
 
@@ -708,7 +730,7 @@ public class ReportService
     applicationReport.saveReportEntry(SECURITY_JSON.getName(), securityJsonData);
 
     // must start from un-edited data
-    ContainerNode<?> partialmatchedJsonData = applicationReport.loadReportEntry(PARTIAL_MATCHED_JSON.getName());
+    ContainerNode<?> partialmatchedJsonData = entries.get(PARTIAL_MATCHED_JSON.getName());
     removeClaimedComponentsFromPartialMatched(partialmatchedJsonData, claimedComponentsByHash);
     applicationReport.saveReportEntry(PARTIAL_MATCHED_JSON.getName(), partialmatchedJsonData);
 

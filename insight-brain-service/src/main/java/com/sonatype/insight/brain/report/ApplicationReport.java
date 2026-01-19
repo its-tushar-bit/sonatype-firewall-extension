@@ -17,13 +17,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.sonatype.insight.brain.model.Application;
+import com.sonatype.insight.brain.tenancy.TenantAwareSupplier;
+import com.sonatype.insight.brain.tenancy.TenantReference;
+import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 import com.sonatype.insight.brain.thirdparty.ThirdPartyApplicationReportDTO;
+import com.sonatype.insight.brain.utils.DefaultExecutorThreadPools;
 import com.sonatype.insight.json.store.JsonUtils;
 
 import com.fasterxml.jackson.databind.node.ContainerNode;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.io.input.CharSequenceInputStream;
 
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.INDEX_HTML;
@@ -39,6 +51,37 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFileLoca
 
 public class ApplicationReport
 {
+  private static final int REPORT_ENTITY_LOADING_THREADS_MIN = 1;
+
+  private static final int REPORT_ENTITY_LOADING_THREADS_MAX = Integer.MAX_VALUE;
+
+  private static final int REPORT_ENTITY_LOADING_THREADS_DEFAULT = 5;
+
+  private static final String REPORT_ENTITY_LOADING_THREADS = "reportEntityLoadingThreads";
+
+  private static final TenantReference<TenantThreadPoolExecutor> reportEntityLoadingExecutors =
+      new TenantReference<>(() -> {
+        int reportEntityLoadingThreadCount = DefaultExecutorThreadPools.getThreadCount(
+            REPORT_ENTITY_LOADING_THREADS_MIN,
+            REPORT_ENTITY_LOADING_THREADS_MAX,
+            REPORT_ENTITY_LOADING_THREADS_DEFAULT,
+            REPORT_ENTITY_LOADING_THREADS
+        );
+        TenantThreadPoolExecutor tenantThreadPoolExecutor = new TenantThreadPoolExecutor(
+            reportEntityLoadingThreadCount,
+            reportEntityLoadingThreadCount,
+            5L,
+            TimeUnit.SECONDS,
+            new SynchronousQueue<>(),
+            new ThreadFactoryBuilder().setNameFormat("ReportEntityLoading-%d").build(),
+            new ThreadPoolExecutor.CallerRunsPolicy(),
+            "report_entity_loading",
+            ApplicationReport.class.getSimpleName()
+        );
+        tenantThreadPoolExecutor.allowCoreThreadTimeOut(true);
+        return tenantThreadPoolExecutor;
+      });
+
   public enum ReportType
   {
     FULL, ERROR
@@ -186,6 +229,84 @@ public class ApplicationReport
   public ContainerNode<?> loadReportEntry(String entryFileName) throws IOException {
     ReportEntity entity = getEntity(entryFileName);
     return JsonUtils.read(entity.getInputStream());
+  }
+
+  /**
+   * Fetch multiple report entries in parallel for improved performance.
+   *
+   * @param names list of entry names to fetch
+   * @return map of entry name to ReportEntry (null values if entry doesn't exist)
+   * @throws IOException if there's an error reading any entry
+   */
+  public Map<String, ReportEntry> getEntries(final List<String> names) throws IOException {
+    return loadEntriesInParallel(names, name -> {
+      try {
+        return getEntry(name);
+      }
+      catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    });
+  }
+
+  /**
+   * Load and parse multiple JSON report entries in parallel for improved performance.
+   *
+   * @param names list of entry names to load
+   * @return map of entry name to parsed ContainerNode (null values if entry doesn't exist)
+   * @throws IOException if there's an error reading or parsing any entry
+   */
+  public Map<String, ContainerNode<?>> loadReportEntries(final List<String> names) throws IOException {
+    return loadEntriesInParallel(names, name -> {
+      try {
+        return loadReportEntry(name);
+      }
+      catch (IOException e) {
+        throw new CompletionException(e);
+      }
+    });
+  }
+
+  /**
+   * Generic helper method to load multiple entries in parallel.
+   *
+   * @param names  list of entry names to load
+   * @param loader function that loads a single entry by name
+   * @param <T>    type of the entry being loaded
+   * @return map of entry name to loaded entry (null values if entry doesn't exist)
+   * @throws IOException if there's an error loading any entry
+   */
+  private <T> Map<String, T> loadEntriesInParallel(
+      final List<String> names,
+      final Function<String, T> loader) throws IOException
+  {
+    if (names.isEmpty()) {
+      return Map.of();
+    }
+
+    // Load all entries in parallel using CompletableFuture
+    Map<String, CompletableFuture<T>> futures = names.stream()
+        .collect(Collectors.toMap(
+            name -> name,
+            name -> CompletableFuture.supplyAsync(
+                new TenantAwareSupplier<>(() -> loader.apply(name)),
+                reportEntityLoadingExecutors.get())));
+
+    // Wait for all to complete and collect results
+    Map<String, T> results = new HashMap<>();
+    for (Map.Entry<String, CompletableFuture<T>> entry : futures.entrySet()) {
+      try {
+        results.put(entry.getKey(), entry.getValue().join());
+      }
+      catch (CompletionException e) {
+        if (e.getCause() instanceof IOException ioException) {
+          throw ioException;
+        }
+        throw e;
+      }
+    }
+
+    return results;
   }
 
   public ReportEntry extractEntry(String name) throws IOException {

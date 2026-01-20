@@ -102,42 +102,73 @@ export function setRawSortingParameters(key, sortFields, dir) {
   };
 }
 
+function getReportParamsFromState(state) {
+  const { appId, scanId, isUnknownJs } = selectReportParameters(state);
+  if (appId && scanId) {
+    return { appId, scanId, isUnknownJs };
+  }
+  const currentParams = selectRouterCurrentParams(state);
+  return { appId: currentParams.publicId, scanId: currentParams.scanId, isUnknownJs };
+}
+
+function buildCommonDataRequests(appId, scanId, isUnknownJs) {
+  const requests = [axios.get(getReportBomUrl(appId, scanId)), axios.get(getReportMetadataUrl(appId, scanId))];
+
+  if (isUnknownJs) {
+    requests.push(axios.get(getReportUnknownJsUrl(appId, scanId)));
+  }
+
+  return requests;
+}
+
+function processCommonDataResults(results, isUnknownJs) {
+  const bomData = results[0].data || undefined;
+  const metadata = results[1].data;
+  const unknownJsData = (isUnknownJs && results[2]?.data) || undefined;
+
+  return { bomData, metadata, unknownJsData };
+}
+
+function buildReportDataRequests(appId, scanId) {
+  return [
+    axios.get(getReportPolicyThreatsUrl(appId, scanId)),
+    axios.get(getReportDataUrl(appId, scanId)),
+    axios.get(getReportPartialMatchedUrl(appId, scanId)),
+    axios.get(getDependenciesUrl(appId, scanId)),
+  ];
+}
+
+function processReportDataResults(results, bomData, unknownJsData) {
+  const policyResult = results[0].data || undefined;
+  const dataResult = results[1].data;
+  const partialMatches = results[2].data || undefined;
+  const dependencies = results[3].data;
+
+  const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches, dependencies);
+  const reportVersion = (policyResult && policyResult.version) || null;
+
+  return {
+    allEntries: allEntries.policies,
+    isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
+    reportVersion,
+    dependencies,
+    ...dataResult,
+  };
+}
+
 export function fetchCommonData(forceClearMetadata = false) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, metadata } = state.applicationReport;
-
-    const getReportParams = () => {
-      const { appId, scanId, isUnknownJs } = selectReportParameters(state);
-      if (appId && scanId) {
-        return { appId, scanId, isUnknownJs };
-      }
-      const currentParams = selectRouterCurrentParams(state);
-      return { appId: currentParams.publicId, scanId: currentParams.scanId, isUnknownJs };
-    };
-
-    const { appId, scanId, isUnknownJs } = getReportParams();
+    const { appId, scanId, isUnknownJs } = getReportParamsFromState(state);
 
     if (forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs)) {
-      const promises = [axios.get(getReportBomUrl(appId, scanId)), axios.get(getReportMetadataUrl(appId, scanId))];
-
-      if (isUnknownJs) {
-        promises.push(axios.get(getReportUnknownJsUrl(appId, scanId)));
-      }
+      const promises = buildCommonDataRequests(appId, scanId, isUnknownJs);
 
       return Promise.all(promises)
         .then((results) => {
-          const bomResult = results[0].data || undefined;
-          const metadataResult = results[1].data;
-          const unknownJsResult = (isUnknownJs && results[2].data) || undefined;
-
-          return dispatch(
-            loadCommonDataFulfilled({
-              bomData: bomResult,
-              metadata: metadataResult,
-              unknownJsData: unknownJsResult,
-            })
-          );
+          const processedData = processCommonDataResults(results, isUnknownJs);
+          return dispatch(loadCommonDataFulfilled(processedData));
         })
         .catch((error) => {
           if (error !== 'XC Report') {
@@ -156,44 +187,15 @@ export function fetchReportData(forceReload = true) {
   return (dispatch, getState) => {
     const state = getState();
     const { bomData, unknownJsData, selectedReport } = state.applicationReport;
-
-    const getReportParams = () => {
-      const { appId, scanId } = selectReportParameters(state);
-      if (appId && scanId) {
-        return { appId, scanId };
-      }
-      const currentParams = selectRouterCurrentParams(state);
-      return { appId: currentParams.publicId, scanId: currentParams.scanId };
-    };
-
-    const { appId, scanId } = getReportParams();
+    const { appId, scanId } = getReportParamsFromState(state);
 
     if (forceReload || !selectedReport) {
-      const promises = [
-        axios.get(getReportPolicyThreatsUrl(appId, scanId)),
-        axios.get(getReportDataUrl(appId, scanId)),
-        axios.get(getReportPartialMatchedUrl(appId, scanId)),
-        axios.get(getDependenciesUrl(appId, scanId)),
-      ];
+      const promises = buildReportDataRequests(appId, scanId);
 
       return Promise.all(promises)
         .then((results) => {
-          const policyResult = results[0].data || undefined;
-          const dataResult = results[1].data;
-          const partialMatches = results[2].data || undefined;
-          const dependencies = results[3].data;
-
-          const allEntries = createReportEntries(policyResult, bomData, unknownJsData, partialMatches, dependencies);
-          const reportVersion = (policyResult && policyResult.version) || null;
-          return dispatch(
-            loadReportFulfilled({
-              allEntries: allEntries.policies,
-              isInnerSourceEnabled: allEntries.isInnerSourceEnabled,
-              reportVersion,
-              dependencies,
-              ...dataResult,
-            })
-          );
+          const processedData = processReportDataResults(results, bomData, unknownJsData);
+          return dispatch(loadReportFulfilled(processedData));
         })
         .catch((error) => {
           dispatch(loadReportFailed(error));
@@ -231,14 +233,81 @@ export function fetchReportRawData(forceReload = true) {
 }
 
 export function loadReport(forceClearMetadata = false) {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     dispatch({
       type: LOAD_REPORT_REQUESTED,
     });
 
-    return dispatch(fetchCommonData(forceClearMetadata))
-      .then(() => dispatch(fetchReportData(forceClearMetadata)))
-      .catch((error) => dispatch(loadReportFailed(error)));
+    const state = getState();
+    const { bomData, unknownJsData, metadata, selectedReport } = state.applicationReport;
+    const { appId, scanId, isUnknownJs } = getReportParamsFromState(state);
+
+    const needsCommonData = forceClearMetadata || !metadata || !bomData || (!unknownJsData && isUnknownJs);
+    const needsReportData = forceClearMetadata || !selectedReport;
+
+    if (!needsCommonData && !needsReportData) {
+      return Promise.all([dispatch(loadCommonDataUnnecessary()), dispatch(loadReportUnnecessary())]);
+    }
+    if (!needsCommonData) {
+      dispatch(loadCommonDataUnnecessary());
+    }
+    if (!needsReportData) {
+      dispatch(loadReportUnnecessary());
+    }
+
+    const commonDataPromise = needsCommonData
+      ? Promise.all(buildCommonDataRequests(appId, scanId, isUnknownJs))
+          .then((results) => ({ success: true, results, isUnknownJs }))
+          .catch((error) => ({ success: false, error }))
+      : Promise.resolve({ success: true, results: null });
+
+    const reportDataPromise = needsReportData
+      ? Promise.all(buildReportDataRequests(appId, scanId))
+          .then((results) => ({ success: true, results }))
+          .catch((error) => ({ success: false, error }))
+      : Promise.resolve({ success: true, results: null });
+
+    return Promise.all([commonDataPromise, reportDataPromise]).then(([commonDataResult, reportDataResult]) => {
+      const dispatches = [];
+      let fetchedBomData = bomData;
+      let fetchedUnknownJsData = unknownJsData;
+
+      // Handle common data results
+      if (needsCommonData) {
+        if (commonDataResult.success) {
+          const processedCommonData = processCommonDataResults(commonDataResult.results, isUnknownJs);
+          fetchedBomData = processedCommonData.bomData;
+          if (isUnknownJs) {
+            fetchedUnknownJsData = processedCommonData.unknownJsData;
+          }
+          dispatches.push(dispatch(loadCommonDataFulfilled(processedCommonData)));
+        } else {
+          const error = commonDataResult.error;
+          if (error !== 'XC Report') {
+            dispatch(loadCommonDataFailed(error));
+          }
+          dispatch(loadReportFailed(error));
+          return Promise.resolve();
+        }
+      }
+
+      // Handle report data results
+      if (needsReportData) {
+        if (reportDataResult.success) {
+          const processedReportData = processReportDataResults(
+            reportDataResult.results,
+            fetchedBomData,
+            fetchedUnknownJsData
+          );
+          dispatches.push(dispatch(loadReportFulfilled(processedReportData)));
+        } else {
+          dispatch(loadReportFailed(reportDataResult.error));
+          return Promise.resolve();
+        }
+      }
+
+      return Promise.all(dispatches);
+    });
   };
 }
 

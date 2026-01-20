@@ -265,6 +265,68 @@ describe('applicationReportActions', function () {
       });
     });
 
+    it('handles partial failure when common data succeeds but report data fails', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
+
+      expectCommonDataCalls(true, expectReportDataCalls(false));
+
+      store.dispatch(applicationReportActions.loadReport()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions[0]).toEqual({ type: 'LOAD_REPORT_REQUESTED' });
+        expect(actions[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FULFILLED',
+          payload: {
+            bomData: mockBomData,
+            metadata: mockMetadata,
+            unknownJsData: undefined,
+          },
+        });
+        expect(actions[2].type).toEqual('LOAD_REPORT_FAILED');
+        done();
+      });
+    });
+
+    it('handles partial failure when report data succeeds but common data fails', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(false, undefined, undefined, undefined));
+
+      expectCommonDataCalls(false, expectReportDataCalls(true));
+
+      store.dispatch(applicationReportActions.loadReport()).then(() => {
+        const actions = store.getActions();
+
+        expect(actions.length).toBe(3);
+        expect(actions[0]).toEqual({ type: 'LOAD_REPORT_REQUESTED' });
+        expect(actions[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FAILED',
+          payload: 'Error 500',
+        });
+        expect(actions[2].type).toEqual('LOAD_REPORT_FAILED');
+        done();
+      });
+    });
+
+    it('dispatches both LOAD_COMMON_DATA_FAILED and LOAD_REPORT_FAILED when common data fails', function (done) {
+      const store = SpecUtil.mockReduxStore(createMockState(true, undefined, undefined, undefined));
+
+      expectCommonDataCalls(false, expectReportDataCalls(true));
+
+      store.dispatch(applicationReportActions.loadReport()).then(() => {
+        const actions = store.getActions();
+
+        // Should dispatch BOTH error actions due to the new parallel loading logic
+        expect(actions.length).toBe(3);
+        expect(actions[0]).toEqual({ type: 'LOAD_REPORT_REQUESTED' });
+        expect(actions[1]).toEqual({
+          type: 'LOAD_COMMON_DATA_FAILED',
+          payload: 'Error 500',
+        });
+        expect(actions[2].type).toEqual('LOAD_REPORT_FAILED');
+        done();
+      });
+    });
+
     it('fires LOAD_REPORT_FULFILLED action if report request succeeds', function (done) {
       const componentIdentifier = {
         format: 'maven',

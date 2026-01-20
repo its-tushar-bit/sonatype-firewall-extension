@@ -40,12 +40,16 @@ import {
   selectEnterpriseReportingLicenseError,
   selectLoadingFeatures,
 } from 'MainRoot/productFeatures/productFeaturesSelectors';
+import { filterRetiredDashboards } from './utils';
 
 export default function EnterpriseReportingLandingPage() {
   const dispatch = useDispatch();
   const { iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
-  const enterpriseDashboards = useSelector(selectEnterpriseDashboards);
-  const dataInsightsDashboards = useSelector(selectDataInsightsDashboards);
+  const allEnterpriseDashboards = useSelector(selectEnterpriseDashboards);
+  const allDataInsightsDashboards = useSelector(selectDataInsightsDashboards);
+
+  const activeEnterpriseDashboards = filterRetiredDashboards(allEnterpriseDashboards);
+  const activeDataInsightsDashboards = filterRetiredDashboards(allDataInsightsDashboards);
   const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
     selectEnterpriseReportingSupportInfo
   );
@@ -147,7 +151,7 @@ export default function EnterpriseReportingLandingPage() {
           className="iq-enterprise-reporting-card__container"
           id="enterprise-reporting-dashboards--enterprise"
         >
-          {enterpriseDashboards.map((dashboard, idx) => (
+          {activeEnterpriseDashboards.map((dashboard, idx) => (
             <EnterpriseReportCard
               dashboard={
                 dashboard.groupedDashboards
@@ -172,7 +176,7 @@ export default function EnterpriseReportingLandingPage() {
           className="iq-enterprise-reporting-card__container"
           id="enterprise-reporting-dashboards--insights"
         >
-          {dataInsightsDashboards.map((dashboard, idx) => (
+          {activeDataInsightsDashboards.map((dashboard, idx) => (
             <EnterpriseReportCard
               dashboard={
                 dashboard.groupedDashboards

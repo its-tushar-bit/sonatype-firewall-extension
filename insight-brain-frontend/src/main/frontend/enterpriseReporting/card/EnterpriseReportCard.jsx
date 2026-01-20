@@ -23,7 +23,7 @@ import { fas as fasPro } from '@fortawesome/pro-solid-svg-icons';
 import { useDispatch } from 'react-redux';
 
 import { stateGo } from 'MainRoot/reduxUiRouter/routerActions';
-import { smallTagColors, getUpgradeVersion, isElementDisabled } from '../utils';
+import { smallTagColors, getUpgradeVersion, isElementDisabled, isRetiringDashboard, getRetirementText } from '../utils';
 import './_enterpriseReportCard.scss';
 
 export default function EnterpriseReportCard(props) {
@@ -34,8 +34,13 @@ export default function EnterpriseReportCard(props) {
   const dispatch = useDispatch();
 
   const retiringRegex = /retiring/i;
+  const isRetiring =
+    isRetiringDashboard(dashboard.dashboardId) &&
+    dashboard.spotlightText &&
+    retiringRegex.test(dashboard.spotlightText);
+
   const cardClassNames = classNames('iq-enterprise-reporting-card iq-enterprise-reporting-card--dashboard', {
-    retiring: retiringRegex.test(dashboard.spotlightText),
+    retiring: isRetiring,
   });
 
   const icon = fas[dashboard.previewImageIcon] ? fas[dashboard.previewImageIcon] : fasPro[dashboard.previewImageIcon];
@@ -44,7 +49,11 @@ export default function EnterpriseReportCard(props) {
   const isDashboardDisabled = (dashboard) => cleanedIqVersion < parseInt(dashboard.sinceIQVersion);
   const buttonDisabled = isElementDisabled(dashboard, isDashboardDisabled);
 
-  const spotlightText = dashboard.spotlightText || 'NEW';
+  let spotlightText = dashboard.spotlightText || 'NEW';
+  if (isRetiring) {
+    spotlightText = getRetirementText();
+  }
+
   const spotlightColor = smallTagColors.includes(dashboard.spotlightColor)
     ? dashboard.spotlightColor
     : isEnterprise

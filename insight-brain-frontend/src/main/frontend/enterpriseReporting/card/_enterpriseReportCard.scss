@@ -135,5 +135,13 @@
 
   &.retiring {
     border-color: var(--nx-swatch-red-30);
+
+    .iq-enterprise-reporting-card__icon {
+      left: 42px;
+    }
+    .iq-enterprise-reporting-card__spotlight {
+      right: 11px;
+      left: auto;
+    }
   }
 }

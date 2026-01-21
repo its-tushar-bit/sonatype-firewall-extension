@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList;
 import com.sonatype.clm.dto.model.component.ComponentEvaluationDataList.ComponentEvaluationData;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -820,5 +821,28 @@ public class ApiFirewallResourceTest
     ApiRepositoryContainerDTO apiRepositoryContainerDTO = response.getBody(ApiRepositoryContainerDTO.class);
     assertThat(apiRepositoryContainerDTO.id).isEqualTo(RepositoryContainer.REPOSITORY_CONTAINER_ID);
     assertThat(apiRepositoryContainerDTO.name).isEqualTo(RepositoryContainer.SINGLETON.getName());
+  }
+
+  @Test
+  public void testVerifyConnectionAndGetApplications_Authorized() throws Exception {
+    tempEntity.newApplicationWithParent();
+
+    HttpResponse response = restRequest()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.CONNECTION_VERIFY_PATH)
+        .get();
+
+    assertResponseStatus(200, response);
+    ApplicationSummaryList result = response.getBody(ApplicationSummaryList.class);
+    assertThat(result).isNotNull();
+    assertThat(result.getApplicationSummaries()).isNotEmpty();
+  }
+
+  @Test
+  public void testVerifyConnectionAndGetApplications_Unauthenticated() throws Exception {
+    HttpResponse response = restRequest().anon()
+        .path(PublicApiPaths.FIREWALL_RESOURCE_PATH, ApiFirewallResource.CONNECTION_VERIFY_PATH)
+        .get();
+
+    assertResponseStatus(401, response);
   }
 }

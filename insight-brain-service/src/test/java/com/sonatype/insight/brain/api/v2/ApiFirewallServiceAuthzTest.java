@@ -293,4 +293,21 @@ public class ApiFirewallServiceAuthzTest
   public void testGetRepositoryContainer_Unauthenticated() {
     apiFirewallService.getRepositoryContainer();
   }
+
+  @Test
+  public void testCheckEvaluateComponentPermission_Authorized() {
+    grantPermission(RepositoryContainer.REPOSITORY_CONTAINER_ID, Permission.EVALUATE_COMPONENT);
+    apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+  }
+
+  @Test(expected = UnauthorizedException.class)
+  public void testCheckEvaluateComponentPermission_Unauthorized() {
+    login();
+    apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+  }
+
+  @Test(expected = UnauthenticatedException.class)
+  public void testCheckEvaluateComponentPermission_Unauthenticated() {
+    apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+  }
 }

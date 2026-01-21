@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import com.sonatype.clm.dto.model.application.ApplicationSummaryList;
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallComponentDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiFirewallQuarantineSummaryDTO;
@@ -54,6 +56,9 @@ import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.Fire
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallRepositoryComponentFilter.FirewallComponentFilterState;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallSortableField;
+import com.sonatype.insight.brain.integration.ApplicationSummaryService;
+import com.sonatype.insight.brain.integration.Goal;
+import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -125,11 +130,19 @@ public class ApiFirewallResource
 
   static final String REPOSITORY_CONTAINER_PATH = "repositoryContainer";
 
+  static final String CONNECTION_VERIFY_PATH = "connection/verify";
+
   private final ApiFirewallService apiFirewallService;
 
+  private final ApplicationSummaryService applicationSummaryService;
+
   @Inject
-  public ApiFirewallResource(final ApiFirewallService apiFirewallService) {
+  public ApiFirewallResource(
+      final ApiFirewallService apiFirewallService,
+      final ApplicationSummaryService applicationSummaryService)
+  {
     this.apiFirewallService = apiFirewallService;
+    this.applicationSummaryService = applicationSummaryService;
   }
 
   @GET
@@ -680,5 +693,35 @@ public class ApiFirewallResource
   private String quarantineDaysToQuarantineTime(Integer quarantineDays) {
     return DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(
         LocalDateTime.ofInstant(Instant.now().minus(quarantineDays, ChronoUnit.DAYS), ZoneOffset.UTC));
+  }
+
+  @GET
+  @Path(CONNECTION_VERIFY_PATH)
+  @Operation(
+      description = "Use this method to verify that the authenticated user has required permissions for " +
+          "firewall operations and retrieve accessible applications." +
+          "\n" +
+          "\n" +
+          "Permissions required: Evaluate Individual Components",
+      responses = {
+          @ApiResponse(
+              responseCode = "200",
+              description = "Connection verified successfully. Returns list of applications accessible to the user.",
+              useReturnTypeSchema = true
+          ),
+          @ApiResponse(
+              responseCode = "401",
+              description = "Authentication required. User is not authenticated."
+          ),
+          @ApiResponse(
+              responseCode = "403",
+              description = "User is authenticated but does not have 'Evaluate Individual Components' permission."
+          )
+      }
+  )
+  public ApplicationSummaryList verifyConnectionAndGetApplications() {
+    apiFirewallService.checkEvaluateComponentPermission(RepositoryContainer.SINGLETON);
+    // Get all applications (no organization or application ID filtering) accessible for component evaluation
+    return applicationSummaryService.getApplications(Goal.EVALUATE_COMPONENT, null, Collections.emptySet());
   }
 }

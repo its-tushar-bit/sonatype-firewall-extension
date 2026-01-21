@@ -187,6 +187,10 @@ public class ApiFirewallService
   void checkWritePermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
   }
 
+  @Authorize(permission = Permission.EVALUATE_COMPONENT)
+  void checkEvaluateComponentPermission(@SuppressWarnings("unused") @AuthzContext(AuthzContext.Key.OWNER) Owner owner) {
+  }
+
   ApiFirewallQuarantineSummaryDTO getQuarantineSummary() {
     checkProductLicense();
     checkReadPermission(RepositoryContainer.SINGLETON);

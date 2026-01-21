@@ -7,12 +7,12 @@ package com.sonatype.insight.brain.search.opensearch;
 
 import java.net.URI;
 import java.util.Optional;
-
 import javax.inject.Provider;
 
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.HttpOpenSearchConfig;
+import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +39,9 @@ public class OpenSearchTransportProviderTest
   @Mock
   private Provider<SdkHttpClient> sdkHttpClientProvider;
 
+  @Mock
+  private ShutdownHandler shutdownHandler;
+
   private SdkHttpClient sdkHttpClient;
 
   private OpenSearchTransportProvider provider;
@@ -56,7 +59,7 @@ public class OpenSearchTransportProviderTest
     config.setUri(URI.create("https://localhost:9200"));
     config.setUsername("admin");
     config.setPassword("admin");
-    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty());
+    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty(), shutdownHandler);
 
     // When
     OpenSearchTransport transport = provider.get();
@@ -83,7 +86,8 @@ public class OpenSearchTransportProviderTest
     AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
     config.setDomain(URI.create("https://search-test-domain.us-east-1.es.amazonaws.com"));
     config.setRegion("us-east-1");
-    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.of(sdkHttpClientProvider));
+    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.of(sdkHttpClientProvider),
+        shutdownHandler);
 
     // When
     OpenSearchTransport transport = provider.get();
@@ -107,13 +111,15 @@ public class OpenSearchTransportProviderTest
   @Test
   public void testGet_UnknownSearchConfig_ThrowsIllegalStateException() {
     // Given
-    SearchConfig unknownConfig = new SearchConfig() {
+    SearchConfig unknownConfig = new SearchConfig()
+    {
       @Override
       public void validate() {
         // No-op for test
       }
     };
-    provider = new OpenSearchTransportProvider(unknownConfig, awsCredentialsProvider, Optional.empty());
+    provider =
+        new OpenSearchTransportProvider(unknownConfig, awsCredentialsProvider, Optional.empty(), shutdownHandler);
 
     // When/Then
     assertThatExceptionOfType(IllegalStateException.class)
@@ -128,7 +134,7 @@ public class OpenSearchTransportProviderTest
     config.setUri(URI.create("http://localhost:9200"));
     config.setUsername("user");
     config.setPassword("pass");
-    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty());
+    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty(), shutdownHandler);
 
     // When
     OpenSearchTransport transport = provider.get();
@@ -155,7 +161,8 @@ public class OpenSearchTransportProviderTest
     AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
     config.setDomain(URI.create("https://search-test-domain.eu-west-1.es.amazonaws.com"));
     config.setRegion("eu-west-1");
-    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.of(sdkHttpClientProvider));
+    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.of(sdkHttpClientProvider),
+        shutdownHandler);
 
     // When
     OpenSearchTransport transport = provider.get();
@@ -182,7 +189,7 @@ public class OpenSearchTransportProviderTest
     AwsHttpOpenSearchConfig config = new AwsHttpOpenSearchConfig();
     config.setDomain(URI.create("https://search-test-domain.us-east-1.es.amazonaws.com"));
     config.setRegion("us-east-1");
-    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty());
+    provider = new OpenSearchTransportProvider(config, awsCredentialsProvider, Optional.empty(), shutdownHandler);
 
     // When/Then
     assertThatExceptionOfType(IllegalStateException.class)

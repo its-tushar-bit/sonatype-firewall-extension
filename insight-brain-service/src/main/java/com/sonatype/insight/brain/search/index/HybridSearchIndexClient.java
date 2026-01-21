@@ -113,8 +113,6 @@ public class HybridSearchIndexClient
       return;
     }
 
-    log.debug("Updating indexes on both primary and secondary clients");
-
     // Update both clients to keep them in sync
     try {
       primaryClient.updateIndex();

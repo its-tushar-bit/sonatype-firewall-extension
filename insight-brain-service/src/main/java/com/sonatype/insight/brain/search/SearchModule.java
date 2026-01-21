@@ -89,10 +89,16 @@ public class SearchModule
 
   /**
    * Configures OpenSearch transport and AWS SDK client if using AWS OpenSearch.
+   * <p>
+   * <strong>IMPORTANT:</strong> The SdkHttpClient bound here is exclusively for OpenSearch use.
+   * It should not be injected by other components. Its lifecycle is managed by OpenSearchTransportProvider.
+   * If other components need an SdkHttpClient in the future, they should create their own separate instance
+   * with independent lifecycle management.
    */
   private void configureOpenSearchTransport(SearchConfig searchConfig) {
     // Use OptionalBinder for SdkHttpClient to allow optional injection in OpenSearchTransportProvider
     // Only bind for AWS OpenSearch configurations to avoid unnecessary resource allocation
+    // This client is exclusively owned by OpenSearch components and should not be used elsewhere
     OptionalBinder<SdkHttpClient> optionalSdkHttpClient =
         OptionalBinder.newOptionalBinder(binder(), SdkHttpClient.class);
     if (searchConfig instanceof SearchConfig.AwsHttpOpenSearchConfig) {

@@ -16,31 +16,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BooleanSupplier;
 
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;
-import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.http.SdkHttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
 
-@RunWith(MockitoJUnitRunner.class)
 public class AwsSdkHttpClientProviderTest
 {
-  @Mock
-  private ShutdownHandler shutdownHandler;
-
   private AwsHttpOpenSearchConfig config;
 
   private AwsSdkHttpClientProvider provider;
@@ -50,7 +38,7 @@ public class AwsSdkHttpClientProviderTest
     config = new AwsHttpOpenSearchConfig();
     config.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
     config.setRegion("us-east-1");
-    provider = new AwsSdkHttpClientProvider(config, shutdownHandler);
+    provider = new AwsSdkHttpClientProvider(config);
   }
 
   @Test
@@ -135,49 +123,6 @@ public class AwsSdkHttpClientProviderTest
   }
 
   @Test
-  public void testShutdownHook_RegisteredWithShutdownHandler() {
-    // Then
-    ArgumentCaptor<BooleanSupplier> shutdownSupplierCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
-    verify(shutdownHandler).add(shutdownSupplierCaptor.capture(), any());
-    assertThat(shutdownSupplierCaptor.getValue()).isNotNull();
-  }
-
-  @Test
-  public void testShutdownHook_ClosesHttpClient() {
-    // Given
-    ArgumentCaptor<BooleanSupplier> shutdownSupplierCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
-    verify(shutdownHandler).add(shutdownSupplierCaptor.capture(), any());
-    BooleanSupplier shutdownSupplier = shutdownSupplierCaptor.getValue();
-
-    // Initialize the client
-    SdkHttpClient client = provider.get();
-    assertThat(client).isNotNull();
-
-    // When - Shutdown hook is called (we can't easily verify close was called without spying,
-    // but we can verify the hook doesn't throw exceptions and returns true)
-    boolean result = shutdownSupplier.getAsBoolean();
-
-    // Then - Should return true indicating successful shutdown
-    assertThat(result).isTrue();
-    // Note: We can't easily verify that close() was called on the client without using Mockito spy,
-    // which would require refactoring. This test verifies the shutdown hook executes without error.
-  }
-
-  @Test
-  public void testShutdownHook_HandlesNullClient() {
-    // Given
-    ArgumentCaptor<BooleanSupplier> shutdownSupplierCaptor = ArgumentCaptor.forClass(BooleanSupplier.class);
-    verify(shutdownHandler).add(shutdownSupplierCaptor.capture(), any());
-    BooleanSupplier shutdownSupplier = shutdownSupplierCaptor.getValue();
-
-    // When - Shutdown hook is called before client is initialized (client is null)
-    boolean result = shutdownSupplier.getAsBoolean();
-
-    // Then - Should return true indicating successful shutdown (no-op)
-    assertThat(result).isTrue();
-  }
-
-  @Test
   public void testGet_ThreadSafe_NoRaceCondition() throws Exception {
     // Given - Test that even with high concurrency, only one instance is created
     int threadCount = 100;
@@ -233,7 +178,7 @@ public class AwsSdkHttpClientProviderTest
     SearchConfig.HttpOpenSearchConfig httpConfig = new SearchConfig.HttpOpenSearchConfig();
 
     // When/Then
-    assertThatThrownBy(() -> new AwsSdkHttpClientProvider(httpConfig, shutdownHandler))
+    assertThatThrownBy(() -> new AwsSdkHttpClientProvider(httpConfig))
         .isInstanceOf(OpenSearchConfigurationException.class)
         .hasMessageContaining("AwsSdkHttpClientProvider requires AwsHttpOpenSearchConfig");
   }
@@ -245,7 +190,7 @@ public class AwsSdkHttpClientProviderTest
     customConfig.setDomain(new URI("https://search-domain.us-east-1.es.amazonaws.com"));
     customConfig.setRegion("us-east-1");
     customConfig.setMaxConcurrency(100);
-    AwsSdkHttpClientProvider customProvider = new AwsSdkHttpClientProvider(customConfig, shutdownHandler);
+    AwsSdkHttpClientProvider customProvider = new AwsSdkHttpClientProvider(customConfig);
 
     // When
     SdkHttpClient client = customProvider.get();
@@ -271,7 +216,7 @@ public class AwsSdkHttpClientProviderTest
     customConfig.setRegion("us-east-1");
     customConfig.setConnectionTimeout(Duration.ofSeconds(60));
     customConfig.setConnectionAcquisitionTimeout(Duration.ofSeconds(20));
-    AwsSdkHttpClientProvider customProvider = new AwsSdkHttpClientProvider(customConfig, shutdownHandler);
+    AwsSdkHttpClientProvider customProvider = new AwsSdkHttpClientProvider(customConfig);
 
     // When
     SdkHttpClient client = customProvider.get();

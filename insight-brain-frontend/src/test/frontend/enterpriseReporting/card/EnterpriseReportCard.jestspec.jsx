@@ -9,6 +9,7 @@ import { render } from 'TestRoot/SpecUtil';
 import EnterpriseReportCard from 'MainRoot/enterpriseReporting/card/EnterpriseReportCard';
 import * as RouterActions from 'MainRoot/reduxUiRouter/routerActions';
 import userEvent from '@testing-library/user-event';
+import { getFormattedRetirementDate } from 'MainRoot/enterpriseReporting/utils';
 
 describe('EnterpriseReportCard', () => {
   let renderComponent, stateGoSpy;
@@ -158,6 +159,81 @@ describe('EnterpriseReportCard', () => {
         id: dashboard.groupedDashboards[1].dashboardId,
         groupId: dashboard.groupId,
       });
+    });
+  });
+
+  describe('retirement date', () => {
+    it('displays calendar icon and date when dashboard is retiring', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'rolling-recap',
+        spotlightText: 'retiring soon',
+      };
+      renderComponent({ dashboard });
+
+      expect(screen.getByText(getFormattedRetirementDate())).toBeInTheDocument();
+      const retirementDateElement = screen.getByText(getFormattedRetirementDate()).parentElement;
+      expect(retirementDateElement).toHaveClass('iq-enterprise-reporting-card__retirement-date');
+    });
+
+    it('does not display calendar icon and date when dashboard is not retiring', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'some-other-dashboard',
+        spotlightText: 'NEW',
+      };
+      renderComponent({ dashboard });
+
+      expect(screen.queryByText(getFormattedRetirementDate())).not.toBeInTheDocument();
+    });
+
+    it('does not display calendar icon and date when spotlightText does not contain "retiring"', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'rolling-recap',
+        spotlightText: 'NEW',
+      };
+      renderComponent({ dashboard });
+
+      expect(screen.queryByText(getFormattedRetirementDate())).not.toBeInTheDocument();
+    });
+
+    it('applies retiring class to card when dashboard is retiring', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'upgrade-posture',
+        spotlightText: 'RETIRING',
+      };
+      renderComponent({ dashboard });
+
+      const card = screen.getByRole('enterprise-reporting-dashboard-card');
+      expect(card).toHaveClass('retiring');
+    });
+
+    it('displays both calendar date and RETIRING pill when retiring', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'rolling-recap',
+        spotlightText: 'RETIRING',
+      };
+      renderComponent({ dashboard });
+
+      expect(screen.getByText(getFormattedRetirementDate())).toBeInTheDocument();
+      expect(screen.getByText('RETIRING')).toBeInTheDocument();
+    });
+
+    it('includes aria-label for accessibility when dashboard is retiring', () => {
+      const dashboard = {
+        ...initialState.dashboard,
+        dashboardId: 'rolling-recap',
+        spotlightText: 'retiring soon',
+      };
+      renderComponent({ dashboard });
+
+      const expectedLabel = `Retirement date: ${getFormattedRetirementDate()}`;
+      const retirementDateElement = screen.getByLabelText(expectedLabel);
+      expect(retirementDateElement).toBeInTheDocument();
+      expect(retirementDateElement).toHaveTextContent(getFormattedRetirementDate());
     });
   });
 

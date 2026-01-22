@@ -75,15 +75,9 @@ export const isDashboardRetired = (dashboard) =>
 
 export const filterRetiredDashboards = (dashboards) => reject(isDashboardRetired, dashboards || []);
 
-export const getDaysUntilRetirement = () =>
-  RETIREMENT_DATE.clone().startOf('day').diff(moment.utc().startOf('day'), 'days');
-
-export const getRetirementText = () => {
-  const daysRemaining = getDaysUntilRetirement();
-
-  if (daysRemaining < 0) return 'Retired';
-  if (daysRemaining === 0) return 'Retiring today';
-  if (daysRemaining === 1) return 'Retiring tomorrow';
-
-  return `Retiring in ${daysRemaining} days`;
+export const getFormattedRetirementDate = () => {
+  const year = RETIREMENT_DATE.year();
+  const month = String(RETIREMENT_DATE.month() + 1).padStart(2, '0');
+  const day = String(RETIREMENT_DATE.date()).padStart(2, '0');
+  return `${month}/${day}/${year}`;
 };

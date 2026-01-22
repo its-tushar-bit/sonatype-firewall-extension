@@ -37,6 +37,26 @@
     cursor: default;
   }
 
+  &__retirement-date {
+    position: absolute;
+    top: var(--nx-spacing-3x);
+    left: calc(var(--nx-spacing-base) / 8);
+    display: flex;
+    align-items: center;
+    gap: calc(var(--nx-spacing-base) / 4);
+    font-size: var(--nx-font-size-xs);
+    color: var(--nx-swatch-red-30);
+    font-weight: 600;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-swatch-red-50);
+    }
+
+    .nx-icon {
+      font-size: var(--nx-font-size-xs);
+    }
+  }
+
   &__icon {
     background-color: var(--nx-swatch-purple-50);
     border-radius: 50%;
@@ -136,12 +156,9 @@
   &.retiring {
     border-color: var(--nx-swatch-red-30);
 
-    .iq-enterprise-reporting-card__icon {
-      left: 42px;
-    }
     .iq-enterprise-reporting-card__spotlight {
-      right: 11px;
-      left: auto;
+      top: var(--nx-spacing-3x);
+      right: var(--nx-spacing-3x);
     }
   }
 }

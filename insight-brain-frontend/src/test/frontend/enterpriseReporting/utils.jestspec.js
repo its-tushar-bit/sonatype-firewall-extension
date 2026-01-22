@@ -10,8 +10,7 @@ import {
   isRetiringDashboard,
   isDashboardRetired,
   filterRetiredDashboards,
-  getDaysUntilRetirement,
-  getRetirementText,
+  getFormattedRetirementDate,
 } from 'MainRoot/enterpriseReporting/utils';
 
 describe('Enterprise Reporting Retirement Utils', () => {
@@ -170,91 +169,25 @@ describe('Enterprise Reporting Retirement Utils', () => {
     });
   });
 
-  describe('getDaysUntilRetirement', () => {
-    let mockUtc;
-    const originalUtc = moment.utc;
-
-    beforeEach(() => {
-      mockUtc = jest.spyOn(moment, 'utc');
+  describe('getFormattedRetirementDate', () => {
+    it('should return date in MM/DD/YYYY format (US style)', () => {
+      const formatted = getFormattedRetirementDate();
+      expect(formatted).toBe('02/23/2026');
     });
 
-    afterEach(() => {
-      jest.restoreAllMocks();
+    it('should format month with leading zero (US month first)', () => {
+      const formatted = getFormattedRetirementDate();
+      expect(formatted.split('/')[0]).toBe('02');
     });
 
-    it('should return positive days when before retirement date', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-01-25') : originalUtc(date)));
-      const days = getDaysUntilRetirement();
-      expect(days).toBe(29);
+    it('should format day with leading zero', () => {
+      const formatted = getFormattedRetirementDate();
+      expect(formatted.split('/')[1]).toBe('23');
     });
 
-    it('should return 0 on retirement date', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-02-23') : originalUtc(date)));
-      const days = getDaysUntilRetirement();
-      expect(days).toBe(0);
-    });
-
-    it('should return negative days when after retirement date', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-03-01') : originalUtc(date)));
-      const days = getDaysUntilRetirement();
-      expect(days).toBe(-6);
-    });
-
-    it('should return 1 day before retirement', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-02-22') : originalUtc(date)));
-      const days = getDaysUntilRetirement();
-      expect(days).toBe(1);
-    });
-
-    it('should ignore time component and compare only dates', () => {
-      mockUtc.mockImplementation((date) =>
-        date === undefined ? originalUtc('2026-02-23T01:00:00') : originalUtc(date)
-      );
-      const days = getDaysUntilRetirement();
-      expect(days).toBe(0);
-    });
-  });
-
-  describe('getRetirementText', () => {
-    let mockUtc;
-    const originalUtc = moment.utc;
-
-    beforeEach(() => {
-      mockUtc = jest.spyOn(moment, 'utc');
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
-    it('should return "Retired" when after retirement date', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-03-01') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retired');
-    });
-
-    it('should return "Retiring today" on retirement date', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-02-23') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retiring today');
-    });
-
-    it('should return "Retiring tomorrow" one day before retirement', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-02-22') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retiring tomorrow');
-    });
-
-    it('should return "Retiring in X days" when more than 1 day away', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-01-25') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retiring in 29 days');
-    });
-
-    it('should return correct text for 2 days', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-02-21') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retiring in 2 days');
-    });
-
-    it('should return correct text for 30 days', () => {
-      mockUtc.mockImplementation((date) => (date === undefined ? originalUtc('2026-01-24') : originalUtc(date)));
-      expect(getRetirementText()).toBe('Retiring in 30 days');
+    it('should format year as four digits', () => {
+      const formatted = getFormattedRetirementDate();
+      expect(formatted.split('/')[2]).toBe('2026');
     });
   });
 

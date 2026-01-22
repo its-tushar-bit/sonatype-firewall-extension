@@ -22,6 +22,7 @@ export const initialState = Object.freeze({
   treeData: [],
   openNodes: {},
   nodeChildren: {},
+  visibleCounts: {},
 });
 
 const fetchOriginalBomRequested = (state) => {
@@ -121,6 +122,11 @@ const originalBomViewerSlice = createSlice({
           }
         }
       }
+    },
+    loadMoreChildren: (state, { payload }) => {
+      const { nodeId, batchSize } = payload;
+      const currentCount = state.visibleCounts[nodeId] || batchSize;
+      state.visibleCounts[nodeId] = currentCount + batchSize;
     },
     resetState: always(initialState),
   },

@@ -15,9 +15,10 @@ import {
   selectTreeData,
   selectOpenNodes,
   selectNodeChildren,
+  selectVisibleCounts,
 } from './originalBomViewerSelectors';
 import TreeNodeItems from './components/TreeNodeItems';
-import { HELP_URL } from './utils/constants';
+import { HELP_URL, BATCH_SIZE } from './utils/constants';
 
 import './OriginalBomViewer.scss';
 
@@ -29,6 +30,7 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
   const treeData = useSelector(selectTreeData);
   const openNodes = useSelector(selectOpenNodes);
   const nodeChildren = useSelector(selectNodeChildren);
+  const visibleCounts = useSelector(selectVisibleCounts);
 
   const loadOriginalBom = useCallback(() => {
     if (internalAppId && sbomVersion) {
@@ -42,6 +44,10 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
 
   const toggleNode = (nodeId, node) => {
     dispatch(actions.toggleNode({ nodeId, node }));
+  };
+
+  const handleLoadMore = (nodeId) => {
+    dispatch(actions.loadMoreChildren({ nodeId, batchSize: BATCH_SIZE }));
   };
 
   return (
@@ -59,7 +65,15 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
 
         <NxTile>
           <NxTree className="iq-original-bom-viewer__tree">
-            <TreeNodeItems nodes={treeData} onToggle={toggleNode} openNodes={openNodes} nodeChildren={nodeChildren} />
+            <TreeNodeItems
+              nodes={treeData}
+              onToggle={toggleNode}
+              openNodes={openNodes}
+              nodeChildren={nodeChildren}
+              visibleCounts={visibleCounts}
+              onLoadMore={handleLoadMore}
+              parentId="root"
+            />
           </NxTree>
         </NxTile>
       </NxLoadWrapper>

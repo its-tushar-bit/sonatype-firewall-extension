@@ -9,17 +9,15 @@ import { isXmlContent, parseXmlToTree, expandXmlChildren } from './xmlTreeUtils'
 export const processRawDataToTree = (data) => {
   if (typeof data === 'string' && isXmlContent(data)) {
     const tree = parseXmlToTree(data);
-    if (tree.length > 0 && tree[0].hasChildren) {
+    if (tree.length > 0 && tree[0].xmlNode) {
       tree[0].isOpen = true;
-      if (tree[0].xmlNode) {
-        tree[0].children = expandXmlChildren(tree[0].xmlNode, tree[0].id);
-      }
+      tree[0].children = expandXmlChildren(tree[0].xmlNode, tree[0].id);
     }
     return { treeData: tree, isXml: true, rawData: data };
   }
 
   const tree = expandJsonChildren(data, '');
-  if (tree.length > 0 && tree[0].hasChildren) {
+  if (tree.length > 0 && tree[0].rawData) {
     tree[0].isOpen = true;
     tree[0].children = expandJsonChildren(tree[0].rawData, tree[0].id);
   }

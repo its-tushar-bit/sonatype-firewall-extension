@@ -39,4 +39,10 @@
     font-style: italic;
     font-size: var(--nx-font-size-xs);
   }
+
+  &__sentinel {
+    height: 1px;
+    display: block;
+    cursor: pointer;
+  }
 }

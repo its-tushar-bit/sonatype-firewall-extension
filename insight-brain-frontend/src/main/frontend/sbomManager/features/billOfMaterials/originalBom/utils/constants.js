@@ -5,3 +5,5 @@
  */
 
 export const HELP_URL = 'http://links.sonatype.com/products/sbom-manager-learn-more';
+
+export const BATCH_SIZE = 50;

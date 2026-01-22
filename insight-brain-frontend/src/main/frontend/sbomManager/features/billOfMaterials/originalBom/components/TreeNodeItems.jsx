@@ -7,6 +7,9 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { NxTree, NxFontAwesomeIcon } from '@sonatype/react-shared-components';
 import { faFolder, faFolderOpen, faFile } from '@fortawesome/pro-regular-svg-icons';
+
+import LoadMoreSentinel from './LoadMoreSentinel';
+import { BATCH_SIZE } from '../utils/constants';
 import { getChildCount } from '../utils/jsonTreeUtils';
 
 // Helper to count XML node children
@@ -31,14 +34,28 @@ const getXmlChildCount = (xmlNode) => {
   return count;
 };
 
-export default function TreeNodeItems({ nodes, onToggle, openNodes, nodeChildren }) {
+export default function TreeNodeItems({
+  nodes,
+  onToggle,
+  openNodes,
+  nodeChildren,
+  visibleCounts,
+  onLoadMore,
+  parentId,
+}) {
   if (!nodes || nodes.length === 0) return null;
+
+  const visibleCount = visibleCounts?.[parentId] || BATCH_SIZE;
+  const visibleNodes = nodes.slice(0, visibleCount);
+  const remainingCount = nodes.length - visibleCount;
 
   return (
     <>
-      {nodes.map((node, index) => {
+      {visibleNodes.map((node, index) => {
         const isOpen = openNodes[node.id] || false;
         const children = nodeChildren[node.id];
+        const isLastVisible = index === visibleNodes.length - 1;
+
         // Node has children if either: 1) children are already loaded, or 2) node has data that can be expanded
         const hasChildren = (children && children.length > 0) || node.rawData || node.xmlNode;
         const icon = hasChildren ? (isOpen ? faFolderOpen : faFolder) : faFile;
@@ -57,7 +74,7 @@ export default function TreeNodeItems({ nodes, onToggle, openNodes, nodeChildren
 
         return (
           <NxTree.Item
-            key={index}
+            key={node.id}
             collapsible={hasChildren}
             isOpen={isOpen}
             onToggleCollapse={() => onToggle(node.id, node)}
@@ -75,8 +92,19 @@ export default function TreeNodeItems({ nodes, onToggle, openNodes, nodeChildren
             </NxTree.ItemLabel>
             {hasChildren && isOpen && children && (
               <NxTree>
-                <TreeNodeItems nodes={children} onToggle={onToggle} openNodes={openNodes} nodeChildren={nodeChildren} />
+                <TreeNodeItems
+                  nodes={children}
+                  onToggle={onToggle}
+                  openNodes={openNodes}
+                  nodeChildren={nodeChildren}
+                  visibleCounts={visibleCounts}
+                  onLoadMore={onLoadMore}
+                  parentId={node.id}
+                />
               </NxTree>
+            )}
+            {isLastVisible && remainingCount > 0 && parentId && (
+              <LoadMoreSentinel onLoadMore={() => onLoadMore(parentId)} remainingCount={remainingCount} />
             )}
           </NxTree.Item>
         );
@@ -98,4 +126,7 @@ TreeNodeItems.propTypes = {
   onToggle: PropTypes.func.isRequired,
   openNodes: PropTypes.objectOf(PropTypes.bool).isRequired,
   nodeChildren: PropTypes.objectOf(PropTypes.array).isRequired,
+  visibleCounts: PropTypes.objectOf(PropTypes.number),
+  onLoadMore: PropTypes.func,
+  parentId: PropTypes.string,
 };

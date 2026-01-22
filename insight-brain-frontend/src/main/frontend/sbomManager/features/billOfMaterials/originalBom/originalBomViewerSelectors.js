@@ -9,3 +9,4 @@ export const selectError = (state) => state.originalBomViewer.error;
 export const selectTreeData = (state) => state.originalBomViewer.treeData;
 export const selectOpenNodes = (state) => state.originalBomViewer.openNodes;
 export const selectNodeChildren = (state) => state.originalBomViewer.nodeChildren;
+export const selectVisibleCounts = (state) => state.originalBomViewer.visibleCounts;

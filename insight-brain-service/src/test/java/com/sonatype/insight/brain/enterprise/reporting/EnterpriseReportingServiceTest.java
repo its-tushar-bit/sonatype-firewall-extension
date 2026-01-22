@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionAcquire;
 import com.sonatype.clm.dto.model.looker.EmbedCookielessSessionGenerateTokens;

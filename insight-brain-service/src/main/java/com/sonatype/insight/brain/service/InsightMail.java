@@ -6,21 +6,21 @@
 package com.sonatype.insight.brain.service;
 
 import java.util.UUID;
-
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.mail.MessagingException;
-import javax.mail.Session;
-import javax.mail.internet.MimeMessage;
+import java.util.function.Supplier;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.mail.EmailException;
-import org.apache.commons.mail.HtmlEmail;
+import org.apache.commons.mail2.core.EmailException;
+import org.apache.commons.mail2.jakarta.HtmlEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,7 +80,7 @@ public class InsightMail
         mailConfiguration.getPort());
 
     try {
-      HtmlEmail email = new InsightHtmlEmail();
+      HtmlEmail email = createHtmlEmail();
       email.setHostName(mailConfiguration.getHostname());
       if (mailConfiguration.isSslEnabled()) {
         email.setSslSmtpPort(Integer.toString(mailConfiguration.getPort()));
@@ -114,7 +114,33 @@ public class InsightMail
     }
   }
 
-  private static class InsightHtmlEmail
+  /**
+   * Factory for creating HtmlEmail instances. Can be replaced for testing.
+   */
+  private static volatile Supplier<HtmlEmail> htmlEmailFactory = InsightHtmlEmail::new;
+
+  /**
+   * Sets a custom factory for creating HtmlEmail instances. This is primarily used for testing to intercept email
+   * sends.
+   *
+   * @param factory the factory to use, or null to reset to default
+   */
+  public static void setHtmlEmailFactory(Supplier<HtmlEmail> factory) {
+    htmlEmailFactory = factory != null ? factory : InsightHtmlEmail::new;
+  }
+
+  /**
+   * Creates the HtmlEmail instance to use for sending. Uses the configured factory, which can be replaced for testing.
+   */
+  protected HtmlEmail createHtmlEmail() {
+    return htmlEmailFactory.get();
+  }
+
+  /**
+   * Custom HtmlEmail that uses faster message ID generation and supports testing. This class is protected to allow test
+   * subclasses to override email behavior.
+   */
+  protected static class InsightHtmlEmail
       extends HtmlEmail
   {
     @Override
@@ -131,8 +157,8 @@ public class InsightMail
     }
 
     /**
-     * This method is very slow (can be seconds) in the {@link MimeMessage} parent class.
-     * We don't need fancy message IDs.
+     * This method is very slow (can be seconds) in the {@link MimeMessage} parent class. We don't need fancy message
+     * IDs.
      */
     @Override
     protected void updateMessageID() throws MessagingException {

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dashboard;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 public class H2DashboardViolationRiskServiceAuthzTest
     extends AbstractDashboardViolationRiskServiceAuthzTest

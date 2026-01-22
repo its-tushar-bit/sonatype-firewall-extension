@@ -36,6 +36,8 @@ public class KeycloakServerRule
     keycloakServer = new KeycloakServer(network);
     keycloakServerUtil = new KeycloakServerUtil();
     keycloakServerUtil.init(keycloakServer.getBaseUrl());
+    // Enable unmanaged user attributes (required for Keycloak 24+ where User Profile is enabled by default)
+    keycloakServerUtil.enableUnmanagedAttributes();
   }
 
   public KeycloakServerUtil getKeycloakServerUtil() {

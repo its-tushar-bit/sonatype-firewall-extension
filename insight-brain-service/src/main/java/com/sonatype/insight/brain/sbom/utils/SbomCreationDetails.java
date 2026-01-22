@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.sbom.utils;
 
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.BadRequestException;
+import jakarta.ws.rs.BadRequestException;
 
 public class SbomCreationDetails
 {

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.license;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.OwnerType;
 import com.sonatype.insight.brain.model.license.LicenseThreatGroup;

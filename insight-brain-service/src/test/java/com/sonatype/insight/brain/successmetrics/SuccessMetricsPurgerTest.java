@@ -17,7 +17,7 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import jakarta.persistence.LockModeType;
 
 import com.sonatype.clm.dto.model.policy.Stage;

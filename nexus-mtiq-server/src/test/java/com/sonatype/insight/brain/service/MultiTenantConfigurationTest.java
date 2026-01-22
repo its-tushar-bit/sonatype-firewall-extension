@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.util.List;
 import java.util.Set;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;

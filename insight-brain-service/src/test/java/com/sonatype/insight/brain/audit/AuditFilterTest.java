@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.audit.AuditFilter.ResponseWrapper;
 
@@ -77,29 +77,26 @@ public class AuditFilterTest
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_NotFound() {
-    responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND, MESSAGE);
+    responseWrapper.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-    verify(httpServletResponse).setStatus(HttpServletResponse.SC_NOT_FOUND, MESSAGE);
+    verify(httpServletResponse).setStatus(HttpServletResponse.SC_NOT_FOUND);
     verify(auditData).setHttpStatus(HttpServletResponse.SC_NOT_FOUND);
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_Ok() {
-    responseWrapper.setStatus(HttpServletResponse.SC_OK, MESSAGE);
+    responseWrapper.setStatus(HttpServletResponse.SC_OK);
 
-    verify(httpServletResponse).setStatus(HttpServletResponse.SC_OK, MESSAGE);
+    verify(httpServletResponse).setStatus(HttpServletResponse.SC_OK);
     verify(auditData, never()).setHttpStatus(anyInt());
   }
 
   @Test
-  @SuppressWarnings("deprecation")
   public void testSetStatus_WithMessage_BadRequest() {
-    responseWrapper.setStatus(HttpServletResponse.SC_BAD_REQUEST, MESSAGE);
+    responseWrapper.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-    verify(httpServletResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST, MESSAGE);
+    verify(httpServletResponse).setStatus(HttpServletResponse.SC_BAD_REQUEST);
     verify(auditData).setHttpStatus(HttpServletResponse.SC_BAD_REQUEST);
   }
 

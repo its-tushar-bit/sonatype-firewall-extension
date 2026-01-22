@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.configuration.webhook;
 
 import java.util.EnumSet;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.webhook.WebhookDAO;
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;

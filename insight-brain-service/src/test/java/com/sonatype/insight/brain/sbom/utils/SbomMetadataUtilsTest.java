@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sbom.utils;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiSbomResource;

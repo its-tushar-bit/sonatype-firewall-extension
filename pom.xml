@@ -39,16 +39,16 @@
     <hds.version>3.2.8</hds.version>
     <slf4j.version>2.0.17</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
-    <logback.version>1.3.15</logback.version>
+    <logback.version>1.5.21</logback.version>
     <jackson.version>2.19.0</jackson.version>
     <openjpa.version>4.1.1</openjpa.version>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
-    <shiro.version>2.0.2</shiro.version>
+    <shiro.version>2.0.6</shiro.version>
     <!-- Also update the jboss/keycloak docker image version in the KeycloakServer java class.
-     keycloak 24.x has breaking changes.
+     keycloak 24.x migrated to jakarta (breaking change from javax).
      keycloak 25.x has major breaking changes. -->
-    <keycloak.version>23.0.7</keycloak.version>
+    <keycloak.version>26.4.7</keycloak.version>
     <bc-fips.version>2.1.2</bc-fips.version>
     <bc-fips-util.version>2.1.4</bc-fips-util.version>
     <bcpkix-fips.version>2.1.9</bcpkix-fips.version>
@@ -61,15 +61,14 @@
     -->
     <clm.dto.model.version>2.1.9-01</clm.dto.model.version>
     <!-- The jetty.version must match (or be compatible with) the jersey version used by dropwizard -->
-    <jetty.version>10.0.26</jetty.version>
+    <jetty.version>12.1.5</jetty.version>
     <!-- The jakarta.servlet-api.version must match the jersey version used by dropwizard -->
-    <jakarta.servlet-api.version>4.0.4</jakarta.servlet-api.version>
-    <dropwizard.version>3.0.16</dropwizard.version>
-    <dropwizard-web.version>2.0.1</dropwizard-web.version>
-    <dropwizard-guicey.version>6.2.4</dropwizard-guicey.version>
-    <guice.version>6.0.0</guice.version>
+    <jakarta.servlet-api.version>6.0.0</jakarta.servlet-api.version>
+    <dropwizard.version>5.0.0</dropwizard.version>
+    <dropwizard-guicey.version>8.0.0</dropwizard-guicey.version>
+    <guice.version>7.0.0</guice.version>
     <!-- The jersey.version must match the jersey version used by dropwizard -->
-    <jersey.version>2.47</jersey.version>
+    <jersey.version>3.1.11</jersey.version>
     <rt.jar>${java.home}/lib/rt.jar</rt.jar>
     <aether-util.version>1.13.1</aether-util.version>
     <drools.version>10.1.0</drools.version>
@@ -142,7 +141,7 @@
     <jdks-maven-plugin.jdk-version>jdk-17.0.12%2B7</jdks-maven-plugin.jdk-version>
     <jdks-maven-plugin.base-url>https://github.com/adoptium/temurin17-binaries/releases/download</jdks-maven-plugin.base-url>
     <jdks-maven-plugin.jdk-file-version>17.0.12_7</jdks-maven-plugin.jdk-file-version>
-    <gitlab4j-api.version>5.8.0</gitlab4j-api.version>
+    <gitlab4j-api.version>6.2.0</gitlab4j-api.version>
     <micrometer.version>1.15.4</micrometer.version>
   </properties>
 
@@ -154,6 +153,7 @@
   </scm>
 
   <modules>
+    <module>vendored-dropwizard-web</module>
     <module>hds-mock-server</module>
     <module>insight-json-store</module>
     <module>insight-brain-test</module>
@@ -308,6 +308,11 @@
       </dependency>
       <dependency>
         <groupId>com.sonatype.insight.brain</groupId>
+        <artifactId>vendored-dropwizard-web</artifactId>
+        <version>1.203.0-SNAPSHOT</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sonatype.insight.brain</groupId>
         <artifactId>vendored-keycloak-saml-servlet-filter-adapter</artifactId>
         <version>1.203.0-SNAPSHOT</version>
       </dependency>
@@ -348,8 +353,8 @@
 
       <dependency>
         <groupId>org.apache.commons</groupId>
-        <artifactId>commons-email</artifactId>
-        <version>1.6.0</version>
+        <artifactId>commons-email2-jakarta</artifactId>
+        <version>2.0.0-M1</version>
       </dependency>
       <dependency>
         <groupId>org.jsoup</groupId>
@@ -579,10 +584,26 @@
       </dependency>
 
       <dependency>
-        <groupId>javax.inject</groupId>
-        <artifactId>javax.inject</artifactId>
-        <version>1</version>
-        <scope>provided</scope>
+        <groupId>jakarta.inject</groupId>
+        <artifactId>jakarta.inject-api</artifactId>
+        <version>2.0.1</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.mail</groupId>
+        <artifactId>jakarta.mail-api</artifactId>
+        <version>2.1.5</version>
+      </dependency>
+      <!-- Angus Mail - Jakarta Mail implementation with multipart MIME handlers -->
+      <dependency>
+        <groupId>org.eclipse.angus</groupId>
+        <artifactId>angus-mail</artifactId>
+        <version>2.0.5</version>
+      </dependency>
+      <!-- Angus Activation - Jakarta Activation implementation -->
+      <dependency>
+        <groupId>org.eclipse.angus</groupId>
+        <artifactId>angus-activation</artifactId>
+        <version>2.0.3</version>
       </dependency>
       <dependency>
         <groupId>com.google.inject</groupId>
@@ -593,17 +614,34 @@
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-core</artifactId>
+        <classifier>jakarta</classifier>
         <version>${shiro.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-web</artifactId>
+        <classifier>jakarta</classifier>
         <version>${shiro.version}</version>
+        <exclusions>
+          <!-- Exclude non-jakarta shiro-core, we use shiro-core:jakarta -->
+          <exclusion>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.apache.shiro</groupId>
         <artifactId>shiro-guice</artifactId>
+        <classifier>jakarta</classifier>
         <version>${shiro.version}</version>
+        <exclusions>
+          <!-- Exclude non-jakarta shiro-core, we use shiro-core:jakarta -->
+          <exclusion>
+            <groupId>org.apache.shiro</groupId>
+            <artifactId>shiro-core</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.keycloak</groupId>
@@ -633,11 +671,6 @@
       <dependency>
         <groupId>org.keycloak</groupId>
         <artifactId>keycloak-adapter-spi</artifactId>
-        <version>${keycloak.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.keycloak</groupId>
-        <artifactId>keycloak-servlet-adapter-spi</artifactId>
         <version>${keycloak.version}</version>
       </dependency>
       <dependency>
@@ -937,11 +970,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>io.dropwizard.modules</groupId>
-        <artifactId>dropwizard-web</artifactId>
-        <version>${dropwizard-web.version}</version>
-      </dependency>
-      <dependency>
         <groupId>ru.vyarus</groupId>
         <artifactId>dropwizard-guicey</artifactId>
         <version>${dropwizard-guicey.version}</version>
@@ -973,7 +1001,7 @@
       <dependency>
         <groupId>jakarta.validation</groupId>
         <artifactId>jakarta.validation-api</artifactId>
-        <version>2.0.2</version>
+        <version>3.0.2</version>
       </dependency>
       <dependency>
         <!-- avoid security vulnerabilities -->
@@ -1022,8 +1050,8 @@
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-proxy</artifactId>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-proxy</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -1044,13 +1072,24 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlet</artifactId>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-servlet</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-servlets</artifactId>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-servlets</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <!-- EE10 dependencies brought in by Dropwizard 5.0 - must be kept in sync with jetty.version -->
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-servlet</artifactId>
+        <version>${jetty.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.jetty.ee10</groupId>
+        <artifactId>jetty-ee10-servlets</artifactId>
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
@@ -1059,8 +1098,8 @@
         <version>${jetty.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-webapp</artifactId>
+        <groupId>org.eclipse.jetty.ee11</groupId>
+        <artifactId>jetty-ee11-webapp</artifactId>
         <version>${jetty.version}</version>
       </dependency>
 
@@ -1146,9 +1185,9 @@
       </dependency>
 
       <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.0.1</version>
+        <groupId>jakarta.ws.rs</groupId>
+        <artifactId>jakarta.ws.rs-api</artifactId>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>com.sonatype.nexus</groupId>
@@ -1182,6 +1221,12 @@
             <artifactId>junit-dep</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>com.icegreen</groupId>
+        <artifactId>greenmail-junit4</artifactId>
+        <version>2.1.7</version>
+        <scope>test</scope>
       </dependency>
 
       <dependency>
@@ -1396,6 +1441,8 @@
           <configuration>
             <!-- IQ modules use either surefire (default) OR failsafe, but not both. See each module for an override -->
             <skip>true</skip>
+            <!-- Prevent tests from hanging indefinitely - kill forked JVM after 15 minutes -->
+            <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
             <systemPropertyVariables>
               <docker.optional>${docker.optional}</docker.optional>
             </systemPropertyVariables>
@@ -1405,6 +1452,8 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
           <configuration>
+            <!-- Prevent tests from hanging indefinitely - kill forked JVM after 15 minutes -->
+            <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
             <forkCount>0.25C</forkCount>
             <reuseForks>true</reuseForks>
             <systemPropertyVariables>
@@ -1455,7 +1504,6 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
-        <version>3.4.0</version>
         <configuration>
           <consoleOutput>true</consoleOutput>
           <configLocation>sonatype/checkstyle-configuration.xml</configLocation>
@@ -1502,6 +1550,23 @@
             <groupId>com.sonatype</groupId>
             <artifactId>pmd-ruleset</artifactId>
             <version>18</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+      <plugin>
+        <groupId>org.openrewrite.maven</groupId>
+        <artifactId>rewrite-maven-plugin</artifactId>
+        <version>6.25.0</version>
+        <configuration>
+          <activeRecipes>
+            <recipe>org.openrewrite.java.migrate.jakarta.JakartaEE11</recipe>
+          </activeRecipes>
+        </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.openrewrite.recipe</groupId>
+            <artifactId>rewrite-migrate-java</artifactId>
+            <version>3.23.0</version>
           </dependency>
         </dependencies>
       </plugin>

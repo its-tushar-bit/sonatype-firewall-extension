@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.git.ConfigurationValidationResult;
 import com.sonatype.insight.brain.git.GitApiFactory;

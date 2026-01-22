@@ -22,8 +22,8 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import javax.mail.Message;
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.mail.Message;
+import jakarta.ws.rs.core.HttpHeaders;
 
 import com.sonatype.clm.dto.model.component.ComponentDetails;
 import com.sonatype.clm.dto.model.component.ComponentDetailsList;
@@ -82,7 +82,7 @@ import org.apache.commons.io.FileUtils;
 import org.asynchttpclient.uri.Uri;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 
@@ -93,7 +93,7 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.POL
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
 import static com.sonatype.insight.brain.report.ReportResource.BROWSE_PATH;
 import static com.sonatype.insight.brain.sbom.SbomTestHelper.mockOriginalSbom;
-import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestServlet.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
@@ -688,7 +688,7 @@ public class ReportResourceTest
     tempEntity.newPolicy(policy);
     final Stage stage = new Stage(Stage.ID_BUILD);
 
-    List<Message> notifications = Mailbox.get("manager@test.corp");
+    List<Message> notifications = MailboxTestUtil.get("manager@test.corp");
 
     // Evaluate policy
     HttpResponse response = restRequest().path(PolicyEvaluateResource.RESOURCE_PATH).parameter(app.getPublicId())

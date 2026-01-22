@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.repository.autorelease;
 import java.time.Duration;
 import java.util.Date;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;

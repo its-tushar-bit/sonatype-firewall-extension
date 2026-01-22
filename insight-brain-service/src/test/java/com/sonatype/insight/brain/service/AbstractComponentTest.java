@@ -24,7 +24,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.MockCleaner;
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
@@ -228,6 +228,10 @@ public class AbstractComponentTest
 
   protected void setUpSecurity() {
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal(USERNAME, "Test User", InternalRealm.ID));
+    lenient().when(subject.associateWith(any(Runnable.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(subject.associateWith(any(Callable.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);
     ThreadContext.bind(subject);

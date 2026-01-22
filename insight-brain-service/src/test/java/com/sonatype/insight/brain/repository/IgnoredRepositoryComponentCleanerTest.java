@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.repository;
 
 import java.util.Collections;
 import java.util.HashMap;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

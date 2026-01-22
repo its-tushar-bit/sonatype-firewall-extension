@@ -8,9 +8,9 @@
 package com.sonatype.insight.jaxrs.error;
 
 import java.util.UUID;
-import javax.inject.Named;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Named;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.error.HttpStatusCode;
 

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sbom.components;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;

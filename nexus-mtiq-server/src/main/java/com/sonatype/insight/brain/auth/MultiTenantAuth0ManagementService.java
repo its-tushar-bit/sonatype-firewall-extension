@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.auth;
 
 import java.util.Collections;
 import java.util.Date;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;

@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.report;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import javax.inject.Inject;
-import javax.ws.rs.core.Response.Status;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.model.Application;

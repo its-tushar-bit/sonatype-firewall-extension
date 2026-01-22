@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMatchingResultDTO;

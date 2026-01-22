@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Map;
+import java.util.concurrent.Callable;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.model.security.UserPrincipal;
@@ -24,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -57,6 +59,10 @@ public class AuthorizeMethodInterceptorTest
     authzChecker = mock(AuthorizationChecker.class);
     interceptor = new AuthorizeMethodInterceptor(authzChecker);
     subject = mock(Subject.class);
+    // Support for TenantAwareOneTimeRunnable which uses subject.associateWith() to propagate security context
+    // to worker threads (required since Shiro 2.0.4+ removed InheritableThreadLocal from ThreadContext)
+    lenient().when(subject.associateWith(any(Runnable.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(subject.associateWith(any(Callable.class))).thenAnswer(invocation -> invocation.getArgument(0));
     ThreadContext.bind(subject);
   }
 

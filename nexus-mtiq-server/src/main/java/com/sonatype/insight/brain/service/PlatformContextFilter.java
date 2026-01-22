@@ -7,21 +7,19 @@ package com.sonatype.insight.brain.service;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 
 import io.dropwizard.core.server.DefaultServerFactory;
-import org.eclipse.jetty.http.HttpURI;
-import org.eclipse.jetty.http.pathmap.PathSpec;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.ServletPathMapping;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,46 +67,44 @@ public class PlatformContextFilter
       return;
     }
 
-    final Request request = (Request) req;
-    final HttpURI uri = request.getHttpURI();
+    final HttpServletRequest request = (HttpServletRequest) req;
+    final String path = request.getRequestURI();
+
     // As a special case, maintain Atrium redirect behavior.
-    if ("/platform".equals(uri.getPath()) || "/platform/".equals(uri.getPath())) {
+    if ("/platform".equals(path) || "/platform/".equals(path)) {
       ((HttpServletResponse) res).sendRedirect("/platform/assets/index.html");
       return;
     }
 
-    // Remove the /platform prefix from the path in its various forms
-    final String rewrittenPath = uri.getPath().substring(9);
-    request.setContext(request.getContext(), rewrittenPath);
-    request.setHttpURI(HttpURI.build(uri, rewrittenPath, uri.getParam(), uri.getQuery()));
+    // Remove the /platform prefix from the path
+    final String rewrittenPath = path.substring(9);
 
-    // Asset requests will get 404 from this filter chain.  Instead, forward to the asset servlet
+    // Asset requests should be forwarded to the asset servlet
     if (rewrittenPath.startsWith("/assets")) {
-      final PathSpec pathSpec = PathSpec.from("/assets/*");
-      request.setServletPathMapping(new ServletPathMapping(
-          pathSpec,
-          "assets",
-          rewrittenPath,
-          pathSpec.matched(rewrittenPath)
-      ));
       RequestDispatcher requestDispatcher = request.getRequestDispatcher(rewrittenPath);
       requestDispatcher.forward(request, res);
       return;
     }
 
-    // Otherwise, modify remaining request attributes and continue the filter chain
-    final ServletPathMapping currentMapping = request.getServletPathMapping();
-    if (currentMapping != null) {
-      final PathSpec pathSpec = PathSpec.from(currentMapping.getPattern());
-      request.setServletPathMapping(new ServletPathMapping(
-          pathSpec,
-          currentMapping.getServletName(),
-          rewrittenPath,
-          pathSpec.matched(rewrittenPath)
-      ));
-    }
+    // For other paths, wrap the request to override path-related methods
+    HttpServletRequestWrapper wrappedRequest = new HttpServletRequestWrapper(request) {
+      @Override
+      public String getRequestURI() {
+        return rewrittenPath;
+      }
 
-    // Continue the filter chain with the modified request
-    fc.doFilter(request, res);
+      @Override
+      public String getServletPath() {
+        return rewrittenPath;
+      }
+
+      @Override
+      public String getPathInfo() {
+        return null;
+      }
+    };
+
+    // Continue the filter chain with the wrapped request
+    fc.doFilter(wrappedRequest, res);
   }
 }

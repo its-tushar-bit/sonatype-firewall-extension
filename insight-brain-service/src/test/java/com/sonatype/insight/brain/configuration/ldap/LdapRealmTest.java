@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.configuration.ldap;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.SslSettings;
 import com.sonatype.insight.brain.dataaccess.configuration.ldap.LdapUserMappingDAO;

@@ -13,7 +13,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -64,7 +64,7 @@ import org.junit.Test;
 import static com.sonatype.clm.dto.model.component.ComponentIdentifier.createMavenCoordinates;
 import static com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadataStatus.ACTIVE;
 import static com.sonatype.insight.brain.utils.VulnerabilitySignatureAnalysisDTOHelper.createTestAnalysisDTO;
-import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestServlet.SCAN_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ApplicationEvaluationResourceTest

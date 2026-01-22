@@ -14,8 +14,8 @@ import java.security.Key;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.Signature;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;
 import org.sonatype.licensing.util.LicensingUtil;

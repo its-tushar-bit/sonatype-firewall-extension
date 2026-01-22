@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.label;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiLabelDTO;
 import com.sonatype.insight.brain.dataaccess.label.InvalidLabelException;

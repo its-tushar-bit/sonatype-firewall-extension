@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.scan.datastore;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.brain.service.config.StorageConfig;
@@ -143,8 +143,8 @@ public class ScanPersistenceServiceProviderTest
 
   @Test
   public void testProviderImplementation_NamedSingleton() {
-    assertThat(provider.getClass().isAnnotationPresent(javax.inject.Singleton.class)).isTrue();
-    assertThat(provider.getClass().isAnnotationPresent(javax.inject.Named.class)).isTrue();
+    assertThat(provider.getClass().isAnnotationPresent(jakarta.inject.Singleton.class)).isTrue();
+    assertThat(provider.getClass().isAnnotationPresent(jakarta.inject.Named.class)).isTrue();
   }
 
   @Test

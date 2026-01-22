@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.time.LocalTime;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.policy.PolicyMonitoringTask;
 import com.sonatype.insight.brain.product.license.ProductLicense;

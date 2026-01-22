@@ -6,8 +6,8 @@
 
 package com.sonatype.insight.brain.organization;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.service.ApiSourceControlService;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;

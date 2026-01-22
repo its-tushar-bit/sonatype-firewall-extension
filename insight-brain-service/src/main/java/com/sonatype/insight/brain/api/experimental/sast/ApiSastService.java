@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.api.experimental.sast;
 
 import java.util.Set;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.features.FeaturesService;
 import com.sonatype.insight.license.model.Feature;

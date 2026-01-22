@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.Application;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Application;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiType;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;

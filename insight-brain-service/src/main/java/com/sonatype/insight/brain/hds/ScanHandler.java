@@ -7,10 +7,10 @@ package com.sonatype.insight.brain.hds;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
 
 import static com.sonatype.insight.brain.scan.ScanResource.WEB_UI_REQUEST_ATTRIBUTE;
 

@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.sbom.ingestion;
 
 import java.io.ByteArrayInputStream;
-import javax.inject.Inject;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.PolicyEvaluationHelper;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;

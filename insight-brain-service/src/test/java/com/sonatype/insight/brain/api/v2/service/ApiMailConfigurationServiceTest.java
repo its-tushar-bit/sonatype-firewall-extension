@@ -7,14 +7,15 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
-import javax.inject.Inject;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
+import jakarta.inject.Inject;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
@@ -28,7 +29,7 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -408,7 +409,7 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setSystemEmail("void@test");
     mailConfigurationDAO.set(mailConfiguration);
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     char[] password = "smtppass".toCharArray();
@@ -449,7 +450,7 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setSystemEmail("void@test");
     mailConfigurationDAO.set(mailConfiguration);
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -478,7 +479,7 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setSystemEmail("void@test");
     mailConfigurationDAO.set(mailConfiguration);
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -507,7 +508,7 @@ public class ApiMailConfigurationServiceTest
     mailConfiguration.setSystemEmail("void@test");
     mailConfigurationDAO.set(mailConfiguration);
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -528,7 +529,7 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testTestConfiguration_PasswordNotNull() throws Exception {
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     char[] password = "smtppass".toCharArray();
@@ -549,7 +550,7 @@ public class ApiMailConfigurationServiceTest
 
   @Test
   public void testTestConfiguration_PasswordNull() throws Exception {
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     setBaseUrl("http://localhost");
 
     ApiMailConfigurationDTO configurationDTO = new ApiMailConfigurationDTO();
@@ -605,7 +606,7 @@ public class ApiMailConfigurationServiceTest
       ApiMailConfigurationDTO configurationDTO,
       char[] password) throws MessagingException, IOException
   {
-    Mailbox emails = Mailbox.get(toEmailAddress);
+    List<Message> emails = MailboxTestUtil.get(toEmailAddress);
 
     assertThat(emails).hasSize(1);
     Message email = emails.get(0);

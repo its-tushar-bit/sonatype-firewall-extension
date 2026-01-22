@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.conditions.ConditionTypes;
 import com.sonatype.insight.brain.model.policy.conditions.HygieneRatingConditionType;

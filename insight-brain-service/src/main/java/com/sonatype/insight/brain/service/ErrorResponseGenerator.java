@@ -5,10 +5,10 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.organization.PartialDeletionException;
 import com.sonatype.insight.brain.security.ExpiredUserTokenException;

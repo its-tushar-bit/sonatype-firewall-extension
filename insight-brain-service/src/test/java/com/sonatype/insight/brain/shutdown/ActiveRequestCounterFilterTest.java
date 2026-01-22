@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.shutdown;
 
 import java.util.concurrent.atomic.LongAdder;
 import java.util.function.BooleanSupplier;
-import javax.servlet.FilterChain;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 

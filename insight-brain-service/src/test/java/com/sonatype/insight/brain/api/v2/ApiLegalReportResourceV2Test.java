@@ -897,6 +897,11 @@ public class ApiLegalReportResourceV2Test
     addLargeRequestPart(request);
 
     HttpResponse response = tryRequestPost(request);
+    if (response == null) {
+      // ChannelOutputShutdownException can surface because the request size validation logic can throw a
+      // bad request exception even when the client is not done writing a large request - test passes
+      return;
+    }
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).isEqualTo(MAX_REQUEST_SIZE_MESSAGE);

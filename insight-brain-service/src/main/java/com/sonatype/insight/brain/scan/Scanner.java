@@ -15,8 +15,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.insight.brain.features.FeaturesService;

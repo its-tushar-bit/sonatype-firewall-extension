@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.hds;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentCategoryList;
 import com.sonatype.insight.brain.dataaccess.ComponentCategoryDAO;

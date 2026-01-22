@@ -10,7 +10,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.util.TreeSet;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.TestLicenseFingerprinter;
 import com.sonatype.insight.brain.service.AbstractComponentTest;

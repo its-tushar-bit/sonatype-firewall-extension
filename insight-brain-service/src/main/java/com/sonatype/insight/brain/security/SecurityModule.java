@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Collections;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.repository.QuarantinedComponentAccessDAO;
 import com.sonatype.insight.brain.dataaccess.security.ShiroSessionDAO;
@@ -226,6 +226,9 @@ public class SecurityModule
      * https://issues.apache.org/jira/browse/SHIRO-369.
      */
     bind.toInstance(defaultWebSecurityManager);
+
+    // Set static SecurityManager so that async threads (which don't have ThreadContext) can access it
+    org.apache.shiro.SecurityUtils.setSecurityManager(defaultWebSecurityManager);
     /*
      * TODO: The above will trigger ShiroModule.BeanTypeListener which eventually sets a DefaultSessionManager
      * on the security manager, replacing the ServletContainerSessionManager it uses by default. Is this what we

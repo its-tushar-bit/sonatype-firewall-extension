@@ -27,11 +27,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.ScanReceipt;
@@ -761,7 +761,13 @@ public abstract class AbstractBaseIntegrationTest
       throws MessagingException, IOException
   {
     List<TelemetryItem> telemetryItems = new ArrayList<>();
-    for (Map.Entry<ByteArrayDataSource, Integer> response : responses.entrySet()) {
+    // Create a snapshot of the entries to avoid ConcurrentModificationException
+    // when the responses map is a synchronizedMap being modified by another thread
+    List<Map.Entry<ByteArrayDataSource, Integer>> responseSnapshot;
+    synchronized (responses) {
+      responseSnapshot = new ArrayList<>(responses.entrySet());
+    }
+    for (Map.Entry<ByteArrayDataSource, Integer> response : responseSnapshot) {
       Integer status = response.getValue();
       MimeMultipart multipart = new MimeMultipart(response.getKey());
       BodyPart bodyPart = multipart.getBodyPart(0);

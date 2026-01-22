@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.TreeSet;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;

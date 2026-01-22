@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.scan;
 
 import java.util.Date;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.scan.PersistedScanTicketDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;

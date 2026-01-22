@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.scan;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.hds.HdsClient;

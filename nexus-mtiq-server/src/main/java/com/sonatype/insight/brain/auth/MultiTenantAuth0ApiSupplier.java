@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.auth;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import com.auth0.client.auth.Auth0AuthAPI;
 import com.auth0.client.mgmt.Auth0ManagementAPI;

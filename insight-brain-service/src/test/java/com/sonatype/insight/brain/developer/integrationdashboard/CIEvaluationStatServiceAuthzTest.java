@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.developer.integrationdashboard.api.ApiIntegrationsCiCdStatIncrementDto;
 import com.sonatype.insight.brain.model.Organization;

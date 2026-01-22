@@ -6,14 +6,14 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.reflect.Method;
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.inject.Provider;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.MultivaluedMap;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Provider;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.MultivaluedMap;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -29,7 +29,7 @@ import ru.vyarus.dropwizard.guice.module.installer.order.Order;
  * this request filter is the first opportunity where the request path has been mapped to a REST resource, allowing to
  * reason about the specific operation undertaken by the caller.
  */
-@javax.ws.rs.ext.Provider
+@jakarta.ws.rs.ext.Provider
 // high priority (i.e. low number) to get called before others like LicenseAwareContainerDynamicFeature
 @Priority(AuditContainerRequestFilter.PRIORITY)
 @Order(Integer.MAX_VALUE - AuditContainerRequestFilter.PRIORITY)

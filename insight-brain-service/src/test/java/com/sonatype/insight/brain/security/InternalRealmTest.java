@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.security;
 
 import java.util.Iterator;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.model.security.User;

@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.developer.integrationdashboard;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.product.license.ProductLicense;

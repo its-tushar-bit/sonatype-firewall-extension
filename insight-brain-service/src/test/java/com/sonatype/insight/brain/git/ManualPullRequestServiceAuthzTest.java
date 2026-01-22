@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.git;
 
 import java.util.Optional;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.model.component.DependencyType;

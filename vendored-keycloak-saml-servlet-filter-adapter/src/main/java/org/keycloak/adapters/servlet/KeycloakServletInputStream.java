@@ -7,8 +7,8 @@
 package org.keycloak.adapters.servlet;
 
 import java.io.IOException;
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
 
 /**
  * Original Keycloak implementation was tied to do different servlet spec and didn't implement all methods.

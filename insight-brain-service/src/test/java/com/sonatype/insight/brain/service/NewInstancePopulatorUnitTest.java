@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.service;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 

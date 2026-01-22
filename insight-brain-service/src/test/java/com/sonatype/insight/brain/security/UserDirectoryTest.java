@@ -16,7 +16,7 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapGroup;

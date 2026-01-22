@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.landing;
 
-import javax.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.HttpHeaders;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.HttpResponse;

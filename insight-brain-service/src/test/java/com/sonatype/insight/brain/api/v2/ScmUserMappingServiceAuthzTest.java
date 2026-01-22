@@ -8,7 +8,7 @@ import org.junit.experimental.categories.Category;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Arrays;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.FromMappingEnum;
 import com.sonatype.insight.brain.api.v2.dto.scmusermatching.SCMUserMappingsDTO;

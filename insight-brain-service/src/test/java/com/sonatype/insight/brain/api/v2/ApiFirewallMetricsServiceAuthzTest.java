@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.math.BigDecimal;
 import java.util.Map;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;

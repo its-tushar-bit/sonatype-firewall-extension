@@ -18,7 +18,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dashboard.filters.PolicyThreatCategoryFilter;

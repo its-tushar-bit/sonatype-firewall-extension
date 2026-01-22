@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2InMemoryTest;
 

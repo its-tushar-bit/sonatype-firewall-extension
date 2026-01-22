@@ -17,9 +17,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import javax.inject.Inject;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiLicenseDTO;

@@ -9,7 +9,7 @@ package com.sonatype.insight.brain.scan.datastore;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.InsightWork;
 

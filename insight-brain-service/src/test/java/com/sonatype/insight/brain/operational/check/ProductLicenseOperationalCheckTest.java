@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.operational.check;
 import java.time.Duration;
 import java.time.Instant;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;

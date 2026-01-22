@@ -13,7 +13,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Calendar;
 import java.util.Date;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.InvalidNameException;
 import com.sonatype.insight.brain.model.configuration.saml.SamlConfiguration;

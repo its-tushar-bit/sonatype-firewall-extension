@@ -6,11 +6,11 @@
 package com.sonatype.insight.brain.audit;
 
 import java.lang.reflect.Method;
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.ext.Provider;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.ext.Provider;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -26,10 +26,10 @@ import static com.sonatype.insight.brain.api.admin.authorization.AuthContextProp
 public class AdminAuditContainerRequestFilter
     implements ContainerRequestFilter
 {
-  private final javax.inject.Provider<ResourceInfo> resourceInfoProvider;
+  private final jakarta.inject.Provider<ResourceInfo> resourceInfoProvider;
 
   @Inject
-  public AdminAuditContainerRequestFilter(javax.inject.Provider<ResourceInfo> resourceInfoProvider) {
+  public AdminAuditContainerRequestFilter(jakarta.inject.Provider<ResourceInfo> resourceInfoProvider) {
     this.resourceInfoProvider = resourceInfoProvider;
   }
 

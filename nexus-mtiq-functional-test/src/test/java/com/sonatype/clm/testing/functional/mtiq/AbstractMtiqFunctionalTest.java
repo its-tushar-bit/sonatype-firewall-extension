@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
@@ -360,6 +361,10 @@ public abstract class AbstractMtiqFunctionalTest
     setupWebDriver();
     Subject subject = mock(Subject.class);
     lenient().when(subject.getPrincipal()).thenReturn(new UserPrincipal("admin", "Admin", InternalRealm.ID));
+    // Support for TenantAwareOneTimeRunnable which uses subject.associateWith() to propagate security context
+    // to worker threads (required since Shiro 2.0.4+ removed InheritableThreadLocal from ThreadContext)
+    lenient().when(subject.associateWith(any(Runnable.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(subject.associateWith(any(Callable.class))).thenAnswer(invocation -> invocation.getArgument(0));
     SecurityManager securityManager = mock(SecurityManager.class);
     lenient().when(securityManager.createSubject(any(SubjectContext.class))).thenReturn(subject);
     ThreadContext.bind(securityManager);

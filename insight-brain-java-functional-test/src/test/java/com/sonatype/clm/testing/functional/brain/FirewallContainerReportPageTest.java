@@ -71,7 +71,7 @@ public class FirewallContainerReportPageTest
     evaluator = new TestReportEvaluator(app, SCAN_ID, zippedReport, baseUrlFromTest, work, Stage.ID_PROXY);
     evaluator.evaluatePolicyForScanIdWithScanTriggerType(ScanTriggerType.CLI);
 
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 

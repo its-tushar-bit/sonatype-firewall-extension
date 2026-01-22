@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy.violation;
 
 import java.util.Date;
 import java.util.List;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;
 import com.sonatype.insight.brain.model.policy.RepositoryPolicyViolation;

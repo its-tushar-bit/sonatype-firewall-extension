@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.version;
 
-import javax.annotation.Priority;
-import javax.inject.Named;
+import jakarta.annotation.Priority;
+import jakarta.inject.Named;
 
 import ru.vyarus.dropwizard.guice.module.installer.order.Order;
 

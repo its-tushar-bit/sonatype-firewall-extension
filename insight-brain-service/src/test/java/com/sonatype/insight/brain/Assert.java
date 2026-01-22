@@ -7,7 +7,7 @@ package com.sonatype.insight.brain;
 
 import java.util.List;
 
-import javax.mail.Message;
+import jakarta.mail.Message;
 
 import com.sonatype.insight.brain.model.configuration.ProprietaryConfig;
 import com.sonatype.insight.brain.model.tag.Tag;

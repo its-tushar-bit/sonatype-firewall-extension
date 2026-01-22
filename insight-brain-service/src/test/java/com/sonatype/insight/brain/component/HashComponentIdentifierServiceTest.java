@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.component;
 
 import java.util.Date;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.component.ComponentDisplayName;

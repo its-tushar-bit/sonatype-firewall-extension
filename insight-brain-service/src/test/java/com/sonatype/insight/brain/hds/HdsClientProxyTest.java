@@ -12,10 +12,11 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.ProxyServerConfigurationDAO;
@@ -29,10 +30,10 @@ import com.sonatype.insight.brain.version.DefaultVersionService;
 import com.sonatype.insight.client.utils.UserAgentUtils;
 
 import com.google.common.net.HttpHeaders;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,7 +56,7 @@ public class HdsClientProxyTest
 
   private HdsClient client;
 
-  private AbstractHandler handler;
+  private HttpServlet handler;
 
   @Inject
   private TelemetryId telemetryId;
@@ -72,17 +73,20 @@ public class HdsClientProxyTest
   @Before
   public void init() throws Exception {
     server = new Server(0);
-    server.setHandler(new AbstractHandler()
-    {
+
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException, ServletException
       {
         if (handler != null) {
-          handler.handle(target, baseRequest, request, response);
+          handler.service(request, response);
         }
       }
-    });
+    }), "/*");
+    server.setHandler(context);
     server.start();
 
     tempEntity.setProxyServerConfiguration("localhost", ((NetworkConnector) server.getConnectors()[0]).getLocalPort());
@@ -124,10 +128,10 @@ public class HdsClientProxyTest
         Collections.singletonList(HttpHeaders.USER_AGENT)));
 
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         if ("CONNECT".equals(request.getMethod())) {
           headers.clear();
           for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements();) {
@@ -135,7 +139,6 @@ public class HdsClientProxyTest
             headers.put(headerName, request.getHeader(headerName));
           }
         }
-        baseRequest.setHandled(true);
       }
     };
 
@@ -158,16 +161,15 @@ public class HdsClientProxyTest
     initClient();
 
     String proxyResponse = "PROXY-TEST-PASSED";
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().print(proxyResponse);
-        baseRequest.setHandled(true);
       }
     };
 

@@ -8,6 +8,9 @@ package com.sonatype.insight.brain.tenancy;
 import java.util.concurrent.Callable;
 
 import io.micrometer.core.instrument.Tags;
+import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.ThreadContext;
 
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.cloneTenant;
 import static com.sonatype.insight.brain.tenancy.TenantThreadLocal.invalidateTenant;
@@ -19,6 +22,8 @@ public class TenantAwareOneTimeCallable<T>
 
   private final Tenant tenant;
 
+  private final Subject subject;
+
   private boolean previouslyRun = false;
 
   public TenantAwareOneTimeCallable(Callable<T> wrapped) {
@@ -28,6 +33,7 @@ public class TenantAwareOneTimeCallable<T>
   TenantAwareOneTimeCallable(Callable<T> wrapped, Tenant tenant) {
     this.wrapped = wrapped;
     this.tenant = cloneTenant(tenant);
+    this.subject = ThreadContext.getSecurityManager() != null ? SecurityUtils.getSubject() : null;
   }
 
   @Override
@@ -42,9 +48,18 @@ public class TenantAwareOneTimeCallable<T>
 
     previouslyRun = true;
 
+    // Check if the executor signaled that Subject propagation should be skipped.
+    // This is set by executors like ResettingThreadPoolExecutor that want tasks to run as "system".
+    final boolean skipSubject = TenantAwareOneTimeRunnable.isSkipSubjectPropagation();
+
     T result = TenantThreadLocal.runAsWithoutValidation(tenant, () -> {
       try {
-        return wrapped.call();
+        if (subject != null && !skipSubject) {
+          return subject.associateWith(wrapped).call();
+        }
+        else {
+          return wrapped.call();
+        }
       }
       catch (Exception e) {
         throw new RuntimeException(e);

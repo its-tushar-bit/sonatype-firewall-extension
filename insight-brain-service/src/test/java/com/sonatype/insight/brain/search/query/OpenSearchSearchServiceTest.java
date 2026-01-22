@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.search.query;
 
 import java.net.URI;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.Application;

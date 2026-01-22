@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.service;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.telemetry.ClientUserAgentUtil;

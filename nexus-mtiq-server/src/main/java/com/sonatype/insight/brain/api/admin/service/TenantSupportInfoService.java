@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.api.admin.service;
 
 import java.io.IOException;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.support.SupportInfo;
 import com.sonatype.insight.brain.support.SupportInfoFiles;

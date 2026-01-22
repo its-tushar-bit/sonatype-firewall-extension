@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.File;
 import java.io.IOException;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;

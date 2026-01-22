@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.product.license;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

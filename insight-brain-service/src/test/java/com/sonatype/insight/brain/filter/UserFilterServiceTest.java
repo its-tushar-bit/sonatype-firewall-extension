@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.filter;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.filter.UserFilterDAO;
 import com.sonatype.insight.brain.model.filter.UserFilter;

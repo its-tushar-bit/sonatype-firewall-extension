@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.security.PasswordHandler;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
 import com.sonatype.insight.json.store.JsonUtils;
-import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
+import com.sonatype.insight.mock.hds.HdsMockServer.RestServlet;
 import com.sonatype.nexus.scm.SourceControlProvider;
 
 import org.junit.Before;
@@ -53,7 +53,7 @@ public class ApiEvaluationResourceV2AuditTest
   @Test
   public void testPromoteScan() throws Exception {
     assertResponseStatus(200, promoteScan(true, true, null, app.getId(), SCAN_ID, Stage.ID_OPERATE));
-    assertEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName(), Stage.ID_OPERATE, RestHandler.SCAN_ID,
+    assertEvaluationAuditLog(null, app.getId(), app.getPublicId(), app.getName(), Stage.ID_OPERATE, RestServlet.SCAN_ID,
         false);
   }
 
@@ -82,7 +82,7 @@ public class ApiEvaluationResourceV2AuditTest
   public void testPromoteScan_NoReport() throws Exception {
     assertResponseStatus(200, promoteScan(true, false, null, app.getId(), SCAN_ID, Stage.ID_OPERATE));
     assertEvaluationAuditLog("not-found", app.getId(), app.getPublicId(), app.getName(), Stage.ID_OPERATE,
-        RestHandler.SCAN_ID, null);
+        RestServlet.SCAN_ID, null);
   }
 
   @Test
@@ -185,7 +185,7 @@ public class ApiEvaluationResourceV2AuditTest
       createScanFile(app.getId(), SCAN_ID);
     }
     if (createReport) {
-      mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report");
+      mockReport(RestServlet.SCAN_ID, "/AbstractAuditTest/report");
     }
     return restRequest().with(user)
         .path(PublicApiPaths.APPLICATION_EVALUATION_PATH_V2, ApiEvaluationResourceV2.PROMOTE_SCAN_PATH)

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.product.license;
 import java.util.Arrays;
 import java.util.TreeSet;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.license.model.SignedProductLicenseDetailsDTO;

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.operational.check;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 

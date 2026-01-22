@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.container.images;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.repository.RepositoryType;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;

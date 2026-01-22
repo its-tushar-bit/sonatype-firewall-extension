@@ -12,7 +12,7 @@ import java.nio.file.Files;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.io.FileCleaner;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

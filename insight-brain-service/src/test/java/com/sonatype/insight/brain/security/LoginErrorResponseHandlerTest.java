@@ -8,13 +8,11 @@ package com.sonatype.insight.brain.security;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-import javax.servlet.http.HttpServletResponse;
-
 import com.sonatype.insight.brain.service.ErrorResponseGenerator;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.shiro.authc.AuthenticationException;
-import org.eclipse.jetty.server.Response;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -52,10 +50,11 @@ public class LoginErrorResponseHandlerTest
     verifyResponse(response, errorResponse.getStatusCode(), writer, errMessage);
   }
 
-  private void verifyResponse(final HttpServletResponse response,
-                              final int expectedStatusCode,
-                              final PrintWriter writer,
-                              final String errMessage)
+  private void verifyResponse(
+      final HttpServletResponse response,
+      final int expectedStatusCode,
+      final PrintWriter writer,
+      final String errMessage)
       throws IOException
   {
     verify(response).setStatus(expectedStatusCode);
@@ -81,6 +80,7 @@ public class LoginErrorResponseHandlerTest
 
     LoginErrorResponseHandler.sendError(response, new AuthenticationException());
 
-    verifyResponse(response, Response.SC_UNAUTHORIZED, writer, ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
+    verifyResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
+        ErrorResponseGenerator.MSG_LOGIN_FAILURE_DEFAULT);
   }
 }

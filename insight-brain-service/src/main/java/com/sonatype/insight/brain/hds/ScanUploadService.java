@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.artifactory;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.artifactory.ArtifactoryClientFactory.ArtifactoryClientBuilder;
 import com.sonatype.insight.brain.model.configuration.RepositoryClientConfiguration;

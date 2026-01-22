@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserActivityFilterOptionsDTO;
 import com.sonatype.insight.brain.audit.AuditLogFilesProvider;

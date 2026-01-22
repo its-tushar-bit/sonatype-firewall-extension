@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.ComponentChangeDetectionEventDAO;

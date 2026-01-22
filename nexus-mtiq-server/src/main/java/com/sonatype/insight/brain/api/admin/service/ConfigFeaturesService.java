@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.api.admin.service;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.PathParam;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.PathParam;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.service.banning.MTIQFeatureService;

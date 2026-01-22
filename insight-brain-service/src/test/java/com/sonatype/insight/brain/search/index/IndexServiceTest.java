@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.search.index;
 
 import java.time.Duration;
 import java.util.Collections;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;

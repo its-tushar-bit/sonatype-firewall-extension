@@ -10,7 +10,7 @@ import java.io.UncheckedIOException;
 import java.net.HttpCookie;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.HttpRequest;
 import com.sonatype.insight.brain.HttpResponse;

@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.utils;
 
 import java.util.concurrent.Callable;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.policy.PolicyImportResult;
 import com.sonatype.insight.brain.security.AntiCsrfFilter;

@@ -23,16 +23,17 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import javax.inject.Inject;
-import javax.mail.BodyPart;
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMultipart;
-import javax.mail.util.ByteArrayDataSource;
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.InternalServerErrorException;
+import jakarta.inject.Inject;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -59,8 +60,6 @@ import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
@@ -111,16 +110,16 @@ public class HdsClientTest
    */
   private Map<String, String> setHttpHeaderCaptorRequestHandler() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
-        baseRequest.setHandled(true);
+        response.setStatus(HttpStatus.OK_200);
       }
     };
     return headers;
@@ -475,14 +474,13 @@ public class HdsClientTest
     initClient();
 
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           headers.add(en.nextElement());
         }
-        baseRequest.setHandled(true);
       }
     };
 
@@ -502,14 +500,13 @@ public class HdsClientTest
   @Test
   public void testRemoveXForwarded() throws Exception {
     final Set<String> headers = new HashSet<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           headers.add(en.nextElement());
         }
-        baseRequest.setHandled(true);
       }
     };
 
@@ -547,16 +544,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformAuthErrors_401() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.UNAUTHORIZED_401);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -567,16 +563,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformAuthErrors_403() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.FORBIDDEN_403);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -587,16 +582,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformAuthErrors_407() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.PROXY_AUTHENTICATION_REQUIRED_407);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -607,16 +601,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformServiceUnavailable() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.SERVICE_UNAVAILABLE_503);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -627,16 +620,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformBadGateway() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.BAD_GATEWAY_502);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("PASSED");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -660,14 +652,13 @@ public class HdsClientTest
   public void testAnalyticsIdOnRequests() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         headers.put(HdsClient.OWNER_TYPE_HEADER, request.getHeader(HdsClient.OWNER_TYPE_HEADER));
         headers.put(HdsClient.OWNER_ID_HEADER, request.getHeader(HdsClient.OWNER_ID_HEADER));
-        baseRequest.setHandled(true);
       }
     };
 
@@ -701,12 +692,11 @@ public class HdsClientTest
   }
 
   private void testTransformOtherErrors(final int statusCode) {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         response.setStatus(statusCode);
-        baseRequest.setHandled(true);
       }
     };
 
@@ -717,16 +707,15 @@ public class HdsClientTest
 
   @Test
   public void testIOExceptionReadingResponse() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("Not an integer");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -764,16 +753,15 @@ public class HdsClientTest
 
   @Test
   public void testTransformInternalServerError_500() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR_500);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("Some error message");
-        baseRequest.setHandled(true);
       }
     };
 
@@ -790,16 +778,15 @@ public class HdsClientTest
 
   @Test
   public void testGet_EncodeQueryParameters() throws Exception {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println(request.getQueryString());
-        baseRequest.setHandled(true);
       }
     };
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
@@ -860,13 +847,13 @@ public class HdsClientTest
     final Map<String, String> headers = new HashMap<>();
 
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         headers.put(HdsClient.TELEMETRY_ID_HEADER, request.getHeader(HdsClient.TELEMETRY_ID_HEADER));
-        baseRequest.setHandled(true);
+        response.setStatus(HttpStatus.OK_200);
       }
     };
 
@@ -920,10 +907,10 @@ public class HdsClientTest
     final BodyPart[] fileBodyReceived = new BodyPart[1];
 
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         try {
@@ -938,7 +925,6 @@ public class HdsClientTest
 
         response.setStatus(HttpStatus.NO_CONTENT_204);
         statusCode[0] = HttpStatus.NO_CONTENT_204;
-        baseRequest.setHandled(true);
       }
     };
 
@@ -959,12 +945,11 @@ public class HdsClientTest
     final String queryParamValue = "testvalue";
 
     String testPath = "/rest/test";
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         queryString[0] = request.getQueryString();
-        baseRequest.setHandled(true);
       }
     };
 
@@ -993,15 +978,14 @@ public class HdsClientTest
   public void testLabsProxy_Headers() throws Exception {
     final Map<String, String> headers = new HashMap<>();
     setBaseUrl("http://localhost:8070");
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
-        baseRequest.setHandled(true);
       }
     };
 
@@ -1067,10 +1051,10 @@ public class HdsClientTest
   public void testExecute_DefaultRetry_BadGatewayErrorsOutEventually() {
     AtomicInteger requests = new AtomicInteger();
     List<String> queryStrings = new ArrayList<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         requests.incrementAndGet();
@@ -1078,7 +1062,6 @@ public class HdsClientTest
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("Some error message");
         queryStrings.add(request.getQueryString());
-        baseRequest.setHandled(true);
       }
     };
 
@@ -1094,10 +1077,10 @@ public class HdsClientTest
   public void testExecute_DefaultRetry_BadGatewayCanSucceed() {
     AtomicInteger requests = new AtomicInteger();
     List<String> queryStrings = new ArrayList<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         requests.incrementAndGet();
@@ -1110,7 +1093,6 @@ public class HdsClientTest
           response.getWriter().println("Some error message");
         }
         queryStrings.add(request.getQueryString());
-        baseRequest.setHandled(true);
       }
     };
 
@@ -1184,16 +1166,15 @@ public class HdsClientTest
 
   @Test
   public void testGetWithMultimap_EncodeQueryParameters() throws Exception {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println(request.getQueryString());
-        baseRequest.setHandled(true);
       }
     };
 
@@ -1213,12 +1194,11 @@ public class HdsClientTest
   public void testGetWithMultimap_MultipleValuesForSameKey() throws Exception {
     final String[] queryString = {""};
 
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         queryString[0] = request.getQueryString();
-        baseRequest.setHandled(true);
       }
     };
 
@@ -1260,16 +1240,13 @@ public class HdsClientTest
 
   @Test
   public void testRelayWithMultimap_EncodeQueryParameters() throws Exception {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
-          throws IOException
-      {
+      protected void service(HttpServletRequest request, HttpServletResponse response) throws IOException {
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println(request.getQueryString());
-        baseRequest.setHandled(true);
       }
     };
 

@@ -9,7 +9,7 @@ import java.net.ServerSocket;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.naming.AuthenticationException;
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;

@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.developer.integrationdashboard;
 
 import java.time.Instant;
 import java.util.Date;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 @Named
 public class DateTimeService

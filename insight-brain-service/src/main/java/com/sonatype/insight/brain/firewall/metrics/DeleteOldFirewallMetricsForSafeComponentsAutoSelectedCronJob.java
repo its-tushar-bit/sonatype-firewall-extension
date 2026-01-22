@@ -6,8 +6,8 @@
 
 package com.sonatype.insight.brain.firewall.metrics;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightJob;
 

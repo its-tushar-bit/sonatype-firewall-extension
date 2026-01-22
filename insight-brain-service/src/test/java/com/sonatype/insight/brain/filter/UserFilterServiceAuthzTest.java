@@ -10,7 +10,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.filter.UserFilterType;

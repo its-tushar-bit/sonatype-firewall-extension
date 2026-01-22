@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.firewall.metrics;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.security.MDCUsernameScope;

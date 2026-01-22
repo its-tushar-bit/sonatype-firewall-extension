@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.api.v2.autowaivers;
 
 import java.util.Date;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.api.PublicApiPaths;

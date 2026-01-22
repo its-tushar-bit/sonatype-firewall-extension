@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.zscaler;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ZScalerConfigurationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ZscalerFormatDAO;

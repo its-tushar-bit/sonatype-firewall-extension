@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Arrays;
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiMailConfigurationDTO;
 import com.sonatype.insight.brain.audit.AuditData;

@@ -5,6 +5,8 @@
  */
 package com.sonatype.insight.brain.testing;
 
+import jakarta.inject.Inject;
+
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManager;
 import com.sonatype.insight.brain.dataaccess.lock.ClusterLockManagerProvider;
 import com.sonatype.insight.brain.db.datastore.AggregationDataStore;
@@ -41,6 +43,16 @@ public class DataStoreTestModule
     binder.bind(DataMartDataStore.class).toProvider(() -> databaseContainerRule.getDataMartDataStore());
     binder.bind(ThirdPartyScansDataStore.class).toProvider(() -> databaseContainerRule.getThirdPartyScansDataStore());
     binder.bind(DataStoreProvider.class).toInstance(databaseContainerRule.getDatabaseContainer());
-    binder.bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+    // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
+    binder.bind(ClusterLockManagerProvider.class);
+    binder.bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>() {
+      @Inject
+      ClusterLockManagerProvider provider;
+
+      @Override
+      public ClusterLockManager get() {
+        return provider.get();
+      }
+    });
   }
 }

@@ -6,13 +6,13 @@
 package com.sonatype.insight.brain.api.experimental;
 
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.clm.dto.model.component.ComponentNearestFixedVersions;
 import com.sonatype.insight.brain.product.license.ProductLicenseEnforcementPoint;

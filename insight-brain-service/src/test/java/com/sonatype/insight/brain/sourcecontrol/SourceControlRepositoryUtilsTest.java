@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.sourcecontrol;
 
 import java.util.HashMap;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.git.GitApiFactory;
 import com.sonatype.insight.brain.model.Application;

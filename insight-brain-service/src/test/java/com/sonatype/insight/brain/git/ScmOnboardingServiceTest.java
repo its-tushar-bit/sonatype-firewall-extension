@@ -21,7 +21,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
@@ -634,12 +634,12 @@ public class ScmOnboardingServiceTest
 
     // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getRepositoryUrl)).containsExactly(repo1URL, repo2URL, repo3URL, repo4URL);
 
     // and that all the clone URLs were added
     assertThat(sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getRepositorySshUrl)).containsExactly("git@localhost:org/repo1.git",
         "git@localhost:org/repo2.git", "git@localhost:org/repo3.git", "git@localhost:org/repo4.git");
 
@@ -731,7 +731,7 @@ public class ScmOnboardingServiceTest
 
     // and the default branches are stored on DB
     assertThat(sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(SourceControl::getBaseBranch))
         .containsExactly(MAIN_BRANCH,null);
   }
@@ -881,7 +881,7 @@ public class ScmOnboardingServiceTest
 
     // and all the source control entries were created
     List<Application> allSourceControlApps = sourceControlDAO.getAll().stream()
-        .filter(sc -> sc.getOwnerId() != ROOT_ORGANIZATION_ID)
+        .filter(sc -> !ROOT_ORGANIZATION_ID.equals(sc.getOwnerId()))
         .map(sc -> applicationDAO.getById(sc.getOwnerId()))
         .collect(Collectors.toList());
     assertThat(allSourceControlApps.stream().map(Application::getPublicId))

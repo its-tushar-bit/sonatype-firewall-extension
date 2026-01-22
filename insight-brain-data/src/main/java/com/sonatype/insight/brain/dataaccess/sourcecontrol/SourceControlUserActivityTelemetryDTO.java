@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dataaccess.sourcecontrol;
 
 import java.time.LocalDate;
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 /**
  * @since 1.170

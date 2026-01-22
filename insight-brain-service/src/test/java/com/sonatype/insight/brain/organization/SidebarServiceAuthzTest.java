@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.organization;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;

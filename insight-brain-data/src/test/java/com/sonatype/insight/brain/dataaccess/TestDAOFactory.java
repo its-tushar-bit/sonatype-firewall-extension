@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.dataaccess;
 
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.artifactory.ArtifactoryConnectionDAO;
 import com.sonatype.insight.brain.dataaccess.component.HashComponentIdentifierDAO;

@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import javax.inject.Named;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.inject.Named;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 

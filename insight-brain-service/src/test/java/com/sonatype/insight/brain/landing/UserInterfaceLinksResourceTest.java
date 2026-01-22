@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.mail.MessagingException;
-import javax.mail.util.ByteArrayDataSource;
+import jakarta.mail.MessagingException;
+import jakarta.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.dto.model.repository.RepositoryType;

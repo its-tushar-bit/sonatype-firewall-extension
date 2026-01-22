@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.container.images;
 import com.sonatype.insight.brain.common.test.SlowTest;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

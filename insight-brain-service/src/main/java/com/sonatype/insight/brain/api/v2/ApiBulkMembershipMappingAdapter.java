@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.api.v2;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicableMembershipMappingsDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiMemberWithDetailsDTO;

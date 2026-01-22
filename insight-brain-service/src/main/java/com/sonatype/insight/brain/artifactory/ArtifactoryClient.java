@@ -17,9 +17,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.Status.Family;
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status.Family;
+import jakarta.ws.rs.core.Response.StatusType;
 
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchError;
 import com.sonatype.insight.brain.artifactory.client.ArtifactoryChecksumSearchErrors;

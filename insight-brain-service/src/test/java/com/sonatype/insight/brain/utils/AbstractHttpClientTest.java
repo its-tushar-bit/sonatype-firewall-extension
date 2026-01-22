@@ -7,9 +7,10 @@ package com.sonatype.insight.brain.utils;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiProxyServerConfigurationService;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -17,10 +18,10 @@ import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import org.apache.http.client.HttpResponseException;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,9 +42,12 @@ public abstract class AbstractHttpClientTest
     Server proxyServer = new Server(0);
     AtomicBoolean proxyServerUsed = new AtomicBoolean();
     AtomicBoolean proxyAuthenticationProvided = new AtomicBoolean();
-    proxyServer.setHandler(new AbstractHandler() {
+
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         proxyServerUsed.set(true);
         String proxyAuth = request.getHeader("Proxy-Authorization");
         if ("Basic dGVzdC1wcm94eS11c2VyOnRlc3QtcHJveHktcGFzcw==".equals(proxyAuth)) {
@@ -54,9 +58,9 @@ public abstract class AbstractHttpClientTest
           response.setStatus(HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED);
           response.setHeader("Proxy-Authenticate", "Basic realm=\"ProxyTestRealm\"");
         }
-        baseRequest.setHandled(true);
       }
-    });
+    }), "/*");
+    proxyServer.setHandler(context);
 
     proxyServer.start();
     try {
@@ -82,14 +86,17 @@ public abstract class AbstractHttpClientTest
   public void testProxyExclusion() throws Exception {
     Server targetServer = new Server(0);
     AtomicBoolean proxyServerBypassed = new AtomicBoolean();
-    targetServer.setHandler(new AbstractHandler() {
+
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         proxyServerBypassed.set(true);
         response.setStatus(HttpServletResponse.SC_NOT_IMPLEMENTED);
-        baseRequest.setHandled(true);
       }
-    });
+    }), "/*");
+    targetServer.setHandler(context);
 
     targetServer.start();
     try {

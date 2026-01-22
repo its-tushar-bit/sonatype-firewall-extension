@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.utils;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

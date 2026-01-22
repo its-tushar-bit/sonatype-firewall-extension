@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.git;
 
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.service.InsightProxy;
 import com.sonatype.insight.brain.sourcecontrol.GitRepositoryInfo;

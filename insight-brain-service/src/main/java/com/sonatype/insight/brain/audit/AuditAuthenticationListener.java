@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.sonatype.insight.brain.security.oauth2.ShiroJsonWebToken;

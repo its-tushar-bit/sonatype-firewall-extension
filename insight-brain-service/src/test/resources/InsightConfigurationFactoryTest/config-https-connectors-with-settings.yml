@@ -1,13 +1,13 @@
 server:
   applicationConnectors:
     - type: https
-      keyStorePath: "keyStorePath"
-      keyStorePassword: "keyStorePassword"
+      keyStorePath: "${keyStorePath:-src/test/resources/InsightConfigurationFactoryTest/test-keystore.jks}"
+      keyStorePassword: "testpass"
       port: 9070
       idleTimeout: 30 minutes
   adminConnectors:
     - type: https
-      keyStorePath: "keyStorePath"
-      keyStorePassword: "keyStorePassword"
+      keyStorePath: "${keyStorePath:-src/test/resources/InsightConfigurationFactoryTest/test-keystore.jks}"
+      keyStorePassword: "testpass"
       port: 9071
       idleTimeout: 30 minutes

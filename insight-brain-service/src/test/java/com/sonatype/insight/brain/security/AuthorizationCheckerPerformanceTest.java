@@ -86,7 +86,7 @@ public class AuthorizationCheckerPerformanceTest
     );
   }
 
-  @Rule
+  @Rule(order = 3)
   public EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
   private AuthorizationChecker checker;
@@ -97,7 +97,7 @@ public class AuthorizationCheckerPerformanceTest
 
   private RolePermissionDAO rolePermissionDAO;
 
-  @Rule
+  @Rule(order = 4)
   public TestRetryRule retryRule = new TestRetryRule(5);
 
   private final int iterationCount;

@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.organization;
 
 import java.io.InputStream;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;

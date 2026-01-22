@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.product.license;
 import java.io.IOException;
 import java.io.InputStream;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.model.security.Permission;
 import com.sonatype.insight.brain.security.Authorize;

@@ -8,17 +8,17 @@ package com.sonatype.insight.brain.security;
 import java.util.Arrays;
 import java.util.UUID;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.servlet.Filter;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.Filter;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
@@ -174,7 +174,7 @@ public class AntiCsrfFilter
       // if this was indeed a non-AJAX request, the token better be in the form data
       csrfHeader = csrfToken;
     }
-    javax.ws.rs.core.Cookie csrfCookie = headers.getCookies().get(CSRF_COOKIE_NAME);
+    jakarta.ws.rs.core.Cookie csrfCookie = headers.getCookies().get(CSRF_COOKIE_NAME);
     if (csrfHeader == null || csrfCookie == null || !csrfHeader.equals(csrfCookie.getValue())) {
       auditBadToken();
       throw new UnauthenticatedException(ERROR_MSG);

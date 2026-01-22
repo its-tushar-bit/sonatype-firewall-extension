@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.service;
 
 import javax.naming.NameNotFoundException;
 import javax.naming.NamingException;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import com.sonatype.insight.brain.security.ExpiredUserTokenException;
 import com.sonatype.insight.jaxrs.error.ErrorResponse;

@@ -9,19 +9,18 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
-import com.sonatype.insight.test.reverseproxy.IRequestHandler;
 import com.sonatype.insight.test.reverseproxy.ReverseProxyHandler;
 
 import com.codeborne.selenide.Configuration;
 
 public class ResponseCopyHandler
-    implements IRequestHandler
+    implements RequestHandler
 {
   private final String url;
 
@@ -51,9 +50,12 @@ public class ResponseCopyHandler
   }
 
   @Override
-  public void handle(HttpServletRequest request, HttpServletResponse response) throws IOException {
+  public void handle(HttpServletRequest request, HttpServletResponse response)
+      throws IOException
+  {
     HttpServletResponseCopier copier = new HttpServletResponseCopier(response);
-    reverseProxy.handle(request, copier);
+    reverseProxy.handle(new JakartaToJavaxBridge.RequestAdapter(request),
+        new JakartaToJavaxBridge.ResponseAdapter(copier));
     copier.flushBuffer();
     responseCopier = copier;
   }
@@ -114,6 +116,18 @@ class ServletOutputStreamCopier
     copy.write(b);
   }
 
+  @Override
+  public void write(byte[] b) throws IOException {
+    outputStream.write(b);
+    copy.write(b);
+  }
+
+  @Override
+  public void write(byte[] b, int off, int len) throws IOException {
+    outputStream.write(b, off, len);
+    copy.write(b, off, len);
+  }
+
   byte[] getCopy() {
     return copy.toByteArray();
   }
@@ -126,11 +140,12 @@ class ServletOutputStreamCopier
 
   @Override
   public boolean isReady() {
-    return false;
+    // Always return true for blocking I/O - the stream is ready to accept writes
+    return true;
   }
 
   @Override
   public void setWriteListener(final WriteListener writeListener) {
-    // No implementation necessary
+    // No implementation necessary for blocking I/O
   }
 }

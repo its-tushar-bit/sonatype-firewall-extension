@@ -45,7 +45,7 @@ public class ReportResourceAuditTest
   public void testReevaluatePolicy() throws Exception {
     mockReport(SCAN_ID, "/AbstractAuditTest/report");
     // Mock the HDS report for the new scan
-    mockReport(HdsMockServer.RestHandler.SCAN_ID, "/AbstractAuditTest/report");
+    mockReport(HdsMockServer.RestServlet.SCAN_ID, "/AbstractAuditTest/report");
     createScanFile(app.getId(), SCAN_ID);
 
     final Stage stage = new Stage(Stage.ID_BUILD);

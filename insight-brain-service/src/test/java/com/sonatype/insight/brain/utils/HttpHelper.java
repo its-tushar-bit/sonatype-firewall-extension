@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.utils;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;

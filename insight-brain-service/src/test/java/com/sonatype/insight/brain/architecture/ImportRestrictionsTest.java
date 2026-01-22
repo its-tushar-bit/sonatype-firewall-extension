@@ -17,11 +17,11 @@ import org.junit.experimental.categories.Category;
 public class ImportRestrictionsTest
 {
   @Test
-  public void testCodeShouldNotImportJakartaInject() {
+  public void testCodeShouldNotImportJavaxInject() {
     JavaClasses classes = new ClassFileImporter().importPackages("com.sonatype.insight.brain");
     ArchRule rule = ArchRuleDefinition.noClasses()
-        .should().dependOnClassesThat().resideInAPackage("jakarta.inject..")
-        .because("we use javax.inject instead of jakarta.inject");
+        .should().dependOnClassesThat().resideInAPackage("javax.inject..")
+        .because("we use jakarta.inject instead of javax.inject");
 
     rule.check(classes);
   }

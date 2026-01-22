@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.jira.JiraPolicyAlertNotifier;

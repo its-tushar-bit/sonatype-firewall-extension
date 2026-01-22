@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.audit;
 import java.util.Arrays;
 import java.util.Collections;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.security.SecurityModule;
 

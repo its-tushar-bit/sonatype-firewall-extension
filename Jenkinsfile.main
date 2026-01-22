@@ -479,7 +479,10 @@ Map<String, Closure> createMtiqUnitTests(String stageName, String jdk, List<Stri
           mavenOptions = addBuildCacheOptions(mavenOptions, false)
 
           Map<String, ?> testConfig = testConfig(mavenOptions, null, jdk)
-          mvn testConfig, 'initialize surefire:test failsafe:integration-test failsafe:verify'
+          // 90 minute timeout for Jakarta EE 11 migration experimentation (CLM-34044)
+          timeout(time: 90, unit: 'MINUTES') {
+            mvn testConfig, 'initialize surefire:test failsafe:integration-test failsafe:verify'
+          }
         }
         finally {
           captureResultsAndCleanup()

@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.dataaccess;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.dataaccess.TransactionContext;
 

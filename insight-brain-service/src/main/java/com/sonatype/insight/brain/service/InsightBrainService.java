@@ -21,10 +21,6 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.UUID;
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.validation.Validator;
-import javax.ws.rs.container.ResourceInfo;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
@@ -98,7 +94,6 @@ import com.sonatype.insight.jaxrs.ComponentIdentifierParamConverterProvider;
 import com.sonatype.insight.jaxrs.error.JavaLangErrorHandler;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
-import com.codahale.metrics.servlets.PingServlet;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
@@ -126,17 +121,20 @@ import io.dropwizard.forms.MultiPartBundle;
 import io.dropwizard.jackson.AnnotationSensitivePropertyNamingStrategy;
 import io.dropwizard.jackson.DiscoverableSubtypeResolver;
 import io.dropwizard.jackson.GuavaExtrasModule;
+import io.dropwizard.metrics.servlets.PingServlet;
 import io.dropwizard.util.JarLocation;
 import io.dropwizard.web.WebBundle;
 import io.dropwizard.web.conf.WebConfiguration;
+import jakarta.inject.Inject;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.Filter;
+import jakarta.validation.Validator;
+import jakarta.ws.rs.container.ResourceInfo;
 import net.sourceforge.argparse4j.inf.Namespace;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerWrapper;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.support.DropwizardAwareModule;
@@ -340,9 +338,11 @@ public class InsightBrainService
   }
 
   /**
-   * Configures Jetty's GzipHandler to exclude the CSV streaming endpoint from compression. This is critical for
-   * streaming CSV endpoints with keep-alive, as gzip compression buffers the entire response before compressing,
-   * defeating the streaming mechanism.
+   * Configures Jetty's GzipHandler to exclude CSV endpoints from compression. This is critical for:
+   * 1. Streaming CSV endpoints with keep-alive - gzip buffers the entire response before compressing,
+   *    defeating the streaming mechanism.
+   * 2. Functional test compatibility - the test proxy chain doesn't handle GZIP-compressed CSV responses
+   *    correctly, causing timeouts.
    */
   private void configureGzipExclusions(Environment environment) {
     environment.lifecycle().addServerLifecycleListener(server -> {
@@ -354,7 +354,11 @@ public class InsightBrainService
 
       if (gzipHandler != null) {
         gzipHandler.addExcludedPaths("/api/v2/componentSearch/downloadComponentSearchReport");
-        log.info("Added CSV streaming endpoint to gzip path exclusions for streaming support");
+        // Exclude text/csv from GZIP compression - CSV responses interact poorly with the test proxy
+        // chain when compressed, causing timeouts in functional tests. CSV files also don't compress
+        // well, so excluding them has minimal performance impact.
+        gzipHandler.addExcludedMimeTypes("text/csv");
+        log.info("Added CSV streaming endpoint to gzip path exclusions and text/csv to mime type exclusions");
       }
       else {
         log.warn("GzipHandler not found in handler tree - streaming endpoint compression may cause issues. " +
@@ -370,21 +374,18 @@ public class InsightBrainService
 
     log.debug("Checking handler type: {}", handler.getClass().getName());
 
-    if (handler instanceof GzipHandler) {
-      return (GzipHandler) handler;
+    if (handler instanceof GzipHandler gzipHandler) {
+      return gzipHandler;
     }
 
-    // Check wrapped handler
-    if (handler instanceof HandlerWrapper handlerWrapper) {
-      GzipHandler found = findGzipHandler(handlerWrapper.getHandler());
-      if (found != null) {
-        return found;
-      }
+    // Check wrapped handler (Jetty 12 uses Handler.Wrapper instead of HandlerWrapper)
+    if (handler instanceof Handler.Wrapper wrapper) {
+      return findGzipHandler(wrapper.getHandler());
     }
 
     // Check handler collections
-    if (handler instanceof HandlerCollection handlerCollection) {
-      for (Handler child : handlerCollection.getHandlers()) {
+    if (handler instanceof Handler.Collection collection) {
+      for (Handler child : collection.getHandlers()) {
         GzipHandler found = findGzipHandler(child);
         if (found != null) {
           return found;
@@ -599,8 +600,9 @@ public class InsightBrainService
         injector.getProvider(ResourceInfo.class)
     );
 
-    wrapWithThrowableHandler(env.getApplicationContext());
-    wrapWithThrowableHandler(env.getAdminContext());
+    // Register ThrowableHandler as a filter for both application and admin contexts
+    // This must be registered early to catch all exceptions
+    addServletFilter(env, true, ThrowableHandler.class, "/*");
 
     env.jersey().register(auditContainerRequestFilter);
 
@@ -611,11 +613,6 @@ public class InsightBrainService
 
     log.debug("Headless mode: {}", java.awt.GraphicsEnvironment.isHeadless());
     log.debug("Features flags: {}", config.getFeatures());
-  }
-
-  private void wrapWithThrowableHandler(final ServletContextHandler context) {
-    ThrowableHandler wrapper = getInstance(ThrowableHandler.class);
-    context.insertHandler(wrapper);
   }
 
   protected void addServletFilters(Environment env) {
@@ -709,7 +706,18 @@ public class InsightBrainService
         bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
         bind(DataStoreProvider.class).toInstance(databaseContainer);
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
-        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+        // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
+        bind(ClusterLockManagerProvider.class);
+        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>()
+        {
+          @Inject
+          ClusterLockManagerProvider provider;
+
+          @Override
+          public ClusterLockManager get() {
+            return provider.get();
+          }
+        });
         bind(IndexConfigProvider.class).to(SingleTenantIndexConfigProvider.class);
       }
     });

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryContainer;

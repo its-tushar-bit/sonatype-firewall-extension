@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;

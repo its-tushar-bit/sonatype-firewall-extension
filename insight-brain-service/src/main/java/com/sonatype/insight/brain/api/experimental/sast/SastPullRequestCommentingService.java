@@ -6,8 +6,8 @@
 
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

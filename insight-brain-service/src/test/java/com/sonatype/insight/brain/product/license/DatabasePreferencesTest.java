@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.product.license;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.ProductLicenseDAO;
 import com.sonatype.insight.brain.model.configuration.ProductLicense;

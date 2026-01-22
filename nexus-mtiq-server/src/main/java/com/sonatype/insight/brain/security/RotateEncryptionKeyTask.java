@@ -11,10 +11,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.BadRequestException;
 
 import com.sonatype.insight.brain.clients.AwsSecretsManagerClient;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;

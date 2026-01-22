@@ -11,7 +11,7 @@ import com.sonatype.clm.dto.model.component.AnalyzerFeatures;
 
 import java.io.IOException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;

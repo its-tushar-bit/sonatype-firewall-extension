@@ -28,11 +28,6 @@ import software.amazon.awssdk.regions.Region;
  */
 public class OpenSearchTransportFactory
 {
-  private static final PoolingAsyncClientConnectionManager connectionManager =
-      PoolingAsyncClientConnectionManagerBuilder
-          .create()
-          .build();
-
   public static OpenSearchTransport create(final HttpOpenSearchConfig httpOpenSearchConfig) {
     final HttpHost host = HttpHost.create(httpOpenSearchConfig.getUri());
 
@@ -40,6 +35,11 @@ public class OpenSearchTransportFactory
     credentialsProvider.setCredentials(new AuthScope(host),
         new UsernamePasswordCredentials(httpOpenSearchConfig.getUsername(),
             httpOpenSearchConfig.getPassword().toCharArray()));
+
+    // Create a new connection manager for each transport to avoid shared state issues
+    // when transports are closed (which also closes the connection manager)
+    final PoolingAsyncClientConnectionManager connectionManager =
+        PoolingAsyncClientConnectionManagerBuilder.create().build();
 
     return ApacheHttpClient5TransportBuilder.builder(host)
         .setHttpClientConfigCallback(httpClientBuilder -> httpClientBuilder

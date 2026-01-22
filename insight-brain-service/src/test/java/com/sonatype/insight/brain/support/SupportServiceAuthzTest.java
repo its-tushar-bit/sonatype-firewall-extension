@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.support;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.db.rule.DatabaseRuleAnnotations.H2DiskTest;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

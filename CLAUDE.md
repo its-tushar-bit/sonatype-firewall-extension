@@ -113,6 +113,6 @@ New experimental features use `SystemConfigurationPropertyFeature` enum in datab
 - License headers required (use `header.txt`)
 - Git hooks configured in `githooks/` directory
 
-### javax.inject vs jakarta.inject
-For now, use `javax.inject` for compatibility with existing code. Future migration to `jakarta.inject` is planned.
-There is evidence that mixing the two can cause problems in some cases, such as CLM-35649
+### jakarta.inject Migration
+The codebase has been migrated to `jakarta.inject` as part of the Jakarta EE 11 upgrade. Use `jakarta.inject` for all dependency injection.
+Do not use `javax.inject` as it is no longer supported. Mixing javax and jakarta imports can cause runtime errors.

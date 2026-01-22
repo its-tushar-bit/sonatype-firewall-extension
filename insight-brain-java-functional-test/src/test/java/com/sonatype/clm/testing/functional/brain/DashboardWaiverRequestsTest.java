@@ -40,6 +40,7 @@ import com.sonatype.insight.brain.model.repository.RepositoryContainer;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -124,8 +125,6 @@ public class DashboardWaiverRequestsTest
   private static final String NO_DATA_MSG =
       "No data available in the last 30 days given the applied filters and permissions.";
 
-  private static ResponseCopyHandler responseCopyHandler;
-
   private static final WaiverRequestsResults table = DashboardPage.waiverRequestsView().results();
 
   private static final WaiverRequestsHeaders headers = DashboardPage.waiverRequestsView().headers();
@@ -134,10 +133,11 @@ public class DashboardWaiverRequestsTest
   public static void beforeClass() {
     refreshOrOpen(DashboardPage.urlToWaiverRequests());
     loginAsAdmin();
+  }
 
-    responseCopyHandler =
-        new ResponseCopyHandler("/rest/dashboard/export/policyWaiverRequests", testCLMServer.getCLMServer().getPort());
-    reverseProxyServer.addHandler(responseCopyHandler);
+  @After
+  public void cleanup() {
+    reverseProxyServer.reset();
   }
 
   @Before
@@ -940,8 +940,11 @@ public class DashboardWaiverRequestsTest
   }
 
   private String exportWaiverRequestsCSV() {
+    ResponseCopyHandler handler =
+        new ResponseCopyHandler("/rest/dashboard/export/policyWaiverRequests", testCLMServer.getCLMServer().getPort());
+    reverseProxyServer.addHandler(handler);
     DashboardPage.exportResultsLink().shouldBe(visible).shouldHave(text("Export Waiver Requests Data")).click();
-    return new String(responseCopyHandler.consumeResponse());
+    return new String(handler.consumeResponse());
   }
 
   private String[] buildExpectedCsvExportData(List<PolicyWaiverRequest> policyWaiverRequests) {

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.search;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 import com.google.inject.multibindings.OptionalBinder;
 import com.google.inject.name.Names;

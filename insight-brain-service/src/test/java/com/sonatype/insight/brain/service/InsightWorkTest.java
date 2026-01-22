@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service;
 
 import java.io.File;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.error.exception.BadRequestException;
 

@@ -10,8 +10,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.experimental.sast.SastScanRequestDTO.SastFindingRequestDTO;
 import com.sonatype.insight.brain.api.experimental.sast.SastScanRequestDTO.SastRemediationRequestDTO;

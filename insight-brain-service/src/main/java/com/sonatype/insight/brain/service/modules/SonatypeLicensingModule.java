@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.service.modules;
 
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.sonatype.insight.brain.product.license.DatabasePreferencesFactory;
 import org.sonatype.licensing.LicenseKeyRequest;

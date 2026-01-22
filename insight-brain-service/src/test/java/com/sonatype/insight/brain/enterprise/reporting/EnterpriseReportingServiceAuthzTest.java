@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.enterprise.reporting;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;

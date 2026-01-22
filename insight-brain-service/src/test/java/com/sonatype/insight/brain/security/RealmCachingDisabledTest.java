@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.security;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.configuration.ldap.LdapRealm;
 import com.sonatype.insight.brain.security.oauth2.OAuth2Realm;

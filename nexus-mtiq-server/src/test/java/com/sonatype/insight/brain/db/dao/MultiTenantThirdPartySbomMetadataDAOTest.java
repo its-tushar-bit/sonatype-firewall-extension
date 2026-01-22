@@ -35,8 +35,8 @@ public class MultiTenantThirdPartySbomMetadataDAOTest
   public void setup() {
     super.setup();
     SystemConfigurationPropertyDAO systemConfigurationPropertyDAO = daoFactory.createSystemConfigurationPropertyDAO();
-    systemConfigurationPropertyDAO.update(
-        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true"));
+    testAsGlobalTenant(t -> systemConfigurationPropertyDAO.update(
+        new SystemConfigurationProperty(SystemConfigurationProperty.ADVANCED_SEARCH_ENABLED, "true")));
     this.dao = daoFactory.createThirdPartySbomMetadataDAO();
     this.searchIndexChangeDAO = daoFactory.createSearchIndexChangeDAO();
   }

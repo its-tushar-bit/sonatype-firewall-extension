@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.KevData;
 import com.sonatype.clm.dto.model.policy.ConditionFact;
@@ -401,7 +401,7 @@ public class ComponentDetailsTest
   public void testComponentDetails_ClaimTabContent() {
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     mockHdsResponseForClaimedComponent();
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
 
@@ -575,7 +575,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testPolicyViolationsTab_violationTableEntries() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     SelenideElement lastViolation = reportPage.resultRows().last();
     lastViolation.click();
@@ -1054,7 +1054,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testSecurityTab_securityViolationTableEntries() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ComponentDetailsPage.urlToSecurity(app, SCAN_ID, "197d803ab63dd3523d9d"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.securityTabContent().shouldBe(visible);
@@ -1273,7 +1273,7 @@ public class ComponentDetailsTest
 
   @Test
   public void testLegalTab_licenseViolationTableEntries() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ComponentDetailsPage.urlToLegal(app, SCAN_ID, "fa78f54738ccf77379d1"));
     ComponentDetailsPage componentDetailsPage = new ComponentDetailsPage();
     componentDetailsPage.legalTabContent().shouldBe(visible);
@@ -1509,7 +1509,7 @@ public class ComponentDetailsTest
   }
 
   private void activateLegacyViolation() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     Policy licenseBannedPolicy = policyDAO.getByName("License-Banned").get(0);
 
     app.setLegacyViolationEnabled(true);

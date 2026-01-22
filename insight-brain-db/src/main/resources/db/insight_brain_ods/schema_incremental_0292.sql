@@ -11,7 +11,7 @@ ALTER TABLE proprietary_component_name_pattern
 ALTER TABLE proprietary_component_name_pattern
   ADD CONSTRAINT proprietary_component_name_pattern_uk UNIQUE (format, namespace_pattern, name_pattern, repository_id);
 
-DROP INDEX proprietary_component_name_pattern_repo_idx;
+DROP INDEX IF EXISTS proprietary_component_name_pattern_repo_idx;
 CREATE INDEX proprietary_component_name_pattern_repo_idx ON proprietary_component_name_pattern(repository_id);
   
 ALTER TABLE proprietary_component_name_pattern

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.dto;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 public class ApiStatusDTO
 {

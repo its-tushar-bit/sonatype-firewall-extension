@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.experimental.legal;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.AttributionReportTemplateDTO;
 import com.sonatype.insight.brain.model.legal.AttributionReportTemplate;

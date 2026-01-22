@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -105,6 +105,8 @@ public class ManualPullRequestTest
 
     sourceControlEventOrchestrator = lookup(SourceControlEventOrchestrator.class);
     sourceControlEventOrchestrator.disableForTesting = false;
+    // Reduce startup delay from 30s to 1s and interval from 15s to 2s for faster test execution
+    sourceControlEventOrchestrator.setEventProcessingScheduleTimesForTesting(1, 2);
     sourceControlEventOrchestrator.register();
   }
 

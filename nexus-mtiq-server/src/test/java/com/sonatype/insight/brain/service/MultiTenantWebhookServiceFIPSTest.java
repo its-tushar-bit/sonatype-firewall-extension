@@ -20,7 +20,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import java.util.EnumSet;
 
 import static com.sonatype.insight.brain.model.configuration.webhook.WebhookEventType.APPLICATION_EVALUATION;

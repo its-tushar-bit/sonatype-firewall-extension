@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.component;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.component.RepositoryIdentifiedComponentDAO;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;

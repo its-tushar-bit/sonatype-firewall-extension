@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import javax.ws.rs.core.UriBuilder;
+import ch.qos.logback.access.common.spi.IAccessEvent;
+import jakarta.ws.rs.core.UriBuilder;
 
-import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import io.dropwizard.logging.common.filter.FilterFactory;

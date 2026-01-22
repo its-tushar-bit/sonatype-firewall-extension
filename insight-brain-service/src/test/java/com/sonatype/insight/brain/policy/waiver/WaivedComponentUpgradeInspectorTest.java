@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.policy.waiver;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.insight.brain.api.v2.dto.ApiComponentDTOV2;

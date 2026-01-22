@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.git;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlPullRequestCommentDAO;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;

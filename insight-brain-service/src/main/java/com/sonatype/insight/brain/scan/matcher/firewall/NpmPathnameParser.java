@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.scan.matcher.firewall;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 

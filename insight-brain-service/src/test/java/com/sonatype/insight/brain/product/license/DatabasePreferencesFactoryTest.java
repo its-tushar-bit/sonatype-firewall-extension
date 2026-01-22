@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.prefs.Preferences;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.ProductLicense;
 import com.sonatype.insight.brain.service.AbstractComponentTest;

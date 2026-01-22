@@ -9,8 +9,8 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import javax.inject.Named;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.inject.Named;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.model.security.UserPrincipal;
 
@@ -65,7 +65,10 @@ public class CurrentUser
    * 'system'.
    */
   public String getUsernameOrSystem() {
-    if (ThreadContext.getSecurityManager() == null) {
+    // Check for Subject, not SecurityManager.
+    // Since Jakarta EE migration, there's a static SecurityManager that's always non-null,
+    // but system threads won't have a Subject bound to them.
+    if (ThreadContext.getSubject() == null) {
       return SYSTEM;
     }
     return getUsername();

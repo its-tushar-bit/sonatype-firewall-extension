@@ -138,7 +138,7 @@ public class ApplicationReportTest
 
   @Test
   public void testSummary() throws Exception {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     PolicyEvaluation policyEvaluation = policyEvaluationDAO.getLastByApplicationIdAndScanId(app.getId(), SCAN_ID);
     Date policyEvaluationTime = policyEvaluation.getTime();
 
@@ -207,7 +207,7 @@ public class ApplicationReportTest
 
   @Test
   public void testSummaryWithDeveloperDashboardEnabled() throws Exception {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     setFeatures(LicensedFeature.DEVELOPER_DASHBOARD, LicensedFeature.POLICY_GRANDFATHERING,
         LicensedFeature.APPLICATION_REPORTS, LicensedFeature.SUCCESS_METRICS, LicensedFeature.APPLICATION_EVALUATION);
     refresh();
@@ -384,7 +384,7 @@ public class ApplicationReportTest
 
   @Test
   public void testTextIndicators() throws Exception {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     reportPage.headers().policyNameFilterInput().setValue(licenseBanned.getName());
     reportPage.resultRows().shouldHave(size(2));
@@ -589,7 +589,7 @@ public class ApplicationReportTest
 
   @Test
   public void testAggregationMultipleWaivers() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     // By default the "Aggregate by Component" toggle should be ON
     reportPage.aggregateByComponentToggle().shouldBeOn();
     reportPage.headers().componentNameFilterInput().setValue("commons-fileupload");
@@ -709,7 +709,7 @@ public class ApplicationReportTest
 
   @Test
   public void testFiltering_violationState() throws Exception {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     ElementsCollection violations = reportPage.resultRows();
     reportPage.filterToggle().click();
 
@@ -810,7 +810,7 @@ public class ApplicationReportTest
 
   @Test
   public void testReevaluate() {
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ApplicationReportPage.url(app, SCAN_ID));
     Policy licenseBanned = policyDAO.getByName("License-Banned").get(0);
     tempEntity.newWaiver(licenseBanned.getId(), app.getId());

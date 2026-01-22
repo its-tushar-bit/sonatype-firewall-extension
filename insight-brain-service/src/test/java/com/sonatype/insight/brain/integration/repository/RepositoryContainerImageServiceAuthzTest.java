@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.PolicyEvaluationPollingResult;

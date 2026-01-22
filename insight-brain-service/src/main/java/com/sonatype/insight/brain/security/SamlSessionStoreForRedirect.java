@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.servlet.FilterSamlSessionStore;

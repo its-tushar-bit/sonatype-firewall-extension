@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.report;
 
 import java.io.InputStream;
 import java.time.Duration;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.hds.HdsClient;
 import com.sonatype.insight.brain.utils.Retry;

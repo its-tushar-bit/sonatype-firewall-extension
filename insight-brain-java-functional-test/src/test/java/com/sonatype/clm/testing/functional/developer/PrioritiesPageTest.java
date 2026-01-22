@@ -12,7 +12,7 @@ import java.net.URLEncoder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.clm.dto.model.ComponentSummary;
 import com.sonatype.clm.dto.model.SecurityVulnerability;

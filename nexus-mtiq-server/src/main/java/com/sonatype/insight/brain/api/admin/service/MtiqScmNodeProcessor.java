@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.service.ScmNodeProcessor;
 import com.sonatype.insight.brain.tenancy.TenantUtil;

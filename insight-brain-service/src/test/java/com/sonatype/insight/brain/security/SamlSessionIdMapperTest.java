@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;
 import com.sonatype.insight.brain.dataaccess.security.PersistedUserSessionDAO;

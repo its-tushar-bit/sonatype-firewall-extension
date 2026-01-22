@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 
@@ -34,8 +34,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.nio.file.Files.readAllBytes;
 import static java.util.Arrays.asList;
 import static java.util.Arrays.stream;
-import static javax.ws.rs.client.ClientBuilder.newClient;
-import static javax.ws.rs.core.Response.Status.OK;
+import static jakarta.ws.rs.client.ClientBuilder.newClient;
+import static jakarta.ws.rs.core.Response.Status.OK;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -166,8 +166,9 @@ public class KeycloakServerUtilTest
 
     assertThat(userId).isNotNull();
 
-    UserRepresentation user =
-        stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
+    // Use getUserById to get full user details including attributes (Keycloak 26+ doesn't include
+    // attributes in list response even with briefRepresentation=false)
+    UserRepresentation user = keycloak.getUserById(userId);
     assertThat(user.getEmail()).isEqualTo(email);
     assertThat(user.isEnabled()).isTrue();
     assertThat(user.getAttributes()).isEqualTo(userAttributes);
@@ -188,7 +189,7 @@ public class KeycloakServerUtilTest
     createUser(username, password, email, userAttributes);
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> createUser(username, password, email, userAttributes))
-        .withMessage("User creation failed with status code: 409" + " for username:" + username);
+        .withMessageStartingWith("User creation failed with status code: 409 for username:" + username);
   }
 
   @Test
@@ -232,7 +233,7 @@ public class KeycloakServerUtilTest
 
     assertThatExceptionOfType(RuntimeException.class)
         .isThrownBy(() -> keycloak.createUser(firstName, lastName, username, email, password, new HashMap<>()))
-        .withMessage("User creation failed with status code: 409 for username:" + username);
+        .withMessageStartingWith("User creation failed with status code: 409 for username:" + username);
   }
 
   @Test
@@ -259,14 +260,15 @@ public class KeycloakServerUtilTest
     userAttributes.put("foo", Collections.singletonList("bar"));
     user.setAttributes(userAttributes);
 
-    keycloak.createUser(user);
-    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
+    String userId = keycloak.createUser(user);
+    // Use getUserById to get full user details including attributes (Keycloak 26+)
+    user = keycloak.getUserById(userId);
     assertThat(user.getAttributes().get("foo")).isEqualTo(Collections.singletonList("bar"));
 
     user.getAttributes().get("foo").set(0, "baz");
     keycloak.updateUser(user);
 
-    user = stream(keycloak.getUsers()).filter(u -> u.getUsername().equals(username)).findFirst().get();
+    user = keycloak.getUserById(userId);
     assertThat(user.getAttributes().get("foo")).isEqualTo(Collections.singletonList("baz"));
   }
 

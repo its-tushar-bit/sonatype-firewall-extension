@@ -250,7 +250,7 @@ public class FirewallContainerComponentDetailsPageTest
   public void testComponentDetails_ClaimTabContent() {
     refreshOrOpen(ApplicationReportPage.firewallContainerReportUrl(app.getPublicId(), SCAN_ID));
     mockHdsResponseForClaimedComponent();
-    mockHdsResponseForDownloadingReport(HdsMockServer.RestHandler.SCAN_ID);
+    mockHdsResponseForDownloadingReport(HdsMockServer.RestServlet.SCAN_ID);
     refreshOrOpen(ContainerComponentDetailsPage.urlToClaim(app, SCAN_ID, "6d0684d8acf85cd6e7f2"));
     ContainerComponentDetailsPage componentDetailsPage = new ContainerComponentDetailsPage();
 

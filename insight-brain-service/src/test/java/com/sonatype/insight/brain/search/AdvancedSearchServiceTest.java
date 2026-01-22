@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.search;
 
 import java.io.File;
 import java.util.Arrays;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;

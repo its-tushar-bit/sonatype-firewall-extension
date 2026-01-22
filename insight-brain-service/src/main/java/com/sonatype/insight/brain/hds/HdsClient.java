@@ -19,13 +19,13 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import javax.net.ssl.SSLException;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -482,7 +482,11 @@ public class HdsClient
         return clazz.cast(entity.getContent());
       }
       else {
-        return JsonUtils.parse(EntityUtils.toByteArray(entity), clazz);
+        byte[] content = EntityUtils.toByteArray(entity);
+        if (content == null || content.length == 0) {
+          return null;
+        }
+        return JsonUtils.parse(content, clazz);
       }
     }
     catch (IOException e) {

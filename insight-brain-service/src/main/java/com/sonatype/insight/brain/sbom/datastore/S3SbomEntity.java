@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.sonatype.insight.brain.aws.s3.S3OutputStream;
 import com.sonatype.insight.brain.report.S3ObjectKey;

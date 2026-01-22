@@ -7,7 +7,7 @@
 // Vendored/copied from hosted-data-services/insight-jaxrs-testing
 package com.sonatype.insight.test.jaxrs.testing;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 /**
  * Builder-style utility to create URLs for REST calls.

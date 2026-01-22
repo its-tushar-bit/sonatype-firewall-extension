@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.service.InsightJob;
 

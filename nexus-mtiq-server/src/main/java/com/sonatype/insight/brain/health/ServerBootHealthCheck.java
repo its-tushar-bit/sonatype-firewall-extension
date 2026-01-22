@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.health;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.operational.check.AbstractOperationalCheck;
 

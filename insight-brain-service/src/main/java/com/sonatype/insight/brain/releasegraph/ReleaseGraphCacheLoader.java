@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.releasegraph;
 
 import java.util.concurrent.TimeUnit;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.model.ComponentPopularity;
 import com.sonatype.insight.brain.model.ReportPopularity;

@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Locale;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.insight.brain.audit.AuditDTO;
@@ -35,9 +35,10 @@ import com.sonatype.insight.brain.webhook.ManagementEvent.PolicyEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.RoleEvent;
 import com.sonatype.insight.brain.webhook.ManagementEvent.TagEvent;
 
-import org.eclipse.jetty.server.Request;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import jakarta.servlet.http.HttpServlet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,14 +60,16 @@ public class WebhookDispatcherAuditTest
   public void before() throws Exception {
     webhookDispatcher.start();
     server = new Server(0);
-    server.setHandler(new AbstractHandler()
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         response.setStatus(webhookStatusCode);
-        baseRequest.setHandled(true);
       }
-    });
+    }), "/*");
+    server.setHandler(context);
     server.start();
   }
 

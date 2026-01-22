@@ -8,10 +8,11 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Set;
 
-import javax.inject.Inject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
@@ -26,10 +27,10 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Binder;
 import io.dropwizard.core.server.DefaultServerFactory;
 import io.dropwizard.jetty.HttpConnectorFactory;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -56,7 +57,7 @@ public abstract class AbstractHdsClientTest
 
   protected HdsClient client;
 
-  protected AbstractHandler handler;
+  protected HttpServlet handler;
 
   protected InsightConfig config;
 
@@ -73,17 +74,20 @@ public abstract class AbstractHdsClientTest
   @Before
   public void init() throws Exception {
     server = new Server(0);
-    server.setHandler(new AbstractHandler()
-    {
+
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException, ServletException
       {
         if (handler != null) {
-          handler.handle(target, baseRequest, request, response);
+          handler.service(request, response);
         }
       }
-    });
+    }), "/*");
+    server.setHandler(context);
     server.start();
 
     setHdsUrl("http://localhost:" + ((NetworkConnector) server.getConnectors()[0]).getLocalPort());

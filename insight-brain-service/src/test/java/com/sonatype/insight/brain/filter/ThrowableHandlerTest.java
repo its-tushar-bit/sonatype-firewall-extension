@@ -9,22 +9,20 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.io.PrintWriter;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
 import com.google.inject.Binder;
-import org.eclipse.jetty.server.Handler;
+import jakarta.inject.Inject;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.junit.Test;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -42,7 +40,7 @@ public class ThrowableHandlerTest
   private ThrowableHandler throwableHandler;
 
   @Mock
-  private Handler mockHandler;
+  private FilterChain mockFilterChain;
 
   @Mock
   private HttpServletRequest mockHttpServletRequest;
@@ -68,16 +66,15 @@ public class ThrowableHandlerTest
   @Test
   public void testHandle() throws Exception {
     RuntimeException runtimeException = new RuntimeException("some exception");
-    doThrow(runtimeException).when(mockHandler)
-        .handle(any(), any(), eq(mockHttpServletRequest), eq(mockHttpServletResponse));
-    throwableHandler.setHandler(mockHandler);
+    doThrow(runtimeException).when(mockFilterChain)
+        .doFilter(eq(mockHttpServletRequest), eq(mockHttpServletResponse));
     when(mockResponse.getStatus()).thenReturn(400);
     when(mockResponse.getMediaType()).thenReturn(MediaType.TEXT_PLAIN_TYPE);
     when(mockResponse.getEntity()).thenReturn("some entity");
     when(mockJaxRsExceptionMapper.toResponse(runtimeException)).thenReturn(mockResponse);
     when(mockHttpServletResponse.getWriter()).thenReturn(mockPrintWriter);
 
-    throwableHandler.handle(null, null, mockHttpServletRequest, mockHttpServletResponse);
+    throwableHandler.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 
     verify(mockHttpServletResponse).setStatus(400);
     verify(mockHttpServletResponse).setContentType("text/plain");
@@ -89,9 +86,8 @@ public class ThrowableHandlerTest
   @Test
   public void testHandle_AlreadyCommitted() throws Exception {
     RuntimeException runtimeException = new RuntimeException("some exception");
-    doThrow(runtimeException).when(mockHandler)
-        .handle(any(), any(), eq(mockHttpServletRequest), eq(mockHttpServletResponse));
-    throwableHandler.setHandler(mockHandler);
+    doThrow(runtimeException).when(mockFilterChain)
+        .doFilter(eq(mockHttpServletRequest), eq(mockHttpServletResponse));
     when(mockHttpServletResponse.isCommitted()).thenReturn(true);
     lenient().when(mockResponse.getStatus()).thenReturn(400);
     lenient().when(mockResponse.getMediaType()).thenReturn(MediaType.TEXT_PLAIN_TYPE);
@@ -99,7 +95,7 @@ public class ThrowableHandlerTest
     lenient().when(mockJaxRsExceptionMapper.toResponse(runtimeException)).thenReturn(mockResponse);
     lenient().when(mockHttpServletResponse.getWriter()).thenReturn(mockPrintWriter);
 
-    throwableHandler.handle(null, null, mockHttpServletRequest, mockHttpServletResponse);
+    throwableHandler.doFilter(mockHttpServletRequest, mockHttpServletResponse, mockFilterChain);
 
     verify(mockHttpServletResponse, never()).setStatus(400);
     verify(mockHttpServletResponse, never()).setContentType("text/plain");

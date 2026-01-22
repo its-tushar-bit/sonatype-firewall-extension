@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.dataaccess.configuration.webhook;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.function.Predicate;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;

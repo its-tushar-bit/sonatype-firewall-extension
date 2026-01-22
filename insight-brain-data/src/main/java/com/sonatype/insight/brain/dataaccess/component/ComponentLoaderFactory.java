@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.dataaccess.component;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
 import com.sonatype.insight.brain.dataaccess.label.ComponentLabelDAO;

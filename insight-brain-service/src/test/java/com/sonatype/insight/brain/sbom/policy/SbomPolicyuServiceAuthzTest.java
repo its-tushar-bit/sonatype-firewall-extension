@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.sbom.policy;
 
 import java.io.IOException;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.report.ReportEntry;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

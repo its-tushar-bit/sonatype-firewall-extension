@@ -45,7 +45,7 @@ public class SbomDashboardServiceTest extends AbstractComponentTest
   @Inject
   private SbomDashboardService service;
 
-  @javax.inject.Inject
+  @jakarta.inject.Inject
   private ProductLicense productLicense;
 
   private Application app;

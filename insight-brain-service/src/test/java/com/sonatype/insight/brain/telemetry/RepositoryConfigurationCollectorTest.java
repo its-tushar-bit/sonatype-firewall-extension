@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Comparator;
 import java.util.List;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryDAO;
 import com.sonatype.insight.brain.dataaccess.repository.RepositoryManagerDAO;

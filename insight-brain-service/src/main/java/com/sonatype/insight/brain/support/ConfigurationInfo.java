@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.support;
 import java.util.List;
 import java.util.SortedMap;
 import java.util.TreeMap;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationUtils;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;

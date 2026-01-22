@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.jira;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.jira.JiraConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;

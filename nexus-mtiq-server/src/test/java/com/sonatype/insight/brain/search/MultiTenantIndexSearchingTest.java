@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.search;
 
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.model.security.MembershipMapping;
@@ -56,6 +57,10 @@ public class MultiTenantIndexSearchingTest
   @Before
   public void before() {
     lenient().when(mockSubject.getPrincipal()).thenReturn(new UserPrincipal("testuser", "Test User", InternalRealm.ID));
+    // Support for TenantAwareOneTimeRunnable which uses subject.associateWith() to propagate security context
+    // to worker threads (required since Shiro 2.0.4+ removed InheritableThreadLocal from ThreadContext)
+    lenient().when(mockSubject.associateWith(any(Runnable.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    lenient().when(mockSubject.associateWith(any(Callable.class))).thenAnswer(invocation -> invocation.getArgument(0));
     lenient().when(mockSecurityManager.createSubject(any(SubjectContext.class))).thenReturn(mockSubject);
     ThreadContext.bind(mockSecurityManager);
     ThreadContext.bind(mockSubject);

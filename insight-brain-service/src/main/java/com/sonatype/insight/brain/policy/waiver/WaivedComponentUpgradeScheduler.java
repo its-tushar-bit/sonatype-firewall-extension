@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.policy.waiver;
 
 import java.time.LocalTime;
 import java.util.Random;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.service.Configuration;

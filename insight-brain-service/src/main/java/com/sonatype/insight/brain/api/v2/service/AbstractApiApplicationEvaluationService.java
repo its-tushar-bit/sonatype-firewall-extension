@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.api.v2.ApiReportDataResourceV2;

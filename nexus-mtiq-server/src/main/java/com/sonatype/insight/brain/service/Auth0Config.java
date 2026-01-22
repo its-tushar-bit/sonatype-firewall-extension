@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

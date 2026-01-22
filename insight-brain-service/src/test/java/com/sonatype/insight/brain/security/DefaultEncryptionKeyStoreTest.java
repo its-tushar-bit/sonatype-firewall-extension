@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.security;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.telemetry.autowaivers;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.Date;
 import java.util.Map;

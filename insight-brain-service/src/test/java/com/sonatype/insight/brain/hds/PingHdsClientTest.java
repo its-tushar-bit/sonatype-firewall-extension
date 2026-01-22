@@ -8,9 +8,10 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Collections;
 
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.product.license.ProductLicense;
@@ -22,8 +23,6 @@ import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.net.HttpHeaders;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -55,10 +54,10 @@ public class PingHdsClientTest
 
   @Test
   public void testSocketTimeout() {
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         try {
@@ -70,7 +69,6 @@ public class PingHdsClientTest
         response.setStatus(HttpStatus.OK_200);
         response.setContentType("text/plain;charset=UTF-8");
         response.getWriter().println("alive");
-        baseRequest.setHandled(true);
       }
     };
     long start = System.currentTimeMillis();

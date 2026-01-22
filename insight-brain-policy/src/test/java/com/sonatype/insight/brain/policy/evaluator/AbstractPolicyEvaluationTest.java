@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 import com.sonatype.clm.dto.model.policy.Action;
@@ -107,7 +107,17 @@ public abstract class AbstractPolicyEvaluationTest
         bind(AggregationDataStore.class).toInstance(databaseRule.getAggregationDataStore());
         bind(DataMartDataStore.class).toInstance(databaseRule.getDataMartDataStore());
         bind(ThirdPartyScansDataStore.class).toInstance(databaseRule.getThirdPartyScansDataStore());
-        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+        // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
+        bind(ClusterLockManagerProvider.class);
+        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<>() {
+          @Inject
+          ClusterLockManagerProvider provider;
+
+          @Override
+          public ClusterLockManager get() {
+            return provider.get();
+          }
+        });
         bind(SearchIndexManager.class).to(DefaultSearchIndexManager.class);
         bind(SourceControlSshValidator.class).to(DefaultSourceControlSshValidator.class);
 

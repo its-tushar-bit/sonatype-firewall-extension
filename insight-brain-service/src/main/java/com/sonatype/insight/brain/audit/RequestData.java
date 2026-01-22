@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.audit;
 import java.util.Enumeration;
 import java.util.StringJoiner;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.sonatype.insight.brain.security.SecurityModule;
 

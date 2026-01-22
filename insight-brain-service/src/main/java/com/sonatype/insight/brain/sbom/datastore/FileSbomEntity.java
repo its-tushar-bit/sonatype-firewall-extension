@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public record FileSbomEntity(Path path, @Nullable String appId, String fileName) implements SbomEntity
 {

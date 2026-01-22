@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.product.license;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.sonatype.licensing.feature.AbstractFeature;
 

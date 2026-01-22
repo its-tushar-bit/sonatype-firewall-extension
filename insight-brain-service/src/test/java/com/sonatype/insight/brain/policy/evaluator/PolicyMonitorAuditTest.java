@@ -22,7 +22,7 @@ import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartyFile;
 import com.sonatype.insight.brain.model.thirdpartyscans.ThirdPartySbomMetadata;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.brain.service.InsightWork;
-import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
+import com.sonatype.insight.mock.hds.HdsMockServer.RestServlet;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -62,9 +62,9 @@ public class PolicyMonitorAuditTest
 
   @Test
   public void testRunEvaluation_AppWithMonitoring() throws IOException {
-    createScanFile(app.getId(), RestHandler.SCAN_ID);
-    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), RestHandler.SCAN_ID);
-    createReportFile(app.getId(), RestHandler.SCAN_ID, "/PolicyMonitorTest/report");
+    createScanFile(app.getId(), RestServlet.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), RestServlet.SCAN_ID);
+    createReportFile(app.getId(), RestServlet.SCAN_ID, "/PolicyMonitorTest/report");
 
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
@@ -84,7 +84,7 @@ public class PolicyMonitorAuditTest
 
   @Test
   public void testRunEvaluation_AppWithMonitoring_WhenNoScanFileFound() {
-    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), RestHandler.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app.getId(), stage.getStageTypeId(), RestServlet.SCAN_ID);
 
     policyMonitor.run();
 
@@ -94,8 +94,8 @@ public class PolicyMonitorAuditTest
 
   @Test
   public void testRunEvaluation_SbomManagerComplianceStage_AppWithMonitoring() throws Exception {
-    createScanFile(app2.getId(), RestHandler.SCAN_ID);
-    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestHandler.SCAN_ID);
+    createScanFile(app2.getId(), RestServlet.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestServlet.SCAN_ID);
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
     File scanZip = createScanFileZip(app2, scanId2, "scan/scan-third-party.xml");
@@ -114,8 +114,8 @@ public class PolicyMonitorAuditTest
 
   @Test
   public void testRunEvaluation_SbomManagerComplianceStage_AppWithMonitoring_MissingFilteredScanFile() {
-    createScanFile(app2.getId(), RestHandler.SCAN_ID);
-    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestHandler.SCAN_ID);
+    createScanFile(app2.getId(), RestServlet.SCAN_ID);
+    tempEntity.newPolicyEvaluation(app2.getId(), complianceStage.getStageTypeId(), RestServlet.SCAN_ID);
     String scanId2 = "PolicyMonitorTest_scanId2";
     mockScanReceiptAndReport(scanId2);
     ThirdPartyFile thirdPartyFile = tempEntity.newThirdPartyFile();

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.tenancy;
 
-import javax.servlet.ServletRequest;
+import jakarta.servlet.ServletRequest;
 
 /**
  * This class is bound instead of the default <code>TenantUtil</code> to allow overriding of the TenantUrlFilter

@@ -25,7 +25,7 @@ import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.hc.core5.http.HttpHeaders;
 import org.apache.shiro.authz.UnauthenticatedException;
 import org.apache.shiro.authz.UnauthorizedException;

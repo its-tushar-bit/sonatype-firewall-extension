@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.model.Organization;
@@ -87,6 +87,10 @@ public class AbstractServiceAuthzTest
   }
 
   protected void login() {
+    // Ensure the SecurityManager and Subject are bound to the current thread's context.
+    // This is necessary when tests run in a different thread (e.g., JUnit timeout threads).
+    ThreadContext.bind(securityManager);
+    ThreadContext.bind(subject);
     if (!subject.isAuthenticated()) {
       subject.login(new UsernamePasswordToken(user.getUsername(), user.getPassword()));
     }

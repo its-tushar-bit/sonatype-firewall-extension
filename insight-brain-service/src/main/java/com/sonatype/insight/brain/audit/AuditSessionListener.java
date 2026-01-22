@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.SessionListenerAdapter;

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.experimental.sast;
 
 import java.util.List;
 import java.util.UUID;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sast.SastFindingDAO;
 import com.sonatype.insight.brain.dataaccess.sast.SastPullRequestCommentDAO;

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.search;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.search.SearchIndexRuleAnnotations.LuceneTest;

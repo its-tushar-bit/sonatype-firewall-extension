@@ -7,7 +7,8 @@ package com.sonatype.insight.brain.search.opensearch;
 
 import java.net.URI;
 import java.util.Optional;
-import javax.inject.Provider;
+
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.search.SearchConfig;
 import com.sonatype.insight.brain.search.SearchConfig.AwsHttpOpenSearchConfig;

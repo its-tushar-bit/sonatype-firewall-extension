@@ -12,10 +12,10 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Inject;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.webhook.Webhook;
 import com.sonatype.insight.brain.security.FIPSConfig;
@@ -25,10 +25,11 @@ import com.sonatype.insight.brain.webhook.dto.WebhookPayload;
 import com.sonatype.insight.test.LogOutput;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.AbstractHandler;
+import jakarta.servlet.http.HttpServlet;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -54,22 +55,25 @@ public class WebhookClientUtilTest
 
   private Server server;
 
-  private AbstractHandler handler;
+  private HttpServlet handler;
 
   @Before
   public void before() throws Exception {
     server = new Server(0);
-    server.setHandler(new AbstractHandler()
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+    context.addServlet(new ServletHolder(new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException, ServletException
       {
         if (handler != null) {
-          handler.handle(target, baseRequest, request, response);
+          handler.service(request, response);
         }
       }
-    });
+    }), "/*");
+    server.setHandler(context);
     server.start();
   }
 
@@ -119,15 +123,14 @@ public class WebhookClientUtilTest
   public void testPost_SerializesJson() {
     final List<String> bodies = new ArrayList<>();
     final String[] signature = new String[1];
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
-        baseRequest.setHandled(true);
         signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
       }
     };
@@ -141,15 +144,14 @@ public class WebhookClientUtilTest
     enableFipsMode();
     final List<String> bodies = new ArrayList<>();
     final String[] signature = new String[1];
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+      protected void service(HttpServletRequest request, HttpServletResponse response)
           throws IOException
       {
         String body = IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
         bodies.add(body);
-        baseRequest.setHandled(true);
         signature[0] = request.getHeader(WebhookClientUtil.WEBHOOK_SIGNATURE_HEADER);
       }
     };
@@ -162,13 +164,12 @@ public class WebhookClientUtilTest
   @Test
   public void testPost_LogsHttpErrors() {
     final List<String> deliveryIds = new ArrayList<>();
-    handler = new AbstractHandler()
+    handler = new HttpServlet()
     {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         deliveryIds.add(request.getHeader(WebhookClientUtil.WEBHOOK_DELIVERY_HEADER));
         response.setStatus(400);
-        baseRequest.setHandled(true);
       }
     };
 
@@ -179,15 +180,14 @@ public class WebhookClientUtilTest
 
   private Map<String, String> getRequestHeaders() {
     final Map<String, String> headers = new HashMap<>();
-    handler = new AbstractHandler() {
+    handler = new HttpServlet() {
       @Override
-      public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) {
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
         headers.clear();
         for (Enumeration<String> en = request.getHeaderNames(); en.hasMoreElements(); ) {
           String headerName = en.nextElement();
           headers.put(headerName, request.getHeader(headerName));
         }
-        baseRequest.setHandled(true);
       }
     };
     return headers;

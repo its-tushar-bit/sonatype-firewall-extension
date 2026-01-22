@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.audit.AuditRecorder;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;

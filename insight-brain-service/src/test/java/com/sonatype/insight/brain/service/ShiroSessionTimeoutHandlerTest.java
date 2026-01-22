@@ -13,7 +13,7 @@ import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropert
 import com.sonatype.insight.brain.security.InsightSessionManager;
 import com.sonatype.insight.brain.tenancy.TenantManaged;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.session.mgt.AbstractSessionManager;
 import org.junit.Test;

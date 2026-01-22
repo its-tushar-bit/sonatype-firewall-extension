@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.Response.StatusType;
 
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
 

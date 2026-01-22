@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.common.io;
 import java.io.File;
 import java.io.IOException;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;

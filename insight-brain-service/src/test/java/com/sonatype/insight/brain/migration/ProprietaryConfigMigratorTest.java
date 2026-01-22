@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.migration;
 
 import java.io.IOException;
 import java.util.Collections;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.ProprietaryConfigDAO;

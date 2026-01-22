@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.policy.InvalidStageException;
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;

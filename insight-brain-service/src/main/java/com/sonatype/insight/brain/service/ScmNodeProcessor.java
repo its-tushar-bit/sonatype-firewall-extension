@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.inject.Singleton;
+import jakarta.inject.Singleton;
 
 /**
  * Default implementation allows all nodes to run SCM event and pull request polling processes

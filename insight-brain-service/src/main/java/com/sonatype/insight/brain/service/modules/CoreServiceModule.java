@@ -217,8 +217,6 @@ import com.sonatype.insight.brain.support.ConfigurationInfo;
 import com.sonatype.insight.brain.support.SourceControlConfigurationInfo;
 import com.sonatype.insight.brain.report.ReportDownloader;
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
-import com.sonatype.insight.scan.client.ClientScanner;
-import com.sonatype.insight.scan.file.FileScanner;
 import org.apache.shiro.guice.web.GuiceShiroFilter;
 import org.apache.shiro.web.config.ShiroFilterConfiguration;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
@@ -256,8 +254,6 @@ public class CoreServiceModule
     bind(SourceControlConfigurationInfo.class);
     bind(ReportDownloader.class);
     bind(JaxRsExceptionMapper.class);
-    bind(ClientScanner.class);
-    bind(FileScanner.class);
 
     // Additional bindings needed at runtime
     bind(com.sonatype.insight.brain.scan.ScanTask.class);
@@ -270,8 +266,6 @@ public class CoreServiceModule
 
     // External scan dependency bindings
     bind(com.sonatype.insight.scan.anon.Anonymizer.class);
-    bind(com.sonatype.insight.scan.config.ScanPropertiesLoader.class);
-    bind(com.sonatype.insight.scan.model.io.ScanWriterFactory.class);
 
     bind(AdvancedSearchService.class);
     bind(ApiConfigurationService.class).in(Singleton.class);

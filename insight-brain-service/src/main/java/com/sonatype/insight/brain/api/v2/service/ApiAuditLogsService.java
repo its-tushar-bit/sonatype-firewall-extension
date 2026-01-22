@@ -17,10 +17,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.core.StreamingOutput;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.StreamingOutput;
 
 import com.sonatype.insight.brain.audit.AuditLogFilesProvider;
 import com.sonatype.insight.brain.model.security.Permission;

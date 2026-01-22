@@ -19,11 +19,14 @@ class HdsRequestLog
 
   @Override
   public void log(Request request, Response response) {
-    String query = request.getQueryString();
+    String query = request.getHttpURI().getQuery();
     query = query != null ? '?' + query : "";
-    long elapsedMs = System.currentTimeMillis() - request.getTimeStamp();
-    log.info("{} \"{}{}\", {} {}, {} bytes, {} ms, license {}", request.getMethod(), request.getRequestURL(), query,
-        response.getStatus(), HttpStatus.getMessage(response.getStatus()), response.getContentCount(), elapsedMs,
-        request.getHeader("X-CLM-Token"));
+    long elapsedMs = System.currentTimeMillis() - request.getBeginNanoTime() / 1_000_000;
+    String statusMsg = HttpStatus.getMessage(response.getStatus());
+    long contentLength = response.getHeaders().getLongField("Content-Length");
+    log.info("{} \"{}{}\", {} {}, {} bytes, {} ms, license {}",
+        request.getMethod(), request.getHttpURI().getPath(), query,
+        response.getStatus(), statusMsg, contentLength, elapsedMs,
+        request.getHeaders().get("X-CLM-Token"));
   }
 }

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import org.quartz.DisallowConcurrentExecution;
 

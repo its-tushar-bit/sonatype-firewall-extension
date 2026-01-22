@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.roi;
 import java.math.BigDecimal;
 import java.util.Map;
 import java.util.stream.Stream;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDAO;
 import com.sonatype.insight.brain.model.roi.RoiConfiguration;

@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.security;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import javax.naming.NamingException;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiUserDTO;

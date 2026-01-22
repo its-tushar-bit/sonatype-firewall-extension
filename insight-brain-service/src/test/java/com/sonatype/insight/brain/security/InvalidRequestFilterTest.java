@@ -46,8 +46,9 @@ public class InvalidRequestFilterTest
     configurationService.setConfigurationInDatabaseNoAuthz(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH, false);
     configurationService.applyConfigurationToClients(SystemConfigurationProperty.BLOCK_BACKSLASH_IN_PATH);
 
+    // Jetty 12 handles this now rather than InvalidRequestFilter (blocks "Suspicious Path Character")
     HttpResponse response = restRequest().path("any/thing/\\after-backslash").get();
-    assertResponseStatus(404, response);
+    assertResponseStatus(400, response);
   }
 
   @Test

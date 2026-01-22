@@ -11,9 +11,9 @@ import java.net.URISyntaxException;
 import java.util.Base64;
 import java.util.Collections;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.core.UriBuilder;
 import javax.xml.stream.XMLStreamWriter;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;

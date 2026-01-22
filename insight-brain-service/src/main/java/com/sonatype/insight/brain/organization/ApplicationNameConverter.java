@@ -9,7 +9,7 @@ import java.nio.CharBuffer;
 import java.util.function.IntPredicate;
 import java.util.function.IntUnaryOperator;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 
 import static org.apache.commons.text.WordUtils.capitalizeFully;
 

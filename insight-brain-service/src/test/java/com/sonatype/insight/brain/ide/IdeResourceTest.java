@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import javax.mail.MessagingException;
-import javax.mail.util.ByteArrayDataSource;
+import jakarta.mail.MessagingException;
+import jakarta.mail.util.ByteArrayDataSource;
 
 import com.sonatype.clm.dto.model.SecurityVulnerability;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -1026,9 +1026,13 @@ public class IdeResourceTest
   private Map<ByteArrayDataSource, Integer> getHdsTelemetryDataCollection() throws Exception {
     final Map<ByteArrayDataSource, Integer> responses = Collections.synchronizedMap(new LinkedHashMap<>());
     startIqTestServer(config -> getHdsServer()
-        .respondWith((HttpResponseProcessor) (request, response) ->
-            responses.put(new ByteArrayDataSource(request.getInputStream(), "multipart/form-data"),
-                response.getStatus()))
+        .respondWith((HttpResponseProcessor) (request, response) -> {
+          // Read the input stream into a byte array first to ensure it's fully consumed
+          // before creating the ByteArrayDataSource (required for Jetty 12/Jakarta EE 11)
+          byte[] requestBody = request.getInputStream().readAllBytes();
+          responses.put(new ByteArrayDataSource(requestBody, "multipart/form-data"),
+              response.getStatus());
+        })
         .andStatus(204)
         .atUri(TelemetrySender.RESOURCE_PATH));
     return responses;

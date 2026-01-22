@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.telemetry;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.service.AbstractResourceTest;

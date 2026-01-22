@@ -7,21 +7,30 @@ package com.sonatype.insight.brain.filter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.Response;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.Response;
 
 import com.sonatype.insight.jaxrs.error.JaxRsExceptionMapper;
 
-import org.eclipse.jetty.server.Request;
-import org.eclipse.jetty.server.handler.HandlerWrapper;
-
+/**
+ * Servlet filter that catches throwables during request processing and converts them
+ * to appropriate HTTP error responses using JaxRsExceptionMapper.
+ *
+ * Migrated from Jetty Handler to Servlet Filter for Jetty 12 compatibility.
+ * In Jetty 12, servlet-layer exception handling should use Filters instead of Handlers.
+ */
 @Named
 public class ThrowableHandler
-    extends HandlerWrapper
+    implements Filter
 {
   private final JaxRsExceptionMapper jaxRsExceptionMapper;
 
@@ -31,14 +40,19 @@ public class ThrowableHandler
   }
 
   @Override
-  public void handle(
-      String target,
-      Request baseRequest,
-      HttpServletRequest request,
-      HttpServletResponse response) throws IOException, ServletException
+  public void init(FilterConfig filterConfig) throws ServletException {
+    // No initialization needed
+  }
+
+  @Override
+  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
+      throws IOException, ServletException
   {
+    HttpServletRequest request = (HttpServletRequest) servletRequest;
+    HttpServletResponse response = (HttpServletResponse) servletResponse;
+
     try {
-      super.handle(target, baseRequest, request, response);
+      chain.doFilter(request, response);
     }
     catch (Throwable t) {
       if (!response.isCommitted()) {
@@ -51,5 +65,10 @@ public class ThrowableHandler
         }
       }
     }
+  }
+
+  @Override
+  public void destroy() {
+    // No cleanup needed
   }
 }

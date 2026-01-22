@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.security;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.dataaccess.configuration.oauth2.OidcConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;

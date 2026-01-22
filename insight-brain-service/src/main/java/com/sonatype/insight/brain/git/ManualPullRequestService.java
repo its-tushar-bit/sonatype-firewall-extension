@@ -30,7 +30,7 @@ import com.sonatype.insight.brain.sourcecontrol.SourceControlUtils;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 import com.sonatype.nexus.iq.manager.PullRequestExecutor;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.apache.maven.artifact.versioning.ComparableVersion;
 import org.apache.shiro.SecurityUtils;

@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -36,6 +37,8 @@ public class TenantAwareOneTimeRunnableTest
 
     // Verify that the runnable did actually run and therefore the assertion also was called
     verify(mockRunnable).run();
+
+    verify(subject).associateWith(any(Runnable.class));
   }
 
   @Test

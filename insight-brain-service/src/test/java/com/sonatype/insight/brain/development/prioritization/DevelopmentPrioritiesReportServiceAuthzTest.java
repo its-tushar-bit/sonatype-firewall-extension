@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.development.prioritization;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 import com.sonatype.insight.error.exception.NotFoundException;

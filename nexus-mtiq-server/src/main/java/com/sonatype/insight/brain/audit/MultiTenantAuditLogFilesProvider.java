@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.audit;
 import java.io.File;
 import java.time.LocalDate;
 import java.util.List;
-import javax.annotation.Priority;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.annotation.Priority;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.logging.MultiTenantAuditLogAppenderFactory;
 

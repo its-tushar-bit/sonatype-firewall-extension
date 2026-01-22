@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.dataaccess.configuration;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlWithFallbackDAO;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;

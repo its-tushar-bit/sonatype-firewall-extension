@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
 import com.sonatype.insight.brain.dataaccess.telemetry.ClusterIdentificationDAO;

@@ -9,8 +9,8 @@ package com.sonatype.insight.jaxrs.error;
 
 import java.sql.SQLException;
 import java.util.function.Supplier;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

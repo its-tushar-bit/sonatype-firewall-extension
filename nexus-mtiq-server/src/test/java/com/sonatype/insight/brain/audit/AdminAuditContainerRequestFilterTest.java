@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.audit;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ResourceInfo;
 
 import org.junit.Before;
 import org.junit.Rule;

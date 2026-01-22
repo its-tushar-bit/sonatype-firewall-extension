@@ -9,9 +9,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import javax.servlet.DispatcherType;
-import javax.servlet.Filter;
-import javax.ws.rs.Path;
+
+import jakarta.inject.Inject;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.Filter;
+import jakarta.ws.rs.Path;
 
 import com.sonatype.insight.brain.admin.MtiqAdminEndpoint;
 import com.sonatype.insight.brain.api.admin.authorization.JwtHttpAuthorizationFilter;
@@ -308,7 +310,17 @@ public class MultiTenantInsightBrainService
         bind(DataMartDataStore.class).toInstance(databaseContainer.getDataMartDataStore());
         bind(ThirdPartyScansDataStore.class).toInstance(databaseContainer.getThirdPartyScansDataStore());
         bind(DataStoreProvider.class).toInstance(databaseContainer);
-        bind(ClusterLockManager.class).toProvider(ClusterLockManagerProvider.class);
+        // Bind ClusterLockManagerProvider so it can be injected, then use it as a provider
+        bind(ClusterLockManagerProvider.class);
+        bind(ClusterLockManager.class).toProvider(new com.google.inject.Provider<ClusterLockManager>() {
+          @Inject
+          ClusterLockManagerProvider provider;
+
+          @Override
+          public ClusterLockManager get() {
+            return provider.get();
+          }
+        });
         bind(DatabaseConfigProvider.class).toInstance(getDatabaseConfigProvider(configuration()));
 
         // MTIQ-specific bindings that need access to configuration or databaseContainer

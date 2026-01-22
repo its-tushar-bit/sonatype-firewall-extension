@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.version.VersionService;
 

@@ -21,8 +21,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
-import javax.inject.Inject;
-import javax.ws.rs.core.MediaType;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 
 import com.sonatype.insight.brain.dataaccess.thirdpartyscans.ThirdPartySbomMetadataDAO;
 import com.sonatype.insight.brain.model.Application;

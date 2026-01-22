@@ -17,6 +17,7 @@ import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantThreadLocal;
 
 import com.google.common.eventbus.Subscribe;
+import org.apache.shiro.util.ThreadContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -61,12 +62,14 @@ public class AsyncEventBusImplMultiTenantTest
     new Thread(() -> {
       for (int i = 0; i < eventsPerTenant; i++) {
         int finalI = i;
+        ThreadContext.bind(securityManager);
         testAsTenantAndInvalidate(tenant1Name, t -> asyncEventBus.post("t1e" + finalI));
       }
     }).start();
     new Thread(() -> {
       for (int i = 0; i < eventsPerTenant; i++) {
         int finalI = i;
+        ThreadContext.bind(securityManager);
         testAsTenantAndInvalidate(tenant2Name, t -> asyncEventBus.post("t2e" + finalI));
       }
     }).start();

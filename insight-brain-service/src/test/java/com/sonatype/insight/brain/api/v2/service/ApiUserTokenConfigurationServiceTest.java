@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.google.inject.Binder;
 import com.sonatype.insight.brain.api.v2.dto.ApiUserTokenConfigurationDTO;

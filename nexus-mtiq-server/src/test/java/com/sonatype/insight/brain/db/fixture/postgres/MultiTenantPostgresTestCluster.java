@@ -18,6 +18,7 @@ import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.db.datastore.SimpleDataStoreProvider;
 import com.sonatype.insight.brain.db.datastore.ThirdPartyScansDataStore;
 import com.sonatype.insight.brain.db.migrations.DatabaseMigrations;
+import com.sonatype.insight.brain.tenancy.Tenant;
 import com.sonatype.insight.brain.tenancy.TenantTestHelper;
 import com.sonatype.insight.db.DatabaseConfig;
 
@@ -61,18 +62,22 @@ public class MultiTenantPostgresTestCluster
     ThirdPartyScansDataStore thirdPartyScansDataStore =
         new MultiTenantThirdPartyScansDataStore(dataSourceProvider, databaseConfig);
 
-    operationalDataStore.initialize();
-    aggregationDataStore.initialize();
-    dataMartDataStore.initialize();
-    thirdPartyScansDataStore.initialize();
-
     DataStoreProvider dataStoreProvider = new SimpleDataStoreProvider(operationalDataStore, aggregationDataStore,
         dataMartDataStore, thirdPartyScansDataStore);
 
     DatabaseMigrations databaseMigrations = new DatabaseMigrations(dataStoreProvider);
 
     DatabaseProvisioner databaseProvisioner = new DatabaseProvisioner(dataStoreProvider, databaseMigrations);
-    databaseProvisioner.migrateDatabase();
+
+    // Initialize and migrate the global schema first
+    TenantTestHelper.testAsTenant(Tenant.GLOBAL_TENANT, x -> {
+      operationalDataStore.initialize();
+      aggregationDataStore.initialize();
+      dataMartDataStore.initialize();
+      thirdPartyScansDataStore.initialize();
+
+      databaseProvisioner.migrateDatabase();
+    });
 
     // run the db initialization for the template tenant
     TenantTestHelper.testAsTenantAndInvalidate(TEMPLATE_TENANT_NAME, x -> {

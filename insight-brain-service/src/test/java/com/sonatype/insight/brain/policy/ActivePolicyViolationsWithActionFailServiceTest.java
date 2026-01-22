@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy;
 
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyViolationDAO;

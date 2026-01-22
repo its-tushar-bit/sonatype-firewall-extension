@@ -16,8 +16,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.inject.Inject;
-import javax.mail.Message;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -108,7 +108,7 @@ import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 
@@ -1245,9 +1245,9 @@ public abstract class AbstractRepositoryServiceTest
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
-    List<Message> notificationsUser1 = Mailbox.get(user1EmailAddress);
+    List<Message> notificationsUser1 = MailboxTestUtil.get(user1EmailAddress);
     notificationsUser1.clear();
-    List<Message> notificationsUser2 = Mailbox.get(user2EmailAddress);
+    List<Message> notificationsUser2 = MailboxTestUtil.get(user2EmailAddress);
     notificationsUser2.clear();
 
     // Call the service
@@ -1324,7 +1324,7 @@ public abstract class AbstractRepositoryServiceTest
 
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, false);
 
-    List<Message> notifications = Mailbox.get(userEmailAddress);
+    List<Message> notifications = MailboxTestUtil.get(userEmailAddress);
     notifications.clear();
 
     // Call the service

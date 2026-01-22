@@ -19,10 +19,10 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-import javax.inject.Inject;
-import javax.mail.Message;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.BadRequestException;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.BadRequestException;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -118,7 +118,7 @@ import com.google.inject.Binder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -512,7 +512,7 @@ public class PolicyEvaluateServiceTest
 
     setBaseUrl("http://localhost");
 
-    List<Message> notifications = Mailbox.get("manager@test.corp");
+    List<Message> notifications = MailboxTestUtil.get("manager@test.corp");
     notifications.clear();
 
     // Evaluate policy
@@ -1031,8 +1031,8 @@ public class PolicyEvaluateServiceTest
       String mailboxA,
       String mailboxB) throws Exception
   {
-    final List<Message> messagesA = Mailbox.get(mailboxA);
-    final List<Message> messagesB = Mailbox.get(mailboxB);
+    final List<Message> messagesA = MailboxTestUtil.get(mailboxA);
+    final List<Message> messagesB = MailboxTestUtil.get(mailboxB);
 
     assertThat(policyEvaluationResult.getAffectedComponentCount()).isEqualTo(7);
     assertThat(policyEvaluationResult.getCriticalComponentCount()).isEqualTo(7);
@@ -1158,7 +1158,7 @@ public class PolicyEvaluateServiceTest
     assertThat(appComponentDAO.getByApplicationIdAndStageTypeId(app.getId(), stage.getStageTypeId())).hasSize(28);
 
     // notification message should also have been sent
-    List<Message> notifications = Mailbox.get(mail);
+    List<Message> notifications = MailboxTestUtil.get(mail);
     assertNotifications(notifications, 1, 5000);
     assertThat(notifications.get(0).getSubject()).contains("Policy");
   }

@@ -7,11 +7,11 @@ package com.sonatype.insight.brain.security;
 
 import java.util.Collection;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.web.servlet.AdviceFilter;
 

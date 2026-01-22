@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.repository.autorelease;
 
 import java.io.PrintWriter;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;

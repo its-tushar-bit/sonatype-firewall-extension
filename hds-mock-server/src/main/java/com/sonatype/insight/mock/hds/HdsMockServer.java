@@ -15,15 +15,23 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedDeque;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.eclipse.jetty.ee11.servlet.FilterHolder;
+import org.eclipse.jetty.ee11.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee11.servlet.ServletHolder;
 import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.proxy.ConnectHandler;
-import org.eclipse.jetty.security.ConstraintMapping;
-import org.eclipse.jetty.security.ConstraintSecurityHandler;
+import org.eclipse.jetty.security.Constraint;
 import org.eclipse.jetty.security.HashLoginService;
+import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.security.UserStore;
 import org.eclipse.jetty.security.authentication.BasicAuthenticator;
 import org.eclipse.jetty.server.Connector;
@@ -31,15 +39,11 @@ import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.NetworkConnector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.util.IO;
-import org.eclipse.jetty.util.security.Constraint;
+import org.eclipse.jetty.server.handler.ConnectHandler;
 import org.eclipse.jetty.util.security.Password;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 
@@ -188,37 +192,47 @@ public class HdsMockServer
       server.addConnector(newHttpsConnector());
     }
 
-    Handler mainHandler = new RestHandler();
+    // Create servlet context handler
+    ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
+    context.setContextPath("/");
+
+    // Add proxy authentication filter if needed (must be added before servlet)
+    if (proxyUsername != null) {
+      context.addFilter(new FilterHolder(new ProxyAuthFilter()), "/*", null);
+    }
+
+    // Add REST servlet
+    context.addServlet(new ServletHolder(new RestServlet()), "/*");
+
+    Handler mainHandler = context;
 
     if (username != null && username.length() > 0) {
       UserStore userStore = new UserStore();
       userStore.addUser(username, new Password(password), new String[]{"uploader"});
+
       HashLoginService loginService = new HashLoginService("TestRealm");
       loginService.setUserStore(userStore);
       server.addBean(loginService);
 
-      Constraint constraint = new Constraint("auth", "uploader");
-      constraint.setAuthenticate(true);
+      // Build the constraint: requires auth, role "uploader"
+      Constraint constraint = Constraint.from("uploader", Constraint.Authorization.SPECIFIC_ROLE);
 
-      ConstraintMapping constraintMapping = new ConstraintMapping();
-      constraintMapping.setPathSpec("/*");
-      constraintMapping.setConstraint(constraint);
-
-      ConstraintSecurityHandler secHandler = new ConstraintSecurityHandler();
-      secHandler.setAuthenticator(new BasicAuthenticator());
+      SecurityHandler.PathMapped secHandler = new SecurityHandler.PathMapped();
       secHandler.setLoginService(loginService);
-      secHandler.setConstraintMappings(new ConstraintMapping[]{constraintMapping});
-      secHandler.setHandler(mainHandler);
 
+      BasicAuthenticator authenticator = new BasicAuthenticator();
+      authenticator.setLoginService(loginService);
+      secHandler.setAuthenticator(authenticator);
+
+      // Apply constraint to all paths
+      secHandler.put("/*", constraint);
+
+      // Chain handlers
+      secHandler.setHandler(mainHandler);
       mainHandler = secHandler;
     }
 
-    HandlerList handlers = new HandlerList();
-
-    if (proxyUsername != null) {
-      handlers.addHandler(new ProxyHandler());
-    }
-
+    Handler.Sequence handlers = new Handler.Sequence();
     handlers.addHandler(new ConnectHandler());
     handlers.addHandler(mainHandler);
     server.setHandler(handlers);
@@ -240,11 +254,6 @@ public class HdsMockServer
     }
   }
 
-  private void consume(Request request) throws IOException {
-    request.setHandled(true);
-    IO.copy(request.getInputStream(), IO.getNullStream());
-  }
-
   private void sendError(HttpServletResponse response, int status, String message) throws IOException {
     response.setStatus(status);
     send(response, "text/plain; charset=UTF-8", message);
@@ -261,9 +270,11 @@ public class HdsMockServer
     }
   }
 
-  public class RestHandler
-      extends AbstractHandler
+  public class RestServlet
+      extends HttpServlet
   {
+    private static final long serialVersionUID = 1L;
+
     private static final String REPORT_PATH_PREFIX = "/rest/application/analysis/";
 
     public static final String SCAN_ID = "SCAN-ID";
@@ -285,7 +296,7 @@ public class HdsMockServer
       capturedRequestHttpHeadersByUri.put(request.getRequestURI(), httpHeaders);
     }
 
-    private boolean captureRequestHttpBody(Request baseRequest, HttpServletRequest request) {
+    private boolean captureRequestHttpBody(HttpServletRequest request) {
       boolean isPostRequestWithJsonContent =
           "POST".equalsIgnoreCase(request.getMethod()) && request.getContentType() != null
               && request.getContentType().contains("application/json");
@@ -293,7 +304,6 @@ public class HdsMockServer
         try {
           String bodyAsString = new String(request.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
           capturedRequestBodyByUri.put(request.getRequestURI(), bodyAsString);
-          baseRequest.setHandled(true);
           return true;
         }
         catch (IOException e) {
@@ -304,11 +314,11 @@ public class HdsMockServer
     }
 
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+    protected void service(HttpServletRequest request, HttpServletResponse response)
         throws IOException, ServletException
     {
       captureRequestHttpHeaders(request);
-      boolean bodyWasCaptured = captureRequestHttpBody(baseRequest, request);
+      captureRequestHttpBody(request);
 
       String uri = request.getRequestURI();
       String uriWithParams = uri;
@@ -324,84 +334,61 @@ public class HdsMockServer
         }
         if (mockResponse != null) {
           mockResponse.render(request, response);
-          if (!bodyWasCaptured) {
-            consume(baseRequest);
-          }
         }
         else if (uri.equals("/rest/license") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           sendJson(response, "{\"licenses\": [], \"multiLicenses\": []}");
         }
         else if (uri.equals("/rest/productNotifications") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           sendJson(response, "{}");
         }
         else if (uri.equals("/rest/environment/stats")) {
           if ("GET".equals(request.getMethod())) {
-            consume(baseRequest);
             sendJson(response, "{}");
-          }
-          else if ("POST".equals(request.getMethod())) {
-            if (!bodyWasCaptured) {
-              consume(baseRequest);
-            }
           }
         }
         else if (uri.equals("/user-telemetry.js") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           send(response, "application/javascript", "function noop() {}");
         }
         else if (uri.equals("/rest/application/analysis") && "PUT".equals(request.getMethod())) {
-          if (!bodyWasCaptured) {
-            consume(baseRequest);
-          }
           validateLicense(request);
           sendJson(response, "{\"scanId\": \"" + SCAN_ID + "\", \"timeToReport\": 0}");
         }
         else if (uri.startsWith(REPORT_PATH_PREFIX) && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           validateLicense(request);
           String scanId = request.getRequestURI().substring(REPORT_PATH_PREFIX.length());
           throw new RequestException(HttpServletResponse.SC_BAD_REQUEST,
               scanId.isEmpty() ? "scan id missing" : "bad scan id: " + scanId);
         }
         else if (uri.equals("/rest/component/details/firewall/ignorePatterns") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           sendJson(response, "{\"regexpsByRepositoryFormat\":{ \"maven2\":[], \"npm\":[], \"nuget\":[], \"pypi\":[]}}");
         }
         else if (uri.equals("/rest/componentCategories") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           sendJson(response, "{\"componentCategories\": []}");
         }
         else if (uri.equals("/rest/enterpriseReporting/config") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           sendJson(response, "{}");
         }
         else if (uri.equals("/rest/productLicense/developer-upper-bound") && "GET".equals(request.getMethod())) {
-          consume(baseRequest);
           send(response, "text/plain", "");
         }
         else if (uri.equals("/rest/maliciousUrls/active/maven")) {
-          consume(baseRequest);
           sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/malicious.jar\"]}");
         }
         else if (uri.equals("/rest/maliciousUrls/active/npm")) {
-          consume(baseRequest);
           sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/npm.tgz\"]}");
         }
         else if (uri.equals("/rest/maliciousUrls/active/pypi")) {
-          consume(baseRequest);
           sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/pypi.zip\"]}");
         }
         else if (uri.equals("/rest/maliciousUrls/active/nuget")) {
-          consume(baseRequest);
           sendJson(response, "{\"activeThreatUrls\": [\"https://malicious.com/nuget.pkg\"]}");
+        }
+        else {
+          // Return 404 for any unmatched requests
+          sendError(response, HttpServletResponse.SC_NOT_FOUND, "Not Found: " + uri);
         }
       }
       catch (RequestException e) {
-        if (!bodyWasCaptured) {
-          consume(baseRequest);
-        }
         sendError(response, e.statusCode, e.errorMsg);
       }
     }
@@ -422,14 +409,23 @@ public class HdsMockServer
     }
   }
 
-  class ProxyHandler
-      extends AbstractHandler
+  class ProxyAuthFilter
+      implements Filter
   {
     @Override
-    public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response)
+    public void init(FilterConfig filterConfig) {
+      // No initialization needed
+    }
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse res, FilterChain chain)
         throws IOException, ServletException
     {
+      HttpServletRequest request = (HttpServletRequest) req;
+      HttpServletResponse response = (HttpServletResponse) res;
+
       if ("https".equalsIgnoreCase(request.getScheme())) {
+        chain.doFilter(request, response);
         return;
       }
 
@@ -440,11 +436,18 @@ public class HdsMockServer
       }
 
       if (!(proxyUsername + ':' + proxyPassword).equals(auth)) {
-        consume(baseRequest);
         response.setHeader("Proxy-Authenticate", "Basic realm=\"TestRealm\"");
         sendError(response, HttpServletResponse.SC_PROXY_AUTHENTICATION_REQUIRED,
             "Proxy authentication required, got " + auth);
+        return;
       }
+
+      chain.doFilter(request, response);
+    }
+
+    @Override
+    public void destroy() {
+      // No cleanup needed
     }
   }
 

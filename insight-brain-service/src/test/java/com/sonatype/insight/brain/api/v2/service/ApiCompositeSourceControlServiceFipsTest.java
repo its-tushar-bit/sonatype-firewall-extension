@@ -26,7 +26,7 @@ import org.junit.contrib.java.lang.system.EnvironmentVariables;
 import org.sonatype.plexus.components.cipher.PlexusCipher;
 import org.sonatype.plexus.components.cipher.PlexusCipherException;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import static com.sonatype.insight.brain.model.Organization.ROOT_ORGANIZATION_ID;
 import static com.sonatype.insight.brain.security.FIPSConfig.FIPS_MODE_ENABLED_ENV;

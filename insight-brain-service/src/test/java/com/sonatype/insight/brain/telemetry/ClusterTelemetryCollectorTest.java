@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.product.license.ProductLicense;

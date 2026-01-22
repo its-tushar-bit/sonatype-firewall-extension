@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.integration.repository;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.FirewallIgnorePatterns;
 import com.sonatype.insight.brain.dataaccess.configuration.FirewallIgnorePatternsDAO;

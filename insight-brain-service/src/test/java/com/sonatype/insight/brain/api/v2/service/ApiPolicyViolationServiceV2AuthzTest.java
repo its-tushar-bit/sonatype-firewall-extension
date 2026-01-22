@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service;
 import java.util.Collections;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.insight.brain.api.v2.dto.ApiApplicationViolationDTOV2;

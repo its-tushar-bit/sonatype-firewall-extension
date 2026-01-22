@@ -9,7 +9,7 @@ import com.sonatype.insight.brain.common.test.SlowTest;
 
 import java.util.Collections;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.RisksFilterDTOBuilder;
 import com.sonatype.insight.brain.model.Organization;

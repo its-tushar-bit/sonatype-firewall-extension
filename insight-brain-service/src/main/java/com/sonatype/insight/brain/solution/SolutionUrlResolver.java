@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.solution;
 
 import java.util.Map;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dashboard.DashboardUtils;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;

@@ -17,7 +17,7 @@ import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import java.util.List;
 

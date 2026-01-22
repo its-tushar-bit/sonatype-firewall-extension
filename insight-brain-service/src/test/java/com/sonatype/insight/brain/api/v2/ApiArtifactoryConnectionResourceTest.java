@@ -38,7 +38,9 @@ import org.junit.Test;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.options;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static com.sonatype.insight.brain.artifactory.ArtifactoryClient.TEST_SHA256;
@@ -73,6 +75,10 @@ public class ApiArtifactoryConnectionResourceTest
     org = tempEntity.newOrganization();
     org.setArtifactoryConnectionEnabled(true);
     organizationDAO.update(org);
+
+    // Stub OPTIONS requests that may come from CORS preflight or health checks
+    artifactoryMockServer.stubFor(options(urlEqualTo("/"))
+        .willReturn(aResponse().withStatus(200)));
   }
   
   private void feature(boolean enable) {

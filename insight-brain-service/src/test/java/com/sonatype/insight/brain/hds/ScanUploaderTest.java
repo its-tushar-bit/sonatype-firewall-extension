@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.hds;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.ScanReceipt;
 import com.sonatype.insight.brain.cpematching.CpeMatchingConfigurationService;

@@ -7,11 +7,11 @@
 // Vendored/copied from hosted-data-services/insight-jaxrs-utils
 package com.sonatype.insight.jaxrs.error;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.ExceptionMapper;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.ExceptionMapper;
 
 /**
  * Ensures that any exceptions internally created by the JAX-RS container have a plain text body with the error message

@@ -28,7 +28,9 @@ import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import javax.inject.Inject;
+
+import ch.qos.logback.access.common.spi.IAccessEvent;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.TestProductLicenseManager;
 import com.sonatype.insight.brain.audit.AuditRecorder;
@@ -55,7 +57,6 @@ import com.sonatype.insight.license.model.ProductLicenseDetails;
 import com.sonatype.insight.test.productlicense.ProductLicenseConfig;
 import org.sonatype.licensing.LicensingException;
 
-import ch.qos.logback.access.spi.IAccessEvent;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

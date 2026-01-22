@@ -13,7 +13,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Enumeration;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.codeborne.selenide.Configuration;
 

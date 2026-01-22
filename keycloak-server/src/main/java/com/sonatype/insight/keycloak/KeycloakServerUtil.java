@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
+import jakarta.ws.rs.NotAuthorizedException;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 
 import org.keycloak.representations.idm.ClientRepresentation;
 import org.keycloak.representations.idm.CredentialRepresentation;
@@ -135,9 +135,12 @@ public class KeycloakServerUtil
       return newId;
     }
     else {
-      log.error("KeycloakServerUtil.createUser() end username:{} failed", user.getUsername());
+      String responseBody = response.readEntity(String.class);
+      log.error("KeycloakServerUtil.createUser() end username:{} failed, response: {}", user.getUsername(),
+          responseBody);
       throw new RuntimeException(
-          "User creation failed with status code: " + response.getStatus() + " for username:" + user.getUsername());
+          "User creation failed with status code: " + response.getStatus() + " for username:" + user.getUsername() +
+          ", response: " + responseBody);
     }
   }
 
@@ -177,7 +180,7 @@ public class KeycloakServerUtil
 
     GroupRepresentation groupRepresentation = new GroupRepresentation();
     groupRepresentation.setName(groupName);
-    groupRepresentation.setPath(groupName);
+    // Note: Do NOT set path - Keycloak 23+ computes it automatically as "/<groupName>"
 
     Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/groups").request()
         .header("Authorization", "Bearer " + adminToken)
@@ -332,8 +335,18 @@ public class KeycloakServerUtil
   }
 
   UserRepresentation[] getUsers() {
-    return ClientBuilder.newClient().target(url).path("admin/realms/master/users").request()
+    // briefRepresentation=false is required for Keycloak 26+ to include user attributes in the response
+    return ClientBuilder.newClient().target(url).path("admin/realms/master/users")
+        .queryParam("briefRepresentation", "false")
+        .request()
         .header("Authorization", "Bearer " + adminToken).get(UserRepresentation[].class);
+  }
+
+  UserRepresentation getUserById(String userId) {
+    // Getting a user by ID returns full user details including attributes
+    return ClientBuilder.newClient().target(url).path("admin/realms/master/users").path(userId)
+        .request()
+        .header("Authorization", "Bearer " + adminToken).get(UserRepresentation.class);
   }
 
   GroupRepresentation[] getGroups() {
@@ -351,5 +364,42 @@ public class KeycloakServerUtil
     return ClientBuilder.newClient().target(url).path("admin/realms/master").request()
         .header("Authorization", "Bearer " + getToken(KeycloakServer.DEFAULT_USERNAME, KeycloakServer.DEFAULT_PASSWORD))
         .get(RealmRepresentation.class);
+  }
+
+  /**
+   * Enable unmanaged attributes in the User Profile configuration.
+   * Required for Keycloak 24+ where User Profile is enabled by default and only managed attributes are returned.
+   */
+  public void enableUnmanagedAttributes() {
+    log.info("KeycloakServerUtil.enableUnmanagedAttributes() - configuring realm to allow unmanaged user attributes");
+
+    // The User Profile configuration needs to have unmanagedAttributePolicy set to ENABLED
+    // This is done via the realm's user profile endpoint
+    // Note: firstName, lastName, email are optional (no "required" field) for test compatibility
+    @SuppressWarnings("checkstyle:LineLength")
+    String userProfileConfig = """
+        {
+          "attributes": [
+            {"name": "username", "displayName": "${username}", "validations": {"length": {"min": 3, "max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+            {"name": "email", "displayName": "${email}", "validations": {"email": {}, "length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+            {"name": "firstName", "displayName": "${firstName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false},
+            {"name": "lastName", "displayName": "${lastName}", "validations": {"length": {"max": 255}}, "permissions": {"view": ["admin", "user"], "edit": ["admin", "user"]}, "multivalued": false}
+          ],
+          "groups": [{"name": "user-metadata", "displayHeader": "User metadata", "displayDescription": "Attributes, which refer to user metadata"}],
+          "unmanagedAttributePolicy": "ENABLED"
+        }
+        """;
+
+    Response response = ClientBuilder.newClient().target(url).path("admin/realms/master/users/profile").request()
+        .header("Authorization", "Bearer " + adminToken)
+        .put(Entity.entity(userProfileConfig, MediaType.APPLICATION_JSON));
+
+    if (response.getStatus() != Status.OK.getStatusCode()) {
+      String responseBody = response.readEntity(String.class);
+      log.error("Failed to enable unmanaged attributes: {} - {}", response.getStatus(), responseBody);
+      throw new RuntimeException(
+          "Failed to enable unmanaged attributes: " + response.getStatus() + " - " + responseBody);
+    }
+    log.info("KeycloakServerUtil.enableUnmanagedAttributes() - unmanaged attributes enabled successfully");
   }
 }

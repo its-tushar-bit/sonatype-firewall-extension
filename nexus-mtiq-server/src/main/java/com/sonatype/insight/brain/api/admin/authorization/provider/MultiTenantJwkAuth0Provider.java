@@ -6,9 +6,9 @@
 package com.sonatype.insight.brain.api.admin.authorization.provider;
 
 import java.util.concurrent.TimeUnit;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.service.Auth0Config;
 import com.sonatype.insight.brain.service.MultiTenantInsightConfig;

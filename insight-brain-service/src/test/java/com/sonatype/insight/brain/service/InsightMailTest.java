@@ -6,20 +6,22 @@
 package com.sonatype.insight.brain.service;
 
 import java.nio.charset.StandardCharsets;
-import javax.inject.Inject;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
+import java.util.List;
+
+import jakarta.inject.Inject;
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
 
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.mail.EmailConstants;
+import org.apache.commons.mail2.core.EmailConstants;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -113,8 +115,8 @@ public class InsightMailTest
     mailConfigurationDAO.set(mailConfiguration);
 
     String toEmailAddress = "testuser@example.com";
-    Mailbox.clearAll();
-    Mailbox emails = Mailbox.get(toEmailAddress);
+    MailboxTestUtil.clearAll();
+    List<Message> emails = MailboxTestUtil.get(toEmailAddress);
 
     String subject = "testSubject";
     String message = "testMessage";

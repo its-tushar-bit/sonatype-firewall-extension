@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.hds;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.error.exception.BadGatewayException;

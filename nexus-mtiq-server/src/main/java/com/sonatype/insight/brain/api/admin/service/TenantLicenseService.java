@@ -6,8 +6,8 @@
 package com.sonatype.insight.brain.api.admin.service;
 
 import java.io.InputStream;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.product.license.ProductLicenseService;
 import com.sonatype.insight.brain.tenancy.TenantUtil;

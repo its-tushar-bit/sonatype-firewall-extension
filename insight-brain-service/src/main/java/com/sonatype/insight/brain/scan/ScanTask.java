@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.scan;
 
 import java.io.File;
 import java.util.UUID;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.clm.dto.model.ProprietaryConfig;
 import com.sonatype.clm.dto.model.ScanReceipt;

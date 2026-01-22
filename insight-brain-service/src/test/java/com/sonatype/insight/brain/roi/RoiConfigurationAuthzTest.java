@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.roi;
 
 import java.math.BigDecimal;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.roi.RoiConfigurationDefaultValuesDAO;
 import com.sonatype.insight.brain.model.roi.CurrencyTypes;

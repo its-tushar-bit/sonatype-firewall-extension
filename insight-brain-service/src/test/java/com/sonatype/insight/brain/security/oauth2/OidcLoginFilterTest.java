@@ -13,9 +13,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
 import com.sonatype.insight.brain.security.PasswordHandler;
@@ -27,9 +24,11 @@ import com.sonatype.insight.jaxrs.error.ErrorResponse;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.google.inject.Binder;
 import io.netty.handler.codec.http.QueryStringDecoder;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpHeaders;
-import org.eclipse.jetty.server.Response;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -108,7 +107,8 @@ public class OidcLoginFilterTest
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 
     assertThat(result).isFalse();
-    verifyErrorResponse(response, Response.SC_UNAUTHORIZED, writer, OidcLoginFilter.OIDC_CONFIGURATION_INVALID);
+    verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
+        OidcLoginFilter.OIDC_CONFIGURATION_INVALID);
   }
 
   @Test
@@ -165,7 +165,7 @@ public class OidcLoginFilterTest
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 
     assertThat(result).isFalse();
-    verifyErrorResponse(response, Response.SC_UNAUTHORIZED, writer,
+    verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
         OidcLoginFilter.ERROR_BUILDING_AUTHORIZATION_REQUEST);
   }
 
@@ -310,7 +310,7 @@ public class OidcLoginFilterTest
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 
     assertThat(result).isFalse();
-    verifyErrorResponse(response, Response.SC_UNAUTHORIZED, writer, OidcLoginFilter.ERROR_GETTING_TOKENS);
+    verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer, OidcLoginFilter.ERROR_GETTING_TOKENS);
   }
 
   @Test
@@ -329,7 +329,7 @@ public class OidcLoginFilterTest
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 
     assertThat(result).isFalse();
-    verifyErrorResponse(response, Response.SC_UNAUTHORIZED, writer,
+    verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
         String.format(OidcLoginFilter.ERROR_AUTHORIZING_REQUEST, errorMessage));
   }
 
@@ -348,7 +348,8 @@ public class OidcLoginFilterTest
     boolean result = oidcLoginFilter.onPreHandle(request, response, null);
 
     assertThat(result).isFalse();
-    verifyErrorResponse(response, Response.SC_UNAUTHORIZED, writer, OidcLoginFilter.ERROR_BUILDING_TOKEN_REQUEST);
+    verifyErrorResponse(response, HttpServletResponse.SC_UNAUTHORIZED, writer,
+        OidcLoginFilter.ERROR_BUILDING_TOKEN_REQUEST);
   }
 
   @Test

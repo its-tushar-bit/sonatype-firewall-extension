@@ -7,12 +7,14 @@ package com.sonatype.clm.testing.functional.brain;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import javax.mail.Address;
-import javax.mail.Message;
-import javax.mail.Message.RecipientType;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
+import java.util.List;
+
+import jakarta.mail.Address;
+import jakarta.mail.Message;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.PasswordAuthentication;
+import jakarta.mail.Session;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
 import com.sonatype.clm.testing.functional.elements.FormMask;
@@ -26,13 +28,13 @@ import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.model.security.User;
 import com.sonatype.insight.brain.service.InsightMail;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 
 import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
 
 import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.disabled;
@@ -356,7 +358,7 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testSendTestEmailConfigurationNotSaved_MinimalData() throws MessagingException, IOException {
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
     emailConfigurationPage.testEmailSend().shouldBe(DISABLED).hover();
     Tooltip.get().shouldBe(visible).shouldBe(text("Hostname, Port, System Email and Recipient address are required."));
@@ -415,7 +417,7 @@ public class EmailConfigurationPageTest
 
   @Test
   public void testSendEmailConfigurationNotSaved_FullData() throws MessagingException, IOException {
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.hostName().setValue("localhost");
@@ -447,7 +449,7 @@ public class EmailConfigurationPageTest
   public void testSendEmailConfigExistsNoUpdateOnUI() throws IOException, MessagingException {
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.testEmailRecipient().setValue("john@doe");
@@ -462,7 +464,7 @@ public class EmailConfigurationPageTest
   public void testSendEmailConfigExistsAddUsernameAndPasswordSwitchTLS() throws IOException, MessagingException {
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.username().setValue("u");
@@ -482,7 +484,7 @@ public class EmailConfigurationPageTest
   public void testSendEmailConfigExistsHostnameUpdateRequiresPassword() throws IOException, MessagingException {
     MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.hostName().setValue("another-host");
@@ -503,7 +505,7 @@ public class EmailConfigurationPageTest
   public void testSendEmailConfigExistsPortUpdateRequiresPassword() throws IOException, MessagingException {
     MailConfiguration mailConfiguration = tempEntity.newMailConfiguration("u", "p".toCharArray());
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.port().setValue("25");
@@ -524,7 +526,7 @@ public class EmailConfigurationPageTest
   public void testSendEmailModifyExistingConfigurationPasswordNotRequired() throws IOException, MessagingException {
     MailConfiguration mailConfiguration = tempEntity.newMailConfigurationWithNoAuthentication();
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.sslEnabled().click();
@@ -543,7 +545,7 @@ public class EmailConfigurationPageTest
   public void testMustNotBeAbleToSendEmailToEmptySpace() {
     tempEntity.newMailConfigurationWithNoAuthentication();
 
-    Mailbox.clearAll();
+    MailboxTestUtil.clearAll();
     refreshOrOpen(EmailConfigurationPage.url());
 
     emailConfigurationPage.testEmailRecipient().setValue("  ");
@@ -629,7 +631,7 @@ public class EmailConfigurationPageTest
       boolean sslEnabled,
       String recipientAddress) throws MessagingException, IOException
   {
-    Mailbox emails = Mailbox.get(recipientAddress);
+    List<Message> emails = MailboxTestUtil.get(recipientAddress);
 
     assertThat(emails).hasSize(1);
     Message email = emails.get(0);

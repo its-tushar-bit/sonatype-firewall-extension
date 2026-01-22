@@ -28,7 +28,8 @@ public class KeycloakServer
   // Available docker images at https://quay.io/repository/keycloak/keycloak?tab=tags
   public static final String IMAGE_NAME = "keycloak/keycloak";
 
-  public static final String IMAGE_VERSION = "23.0.7";
+  // IMPORTANT: Keep this version in sync with keycloak.version in pom.xml
+  public static final String IMAGE_VERSION = "26.4.7";
 
   public static final String IMAGE = IMAGE_NAME + ":" + IMAGE_VERSION;
 

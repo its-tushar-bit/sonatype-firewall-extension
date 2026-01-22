@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.hds;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 
-import javax.servlet.ReadListener;
-import javax.servlet.ServletInputStream;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
 
 class ServletInputStreamImpl
     extends ServletInputStream

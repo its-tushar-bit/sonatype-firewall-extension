@@ -1,9 +1,9 @@
 server:
   applicationConnectors:
     - type: https
-      keyStorePath: "keyStorePath"
-      keyStorePassword: "keyStorePassword"
+      keyStorePath: "${keyStorePath:-src/test/resources/InsightConfigurationFactoryTest/test-keystore.jks}"
+      keyStorePassword: "testpass"
   adminConnectors:
     - type: https
-      keyStorePath: "keyStorePath"
-      keyStorePassword: "keyStorePassword"
+      keyStorePath: "${keyStorePath:-src/test/resources/InsightConfigurationFactoryTest/test-keystore.jks}"
+      keyStorePassword: "testpass"

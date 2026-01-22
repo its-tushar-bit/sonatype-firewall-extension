@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.migration;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.service.ConfigurationListener;
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;

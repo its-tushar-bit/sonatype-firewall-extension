@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.eventbus;
 
-import javax.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

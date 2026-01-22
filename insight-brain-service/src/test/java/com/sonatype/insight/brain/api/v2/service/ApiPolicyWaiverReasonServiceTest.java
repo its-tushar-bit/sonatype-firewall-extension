@@ -6,7 +6,7 @@
 
 package com.sonatype.insight.brain.api.v2.service;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiPolicyWaiverReasonDTO;
 import com.sonatype.insight.brain.dataaccess.TemporaryEntity;

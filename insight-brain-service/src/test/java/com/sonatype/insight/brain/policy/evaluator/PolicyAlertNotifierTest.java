@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.policy.evaluator;
 
 import java.util.Arrays;
 import java.util.Collections;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.dataaccess.policy.PolicyDAO;

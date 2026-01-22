@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.configuration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemNoticeDAO;
 import com.sonatype.insight.brain.model.configuration.SystemNotice;

@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.support;
 
 import java.time.LocalTime;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.sourcecontrol.SourceControlConfigurationDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.GitImplementation;

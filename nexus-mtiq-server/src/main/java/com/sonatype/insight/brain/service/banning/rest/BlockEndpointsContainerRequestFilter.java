@@ -6,15 +6,15 @@
 package com.sonatype.insight.brain.service.banning.rest;
 
 import java.lang.reflect.Method;
-import javax.annotation.Priority;
-import javax.inject.Inject;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.ext.Provider;
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.ext.Provider;
 
 import com.sonatype.insight.brain.banning.BlockIfMultiTenant;
 
@@ -34,10 +34,10 @@ public class BlockEndpointsContainerRequestFilter
 {
   public static final int PRIORITY = Priorities.AUTHENTICATION / 2;
 
-  private final javax.inject.Provider<ResourceInfo> resourceInfoProvider;
+  private final jakarta.inject.Provider<ResourceInfo> resourceInfoProvider;
 
   @Inject
-  public BlockEndpointsContainerRequestFilter(javax.inject.Provider<ResourceInfo> resourceInfoProvider) {
+  public BlockEndpointsContainerRequestFilter(jakarta.inject.Provider<ResourceInfo> resourceInfoProvider) {
     this.resourceInfoProvider = resourceInfoProvider;
   }
 

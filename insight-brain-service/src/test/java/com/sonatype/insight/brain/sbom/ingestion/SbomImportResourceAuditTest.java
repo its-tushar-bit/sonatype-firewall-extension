@@ -20,7 +20,7 @@ import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
 import com.sonatype.insight.license.model.LicensedFeature;
-import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
+import com.sonatype.insight.mock.hds.HdsMockServer.RestServlet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class SbomImportResourceAuditTest
   @Test
   public void testImportDetectedSbom() throws Exception {
     setFeatures(LicensedFeature.SBOM_MANAGER);
-    mockReport(RestHandler.SCAN_ID, "/AbstractAuditTest/report");
+    mockReport(RestServlet.SCAN_ID, "/AbstractAuditTest/report");
     URL resource = SbomImportResourceTest.class.getResource("/SbomImportResourceTest/valid-spdx-bom.json");
     File sbom = new File(Objects.requireNonNull(resource).getFile());
     HttpResponse responseDetect = restRequest()

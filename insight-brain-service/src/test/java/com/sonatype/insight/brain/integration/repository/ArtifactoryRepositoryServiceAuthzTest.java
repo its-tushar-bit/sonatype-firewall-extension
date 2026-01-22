@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.integration.repository;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.repository.ConfigureRepositoriesRequest;
 import com.sonatype.insight.brain.TestProductLicenseManager;

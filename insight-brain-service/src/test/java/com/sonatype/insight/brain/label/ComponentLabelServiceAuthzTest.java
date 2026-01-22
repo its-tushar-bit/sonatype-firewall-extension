@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.label;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.OwnerType;

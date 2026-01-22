@@ -16,8 +16,8 @@ import com.sonatype.insight.brain.model.policy.facts.TriggerSecurityVulnerabilit
 import com.sonatype.insight.brain.model.vulnerability.KevStatus;
 import com.sonatype.insight.dataaccess.TransactionContext;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.ArrayList;
 import java.util.List;
 

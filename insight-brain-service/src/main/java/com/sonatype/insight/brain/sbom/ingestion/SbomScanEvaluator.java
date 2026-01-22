@@ -8,9 +8,9 @@ package com.sonatype.insight.brain.sbom.ingestion;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.insight.brain.api.v2.dto.ApiThirdPartyScanTicketDTO;

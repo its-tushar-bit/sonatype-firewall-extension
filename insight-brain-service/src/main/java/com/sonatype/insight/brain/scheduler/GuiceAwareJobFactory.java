@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.scheduler;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.google.inject.Injector;
 

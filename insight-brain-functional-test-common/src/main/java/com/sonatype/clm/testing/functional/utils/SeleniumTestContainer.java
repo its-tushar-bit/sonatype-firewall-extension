@@ -9,7 +9,7 @@ import com.codeborne.selenide.Configuration;
 
 import java.net.URI;
 
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.slf4j.Logger;

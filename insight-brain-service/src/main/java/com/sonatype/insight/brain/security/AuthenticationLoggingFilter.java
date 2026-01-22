@@ -8,21 +8,17 @@ package com.sonatype.insight.brain.security;
 import java.io.IOException;
 import java.security.Principal;
 
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletRequestWrapper;
-import javax.servlet.ServletResponse;
-
 import com.sonatype.insight.brain.audit.AuditData;
 
-import org.apache.http.auth.BasicUserPrincipal;
-import org.eclipse.jetty.security.DefaultUserIdentity;
-import org.eclipse.jetty.security.UserAuthentication;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import org.eclipse.jetty.ee11.servlet.ServletApiRequest;
 import org.eclipse.jetty.server.Request;
 
 @Named
@@ -58,20 +54,19 @@ public class AuthenticationLoggingFilter
     }
   }
 
-  private void setUsernameForRequestLogging(ServletRequest request, final String username) {
-    while (request instanceof ServletRequestWrapper) {
-      request = ((ServletRequestWrapper) request).getRequest();
+  /**
+   * Sets the username on the Jetty request's AuthenticationState so that it appears in the request log (%user token).
+   */
+  private void setUsernameForRequestLogging(final ServletRequest servletRequest, final String username) {
+    if (servletRequest instanceof ServletApiRequest servletApiRequest) {
+      Request jettyRequest = servletApiRequest.getRequest();
+      Request.setAuthenticationState(jettyRequest, new Request.AuthenticationState() {
+        @Override
+        public Principal getUserPrincipal() {
+          return () -> username;
+        }
+      });
     }
-    if (!(request instanceof Request)) {
-      throw new IllegalStateException("Expected request instanceof " + Request.class.getName() + " but was "
-          + request.getClass().getName());
-    }
-    Request jettyRequest = (Request) request;
-
-    // The request logging logs the username from the Authentication instance retrieved from the jetty request.
-    Principal userPrincipal = new BasicUserPrincipal(username);
-    jettyRequest.setAuthentication(new UserAuthentication("for_request_logging", new DefaultUserIdentity(
-        null /* subject */, userPrincipal, null /* roles */)));
   }
 
   @Override

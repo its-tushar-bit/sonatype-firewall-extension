@@ -9,9 +9,9 @@ package com.sonatype.insight.brain.service.config;
 import java.net.URI;
 import java.util.LinkedHashSet;
 import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.validation.ValidationException;
-import javax.validation.constraints.NotNull;
+import jakarta.annotation.Nullable;
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotNull;
 
 import software.amazon.awssdk.services.s3.model.ServerSideEncryption;
 

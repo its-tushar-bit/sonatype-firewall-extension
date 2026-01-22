@@ -20,11 +20,11 @@ package org.keycloak.adapters.saml.servlet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
 
-import org.jboss.logging.Logger;
 import org.keycloak.adapters.saml.SamlDeployment;
 import org.keycloak.adapters.saml.SamlSession;
 import org.keycloak.adapters.saml.SamlSessionStore;
@@ -34,6 +34,7 @@ import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.spi.KeycloakAccount;
 import org.keycloak.adapters.spi.SessionIdMapper;
 import org.keycloak.common.util.KeycloakUriBuilder;
+import org.slf4j.LoggerFactory;
 
 /**
  * Copied from <a href="https://github.com/keycloak/keycloak/blob/23.0.7/adapters/saml/servlet-filter/src/main/java/org/keycloak/adapters/saml/servlet/FilterSamlSessionStore.java">...</a>
@@ -41,7 +42,7 @@ import org.keycloak.common.util.KeycloakUriBuilder;
  * @version $Revision: 1 $
  */
 public class FilterSamlSessionStore extends FilterSessionStore implements SamlSessionStore {
-  protected static Logger log = Logger.getLogger(SamlSessionStore.class);
+  protected static Logger log = LoggerFactory.getLogger(SamlSessionStore.class);
   protected final SessionIdMapper idMapper;
   private final SamlDeployment deployment;
 
@@ -173,5 +174,4 @@ public class FilterSamlSessionStore extends FilterSessionStore implements SamlSe
     }
     return redirect;
   }
-
 }

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.api.experimental.sast;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractServiceAuthzTest;
 

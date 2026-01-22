@@ -5,9 +5,9 @@
  */
 package com.sonatype.insight.brain.api.admin.service;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Named;
+import jakarta.annotation.Nullable;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import com.sonatype.insight.brain.api.admin.dto.TenantMetadataDTO;
 import com.sonatype.insight.brain.db.dao.TenantMetadataDAO;

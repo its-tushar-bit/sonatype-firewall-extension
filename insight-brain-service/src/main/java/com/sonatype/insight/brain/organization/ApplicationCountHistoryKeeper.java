@@ -7,9 +7,9 @@ package com.sonatype.insight.brain.organization;
 
 import java.time.LocalTime;
 import java.util.concurrent.ThreadLocalRandom;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.developer.integrationdashboard.ApplicationCountHistoryService;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;

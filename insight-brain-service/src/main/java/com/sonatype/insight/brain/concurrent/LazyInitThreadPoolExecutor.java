@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.shutdown.ShutdownPriority;
+import com.sonatype.insight.brain.tenancy.TenantAwareOneTimeRunnable;
 import com.sonatype.insight.brain.tenancy.TenantThreadPoolExecutor;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -134,6 +135,17 @@ public class LazyInitThreadPoolExecutor
       }
       if (shouldClearShiroThreadContextBeforeThreadStart) {
         ThreadContext.remove();
+        // Signal to TenantAwareOneTimeRunnable that Subject should not be propagated.
+        // This ensures tasks run as "system" without a user identity.
+        TenantAwareOneTimeRunnable.setSkipSubjectPropagation(true);
+      }
+    }
+
+    @Override
+    protected void afterExecute(Runnable r, Throwable t) {
+      // Clean up the skip flag so it doesn't leak to subsequent tasks on this thread
+      if (shouldClearShiroThreadContextBeforeThreadStart) {
+        TenantAwareOneTimeRunnable.setSkipSubjectPropagation(false);
       }
     }
   }

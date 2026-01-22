@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sbom.datastore;
 
 import java.io.IOException;
 import java.time.Instant;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 import com.sonatype.insight.brain.utils.IdValidationUtils;
 

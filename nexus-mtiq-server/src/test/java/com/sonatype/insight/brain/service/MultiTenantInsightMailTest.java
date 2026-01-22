@@ -5,18 +5,19 @@
  */
 package com.sonatype.insight.brain.service;
 
-import javax.mail.Message;
-import javax.mail.Session;
+import java.util.List;
 
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.dataaccess.configuration.MailConfigurationDAO;
 import com.sonatype.insight.brain.model.configuration.MailConfiguration;
 import com.sonatype.insight.brain.security.PasswordHandler;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 
-import org.apache.commons.mail.EmailConstants;
+import jakarta.mail.Message;
+import jakarta.mail.Session;
+import org.apache.commons.mail2.core.EmailConstants;
 import org.junit.Before;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -84,8 +85,8 @@ public class MultiTenantInsightMailTest
 
   private void testSendHtml_MailConfigured(MailConfiguration mailConfiguration) throws Exception {
     String toEmailAddress = "testuser@example.com";
-    Mailbox.clearAll();
-    Mailbox emails = Mailbox.get(toEmailAddress);
+    MailboxTestUtil.clearAll();
+    List<Message> emails = MailboxTestUtil.get(toEmailAddress);
 
     String subject = "testSubject";
     String message = "testMessage";

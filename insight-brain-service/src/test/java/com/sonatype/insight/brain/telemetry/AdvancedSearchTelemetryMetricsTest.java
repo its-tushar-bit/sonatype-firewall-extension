@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.telemetry;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics.AggregatedSearchStats;

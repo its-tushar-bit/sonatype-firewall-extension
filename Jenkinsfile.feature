@@ -119,6 +119,8 @@ pipeline {
     buildDiscarder(logRotator(
         numToKeepStr: '10'
     ))
+    // Increase timeout for Jakarta EE 11 migration branch - tests take longer due to framework changes
+    timeout(time: 150, unit: 'MINUTES')
   }
 
   stages {
@@ -141,6 +143,9 @@ pipeline {
     stage('Prepare') {
       parallel {
         stage('Download Dependencies') {
+          when {
+            expression { isBuildCachingEnabled() }
+          }
           steps {
             script {
               dir(env.BUILD_DIR) {
@@ -258,6 +263,10 @@ pipeline {
         // Backend tests (Surefire + MTIQ + Postgres) on distributed agent
         stage('Postgres + MTIQ Tests') {
           agent { label DISTRIBUTED_TEST_AGENT }
+          options {
+            // Increased timeout for Jakarta EE 11 migration - tests take longer due to framework changes
+            timeout(time: 90, unit: 'MINUTES')
+          }
           steps {
             script {
               runDistributedBackendTests()
@@ -942,6 +951,10 @@ void pushMTIQDockerImage(boolean pushMtiqImage, String imageVersion) {
 }
 
 boolean isBuildCachingEnabled() {
+  // Disable for merge queue - dependency:resolve can't fetch new reactor modules not yet in remote repo
+  if ((env.BRANCH_NAME ?: gitBranch(env))?.startsWith('gh-readonly-queue/')) {
+    return false
+  }
   return params.buildCachingEnabled
 }
 
@@ -1162,7 +1175,8 @@ void runDistributedStaticAnalysis() {
   echo "Running distributed static analysis..."
   echo "  Workspace: ${env.WORKSPACE}"
 
-  def localRepo = "${env.WORKSPACE}/.m2/repository"
+  // Restore stashed artifacts
+  def localRepo = unstashTestArtifacts()
 
   // Run Checkstyle, PMD, and License Check
   // These only need source code, not compiled artifacts

@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.migration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.MigrationTrackerDAO;
 import com.sonatype.insight.brain.dataaccess.security.UserDAO;

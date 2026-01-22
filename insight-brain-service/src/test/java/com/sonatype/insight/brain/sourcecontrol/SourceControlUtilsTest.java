@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.sourcecontrol;
 import java.io.File;
 import java.nio.file.Files;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.git.GitClientFactory;
 import com.sonatype.insight.brain.model.Application;

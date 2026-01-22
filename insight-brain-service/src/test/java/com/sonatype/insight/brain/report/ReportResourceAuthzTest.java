@@ -17,10 +17,10 @@ import com.sonatype.insight.scan.model.ClientScanType;
 
 import java.io.IOException;
 import org.junit.Test;
-
-import static com.sonatype.insight.mock.hds.HdsMockServer.RestHandler.SCAN_ID;
-import com.sonatype.insight.brain.common.test.SlowTest;
 import org.junit.experimental.categories.Category;
+
+import static com.sonatype.insight.mock.hds.HdsMockServer.RestServlet.SCAN_ID;
+import com.sonatype.insight.brain.common.test.SlowTest;
 
 @Category(SlowTest.class)
 public class ReportResourceAuthzTest

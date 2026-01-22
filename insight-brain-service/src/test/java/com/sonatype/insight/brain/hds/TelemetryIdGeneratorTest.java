@@ -9,9 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
-import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 import com.sonatype.insight.brain.service.InsightConfig;
 
@@ -51,8 +50,7 @@ public class TelemetryIdGeneratorTest
   @Test
   public void testGenerateId_corruptedValue() {
     // given: a corrupted instance ID in the database
-    final var corruptedInstanceId = new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "****");
-    systemConfigurationPropertyDAO.insert(corruptedInstanceId);
+    tempEntity.newSystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, "****");
 
     // when:
     final var generatedId = TelemetryIdGenerator.generateId(insightConfig, systemConfigurationPropertyDAO);
@@ -65,9 +63,7 @@ public class TelemetryIdGeneratorTest
   public void testGenerateId_acceptableValueUnchanged() {
     // given: a valid instance ID in the database
     final var telemetryHost = "cde78";
-    final var validInstanceId =
-        new SystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, telemetryHost);
-    systemConfigurationPropertyDAO.insert(validInstanceId);
+    tempEntity.newSystemConfigurationProperty(TELEMETRY_GENERATED_INSTANCE_ID_PROPNAME, telemetryHost);
 
     // when:
     final var generatedId = TelemetryIdGenerator.generateId(insightConfig, systemConfigurationPropertyDAO);

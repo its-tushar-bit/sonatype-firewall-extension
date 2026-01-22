@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.util.Base64;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.xml.transform.stream.StreamSource;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiSamlConfigurationDTO;

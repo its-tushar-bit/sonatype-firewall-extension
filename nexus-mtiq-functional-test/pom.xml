@@ -73,6 +73,13 @@
       <artifactId>jakarta.servlet-api</artifactId>
       <scope>test</scope>
     </dependency>
+    <!-- Required for JavaxToJakartaBridge adapters that implement javax.servlet interfaces -->
+    <dependency>
+      <groupId>javax.servlet</groupId>
+      <artifactId>javax.servlet-api</artifactId>
+      <version>3.1.0</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.codeborne</groupId>
       <artifactId>selenide-grid</artifactId>
@@ -90,8 +97,8 @@
       <artifactId>insight-json-store</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.ws.rs</groupId>
-      <artifactId>javax.ws.rs-api</artifactId>
+      <groupId>jakarta.ws.rs</groupId>
+      <artifactId>jakarta.ws.rs-api</artifactId>
     </dependency>
     <dependency>
       <groupId>org.assertj</groupId>

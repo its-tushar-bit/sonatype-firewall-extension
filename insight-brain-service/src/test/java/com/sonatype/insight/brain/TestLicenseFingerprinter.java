@@ -5,8 +5,8 @@
  */
 package com.sonatype.insight.brain;
 
-import javax.inject.Named;
-import javax.inject.Singleton;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 import org.sonatype.licensing.product.ProductLicenseKey;
 import org.sonatype.licensing.product.util.LicenseFingerprinter;

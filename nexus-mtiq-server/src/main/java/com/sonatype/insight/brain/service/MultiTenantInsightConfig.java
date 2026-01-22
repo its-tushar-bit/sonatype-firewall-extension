@@ -9,9 +9,9 @@ import java.io.File;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.Optional;
-import javax.annotation.Nullable;
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.annotation.Nullable;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import com.sonatype.insight.brain.health.MultiTenantHealthFactory;
 import com.sonatype.insight.brain.metrics.datadog.StatsdMetricsConfig;

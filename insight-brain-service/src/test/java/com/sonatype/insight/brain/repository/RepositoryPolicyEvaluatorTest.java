@@ -17,8 +17,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
-import javax.mail.Message;
+import jakarta.inject.Inject;
+import jakarta.mail.Message;
 
 import com.sonatype.clm.dto.model.License;
 import com.sonatype.clm.dto.model.SecurityVulnerability;
@@ -120,7 +120,7 @@ import org.awaitility.Awaitility;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.jvnet.mock_javamail.Mailbox;
+import com.sonatype.insight.brain.test.MailboxTestUtil;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.hamcrest.MockitoHamcrest;
@@ -1466,7 +1466,7 @@ public class RepositoryPolicyEvaluatorTest
     hdsResult.components.add(componentEvaluationData);
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
-    List<Message> notificationsUser = Mailbox.get(userEmailAddress);
+    List<Message> notificationsUser = MailboxTestUtil.get(userEmailAddress);
     notificationsUser.clear();
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,
@@ -1514,9 +1514,9 @@ public class RepositoryPolicyEvaluatorTest
             hash2, MatchState.EXACT, 1, null, null, securityVulnerabilities, 80));
     mockHdsRequest(componentEvaluationDataRequestList, hdsResult, true);
 
-    List<Message> notificationsUser1 = Mailbox.get(user1EmailAddress);
+    List<Message> notificationsUser1 = MailboxTestUtil.get(user1EmailAddress);
     notificationsUser1.clear();
-    List<Message> notificationsUser2 = Mailbox.get(user2EmailAddress);
+    List<Message> notificationsUser2 = MailboxTestUtil.get(user2EmailAddress);
     notificationsUser2.clear();
 
     repositoryPolicyEvaluator.evaluate(repository, componentEvaluationDataRequestList, true,

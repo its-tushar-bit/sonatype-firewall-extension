@@ -5,7 +5,7 @@
  */
 package com.sonatype.insight.brain.model.configuration;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.sourcecontrol.SourceControl;

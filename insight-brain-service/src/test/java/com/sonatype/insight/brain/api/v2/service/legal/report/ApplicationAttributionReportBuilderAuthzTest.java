@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.api.v2.service.legal.report;
 import java.util.Collections;
 import java.util.List;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.legal.ApiLicenseLegalApplicationReportDTO;
 import com.sonatype.insight.brain.api.v2.service.legal.ApiLicenseLegalService;

@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
-import javax.annotation.Nullable;
+import jakarta.annotation.Nullable;
 
 public interface SbomEntity
 {

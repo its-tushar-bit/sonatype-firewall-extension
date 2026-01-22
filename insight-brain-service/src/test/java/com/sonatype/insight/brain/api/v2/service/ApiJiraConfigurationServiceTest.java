@@ -7,7 +7,7 @@ package com.sonatype.insight.brain.api.v2.service;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.api.v2.dto.ApiJiraConfigurationDTO;
 import com.sonatype.insight.brain.dataaccess.JPA;

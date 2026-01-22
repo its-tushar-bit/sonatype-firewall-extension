@@ -7,14 +7,14 @@ package com.sonatype.insight.brain.security;
 
 import java.net.URI;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.inject.Singleton;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.landing.LandingService;
 import com.sonatype.insight.brain.service.Configuration;
@@ -201,8 +201,9 @@ class SamlFilter
       HttpFacade httpFacade,
       SamlDeployment samlDeployment)
   {
+    String destination = getDestinationOrDefault(httpRequest);
     return new SamlSessionStoreForRedirect(httpRequest, httpFacade, 0, samlSessionIdMapper, samlDeployment,
-        getDestinationOrDefault(httpRequest));
+                                           destination);
   }
 
   @VisibleForTesting

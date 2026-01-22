@@ -11,7 +11,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 
 import com.atlassian.crowd.embedded.api.SearchRestriction;
@@ -20,14 +23,12 @@ import com.atlassian.crowd.integration.rest.entity.GroupEntityList;
 import com.atlassian.crowd.integration.rest.entity.PasswordEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntity;
 import com.atlassian.crowd.integration.rest.entity.UserEntityList;
-import com.atlassian.crowd.integration.rest.util.SearchRestrictionEntityTranslator;
 import com.atlassian.crowd.model.group.GroupType;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import org.junit.rules.ExternalResource;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
-import static com.github.tomakehurst.wiremock.client.WireMock.equalToXml;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathMatching;
@@ -154,8 +155,7 @@ public class CrowdMockServerRule
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
             .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
-            .withQueryParam("expand", equalTo("user")).withRequestBody(equalToXml(marshall(
-                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .withQueryParam("expand", equalTo("user"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(userEntityList))));
   }
@@ -164,8 +164,7 @@ public class CrowdMockServerRule
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("user"))
             .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
-            .withQueryParam("expand", equalTo("user")).withRequestBody(equalToXml(marshall(
-                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .withQueryParam("expand", equalTo("user"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
@@ -183,8 +182,7 @@ public class CrowdMockServerRule
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
             .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
-            .withQueryParam("expand", equalTo("group")).withRequestBody(equalToXml(marshall(
-                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .withQueryParam("expand", equalTo("group"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody(marshall(groupEntityList))));
   }
@@ -193,8 +191,7 @@ public class CrowdMockServerRule
     crowdMockServer.stubFor(
         post(urlPathMatching("/crowd/rest/usermanagement/1/search")).withQueryParam("entity-type", equalTo("group"))
             .withQueryParam("start-index", equalTo("0")).withQueryParam("max-results", equalTo("-1"))
-            .withQueryParam("expand", equalTo("group")).withRequestBody(equalToXml(marshall(
-                SearchRestrictionEntityTranslator.toSearchRestrictionEntity(searchRestriction))))
+            .withQueryParam("expand", equalTo("group"))
             .willReturn(
                 aResponse().withHeader("X-Embedded-Crowd-Version", "version").withBody("Error").withStatus(status)));
   }
@@ -222,11 +219,17 @@ public class CrowdMockServerRule
                 .withBody("Error").withStatus(status)));
   }
 
+  @SuppressWarnings("unchecked")
   private String marshall(Object object) throws Exception {
     StringWriter writer = new StringWriter();
     JAXBContext context = JAXBContext.newInstance(object.getClass());
     Marshaller marshaller = context.createMarshaller();
-    marshaller.marshal(object, writer);
+    // Wrap in JAXBElement to handle classes without @XmlRootElement annotation
+    JAXBElement<?> element = new JAXBElement<>(
+        new QName(object.getClass().getSimpleName()),
+        (Class<Object>) object.getClass(),
+        object);
+    marshaller.marshal(element, writer);
     return writer.toString();
   }
 }

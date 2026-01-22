@@ -51,8 +51,9 @@ public class HttpHeaderValidatorFilterChainTest
   public void testInvalidHeader_ForwardedProto() throws Exception {
     HttpResponse response = restRequest().header("Forwarded", "proto=http\"><script>alert(document.domain)</script>")
         .post();
+    // Jetty 12 now handles this rather than HttpHeaderValidatorFilter (see ForwardRequestCustomizer#onError)
     assertResponseStatus(400, response);
-    assertThat(response.getBodyText()).isEqualTo("Illegal header value detected in 'Forwarded'");
+    assertThat(response.getBodyText()).contains("Bad header value for Forwarded");
   }
 
   @Test

@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.cpematching;
 
 import java.util.stream.Stream;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.configuration.CpeMatchingConfigurationDAO;

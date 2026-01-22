@@ -7,8 +7,8 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collection;
 import java.util.Collections;
-import javax.inject.Inject;
-import javax.ws.rs.container.ContainerRequestContext;
+import jakarta.inject.Inject;
+import jakarta.ws.rs.container.ContainerRequestContext;
 
 import com.sonatype.insight.brain.api.PublicApiPaths;
 import com.sonatype.insight.brain.landing.UserInterfaceLinksHelper;

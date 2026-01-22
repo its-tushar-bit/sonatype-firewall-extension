@@ -16,6 +16,7 @@ import com.sonatype.insight.brain.repository.autorelease.AutomaticQuarantineRele
 import com.sonatype.insight.brain.scheduler.QuartzJobStoreTX;
 import com.sonatype.insight.license.model.CLMLicenseBuilder;
 import com.sonatype.insight.license.model.CLMProductDetails;
+import org.sonatype.licensing.PreferencesFactory;
 import org.sonatype.licensing.ProductDetails;
 import org.sonatype.licensing.feature.Feature;
 import org.sonatype.licensing.product.LicenseBuilder;
@@ -43,9 +44,6 @@ public class ProductLicenseModule
     features.addBinding(CLMFeature.ID).to(CLMFeature.class);
     features.addBinding(FirewallFeature.ID).to(FirewallFeature.class);
 
-    // Explicit binding for CLM-side licensing class
-    bind(LicenseBuilder.class).to(CLMLicenseBuilder.class);
-
     // Create multibinder for ProductLicenseListener - these will be registered with CLMLicenseManager
     var listeners = Multibinder.newSetBinder(binder(), ProductLicenseListener.class);
     listeners.addBinding().to(AutomaticQuarantineReleaseScheduler.class);
@@ -55,6 +53,15 @@ public class ProductLicenseModule
     listeners.addBinding().to(com.sonatype.insight.brain.telemetry.PendoCache.class);
     listeners.addBinding().to(com.sonatype.insight.brain.policy.evaluator.PolicyMonitorScheduler.class);
     listeners.addBinding().to(com.sonatype.insight.brain.policy.violation.PolicyViolationLoggerFactory.class);
+  }
+
+  @Provides
+  @Singleton
+  public LicenseBuilder clmLicenseBuilder(
+      CLMProductDetails clmProductDetails,
+      PreferencesFactory preferencesFactory)
+  {
+    return new CLMLicenseBuilder(clmProductDetails, preferencesFactory);
   }
 
   /**

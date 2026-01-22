@@ -11,7 +11,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
-import javax.inject.Named;
+import jakarta.inject.Named;
 import javax.xml.XMLConstants;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Validator;

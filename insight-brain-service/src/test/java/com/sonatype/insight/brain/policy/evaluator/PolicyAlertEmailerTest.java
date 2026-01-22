@@ -13,7 +13,7 @@ import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 import javax.naming.NamingException;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;

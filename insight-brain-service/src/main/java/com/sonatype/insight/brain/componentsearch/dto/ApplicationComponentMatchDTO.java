@@ -8,7 +8,8 @@ package com.sonatype.insight.brain.componentsearch.dto;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
-import javax.ws.rs.core.UriBuilder;
+
+import jakarta.ws.rs.core.UriBuilder;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;

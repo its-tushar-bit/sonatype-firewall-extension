@@ -11,7 +11,7 @@ import com.sonatype.insight.brain.HttpResponse;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.model.Application;
 import com.sonatype.insight.brain.service.AbstractAuditTest;
-import com.sonatype.insight.mock.hds.HdsMockServer.RestHandler;
+import com.sonatype.insight.mock.hds.HdsMockServer.RestServlet;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -46,12 +46,12 @@ public class ScanResourceAuditTest
 
   @Test
   public void testUploadBinary() throws Exception {
-    mockReport(RestHandler.SCAN_ID, RESOURCE_PATH);
+    mockReport(RestServlet.SCAN_ID, RESOURCE_PATH);
     HttpResponse response = uploadRequest(app.getPublicId(), Stage.ID_BUILD, "file").post();
     assertResponseStatus(200, response);
 
     assertEvaluationAuditLog(awaitLogEntries(AuditEvent.EVALUATE_APPLICATION, 1).get(0), null, app.getId(),
-        app.getPublicId(), app.getName(), Stage.ID_BUILD, RestHandler.SCAN_ID, false);
+        app.getPublicId(), app.getName(), Stage.ID_BUILD, RestServlet.SCAN_ID, false);
   }
 
   @Test
@@ -60,7 +60,7 @@ public class ScanResourceAuditTest
     assertResponseStatus(200, response);
 
     assertEvaluationAuditLog("not-found", app.getId(), app.getPublicId(), app.getName(), Stage.ID_BUILD,
-        RestHandler.SCAN_ID, null);
+        RestServlet.SCAN_ID, null);
   }
 
   @Test

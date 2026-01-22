@@ -8,7 +8,7 @@ package com.sonatype.insight.brain.db;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Set;
-import javax.inject.Provider;
+import jakarta.inject.Provider;
 
 import com.sonatype.insight.brain.StaticInjectionTestHelper;
 import com.sonatype.insight.brain.api.admin.service.TenantService;

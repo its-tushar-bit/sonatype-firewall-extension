@@ -6,7 +6,7 @@
 package com.sonatype.insight.brain.dashboard;
 
 import java.sql.Connection;
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;

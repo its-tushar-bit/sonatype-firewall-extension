@@ -40,7 +40,7 @@
     <slf4j.version>2.0.17</slf4j.version>
     <!-- logback 1.4.x requires Java 11 -->
     <logback.version>1.5.21</logback.version>
-    <jackson.version>2.19.0</jackson.version>
+    <jackson.version>2.20.1</jackson.version>
     <openjpa.version>4.1.1</openjpa.version>
     <!-- When updating shiro, check if it uses commons-beanutils >= 1.11.0.
          If yes, then remove the dependency management for commons-beanutils below. -->
@@ -50,10 +50,10 @@
      keycloak 25.x has major breaking changes. -->
     <keycloak.version>26.4.7</keycloak.version>
     <bc-fips.version>2.1.2</bc-fips.version>
-    <bc-fips-util.version>2.1.4</bc-fips-util.version>
-    <bcpkix-fips.version>2.1.9</bcpkix-fips.version>
-    <bctls-fips.version>2.1.20</bctls-fips.version>
-    <bouncycastle.version>1.82</bouncycastle.version>
+    <bc-fips-util.version>2.1.5</bc-fips-util.version>
+    <bcpkix-fips.version>2.1.10</bcpkix-fips.version>
+    <bctls-fips.version>2.1.22</bctls-fips.version>
+    <bouncycastle.version>1.83</bouncycastle.version>
 
     <!--
       Required for guice 6 support. We acknowledge that this is a milestone and not a proper release.
@@ -343,12 +343,12 @@
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-core</artifactId>
-        <version>6.2.11</version>
+        <version>6.2.15</version>
       </dependency>
       <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-jdbc</artifactId>
-        <version>6.2.11</version>
+        <version>6.2.15</version>
       </dependency>
 
       <dependency>
@@ -377,7 +377,7 @@
       <dependency>
         <groupId>org.apache.commons</groupId>
         <artifactId>commons-lang3</artifactId>
-        <version>3.18.0</version>
+        <version>3.20.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -490,7 +490,7 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>33.1.0-jre</version>
+        <version>33.5.0-jre</version>
         <exclusions>
           <exclusion>
             <groupId>com.google.code.findbugs</groupId>
@@ -514,7 +514,7 @@
       <dependency>
         <groupId>commons-codec</groupId>
         <artifactId>commons-codec</artifactId>
-        <version>1.18.0</version>
+        <version>1.20.0</version>
       </dependency>
       <dependency>
         <groupId>commons-collections</groupId>
@@ -529,7 +529,7 @@
       <dependency>
         <groupId>commons-io</groupId>
         <artifactId>commons-io</artifactId>
-        <version>2.20.0</version>
+        <version>2.21.0</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -544,7 +544,7 @@
       <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
-        <version>42.7.3</version>
+        <version>42.7.8</version>
       </dependency>
       <!--H2 1.4.197 cannot open a database created by version 1.3.174 twice in a row
       https://github.com/gitbucket/gitbucket/issues/2279
@@ -770,7 +770,7 @@
       <dependency>
         <groupId>joda-time</groupId>
         <artifactId>joda-time</artifactId>
-        <version>2.12.7</version>
+        <version>2.14.0</version>
       </dependency>
       <dependency>
         <groupId>org.codehaus.plexus</groupId>
@@ -910,7 +910,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.27.3</version>
+        <version>3.27.6</version>
         <scope>test</scope>
       </dependency>
       <dependency>
@@ -1285,7 +1285,7 @@
       <dependency>
         <groupId>com.google.code.gson</groupId>
         <artifactId>gson</artifactId>
-        <version>2.13.1</version>
+        <version>2.13.2</version>
       </dependency>
       <dependency>
         <groupId>org.testcontainers</groupId>

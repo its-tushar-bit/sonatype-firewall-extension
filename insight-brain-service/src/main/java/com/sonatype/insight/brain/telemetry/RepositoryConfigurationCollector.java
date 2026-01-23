@@ -6,6 +6,7 @@
 package com.sonatype.insight.brain.telemetry;
 
 import java.util.List;
+import java.util.Optional;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -82,6 +83,9 @@ public class RepositoryConfigurationCollector
         repository.getRepositoryManagerId(),
         repository.getId(),
         repository.getFormat(),
+        Optional.ofNullable(repository.getRepositoryType())
+            .map(Enum::name)
+            .orElse(null),
         repository.isAuditEnabled(),
         repository.isQuarantineEnabled(),
         userAgent != null ? userAgent.hostProductName : null,
@@ -109,6 +113,8 @@ public class RepositoryConfigurationCollector
 
     private final String repositoryFormat;
 
+    private final String repositoryType;
+
     private final boolean enabled;
 
     private final boolean quarantineEnabled;
@@ -135,6 +141,7 @@ public class RepositoryConfigurationCollector
         final String repositoryManagerId,
         final String repositoryId,
         final String repositoryFormat,
+        final String repositoryType,
         final boolean enabled,
         final boolean quarantineEnabled,
         final String repositoryManagerName,
@@ -151,6 +158,7 @@ public class RepositoryConfigurationCollector
       this.repositoryManagerId = repositoryManagerId;
       this.repositoryId = repositoryId;
       this.repositoryFormat = repositoryFormat;
+      this.repositoryType = repositoryType;
       this.enabled = enabled;
       this.quarantineEnabled = quarantineEnabled;
       this.repositoryManagerName = repositoryManagerName;
@@ -174,6 +182,10 @@ public class RepositoryConfigurationCollector
 
     public String getRepositoryFormat() {
       return repositoryFormat;
+    }
+
+    public String getRepositoryType() {
+      return repositoryType;
     }
 
     public boolean isEnabled() {

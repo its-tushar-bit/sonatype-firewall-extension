@@ -51,10 +51,7 @@ public class RepositoryConfigurationCollectorTest
   @Before
   public void setup() {
     repositoryManager = tempEntity.newRepositoryManager("1", USER_AGENT);
-    repository = tempEntity.newRepository(repositoryManager, "test-public-id", false, true);
-
-    repository.setFormat("npm");
-    repositoryDAO.update(repository);
+    repository = tempEntity.newProxyRepository(repositoryManager, "test-public-id", "npm", false, true);
   }
 
   @Test
@@ -65,6 +62,7 @@ public class RepositoryConfigurationCollectorTest
         repositoryManager.getId(),
         repository.getId(),
         repository.getFormat(),
+        null, // repositoryType - not set in this test
         repository.isAuditEnabled(),
         repository.isQuarantineEnabled(),
         userAgent.product,
@@ -128,6 +126,7 @@ public class RepositoryConfigurationCollectorTest
         repositoryManager.getId(),
         repository.getId(),
         repository.getFormat(),
+        null, // repositoryType - not set in this test
         repository.isAuditEnabled(),
         repository.isQuarantineEnabled(),
         userAgent.hostProductName,
@@ -195,5 +194,112 @@ public class RepositoryConfigurationCollectorTest
   @Test
   public void testIsClusterTelemetry() {
     assertThat(telemetryCollector.isClusterTelemetry()).isTrue();
+  }
+
+  @Test
+  public void testCollectData_WithProxyRepositoryType() {
+    tempEntity.newProxyRepository(repositoryManager, "proxy-repo", "npm", false, true);
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+
+    assertThat(telemetryData).isNotNull();
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    assertThat(repositoryTelemetries).hasSize(2);
+    assertThat(repositoryTelemetries.stream()
+        .anyMatch(t -> "proxy".equals(t.getRepositoryType()))).isTrue();
+  }
+
+  @Test
+  public void testCollectData_WithHostedRepositoryType() {
+    tempEntity.newHostedRepository(repositoryManager, "hosted-repo", "maven2", false);
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+
+    assertThat(telemetryData).isNotNull();
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    assertThat(repositoryTelemetries).hasSize(2);
+    assertThat(repositoryTelemetries.stream()
+        .anyMatch(t -> "hosted".equals(t.getRepositoryType()))).isTrue();
+  }
+
+  @Test
+  public void testCollectData_MultipleRepositoriesWithDifferentTypes() {
+    tempEntity.newProxyRepository(repositoryManager, "multi-proxy-repo", "npm", false, true);
+    tempEntity.newHostedRepository(repositoryManager, "multi-hosted-repo", "maven2", false);
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+
+    assertThat(telemetryData).isNotNull();
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    assertThat(repositoryTelemetries).hasSize(3);
+
+    boolean foundProxy = false;
+    boolean foundHosted = false;
+
+    for (RepositoryTelemetry telemetry : repositoryTelemetries) {
+      if ("proxy".equals(telemetry.getRepositoryType())) {
+        foundProxy = true;
+      }
+      else if ("hosted".equals(telemetry.getRepositoryType())) {
+        foundHosted = true;
+        assertThat(telemetry.getRepositoryFormat()).isEqualTo("maven2");
+      }
+    }
+
+    assertThat(foundProxy).isTrue();
+    assertThat(foundHosted).isTrue();
+  }
+
+  @Test
+  public void testRepositoryTelemetry_GettersReturnCorrectValues() {
+    TelemetryData telemetryData = telemetryCollector.collectData();
+
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    RepositoryTelemetry telemetry = repositoryTelemetries.get(0);
+
+    assertThat(telemetry.getRepositoryManagerId()).isEqualTo(repositoryManager.getId());
+    assertThat(telemetry.getRepositoryId()).isEqualTo(repository.getId());
+    assertThat(telemetry.getRepositoryFormat()).isEqualTo("npm");
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+    assertThat(telemetry.isEnabled()).isFalse();
+    assertThat(telemetry.isQuarantineEnabled()).isFalse();
+  }
+
+  @Test
+  public void testCollectData_RepositoryTypeIncludedInComparator() {
+    SonatypeUserAgentUtil.UserAgent userAgent = SonatypeUserAgentUtil.parse(USER_AGENT);
+
+    RepositoryTelemetry expectedTelemetry = new RepositoryTelemetry(
+        repositoryManager.getId(),
+        repository.getId(),
+        repository.getFormat(),
+        "proxy",
+        repository.isAuditEnabled(),
+        repository.isQuarantineEnabled(),
+        userAgent.product,
+        userAgent.productEdition,
+        userAgent.version,
+        userAgent.environment,
+        userAgent.environmentVersion,
+        userAgent.os,
+        userAgent.osVersion,
+        userAgent.hostProductName,
+        userAgent.hostProductVersion
+    );
+
+    TelemetryData telemetryData = telemetryCollector.collectData();
+    List<RepositoryTelemetry> repositoryTelemetries = (List<RepositoryTelemetry>) telemetryData.getAttributes()
+        .get(RepositoryConfigurationCollector.REPOSITORY_TELEMETRY);
+
+    assertThat(repositoryTelemetries.get(0).getRepositoryType())
+        .isEqualTo(expectedTelemetry.getRepositoryType());
   }
 }

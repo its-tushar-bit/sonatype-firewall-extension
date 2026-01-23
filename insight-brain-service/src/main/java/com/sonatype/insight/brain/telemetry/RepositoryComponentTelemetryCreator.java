@@ -7,6 +7,7 @@ package com.sonatype.insight.brain.telemetry;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import jakarta.inject.Inject;
@@ -163,14 +164,26 @@ public class RepositoryComponentTelemetryCreator
   {
     final String accountId = getAccountId();
 
-    // If repositoryName is not provided but we have repositoryId, look it up
-    // This is a fallback - callers should pass repositoryName to avoid database lookup
-    if (repositoryName == null && repositoryComponent != null && repositoryComponent.getRepositoryId() != null) {
-      log.warn("repositoryName not provided for repositoryId {}. Performing fallback database lookup. " +
-          "Caller should pass repositoryName explicitly to avoid performance impact.",
+    // Lookup repository to extract repositoryType for telemetry.
+    // Note: This lookup is always performed to obtain repositoryType, even when repositoryName is provided.
+    // If repositoryName is not provided, the lookup also serves to retrieve the repository name.
+    final Repository repository = Optional.ofNullable(repositoryComponent)
+        .map(RepositoryComponent::getRepositoryId)
+        .map(this::lookupRepository)
+        .orElse(null);
+
+    // Use repositoryName from caller if provided, otherwise get it from the repository lookup above
+    if (repositoryName == null && repository != null) {
+      log.debug("repositoryName not provided for repositoryId {}. Using repository lookup result. " +
+          "Performance tip: Caller should pass repositoryName explicitly to avoid database lookup.",
           repositoryComponent.getRepositoryId());
-      repositoryName = lookupRepositoryName(repositoryComponent.getRepositoryId());
+      repositoryName = repository.getPublicId();
     }
+
+    final String repositoryType = Optional.ofNullable(repository)
+        .map(Repository::getRepositoryType)
+        .map(Enum::name)
+        .orElse(null);
 
     // Create policy violation telemetry with Component data to fill missing CVE fields
     final List<PolicyViolationTelemetry> policyViolationTelemetries =
@@ -183,6 +196,7 @@ public class RepositoryComponentTelemetryCreator
             .accountId(accountId)
             .repositoryManagerId(repositoryManagerId)
             .repositoryName(repositoryName)
+            .repositoryType(repositoryType)
             .telemetryDataObfuscator(telemetryDataObfuscator)
             .fromRepositoryComponent(repositoryComponent)
             .eventType(repositoryComponentTelemetryEventType)
@@ -199,21 +213,21 @@ public class RepositoryComponentTelemetryCreator
   }
 
   /**
-   * Looks up the repository name (publicId) from the database given a repository ID.
-   * This ensures repositoryName is always populated when we have a repositoryId.
+   * Looks up the repository from the database given a repository ID.
+   * Returns the full Repository object to avoid multiple database lookups.
    *
    * @param repositoryId The internal repository ID
-   * @return The repository's public ID (name), or null if not found
+   * @return The Repository entity, or null if not found
    */
-  private String lookupRepositoryName(final String repositoryId) {
+  private Repository lookupRepository(final String repositoryId) {
     try {
       List<Repository> repositories = repositoryDAO.getByIds(Set.of(repositoryId));
       if (repositories != null && !repositories.isEmpty()) {
-        return repositories.get(0).getPublicId();
+        return repositories.get(0);
       }
     }
     catch (Exception e) {
-      log.debug("Failed to lookup repository name for repositoryId: {}", repositoryId, e);
+      log.debug("Failed to lookup repository for repositoryId: {}", repositoryId, e);
     }
     return null;
   }

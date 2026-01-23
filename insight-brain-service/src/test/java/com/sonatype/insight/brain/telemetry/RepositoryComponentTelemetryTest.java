@@ -58,7 +58,7 @@ public class RepositoryComponentTelemetryTest
     assertThat(telemetry.getRepositoryManagerId()).isEqualTo("repo-manager-1");
     assertThat(telemetry.getRepositoryId()).isEqualTo("repo-1");
     assertThat(telemetry.getComponentFormat()).isEqualTo("maven2");
-    assertThat(telemetry.getComponentHash()).isNotNull(); // Obfuscated
+    assertThat(telemetry.getComponentHash()).isNotNull();
     assertThat(telemetry.getEventType()).isEqualTo("quarantine");
     assertThat(telemetry.getQuarantineTime()).isEqualTo(1234567890L);
     assertThat(telemetry.getReleaseQuarantineTime()).isEqualTo(1234567900L);
@@ -118,7 +118,6 @@ public class RepositoryComponentTelemetryTest
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Should not throw exception, just skip null component
     assertThat(telemetry.getRepositoryManagerId()).isEqualTo("repo-manager-1");
   }
 
@@ -141,7 +140,6 @@ public class RepositoryComponentTelemetryTest
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Hash should be obfuscated, not the original plaintext
     assertThat(telemetry.getComponentHash()).isNotNull();
     assertThat(telemetry.getComponentHash()).isNotEqualTo("plaintext-hash-12345");
   }
@@ -159,7 +157,6 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_ChainedMethodCalls() {
-    // Test that builder returns itself for method chaining
     RepositoryComponentTelemetry.Builder builder = RepositoryComponentTelemetry.builder();
 
     RepositoryComponentTelemetry.Builder result = builder
@@ -172,7 +169,6 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_MultipleBuildsFromSameBuilder() {
-    // Each build() should create a new instance
     RepositoryComponentTelemetry.Builder builder = RepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE);
@@ -215,11 +211,10 @@ public class RepositoryComponentTelemetryTest
   public void testBuilder_OverwritingValues() {
     RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
-        .repositoryManagerId("repo-manager-2") // Overwrite
+        .repositoryManagerId("repo-manager-2")
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Should use the last value set
     assertThat(telemetry.getRepositoryManagerId()).isEqualTo("repo-manager-2");
   }
 
@@ -236,7 +231,6 @@ public class RepositoryComponentTelemetryTest
 
   @Test
   public void testBuilder_RepositoryNameObfuscation_WhenAdvancedReportingDisabled() {
-    // Setup obfuscator with advanced reporting disabled
     Configuration mockConfiguration = mock(Configuration.class);
     when(mockConfiguration.getAdvanceReportingInsightsEnabled()).thenReturn(false);
     TelemetryDataObfuscator obfuscator = new TelemetryDataObfuscator(mockConfiguration);
@@ -249,14 +243,12 @@ public class RepositoryComponentTelemetryTest
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Repository name should be obfuscated (not equal to original)
     assertThat(telemetry.getRepositoryName()).isNotNull();
     assertThat(telemetry.getRepositoryName()).isNotEqualTo(originalRepoName);
   }
 
   @Test
   public void testBuilder_RepositoryNameNotObfuscated_WhenAdvancedReportingEnabled() {
-    // Setup obfuscator with advanced reporting enabled
     Configuration mockConfiguration = mock(Configuration.class);
     when(mockConfiguration.getAdvanceReportingInsightsEnabled()).thenReturn(true);
     TelemetryDataObfuscator obfuscator = new TelemetryDataObfuscator(mockConfiguration);
@@ -269,7 +261,6 @@ public class RepositoryComponentTelemetryTest
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Repository name should NOT be obfuscated (equal to original)
     assertThat(telemetry.getRepositoryName()).isEqualTo(originalRepoName);
   }
 
@@ -279,11 +270,9 @@ public class RepositoryComponentTelemetryTest
     RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
         .repositoryManagerId("repo-manager-1")
         .repositoryName(originalRepoName)
-        // No obfuscator provided
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Repository name should remain as original when no obfuscator is provided
     assertThat(telemetry.getRepositoryName()).isEqualTo(originalRepoName);
   }
 
@@ -300,7 +289,97 @@ public class RepositoryComponentTelemetryTest
         .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
         .build();
 
-    // Null repository name should stay null
     assertThat(telemetry.getRepositoryName()).isNull();
+  }
+
+  @Test
+  public void testBuilder_WithRepositoryType() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .repositoryId("repo-1")
+        .repositoryType("proxy")
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+  }
+
+  @Test
+  public void testBuilder_WithNullRepositoryType() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .repositoryId("repo-1")
+        .repositoryType(null)
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getRepositoryType()).isNull();
+  }
+
+  @Test
+  public void testBuilder_WithRepositoryTypeProxy() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .repositoryType("proxy")
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+  }
+
+  @Test
+  public void testBuilder_WithRepositoryTypeHosted() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .repositoryType("hosted")
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("hosted");
+  }
+
+  @Test
+  public void testBuilder_RepositoryTypeNotSetDefaultsToNull() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getRepositoryType()).isNull();
+  }
+
+  @Test
+  public void testBuilder_WithAllFieldsIncludingRepositoryType() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .accountId("account-123")
+        .repositoryManagerId("repo-manager-1")
+        .repositoryId("repo-1")
+        .repositoryName("my-repo")
+        .repositoryType("proxy")
+        .componentFormat("maven2")
+        .componentHash("abc123")
+        .eventType(RepositoryComponentTelemetryEventType.QUARANTINE)
+        .build();
+
+    assertThat(telemetry.getAccountId()).isEqualTo("account-123");
+    assertThat(telemetry.getRepositoryManagerId()).isEqualTo("repo-manager-1");
+    assertThat(telemetry.getRepositoryId()).isEqualTo("repo-1");
+    assertThat(telemetry.getRepositoryName()).isEqualTo("my-repo");
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+    assertThat(telemetry.getComponentFormat()).isEqualTo("maven2");
+    assertThat(telemetry.getEventType()).isEqualTo("quarantine");
+  }
+
+  @Test
+  public void testGetRepositoryType_ReturnsCorrectValue() {
+    RepositoryComponentTelemetry telemetry = RepositoryComponentTelemetry.builder()
+        .repositoryManagerId("repo-manager-1")
+        .repositoryType("hosted")
+        .eventType(RepositoryComponentTelemetryEventType.AUDIT)
+        .build();
+
+    String repositoryType = telemetry.getRepositoryType();
+    assertThat(repositoryType).isNotNull();
+    assertThat(repositoryType).isEqualTo("hosted");
   }
 }

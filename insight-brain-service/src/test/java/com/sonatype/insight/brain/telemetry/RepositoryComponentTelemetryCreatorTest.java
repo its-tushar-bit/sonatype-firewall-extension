@@ -458,7 +458,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithValidAccountId() {
-    // Setup PendoCache to return valid Salesforce Account ID
     CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
     telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "001QO00000sRp3lYAC");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
@@ -480,7 +479,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithNullTelemetryProperties() {
-    // Setup PendoCache to return null
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(null);
 
     final RepositoryComponent repositoryComponent = createComponent();
@@ -500,7 +498,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithNullSegmentAttributes() {
-    // Setup PendoCache to return telemetry properties with null segmentAttributes
     CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
     telemetryProperties.segmentAttributes = null;
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
@@ -522,7 +519,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithMissingIqAccountIdKey() {
-    // Setup PendoCache to return telemetry properties without iq_accountId key
     CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
     telemetryProperties.segmentAttributes = ImmutableMap.of("someOtherKey", "someValue");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
@@ -544,7 +540,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithUnknownPrefix() {
-    // Setup PendoCache to return accountId starting with "UNKNOWN-"
     CustomerTelemetryProperties telemetryProperties = new CustomerTelemetryProperties(false);
     telemetryProperties.segmentAttributes = ImmutableMap.of("iq_accountId", "UNKNOWN-12345");
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenReturn(telemetryProperties);
@@ -566,7 +561,6 @@ public class RepositoryComponentTelemetryCreatorTest
 
   @Test
   public void testAccountId_WithException() {
-    // Setup PendoCache to throw an exception
     lenient().when(pendoCacheMock.getCustomerTelemetryProperties()).thenThrow(new RuntimeException("Test exception"));
 
     final RepositoryComponent repositoryComponent = createComponent();
@@ -668,5 +662,162 @@ public class RepositoryComponentTelemetryCreatorTest
 
     // Lifecycle fields removed - only verify telemetry is created
     assertThat(telemetry).isNotNull();
+  }
+
+  @Test
+  public void testSendTelemetry_WithRepositoryLookup_ProxyType() {
+    // Create repository manager and repository with proxy type
+    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    final com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository(repositoryManager, "test-repo-proxy",
+            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(repository.getId());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            repositoryManager.getId(), RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+    assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-proxy");
+  }
+
+  @Test
+  public void testSendTelemetry_WithRepositoryLookup_HostedType() {
+    // Create repository manager and repository with hosted type
+    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    final com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository(repositoryManager, "test-repo-hosted",
+            com.sonatype.clm.dto.model.repository.RepositoryType.hosted, "maven2");
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(repository.getId());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            repositoryManager.getId(), RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("hosted");
+    assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-hosted");
+  }
+
+  @Test
+  public void testSendTelemetry_RepositoryLookupFails_ReturnsNullType() {
+    // Create component with non-existent repository ID
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId("non-existent-repo-id-12345");
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            "repoManId", RepositoryComponentTelemetryEventType.QUARANTINE);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Repository lookup should fail, type should be null
+    assertThat(telemetry.getRepositoryType()).isNull();
+  }
+
+  @Test
+  public void testSendTelemetry_WithExplicitRepositoryName_AndRepositoryLookup() {
+    // Create repository with type
+    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    final com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository(repositoryManager, "db-repo-name",
+            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(repository.getId());
+
+    // Pass explicit repository name (should use this instead of doing DB lookup)
+    String explicitRepoName = "explicit-repo-name";
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            repositoryManager.getId(), explicitRepoName, RepositoryComponentTelemetryEventType.QUARANTINE,
+            Collections.emptyList(), null);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Should use explicit name, not DB lookup
+    assertThat(telemetry.getRepositoryName()).isEqualTo(explicitRepoName);
+    // But should still get type from DB lookup
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+  }
+
+  @Test
+  public void testSendTelemetry_NullRepositoryComponent_NullType() {
+    // This tests the Optional.ofNullable(repositoryComponent) path
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(null, ImmutableList.of(createViolation()),
+            "repoManId", "repoName", RepositoryComponentTelemetryEventType.QUARANTINE,
+            Collections.emptyList(), null);
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    // Repository type should be null when component is null
+    assertThat(telemetry.getRepositoryType()).isNull();
+  }
+
+  @Test
+  public void testSendTelemetry_WithReleaseReason_AndRepositoryType() {
+    // Create repository with type
+    final com.sonatype.insight.brain.model.repository.RepositoryManager repositoryManager =
+        tempEntity.newRepositoryManager();
+    final com.sonatype.insight.brain.model.repository.Repository repository =
+        tempEntity.newRepository(repositoryManager, "test-repo-with-release",
+            com.sonatype.clm.dto.model.repository.RepositoryType.proxy, "npm");
+
+    final RepositoryComponent repositoryComponent = createComponent();
+    repositoryComponent.setRepositoryId(repository.getId());
+
+    telemetryCreator
+        .sendRepositoryComponentTelemetry(repositoryComponent, ImmutableList.of(createViolation()),
+            repositoryManager.getId(), "test-repo-with-release",
+            RepositoryComponentTelemetryEventType.RELEASE_QUARANTINE,
+            ReleaseQuarantineType.MANUAL, "Waived", Collections.emptyList());
+
+    ArgumentCaptor<TelemetryData> telemetryCaptor = ArgumentCaptor.forClass(TelemetryData.class);
+    verify(telemetrySenderMock).send(telemetryCaptor.capture());
+    TelemetryData telemetryData = telemetryCaptor.getValue();
+
+    RepositoryComponentTelemetry telemetry =
+        (RepositoryComponentTelemetry) telemetryData.getAttributes().get(REPOSITORY_COMPONENT_TELEMETRY);
+
+    assertThat(telemetry.getRepositoryType()).isEqualTo("proxy");
+    assertThat(telemetry.getRepositoryName()).isEqualTo("test-repo-with-release");
+    assertThat(telemetry.getReleaseQuarantineType()).isEqualTo("manual");
+    assertThat(telemetry.getReleaseReason()).isEqualTo("Waived");
   }
 }

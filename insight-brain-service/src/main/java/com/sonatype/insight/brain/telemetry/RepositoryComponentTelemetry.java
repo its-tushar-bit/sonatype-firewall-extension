@@ -31,6 +31,8 @@ public class RepositoryComponentTelemetry
 
   private final String repositoryName;
 
+  private final String repositoryType;
+
   private final String componentFormat;
 
   private final String componentHash;
@@ -66,6 +68,7 @@ public class RepositoryComponentTelemetry
     this.repositoryName = builder.repositoryName != null && builder.telemetryDataObfuscator != null
         ? builder.telemetryDataObfuscator.obfuscateIfAdvancedReportingDisabled(builder.repositoryName)
         : builder.repositoryName;
+    this.repositoryType = builder.repositoryType;
     this.componentFormat = builder.componentFormat;
     this.componentHash = builder.componentHash != null ? HdsClientAnalytics.obfuscate(builder.componentHash) : null;
     this.eventType = builder.eventType;
@@ -129,7 +132,8 @@ public class RepositoryComponentTelemetry
     this.accountId = accountId;
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryComponent.getRepositoryId();
-    this.repositoryName = null; // Not available in this legacy constructor
+    this.repositoryName = null;
+    this.repositoryType = null;
     this.componentFormat =
         repositoryComponent.getComponentIdentifier() == null ? null : repositoryComponent.getComponentIdentifier()
             .getFormat();
@@ -204,10 +208,11 @@ public class RepositoryComponentTelemetry
       final String releaseQuarantineType,
       final String releaseReason)
   {
-    this.accountId = null; // Not available in this legacy constructor
+    this.accountId = null;
     this.repositoryManagerId = repositoryManagerId;
     this.repositoryId = repositoryId;
-    this.repositoryName = null; // Not available in this legacy constructor
+    this.repositoryName = null;
+    this.repositoryType = null;
     this.componentFormat = componentFormat;
     this.componentHash =  HdsClientAnalytics.obfuscate(componentHash);
     this.eventType = repositoryComponentTelemetryEventType.getDescription();
@@ -216,7 +221,6 @@ public class RepositoryComponentTelemetry
     this.releaseQuarantineType = releaseQuarantineType;
     this.releaseReason = releaseReason;
 
-    // Component identifier fields not available in this constructor
     this.componentIdentifier = null;
     this.componentName = null;
     this.componentNamespace = null;
@@ -233,6 +237,10 @@ public class RepositoryComponentTelemetry
 
   public String getRepositoryName() {
     return repositoryName;
+  }
+
+  public String getRepositoryType() {
+    return repositoryType;
   }
 
   public String getComponentFormat() {
@@ -354,6 +362,8 @@ public class RepositoryComponentTelemetry
 
     private String repositoryName;
 
+    private String repositoryType;
+
     private String componentFormat;
 
     private String componentHash;
@@ -400,6 +410,11 @@ public class RepositoryComponentTelemetry
 
     public Builder repositoryName(String repositoryName) {
       this.repositoryName = repositoryName;
+      return this;
+    }
+
+    public Builder repositoryType(String repositoryType) {
+      this.repositoryType = repositoryType;
       return this;
     }
 

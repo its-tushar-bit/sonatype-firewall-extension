@@ -12,14 +12,18 @@ import java.time.ZoneOffset;
 import java.util.Date;
 
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
+import com.sonatype.clm.testing.functional.elements.MainHeader;
 import com.sonatype.clm.testing.functional.elements.NxTableHeader;
 import com.sonatype.clm.testing.functional.pages.FirewallAutoUnquarantinePage;
+import com.sonatype.clm.testing.functional.pages.FirewallComponentDetailsPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPage;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineMtd;
 import com.sonatype.clm.testing.functional.pages.FirewallPageComponents.FirewallAutoUnquarantineYtd;
 import com.sonatype.insight.brain.model.repository.Repository;
 import com.sonatype.insight.brain.model.repository.RepositoryManager;
 import com.sonatype.insight.license.model.LicensedFeature;
+
+import com.codeborne.selenide.WebDriverRunner;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -32,6 +36,7 @@ import static com.codeborne.selenide.Condition.checked;
 import static com.codeborne.selenide.Condition.hidden;
 import static com.codeborne.selenide.Condition.text;
 import static com.codeborne.selenide.Condition.visible;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class FirewallAutoUnquarantinePageTest
     extends AbstractFunctionalTest
@@ -218,5 +223,44 @@ public class FirewallAutoUnquarantinePageTest
         attribute("aria-label", "Quarantine Date unsorted"));
     releaseQuarantineTimeHeader.sortBtn().shouldHave(
         attribute("aria-label", "Date Cleared unsorted"));
+  }
+
+  @Test
+  public void testFirewallAutoUnquarantineTable_RowClickNavigatesToComponentDetails() {
+    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.RELEASE_INTEGRITY);
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+    page.shouldBe(visible);
+    page.firewallUnquarantineTable().shouldBe(visible);
+    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
+    page.firewallUnquarantineTable().tableBodyRows().first().click();
+    page.shouldBe(hidden);
+
+    String currentUrl = WebDriverRunner.url();
+    assertThat(currentUrl).contains("/firewall/repository/");
+    assertThat(currentUrl).contains("/component/");
+    assertThat(currentUrl).contains("hash");
+
+    FirewallComponentDetailsPage componentDetailsPage = new FirewallComponentDetailsPage();
+    componentDetailsPage.shouldBe(visible);
+  }
+
+  @Test
+  public void backButtonToAutoUnquarantine_whenUserCameFromAutoUnquarantinePage() {
+    setFeatures(LicensedFeature.FIREWALL, LicensedFeature.FIREWALL_AUTO_UNQUARANTINE,
+        LicensedFeature.RELEASE_INTEGRITY);
+    refreshOrOpen(FirewallAutoUnquarantinePage.url());
+    page.shouldBe(visible);
+    page.firewallUnquarantineTable().shouldBe(visible);
+    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
+    page.firewallUnquarantineTable().tableBodyRows().first().click();
+    page.shouldBe(hidden);
+    FirewallComponentDetailsPage componentDetailsPage = new FirewallComponentDetailsPage();
+    componentDetailsPage.shouldBe(visible);
+    MainHeader.backButton().shouldHave(text("Back to Auto Release from Quarantine"));
+    MainHeader.backButton().click();
+    page.shouldBe(visible);
+    page.firewallUnquarantineTable().shouldBe(visible);
+    page.firewallUnquarantineTable().tableBodyRows().shouldHave(size(2));
   }
 }

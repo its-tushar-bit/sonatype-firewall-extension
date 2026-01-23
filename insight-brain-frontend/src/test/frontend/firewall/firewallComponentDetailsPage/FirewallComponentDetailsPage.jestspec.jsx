@@ -254,6 +254,32 @@ describe('ComponentDetails', () => {
       expect(backButton).toBeVisible();
     });
 
+    it('displays "Back to Auto Release from Quarantine" when coming from auto unquarantine page', async () => {
+      const stateWithAutoUnquarantinePrev = {
+        ...defaultPreloadedState,
+        router: {
+          ...defaultPreloadedState.router,
+          prevState: {
+            name: 'firewall.firewallAutoUnquarantinePage',
+            url: '/firewall/autoReleaseQuarantine',
+          },
+        },
+        firewall: {
+          isStandaloneFirewall: true,
+          componentDetailsPage: {
+            componentDetails: null,
+            isLoadingComponentDetails: false,
+            componentDetailsError: null,
+          },
+        },
+      };
+      renderComponent(stateWithAutoUnquarantinePrev);
+      const titles = await screen.findAllByText('ant : ant : 1.6.1');
+      expect(titles[0]).toBeVisible();
+      const backButton = screen.getByText('Back to Auto Release from Quarantine');
+      expect(backButton).toBeVisible();
+    });
+
     it('preserves back button text when navigating between tabs', async () => {
       // Initial state: came from repository results
       const stateWithRepositoryResultsPrev = {

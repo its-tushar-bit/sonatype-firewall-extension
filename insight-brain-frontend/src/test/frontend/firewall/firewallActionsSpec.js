@@ -73,7 +73,6 @@ import {
   saveConfiguration,
   selectComponent,
   selectQuarantineComponent,
-  selectReleaseQuarantineComponent,
   setAutoUnquarantineGridPage,
   setAutoUnquarantineGridSorting,
   setQuarantineGridLastUpdated,
@@ -1434,33 +1433,6 @@ describe('firewallActions', function () {
 
       store = SpecUtil.mockReduxStore(state);
       store.dispatch(selectQuarantineComponent(0));
-
-      const actions = store.getActions();
-      expect(actions.length).toBe(1);
-      expect(actions[0].type).toBe(FIREWALL_SELECT_COMPONENT);
-      expect(actions[0].payload).toEqual({
-        component: components[0],
-        componentIndex: 0,
-        components: components,
-      });
-    });
-  });
-
-  describe('selectReleaseQuarantineComponent', function () {
-    it('immediately dispatches actions to set the selected component', function () {
-      let components = [{ componentDisplayTex: 'text' }];
-      state = {
-        firewall: Object.freeze({
-          autoUnquarantineState: Object.freeze({
-            autoUnquarantineGridState: Object.freeze({
-              releaseQuarantineList: components,
-            }),
-          }),
-        }),
-      };
-
-      store = SpecUtil.mockReduxStore(state);
-      store.dispatch(selectReleaseQuarantineComponent(0));
 
       const actions = store.getActions();
       expect(actions.length).toBe(1);

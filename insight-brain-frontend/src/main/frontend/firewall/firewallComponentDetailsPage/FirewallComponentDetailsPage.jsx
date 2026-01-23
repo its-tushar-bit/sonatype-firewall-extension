@@ -81,15 +81,19 @@ export default function FirewallComponentDetailsPage() {
   // Capture the initial prevState only once when component mounts
   // This prevents back button text from changing when navigating between tabs
   const [initialPrevStateIsRepositoryReport] = useState(() => prevState?.name?.includes('firewall.repository-report'));
+  const [initialPrevStateIsAutoUnquarantine] = useState(() =>
+    prevState?.name?.includes('firewall.firewallAutoUnquarantinePage')
+  );
 
   const href = uiRouterState.href('firewall.repository-report', {
     repositoryId: routeParams.repositoryId,
   });
 
-  const backButtonParams =
-    !initialPrevStateIsRepositoryReport && isStandaloneFirewall
-      ? { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' }
-      : { text: 'Back to Repository Results', href };
+  const backButtonParams = initialPrevStateIsAutoUnquarantine
+    ? { text: 'Back to Auto Release from Quarantine', stateName: 'firewall.firewallAutoUnquarantinePage' }
+    : !initialPrevStateIsRepositoryReport && isStandaloneFirewall
+    ? { text: 'Back to Firewall Dashboard', stateName: 'firewall.firewallPage' }
+    : { text: 'Back to Repository Results', href };
 
   useEffect(() => {
     loadComponentDetails(routeParams);

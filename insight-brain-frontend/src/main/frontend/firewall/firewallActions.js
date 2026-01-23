@@ -767,14 +767,6 @@ export function selectQuarantineComponent(componentIndex) {
   };
 }
 
-export function selectReleaseQuarantineComponent(componentIndex) {
-  return (dispatch, getState) => {
-    let components = getState().firewall.autoUnquarantineState.autoUnquarantineGridState.releaseQuarantineList;
-    let component = components[componentIndex];
-    dispatch(setSelectedComponent({ component, componentIndex, components }));
-  };
-}
-
 export function selectComponent(componentIndex) {
   return (dispatch, getState) => {
     let components = getState().firewall.cip.displayedEntries;

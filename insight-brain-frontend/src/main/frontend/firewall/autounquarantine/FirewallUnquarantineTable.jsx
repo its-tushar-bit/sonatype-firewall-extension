@@ -24,7 +24,6 @@ export default function FirewallUnquarantineTable(props) {
     loadReleaseQuarantineList,
     setAutoUnquarantineGridPage,
     setAutoUnquarantineGridSorting,
-    selectReleaseQuarantineComponent,
     goToRepositoryComponentDetailsPage,
   } = props;
 

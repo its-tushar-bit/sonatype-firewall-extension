@@ -10,7 +10,6 @@ import {
   loadAutoUnquarantineData,
   loadReleaseQuarantineList,
   openConfigurationModal,
-  selectReleaseQuarantineComponent,
   setAutoUnquarantineGridPage,
   setAutoUnquarantineGridSorting,
   goToRepositoryComponentDetailsPage,
@@ -42,7 +41,6 @@ const mapDispatchToProps = {
   setAutoUnquarantineGridPage,
   setAutoUnquarantineGridSorting,
   openConfigurationModal,
-  selectReleaseQuarantineComponent,
   goToRepositoryComponentDetailsPage,
 };
 

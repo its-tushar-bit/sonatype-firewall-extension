@@ -20,7 +20,6 @@ describe('FirewallUnquarantineTable', () => {
     loadReleaseQuarantineList: jest.fn(),
     setAutoUnquarantineGridPage: jest.fn(),
     setAutoUnquarantineGridSorting: jest.fn(),
-    selectReleaseQuarantineComponent: jest.fn(),
     goToRepositoryComponentDetailsPage: jest.fn(),
     loadedReleaseQuarantineList: true,
     loadAutoUnquarantineGridError: null,

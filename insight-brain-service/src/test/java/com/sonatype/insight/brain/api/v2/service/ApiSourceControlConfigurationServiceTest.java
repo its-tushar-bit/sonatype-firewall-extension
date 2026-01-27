@@ -143,7 +143,7 @@ public class ApiSourceControlConfigurationServiceTest
     dto.useUsernameInRepositoryCloneUrl = true;
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 4;
-    dto.pullRequestMonitoringIntervalSeconds = 5;
+    dto.pullRequestMonitoringIntervalSeconds = 180;
     dto.gpgSigningKey = "some-gpg-key";
     dto.gpgPassphrase = "some-passphrase";
 
@@ -240,8 +240,8 @@ public class ApiSourceControlConfigurationServiceTest
   @Test
   public void testSetConfiguration_Update_PullRequestMonitoringIntervalSeconds() {
     testSetConfiguration_Update_Field(
-        new ObjectMapper().createObjectNode().put("pullRequestMonitoringIntervalSeconds", "2"));
-    assertThat(dao.get().getPullRequestMonitoringIntervalSeconds()).isEqualTo(2);
+        new ObjectMapper().createObjectNode().put("pullRequestMonitoringIntervalSeconds", "240"));
+    assertThat(dao.get().getPullRequestMonitoringIntervalSeconds()).isEqualTo(240);
   }
 
   @Test
@@ -293,7 +293,7 @@ public class ApiSourceControlConfigurationServiceTest
     dto.useUsernameInRepositoryCloneUrl = true;
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 40;
-    dto.pullRequestMonitoringIntervalSeconds = 50;
+    dto.pullRequestMonitoringIntervalSeconds = 60;
     dto.gpgSigningKey = "updated-gpg-key";
     dto.gpgPassphrase = "updated-passphrase";
 

@@ -75,11 +75,10 @@ public class SourceControlConfigurationDAO
       "The default branch monitoring interval hours must be at least 1.";
 
   // Visible for testing
-  static final int MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 0;
+  static final int MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS = 60;
 
-  // Visible for testing
-  static final String LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS =
-      "The pull request monitoring interval seconds must be at least 0.";
+  public static final String LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS =
+      "The pull request monitoring interval seconds must be at least 60.";
 
   public static final String NOT_FOUND_ERROR_MSG = "Source control not configured.";
 

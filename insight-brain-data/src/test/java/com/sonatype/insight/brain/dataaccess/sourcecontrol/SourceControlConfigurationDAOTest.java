@@ -64,7 +64,7 @@ public class SourceControlConfigurationDAOTest
     config.setUseUsernameInRepositoryCloneUrl(true);
     config.setDefaultBranchMonitoringStartTime(LocalTime.of(1, 11));
     config.setDefaultBranchMonitoringIntervalHours(Integer.MAX_VALUE);
-    config.setPullRequestMonitoringIntervalSeconds(0);
+    config.setPullRequestMonitoringIntervalSeconds(Integer.MAX_VALUE);
     dao.set(config);
     assertThat(dao.get()).usingRecursiveComparison().ignoringFields(JPA.IGNORE_FIELDS).isEqualTo(config);
 
@@ -282,6 +282,24 @@ public class SourceControlConfigurationDAOTest
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
     sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(
         MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS - 1);
+
+    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.validate(sourceControlConfiguration))
+        .withMessageContaining(SourceControlConfigurationDAO.LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+  }
+
+  @Test
+  public void testValidate_PullRequestMonitoringIntervalSeconds_ExactlyAtMinimum() {
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(
+        MIN_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
+
+    dao.validate(sourceControlConfiguration);
+  }
+
+  @Test
+  public void testValidate_NegativePullRequestMonitoringIntervalSeconds() {
+    SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(-1);
 
     assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> dao.validate(sourceControlConfiguration))
         .withMessageContaining(SourceControlConfigurationDAO.LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);

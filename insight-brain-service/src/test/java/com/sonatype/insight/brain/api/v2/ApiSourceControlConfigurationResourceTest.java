@@ -69,7 +69,7 @@ public class ApiSourceControlConfigurationResourceTest
     dto.useUsernameInRepositoryCloneUrl = true;
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 4;
-    dto.pullRequestMonitoringIntervalSeconds = 5;
+    dto.pullRequestMonitoringIntervalSeconds = 60;
     dto.gpgSigningKey = "some-gpg-key";
     dto.gpgPassphrase = "some-passphrase";
 
@@ -90,6 +90,18 @@ public class ApiSourceControlConfigurationResourceTest
 
     assertResponseStatus(400, response);
     assertThat(response.getBodyText()).contains(SourceControlConfigurationDAO.NO_CONFIG_ERROR_MSG);
+  }
+
+  @Test
+  public void testSetConfiguration_PullRequestMonitoringIntervalSeconds_TooLow() throws Exception {
+    ApiSourceControlConfigurationDTO dto = new ApiSourceControlConfigurationDTO();
+    dto.pullRequestMonitoringIntervalSeconds = 59;
+
+    HttpResponse response = restRequest().body(dto).put();
+
+    assertResponseStatus(400, response);
+    assertThat(response.getBodyText())
+        .contains(SourceControlConfigurationDAO.LOW_PULL_REQUEST_MONITORING_INTERVAL_SECONDS);
   }
 
   @Test

@@ -89,7 +89,11 @@ public class SourceControlConfigurationMigrator
             objectNode.put("defaultBranchMonitoringIntervalHours", defaultBranchMonitoring.intervalInHours);
           }
           if (pullRequestMonitoringIntervalSeconds != null) {
-            objectNode.put("pullRequestMonitoringIntervalSeconds", pullRequestMonitoringIntervalSeconds);
+            int minimumInterval = SourceControlConfiguration.DEFAULT_PULL_REQUEST_MONITORING_INTERVAL_SECONDS;
+            int valueToStore = pullRequestMonitoringIntervalSeconds < minimumInterval
+                ? minimumInterval
+                : pullRequestMonitoringIntervalSeconds;
+            objectNode.put("pullRequestMonitoringIntervalSeconds", valueToStore);
           }
           sourceControlConfigurationService.setConfigurationInDatabaseNoAuthz(tx, objectNode);
         }

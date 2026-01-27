@@ -446,7 +446,7 @@ public class PullRequestMonitorTest
   @Test
   public void testSourceControlConfigurationChanged_UpdatedPullRequestMonitoringIntervalSeconds() {
     SourceControlConfiguration sourceControlConfiguration = new SourceControlConfiguration();
-    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(30);
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(160);
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
 
     configuration.sourceControlConfigurationChanged();

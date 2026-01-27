@@ -39,7 +39,7 @@ public class ApiSourceControlConfigurationResourceAuditTest
     dto.useUsernameInRepositoryCloneUrl = true;
     dto.defaultBranchMonitoringStartTime = "1:11";
     dto.defaultBranchMonitoringIntervalHours = 4;
-    dto.pullRequestMonitoringIntervalSeconds = 5;
+    dto.pullRequestMonitoringIntervalSeconds = 60;
 
     HttpResponse response = restRequest().body(dto).put();
 

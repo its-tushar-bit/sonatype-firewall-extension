@@ -48,7 +48,7 @@ public class SourceControlConfigurationInfoTest
     sourceControlConfiguration.setUseUsernameInRepositoryCloneUrl(true);
     sourceControlConfiguration.setDefaultBranchMonitoringStartTime(LocalTime.of(2, 22));
     sourceControlConfiguration.setDefaultBranchMonitoringIntervalHours(4);
-    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(0);
+    sourceControlConfiguration.setPullRequestMonitoringIntervalSeconds(280);
     sourceControlConfiguration.setGpgSigningKey("test-gpg-key");
     sourceControlConfiguration.setGpgPassphrase("encrypted-passphrase");
     sourceControlConfigurationDAO.set(sourceControlConfiguration);
@@ -67,7 +67,7 @@ public class SourceControlConfigurationInfoTest
     assertThat(configNode.get("useUsernameInRepositoryCloneUrl").asBoolean()).isEqualTo(true);
     assertThat(configNode.get("defaultBranchMonitoringStartTime").asText()).isEqualTo("2:22");
     assertThat(configNode.get("defaultBranchMonitoringIntervalHours").asInt()).isEqualTo(4);
-    assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asInt()).isEqualTo(0);
+    assertThat(configNode.get("pullRequestMonitoringIntervalSeconds").asInt()).isEqualTo(280);
     assertThat(configNode.get("gpgSigningKey").asText()).isEqualTo("test-gpg-key");
     assertThat(configNode.get("gpgPassphrase").asText()).isEqualTo("****");
   }

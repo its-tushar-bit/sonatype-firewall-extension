@@ -113,7 +113,7 @@ public class SourceControlConfigurationMigratorTest
     defaultBranchMonitoringConfig.setStartTime("01:11");
     defaultBranchMonitoringConfig.setIntervalInHours(2);
     insightConfig.setDefaultBranchMonitoring(defaultBranchMonitoringConfig);
-    insightConfig.setPullRequestMonitoringIntervalInSeconds(1);
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(60);
 
     sourceControlConfigurationMigrator.migrate();
 
@@ -128,7 +128,7 @@ public class SourceControlConfigurationMigratorTest
         defaultBranchMonitoringConfig.getStartTime());
     assertThat(sourceControlConfiguration.getDefaultBranchMonitoringIntervalHours()).isEqualTo(
         defaultBranchMonitoringConfig.getIntervalInHours());
-    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(1);
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
     verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
     assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }
@@ -189,12 +189,87 @@ public class SourceControlConfigurationMigratorTest
 
   @Test
   public void testMigrate_FirstRun_CustomConfig_OnlyPullRequestMonitoringIntervalInSeconds() {
-    insightConfig.setPullRequestMonitoringIntervalInSeconds(1);
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(500);
 
     sourceControlConfigurationMigrator.migrate();
 
     SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
-    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(1);
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(500);
+    verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
+    assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_PullRequestMonitoringIntervalBelowMinimum() {
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(30);
+
+    sourceControlConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(SourceControlConfigurationMigrator.MIGRATION_ID)).isTrue();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+
+    assertThat(sourceControlConfiguration).isNotNull();
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
+    verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
+    assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_PullRequestMonitoringIntervalZero() {
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(0);
+
+    sourceControlConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(SourceControlConfigurationMigrator.MIGRATION_ID)).isTrue();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+
+    assertThat(sourceControlConfiguration).isNotNull();
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
+    verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
+    assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_PullRequestMonitoringIntervalNegative() {
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(-10);
+
+    sourceControlConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(SourceControlConfigurationMigrator.MIGRATION_ID)).isTrue();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+
+    assertThat(sourceControlConfiguration).isNotNull();
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
+    verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
+    assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_PullRequestMonitoringIntervalJustBelowMinimum() {
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(59);
+
+    sourceControlConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(SourceControlConfigurationMigrator.MIGRATION_ID)).isTrue();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+
+    assertThat(sourceControlConfiguration).isNotNull();
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
+    verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
+    assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
+  }
+
+  @Test
+  public void testMigrate_FirstRun_PullRequestMonitoringIntervalExactlyMinimum() {
+    insightConfig.setPullRequestMonitoringIntervalInSeconds(60);
+
+    sourceControlConfigurationMigrator.migrate();
+
+    assertThat(migrationTrackerDAO.isTrackerPresent(SourceControlConfigurationMigrator.MIGRATION_ID)).isTrue();
+    SourceControlConfiguration sourceControlConfiguration = sourceControlConfigurationDAO.get();
+
+    assertThat(sourceControlConfiguration).isNotNull();
+    assertThat(sourceControlConfiguration.getPullRequestMonitoringIntervalSeconds()).isEqualTo(60);
     verify(mockSourceControlConfigurationListener).sourceControlConfigurationChanged();
     assertThat(logOutput).atWarnLevel().contains(SourceControlConfigurationMigrator.OBSOLETE_CONFIG_MESSAGE);
   }

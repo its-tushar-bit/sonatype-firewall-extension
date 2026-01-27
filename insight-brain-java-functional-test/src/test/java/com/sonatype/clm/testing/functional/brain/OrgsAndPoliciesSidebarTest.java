@@ -145,6 +145,10 @@ public class OrgsAndPoliciesSidebarTest
       return;
     }
 
+    // Validate the repository managers count is displayed correctly (should show 6)
+    orgsAndPoliciesSidebar.repositories().shouldHave(text("Repository Managers"));
+    orgsAndPoliciesSidebar.repositories().shouldHave(text("(6)"));
+
     orgsAndPoliciesSidebar.repositories().click();
     NxCollapsible repoManagerList = orgsAndPoliciesSidebar.getRepoManagerList();
     repoManagerList.children().get(0).shouldNotBe(visible);

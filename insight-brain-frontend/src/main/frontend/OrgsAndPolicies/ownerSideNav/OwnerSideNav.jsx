@@ -174,11 +174,12 @@ export default function OwnerSideNav() {
     const repositoriesClassnames = classnames('iq-navbar-item iq-repositories-link', {
       active: isRepositoriesRelated,
     });
+    const repoContainer = ownersMap?.['REPOSITORY_CONTAINER_ID'];
     return (
       <a className={repositoriesClassnames} href={goToRepositoriesUrl}>
-        <div className="iq-owner-name">{ownersMap['REPOSITORY_CONTAINER_ID'].name}</div>
+        <div className="iq-owner-name">{repoContainer?.name}</div>
         <div className="iq-children-counter">
-          <span>({repositoriesCounter})</span>
+          <span>({repoContainer?.repositoryManagerIds?.length})</span>
         </div>
       </a>
     );

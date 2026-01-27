@@ -591,9 +591,21 @@ public abstract class AbstractRepositoryService
   }
 
   private void validateComponentEvaluateRequest(RepositoryComponentEvaluationDataRequestList componentEvalRequestList) {
+    List<RepositoryComponentEvaluationDataRequest> validComponents = new ArrayList<>();
+
     for (RepositoryComponentEvaluationDataRequest componentEvalRequest : componentEvalRequestList.components) {
-      validateEvaluateRequest(componentEvalRequest, false /* allowNullHash */);
+      validateFormatAndHash(componentEvalRequest, false /* allowNullHash */);
+
+      if (hasValidPathname(componentEvalRequest)) {
+        validComponents.add(componentEvalRequest);
+      }
+      else {
+        logInvalidPathname(componentEvalRequest);
+      }
     }
+
+    // Replace the list reference instead of modifying in place to avoid UnsupportedOperationException
+    componentEvalRequestList.components = validComponents;
   }
   
   private void validateComponentMetadataEvaluateRequest(
@@ -628,6 +640,34 @@ public abstract class AbstractRepositoryService
         && StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
       throw new BadRequestException("The hash cannot be null or empty.");
     }
+  }
+
+  private void validateFormatAndHash(
+      final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest,
+      boolean allowNullHash)
+  {
+    if (componentEvaluationDataRequest == null) {
+      throw new BadRequestException("The componentEvaluationDataRequest cannot be null.");
+    }
+    if (StringUtils.isBlank(componentEvaluationDataRequest.format)) {
+      throw new BadRequestException("The format cannot be null or empty.");
+    }
+    if (!allowNullHash && StringUtils.isBlank(componentEvaluationDataRequest.hash)) {
+      throw new BadRequestException("The hash cannot be null or empty.");
+    }
+  }
+
+  private boolean hasValidPathname(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
+    return componentEvaluationDataRequest != null
+        && !StringUtils.isBlank(componentEvaluationDataRequest.pathname);
+  }
+
+  private void logInvalidPathname(final RepositoryComponentEvaluationDataRequest componentEvaluationDataRequest) {
+    log.info("Skipping component evaluation due to validation failure. " +
+            "Hash: {}, Format: {}, Pathname: {}, Reason: pathname is null or empty",
+        componentEvaluationDataRequest != null ? componentEvaluationDataRequest.hash : "null",
+        componentEvaluationDataRequest != null ? componentEvaluationDataRequest.format : "null",
+        componentEvaluationDataRequest != null ? componentEvaluationDataRequest.pathname : "null");
   }
 
   @Authorize(permission = Permission.EVALUATE_COMPONENT)

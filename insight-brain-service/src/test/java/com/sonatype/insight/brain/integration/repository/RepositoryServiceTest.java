@@ -373,9 +373,16 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The pathname cannot be null or empty.");
+    // NEW BEHAVIOR: No exception thrown, invalid component is filtered out
+    RepositoryComponentEvaluationDataList result = repositoryService.evaluateComponentsAdhoc(
+        REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, null);
+
+    // Verify empty result since the only component was invalid
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults).isEmpty();
+    assertThat(componentEvaluationDataRequestList.components)
+        .as("Invalid component should be filtered out")
+        .isEmpty();
   }
 
   @Test
@@ -412,9 +419,66 @@ public class RepositoryServiceTest
     RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
         newRepositoryComponentEvaluationDataRequestList(Collections.singletonList(componentEvaluationDataRequest));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(
-        () -> repositoryService.evaluateComponentsAdhoc(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID,
-            componentEvaluationDataRequestList, null)).withMessage("The pathname cannot be null or empty.");
+    // NEW BEHAVIOR: No exception thrown, invalid component is filtered out
+    RepositoryComponentEvaluationDataList result = repositoryService.evaluateComponentsAdhoc(
+        REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, null);
+
+    // Verify empty result since the only component was invalid
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults).isEmpty();
+    assertThat(componentEvaluationDataRequestList.components)
+        .as("Invalid component should be filtered out")
+        .isEmpty();
+  }
+
+  @Test
+  public void testBatchEvaluationFiltersComponentsWithNullPathname() {
+    tempEntity.newRepository(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID);
+
+    RepositoryComponentEvaluationDataRequest validRequest1 =
+        new RepositoryComponentEvaluationDataRequest("npm", "valid/path1.jar", "hash1");
+    RepositoryComponentEvaluationDataRequest invalidRequest =
+        new RepositoryComponentEvaluationDataRequest("npm", null, "badHash");
+    RepositoryComponentEvaluationDataRequest validRequest2 =
+        new RepositoryComponentEvaluationDataRequest("npm", "valid/path2.jar", "hash2");
+
+    RepositoryComponentEvaluationDataRequestList requestList = new RepositoryComponentEvaluationDataRequestList();
+    requestList.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    requestList.components.add(validRequest1);
+    requestList.components.add(invalidRequest);
+    requestList.components.add(validRequest2);
+
+    // Mock HDS responses for the valid components only
+    ComponentIdentifier componentIdentifier1 = ComponentIdentifier.createNpmCoordinates("component1", "1.0.0");
+    ComponentIdentifier componentIdentifier2 = ComponentIdentifier.createNpmCoordinates("component2", "1.0.0");
+
+    // Create a request list with only valid components for mocking
+    RepositoryComponentEvaluationDataRequestList validRequestListForMocking =
+        new RepositoryComponentEvaluationDataRequestList();
+    validRequestListForMocking.cause = RepositoryComponentEvaluationDataRequestList.ADHOC;
+    validRequestListForMocking.components.add(validRequest1);
+    validRequestListForMocking.components.add(validRequest2);
+
+    mockHdsRequestForComponent(validRequestListForMocking,
+        ImmutableMap.of(validRequest1, componentIdentifier1, validRequest2, componentIdentifier2),
+        Collections.emptyList());
+
+    RepositoryComponentEvaluationDataList result = repositoryService.evaluateComponentsAdhoc(
+        REPO_MAN_INSTANCE_ID,
+        REPO_PUBLIC_ID,
+        requestList,
+        null);
+
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults)
+        .as("Should process only the 2 valid components")
+        .hasSize(2);
+
+    assertThat(requestList.components)
+        .as("Invalid component should be filtered from request list")
+        .hasSize(2)
+        .extracting(req -> req.pathname)
+        .containsExactlyInAnyOrder("valid/path1.jar", "valid/path2.jar");
   }
 
   private void mockHdsRequestForComponent(

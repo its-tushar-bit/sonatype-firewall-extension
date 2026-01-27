@@ -597,10 +597,15 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components = new ArrayList<>();
     componentEvaluationDataRequestList.components.add(repositoryComponentEvaluationDataRequest);
 
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> getRepositoryService()
-            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null))
-        .withMessage("The pathname cannot be null or empty.");
+    RepositoryComponentEvaluationDataList result = getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, true, null);
+
+    // Verify empty result since the only component was invalid
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults).isEmpty();
+    assertThat(componentEvaluationDataRequestList.components)
+        .as("Invalid component should be filtered out")
+        .isEmpty();
   }
 
   @Test
@@ -1713,10 +1718,15 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", null, "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class)
-        .isThrownBy(() -> getRepositoryService()
-            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
-        .withMessage("The pathname cannot be null or empty.");
+    RepositoryComponentEvaluationDataList result = getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
+
+    // Verify empty result since the only component was invalid
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults).isEmpty();
+    assertThat(componentEvaluationDataRequestList.components)
+        .as("Invalid component should be filtered out")
+        .isEmpty();
   }
 
   @Test
@@ -1728,9 +1738,15 @@ public abstract class AbstractRepositoryServiceTest
     componentEvaluationDataRequestList.components
         .add(new RepositoryComponentEvaluationDataRequest("maven2", " ", "hash"));
 
-    assertThatExceptionOfType(BadRequestException.class).isThrownBy(() -> getRepositoryService()
-            .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null))
-        .withMessage("The pathname cannot be null or empty.");
+    RepositoryComponentEvaluationDataList result = getRepositoryService()
+        .evaluateComponents(REPO_MAN_INSTANCE_ID, REPO_PUBLIC_ID, componentEvaluationDataRequestList, false, null);
+
+    // Verify empty result since the only component was invalid
+    assertThat(result).isNotNull();
+    assertThat(result.componentEvalResults).isEmpty();
+    assertThat(componentEvaluationDataRequestList.components)
+        .as("Invalid component should be filtered out")
+        .isEmpty();
   }
 
   @Test

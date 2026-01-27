@@ -138,6 +138,48 @@ public class RepositoryResourceTest
     assertThat(responseBody.componentEvalResults.get(0).policyAlerts).hasSize(1);
   }
 
+  @Test
+  public void testEvaluateAuditFiltersComponentsWithNullPathname() throws Exception {
+
+    ComponentEvaluationDataList hdsResult = new ComponentEvaluationDataList();
+    ComponentEvaluationData componentEvaluationData = new ComponentEvaluationData();
+    componentEvaluationData.hash = "validHash";
+    componentEvaluationData.matchState = MatchState.EXACT.getId();
+    componentEvaluationData.declaredLicenses = new HashSet<>();
+    componentEvaluationData.observedLicenses = new HashSet<>();
+    componentEvaluationData.securityVulnerabilities = createSecurityVulnerabilities();
+    hdsResult.components.add(componentEvaluationData);
+    hdsRespondWith(hdsResult).atUri(RepositoryPolicyEvaluator.HDS_COMPONENT_DETAILS_PATH);
+    tempEntity.newPolicy(ROOT_ORGANIZATION_ID);
+
+    RepositoryComponentEvaluationDataRequestList componentEvaluationDataRequestList =
+        new RepositoryComponentEvaluationDataRequestList();
+
+    RepositoryComponentEvaluationDataRequest validRequest = new RepositoryComponentEvaluationDataRequest();
+    validRequest.format = "npm";
+    validRequest.pathname = "valid/path.jar";
+    validRequest.hash = "validHash";
+
+    RepositoryComponentEvaluationDataRequest invalidRequest = new RepositoryComponentEvaluationDataRequest();
+    invalidRequest.format = "npm";
+    invalidRequest.pathname = null;
+    invalidRequest.hash = "invalidHash";
+
+    componentEvaluationDataRequestList.components.add(validRequest);
+    componentEvaluationDataRequestList.components.add(invalidRequest);
+
+    RepositoryManager repositoryManager = tempEntity.newRepositoryManager();
+    Repository repository = tempEntity.newRepository(repositoryManager, "repoPublicId", false, false);
+
+    HttpResponse response = restRequest()
+        .path(AbstractRepositoryResource.EVALUATE_COMPONENTS_PATH)
+        .parameter(repositoryManager.getInstanceId(), repository.getPublicId())
+        .body(componentEvaluationDataRequestList)
+        .post();
+
+    assertResponseStatus(204, response);
+  }
+
   private List<SecurityVulnerability> createSecurityVulnerabilities() {
     List<SecurityVulnerability> securityVulnerabilities = new ArrayList<>();
     SecurityVulnerability securityVulnerability = new SecurityVulnerability();

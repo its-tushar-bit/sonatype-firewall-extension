@@ -86,7 +86,7 @@ export default function WaiverConfirmationPage() {
     if (isCustomExpiryTimeSelected(expiry) && isCustomExpiryTimeValid(customExpiry?.value)) {
       const today = moment().startOf('day');
       const customDate = moment(customExpiry.value, 'YYYY-MM-DD');
-      const diff = Math.floor(moment.duration(customDate.diff(today)).asDays());
+      const diff = Math.round(moment.duration(customDate.diff(today)).asDays());
       return `${diff} days`;
     }
     if (expiry) return `${expiry} days`;

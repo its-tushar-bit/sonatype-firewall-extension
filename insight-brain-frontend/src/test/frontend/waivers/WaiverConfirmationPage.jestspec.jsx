@@ -21,13 +21,6 @@ describe('WaiverConfirmationPage component', () => {
 
   beforeAll(() => {
     axiosMock = axiosMockAdapter();
-    // Fix flaky date calculations by freezing time at start of day
-    jest.useFakeTimers();
-    jest.setSystemTime(new Date('2024-01-15T00:00:00.000Z'));
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
   });
 
   beforeEach(() => {
@@ -262,7 +255,8 @@ describe('WaiverConfirmationPage component', () => {
     it('displays expiration time for numeric days', () => {
       renderComponent(stateWithViolationsAndConfiguration);
 
-      expect(screen.getByText('30 days')).toBeVisible();
+      const daysToAdd = 30;
+      expect(screen.getByText(`${daysToAdd} days`)).toBeVisible();
     });
 
     it('displays never expiration correctly', () => {
@@ -286,7 +280,8 @@ describe('WaiverConfirmationPage component', () => {
     });
 
     it('displays custom expiration with days calculation', () => {
-      const futureDate = moment().add(45, 'days').format('YYYY-MM-DD');
+      const daysToAdd = 45;
+      const futureDate = moment().startOf('day').add(daysToAdd, 'days').format('YYYY-MM-DD');
       const stateWithCustomExpiry = {
         ...stateWithViolationsAndConfiguration,
         waivers: {
@@ -304,8 +299,7 @@ describe('WaiverConfirmationPage component', () => {
 
       renderComponent(stateWithCustomExpiry);
 
-      // With frozen time, the calculation consistently shows 44 days (off-by-one due to date parsing)
-      expect(screen.getByText('44 days')).toBeVisible();
+      expect(screen.getByText(`${daysToAdd} days`)).toBeVisible();
     });
 
     it('displays waiver reason text', () => {
@@ -445,7 +439,8 @@ describe('WaiverConfirmationPage component', () => {
 
     it('submits bulk waiver with custom expiry time in request body', async () => {
       const user = userEvent.setup();
-      const futureDate = moment().add(45, 'days').format('YYYY-MM-DD');
+      const daysToAdd = 45;
+      const futureDate = moment().startOf('day').add(daysToAdd, 'days').format('YYYY-MM-DD');
 
       const stateWithCustomExpiry = {
         ...stateWithFullConfiguration,
@@ -482,7 +477,8 @@ describe('WaiverConfirmationPage component', () => {
 
     it('sends correct custom date (not today) when expiryTime is "custom"', async () => {
       const user = userEvent.setup();
-      const futureDate = moment().add(5, 'days').format('YYYY-MM-DD');
+      const daysToAdd = 5;
+      const futureDate = moment().startOf('day').add(daysToAdd, 'days').format('YYYY-MM-DD');
 
       const stateWithCustomExpiry = {
         ...stateWithFullConfiguration,
@@ -533,7 +529,7 @@ describe('WaiverConfirmationPage component', () => {
               expiryTime: 'custom',
               customExpiryTime: nxDateInputStateHelpers.userInput(
                 () => null,
-                moment().add(2, 'days').format('YYYY-MM-DD')
+                moment().startOf('day').add(2, 'days').format('YYYY-MM-DD')
               ),
             },
             submitMaskState: null,

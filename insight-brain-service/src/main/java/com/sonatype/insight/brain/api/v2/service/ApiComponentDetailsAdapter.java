@@ -5,6 +5,9 @@
  */
 package com.sonatype.insight.brain.api.v2.service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -61,7 +64,7 @@ public class ApiComponentDetailsAdapter
   private final ApiComponentProjectDetailsAdapter componentProjectDetailsAdapter;
 
   private final RepositoryComponentDAO repositoryComponentDAO;
-  
+
   private final RepositoryPolicyViolationDAO repositoryPolicyViolationDAO;
 
   @Inject
@@ -161,14 +164,72 @@ public class ApiComponentDetailsAdapter
     for (ApiRepositoryComponentEvaluationRequest componentRequest :
         apiRepositoryComponentEvaluationRequestList.components) {
       String pathname = componentRequest.pathname;
+      String hash = componentRequest.hash;
+
       if (pathname == null && componentRequest.packageUrl != null) {
         pathname = RepositoryPathnameSerializer.toPathname(componentRequest.packageUrl);
+
+        // For coordinate-based formats (golang, conan, cargo, etc.), generate a synthetic hash when not provided.
+        // Coordinate-based formats identify components by coordinates (name+version) rather than file hash.
+        // The synthetic hash satisfies HDS validation while the actual lookup is done by coordinates (NEXUS-49174).
+        // For hash-based formats (maven, npm, pypi, etc.), hash must be provided by the caller.
+        if (hash == null && ComponentFormatConstants.isCoordinateBasedFormat(apiRepositoryComponentEvaluationRequestList.format)) {
+          hash = generateSyntheticHash(componentRequest.packageUrl);
+        }
       }
+
       requestList.components.add(
           new RepositoryComponentEvaluationDataRequest(apiRepositoryComponentEvaluationRequestList.format, pathname,
-              HashHelper.truncateHash(componentRequest.hash)));
+              HashHelper.truncateHash(hash)));
     }
     return requestList;
+  }
+
+  /**
+   * Generates a synthetic SHA1 hash for coordinate-based formats when packageUrl is provided without hash.
+   *
+   * <p>Coordinate-based formats (golang, conan, cargo, cocoapods, cran, conda, composer, hf-model) identify
+   * components by their coordinates (name + version) rather than file content hash. Unlike hash-based formats
+   * (maven, npm, pypi), these formats do not have a single canonical file to hash.
+   *
+   * <p>This synthetic hash:
+   * <ul>
+   * <li>Satisfies HDS validation requirements that expect a hash field</li>
+   * <li>Is generated deterministically from the packageUrl for consistency</li>
+   * <li>Is not used for component lookup (coordinates are used instead)</li>
+   * <li>Allows the API to make hash optional for coordinate-based formats</li>
+   * </ul>
+   *
+   * <p><b>Edge Case - Hash Collisions:</b>
+   * <br>While theoretically possible, synthetic hash collisions with real component hashes are extremely unlikely
+   * due to SHA-1's cryptographic properties. Even if a collision occurred, it would not impact correctness because:
+   * <ul>
+   * <li>Coordinate-based formats use coordinates (name+version) for component lookup, not hash</li>
+   * <li>Hash-based formats always require actual file hashes (synthetic hashes are never generated for them)</li>
+   * <li>The synthetic hash is only used to satisfy HDS validation, not for component identification</li>
+   * </ul>
+   *
+   * @param packageUrl the package URL (e.g., pkg:golang/github.com/gin-gonic/gin@v1.7.4)
+   * @return a synthetic SHA1 hash derived from the packageUrl
+   * @see <a href="https://sonatype.atlassian.net/browse/NEXUS-49174">NEXUS-49174</a>
+   */
+  private String generateSyntheticHash(String packageUrl) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-1");
+      byte[] hashBytes = digest.digest(packageUrl.getBytes(StandardCharsets.UTF_8));
+      StringBuilder hexString = new StringBuilder(40); // SHA-1 produces 40 hex characters
+      for (byte b : hashBytes) {
+        String hex = Integer.toHexString(0xff & b);
+        if (hex.length() == 1) {
+          hexString.append('0');
+        }
+        hexString.append(hex);
+      }
+      return hexString.toString();
+    }
+    catch (NoSuchAlgorithmException e) {
+      throw new IllegalStateException("SHA-1 algorithm not available", e);
+    }
   }
 
   public ApiRepositoryComponentEvaluationResultList convertToDTO(

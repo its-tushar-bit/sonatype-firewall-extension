@@ -1032,7 +1032,7 @@ public class ApiFirewallServiceTest
     assertThatExceptionOfType(BadRequestException.class)
         .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
             repository.getId(), requestList))
-        .withMessage("The hash must be specified.");
+        .withMessage("The hash must be specified when packageUrl is not provided.");
   }
 
   @Test
@@ -1180,6 +1180,98 @@ public class ApiFirewallServiceTest
         eq(true), isNull());
     RepositoryComponentEvaluationDataRequestList request = captor.getValue();
     assertThat(request.components.get(0).pathname).isEqualTo(fakePathname);
+  }
+
+  @Test
+  public void testEvaluateComponents_PurlWithoutHash_Conan() {
+    // Test coordinate-based format (Conan): hash is optional, synthetic hash generated from packageUrl
+    // Conan identifies components by coordinates (name+version), not file hash
+    Repository repository = tempEntity.newRepository();
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createConanCoordinates("zlib", "1.3.1", null, null);
+    String fakePathname = RepositoryPathnameSerializer.toPathname(componentIdentifier);
+    RepositoryComponent repositoryComponent =
+        tempEntity.newRepositoryComponent(repository.getId(), fakePathname, new Date(), null);
+    repositoryComponent.setComponentIdentifier(componentIdentifier);
+    repositoryComponentDAO.update(repositoryComponent);
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_CONAN;
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
+        null,
+        null, // hash is null
+        "pkg:conan/zlib@1.3.1")
+    );
+    RepositoryComponentEvaluationDataList repositoryServiceEvaluateResult = new RepositoryComponentEvaluationDataList();
+    RepositoryComponentEvaluationData rced = new RepositoryComponentEvaluationData();
+    rced.quarantine = false;
+    rced.catalogDate = new Date();
+    repositoryServiceEvaluateResult.componentEvalResults.add(rced);
+    when(repositoryServiceMock.evaluateComponents(any(Repository.class), anyString(), any(), eq(false), eq(true),
+        isNull())).thenReturn(repositoryServiceEvaluateResult);
+
+    ApiRepositoryComponentEvaluationResultList result =
+        apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(), repository.getId(),
+            requestList);
+
+    assertThat(result).isNotNull();
+    assertThat(result.results.size()).isEqualTo(1);
+    assertThat(result.results.get(0).component).isEqualTo(requestList.components.get(0));
+  }
+
+  @Test
+  public void testEvaluateComponents_PurlWithoutHash_Maven_ValidationError() {
+    // Test that hash-based format (Maven) requires hash even with packageUrl
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_MAVEN;
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
+        null,
+        null, // hash is null - this should fail for hash-based format
+        "pkg:maven/org.springframework/spring-core@5.3.0?type=jar")
+    );
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessageContaining("The hash must be specified for 'maven' format")
+        .withMessageContaining("Hash is only optional for coordinate-based formats");
+  }
+
+  @Test
+  public void testEvaluateComponents_PurlWithoutHash_Npm_ValidationError() {
+    // Test that hash-based format (NPM) requires hash even with packageUrl
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_NPM;
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
+        null,
+        null, // hash is null - this should fail for hash-based format
+        "pkg:npm/lodash@4.17.21")
+    );
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessageContaining("The hash must be specified for 'npm' format")
+        .withMessageContaining("Hash is only optional for coordinate-based formats");
+  }
+
+  @Test
+  public void testEvaluateComponents_PurlWithoutHash_PyPi_ValidationError() {
+    // Test that hash-based format (PyPi) requires hash even with packageUrl
+    Repository repository = tempEntity.newRepository();
+    ApiRepositoryComponentEvaluationRequestList requestList = new ApiRepositoryComponentEvaluationRequestList();
+    requestList.format = ComponentIdentifier.FORMAT_PYPI;
+    requestList.components.add(new ApiRepositoryComponentEvaluationRequest(
+        null,
+        null, // hash is null - this should fail for hash-based format
+        "pkg:pypi/requests@2.28.0")
+    );
+
+    assertThatExceptionOfType(BadRequestException.class)
+        .isThrownBy(() -> apiFirewallService.evaluateComponents(repository.getRepositoryManagerId(),
+            repository.getId(), requestList))
+        .withMessageContaining("The hash must be specified for 'pypi' format")
+        .withMessageContaining("Hash is only optional for coordinate-based formats");
   }
 
   @Test

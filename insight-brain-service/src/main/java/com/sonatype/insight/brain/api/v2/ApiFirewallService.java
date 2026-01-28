@@ -44,6 +44,7 @@ import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerDTO;
 import com.sonatype.insight.brain.api.v2.dto.ApiRepositoryManagerListDTO;
 import com.sonatype.insight.brain.api.v2.service.ApiComponentDetailsAdapter;
 import com.sonatype.insight.brain.api.v2.service.ApiPolicyViolationAdapter;
+import com.sonatype.insight.brain.api.v2.service.ComponentFormatConstants;
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.audit.AuditEvent;
 import com.sonatype.insight.brain.audit.AuditSession;
@@ -638,12 +639,25 @@ public class ApiFirewallService
       throw new BadRequestException("The format must be specified.");
     }
     for (ApiRepositoryComponentEvaluationRequest component : dto.components) {
-      if (component.hash == null) {
-        throw new BadRequestException("The hash must be specified.");
-      }
       if (component.pathname == null && component.packageUrl == null) {
         throw new BadRequestException("One of pathname or packageUrl must be specified.");
       }
+
+      // Coordinate-based formats identify components by coordinates (name+version).
+      // Hash-based formats require hash for exact file identification.
+      if (component.hash == null) {
+        if (component.packageUrl == null) {
+          throw new BadRequestException(
+              "The hash must be specified when packageUrl is not provided.");
+        }
+        else if (!ComponentFormatConstants.isCoordinateBasedFormat(dto.format)) {
+          throw new BadRequestException(
+              "The hash must be specified for '" + dto.format + "' format. " +
+              "Hash is only optional for coordinate-based formats: " +
+              String.join(", ", ComponentFormatConstants.COORDINATE_BASED_FORMATS) + ".");
+        }
+      }
+
       if (component.pathname == null) {
         ComponentIdentifier componentIdentifier =
             new PackageUrlIdentifier(component.packageUrl).ensureCompleteIdentifier();

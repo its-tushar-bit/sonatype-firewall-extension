@@ -572,6 +572,31 @@ public class ApiFirewallResource
   @Operation(description = "Use this method to evaluate components (max. 100)." +
       "\n" +
       "\n" +
+      "**Hash Requirements by Format Type:**" +
+      "\n" +
+      "\n" +
+      "**Coordinate-Based Formats** (hash NOT required when using packageUrl):" +
+      "\n" +
+      "- golang, conan, cargo, cocoapods, cran, conda, composer, hf-model" +
+      "\n" +
+      "- These formats identify components by coordinates (name+version) rather than file hash" +
+      "\n" +
+      "- When using packageUrl, hash is optional" +
+      "\n" +
+      "- If hash is provided, it will be used" +
+      "\n" +
+      "\n" +
+      "**Hash-Based Formats** (hash REQUIRED):" +
+      "\n" +
+      "- maven, npm, pypi, nuget, docker, rubygems, and others" +
+      "\n" +
+      "- Hash must ALWAYS be provided to identify the exact file content" +
+      "\n" +
+      "- Hash is required regardless of whether pathname or packageUrl is used" +
+      "\n" +
+      "- Missing hash for these formats will result in incorrect component identification" +
+      "\n" +
+      "\n" +
       "Permissions required: Evaluate Individual Components",
       responses = @ApiResponse(
           responseCode = "200",
@@ -584,9 +609,28 @@ public class ApiFirewallResource
       @PathParam("repositoryManagerId") final String repositoryManagerId,
       @Parameter(description = "Enter the repository ID.")
       @PathParam("repositoryId") final String repositoryId,
-      @RequestBody(description = "Provide the array of the component identifiers to be evaluated, using the " +
-          "component hash and the (packageUrl or pathname). A maximum of 100 components can be evaluated " +
-          "in one request.",
+      @RequestBody(description = "Provide the array of component identifiers to be evaluated. " +
+          "Each component requires **one of the following combinations**:" +
+          "\n\n" +
+          "**For Coordinate-Based Formats (golang, conan, cargo, cocoapods, cran, conda, composer, hf-model):**" +
+          "\n" +
+          "- **packageUrl only** - Hash is optional" +
+          "\n" +
+          "- **packageUrl + hash** - Hash is optional, will be used if provided" +
+          "\n" +
+          "- **pathname + hash** - Hash required (pathname approach always requires hash)" +
+          "\n" +
+          "\n" +
+          "**For Hash-Based Formats (maven, npm, pypi, nuget, docker, rubygems, etc.):**" +
+          "\n" +
+          "- **packageUrl + hash** - Hash REQUIRED to identify exact file content" +
+          "\n" +
+          "- **pathname + hash** - Hash REQUIRED" +
+          "\n" +
+          "- Providing packageUrl without hash for these formats will result in incorrect identification" +
+          "\n" +
+          "\n" +
+          "A maximum of 100 components can be evaluated in one request.",
           required = true, useParameterTypeSchema = true)
       final ApiRepositoryComponentEvaluationRequestList apiRepositoryComponentEvaluationRequestList)
   {

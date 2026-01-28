@@ -8,10 +8,9 @@ package com.sonatype.insight.brain.aws.s3;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -30,15 +29,21 @@ public class S3Utils
 {
   private static final Logger log = LoggerFactory.getLogger(S3Utils.class);
 
+  /**
+   * AWS S3 deleteObjects API has a limit of 1000 objects per request. See:
+   * https://docs.aws.amazon.com/AmazonS3/latest/API/API_DeleteObjects.html
+   */
+  private static final int S3_DELETE_BATCH_SIZE = 1000;
+
   private S3Utils() {
   }
 
   public static void deleteAllWithPrefix(S3Client s3Client, String bucketName, String prefix) throws IOException {
-    Set<ObjectIdentifier> keysToDelete;
+    List<ObjectIdentifier> keysToDelete;
     try (Stream<S3Object> objects = getS3Objects(s3Client, bucketName, prefix)) {
       keysToDelete = objects
           .map(s3Object -> ObjectIdentifier.builder().key(s3Object.key()).build())
-          .collect(Collectors.toSet());
+          .toList();
     }
 
     if (keysToDelete.isEmpty()) {
@@ -46,13 +51,19 @@ public class S3Utils
       return;
     }
 
-    DeleteObjectsRequest request = DeleteObjectsRequest.builder()
-        .bucket(bucketName)
-        .delete(delete -> delete.objects(keysToDelete))
-        .build();
+    // Batch delete operations into chunks of S3_DELETE_BATCH_SIZE to avoid exceeding S3 API limits
+    List<List<ObjectIdentifier>> batches = Lists.partition(keysToDelete, S3_DELETE_BATCH_SIZE);
+    int totalDeleted = 0;
+    for (List<ObjectIdentifier> batch : batches) {
+      DeleteObjectsRequest request = DeleteObjectsRequest.builder()
+          .bucket(bucketName)
+          .delete(delete -> delete.objects(batch))
+          .build();
 
-    wrapS3Exception(() -> s3Client.deleteObjects(request));
-    log.info("Deleted {} objects with prefix: {}", keysToDelete.size(), prefix);
+      wrapS3Exception(() -> s3Client.deleteObjects(request));
+      totalDeleted += batch.size();
+    }
+    log.info("Deleted {} objects with prefix: {}", totalDeleted, prefix);
   }
 
   public static Stream<S3Object> getS3Objects(S3Client s3Client, String bucketName, String prefix) throws IOException {

@@ -173,7 +173,8 @@ public class ApiComponentDetailsAdapter
         // Coordinate-based formats identify components by coordinates (name+version) rather than file hash.
         // The synthetic hash satisfies HDS validation while the actual lookup is done by coordinates (NEXUS-49174).
         // For hash-based formats (maven, npm, pypi, etc.), hash must be provided by the caller.
-        if (hash == null && ComponentFormatConstants.isCoordinateBasedFormat(apiRepositoryComponentEvaluationRequestList.format)) {
+        if (hash == null &&
+            ComponentFormatConstants.isCoordinateBasedFormat(apiRepositoryComponentEvaluationRequestList.format)) {
           hash = generateSyntheticHash(componentRequest.packageUrl);
         }
       }

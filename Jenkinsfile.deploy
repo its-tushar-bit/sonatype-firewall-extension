@@ -31,7 +31,7 @@ pipeline {
     }
     stage('Gather Build Artifacts') {
       steps {
-        gatherBuildArtifacts('insight/insight-brain/release', env.releaseBuild_NUMBER)
+        gatherBuildArtifacts('insight/insight-brain/aggregate-release', env.releaseBuild_NUMBER)
       }
     }
     stage('Publish Server') {

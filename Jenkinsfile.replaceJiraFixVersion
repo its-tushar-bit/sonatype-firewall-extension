@@ -37,7 +37,7 @@ pipeline {
           if (params.SBOM) {
             issues.addAll(getIssuesByFixVersion('SBOM', 'brain-next'))
           }
-          replaceFixVersionForIssues(issues, 'brain-next', ['saas-next'])
+          replaceFixVersionForIssues(issues, 'brain-next', ['saas-next', 'selfhosted-next'])
         }
       }
     }

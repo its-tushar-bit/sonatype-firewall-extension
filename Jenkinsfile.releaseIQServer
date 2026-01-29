@@ -11,14 +11,12 @@ properties(
             [
                 booleanParam(name: 'hotfix', defaultValue: 'false', description: 'Check if this IQ Release is intended to be a hotfix e.g. urgent release to fix a severe bug. (Used for internal metrics only.)'),
                 string (name: 'releaseVersion', defaultValue: '',description: 'The version number for the product, like "1.118.0-01"'),
-                run(name:'saasBuild', filter: 'STABLE', projectName: 'insight/MTIQ/production/prod-us-1', description: 'The Saas Build to release from.'),
-                string (name: 'branchName', defaultValue: '', description: 'Optional - a branch to build from - overrides SaaS Build'),
-                string (name: 'buildNumber', defaultValue: '', description: 'Optional - a build number for the branch - overrides SaaS Build'),
+                run(name: 'aggregateReleaseBuild', filter: 'STABLE', projectName: 'insight/insight-brain/aggregate-release', description: 'The aggregate release build containing binaries to release.'),
 
                 // Skip stage parameters
                 booleanParam(name: 'skipReleaseStartingNotification', defaultValue: false, description: 'Skip: Send Release Starting Notification'),
-                booleanParam(name: 'skipStageReleaseBinaries', defaultValue: false, description: 'Skip: Stage Release Binaries'),
-                booleanParam(name: 'skipReleaseJiraVersion', defaultValue: false, description: 'Skip: Release Jira Version - IQ'),
+                booleanParam(name: 'skipValidateReleaseBinaries', defaultValue: false, description: 'Skip: Validate Release Binaries (version check, build status)'),
+                booleanParam(name: 'skipMarkJiraVersionReleased', defaultValue: false, description: 'Skip: Mark Jira Version as Released'),
                 booleanParam(name: 'skipDeployToStaging', defaultValue: false, description: 'Skip: Deploy Binaries to Staging'),
                 booleanParam(name: 'skipDeployToProduction', defaultValue: false, description: 'Skip: Deploy Binaries to Production'),
                 booleanParam(name: 'skipCreateProductNotification', defaultValue: false, description: 'Skip: Create Product Notification'),
@@ -37,31 +35,6 @@ properties(
     ]
 )
 
-String getBranchName() {
-  if (params.branchName && params.branchName != '') {
-    return params.branchName
-  }
-
-  return 'main'
-}
-
-String getSnapshotBuildNumber() {
-  if (params.buildNumber && params.buildNumber != '') {
-    return params.buildNumber
-  }
-
-  Map<String, String> buildNameElements = parseBuildName(env.saasBuild_NAME)
-  String version = buildNameElements.version
-  if (version.contains('-')) {
-    String[] parts = version.split('-')
-    return parts[1]
-  } else {
-    error "Unable to determine build number from ${env.saasBuild_NAME}"
-  }
-}
-
-String branch = getBranchName()
-String buildNumber = getSnapshotBuildNumber()
 
 pipeline {
   agent { label InsightConstants.AGENT_LABEL }
@@ -87,24 +60,54 @@ pipeline {
               parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
       }
     }
-    stage('Stage Release Binaries') { // Jenkinsfile
+    stage('Validate Release Binaries') {
       when {
-        expression { !params.skipStageReleaseBinaries }
+        expression { !params.skipValidateReleaseBinaries }
       }
       steps {
-        build(job: 'insight/insight-brain/release',
-              parameters: [ booleanParam(name: 'hotfix', value: params.hotfix),
-                            string(name: 'version', value: params.releaseVersion),
-                            run(name: 'snapshotBuild', runId: "insight/insight-brain/feature-snapshots/${branch}#${buildNumber}")])
+        script {
+          echo "=== Validating Release Binaries ==="
+          echo "Aggregate Release Build: ${env.aggregateReleaseBuild}"
+          echo "Expected Release Version: ${params.releaseVersion}"
+
+          // Parse and validate build information
+          def buildInfo = parseBuildName(env.aggregateReleaseBuild_NAME)
+          echo "Build Version: ${buildInfo.Version}"
+
+          // Validate version consistency
+          if (buildInfo.Version != params.releaseVersion) {
+            error "Version mismatch! Expected ${params.releaseVersion} but aggregate-release build is ${buildInfo.Version}"
+          }
+          echo "✓ Version match confirmed: ${params.releaseVersion}"
+
+          // Validate build completed successfully
+          def buildResult = env.aggregateReleaseBuild_RESULT
+          if (buildResult != 'SUCCESS') {
+            error "Aggregate-release build did not succeed. Build result: ${buildResult}"
+          }
+          echo "✓ Build status verified: ${buildResult}"
+
+          // Output staging URLs for manual verification
+          echo ""
+          echo "=== Staging Artifact URLs ==="
+          echo "Bundle: https://download-staging.sonatype.com/clm/server/nexus-iq-server-${params.releaseVersion}-bundle.tar.gz"
+          echo "CLI: https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${params.releaseVersion}.jar"
+          echo "SBOM URLs: https://repo.sonatype.com/repository/sonatype-sboms/insight-brain/${params.releaseVersion}/"
+          echo ""
+          echo "=== Binary Validation Complete ==="
+          echo "Note: Artifacts will be gathered and validated during deployment stages."
+          echo "      If artifacts are missing or invalid, the deploy job will fail."
+        }
       }
     }
-    stage('Release Jira Version - IQ') {
+    stage('Mark Jira Version as Released') {
       when {
-        expression { !params.skipReleaseJiraVersion }
+        expression { !params.skipMarkJiraVersionReleased }
       }
       steps {
-        build(job: 'insight/insight-brain/Release JIRA Version',
-              parameters: [string(name: 'releaseVersion', value: env.minorVersion)])
+        script {
+          updateJiraVersionReleaseStatus('selfhosted', env.minorVersion, true)
+        }
       }
     }
     stage('Deploy Binaries to Staging') { // Jenkinsfile.deploy
@@ -114,7 +117,7 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Staging'),
-                            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+                            run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
@@ -124,7 +127,7 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Production'),
-                            run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+                            run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Create Product Notification') {
@@ -169,7 +172,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/slim-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+              parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Publish Alpine Docker Image') {
@@ -178,7 +181,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/alpine-image/release',
-            parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+            parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Publish RedHat Docker Image to quay.io') {
@@ -189,7 +192,7 @@ pipeline {
         build(job: 'insight/insight-brain/docker/redhat-image/release',
             parameters: [
                 string(name: 'tag', value: "${params.releaseVersion.split('-')[0]}-ubi-1"),
-                run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")
+                run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)
             ])
       }
     }
@@ -199,7 +202,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',
-              parameters: [run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+              parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Publish CloudFormation Templates') {
@@ -208,7 +211,7 @@ pipeline {
       }
       steps {
         build(job: 'integrations/cloud/nexus-iq-ha-reference',
-              parameters: [ run(name: 'releaseBuild', runId: "insight/insight-brain/release#${getReleaseBuildNumber('insight/insight-brain/release', params.releaseVersion, buildNumber)}")])
+              parameters: [ run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
       }
     }
     stage('Send Release Complete Notifications') {

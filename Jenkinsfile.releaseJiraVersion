@@ -25,9 +25,9 @@ pipeline {
     buildDiscarder(logRotator(numToKeepStr: '10'))
   }
   stages {
-    stage('Release JIRA Version') {
+    stage('Mark JIRA Version as Released') {
       steps {
-        releaseJiraVersion('selfhosted', "${params.releaseVersion}")
+        updateJiraVersionReleaseStatus('selfhosted', "${params.releaseVersion}", true)
       }
     }
   }

@@ -91,6 +91,36 @@ pipeline {
       }
     }
 
+    stage('Update Jira fix versions') {
+      steps {
+        script {
+          // Derive RELEASE_VERSION from RELEASE_BRANCH_NAME
+          // e.g., "release-1.199.0" -> minor version "199"
+          def versionMatch = (RELEASE_BRANCH_NAME =~ /release-(\d+\.(\d+)\.\d+)/)
+          if (!versionMatch) {
+            error "Unable to extract version from RELEASE_BRANCH_NAME: ${RELEASE_BRANCH_NAME}. Expected format: release-X.XXX.X (e.g., release-1.199.0)"
+          }
+          def fullVersion = versionMatch[0][1]  // e.g., "1.199.0"
+          def minorVersion = versionMatch[0][2]  // e.g., "199"
+          def releaseVersion = "selfhosted-${minorVersion}"
+          echo "Derived RELEASE_VERSION: ${releaseVersion} (minor: ${minorVersion}) from RELEASE_BRANCH_NAME: ${RELEASE_BRANCH_NAME}"
+
+          // Create the Jira version (unreleased) before updating issues
+          echo "Creating unreleased Jira version: ${releaseVersion}"
+          releaseJiraVersion('selfhosted', minorVersion, false)
+
+          List<String> issues = []
+          issues.addAll(getIssuesByFixVersion('CLM', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('SDEV', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('INT', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('NEXUS', 'selfhosted-next'))
+          issues.addAll(getIssuesByFixVersion('SBOM', 'selfhosted-next'))
+
+          replaceFixVersionForIssues(issues, 'selfhosted-next', [releaseVersion])
+        }
+      }
+    }
+
     stage('Push release branch') {
       steps {
         sshagent(credentials: [sonatypeZionCredentialsId()]) {
@@ -107,6 +137,20 @@ pipeline {
         sshagent(credentials: [sonatypeZionCredentialsId()]) {
           runSafely "git checkout ${DEFAULT_BRANCH} && git pull --rebase"
           runSafely "git push -u origin ${DEFAULT_BRANCH}"
+        }
+      }
+    }
+
+    stage('Trigger validation build') {
+      steps {
+        script {
+          echo "Triggering validation build for release branch: ${RELEASE_BRANCH_NAME}"
+          // Trigger the specific branch job in the multibranch pipeline
+          // Multibranch jobs are accessed as: job-name/branch-name
+          build(
+            job: "insight/insight-brain/feature-snapshots/${RELEASE_BRANCH_NAME}",
+            wait: true
+          )
         }
       }
     }

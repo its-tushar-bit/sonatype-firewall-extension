@@ -6,7 +6,15 @@
 import React, { useEffect, useCallback } from 'react';
 import PropTypes from 'prop-types';
 import { useDispatch, useSelector } from 'react-redux';
-import { NxLoadWrapper, NxInfoAlert, NxH2, NxTextLink, NxTree, NxTile } from '@sonatype/react-shared-components';
+import {
+  NxLoadWrapper,
+  NxInfoAlert,
+  NxWarningAlert,
+  NxH2,
+  NxTextLink,
+  NxTree,
+  NxTile,
+} from '@sonatype/react-shared-components';
 
 import { actions } from './originalBomViewerSlice';
 import {
@@ -16,13 +24,14 @@ import {
   selectOpenNodes,
   selectNodeChildren,
   selectVisibleCounts,
+  selectComponentNotFound,
 } from './originalBomViewerSelectors';
 import TreeNodeItems from './components/TreeNodeItems';
 import { HELP_URL, BATCH_SIZE } from './utils/constants';
 
 import './OriginalBomViewer.scss';
 
-export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
+export default function OriginalBomViewer({ internalAppId, sbomVersion, componentPurl }) {
   const dispatch = useDispatch();
 
   const loading = useSelector(selectLoading);
@@ -31,12 +40,13 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
   const openNodes = useSelector(selectOpenNodes);
   const nodeChildren = useSelector(selectNodeChildren);
   const visibleCounts = useSelector(selectVisibleCounts);
+  const componentNotFound = useSelector(selectComponentNotFound);
 
   const loadOriginalBom = useCallback(() => {
     if (internalAppId && sbomVersion) {
-      dispatch(actions.fetchOriginalBom({ internalAppId, sbomVersion }));
+      dispatch(actions.fetchOriginalBom({ internalAppId, sbomVersion, componentPurl }));
     }
-  }, [dispatch, internalAppId, sbomVersion]);
+  }, [dispatch, internalAppId, sbomVersion, componentPurl]);
 
   useEffect(() => {
     loadOriginalBom();
@@ -55,12 +65,24 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
       <NxLoadWrapper loading={loading} error={error} retryHandler={loadOriginalBom}>
         <NxH2>Original Bill of Material Data</NxH2>
 
+        {componentNotFound && (
+          <NxWarningAlert className="iq-original-bom-viewer__warning">
+            The selected component was not found in the SBOM. Displaying the complete SBOM instead.
+          </NxWarningAlert>
+        )}
+
         <NxInfoAlert className="iq-original-bom-viewer__info">
-          This view displays complete original bill of material data for reference only. To learn how to update this
-          information, see{' '}
-          <NxTextLink href={HELP_URL} external>
-            help and documentation
-          </NxTextLink>
+          {componentPurl && !componentNotFound ? (
+            'Showing original bill of material data for the selected component only.'
+          ) : (
+            <>
+              This view displays complete original bill of material data for reference only. To learn how to update this
+              information, see{' '}
+              <NxTextLink href={HELP_URL} external>
+                help and documentation
+              </NxTextLink>
+            </>
+          )}
         </NxInfoAlert>
 
         <NxTile>
@@ -84,4 +106,5 @@ export default function OriginalBomViewer({ internalAppId, sbomVersion }) {
 OriginalBomViewer.propTypes = {
   internalAppId: PropTypes.string.isRequired,
   sbomVersion: PropTypes.string.isRequired,
+  componentPurl: PropTypes.string,
 };

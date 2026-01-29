@@ -169,8 +169,9 @@ public class ComponentDetailsPageTest
     refreshOrOpen(SbomManagerComponentDetailsPage.url(testApplication.getPublicId(), thirdPartySbomMetadata
         .getSbomVersion(), thirdPartyFileCoordinate.getHash()));
 
-    sbomManagerComponentDetailsPage.tabs().shouldHave(size(1));
+    sbomManagerComponentDetailsPage.tabs().shouldHave(size(2));
     sbomManagerComponentDetailsPage.tabs().get(0).shouldHave(text("Vulnerability"));
+    sbomManagerComponentDetailsPage.tabs().get(1).shouldHave(text("Original BOM"));
   }
 
   @Test

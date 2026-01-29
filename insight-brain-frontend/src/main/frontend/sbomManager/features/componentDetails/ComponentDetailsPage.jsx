@@ -67,6 +67,7 @@ import MenuBarStatefulBreadcrumb from 'MainRoot/mainHeader/MenuBar/MenuBarStatef
 import { isNilOrEmpty } from 'MainRoot/util/jsUtil';
 import { ComponentDetailsFooter } from 'MainRoot/componentDetails/ComponentDetailsFooter';
 import { useRouterState } from 'MainRoot/react/RouterStateContext';
+import OriginalBomViewer from 'MainRoot/sbomManager/features/billOfMaterials/originalBom/OriginalBomViewer';
 
 export default function ComponentDetailsPage() {
   const dispatch = useDispatch();
@@ -355,6 +356,7 @@ export default function ComponentDetailsPage() {
                   <NxTabList>
                     <NxTab>Vulnerability</NxTab>
                     {isSbomPoliciesSupported && <NxTab>Policy Violations</NxTab>}
+                    <NxTab>Original BOM</NxTab>
                   </NxTabList>
                   <NxTabPanel>
                     <VulnerabilitiesTile
@@ -390,6 +392,13 @@ export default function ComponentDetailsPage() {
                       <PolicyViolationsTile applicationPublicId={applicationPublicId} sbomVersion={sbomVersion} />
                     </NxTabPanel>
                   )}
+                  <NxTabPanel>
+                    <OriginalBomViewer
+                      internalAppId={internalAppId}
+                      sbomVersion={sbomVersion}
+                      componentPurl={componentDetails?.packageUrl}
+                    />
+                  </NxTabPanel>
                 </NxTabs>
               </div>
             )}

@@ -59,6 +59,51 @@ export const parseXmlToTree = (xmlString) => {
   }
 };
 
+// Find and extract a specific component by PURL from SBOM XML
+// Supports both CycloneDX (component tags) and SPDX (packages tags)
+export const findComponentInXml = (xmlDoc, componentPurl) => {
+  if (!componentPurl || !xmlDoc) return null;
+
+  try {
+    // Search for component elements (CycloneDX format) - check purl child element
+    const purlElements = xmlDoc.getElementsByTagName('purl');
+    for (let i = 0; i < purlElements.length; i++) {
+      const purl = purlElements[i].textContent?.trim();
+      if (purl === componentPurl && purlElements[i].parentNode?.nodeName === 'component') {
+        return createXmlElementNode(purlElements[i].parentNode, '');
+      }
+    }
+
+    // Search for packages elements (SPDX format) - check externalRefs/referenceLocator
+    const refLocators = xmlDoc.getElementsByTagName('referenceLocator');
+    for (let i = 0; i < refLocators.length; i++) {
+      const locator = refLocators[i].textContent?.trim();
+      if (locator === componentPurl) {
+        // Verify this is a purl type reference
+        const externalRef = refLocators[i].parentNode;
+        if (externalRef) {
+          const refTypeEl = externalRef.querySelector('referenceType');
+          if (refTypeEl?.textContent?.trim() === 'purl') {
+            // Navigate up to find the package element
+            let node = externalRef.parentNode;
+            while (node && node.nodeName !== 'packages') {
+              node = node.parentNode;
+            }
+            if (node) {
+              return createXmlElementNode(node, '');
+            }
+          }
+        }
+      }
+    }
+
+    return null;
+  } catch (e) {
+    console.error('Error finding component in XML:', e);
+    return null;
+  }
+};
+
 const createAttributeNode = (attr, parentPath) => ({
   id: `${parentPath}@${attr.name}`,
   name: `@${attr.name}`,

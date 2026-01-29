@@ -10,3 +10,4 @@ export const selectTreeData = (state) => state.originalBomViewer.treeData;
 export const selectOpenNodes = (state) => state.originalBomViewer.openNodes;
 export const selectNodeChildren = (state) => state.originalBomViewer.nodeChildren;
 export const selectVisibleCounts = (state) => state.originalBomViewer.visibleCounts;
+export const selectComponentNotFound = (state) => state.originalBomViewer.componentNotFound;

@@ -11,8 +11,8 @@ import { UI_ROUTER_ON_FINISH } from 'MainRoot/reduxUiRouter/routerActions';
 import { getDownloadSbomFileUrl } from 'MainRoot/util/CLMLocation';
 
 import { processRawDataToTree } from './utils/treeDataUtils';
-import { expandJsonChildren } from './utils/jsonTreeUtils';
-import { expandXmlChildren } from './utils/xmlTreeUtils';
+import { expandJsonChildren, findComponentInJson } from './utils/jsonTreeUtils';
+import { expandXmlChildren, findComponentInXml, isXmlContent } from './utils/xmlTreeUtils';
 
 const REDUCER_NAME = 'originalBomViewer';
 
@@ -23,6 +23,7 @@ export const initialState = Object.freeze({
   openNodes: {},
   nodeChildren: {},
   visibleCounts: {},
+  componentNotFound: false,
 });
 
 const fetchOriginalBomRequested = (state) => {
@@ -35,6 +36,7 @@ const fetchOriginalBomFulfilled = (state, { payload }) => {
   state.treeData = payload.treeData;
   state.openNodes = payload.openNodes;
   state.nodeChildren = payload.nodeChildren;
+  state.componentNotFound = payload.componentNotFound || false;
 };
 
 const fetchOriginalBomFailed = (state, { payload }) => {
@@ -44,9 +46,47 @@ const fetchOriginalBomFailed = (state, { payload }) => {
 
 const fetchOriginalBom = createAsyncThunk(
   `${REDUCER_NAME}/fetchOriginalBom`,
-  async ({ internalAppId, sbomVersion }, { rejectWithValue }) => {
+  async ({ internalAppId, sbomVersion, componentPurl }, { rejectWithValue }) => {
     try {
       const response = await axios.get(getDownloadSbomFileUrl(internalAppId, sbomVersion));
+
+      // If componentPurl is provided, filter to show only that component
+      if (componentPurl) {
+        let componentNode = null;
+
+        // Check if it's XML
+        if (typeof response.data === 'string' && isXmlContent(response.data)) {
+          const parser = new DOMParser();
+          const xmlDoc = parser.parseFromString(response.data, 'text/xml');
+          componentNode = findComponentInXml(xmlDoc, componentPurl);
+        } else {
+          // It's JSON
+          componentNode = findComponentInJson(response.data, componentPurl);
+        }
+
+        if (componentNode) {
+          // Return only the filtered component
+          const componentId = componentNode.id;
+          let componentChildren = null;
+
+          if (componentNode.xmlNode) {
+            componentChildren = expandXmlChildren(componentNode.xmlNode, componentId);
+          } else if (componentNode.rawData) {
+            componentChildren = expandJsonChildren(componentNode.rawData, componentId);
+          }
+
+          return {
+            treeData: [componentNode],
+            openNodes: { [componentId]: true },
+            nodeChildren: componentChildren ? { [componentId]: componentChildren } : {},
+            componentNotFound: false,
+          };
+        } else {
+          // Component not found in SBOM - fall back to full tree
+        }
+      }
+
+      // No filter or component not found - show full tree
       const processed = processRawDataToTree(response.data);
 
       const rootNode = processed.treeData[0];
@@ -57,6 +97,7 @@ const fetchOriginalBom = createAsyncThunk(
           treeData: processed.treeData,
           openNodes: {},
           nodeChildren: {},
+          componentNotFound: !!componentPurl,
         };
       }
 
@@ -74,6 +115,7 @@ const fetchOriginalBom = createAsyncThunk(
         treeData: processed.treeData,
         openNodes: { [rootId]: true },
         nodeChildren: rootChildren ? { [rootId]: rootChildren } : {},
+        componentNotFound: !!componentPurl,
       };
     } catch (err) {
       return rejectWithValue(err);

@@ -57,7 +57,7 @@ export default function TreeNodeItems({
         const isLastVisible = index === visibleNodes.length - 1;
 
         // Node has children if either: 1) children are already loaded, or 2) node has data that can be expanded
-        const hasChildren = (children && children.length > 0) || node.rawData || node.xmlNode;
+        const hasChildren = !!((children && children.length > 0) || node.rawData || node.xmlNode);
         const icon = hasChildren ? (isOpen ? faFolderOpen : faFolder) : faFile;
 
         // Calculate child count: use loaded children if available, otherwise calculate from rawData/xmlNode

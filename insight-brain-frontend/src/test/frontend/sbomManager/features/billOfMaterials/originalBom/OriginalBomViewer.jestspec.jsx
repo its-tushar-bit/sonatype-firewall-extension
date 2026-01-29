@@ -214,6 +214,45 @@ describe('OriginalBomViewer', () => {
       const versionNode = screen.getByText('version').closest('.nx-tree__item-label');
       expect(within(versionNode).getByText('1')).toBeInTheDocument();
     });
+
+    it('drills into child elements when node is expanded', async () => {
+      const user = userEvent.setup();
+      axiosMock.onGet(getDownloadSbomFileUrl(internalAppId, sbomVersion)).reply(200, mockJsonSbom);
+
+      render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+
+      // Wait for initial render
+      await waitFor(() => {
+        expect(screen.getByText('metadata')).toBeInTheDocument();
+      });
+
+      // Verify metadata node shows it has children with count
+      const metadataLabel = screen.getByText('metadata').closest('.nx-tree__item-label');
+      expect(within(metadataLabel).getByText(/\{2\}/)).toBeInTheDocument();
+
+      // Children should not be visible initially
+      expect(screen.queryByText('timestamp')).not.toBeInTheDocument();
+      expect(screen.queryByText('component')).not.toBeInTheDocument();
+
+      // Click on the collapse icon (SVG rect) to expand the metadata node
+      const metadataItem = screen.getByText('metadata').closest('.nx-tree__item');
+      const collapseIcon = metadataItem.querySelector('.nx-tree__collapse-click');
+      await user.click(collapseIcon);
+
+      // Children should now be visible after expansion
+      await waitFor(() => {
+        expect(screen.getByText('timestamp')).toBeInTheDocument();
+        expect(screen.getByText('component')).toBeInTheDocument();
+      });
+
+      // Verify child values are displayed correctly
+      const timestampLabel = screen.getByText('timestamp').closest('.nx-tree__item-label');
+      expect(within(timestampLabel).getByText('2024-01-12T10:00:00Z')).toBeInTheDocument();
+
+      // Component should be expandable (has children with count)
+      const componentLabel = screen.getByText('component').closest('.nx-tree__item-label');
+      expect(within(componentLabel).getByText(/\{3\}/)).toBeInTheDocument();
+    });
   });
 
   // TODO: Fix XML tests - parser or mock setup issue
@@ -336,6 +375,289 @@ describe('OriginalBomViewer', () => {
       const helpLink = screen.getByText('help and documentation').closest('a');
       expect(helpLink).toHaveAttribute('href');
       expect(helpLink).toHaveAttribute('target', '_blank');
+    });
+  });
+
+  describe('SBOM Format Comprehensive Support', () => {
+    // Test data for all supported SBOM formats
+    const cycloneDxJson15 = {
+      bomFormat: 'CycloneDX',
+      specVersion: '1.5',
+      version: 1,
+      components: [{ type: 'library', name: 'test-component', version: '1.0.0', purl: 'pkg:npm/test-component@1.0.0' }],
+    };
+
+    const cycloneDxXml15 = `<?xml version="1.0"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.5" version="1">
+  <components>
+    <component type="library">
+      <name>test-component</name>
+      <version>1.0.0</version>
+      <purl>pkg:npm/test-component@1.0.0</purl>
+    </component>
+  </components>
+</bom>`;
+
+    const cycloneDxJson16 = {
+      bomFormat: 'CycloneDX',
+      specVersion: '1.6',
+      version: 1,
+      components: [{ type: 'library', name: 'test-component', version: '1.0.0', purl: 'pkg:npm/test-component@1.0.0' }],
+    };
+
+    const cycloneDxXml16 = `<?xml version="1.0"?>
+<bom xmlns="http://cyclonedx.org/schema/bom/1.6" version="1">
+  <components>
+    <component type="library">
+      <name>test-component</name>
+      <version>1.0.0</version>
+      <purl>pkg:npm/test-component@1.0.0</purl>
+    </component>
+  </components>
+</bom>`;
+
+    const spdxJson22 = {
+      SPDXID: 'SPDXRef-DOCUMENT',
+      spdxVersion: 'SPDX-2.2',
+      creationInfo: { created: '2023-01-01T00:00:00Z', creators: ['Tool: Test'] },
+      name: 'Test',
+      dataLicense: 'CC0-1.0',
+      documentNamespace: 'http://example.com/test',
+      packages: [
+        {
+          SPDXID: 'SPDXRef-Package',
+          name: 'test-pkg',
+          versionInfo: '1.0.0',
+          downloadLocation: 'NOASSERTION',
+          filesAnalyzed: false,
+          externalRefs: [
+            { referenceCategory: 'PACKAGE-MANAGER', referenceType: 'purl', referenceLocator: 'pkg:npm/test-pkg@1.0.0' },
+          ],
+        },
+      ],
+    };
+
+    const spdxXml22 = `<?xml version="1.0"?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.2</spdxVersion>
+  <creationInfo><created>2023-01-01T00:00:00Z</created><creators>Tool: Test</creators></creationInfo>
+  <name>Test</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://example.com/test</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-Package</SPDXID>
+    <name>test-pkg</name>
+    <versionInfo>1.0.0</versionInfo>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceType>purl</referenceType>
+      <referenceLocator>pkg:npm/test-pkg@1.0.0</referenceLocator>
+    </externalRefs>
+  </packages>
+</Document>`;
+
+    const spdxJson23 = {
+      SPDXID: 'SPDXRef-DOCUMENT',
+      spdxVersion: 'SPDX-2.3',
+      creationInfo: { created: '2023-01-01T00:00:00Z', creators: ['Tool: Test'] },
+      name: 'Test',
+      dataLicense: 'CC0-1.0',
+      documentNamespace: 'http://example.com/test',
+      packages: [
+        {
+          SPDXID: 'SPDXRef-Package',
+          name: 'test-pkg',
+          versionInfo: '1.0.0',
+          downloadLocation: 'NOASSERTION',
+          filesAnalyzed: false,
+          externalRefs: [
+            { referenceCategory: 'PACKAGE-MANAGER', referenceType: 'purl', referenceLocator: 'pkg:npm/test-pkg@1.0.0' },
+          ],
+        },
+      ],
+    };
+
+    const spdxXml23 = `<?xml version="1.0"?>
+<Document>
+  <SPDXID>SPDXRef-DOCUMENT</SPDXID>
+  <spdxVersion>SPDX-2.3</spdxVersion>
+  <creationInfo><created>2023-01-01T00:00:00Z</created><creators>Tool: Test</creators></creationInfo>
+  <name>Test</name>
+  <dataLicense>CC0-1.0</dataLicense>
+  <documentNamespace>http://example.com/test</documentNamespace>
+  <packages>
+    <SPDXID>SPDXRef-Package</SPDXID>
+    <name>test-pkg</name>
+    <versionInfo>1.0.0</versionInfo>
+    <downloadLocation>NOASSERTION</downloadLocation>
+    <filesAnalyzed>false</filesAnalyzed>
+    <externalRefs>
+      <referenceCategory>PACKAGE-MANAGER</referenceCategory>
+      <referenceType>purl</referenceType>
+      <referenceLocator>pkg:npm/test-pkg@1.0.0</referenceLocator>
+    </externalRefs>
+  </packages>
+</Document>`;
+
+    // Helper functions to reduce test duplication
+    const renderAndWaitForElement = async (sbomData, expectedElement) => {
+      axiosMock.onGet(getDownloadSbomFileUrl(internalAppId, sbomVersion)).reply(200, sbomData);
+      render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} />);
+      await waitFor(() => expect(screen.getByText(expectedElement)).toBeInTheDocument());
+    };
+
+    const expectElementsToBePresent = (expectedElements) => {
+      expectedElements.forEach((element) => {
+        expect(screen.getByText(element)).toBeInTheDocument();
+      });
+    };
+
+    const testComponentFiltering = async (sbomData, purl, rootElement, expectedChildren) => {
+      axiosMock.onGet(getDownloadSbomFileUrl(internalAppId, sbomVersion)).reply(200, sbomData);
+      render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} componentPurl={purl} />);
+
+      await waitFor(() =>
+        expect(
+          screen.getByText('Showing original bill of material data for the selected component only.')
+        ).toBeInTheDocument()
+      );
+
+      // Verify root element
+      expect(screen.getByText(rootElement)).toBeInTheDocument();
+
+      // Verify expected children
+      expectElementsToBePresent(expectedChildren);
+    };
+
+    describe('CycloneDX JSON formats', () => {
+      it('renders CycloneDX 1.4 JSON correctly', async () => {
+        await renderAndWaitForElement(mockJsonSbom, 'bomFormat');
+        expectElementsToBePresent(['CycloneDX']);
+      });
+
+      it('renders CycloneDX 1.5 JSON correctly', async () => {
+        await renderAndWaitForElement(cycloneDxJson15, 'bomFormat');
+        expectElementsToBePresent(['components']);
+      });
+
+      it('renders CycloneDX 1.6 JSON correctly', async () => {
+        await renderAndWaitForElement(cycloneDxJson16, 'bomFormat');
+        expectElementsToBePresent(['components']);
+      });
+    });
+
+    describe('CycloneDX XML formats', () => {
+      it('renders CycloneDX 1.4 XML correctly', async () => {
+        await renderAndWaitForElement(mockXmlSbom, 'bom');
+      });
+
+      it('renders CycloneDX 1.5 XML correctly', async () => {
+        await renderAndWaitForElement(cycloneDxXml15, 'bom');
+        expectElementsToBePresent(['components']);
+      });
+
+      it('renders CycloneDX 1.6 XML correctly', async () => {
+        await renderAndWaitForElement(cycloneDxXml16, 'bom');
+        expectElementsToBePresent(['components']);
+      });
+    });
+
+    describe('SPDX JSON formats', () => {
+      it('renders SPDX 2.2 JSON correctly', async () => {
+        await renderAndWaitForElement(spdxJson22, 'SPDXID');
+        expectElementsToBePresent(['spdxVersion', 'packages']);
+      });
+
+      it('renders SPDX 2.3 JSON correctly', async () => {
+        await renderAndWaitForElement(spdxJson23, 'SPDXID');
+        expectElementsToBePresent(['spdxVersion', 'packages']);
+      });
+    });
+
+    describe('SPDX XML formats', () => {
+      it('renders SPDX 2.2 XML correctly', async () => {
+        await renderAndWaitForElement(spdxXml22, 'Document');
+        expectElementsToBePresent(['SPDXID']);
+      });
+
+      it('renders SPDX 2.3 XML correctly', async () => {
+        await renderAndWaitForElement(spdxXml23, 'Document');
+        expectElementsToBePresent(['SPDXID']);
+      });
+    });
+
+    describe('Component filtering across formats', () => {
+      it('filters component in CycloneDX 1.5 JSON', async () => {
+        const purl = 'pkg:npm/test-component@1.0.0';
+        await testComponentFiltering(cycloneDxJson15, purl, 'component', [
+          'type',
+          'library',
+          'name',
+          'test-component',
+          'version',
+          '1.0.0',
+          'purl',
+          purl,
+        ]);
+      });
+
+      it('filters component in CycloneDX 1.6 XML', async () => {
+        const purl = 'pkg:npm/test-component@1.0.0';
+        await testComponentFiltering(cycloneDxXml16, purl, 'component', [
+          '@type',
+          'name',
+          'test-component',
+          'version',
+          '1.0.0',
+          'purl',
+        ]);
+      });
+
+      it('filters component in SPDX 2.3 JSON', async () => {
+        const purl = 'pkg:npm/test-pkg@1.0.0';
+        await testComponentFiltering(spdxJson23, purl, 'package', [
+          'SPDXID',
+          'SPDXRef-Package',
+          'name',
+          'test-pkg',
+          'versionInfo',
+          '1.0.0',
+          'downloadLocation',
+          'NOASSERTION',
+          'filesAnalyzed',
+          'externalRefs',
+        ]);
+      });
+
+      it('filters component in SPDX 2.2 XML', async () => {
+        const purl = 'pkg:npm/test-pkg@1.0.0';
+        await testComponentFiltering(spdxXml22, purl, 'packages', [
+          'SPDXID',
+          'SPDXRef-Package',
+          'name',
+          'test-pkg',
+          'versionInfo',
+          '1.0.0',
+          'downloadLocation',
+          'NOASSERTION',
+          'filesAnalyzed',
+          'externalRefs',
+        ]);
+      });
+
+      it('shows warning when component not found in any format', async () => {
+        const purl = 'pkg:npm/nonexistent@1.0.0';
+        axiosMock.onGet(getDownloadSbomFileUrl(internalAppId, sbomVersion)).reply(200, cycloneDxJson15);
+        render(<OriginalBomViewer internalAppId={internalAppId} sbomVersion={sbomVersion} componentPurl={purl} />);
+        await waitFor(() =>
+          expect(
+            screen.getByText('The selected component was not found in the SBOM. Displaying the complete SBOM instead.')
+          ).toBeInTheDocument()
+        );
+      });
     });
   });
 });

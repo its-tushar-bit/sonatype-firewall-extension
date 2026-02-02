@@ -20,9 +20,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
@@ -69,8 +66,12 @@ import com.sonatype.insight.purl.PackageUrlIdentifier;
 import com.github.packageurl.PackageURLBuilder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.lucene.document.Document;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -418,12 +419,22 @@ public class DocumentBuilderHelper
               }
           ));
     }
-    catch (IOException | NotFoundException e) {
-      log.error(e.getMessage(), e);
-    }
     catch (UncheckedIOException e) {
       log.error("Error parsing report files at {}",
           applicationReport == null ? "Unknown" : applicationReport.getLocation(), e);
+    }
+    catch (IOException | NotFoundException e) {
+      log.error(e.getMessage(), e);
+    }
+    catch (Exception e) {
+      Throwable rootCause = ExceptionUtils.getRootCause(e);
+      if (rootCause instanceof IOException || rootCause instanceof NotFoundException ||
+          rootCause instanceof UncheckedIOException) {
+        log.error(e.getMessage(), e);
+      }
+      else {
+        throw e;
+      }
     }
     return Collections.emptyList();
   }

@@ -75,8 +75,10 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.QueryVisitor;
+import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -846,8 +848,20 @@ public abstract class AbstractSearchIndexClient
     Set<String> alreadyApplied = new HashSet<>();
     for (SearchIndexChange change : searchIndexChanges) {
       if (alreadyApplied.add(change.getChangeType() + "\t" + change.getChangeData())) {
-        updateIndex(change, indexingContext);
-        log.debug("Updated search index with change {}", change);
+        try {
+          updateIndex(change, indexingContext);
+          log.debug("Updated search index with change {}", change);
+        }
+        catch (Exception e) {
+          Throwable rootCause = ExceptionUtils.getRootCause(e);
+          if (rootCause instanceof ParseException) {
+            log.error("Ignoring unrecoverable error updating search index with change {}: {}", change, e.getMessage(),
+                e);
+          }
+          else {
+            throw e;
+          }
+        }
       }
       searchIndexChangeDAO.delete(change);
     }

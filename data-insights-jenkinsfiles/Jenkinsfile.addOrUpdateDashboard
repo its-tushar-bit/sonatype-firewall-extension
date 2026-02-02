@@ -74,7 +74,7 @@ pipeline {
 
     choice(
         name: 'category',
-        choices: ['enterprise', 'dataInsight'],
+        choices: ['enterprise', 'dataInsight', 'firewall'],
         description: 'Select the category for the dashboard (Provided by UI/UX Design team). Required field - cannot be cleared.'
     )
 

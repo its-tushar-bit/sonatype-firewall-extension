@@ -167,7 +167,6 @@ public class RepositoryResultsService
     filter.searchFilters = initializeSearchFilterMap(detailsRequest.searchFilters);
     filter.sortFields = detailsRequest.sortFields;
     filter.aggregate = detailsRequest.aggregate;
-    filter.formatExclusionPatterns = Map.of("nuget", List.of("%.json"));
 
     return filter;
   }

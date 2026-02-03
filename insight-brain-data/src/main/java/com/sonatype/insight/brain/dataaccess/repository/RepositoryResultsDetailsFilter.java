@@ -27,8 +27,6 @@ public class RepositoryResultsDetailsFilter
 
   public boolean aggregate;
 
-  public Map<String, List<String>> formatExclusionPatterns;
-
   public static class SortField
   {
     public SortableField sortableField;

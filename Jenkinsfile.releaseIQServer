@@ -117,7 +117,7 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Staging'),
-                            run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+                            run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Deploy Binaries to Production') { // Jenkinsfile.deploy
@@ -127,7 +127,7 @@ pipeline {
       steps {
         build(job: 'insight/insight-brain/deploy',
               parameters: [ string(name: 'environment', value: 'Production'),
-                            run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+                            run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Create Product Notification') {
@@ -172,7 +172,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/slim-image/release',
-              parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+              parameters: [run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Publish Alpine Docker Image') {
@@ -181,7 +181,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/alpine-image/release',
-            parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+            parameters: [run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Publish RedHat Docker Image to quay.io') {
@@ -192,7 +192,7 @@ pipeline {
         build(job: 'insight/insight-brain/docker/redhat-image/release',
             parameters: [
                 string(name: 'tag', value: "${params.releaseVersion.split('-')[0]}-ubi-1"),
-                run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)
+                run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)
             ])
       }
     }
@@ -202,7 +202,7 @@ pipeline {
       }
       steps {
         build(job: 'insight/insight-brain/docker/main-image/release',
-              parameters: [run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+              parameters: [run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Publish CloudFormation Templates') {
@@ -211,7 +211,7 @@ pipeline {
       }
       steps {
         build(job: 'integrations/cloud/nexus-iq-ha-reference',
-              parameters: [ run(name: 'releaseBuild', runId: env.aggregateReleaseBuild)])
+              parameters: [ run(name: 'releaseBuild', runId: params.aggregateReleaseBuild)])
       }
     }
     stage('Send Release Complete Notifications') {

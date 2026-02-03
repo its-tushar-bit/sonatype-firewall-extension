@@ -352,7 +352,8 @@ public class PolicyViolationDAO
       String baseQuery = "SELECT threat_level," + //
           " policy_name as policy," + //
           " app.name as object," + //
-          " open_time as quarantine_time," + //
+          " CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
+          " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END as quarantine_time," + //
           " app.application_id," + //
           " app.public_id" + //
           " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
@@ -363,7 +364,7 @@ public class PolicyViolationDAO
           " ON lpe.policy_evaluation_id = pe.policy_evaluation_id" + //
           ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
           " " + getDatabaseSchema() + ".policy_violation pv" + //
-          " ON app.application_id = pv.application_id" + //
+          " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
           " WHERE related_repository_id IN "
           + buildPositionalParameters(repositoryIds, repositoryIdsParamStartPosition) + //
           " AND pv.fix_time IS NULL";
@@ -443,14 +444,15 @@ public class PolicyViolationDAO
       String baseQuery = "SELECT max(threat_level) as threat_level," + //
               " COUNT(CASE WHEN (threat_level >= 2) THEN 1 END) as violation_count," + //
               " app.name as object," + //
-              " max(CASE WHEN waive_time IS NOT NULL THEN NULL ELSE open_time END) as quarantine_time," + //
+              " max(CASE WHEN pv.waive_time IS NOT NULL THEN NULL" + //
+              " WHEN pv.action_type_id = 'fail' THEN pv.open_time ELSE NULL END) as quarantine_time," + //
               " app.application_id," + //
               " app.public_id" + //
               " FROM " + getDatabaseSchema() + ".organization org JOIN " + getDatabaseSchema() + ".application app" +
               " ON org.organization_id = app.organization_id" + //
               ((hasNonViolatingFilter(detailsFilter.violationStateFilters)) ? " LEFT JOIN" : " INNER JOIN") +
               " " + getDatabaseSchema() + ".policy_violation pv" + //
-              " ON app.application_id = pv.application_id" + //
+              " ON app.application_id = pv.application_id AND pv.stage_type_id = 'proxy'" + //
               " INNER JOIN " + getDatabaseSchema() + ".last_policy_evaluation lpe" + //
               " ON lpe.application_id = app.application_id" + //
               " INNER JOIN " + getDatabaseSchema() + ".policy_evaluation pe" + //

@@ -10,6 +10,8 @@ import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import com.sonatype.insight.brain.model.policy.actions.FailActionType;
 import jakarta.inject.Inject;
 
 import com.sonatype.clm.dto.model.policy.Action;
@@ -391,6 +393,13 @@ public class ApiRepositoryResultsForImageContainerServiceTest
     policyViolation4.setThreatLevel(5);
     policyViolation5.setThreatLevel(10);
     policyViolation6.setThreatLevel(2);
+
+    policyViolation1.setActionTypeId(FailActionType.ID);
+    policyViolation2.setActionTypeId(FailActionType.ID);
+    policyViolation3.setActionTypeId(FailActionType.ID);
+    policyViolation4.setActionTypeId(FailActionType.ID);
+    policyViolation5.setActionTypeId(FailActionType.ID);
+    policyViolation6.setActionTypeId(FailActionType.ID);
 
     policyViolationDAO.update(policyViolation1);
     policyViolationDAO.update(policyViolation2);

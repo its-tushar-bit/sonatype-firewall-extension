@@ -2689,4 +2689,154 @@ public class PolicyViolationDAOTest
         .extracting(r -> r.applicationPublicId)
         .containsExactlyInAnyOrder(app1.getPublicId(), app2.getPublicId());
   }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainer_NullActionTypeId_ReturnsNullQuarantineTime() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1",
+        "Version1");
+    PolicyViolation violation = new PolicyViolation(policyEvaluation1, policy.getId(), policy.getName(), 8,
+        PolicyThreatCategory.OTHER, "hash1", componentIdentifier, List.of(constraintFact), "filename");
+    violation.setActionTypeId(null);
+    dao.insert(violation);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Collections.singleton(app1.getId());
+    RepositoryResultsForImageContainerFilter detailsFilter = getDetailsFilter();
+
+    List<RepositoryResultsForImageContainer> result =
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, detailsFilter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).quarantineTime).isNull();
+  }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainer_OnlyProxyStageIncluded() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Application app2 = tempEntity.newApplication("app2", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation proxyEval = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-proxy");
+    PolicyViolation proxyViolation = tempEntity.newPolicyViolation(proxyEval, policy, 8, PolicyThreatCategory.OTHER,
+        "test-group-id", "test-artifact-id1", "v1", "hash1", FailActionType.ID);
+
+    PolicyEvaluation buildEval = tempEntity.newPolicyEvaluation(app2.getId(), BuildStageType.ID, "scan-build");
+    tempEntity.newPolicyViolation(buildEval, policy, 9, PolicyThreatCategory.OTHER,
+        "test-group-id", "test-artifact-id2", "v1", "hash2", FailActionType.ID);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Arrays.asList(app1.getId(), app2.getId());
+    RepositoryResultsForImageContainerFilter detailsFilter = getDetailsFilter();
+
+    List<RepositoryResultsForImageContainer> result =
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, detailsFilter);
+
+    assertThat(result)
+        .extracting(r -> r.applicationPublicId)
+        .contains(app1.getPublicId());
+
+    RepositoryResultsForImageContainer app1Result = result.stream()
+        .filter(r -> r.applicationPublicId.equals(app1.getPublicId()))
+        .findFirst().get();
+    assertThat(app1Result.violationCount).isEqualTo(1);
+    assertThat(app1Result.quarantineTime).isNotNull();
+    assertThat(app1Result.quarantineTime).isEqualTo(proxyViolation.getOpenTime());
+  }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainer_MixedActions_OnlyFailShowsQuarantine() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+
+    PolicyViolation failViolation = tempEntity.newPolicyViolation(policyEvaluation1, policy, 8,
+        PolicyThreatCategory.OTHER, "group1", "artifact1", "v1", "hash1", FailActionType.ID);
+
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 7,
+        PolicyThreatCategory.OTHER, "group2", "artifact2", "v1", "hash2", "warn");
+
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group3", "Artifact3", "V1");
+    PolicyViolation nullActionViolation = new PolicyViolation(policyEvaluation1, policy.getId(), policy.getName(), 6,
+        PolicyThreatCategory.OTHER, "hash3", componentIdentifier, List.of(constraintFact), "filename");
+    nullActionViolation.setActionTypeId(null);
+    dao.insert(nullActionViolation);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Collections.singleton(app1.getId());
+    RepositoryResultsForImageContainerFilter detailsFilter = getDetailsFilter();
+
+    List<RepositoryResultsForImageContainer> result =
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, detailsFilter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).violationCount).isEqualTo(3);
+    assertThat(result.get(0).quarantineTime).isNotNull();
+    assertThat(result.get(0).quarantineTime).isEqualTo(failViolation.getOpenTime());
+  }
+
+  @Test
+  public void testGetRepositoryResultsForImageContainer_AllWaivedOrNonFail_NullQuarantineTime() {
+    RepositoryManager repoManager = tempEntity.newRepositoryManager();
+    Repository repo1 = tempEntity.newRepository("repo1", repoManager.getId(), "docker");
+    Organization org1 = tempEntity.newOrganization("org1");
+    org1.setRelatedRepositoryId(repo1.getId());
+    organizationDAO.update(org1);
+
+    Application app1 = tempEntity.newApplication("app1", org1.getId());
+    Policy policy = tempEntity.newPolicy(organization);
+
+    PolicyEvaluation policyEvaluation1 = tempEntity.newPolicyEvaluation(app1.getId(), ProxyStageType.ID, "scan-1");
+
+    ConstraintFact constraintFact = new ConstraintFact("constraintdata", "constraintdata", "constraintdata");
+    ComponentIdentifier componentIdentifier = ComponentIdentifier.createMavenCoordinates("Group1", "Artifact1", "V1");
+    PolicyViolation waivedFailViolation = new PolicyViolation(policyEvaluation1, policy.getId(), policy.getName(), 8,
+        PolicyThreatCategory.OTHER, "hash1", componentIdentifier, List.of(constraintFact), "filename");
+    waivedFailViolation.setActionTypeId(FailActionType.ID);
+    waivedFailViolation.setWaiveTime(new Date());
+    dao.insert(waivedFailViolation);
+
+    tempEntity.newPolicyViolation(policyEvaluation1, policy, 7,
+        PolicyThreatCategory.OTHER, "group2", "artifact2", "v1", "hash2", "warn");
+
+    PolicyViolation nullActionViolation = new PolicyViolation(policyEvaluation1, policy.getId(), policy.getName(), 6,
+        PolicyThreatCategory.OTHER, "hash3", componentIdentifier, List.of(constraintFact), "filename");
+    nullActionViolation.setActionTypeId(null);
+    dao.insert(nullActionViolation);
+
+    Collection<String> repoId = Collections.singleton(repo1.getId());
+    Collection<String> applicationIds = Collections.singleton(app1.getId());
+    RepositoryResultsForImageContainerFilter detailsFilter = getDetailsFilter();
+
+    List<RepositoryResultsForImageContainer> result =
+        dao.getRepositoryResultsForImageContainerAggregate(repoId, applicationIds, detailsFilter);
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).quarantineTime).isNull();
+  }
 }

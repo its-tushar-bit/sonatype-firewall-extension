@@ -5867,7 +5867,7 @@ public class ScanPolicyEvaluatorTest
     // Verify we have audit telemetry for the unchanged violations
     assertThat(telemetryDataList).isNotEmpty();
 
-    // Verify the telemetry contains policy constraints
+    // Verify the telemetry contains policy constraints and policy_violation_id
     for (TelemetryData telemetryData : telemetryDataList) {
       assertThat(telemetryData.getAttributes()).containsKey(PolicyViolationTelemetryCollector.POLICY_CONSTRAINTS);
       List<Constraint> constraints = (List<Constraint>) telemetryData.getAttributes()
@@ -5878,6 +5878,13 @@ public class ScanPolicyEvaluatorTest
       for (Constraint c : constraints) {
         assertThat(c.getConditions()).isNotEmpty();
       }
+
+      // Verify policy_violation_id is not null (regression test for bug fix)
+      String policyViolationId = (String) telemetryData.getAttributes()
+          .get(PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID);
+      assertThat(policyViolationId)
+          .as("policy_violation_id must not be null for audit telemetry")
+          .isNotNull();
     }
   }
 
@@ -6049,6 +6056,61 @@ public class ScanPolicyEvaluatorTest
     // Both should have constraint data
     assertThat(regularConstraints).isNotEmpty();
     assertThat(auditConstraints).isNotEmpty();
+  }
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testEvaluate_AuditTelemetryContainsPolicyViolationId() throws Exception {
+    // Given: A policy that will trigger violations
+    Stage stage = new Stage(Stage.ID_BUILD);
+    newSecurityPolicy();
+    String scanId = simulateReportIsAvailable("report");
+
+    // When: Running first evaluation to create violations
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Get the created policy violation IDs from database
+    List<PolicyViolation> createdViolations = policyViolationDAO.getByApplicationId(application.getId());
+    assertThat(createdViolations).isNotEmpty();
+
+    ArgumentCaptor<List<TelemetryData>> telemetryDataArgumentCaptor = ArgumentCaptor.forClass(List.class);
+    clearInvocations(mockTelemetrySender);
+
+    // When: Running second evaluation (unchanged violations should trigger audit telemetry)
+    scanPolicyEvaluator.evaluate(application, scanId, stage, ScanTriggerType.CLI,
+        ClientScanType.SONATYPE, false);
+
+    // Then: Verify CONDITION_TYPE_VIOLATION_AUDIT telemetry contains policy_violation_id
+    verify(mockTelemetrySender).send(telemetryDataArgumentCaptor.capture());
+    List<TelemetryData> auditTelemetryList = telemetryDataArgumentCaptor
+        .getValue()
+        .stream()
+        .filter(telemetryData -> telemetryData.getPurpose().equals(TelemetryPurpose.CONDITION_TYPE_VIOLATION_AUDIT))
+        .toList();
+
+    // Verify audit telemetry was collected
+    assertThat(auditTelemetryList).isNotEmpty();
+
+    // CRITICAL: Verify each audit telemetry entry has a valid policy_violation_id from database
+    Set<String> dbViolationIds = createdViolations.stream()
+        .map(PolicyViolation::getId)
+        .collect(toSet());
+
+    for (TelemetryData telemetryData : auditTelemetryList) {
+      String policyViolationId = (String) telemetryData.getAttributes()
+          .get(PolicyViolationTelemetryCollector.POLICY_VIOLATION_ID);
+
+      // Verify policy_violation_id is not null (this was the bug - it was null before fix)
+      assertThat(policyViolationId)
+          .as("policy_violation_id must not be null for CONDITION_TYPE_VIOLATION_AUDIT telemetry")
+          .isNotNull();
+
+      // Verify policy_violation_id matches one of the database IDs
+      assertThat(dbViolationIds)
+          .as("policy_violation_id must match an existing violation ID from database")
+          .contains(policyViolationId);
+    }
   }
 
   /**

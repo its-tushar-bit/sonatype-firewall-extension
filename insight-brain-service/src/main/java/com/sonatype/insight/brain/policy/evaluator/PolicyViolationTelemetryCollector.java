@@ -334,7 +334,10 @@ public class PolicyViolationTelemetryCollector
 
   public Condition formatConditionForTelemetryData(ConditionFact conditionFact, String constraintFactOperatorName) {
     Condition condition = new Condition(conditionFact.getConditionTypeId(), constraintFactOperatorName);
-    condition.setConditionIndex(conditionFact.getConditionIndex());
+    // conditionIndex may be null for violations created before trigger data feature was added
+    if (conditionFact.getConditionIndex() != null) {
+      condition.setConditionIndex(conditionFact.getConditionIndex());
+    }
     TriggerReference conditionTriggerReference = conditionFact.getReference();
     if (conditionTriggerReference != null) {
       condition.setValue(conditionTriggerReference.getValue());

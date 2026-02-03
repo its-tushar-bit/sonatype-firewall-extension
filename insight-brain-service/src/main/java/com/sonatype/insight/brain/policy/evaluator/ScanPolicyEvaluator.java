@@ -759,7 +759,7 @@ public class ScanPolicyEvaluator
           existing.add(oldPolicyViolation);
           PolicyViolation newPolicyViolation = entry.getValue();
 
-          recordConditionTypeViolationAuditTelemetry(telemetryCollector, newPolicyViolation, components);
+          recordConditionTypeViolationAuditTelemetry(telemetryCollector, oldPolicyViolation, components);
 
           if (!newPolicyViolation.isWaived() && oldPolicyViolation.isWaived()) {
             // The policy violation was un-waived or un-auto-waived
@@ -1003,22 +1003,22 @@ public class ScanPolicyEvaluator
    * Records audit telemetry for existing condition type violations that remain unchanged.
    *
    * @param telemetryCollector Collector for adding telemetry.
-   * @param newPolicyViolation Current representation of the policy violation.
+   * @param policyViolation Existing policy violation from database (must have an ID).
    * @param components List of components to search for associated component.
    */
   private void recordConditionTypeViolationAuditTelemetry(
       final PolicyViolationTelemetryCollector telemetryCollector,
-      final PolicyViolation newPolicyViolation,
+      final PolicyViolation policyViolation,
       final List<Component> components)
   {
     List<Component> foundComponents = findComponentsByComponentIdentifierElseVersionless(components,
-        newPolicyViolation.getComponentIdentifier());
+        policyViolation.getComponentIdentifier());
 
     List<Constraint> policyViolationTelemetryConstraints =
-        buildConditionTypeViolationTelemetryConstraints(telemetryCollector, newPolicyViolation);
+        buildConditionTypeViolationTelemetryConstraints(telemetryCollector, policyViolation);
 
     telemetryCollector.addTelemetryForConditionTypeViolationAudit(
-        newPolicyViolation,
+        policyViolation,
         foundComponents,
         policyViolationTelemetryConstraints);
   }

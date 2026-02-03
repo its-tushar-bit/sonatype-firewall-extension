@@ -10,10 +10,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -42,6 +40,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 import com.sonatype.insight.error.exception.ConflictException;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -99,8 +99,8 @@ public class LuceneSearchIndexClient
       final ConversionHelper conversionHelper,
       final ShutdownHandler shutdownHandler)
   {
-    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
-        thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
+    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+        tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper,
         shutdownHandler);
     this.insightWork = insightWork;
@@ -140,14 +140,17 @@ public class LuceneSearchIndexClient
   }
 
   @Override
-  public void updateIndex() {
-    List<SearchIndexChange> searchIndexChanges = getSearchIndexChanges();
+  public void updateIndex(
+      final List<SearchIndexChange> searchIndexChanges,
+      final Consumer<SearchIndexChange> deletionCallback)
+  {
     if (searchIndexChanges.isEmpty()) {
       return;
     }
     try (Directory directory = luceneComponents.openSearchIndex(false);
          IndexWriter indexWriter = newIndexWriter(directory, OpenMode.CREATE_OR_APPEND)) {
-      processSearchIndexChanges(searchIndexChanges, new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper));
+      processSearchIndexChanges(searchIndexChanges, new LuceneIndexingContext(ownerDAO, indexWriter, conversionHelper),
+          deletionCallback);
     }
     catch (Exception e) {
       throw new SearchIndexException("Error updating the search index", e);

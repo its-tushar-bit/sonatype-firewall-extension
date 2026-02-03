@@ -61,6 +61,9 @@ public class MultiTenantTaskSchedulerTest
   private QuartzTriggerListener mockQuartzTriggerListener;
 
   @Mock
+  private QuartzConcurrencyListener mockQuartzConcurrencyListener;
+
+  @Mock
   private TenantContextJobListener mockTenantContextJobListener;
 
   @Mock
@@ -88,6 +91,7 @@ public class MultiTenantTaskSchedulerTest
   @Before
   public void setup() {
     when(mockQuartzTriggerListener.getName()).thenReturn("mockQuartzTriggerListener");
+    when(mockQuartzConcurrencyListener.getName()).thenReturn("mockQuartzConcurrencyListener");
     when(mockTenantContextJobListener.getName()).thenReturn("mockTenantContextJobListener");
     when(mockTenantManager.areTenantsPreRegistered()).thenReturn(true);
     spyTenantUtil = spy(new TenantUtil());
@@ -97,6 +101,7 @@ public class MultiTenantTaskSchedulerTest
             mockJobFactory,
             testName.getMethodName(),
             mockQuartzTriggerListener,
+            mockQuartzConcurrencyListener,
             () -> mockTenantContextJobListener,
             mockSystemConfigurationPropertyDAO,
             () -> mockTenantManager,

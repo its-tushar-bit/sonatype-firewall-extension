@@ -13,6 +13,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
 
 @Entity
 @Table(name = "search_index_change")
@@ -46,6 +47,9 @@ public class SearchIndexChange
 
   @Column(name = "change_data")
   private String changeData;
+
+  @Transient
+  private boolean processed;
 
   public SearchIndexChange() {
   }
@@ -84,5 +88,13 @@ public class SearchIndexChange
   @Override
   public String toString() {
     return getChangeType() + "/" + getChangeData();
+  }
+
+  public boolean isProcessed() {
+    return processed;
+  }
+
+  public void setProcessed(final boolean processed) {
+    this.processed = processed;
   }
 }

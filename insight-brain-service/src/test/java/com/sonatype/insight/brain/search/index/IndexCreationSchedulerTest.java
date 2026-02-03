@@ -5,12 +5,11 @@
  */
 package com.sonatype.insight.brain.search.index;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.security.MDCUsernameScope;
 import com.sonatype.insight.brain.service.AbstractComponentTest;
 
 import com.google.inject.Binder;
+import jakarta.inject.Inject;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.slf4j.MDC;

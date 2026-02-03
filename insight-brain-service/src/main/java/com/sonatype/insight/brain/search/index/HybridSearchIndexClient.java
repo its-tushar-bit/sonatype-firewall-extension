@@ -7,13 +7,14 @@ package com.sonatype.insight.brain.search.index;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+
+import com.sonatype.insight.brain.model.SearchIndexChange;
+import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-
-import com.sonatype.insight.brain.search.results.SearchResultDTO;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.vyarus.dropwizard.guice.module.installer.scanner.InvisibleForScanner;
@@ -103,29 +104,79 @@ public class HybridSearchIndexClient
   /**
    * Updates the index on both clients if neither is currently re-indexing.
    * If either client is re-indexing, the update is skipped to avoid processing the same changes twice.
+   * <p>
+   * We pass a no-op deletion callback to the delegate clients to prevent them from deleting
+   * SearchIndexChanges during their updateIndex() calls. Instead, we delete the changes here
+   * after both clients have successfully processed them.
+   * <p>
+   * If both clients fail to process changes, the changes will be retried on the next updateIndex() call.
+   * To prevent unbounded accumulation, we limit the number of pending changes and delete excess if needed.
    */
   @Override
-  public void updateIndex() {
+  public void updateIndex(
+      final List<SearchIndexChange> searchIndexChanges,
+      final Consumer<SearchIndexChange> deletionCallback)
+  {
     // Skip updates if either client is performing a full re-index
     if (primaryReindexing.get() || secondaryReindexing.get()) {
-      log.debug("Skipping incremental update - reindexing in progress (primary: {}, secondary: {})",
-          primaryReindexing.get(), secondaryReindexing.get());
       return;
     }
 
-    // Update both clients to keep them in sync
+    if (searchIndexChanges.isEmpty()) {
+      return;
+    }
+
+    // Pass a no-op callback to prevent the delegates from deleting changes
     try {
-      primaryClient.updateIndex();
+      primaryClient.updateIndex(searchIndexChanges, change -> {
+      });
     }
     catch (Exception e) {
       log.warn("Failed to update primary client index, continuing with secondary", e);
     }
 
     try {
-      secondaryClient.updateIndex();
+      secondaryClient.updateIndex(searchIndexChanges, change -> {
+      });
     }
     catch (Exception e) {
       log.warn("Failed to update secondary client index", e);
+    }
+
+    try {
+      for (SearchIndexChange searchIndexChange : searchIndexChanges) {
+        // Delete a change if at least one client successfully processed it
+        if (searchIndexChange.isProcessed()) {
+          deletionCallback.accept(searchIndexChange);
+        }
+      }
+    }
+    catch (Exception e) {
+      log.error("Failed to delete search index changes after processing", e);
+    }
+
+    List<SearchIndexChange> unprocessedSearchIndexChanges =
+        searchIndexChanges.stream().filter(searchIndexChange -> !searchIndexChange.isProcessed()).toList();
+    if (!unprocessedSearchIndexChanges.isEmpty()) {
+      final int maxPendingChanges = 10000;
+      if (searchIndexChanges.size() > maxPendingChanges) {
+        int excessChanges = unprocessedSearchIndexChanges.size() - maxPendingChanges;
+        List<SearchIndexChange> changesToDelete = unprocessedSearchIndexChanges.subList(0, excessChanges);
+
+        log.warn("Both primary and secondary clients failed to process changes. " +
+            "Deleting {} oldest changes to prevent unbounded accumulation (limit: {}). " +
+            "Total pending changes: {}", excessChanges, maxPendingChanges, searchIndexChanges.size());
+        try {
+          changesToDelete.forEach(this::deleteSearchIndexChange);
+        }
+        catch (Exception e) {
+          log.error("Failed to delete excess search index changes after both clients failed", e);
+        }
+      }
+      else {
+        log.warn("Both primary and secondary clients failed to process {} changes. " +
+            "Changes will be retried on next update cycle.", searchIndexChanges.size());
+      }
     }
   }
 
@@ -212,6 +263,16 @@ public class HybridSearchIndexClient
                 "Primary error: " + e.getMessage() + ", Secondary error: " + e2.getMessage(), e2);
       }
     }
+  }
+
+  @Override
+  public List<SearchIndexChange> getSearchIndexChanges() {
+    return primaryClient.getSearchIndexChanges();
+  }
+
+  @Override
+  public void deleteSearchIndexChange(final SearchIndexChange change) {
+    primaryClient.deleteSearchIndexChange(change);
   }
 
   /**

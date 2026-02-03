@@ -8,6 +8,7 @@ package com.sonatype.insight.brain.search.index;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.dataaccess.SearchIndexChangeDAO;
 import com.sonatype.insight.brain.model.SearchIndexChange;
@@ -43,10 +44,12 @@ public class AbstractSearchIndexClientTest
     SearchIndexChange change = new SearchIndexChange();
     change.setChangeType(SearchIndexChange.ChangeType.APPLICATION);
     change.setChangeData("test-data");
-    doThrow(new IOException(new ParseException("Parse error"))).when(client).updateIndex(any(), any());
+    doThrow(new IOException(new ParseException("Parse error"))).when(client)
+        .updateIndex(any(SearchIndexChange.class), any());
 
     assertThatCode(() ->
-        client.processSearchIndexChanges(Collections.singletonList(change), null)
+        client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+        })
     ).doesNotThrowAnyException();
   }
 
@@ -56,10 +59,11 @@ public class AbstractSearchIndexClientTest
     change.setChangeType(SearchIndexChange.ChangeType.APPLICATION);
     change.setChangeData("test-data");
     IOException wrapped = new IOException("Wrapped", new ParseException("Parse error"));
-    doThrow(wrapped).when(client).updateIndex(any(), any());
+    doThrow(wrapped).when(client).updateIndex(any(SearchIndexChange.class), any());
 
     assertThatCode(() ->
-        client.processSearchIndexChanges(Collections.singletonList(change), null)
+        client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+        })
     ).doesNotThrowAnyException();
   }
 
@@ -69,10 +73,12 @@ public class AbstractSearchIndexClientTest
     change.setChangeType(SearchIndexChange.ChangeType.APPLICATION);
     change.setChangeData("test-data");
     IOException nonParseException = new IOException("Other error");
-    doThrow(nonParseException).when(client).updateIndex(any(), any());
+    doThrow(nonParseException).when(client).updateIndex(any(SearchIndexChange.class), any());
 
     assertThatExceptionOfType(IOException.class)
-        .isThrownBy(() -> client.processSearchIndexChanges(Collections.singletonList(change), null))
+        .isThrownBy(
+            () -> client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+            }))
         .withMessage("Other error");
   }
 
@@ -81,10 +87,12 @@ public class AbstractSearchIndexClientTest
     SearchIndexChange change = new SearchIndexChange();
     change.setChangeType(SearchIndexChange.ChangeType.APPLICATION);
     change.setChangeData("test-data");
-    doThrow(new IOException("IO error")).when(client).updateIndex(any(), any());
+    doThrow(new IOException("IO error")).when(client).updateIndex(any(SearchIndexChange.class), any());
 
     assertThatExceptionOfType(IOException.class)
-        .isThrownBy(() -> client.processSearchIndexChanges(Collections.singletonList(change), null))
+        .isThrownBy(
+            () -> client.processSearchIndexChanges(Collections.singletonList(change), null, searchIndexChange -> {
+            }))
         .withMessage("IO error");
   }
 
@@ -92,8 +100,8 @@ public class AbstractSearchIndexClientTest
       extends AbstractSearchIndexClient
   {
     public TestSearchIndexClient() {
-      super(null, null, null, null, null, searchIndexChangeDAO, null, null, null, null, null, null, null, null, null,
-          null, null, null);
+      super(null, null, null, null, null, searchIndexChangeDAO, null, null, null, null, null, null, null, null,
+          null, null, null, null);
     }
 
     @Override
@@ -118,6 +126,14 @@ public class AbstractSearchIndexClientTest
 
     @Override
     public void populateIndex() {
+    }
+
+    @Override
+    public void updateIndex(
+        final List<SearchIndexChange> searchIndexChanges,
+        final Consumer<SearchIndexChange> deletionCallback)
+    {
+
     }
 
     @Override

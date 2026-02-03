@@ -91,6 +91,7 @@ public class TenantConfigurationServiceTest
     EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(WARN_ON_NON_PRIMARY_STORAGE_ACCESS, "warnOnNonPrimaryStorageAccess");
     EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(COPY_STORAGE_CONFIG,
         JsonUtils.convertValue(new CopyStorageConfig(1, 1), Map.class));
+    EXPECTED_GLOBAL_CONFIGURABLE_PROPERTIES.put(MAX_CONCURRENT_TENANT_INDEX_CREATION, 5);
   }
 
   @Mock

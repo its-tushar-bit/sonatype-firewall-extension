@@ -6,11 +6,6 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.util.List;
-import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Provider;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.dataaccess.configuration.SystemConfigurationPropertyDAO;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
@@ -20,6 +15,11 @@ import com.sonatype.insight.brain.tenancy.TenantContextJobListener;
 import com.sonatype.insight.brain.tenancy.TenantManager;
 import com.sonatype.insight.brain.tenancy.TenantUtil;
 
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Provider;
+import jakarta.inject.Singleton;
 import org.jetbrains.annotations.NotNull;
 import org.quartz.Job;
 import org.quartz.JobBuilder;
@@ -60,6 +60,7 @@ public class MultiTenantTaskScheduler
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
+      QuartzConcurrencyListener quartzConcurrencyListener,
       Provider<TenantContextJobListener> tenantContextJobListener,
       SystemConfigurationPropertyDAO systemConfigurationPropertyDAO,
       Provider<TenantManager> tenantManager,
@@ -67,8 +68,8 @@ public class MultiTenantTaskScheduler
       ShutdownHandler shutdownHandler,
       QuartzJobSchedulingService quartzJobSchedulingService)
   {
-    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, shutdownHandler,
-        quartzJobSchedulingService);
+    super(quartzJobStoreTX, jobFactory, schedulerName, quartzTriggerListener, quartzConcurrencyListener,
+        shutdownHandler, quartzJobSchedulingService);
 
     this.mtiqBatchJobStoreTX = mtiqBatchJobStoreTX;
     this.tenantContextJobListener = tenantContextJobListener;

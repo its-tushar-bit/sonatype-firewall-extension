@@ -173,6 +173,7 @@ public class Configuration
         SystemConfigurationProperty.LICENSE_LEGAL_HDS_REQUEST_LIMIT,
         SystemConfigurationProperty.MAX_APPLICATIONS_TO_QUERY_ON_DASHBOARD,
         SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT,
+        SystemConfigurationProperty.MAX_CONCURRENT_TENANT_INDEX_CREATION,
         SystemConfigurationProperty.ADVANCED_SEARCH_CSV_EXPORT_DELIMITER,
         SystemConfigurationProperty.CONNECT_TIMEOUT_IN_SECONDS,
         SystemConfigurationProperty.SOCKET_TIMEOUT_IN_SECONDS,
@@ -557,6 +558,10 @@ public class Configuration
 
   public int getMaxAdvancedSearchClauseCount() {
     return configCache.get(SystemConfigurationProperty.MAX_ADVANCED_SEARCH_CLAUSE_COUNT);
+  }
+
+  public int getMaxConcurrentTenantIndexCreation() {
+    return configCache.get(SystemConfigurationProperty.MAX_CONCURRENT_TENANT_INDEX_CREATION);
   }
 
   public String getAdvancedSearchCSVExportDelimiter() {

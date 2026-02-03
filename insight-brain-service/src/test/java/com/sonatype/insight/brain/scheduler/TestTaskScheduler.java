@@ -7,15 +7,14 @@ package com.sonatype.insight.brain.scheduler;
 
 import java.util.UUID;
 
-import jakarta.annotation.Priority;
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
-
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
 import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 
+import jakarta.annotation.Priority;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.quartz.Scheduler;
 import org.quartz.spi.JobFactory;
 
@@ -32,12 +31,13 @@ public class TestTaskScheduler
       QuartzJobStoreTX quartzJobStoreTX,
       JobFactory jobFactory,
       QuartzTriggerListener quartzTriggerListener,
+      QuartzConcurrencyListener quartzConcurrencyListener,
       OperationalDataStore operationalDataStore,
       ShutdownHandler shutdownHandler,
       QuartzJobSchedulingService quartzJobSchedulingService)
   {
-    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener, shutdownHandler,
-        quartzJobSchedulingService);
+    super(quartzJobStoreTX, jobFactory, getUniqueSchedulerName(), quartzTriggerListener, quartzConcurrencyListener,
+        shutdownHandler, quartzJobSchedulingService);
     this.operationalDataStore = operationalDataStore;
   }
 

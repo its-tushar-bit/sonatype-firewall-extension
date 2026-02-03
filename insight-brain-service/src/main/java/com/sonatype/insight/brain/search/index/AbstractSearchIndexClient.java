@@ -21,6 +21,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -78,7 +79,6 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.QueryVisitor;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -833,7 +833,8 @@ public abstract class AbstractSearchIndexClient
     log.info("sbomSV indexing complete");
   }
 
-  protected List<SearchIndexChange> getSearchIndexChanges() {
+  @Override
+  public List<SearchIndexChange> getSearchIndexChanges() {
     // Note: this pops a limited amount of records off the 'queue' as there are cases of large amounts of rows
     // accumulating. See CLM-29339. TODO Future enhancements will further improve this code - CLM-29618
     return searchIndexChangeDAO.getBatch(QUEUE_POP_AMOUNT);
@@ -841,7 +842,8 @@ public abstract class AbstractSearchIndexClient
 
   protected void processSearchIndexChanges(
       final List<SearchIndexChange> searchIndexChanges,
-      final IndexingContext indexingContext)
+      final IndexingContext indexingContext,
+      final Consumer<SearchIndexChange> deletionCallback)
       throws IOException
   {
     log.debug("Updating search index with {} changes", searchIndexChanges.size());
@@ -852,20 +854,35 @@ public abstract class AbstractSearchIndexClient
           updateIndex(change, indexingContext);
           log.debug("Updated search index with change {}", change);
         }
-        catch (Exception e) {
-          Throwable rootCause = ExceptionUtils.getRootCause(e);
-          if (rootCause instanceof ParseException) {
-            log.error("Ignoring unrecoverable error updating search index with change {}: {}", change, e.getMessage(),
-                e);
+        catch (IOException e) {
+          if (hasParseExceptionInCauseChain(e)) {
+            log.warn("Skipping search index update due to parse exception", e);
           }
           else {
             throw e;
           }
         }
+        change.setProcessed(true);
+        deletionCallback.accept(change);
       }
-      searchIndexChangeDAO.delete(change);
     }
     log.debug("Updated search index");
+  }
+
+  private boolean hasParseExceptionInCauseChain(Throwable throwable) {
+    Throwable cause = throwable;
+    while (cause != null) {
+      if (cause instanceof ParseException) {
+        return true;
+      }
+      cause = cause.getCause();
+    }
+    return false;
+  }
+
+  @Override
+  public void deleteSearchIndexChange(final SearchIndexChange change) {
+    searchIndexChangeDAO.delete(change);
   }
 
   protected abstract void updateMaxQueryClauseCount() throws IOException;

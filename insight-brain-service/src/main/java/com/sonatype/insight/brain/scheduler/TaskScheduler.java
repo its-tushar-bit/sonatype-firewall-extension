@@ -79,6 +79,8 @@ public class TaskScheduler
 
   private final QuartzTriggerListener quartzTriggerListener;
 
+  private final QuartzConcurrencyListener quartzConcurrencyListener;
+
   private final ShutdownHandler shutdownHandler;
 
   protected final QuartzJobSchedulingService quartzJobSchedulingService;
@@ -91,6 +93,7 @@ public class TaskScheduler
       JobFactory jobFactory,
       @Named("${scheduler.name:-" + DEFAULT_SCHEDULER_NAME + "}") String schedulerName,
       QuartzTriggerListener quartzTriggerListener,
+      QuartzConcurrencyListener quartzConcurrencyListener,
       ShutdownHandler shutdownHandler,
       QuartzJobSchedulingService quartzJobSchedulingService)
   {
@@ -98,6 +101,7 @@ public class TaskScheduler
     this.jobFactory = jobFactory;
     this.schedulerName = schedulerName;
     this.quartzTriggerListener = quartzTriggerListener;
+    this.quartzConcurrencyListener = quartzConcurrencyListener;
     this.shutdownHandler = shutdownHandler;
     this.quartzJobSchedulingService = quartzJobSchedulingService;
   }
@@ -127,6 +131,7 @@ public class TaskScheduler
       scheduler.setJobFactory(jobFactory);
       scheduler.addCalendar(NeverPastCalendar.CALENDAR_NAME, new NeverPastCalendar(), true, false);
       scheduler.getListenerManager().addTriggerListener(quartzTriggerListener);
+      scheduler.getListenerManager().addTriggerListener(quartzConcurrencyListener);
       shutdownHandler.add(scheduler, ShutdownPriority.QUARTZ_SCHEDULERS);
       return scheduler;
     }

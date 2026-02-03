@@ -18,9 +18,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
-import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.audit.AuditData;
 import com.sonatype.insight.brain.dataaccess.ApplicationDAO;
@@ -54,6 +53,8 @@ import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
 
 import com.google.common.annotations.VisibleForTesting;
+import jakarta.inject.Inject;
+import jakarta.inject.Singleton;
 import org.apache.lucene.document.Document;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.opensearch.client.opensearch._types.FieldSort;
@@ -153,8 +154,8 @@ public class OpenSearchSearchIndexClient
       final SearchConfig searchConfig,
       final ShutdownHandler shutdownHandler)
   {
-    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO, tagDAO,
-        thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
+    super(applicationDAO, labelDAO, organizationDAO, ownerDAO, policyDAO, searchIndexChangeDAO,
+        tagDAO, thirdPartySbomMetadataDAO, documentBuilderHelper, productLicense, telemetrySender, luceneComponents,
         advancedSearchTelemetryMetrics, configuration, permissionService, currentUser, conversionHelper,
         shutdownHandler);
     this.openSearchTransport = openSearchTransport;
@@ -218,7 +219,9 @@ public class OpenSearchSearchIndexClient
     }
     finally {
       if (indexRotated) {
-        deleteIndex(oldIndexName);
+        if (oldIndexName != null) {
+          deleteIndex(oldIndexName);
+        }
       }
       else {
         if (newIndexCreated) {
@@ -232,14 +235,16 @@ public class OpenSearchSearchIndexClient
   }
 
   @Override
-  public void updateIndex() {
-    List<SearchIndexChange> searchIndexChanges = getSearchIndexChanges();
+  public void updateIndex(
+      final List<SearchIndexChange> searchIndexChanges,
+      final Consumer<SearchIndexChange> deletionCallback)
+  {
     if (searchIndexChanges.isEmpty()) {
       return;
     }
     try (ClusterLock clusterLock = clusterLockManager.createForSearchIndexUpdate()) {
       if (clusterLock.tryLock()) {
-        processSearchIndexChanges(searchIndexChanges, createIndexingContext(indexConfigProvider));
+        processSearchIndexChanges(searchIndexChanges, createIndexingContext(indexConfigProvider), deletionCallback);
       }
     }
     catch (Exception e) {
@@ -550,6 +555,11 @@ public class OpenSearchSearchIndexClient
       return null;
     }
     catch (Exception e) {
+      // If the error is because the alias doesn't exist (404), return null (first-time creation)
+      if (e instanceof OpenSearchException ose && ose.status() == 404) {
+        log.debug("Index not found for alias '{}' - this is expected for first-time index creation", aliasName);
+        return null;
+      }
       throw new RuntimeException("Failed to get current index name for alias '%s'".formatted(
           indexConfigProvider.getIndexConfig().getIndexName()), e);
     }

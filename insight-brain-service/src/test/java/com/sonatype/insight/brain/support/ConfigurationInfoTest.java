@@ -297,7 +297,8 @@ public class ConfigurationInfoTest
         "waiverRequestWorkflowEnabled",
         "userTokenDefaultExpirationDays",
         "exitOnFatalError",
-        "maliciousUrlsPartnerAccess"
+        "maliciousUrlsPartnerAccess",
+        "maxConcurrentTenantIndexCreation"
     );
 
     // Properties included in the config.json in support zip

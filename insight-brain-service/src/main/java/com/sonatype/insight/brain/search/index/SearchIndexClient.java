@@ -6,7 +6,9 @@
 package com.sonatype.insight.brain.search.index;
 
 import java.util.List;
+import java.util.function.Consumer;
 
+import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 
 /**
@@ -23,7 +25,37 @@ public interface SearchIndexClient
   //TODO: consider renaming this method to describe its purpose: create the index and re-index the documents
   void populateIndex();
 
-  void updateIndex();
+  /**
+   * Updates the search index with the given changes, using the provided deletion callback.
+   * This allows callers to control how SearchIndexChanges are deleted after processing.
+   *
+   * @param searchIndexChanges the changes to process
+   * @param deletionCallback callback to delete a change after processing (can be no-op)
+   */
+  void updateIndex(List<SearchIndexChange> searchIndexChanges, Consumer<SearchIndexChange> deletionCallback);
+
+  /**
+   * Updates the search index with the given changes.
+   * Uses the default deletion behavior (calls deleteSearchIndexChange).
+   *
+   * @param searchIndexChanges the changes to process
+   */
+  default void updateIndex(List<SearchIndexChange> searchIndexChanges) {
+    updateIndex(searchIndexChanges, this::deleteSearchIndexChange);
+  }
+
+  default void updateIndex() {
+    updateIndex(getSearchIndexChanges());
+  }
+
+  /**
+   * Deletes the specified SearchIndexChange from the database.
+   * This is separated from updateIndex to allow HybridSearchIndexClient to defer deletion
+   * until both primary and secondary clients have processed the changes.
+   *
+   * @param change the change to delete
+   */
+  void deleteSearchIndexChange(SearchIndexChange change);
 
   Long getLastIndexTime();
 
@@ -36,4 +68,6 @@ public interface SearchIndexClient
       boolean allComponents,
       boolean isSbomManagerMode,
       List<String> searchAfter);
+
+  List<SearchIndexChange> getSearchIndexChanges();
 }

@@ -141,6 +141,8 @@ public class SystemConfigurationProperty
 
   public static final String MAX_ADVANCED_SEARCH_CLAUSE_COUNT = "maxAdvancedSearchClauseCount";
 
+  public static final String MAX_CONCURRENT_TENANT_INDEX_CREATION = "maxConcurrentTenantIndexCreation";
+
   public static final String ADVANCED_SEARCH_CSV_EXPORT_DELIMITER = "advancedSearchCSVExportDelimiter";
 
   public static final String CONNECT_TIMEOUT_IN_SECONDS = "connectTimeoutInSeconds";

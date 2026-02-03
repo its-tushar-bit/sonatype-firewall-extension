@@ -81,7 +81,8 @@ public class TenantConfigurationService
       SOURCE_CONTROL_EVENT_PROCESSOR_POOL_SIZE,
       USER_AGENT_SUFFIX,
       WARN_ON_NON_PRIMARY_STORAGE_ACCESS,
-      COPY_STORAGE_CONFIG
+      COPY_STORAGE_CONFIG,
+      MAX_CONCURRENT_TENANT_INDEX_CREATION
   );
 
   private static final String NO_CONFIG_SPECIFIED = "No configuration was specified.";

@@ -134,8 +134,13 @@ public class TaskSchedulerTest
     assertThat(scheduler.getMetaData().getThreadPoolClass()).isEqualTo(SimpleThreadPool.class);
     assertThat(QuartzJobStoreTX.class).isAssignableFrom(scheduler.getMetaData().getJobStoreClass());
     List<TriggerListener> triggerListeners = scheduler.getListenerManager().getTriggerListeners();
-    assertThat(triggerListeners).hasSize(1);
-    assertThat(triggerListeners.get(0)).isInstanceOf(QuartzTriggerListener.class);
+    assertThat(triggerListeners).hasSize(2);
+    boolean hasQuartzTriggerListener = triggerListeners.stream()
+        .anyMatch(listener -> listener instanceof QuartzTriggerListener);
+    boolean hasQuartzConcurrencyListener = triggerListeners.stream()
+        .anyMatch(listener -> listener instanceof QuartzConcurrencyListener);
+    assertThat(hasQuartzTriggerListener).isTrue();
+    assertThat(hasQuartzConcurrencyListener).isTrue();
     verify(mockShutdownHandler).add(scheduler, ShutdownPriority.QUARTZ_SCHEDULERS);
   }
 

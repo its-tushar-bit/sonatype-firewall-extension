@@ -483,8 +483,8 @@ Map getMavenBuildConfig() {
   if (isBuildCachingEnabled()) {
     opts << "-Dmaven.build.cache.remote.enabled=true"
     opts << "-Dmaven.build.cache.remote.save.enabled=true"
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
     // Activate CI profile to enable frontend build cache (disabled locally due to symlinks)
     opts << "-Pci-cache-yarn"
   }
@@ -730,8 +730,8 @@ String buildPostgresTestMavenOptions(String moduleList) {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -785,8 +785,8 @@ String buildSlowTestMavenOptions(String moduleList) {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -828,8 +828,8 @@ String buildSurefireTestMavenOptions(List<String> additionalExcludedGroups, Stri
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -877,8 +877,8 @@ String buildMtiqTestMavenOptions() {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -1244,8 +1244,8 @@ String buildDistributedFrontendTestMavenOptions() {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
     opts << "-Pci-cache-yarn"
   }
 
@@ -1306,8 +1306,8 @@ String buildDistributedSurefireTestMavenOptions() {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -1353,8 +1353,8 @@ String buildDistributedPostgresTestMavenOptions() {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -1408,8 +1408,8 @@ String buildDistributedMtiqTestMavenOptions() {
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration
@@ -1513,8 +1513,8 @@ String buildDistributedTestMavenOptions(List<String> additionalExcludedGroups, S
   opts << "-Dmaven.build.cache.remote.enabled=${isBuildCachingEnabled()}"
   opts << "-Dmaven.build.cache.remote.save.enabled=false"
   if (isBuildCachingEnabled()) {
-    opts << "-Dmaven.build.cache.remote.url=https://rsc-proxy.ci.sonatype.dev/repository/insight-brain-build-cache"
-    opts << "-Dmaven.build.cache.remote.server.id=insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.url=https://sonatype.repo.sonatype.app/repository/insight-brain-build-cache"
+    opts << "-Dmaven.build.cache.remote.server.id=sonatype.repo.sonatype.app"
   }
 
   // Test configuration

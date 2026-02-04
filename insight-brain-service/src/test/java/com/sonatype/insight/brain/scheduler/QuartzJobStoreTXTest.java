@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import jakarta.inject.Inject;
-
 import com.sonatype.insight.brain.common.test.PostgresTestCategory;
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -25,6 +23,7 @@ import com.sonatype.insight.brain.service.InsightConfig;
 import com.sonatype.insight.license.model.LicensedFeature;
 import com.sonatype.insight.test.LogOutput;
 
+import jakarta.inject.Inject;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -83,6 +82,7 @@ public class QuartzJobStoreTXTest
   @After
   public void after() throws Exception {
     deleteAllSchedulerStateRecords();
+    deleteAllFiredTriggers();
     schedulerStateUpdaterThreads.forEach(SchedulerStateUpdaterThread::terminate);
     schedulerStateUpdaterThreads.forEach(thread -> {
       try {
@@ -373,6 +373,79 @@ public class QuartzJobStoreTXTest
     assertThat(actualStaleTriggerForOther.getJobDataMap().getBoolean(QuartzTriggerListener.QUARTZ_VETO)).isTrue();
   }
 
+  @Test
+  public void testCountCurrentlyExecutingJobs_NoFiredTriggers() throws Exception {
+    // When there are no fired triggers
+    int count = quartzJobStoreTX.countCurrentlyExecutingJobs("TestJob");
+
+    // Then count should be 0
+    assertThat(count).isEqualTo(0);
+  }
+
+  @Test
+  public void testCountCurrentlyExecutingJobs_WithMatchingTriggers() throws Exception {
+    // Given multiple fired triggers with the same name
+    createFiredTrigger("TestJob", "instance1", "trigger1");
+    createFiredTrigger("TestJob", "instance2", "trigger2");
+    createFiredTrigger("TestJob", "instance3", "trigger3");
+    createFiredTrigger("DifferentJob", "instance4", "trigger4");
+
+    // When counting currently executing jobs for "TestJob"
+    int count = quartzJobStoreTX.countCurrentlyExecutingJobs("TestJob");
+
+    // Then count should be 3
+    assertThat(count).isEqualTo(3);
+  }
+
+  @Test
+  public void testCountCurrentlyExecutingJobs_WithNonMatchingTriggers() throws Exception {
+    // Given fired triggers with different names
+    createFiredTrigger("Job1", "instance1", "trigger1");
+    createFiredTrigger("Job2", "instance2", "trigger2");
+
+    // When counting currently executing jobs for "TestJob"
+    int count = quartzJobStoreTX.countCurrentlyExecutingJobs("TestJob");
+
+    // Then count should be 0
+    assertThat(count).isEqualTo(0);
+  }
+
+  @Test
+  public void testCountCurrentlyExecutingJobs_SingleTrigger() throws Exception {
+    // Given a single fired trigger
+    createFiredTrigger("SingleJob", "instance1", "trigger1");
+
+    // When counting currently executing jobs for "SingleJob"
+    int count = quartzJobStoreTX.countCurrentlyExecutingJobs("SingleJob");
+
+    // Then count should be 1
+    assertThat(count).isEqualTo(1);
+  }
+
+  private void createFiredTrigger(String jobName, String instanceName, String entryId) throws Exception {
+    String sQuery = "INSERT INTO " + operationalDataStore.getDatabaseSchema() + ".QRTZ_FIRED_TRIGGERS" + //
+        " (SCHED_NAME, ENTRY_ID, TRIGGER_NAME, TRIGGER_GROUP, INSTANCE_NAME, FIRED_TIME, " +
+        "SCHED_TIME, PRIORITY, STATE, JOB_NAME, JOB_GROUP, IS_NONCONCURRENT, REQUESTS_RECOVERY) " + //
+        " VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
+         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+      statement.setString(1, taskScheduler.getScheduler().getSchedulerName());
+      statement.setString(2, entryId);
+      statement.setString(3, jobName);
+      statement.setString(4, "DEFAULT");
+      statement.setString(5, instanceName);
+      statement.setLong(6, System.currentTimeMillis());
+      statement.setLong(7, System.currentTimeMillis());
+      statement.setInt(8, 5);
+      statement.setString(9, "EXECUTING");
+      statement.setString(10, jobName);
+      statement.setString(11, "DEFAULT");
+      statement.setBoolean(12, false);
+      statement.setBoolean(13, false);
+      statement.execute();
+    }
+  }
+
   private void createRunningSchedulerStateRecord(String schedulerInstanceId, long checkinTimestamp) throws Exception {
     createSchedulerStateRecord(schedulerInstanceId, checkinTimestamp);
     new SchedulerStateUpdaterThread(schedulerInstanceId, checkinTimestamp).start();
@@ -398,6 +471,14 @@ public class QuartzJobStoreTXTest
 
   private void deleteAllSchedulerStateRecords() throws Exception {
     String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_SCHEDULER_STATE";
+    try (Connection connection = operationalDataStore.getDataSource().getConnection();
+         PreparedStatement statement = connection.prepareStatement(sQuery)) {
+      statement.execute();
+    }
+  }
+
+  private void deleteAllFiredTriggers() throws Exception {
+    String sQuery = "DELETE FROM " + operationalDataStore.getDatabaseSchema() + ".QRTZ_FIRED_TRIGGERS";
     try (Connection connection = operationalDataStore.getDataSource().getConnection();
          PreparedStatement statement = connection.prepareStatement(sQuery)) {
       statement.execute();

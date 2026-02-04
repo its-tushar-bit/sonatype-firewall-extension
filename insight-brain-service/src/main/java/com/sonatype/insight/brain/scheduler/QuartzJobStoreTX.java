@@ -6,14 +6,12 @@
 package com.sonatype.insight.brain.scheduler;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 
 import com.sonatype.insight.brain.db.DatabaseUtil;
 import com.sonatype.insight.brain.db.datastore.OperationalDataStore;
@@ -25,6 +23,9 @@ import com.sonatype.insight.db.H2DatabaseEngine;
 import com.sonatype.insight.db.PostgresDatabaseEngine;
 import com.sonatype.insight.license.model.LicensedFeature;
 
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import org.quartz.JobPersistenceException;
 import org.quartz.Trigger;
 import org.quartz.impl.jdbcjobstore.InvalidConfigurationException;
@@ -37,6 +38,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static java.lang.Thread.currentThread;
+import static org.quartz.impl.jdbcjobstore.Util.closeResultSet;
+import static org.quartz.impl.jdbcjobstore.Util.closeStatement;
 
 @Named
 @Singleton
@@ -182,7 +185,7 @@ public class QuartzJobStoreTX
           return false;
         }
       }
-      
+
       sleep(50);
     }
     log.error("Node clustering is not enabled, but with this scheduler state record {}" +
@@ -192,7 +195,7 @@ public class QuartzJobStoreTX
     log.error(potentialErrorMessage);
     return true;
   }
-  
+
   private void sleep(long millis) {
     try {
       Thread.sleep(millis);
@@ -273,6 +276,39 @@ public class QuartzJobStoreTX
     }
     finally {
       cleanupConnection(conn);
+    }
+  }
+
+  public int countCurrentlyExecutingJobs(final String jobName)
+      throws JobPersistenceException
+  {
+    Connection conn = getNonManagedTXConnection();
+    try {
+      return countFiredTriggerRecords(conn, jobName);
+    }
+    catch (SQLException e) {
+      throw new JobPersistenceException("Database error while reading fired triggers.", e);
+    }
+    finally {
+      cleanupConnection(conn);
+    }
+  }
+
+  public int countFiredTriggerRecords(final Connection conn, final String jobName) throws SQLException {
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try {
+      ps = conn.prepareStatement("SELECT COUNT(*) FROM " + tablePrefix + "FIRED_TRIGGERS WHERE JOB_NAME = ?");
+      ps.setString(1, jobName);
+      rs = ps.executeQuery();
+      if (rs.next()) {
+        return rs.getInt(1);
+      }
+      return 0;
+    }
+    finally {
+      closeResultSet(rs);
+      closeStatement(ps);
     }
   }
 

@@ -8,8 +8,8 @@ package com.sonatype.insight.brain.scheduler;
 import java.time.Duration;
 import java.util.Date;
 
+import jakarta.inject.Inject;
 import jakarta.inject.Named;
-
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -32,6 +32,13 @@ public class QuartzConcurrencyListener
 
   private static final int DEFAULT_QUEUE_DELAY_MS = (int) Duration.ofMinutes(1).toMillis();
 
+  private final QuartzJobStoreTX quartzJobStoreTX;
+
+  @Inject
+  public QuartzConcurrencyListener(final QuartzJobStoreTX quartzJobStoreTX) {
+    this.quartzJobStoreTX = quartzJobStoreTX;
+  }
+
   @Override
   public String getName() {
     return getClass().getSimpleName();
@@ -52,16 +59,9 @@ public class QuartzConcurrencyListener
       }
       Scheduler scheduler = context.getScheduler();
       JobKey jobKey = jobDetail.getKey();
-      long runningCount = scheduler.getCurrentlyExecutingJobs().stream()
-          .filter(
-              jobExecutionContext -> jobExecutionContext
-                  .getJobDetail()
-                  .getKey()
-                  .getName()
-                  .equals(jobKey.getName())
-          )
-          .count();
-      boolean veto = runningCount >= maxConcurrent;
+      // Count includes itself
+      int runningCount = quartzJobStoreTX.countCurrentlyExecutingJobs(jobKey.getName());
+      boolean veto = runningCount > maxConcurrent;
       if (veto) {
         log.debug("Vetoing job execution for job {} due to max concurrency limit reached." +
                 " Current running count: {}, max concurrent: {}",

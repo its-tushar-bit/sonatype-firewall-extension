@@ -12,7 +12,7 @@ iqTestsZip = 'iq-tests.zip'
 configureBranchJob()
 make(
     // 2024-05-03: We are using c6i.2xlarge EC2 instances. I tried c6i.4xlarge with "--threads 8" and there was no difference.
-    agentLabel: 'iq'
+    agentLabel: 'iq',
     deployBranch: 'main',
     useEventSpy: false,
     javaVersion: 'OpenJDK 17',

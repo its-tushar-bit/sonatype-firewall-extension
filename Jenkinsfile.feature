@@ -111,7 +111,7 @@ def DISTRIBUTED_TEST_AGENT = 'iq-large'
 
 pipeline {
   agent {
-    label 'ubuntu-zion-test'
+    label 'iq'
   }
 
   options {

@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.InvalidLicenseException;
+import com.sonatype.insight.brain.product.license.TestProductLicense;
 import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexCreationScheduler;
@@ -41,6 +43,9 @@ public class PopulateSearchIndexTaskTest
   @Inject
   private PopulateSearchIndexTask populateSearchIndexTask;
 
+  @Inject
+  private TestProductLicense testProductLicense;
+
   @Override
   public void configure(Binder binder) {
     binder.bind(TaskScheduler.class).toInstance(mockTaskScheduler);
@@ -61,6 +66,16 @@ public class PopulateSearchIndexTaskTest
     assertThatExceptionOfType(NotAuthorizedException.class)
         .isThrownBy(() -> populateSearchIndexTask.execute(Collections.emptyMap(), null))
         .withMessage("advanced-search-configuration feature is disabled.");
+
+    verifyNoInteractions(mockTaskScheduler);
+  }
+
+  @Test
+  public void testExecute_ProductLicenseInvalid() {
+    testProductLicense.clear();
+
+    assertThatExceptionOfType(InvalidLicenseException.class).isThrownBy(
+        () -> populateSearchIndexTask.execute(Collections.emptyMap(), null));
 
     verifyNoInteractions(mockTaskScheduler);
   }

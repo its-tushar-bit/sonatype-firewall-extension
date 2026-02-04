@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationPropertyFeature;
+import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.scheduler.QuartzConcurrencyListener;
 import com.sonatype.insight.brain.scheduler.TaskScheduler;
 import com.sonatype.insight.brain.search.index.IndexCreationScheduler;
@@ -34,20 +35,25 @@ public class PopulateSearchIndexTask
 
   private final Configuration configuration;
 
+  private final ProductLicense productLicense;
+
   @Inject
   public PopulateSearchIndexTask(
       final TaskScheduler taskScheduler,
       final IndexCreationScheduler indexCreationScheduler,
-      final Configuration configuration)
+      final Configuration configuration,
+      final ProductLicense productLicense)
   {
     super(PATH);
     this.taskScheduler = taskScheduler;
     this.indexCreationScheduler = indexCreationScheduler;
     this.configuration = configuration;
+    this.productLicense = productLicense;
   }
 
   @Override
   public void execute(final Map<String, List<String>> map, final PrintWriter printWriter) throws Exception {
+    productLicense.validate();
     SystemConfigurationPropertyFeature.ADVANCED_SEARCH_CONFIGURATION.verifyEnabled();
     taskScheduler.scheduleOneTimeTask(indexCreationScheduler, Map.of(
         QuartzConcurrencyListener.MAX_CONCURRENT, String.valueOf(configuration.getMaxConcurrentTenantIndexCreation()))

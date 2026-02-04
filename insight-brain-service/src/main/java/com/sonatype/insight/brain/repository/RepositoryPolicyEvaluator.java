@@ -385,8 +385,11 @@ public class RepositoryPolicyEvaluator
         if (component.getCatalogDate() != null) {
           repositoryComponentEvaluationResult.catalogDate = new Date(component.getCatalogDate());
         }
+
+        repositoryComponentEvaluationResult.policyAlerts = 
+          policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
+
         if (persistEvaluationResults) {
-          List<PolicyAlert> activeAlerts = policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
           List<PolicyAlert> waivedAlerts = waivedAlertsByComponent.getOrDefault(component, Collections.emptyList());
           Map<PolicyAlert, PolicyWaiver> policyWaiversByComponent =
               getPolicyWaivers(policyResults, waivedAlerts, component);
@@ -401,21 +404,17 @@ public class RepositoryPolicyEvaluator
               forMonitoring,
               explicitReleaseReason,
               event,
-              activeAlerts,
+              repositoryComponentEvaluationResult.policyAlerts,
               waivedAlerts,
               policyWaiversByComponent,
               policyNotifications);
           repositoryComponentEvaluationResult.quarantine = repositoryComponent.isQuarantined();
         }
-        else {
-          repositoryComponentEvaluationResult.policyAlerts =
-              policyAlertsByComponent.getOrDefault(component, Collections.emptyList());
-          if (withQuarantine) {
-            RepositoryComponent repositoryComponent =
-                repositoryComponents.getOrDefault(component.getPathnames().get(0), null);
-            repositoryComponentEvaluationResult.quarantine =
-                canQuarantine(repositoryComponentEvaluationResult.policyAlerts, repositoryComponent, component);
-          }
+        else if (withQuarantine) {
+          RepositoryComponent repositoryComponent =
+              repositoryComponents.getOrDefault(component.getPathnames().get(0), null);
+          repositoryComponentEvaluationResult.quarantine =
+              canQuarantine(repositoryComponentEvaluationResult.policyAlerts, repositoryComponent, component);
         }
       }
       componentEvaluationResultList.componentEvalResults.add(repositoryComponentEvaluationResult);

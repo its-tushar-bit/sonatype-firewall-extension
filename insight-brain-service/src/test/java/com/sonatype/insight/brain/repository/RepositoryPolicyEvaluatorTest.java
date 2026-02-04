@@ -922,6 +922,7 @@ public class RepositoryPolicyEvaluatorTest
 
     assertThat(resultList.componentEvalResults).hasSize(2);
     assertThat(resultList.componentEvalResults.get(0).quarantine).isTrue();
+    assertThat(resultList.componentEvalResults.get(0).policyAlerts).isNotEmpty();
     assertThat(resultList.componentEvalResults.get(0).catalogDate).isAfterOrEqualTo(now);
     assertThat(resultList.componentEvalResults.get(1).quarantine).isFalse();
     assertThat(resultList.componentEvalResults.get(1).catalogDate).isAfterOrEqualTo(now);

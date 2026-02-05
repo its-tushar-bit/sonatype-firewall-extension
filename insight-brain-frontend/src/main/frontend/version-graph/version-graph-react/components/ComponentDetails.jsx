@@ -14,6 +14,7 @@ import {
   NxFontAwesomeIcon,
   NxButtonBar,
   NxH3,
+  NxInfoAlert,
 } from '@sonatype/react-shared-components';
 import {
   selectLoading,
@@ -50,6 +51,21 @@ export default function ComponentDetails() {
       {() => {
         if (!componentDetails) {
           return null;
+        }
+
+        if (componentDetails.matchState === 'unknown') {
+          return (
+            <section
+              className="iq-version-graph-component-details"
+              aria-labelledby="component-details-header"
+              role="region"
+            >
+              <NxInfoAlert>
+                <h3>Unsupported Component</h3>
+                <p>Component information and security data are unavailable.</p>
+              </NxInfoAlert>
+            </section>
+          );
         }
 
         const { coordinates, format } = componentDetails.componentIdentifier;

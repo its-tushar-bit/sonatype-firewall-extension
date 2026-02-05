@@ -44,33 +44,29 @@ export const fetchComponentDetails = createAsyncThunk(
 
       let componentDetails = response.data;
 
-      if (componentDetails.matchState === 'unknown') {
-        return rejectWithValue({ message: 'Component is unknown', code: 'unknown' });
-      } else {
-        if (componentDetails.securityVulnerabilities) {
-          // Remove 'Not Applicable' vulnerabilities
-          const filteredVulns = componentDetails.securityVulnerabilities.filter(
-            (vuln) => vuln.status !== 'Not Applicable'
-          );
+      if (componentDetails.securityVulnerabilities) {
+        // Remove 'Not Applicable' vulnerabilities
+        const filteredVulns = componentDetails.securityVulnerabilities.filter(
+          (vuln) => vuln.status !== 'Not Applicable'
+        );
 
-          // Sort by severity desc
-          filteredVulns.sort((a, b) => {
-            if (a.severity === b.severity) return 0;
-            if (a.severity === null) return 1;
-            if (b.severity === null) return -1;
-            return b.severity - a.severity;
-          });
+        // Sort by severity desc
+        filteredVulns.sort((a, b) => {
+          if (a.severity === b.severity) return 0;
+          if (a.severity === null) return 1;
+          if (b.severity === null) return -1;
+          return b.severity - a.severity;
+        });
 
-          componentDetails.securityVulnerabilities = filteredVulns;
-        }
-
-        // Sort policy alerts
-        if (componentDetails.policyAlerts) {
-          componentDetails.policyAlerts.sort((a, b) => b.trigger.threatLevel - a.trigger.threatLevel);
-        }
-
-        return componentDetails;
+        componentDetails.securityVulnerabilities = filteredVulns;
       }
+
+      // Sort policy alerts
+      if (componentDetails.policyAlerts) {
+        componentDetails.policyAlerts.sort((a, b) => b.trigger.threatLevel - a.trigger.threatLevel);
+      }
+
+      return componentDetails;
     } catch (error) {
       return rejectWithValue(error?.message || 'Failed to fetch component details');
     }

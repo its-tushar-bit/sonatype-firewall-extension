@@ -534,4 +534,152 @@ public class ApplicationServiceTest
     var results = applicationService.getLatestReportInformation(app1.getPublicId(), "build");
     assertThat(results).isEqualTo(new LatestReportInformation(null, false));
   }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_ExcludesDockerApplications() {
+    // Create regular applications
+    Application regularApp1 = tempEntity.newApplicationWithParent("regular-app-1", "Regular Application 1");
+    Application regularApp2 = tempEntity.newApplicationWithParent("regular-app-2", "Regular Application 2");
+
+    // Create library applications with -library- pattern (should be excluded)
+    Application libraryApp1 = tempEntity.newApplicationWithParent("app-library-123", "Library Application 1");
+    Application libraryApp2 = tempEntity.newApplicationWithParent("test-library-app", "Library Application 2");
+
+    // Create applications with -docker- and -doc- patterns (should NOT be excluded)
+    Application dockerApp1 = tempEntity.newApplicationWithParent("app-docker-456", "Docker Application 1");
+    Application docApp1 = tempEntity.newApplicationWithParent("test-doc-app", "Doc Application 1");
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - regular, docker, and doc applications should be included
+    assertThat(applicationNames).containsKeys(
+        app1.getPublicId(),
+        app2.getPublicId(),
+        regularApp1.getPublicId(),
+        regularApp2.getPublicId(),
+        dockerApp1.getPublicId(),
+        docApp1.getPublicId()
+    );
+
+    // Library applications should be excluded
+    assertThat(applicationNames).doesNotContainKeys(
+        libraryApp1.getPublicId(),
+        libraryApp2.getPublicId()
+    );
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_IncludesApplicationWithLibraryInName() {
+    // Create an application with "library" in the name but not in the ID pattern
+    Application appWithLibraryInName = tempEntity.newApplicationWithParent(
+        "regular-app-id",
+        "My Library Management Application"
+    );
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - should be included because the ID doesn't match the -library- pattern
+    assertThat(applicationNames).containsKey(appWithLibraryInName.getPublicId());
+    assertThat(applicationNames.get(appWithLibraryInName.getPublicId()))
+        .isEqualTo("My Library Management Application");
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_HandlesEdgeCases() {
+    // Create applications with edge cases
+    Application app1 = tempEntity.newApplicationWithParent("libraryapp", "Library Without Dash");
+    Application app2 = tempEntity.newApplicationWithParent("lib", "Just Lib");
+    Application app3 = tempEntity.newApplicationWithParent("library", "Just Library");
+    Application app4 = tempEntity.newApplicationWithParent("app-libraryfile-123", "Contains Libraryfile");
+    Application app5 = tempEntity.newApplicationWithParent("dockerapp", "Docker Without Dash");
+    Application app6 = tempEntity.newApplicationWithParent("doc", "Just Doc");
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - these should all be included as they don't match the -library- pattern
+    assertThat(applicationNames).containsKeys(
+        app1.getPublicId(),
+        app2.getPublicId(),
+        app3.getPublicId(),
+        app4.getPublicId(),
+        app5.getPublicId(),
+        app6.getPublicId()
+    );
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_LibraryPatternCaseSensitive() {
+    // Create applications with uppercase library patterns
+    Application app1 = tempEntity.newApplicationWithParent("app-LIBRARY-123", "Uppercase Library");
+    Application app2 = tempEntity.newApplicationWithParent("app-Library-456", "Mixed Case Library");
+    Application app3 = tempEntity.newApplicationWithParent("app-library-789", "Lowercase Library");
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - uppercase and mixed case should be included (case-sensitive matching)
+    assertThat(applicationNames).containsKeys(
+        app1.getPublicId(),
+        app2.getPublicId()
+    );
+
+    // Lowercase -library- should be excluded
+    assertThat(applicationNames).doesNotContainKey(app3.getPublicId());
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_MultipleLibraryPatternsInId() {
+    // Create application with -library- pattern along with other patterns
+    Application app1 = tempEntity.newApplicationWithParent(
+        "app-library-test-doc-123",
+        "Library with Other Patterns"
+    );
+
+    // Create application with -docker- and -doc- but no -library-
+    Application app2 = tempEntity.newApplicationWithParent(
+        "app-docker-test-doc-456",
+        "Docker and Doc without Library"
+    );
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - app1 should be excluded because it contains -library-
+    assertThat(applicationNames).doesNotContainKey(app1.getPublicId());
+
+    // app2 should be included because it doesn't contain -library-
+    assertThat(applicationNames).containsKey(app2.getPublicId());
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_ReturnsCorrectNames() {
+    // Create applications with specific names
+    Application app1 = tempEntity.newApplicationWithParent("test-app-1", "Test Application One");
+    Application app2 = tempEntity.newApplicationWithParent("test-app-2", "Test Application Two");
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then - verify the names are correctly mapped
+    assertThat(applicationNames.get(app1.getPublicId())).isEqualTo("Test Application One");
+    assertThat(applicationNames.get(app2.getPublicId())).isEqualTo("Test Application Two");
+  }
+
+  @Test
+  public void testGetApplicationNamesForEvaluateComponent_EmptyWhenNoApplications() {
+    // Delete all existing applications
+    List<Application> allApps = applicationDAO.getAll();
+    for (Application app : allApps) {
+      applicationDAO.delete(app);
+    }
+
+    // When
+    var applicationNames = applicationService.getApplicationNamesForEvaluateComponent();
+
+    // Then
+    assertThat(applicationNames).isEmpty();
+  }
 }

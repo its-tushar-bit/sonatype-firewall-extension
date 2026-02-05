@@ -138,10 +138,15 @@ public class ApplicationService
 
     log.debug("getApplicationNamesForEvaluateComponent: Found {} applications.", applications.size());
     for (Application application : applications) {
-      applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
+      if (!isDockerApplication(application.getPublicId())) {
+        applicationPublicIDNamePairs.put(application.getPublicId(), application.getName());
+      }
     }
-
     return applicationPublicIDNamePairs;
+  }
+
+  private static boolean isDockerApplication(String applicationId) {
+    return applicationId.contains("-library-");
   }
 
   @Authorize(permission = Permission.READ)

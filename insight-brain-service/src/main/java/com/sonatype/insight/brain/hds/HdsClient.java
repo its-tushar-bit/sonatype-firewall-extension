@@ -18,14 +18,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-
-import jakarta.inject.Inject;
-import jakarta.inject.Named;
-import jakarta.inject.Singleton;
 import javax.net.ssl.SSLException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.InternalServerErrorException;
-import jakarta.ws.rs.core.UriBuilder;
 
 import com.sonatype.insight.brain.model.configuration.ReverseProxyAuthenticationConfiguration;
 import com.sonatype.insight.brain.product.license.InvalidLicenseException;
@@ -49,6 +42,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import io.dropwizard.lifecycle.Managed;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.inject.Singleton;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -762,9 +761,15 @@ public class HdsClient
     Header productLicenseHeader = request.getFirstHeader("X-CLM-Token");
     // If the request is for product license details, the currently installed license may be invalid/expired,
     // so don't check it. The HDS does not require a product license for this request anyway.
-    if (productLicenseHeader != null && !StringUtils.isBlank(productLicenseHeader.getValue())
-        && !request.getURI().getPath().endsWith(GET_PRODUCT_LICENSE_DETAILS_HDS_PATH)
-        && !productLicense.isValid()) {
+    if (request.getURI().getPath().endsWith(GET_PRODUCT_LICENSE_DETAILS_HDS_PATH)) {
+      return;
+    }
+
+    // Prevent requests with null or blank license tokens from reaching HDS
+    // These are guaranteed to fail with 402, and too many failures can cause HDS to cache
+    // the 402 response for the SaaS IP, affecting other tenants with valid licenses
+    if (productLicenseHeader == null || StringUtils.isBlank(productLicenseHeader.getValue()) ||
+        !productLicense.isValid()) {
       throw new InvalidLicenseException("The product license is invalid.");
     }
   }

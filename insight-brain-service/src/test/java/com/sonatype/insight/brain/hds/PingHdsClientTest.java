@@ -8,11 +8,6 @@ package com.sonatype.insight.brain.hds;
 import java.io.IOException;
 import java.util.Collections;
 
-import jakarta.inject.Inject;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
 import com.sonatype.insight.brain.common.test.SlowTest;
 import com.sonatype.insight.brain.product.license.ProductLicense;
 import com.sonatype.insight.brain.service.Configuration;
@@ -22,6 +17,10 @@ import com.sonatype.insight.error.exception.BadGatewayException;
 import com.sonatype.insight.test.LogOutput;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.inject.Inject;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.http.HttpStatus;
 import org.junit.Rule;
 import org.junit.Test;
@@ -45,15 +44,20 @@ public class PingHdsClientTest
   @Inject
   private Configuration configuration;
 
+  private ProductLicense mockProductLicense;
+
   @Override
   protected void initClient() {
-    ProductLicense productLicense = mock(ProductLicense.class);
-    client = new PingHdsClient(new InsightProxy(configuration, passwordHandler), productLicense, configuration,
+    mockProductLicense = mock(ProductLicense.class);
+    client = new PingHdsClient(new InsightProxy(configuration, passwordHandler), mockProductLicense, configuration,
         new DefaultVersionService(), telemetryId, null);
   }
 
   @Test
   public void testSocketTimeout() {
+    when(mockProductLicense.isValid()).thenReturn(true);
+    when(mockProductLicense.getFingerprint()).thenReturn("license-fingerprint");
+
     handler = new HttpServlet()
     {
       @Override

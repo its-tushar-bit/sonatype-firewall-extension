@@ -23,17 +23,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-import jakarta.inject.Inject;
-import jakarta.mail.BodyPart;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMultipart;
-import jakarta.mail.util.ByteArrayDataSource;
-import jakarta.servlet.ReadListener;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.ws.rs.InternalServerErrorException;
 
 import com.sonatype.insight.brain.NetworkingHelper;
 import com.sonatype.insight.brain.model.Application;
@@ -50,6 +39,17 @@ import com.sonatype.insight.client.utils.UserAgentUtils;
 import com.sonatype.insight.error.exception.BadGatewayException;
 
 import com.google.common.net.HttpHeaders;
+import jakarta.inject.Inject;
+import jakarta.mail.BodyPart;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMultipart;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.InternalServerErrorException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -64,6 +64,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static com.sonatype.insight.brain.hds.HdsClient.GET_PRODUCT_LICENSE_DETAILS_HDS_PATH;
 import static com.sonatype.insight.brain.utils.HttpHelper.createMockResponse;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -1065,9 +1066,10 @@ public class HdsClientTest
       }
     };
 
+    HttpGet request = new HttpGet(configuration.getHdsUrl());
+    request.setHeader("X-CLM-Token", "license-fingerprint");
     assertThatThrownBy(
-        () -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"),
-            new HttpGet(configuration.getHdsUrl())))
+        () -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request))
         .isInstanceOf(BadGatewayException.class);
     assertThat(requests.get()).isEqualTo(5);
     assertThat(queryStrings).containsExactly(null, "retryCount=1", "retryCount=2", "retryCount=3", "retryCount=4");
@@ -1096,7 +1098,9 @@ public class HdsClientTest
       }
     };
 
-    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), new HttpGet(configuration.getHdsUrl()));
+    HttpGet request = new HttpGet(configuration.getHdsUrl());
+    request.setHeader("X-CLM-Token", "license-fingerprint");
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
     assertThat(requests.get()).isEqualTo(2);
     assertThat(queryStrings).containsExactly(null, "retryCount=1");
   }
@@ -1147,6 +1151,92 @@ public class HdsClientTest
           Collections.emptyMap(),
           new String[]{});
     }).withMessage("The product license is invalid.");
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeader_RejectedBeforeHds() {
+    // Verify that requests with null license token headers are rejected before reaching HDS
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + "/rest/test");
+    // Don't set X-CLM-Token header - it will be null
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request))
+        .withMessage("The product license is invalid.");
+
+    // Verify no HTTP request was made to HDS
+    assertThat(requestCount.get()).isEqualTo(0);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeaderValue_RejectedBeforeHds() {
+    // Verify that requests with null license token header values are rejected before reaching HDS
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + "/rest/test");
+    request.setHeader("X-CLM-Token", null);
+
+    assertThatExceptionOfType(InvalidLicenseException.class)
+        .isThrownBy(() -> client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request))
+        .withMessage("The product license is invalid.");
+
+    // Verify no HTTP request was made to HDS
+    assertThat(requestCount.get()).isEqualTo(0);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeader_AcceptedForLicenseDetails() {
+    // Verify that requests with null license token header values are accepted for license details
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + GET_PRODUCT_LICENSE_DETAILS_HDS_PATH);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    // Don't set X-CLM-Token header - it will be null
+    assertThat(requestCount.get()).isEqualTo(1);
+  }
+
+  @Test
+  public void testExecute_NullLicenseTokenHeaderValue_AcceptedForLicenseDetails() {
+    // Verify that requests with null license token header values are accepted for license details
+    AtomicInteger requestCount = new AtomicInteger();
+    handler = new HttpServlet()
+    {
+      @Override
+      protected void service(HttpServletRequest request, HttpServletResponse response) {
+        requestCount.incrementAndGet();
+        response.setStatus(HttpStatus.OK_200);
+      }
+    };
+
+    HttpGet request = new HttpGet(configuration.getHdsUrl() + GET_PRODUCT_LICENSE_DETAILS_HDS_PATH);
+    request.setHeader("X-CLM-Token", null);
+    client.execute(HdsClient.DEFAULT_RETRY_CREATOR.apply("test"), request);
+    assertThat(requestCount.get()).isEqualTo(1);
   }
 
   @Test

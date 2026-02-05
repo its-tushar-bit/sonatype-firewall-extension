@@ -30,10 +30,19 @@ export default function ComponentDetailsLegalTab() {
     componentHash,
   };
   const reviewObligationsClickHandler = () => {
+    // Stringify componentIdentifier if it's an object (excluding null)
+    // Note: UI-Router will automatically URL-encode this when building the URL
+    // so we should NOT manually encodeURIComponent (that would cause double-encoding)
+    const stringifiedComponentIdentifier =
+      componentIdentifier && typeof componentIdentifier === 'object'
+        ? JSON.stringify(componentIdentifier)
+        : componentIdentifier;
+
     dispatch(
-      stateGo('legal.componentOverviewByComponentIdentifier', {
-        componentIdentifier,
+      stateGo('firewall.legalOverview', {
+        componentIdentifier: stringifiedComponentIdentifier,
         repositoryId,
+        tabId: 'legal',
       })
     );
   };

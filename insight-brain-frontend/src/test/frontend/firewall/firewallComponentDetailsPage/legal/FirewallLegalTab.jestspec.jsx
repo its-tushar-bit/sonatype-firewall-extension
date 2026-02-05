@@ -17,6 +17,7 @@ import {
   getDeleteLicenseOverrideUrl,
 } from 'MainRoot/util/CLMLocation';
 import { initialState } from 'MainRoot/firewall/firewallReducer';
+import * as routerActions from 'MainRoot/reduxUiRouter/routerActions';
 
 describe('FirewallLegalTab', () => {
   let mock,
@@ -148,7 +149,9 @@ describe('FirewallLegalTab', () => {
       },
     },
     productFeatures: {
-      'advanced-legal-pack': 'advanced-legal-pack',
+      productFeatures: {
+        'advanced-legal-pack': true,
+      },
     },
   };
 
@@ -615,6 +618,38 @@ describe('FirewallLegalTab', () => {
     let reviewObligationsButton = screen.queryByText(/Review Obligations/);
 
     expect(reviewObligationsButton).toBeNull();
+  });
+
+  it('will show "Review Obligations" button when advanced-legal-pack is present in productFeatures', async () => {
+    render(<FirewallLegalTab />, { preloadedState });
+
+    await waitFor(() => expect(screen.queryByText(/License Detections/)).toBeVisible());
+
+    let reviewObligationsButton = screen.queryByText(/Review Obligations/);
+
+    expect(reviewObligationsButton).toBeVisible();
+  });
+
+  it('will redirect to legal overview page when "Review Obligations" button is clicked with string componentIdentifier', async () => {
+    const stateGoSpy = jest.spyOn(routerActions, 'stateGo');
+
+    render(<FirewallLegalTab />, { preloadedState });
+
+    await waitFor(() => expect(screen.queryByText(/License Detections/)).toBeVisible());
+
+    let reviewObligationsButton = screen.queryByText(/Review Obligations/);
+    expect(reviewObligationsButton).toBeVisible();
+
+    fireEvent.click(reviewObligationsButton);
+
+    // Verify stateGo was called with the correct state and parameters
+    expect(stateGoSpy).toHaveBeenCalledWith('firewall.legalOverview', {
+      componentIdentifier,
+      repositoryId: ownerId,
+      tabId: 'legal',
+    });
+
+    stateGoSpy.mockRestore();
   });
 
   it('will show "Edit Licenses" popover on Edit button click', async () => {

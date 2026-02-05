@@ -22,6 +22,7 @@ import ReportPage from '../applicationReport/ReportPage';
 import ComponentDetails from '../componentDetails/ComponentDetails';
 import ContainerRepositoryResultsPage from '../OrgsAndPolicies/containerRepositoryResultsPage/ContainerRepositoryResultsPage';
 import AddContainerImageWaiverPage from './containerImageWaiver/AddContainerImageWaiverPage';
+import ComponentLegalOverviewContainer from '../legal/ComponentLegalOverviewContainer';
 import configurationModule from '../configuration/module';
 
 export default angular
@@ -30,6 +31,7 @@ export default angular
   .component('firewallPage', iqReact2Angular(FirewallPageContainer, [], ['$state']))
   .component('firewallAutoUnquarantinePage', iqReact2Angular(FirewallAutoUnqaurantinePageContainer, [], ['$state']))
   .component('firewallComponentDetailsPage', iqReact2Angular(FirewallComponentDetailsPage, [], ['$state']))
+  .component('firewallComponentLegalOverview', iqReact2Angular(ComponentLegalOverviewContainer, [], ['$state']))
   .component('containerReport', iqReact2Angular(ReportPage, [], ['$state']))
   .component('containerComponentDetails', iqReact2Angular(ComponentDetails, [], ['$state']))
   .component('containerRepositoryResults', iqReact2Angular(ContainerRepositoryResultsPage, [], ['$state']))
@@ -239,6 +241,16 @@ function routes($stateProvider, $urlServiceProvider) {
       url: '/claim',
       params: {
         tabId: 'claim',
+      },
+    })
+    .state('firewall.legalOverview', {
+      url: '/repository/{repositoryId}/component/{componentIdentifier}/legalOverview',
+      component: 'firewallComponentLegalOverview',
+      data: {
+        title: 'Legal Obligations Review',
+      },
+      params: {
+        tabId: 'legal',
       },
     })
     .state('firewall.quarantinedComponentReport', {

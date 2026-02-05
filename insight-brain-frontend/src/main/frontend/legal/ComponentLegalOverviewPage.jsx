@@ -3,7 +3,7 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import * as PropTypes from 'prop-types';
 import { NxWarningAlert, useToggle } from '@sonatype/react-shared-components';
 import MenuBarBackButton from '../mainHeader/MenuBar/MenuBarBackButton';
@@ -66,8 +66,18 @@ export default function ComponentLegalOverviewPage(props) {
     setDisplayOriginalSourcesOverrideModal,
     isSbomManager,
   } = props;
+
+  // Check if we're in Firewall context by examining the current state
+  const isFirewallContext = useMemo(() => {
+    const currentState = $state.current.name || '';
+    return currentState.startsWith('firewall.');
+  }, [$state.current.name]);
+
   const effectiveLicenses = formatLicenseMeta('effectiveLicenses', component, licenseLegalMetadata);
-  const prefix = isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
+
+  // Determine route prefix based on context
+  // Use state name to determine context, not just repositoryId presence
+  const prefix = isFirewallContext ? 'firewall' : isSbomManager ? LEGAL_SBOM_MANAGER_PARENT_ROUTE : LEGAL_PARENT_ROUTE;
 
   function load() {
     if (hash) {
@@ -103,7 +113,7 @@ export default function ComponentLegalOverviewPage(props) {
     }
   }
 
-  useEffect(load, [hash]);
+  useEffect(load, [hash, componentIdentifier, repositoryId]);
 
   const ownerType = applicationPublicId ? 'application' : 'organization';
   const ownerId = applicationPublicId || organizationId || 'ROOT_ORGANIZATION_ID';
@@ -145,14 +155,31 @@ export default function ComponentLegalOverviewPage(props) {
       : $state.href($state.get(prevState.name), { ...prevParams });
   };
 
-  const backHref = () =>
-    tabId === 'legal' && scanId
-      ? $state.href('applicationReport.componentDetails.legal', {
-          publicId: applicationPublicId,
-          scanId,
-          hash,
-        })
-      : getDefaultBackButtonUrl();
+  const backHref = () => {
+    // Handle application report context (Lifecycle)
+    if (tabId === 'legal' && scanId) {
+      return $state.href('applicationReport.componentDetails.legal', {
+        publicId: applicationPublicId,
+        scanId,
+        hash,
+      });
+    }
+
+    // Handle Firewall context
+    if (isFirewallContext && prevState && prevParams) {
+      const prevStateName = prevState.name || '';
+      // If coming from firewall component details legal tab, go back there
+      if (
+        prevStateName.startsWith('firewall.') &&
+        (prevStateName.includes('componentDetailsPage.legal') || prevStateName.includes('componentDetails.legal'))
+      ) {
+        return $state.href($state.get(prevState.name), { ...prevParams });
+      }
+    }
+
+    // Default fallback
+    return getDefaultBackButtonUrl();
+  };
   return (
     <main className="nx-page-main nx-viewport-sized iq-component-legal-overview-page">
       <div className="nx-viewport-sized__scrollable nx-scrollable iq-component-legal-overview-page__content">

@@ -343,8 +343,9 @@ public class LuceneSearchIndexClientTest
     SecurityVulnerability vuln = new SecurityVulnerability("cve", "CVE-4321-1234", 7.5f);
     String vulnDescription = "This is a bad vulnerability, stay clear!";
     when(vulnerabilityDescriptionFetcher.getVulnerabilityDescription(vuln.getRefId())).thenReturn(vulnDescription);
-    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
-            vuln, Arrays.asList(organization)),
+    assertFields(
+        documentBuilderHelper.buildDocument(newIndexingContext(), organization, app, StageTypes.BUILD, reportId,
+            component, vuln, Arrays.asList(organization)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),
@@ -386,7 +387,7 @@ public class LuceneSearchIndexClientTest
     String vulnDescription = "FG-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
     Document document =
-        documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component, vuln,
+        documentBuilderHelper.buildDocument(newIndexingContext(), org, app, StageTypes.BUILD, reportId, component, vuln,
             Arrays.asList(org));
     assertFields(document,
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
@@ -431,8 +432,9 @@ public class LuceneSearchIndexClientTest
     SecurityVulnerability vuln = new SecurityVulnerability(sonatypeContainer, refId, severity);
     String vulnDescription = "Container-1000 description";
     verifyNoInteractions(vulnerabilityDescriptionFetcher);
-    assertFields(documentBuilderHelper.buildDocument(newIndexingContext(), app, StageTypes.BUILD, reportId, component,
-            vuln, Arrays.asList(org)),
+    assertFields(
+        documentBuilderHelper.buildDocument(newIndexingContext(), org, app, StageTypes.BUILD, reportId, component, vuln,
+            Arrays.asList(org)),
         field(FieldIdentifier.ITEM_TYPE, ItemType.SECURITY_VULNERABILITY.name(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_HASH, component.getHash(), TextField.class, true),
         field(FieldIdentifier.COMPONENT_FORMAT, componentId.getFormat(), TextField.class, true),

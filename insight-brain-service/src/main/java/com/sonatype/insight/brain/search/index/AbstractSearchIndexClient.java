@@ -72,6 +72,7 @@ import com.sonatype.insight.telemetry.model.TelemetryData;
 import com.sonatype.insight.telemetry.model.TelemetryPurpose;
 
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ListMultimap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +89,6 @@ import static com.sonatype.insight.brain.search.index.ItemType.COMPONENT_LABEL;
 import static com.sonatype.insight.brain.search.index.ItemType.NON_VULNERABLE_COMPONENT;
 import static com.sonatype.insight.brain.search.index.ItemType.POLICY;
 import static com.sonatype.insight.brain.search.index.ItemType.SBOM_METADATA;
-import static java.util.stream.Collectors.toList;
 
 public abstract class AbstractSearchIndexClient
     implements SearchIndexClient
@@ -388,10 +388,13 @@ public abstract class AbstractSearchIndexClient
     indexingContext.deleteDocuments(queryForObsoleteDocs);
 
     Application application = applicationDAO.getById(applicationId);
+    if (application == null) {
+      return;
+    }
+
     ThirdPartySbomMetadata sbomMetadata =
         thirdPartySbomMetadataDAO.getByApplicationIdAndSbomVersion(applicationId, applicationVersion);
-
-    if (application == null || sbomMetadata == null) {
+    if (sbomMetadata == null) {
       return;
     }
 
@@ -402,6 +405,9 @@ public abstract class AbstractSearchIndexClient
 
     List<Organization> parentOrganizations = new ArrayList<>();
     ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
+
+    indexingContext.addOwners(Collections.singletonList(organization));
+    indexingContext.addOwners(Collections.singletonList(application));
 
     Document sbomDoc = documentBuilderHelper.buildDocument(indexingContext, sbomMetadata);
     List<Document> sbomContentsDocs =
@@ -474,63 +480,85 @@ public abstract class AbstractSearchIndexClient
       return;
     }
 
+    List<Organization> parentOrganizations = new ArrayList<>();
+    ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
+
+    indexingContext.addOwners(Collections.singletonList(organization));
+    indexingContext.addOwners(Collections.singletonList(application));
+
     // Index the app itself
     indexingContext.addDocumentsWithException(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, application)));
     // Index the app labels
     List<Document> appLabelDocs = labelDAO.getByOwnerId(application.getId()).stream()
-        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).collect(toList());
+        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
     indexingContext.addDocumentsWithException(appLabelDocs);
     // Index the app policies
     List<Document> appPolicyDocs = policyDAO.getByOwnerId(application.getId()).stream()
-        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).collect(toList());
+        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
     indexingContext.addDocumentsWithException(appPolicyDocs);
     // Index the app SVs
     indexingContext.addDocumentsWithException(
-        documentBuilderHelper.buildApplicationSVDocs(indexingContext, organization, application));
+        documentBuilderHelper.buildApplicationSVDocs(indexingContext, organization, application,
+            ImmutableMap.of(organization, parentOrganizations)));
   }
 
   private void updateIndexForOrganization(final String organizationId, final IndexingContext indexingContext)
       throws IOException
   {
-    String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.ORGANIZATION_ID, organizationId);
-    indexingContext.deleteDocuments(queryForObsoleteDocs);
-
     Organization org = organizationDAO.getById(organizationId);
     if (org == null) {
+      String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.ORGANIZATION_ID, organizationId);
+      indexingContext.deleteDocuments(queryForObsoleteDocs);
       return;
     }
+    updateIndexForOrganization(org, indexingContext);
+  }
+
+  private void updateIndexForOrganization(final Organization org, final IndexingContext indexingContext)
+      throws IOException
+  {
+    String queryForObsoleteDocs = indexingContext.newQuery(FieldIdentifier.ORGANIZATION_ID, org.getId());
+    indexingContext.deleteDocuments(queryForObsoleteDocs);
+
+    List<Application> applications = applicationDAO.getByOrganizationId(org.getId());
+
+    indexingContext.addOwners(Collections.singletonList(org));
+    indexingContext.addOwners(applications);
+
+    List<Organization> parentOrganizations = new ArrayList<>();
+    ownerDAO.walkHierarchy(org).forEach(o -> parentOrganizations.add((Organization) o));
+    Map<Organization, Collection<Organization>> parentOrgsMap = ImmutableMap.of(org, parentOrganizations);
 
     // Index the org itself
     indexingContext.addDocumentsWithException(
         Collections.singletonList(documentBuilderHelper.buildDocument(indexingContext, org)));
     // Index the org apps
-    List<Document> orgAppDocs = applicationDAO.getByOrganizationId(org.getId()).stream()
-        .map(app -> documentBuilderHelper.buildDocument(indexingContext, app)).collect(toList());
+    List<Document> orgAppDocs = applications.stream()
+        .map(app -> documentBuilderHelper.buildDocument(indexingContext, app)).toList();
     indexingContext.addDocumentsWithException(orgAppDocs);
     // Index the org app categories
     List<Document> orgAppCategoryDocs = tagDAO.getByOrganizationId(org.getId()).stream()
-        .map(appCategory -> documentBuilderHelper.buildDocument(indexingContext, appCategory)).collect(toList());
+        .map(appCategory -> documentBuilderHelper.buildDocument(indexingContext, appCategory)).toList();
     indexingContext.addDocumentsWithException(orgAppCategoryDocs);
     // Index the org labels
     List<Document> orgLabelDocs = labelDAO.getByOwnerId(org.getId()).stream()
-        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).collect(toList());
+        .map(label -> documentBuilderHelper.buildDocument(indexingContext, label)).toList();
     indexingContext.addDocumentsWithException(orgLabelDocs);
     // Index the org policies
     List<Document> orgPolicyDocs = policyDAO.getByOwnerId(org.getId()).stream()
-        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).collect(toList());
+        .map(policy -> documentBuilderHelper.buildDocument(indexingContext, policy)).toList();
     indexingContext.addDocumentsWithException(orgPolicyDocs);
 
     // Index the security vulnerability data
-    List<Application> applications = applicationDAO.getByOrganizationId(organizationId);
     for (Application application : applications) {
       indexingContext.addDocumentsWithException(
-          documentBuilderHelper.buildApplicationSVDocs(indexingContext, org, application));
+          documentBuilderHelper.buildApplicationSVDocs(indexingContext, org, application, parentOrgsMap));
     }
 
-    List<Organization> byParentOrganizationId = organizationDAO.getByParentOrganizationId(organizationId);
+    List<Organization> byParentOrganizationId = organizationDAO.getByParentOrganizationId(org.getId());
     for (Organization organization : byParentOrganizationId) {
-      updateIndexForOrganization(organization.getId(), indexingContext);
+      updateIndexForOrganization(organization, indexingContext);
     }
   }
 

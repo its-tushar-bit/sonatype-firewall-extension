@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -62,7 +63,7 @@ public abstract class IndexingContext
       if (CollectionUtils.isEmpty(documents)) {
         return;
       }
-      addDocuments(documents);
+      addDocuments(documents.stream().filter(Objects::nonNull).toList());
     }
     catch (IOException e) {
       log.error(e.getMessage(), e);

@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +22,7 @@ import java.util.stream.Collectors;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.component.InvalidComponentIdentifierException;
 import com.sonatype.insight.IdentificationSource;
 import com.sonatype.insight.brain.dataaccess.OrganizationDAO;
 import com.sonatype.insight.brain.dataaccess.OwnerDAO;
@@ -64,7 +64,6 @@ import com.sonatype.insight.error.exception.NotFoundException;
 import com.sonatype.insight.purl.PackageUrlIdentifier;
 
 import com.github.packageurl.PackageURLBuilder;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -79,7 +78,6 @@ import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.BOM
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.DEPENDENCIES_JSON;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.LICENSES_JSON;
 import static com.sonatype.insight.brain.report.ApplicationReport.ReportFile.SECURITY_JSON;
-import static java.util.stream.Collectors.toList;
 
 @Named
 @Singleton
@@ -227,13 +225,19 @@ public class DocumentBuilderHelper
       IndexingContext indexingContext,
       Collection<Organization> organizations)
   {
-    return organizations.stream().map(org -> buildDocument(indexingContext, org)).collect(toList());
+    if (CollectionUtils.isEmpty(organizations)) {
+      return Collections.emptyList();
+    }
+    return organizations.stream().map(org -> buildDocument(indexingContext, org)).toList();
   }
 
   public Document buildDocument(
       @SuppressWarnings("unused") IndexingContext indexingContext,
       Organization organization)
   {
+    if (organization == null) {
+      return null;
+    }
     return new DocumentBuilder(ItemType.ORGANIZATION)
         .setOwner(organization)
         .build();
@@ -243,74 +247,111 @@ public class DocumentBuilderHelper
       IndexingContext indexingContext,
       Collection<Application> applications)
   {
-    return applications.stream().map(app -> buildDocument(indexingContext, app)).collect(toList());
+    if (CollectionUtils.isEmpty(applications)) {
+      return Collections.emptyList();
+    }
+    return applications.stream().map(app -> buildDocument(indexingContext, app)).toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, Application application) {
+    if (application == null) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(application.getOrganizationId());
+    if (owner == null) {
+      return null;
+    }
     return new DocumentBuilder(ItemType.APPLICATION)
         .setOwner(application)
-        .setOwner(indexingContext.getOwner(application.getOrganizationId()))
+        .setOwner(owner)
         .build();
   }
 
   public List<Document> buildTagDocs(IndexingContext indexingContext) {
-    return tagDAO.getAll().stream().map(tag -> buildDocument(indexingContext, tag)).collect(toList());
+    return tagDAO.getAll().stream().map(tag -> buildDocument(indexingContext, tag)).toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, Tag tag) {
-    return new DocumentBuilder(ItemType.APPLICATION_CATEGORY) //
-        .setApplicationCategoryId(tag.getId()) //
-        .setApplicationCategoryName(tag.getName()) //
-        .setApplicationCategoryColor(tag.getColor()) //
-        .setApplicationCategoryDescription(tag.getDescription()) //
-        .setOwner(indexingContext.getOwner(tag.getOrganizationId())) //
+    if (tag == null) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(tag.getOrganizationId());
+    if (owner == null) {
+      return null;
+    }
+    return new DocumentBuilder(ItemType.APPLICATION_CATEGORY)
+        .setApplicationCategoryId(tag.getId())
+        .setApplicationCategoryName(tag.getName())
+        .setApplicationCategoryColor(tag.getColor())
+        .setApplicationCategoryDescription(tag.getDescription())
+        .setOwner(owner)
         .build();
   }
 
   public List<Document> buildLabelDocs(IndexingContext indexingContext) {
-    return labelDAO.getAll().stream().map(label -> buildDocument(indexingContext, label)).collect(toList());
+    return labelDAO.getAll().stream().map(label -> buildDocument(indexingContext, label)).toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, Label label) {
-    return new DocumentBuilder(ItemType.COMPONENT_LABEL) //
-        .setComponentLabelId(label.getId()) //
-        .setComponentLabelName(label.getLabel()) //
-        .setComponentLabelColor(label.getColor()) //
-        .setComponentLabelDescription(label.getDescription()) //
-        .setOwner(indexingContext.getOwner(label.getOwnerId())) //
+    if (label == null) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(label.getOwnerId());
+    if (owner == null) {
+      return null;
+    }
+    return new DocumentBuilder(ItemType.COMPONENT_LABEL)
+        .setComponentLabelId(label.getId())
+        .setComponentLabelName(label.getLabel())
+        .setComponentLabelColor(label.getColor())
+        .setComponentLabelDescription(label.getDescription())
+        .setOwner(owner)
         .build();
   }
 
   public List<Document> buildPolicyDocs(IndexingContext indexingContext) {
-    return policyDAO.getAll().stream().map(policy -> buildDocument(indexingContext, policy)).collect(toList());
+    return policyDAO.getAll().stream().map(policy -> buildDocument(indexingContext, policy)).toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, Policy policy) {
-    return new DocumentBuilder(ItemType.POLICY) //
-        .setPolicyId(policy.getId()) //
-        .setPolicyName(policy.getName()) //
-        .setPolicyThreatCategory(policy.getThreatCategory()) //
-        .setPolicyThreatLevel(policy.getThreatLevel()) //
-        .setOwner(indexingContext.getOwner(policy.getOwnerId())) //
+    if (policy == null) {
+      return null;
+    }
+    Owner owner = indexingContext.getOwner(policy.getOwnerId());
+    if (owner == null) {
+      return null;
+    }
+    return new DocumentBuilder(ItemType.POLICY)
+        .setPolicyId(policy.getId())
+        .setPolicyName(policy.getName())
+        .setPolicyThreatCategory(policy.getThreatCategory())
+        .setPolicyThreatLevel(policy.getThreatLevel())
+        .setOwner(owner)
         .build();
   }
 
   public List<Document> buildSbomDocs(IndexingContext indexingContext) {
     return thirdPartySbomMetadataDAO.getAll().stream()
         .map(sbomMetadata -> buildDocument(indexingContext, sbomMetadata))
-        .collect(toList());
+        .toList();
   }
 
   public Document buildDocument(IndexingContext indexingContext, ThirdPartySbomMetadata sbomMetadata) {
-    Owner owner = indexingContext.getOwner(sbomMetadata.getApplicationId());
-    if (!(owner instanceof Application)) {
-      throw new IllegalStateException("ThirdPartySbomMetadata " + sbomMetadata.getId() + " has owner that is not " +
-          "of type Application: " + owner);
+    if (sbomMetadata == null) {
+      return null;
     }
-
-    Application application = (Application) owner;
+    Owner owner = indexingContext.getOwner(sbomMetadata.getApplicationId());
+    if (owner == null) {
+      return null;
+    }
+    if (!(owner instanceof Application application)) {
+      log.warn("ThirdPartySbomMetadata {} has owner that is not of type Application: {}", sbomMetadata.getId(), owner);
+      return null;
+    }
     Organization org = (Organization) indexingContext.getOwner(application.getOrganizationId());
-
+    if (org == null) {
+      return null;
+    }
     return new DocumentBuilder(ItemType.SBOM_METADATA)
         .setOwner(application)
         .setOwner(org)
@@ -322,21 +363,12 @@ public class DocumentBuilderHelper
   public List<Document> buildApplicationSVDocs(
       IndexingContext indexingContext,
       Organization organization,
-      Application application)
-  {
-    List<Organization> parentOrganizations = new ArrayList<>();
-    ownerDAO.walkHierarchy(organization).forEach(o -> parentOrganizations.add((Organization) o));
-
-    return buildApplicationSVDocs(indexingContext, organization, application,
-        ImmutableMap.of(organization, parentOrganizations));
-  }
-
-  public List<Document> buildApplicationSVDocs(
-      IndexingContext indexingContext,
-      Organization organization,
       Application application,
       Map<Organization, Collection<Organization>> parentOrgsMap)
   {
+    if (parentOrgsMap == null || organization == null || application == null) {
+      return Collections.emptyList();
+    }
     return StageTypes.getAll().stream()
         .map(stageType -> CompletableFuture.supplyAsync(
             () -> buildApplicationStageSVDocs(
@@ -367,6 +399,9 @@ public class DocumentBuilderHelper
       StageType stageType,
       Collection<Organization> parentOrganizations)
   {
+    if (parentOrganizations == null || organization == null || application == null) {
+      return Collections.emptyList();
+    }
     PolicyEvaluation latestPolicyEvaluation =
         policyEvaluationDAO.getLastByApplicationIdAndStageId(application.getId(), stageType.getId());
     if (latestPolicyEvaluation == null) {
@@ -423,13 +458,13 @@ public class DocumentBuilderHelper
       log.error("Error parsing report files at {}",
           applicationReport == null ? "Unknown" : applicationReport.getLocation(), e);
     }
-    catch (IOException | NotFoundException e) {
+    catch (IOException | NotFoundException | InvalidComponentIdentifierException e) {
       log.error(e.getMessage(), e);
     }
     catch (Exception e) {
       Throwable rootCause = ExceptionUtils.getRootCause(e);
-      if (rootCause instanceof IOException || rootCause instanceof NotFoundException ||
-          rootCause instanceof UncheckedIOException) {
+      if (rootCause instanceof UncheckedIOException || rootCause instanceof IOException ||
+          rootCause instanceof NotFoundException || rootCause instanceof InvalidComponentIdentifierException) {
         log.error(e.getMessage(), e);
       }
       else {
@@ -448,11 +483,15 @@ public class DocumentBuilderHelper
       String reportId,
       Component component)
   {
+    if (parentOrganizations == null || organization == null || application == null || component == null) {
+      return Collections.emptyList();
+    }
     if (CollectionUtils.isNotEmpty(component.getSecurityVulnerabilities())) {
       return component.getSecurityVulnerabilities().stream()
-          .map(vulnerability -> buildDocument(indexingContext, application, stageType, reportId, component,
-              vulnerability, parentOrganizations))
-          .collect(toList());
+          .map(
+              vulnerability -> buildDocument(indexingContext, organization, application, stageType, reportId, component,
+                  vulnerability, parentOrganizations))
+          .toList();
     }
     else if (component.getComponentIdentifier() != null) {
       return Collections.singletonList(
@@ -471,23 +510,27 @@ public class DocumentBuilderHelper
       String reportId,
       Component component)
   {
-    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT) //
-        .setOwner(application) //
+    if (parentOrganizations == null || organization == null || application == null || component == null) {
+      return null;
+    }
+    return new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT)
+        .setOwner(application)
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
-        .setPolicyEvaluationStage(stageType) //
-        .setReportId(reportId) //
-        .setComponentHash(component.getHash()) //
-        .setComponentFormat(component.getComponentIdentifier().getFormat()) //
-        .setComponentCoordinates(component) //
-        .setComponentName(component.getDisplayNameFromIdentifier()) //
-        .setParentOrganizationNames(parentOrganizations) //
-        .setParentOrganizationIds(parentOrganizations) //
+        .setPolicyEvaluationStage(stageType)
+        .setReportId(reportId)
+        .setComponentHash(component.getHash())
+        .setComponentFormat(component.getComponentIdentifier().getFormat())
+        .setComponentCoordinates(component)
+        .setComponentName(component.getDisplayNameFromIdentifier())
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations)
         .build();
   }
 
   public Document buildDocument(
       IndexingContext indexingContext,
+      Organization organization,
       Application application,
       StageType stageType,
       String reportId,
@@ -495,22 +538,26 @@ public class DocumentBuilderHelper
       SecurityVulnerability vulnerability,
       Collection<Organization> parentOrganizations)
   {
-    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY) //
-        .setOwner(application) //
+    if (parentOrganizations == null || organization == null || application == null || component == null ||
+        vulnerability == null) {
+      return null;
+    }
+    return new DocumentBuilder(ItemType.SECURITY_VULNERABILITY)
+        .setOwner(application)
         .setOrganizationId(application.getOrganizationId())
-        .setOrganizationName(organizationDAO.getById(application.getOrganizationId()).getName())
-        .setPolicyEvaluationStage(stageType) //
-        .setReportId(reportId) //
-        .setComponentHash(component.getHash()) //
-        .setComponentFormat(component.getComponentIdentifier().getFormat()) //
-        .setComponentCoordinates(component) //
-        .setComponentName(component.getDisplayNameFromIdentifier()) //
-        .setVulnerabilityId(vulnerability.getRefId()) //
-        .setVulnerabilitySeverity(vulnerability.getSeverity()) //
-        .setVulnerabilityStatus(vulnerability.getStatus().getName()) //
-        .setVulnerabilityDescription(getDescription(indexingContext.getVulnDescByVulnId(), vulnerability)) //
-        .setParentOrganizationNames(parentOrganizations) //
-        .setParentOrganizationIds(parentOrganizations) //
+        .setOrganizationName(organization.getName())
+        .setPolicyEvaluationStage(stageType)
+        .setReportId(reportId)
+        .setComponentHash(component.getHash())
+        .setComponentFormat(component.getComponentIdentifier().getFormat())
+        .setComponentCoordinates(component)
+        .setComponentName(component.getDisplayNameFromIdentifier())
+        .setVulnerabilityId(vulnerability.getRefId())
+        .setVulnerabilitySeverity(vulnerability.getSeverity())
+        .setVulnerabilityStatus(vulnerability.getStatus().getName())
+        .setVulnerabilityDescription(getDescription(indexingContext.getVulnDescByVulnId(), vulnerability))
+        .setParentOrganizationNames(parentOrganizations)
+        .setParentOrganizationIds(parentOrganizations)
         .build();
   }
 
@@ -560,6 +607,9 @@ public class DocumentBuilderHelper
       Application application,
       Map<Organization, Collection<Organization>> parentOrgsMap)
   {
+    if (parentOrgsMap == null || organization == null || application == null) {
+      return Collections.emptyList();
+    }
     return thirdPartySbomMetadataDAO.getByApplicationId(application.getId())
         .stream()
         .map(sbomMetadata -> CompletableFuture.supplyAsync(
@@ -589,6 +639,9 @@ public class DocumentBuilderHelper
       ThirdPartySbomMetadata sbomMetadata,
       Collection<Organization> parentOrganizations)
   {
+    if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null) {
+      return Collections.emptyList();
+    }
     return thirdPartyFileCoordinateDAO.getBySbomMetadataId(sbomMetadata.getId())
         .stream()
         .map(fileCoord -> CompletableFuture.supplyAsync(
@@ -620,6 +673,10 @@ public class DocumentBuilderHelper
       Collection<Organization> parentOrganizations,
       ThirdPartyFileCoordinate thirdPartyFileCoord)
   {
+    if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
+        thirdPartyFileCoord == null) {
+      return Collections.emptyList();
+    }
     List<ThirdPartyCoordinateSecurity> vulns = thirdPartyCoordinateSecurityDAO.getByFileCoordinateIds(
         Collections.singletonList(thirdPartyFileCoord.getId())
     );
@@ -628,7 +685,7 @@ public class DocumentBuilderHelper
       return vulns.stream()
           .map(vuln -> buildDocument(organization, application, sbomMetadata, thirdPartyFileCoord, vuln,
               parentOrganizations))
-          .collect(toList());
+          .toList();
     }
     else if (thirdPartyFileCoord.getPackageUrl() != null) {
       return Collections.singletonList(
@@ -646,6 +703,10 @@ public class DocumentBuilderHelper
       ThirdPartyFileCoordinate thirdPartyFileCoord,
       Collection<Organization> parentOrganizations)
   {
+    if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
+        thirdPartyFileCoord == null) {
+      return null;
+    }
     DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.NON_VULNERABLE_COMPONENT);
     ComponentIdentifier componentIdentifier = tryConvert(thirdPartyFileCoord);
     if (componentIdentifier != null) {
@@ -674,6 +735,10 @@ public class DocumentBuilderHelper
       ThirdPartyCoordinateSecurity thirdPartyCoordinateSecurity,
       Collection<Organization> parentOrganizations)
   {
+    if (parentOrganizations == null || organization == null || application == null || sbomMetadata == null ||
+        thirdPartyFileCoord == null || thirdPartyCoordinateSecurity == null) {
+      return null;
+    }
     DocumentBuilder documentBuilder = new DocumentBuilder(ItemType.SECURITY_VULNERABILITY);
     ComponentIdentifier componentIdentifier = tryConvert(thirdPartyFileCoord);
     if (componentIdentifier != null) {
@@ -689,11 +754,9 @@ public class DocumentBuilderHelper
         .setOrganizationId(application.getOrganizationId())
         .setOrganizationName(organization.getName())
         .setComponentHash(thirdPartyFileCoord.getHash())
-        .setComponentCoordinates(componentIdentifier)
-        .setComponentName(ComponentDisplayNameUtil.fromIdentifier(componentIdentifier).toString())
         .setVulnerabilityId(thirdPartyCoordinateSecurity.getRefId())
         .setVulnerabilitySeverity(
-            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity()).setScale(2, RoundingMode.UNNECESSARY)
+            BigDecimal.valueOf(thirdPartyCoordinateSecurity.getSeverity()).setScale(2, RoundingMode.HALF_EVEN)
                 .floatValue())
         .setVulnerabilityDescription(thirdPartyCoordinateSecurity.getDescription())
         .setParentOrganizationNames(parentOrganizations)
@@ -707,8 +770,7 @@ public class DocumentBuilderHelper
     // First try the pURL, if it exists
     if (thirdPartyFileCoordinate.getPackageUrl() != null) {
       try {
-        packageUrlIdentifier =
-            new PackageUrlIdentifier(thirdPartyFileCoordinate.getPackageUrl());
+        packageUrlIdentifier = new PackageUrlIdentifier(thirdPartyFileCoordinate.getPackageUrl());
       }
       catch (Exception e) {
         log.error("Unable to create PackageUrlIdentifier from ThirdPartyFileCoordinate with id: '{}', and pURL: '{}'.",

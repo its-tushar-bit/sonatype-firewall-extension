@@ -17,6 +17,16 @@ pipeline {
     string(name: 'RELEASE_VERSION', description: 'The version being released (e.g., 1.199.0). Build number will be appended automatically.')
     string(name: 'RELEASE_BRANCH_NAME', description: 'The release branch to build from (e.g., release-1.199.x)')
     booleanParam(name: 'HOTFIX', defaultValue: false, description: 'Whether this is a hotfix release')
+
+    // Skip stage parameters for testing
+    booleanParam(name: 'skipValidateParams', defaultValue: false, description: 'Skip: Validate release parameters')
+    booleanParam(name: 'skipCheckout', defaultValue: false, description: 'Skip: Checkout release branch')
+    booleanParam(name: 'skipSetVersion', defaultValue: false, description: 'Skip: Set release version')
+    booleanParam(name: 'skipBuild', defaultValue: false, description: 'Skip: Build release artifacts')
+    booleanParam(name: 'skipDeploy', defaultValue: false, description: 'Skip: Deploy Maven artifacts')
+    booleanParam(name: 'skipTag', defaultValue: false, description: 'Skip: Create release tag')
+    booleanParam(name: 'skipPublish', defaultValue: false, description: 'Skip: Publish to staging repository')
+    booleanParam(name: 'skipSboms', defaultValue: false, description: 'Skip: Save insight-brain SBOMs')
   }
 
   environment {
@@ -26,6 +36,9 @@ pipeline {
 
   stages {
     stage('Validate release parameters') {
+      when {
+        expression { !params.skipValidateParams }
+      }
       steps {
         script {
           def requiredProperties = [RELEASE_VERSION, RELEASE_BRANCH_NAME]
@@ -44,6 +57,9 @@ pipeline {
     }
 
     stage('Checkout release branch') {
+      when {
+        expression { !params.skipCheckout }
+      }
       steps {
         dir('insight-brain') {
           sshagent(credentials: [sonatypeZionCredentialsId()]) {
@@ -55,6 +71,9 @@ pipeline {
     }
 
     stage('Set release version') {
+      when {
+        expression { !params.skipSetVersion }
+      }
       steps {
         dir('insight-brain') {
           script {
@@ -76,6 +95,9 @@ pipeline {
     }
 
     stage('Build release artifacts') {
+      when {
+        expression { !params.skipBuild }
+      }
       steps {
         dir('insight-brain') {
           script {
@@ -98,7 +120,27 @@ pipeline {
       }
     }
 
+    stage('Deploy Maven artifacts') {
+      when {
+        expression { !params.skipDeploy }
+      }
+      steps {
+        dir('insight-brain') {
+          script {
+            // Use same config as build stage
+            def config = mavenCommon(javaVersion: 'OpenJDK 17', mavenVersion: 'Maven 3.9.x', useEventSpy: false)
+
+            // Call publishRelease from jenkins-shared library (same as old release pipeline)
+            publishRelease(config, null, false)
+          }
+        }
+      }
+    }
+
     stage('Create release tag') {
+      when {
+        expression { !params.skipTag }
+      }
       steps {
         dir('insight-brain') {
           sshagent(credentials: [sonatypeZionCredentialsId()]) {
@@ -127,6 +169,9 @@ pipeline {
     }
 
     stage('Publish to staging repository') {
+      when {
+        expression { !params.skipPublish }
+      }
       steps {
         dir('insight-brain') {
           script {
@@ -170,6 +215,9 @@ pipeline {
     }
 
     stage('Save insight-brain SBOMs') {
+      when {
+        expression { !params.skipSboms }
+      }
       steps {
         script {
           storeLifecycleSboms('insight-brain', "${FULL_RELEASE_VERSION}", IQ_BASEURL)

@@ -655,6 +655,78 @@ public class QuarantinedComponentServiceTest
   }
 
   @Test
+  public void testGetQuarantinedComponentOtherVersions_ExcludesPreCachedVersionsWithViolations() {
+    Date date = new Date();
+
+    RepositoryComponent quarantinedComponent = tempEntity.newRepositoryComponent(
+        repository.getId(),
+        MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.1/abi.cli-0.5.1.jar",
+        "hash-0.5.1",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.1", null, "jar"),
+        date,
+        new DateTime(date).minusDays(1).toDate(),
+        null);
+
+    // Pre-cached component with active violations - should be excluded
+    RepositoryComponent preCachedWithViolations = tempEntity.newRepositoryComponent(
+        repository.getId(),
+        MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.2/abi.cli-0.5.2.jar",
+        "hash-0.5.2",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.2", null, "jar"),
+        date,
+        null,
+        null);
+
+    tempEntity.newRepositoryPolicyViolation(
+        repository.getId(),
+        8,
+        preCachedWithViolations.getPathname(),
+        false,
+        Action.ID_FAIL,
+        "security-policy-id",
+        "Security-Critical",
+        preCachedWithViolations.getComponentIdentifier(),
+        date);
+
+    // Safe component - should be included
+    tempEntity.newRepositoryComponent(
+        repository.getId(),
+        MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.3/abi.cli-0.5.3.jar",
+        "hash-0.5.3",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.3", null, "jar"),
+        date,
+        null,
+        null);
+
+    // Unquarantined component - should be included
+    tempEntity.newRepositoryComponent(
+        repository.getId(),
+        MatchState.EXACT,
+        "com/lingocoder/abi.cli/0.5.4/abi.cli-0.5.4.jar",
+        "hash-0.5.4",
+        ComponentIdentifier.createMavenCoordinates("com.lingocoder", "abi.cli", "0.5.4", null, "jar"),
+        date,
+        new DateTime(date).minusDays(1).toDate(),
+        date);
+
+    QuarantinedComponentAccess quarantinedComponentAccess =
+        tempEntity.newQuarantinedComponentAccess(repository.getId(), quarantinedComponent.getId(), date);
+    String encodedToken = encodeToken(quarantinedComponentAccess);
+
+    ApiPageResult<String> result =
+        quarantinedComponentService.getQuarantinedComponentOtherVersions(encodedToken, 1, 5, true /* asc */);
+
+    assertThat(result.getTotal()).isEqualTo(2);
+    assertThat(result.getResults()).containsExactly(
+        "com.lingocoder : abi.cli : 0.5.3",
+        "com.lingocoder : abi.cli : 0.5.4");
+    verify(telemetrySenderMock, never()).send(any(TelemetryData.class));
+  }
+
+  @Test
   public void testGetQuarantinedComponentOtherVersions_InvalidPage() {
     Date date = new Date();
     // Quarantined component

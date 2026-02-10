@@ -1240,4 +1240,125 @@ public class RepositoryComponentDAOTest
     assertThat(component.getUnquarantineTime()).isEqualTo(unquarantineTime);
     assertThat(component.getAutoUnquarantined()).isEqualTo(autoUnquarantined);
   }
+
+  @Test
+  public void testGetOtherVersionRepositoryComponentsByPathnameFilter_ExcludesPreCachedVersionsWithViolations() {
+    Date now = new Date();
+    String repositoryId = repository.getId();
+    ComponentIdentifier v1 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "1.0.0", null, "jar");
+    ComponentIdentifier v2 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "2.0.0", null, "jar");
+    ComponentIdentifier v3 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "3.0.0", null, "jar");
+    ComponentIdentifier v4 = ComponentIdentifier.createMavenCoordinates("com.example", "library", "4.0.0", null, "jar");
+
+    RepositoryComponent quarantined = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/library/1.0.0/library-1.0.0.jar",
+        "hash1",
+        v1,
+        now,
+        now,
+        null);
+
+    // Pre-cached with active violations - should be excluded
+    RepositoryComponent preCachedWithViolation = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/library/2.0.0/library-2.0.0.jar",
+        "hash2",
+        v2,
+        now,
+        null,
+        null);
+
+    tempEntity.newRepositoryPolicyViolation(
+        repositoryId,
+        8,
+        preCachedWithViolation.getPathname(),
+        false,
+        "fail",
+        "policy-id",
+        "Security Policy",
+        v2,
+        now);
+
+    RepositoryComponent safeComponent = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/library/3.0.0/library-3.0.0.jar",
+        "hash3",
+        v3,
+        now,
+        null,
+        null);
+
+    RepositoryComponent unquarantined = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/library/4.0.0/library-4.0.0.jar",
+        "hash4",
+        v4,
+        now,
+        DateUtils.addDays(now, -1),
+        now);
+
+    List<RepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
+        repositoryId,
+        "com/example/library/",
+        quarantined.getPathname());
+
+    assertThat(result).hasSize(2);
+    assertThat(result).extracting(RepositoryComponent::getId)
+        .containsExactlyInAnyOrder(safeComponent.getId(), unquarantined.getId());
+    assertThat(result).extracting(RepositoryComponent::getId)
+        .doesNotContain(preCachedWithViolation.getId(), quarantined.getId());
+  }
+
+  @Test
+  public void testGetOtherVersionRepositoryComponentsByPathnameFilter_IncludesPreCachedVersionsWithWaivedViolations() {
+    Date now = new Date();
+    String repositoryId = repository.getId();
+    ComponentIdentifier v1 = ComponentIdentifier.createMavenCoordinates("com.example", "lib", "1.0.0", null, "jar");
+    ComponentIdentifier v2 = ComponentIdentifier.createMavenCoordinates("com.example", "lib", "2.0.0", null, "jar");
+
+    RepositoryComponent quarantined = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/lib/1.0.0/lib-1.0.0.jar",
+        "hash1",
+        v1,
+        now,
+        now,
+        null);
+
+    // Pre-cached with waived violations - should be included
+    RepositoryComponent preCachedWithWaivedViolation = tempEntity.newRepositoryComponent(
+        repositoryId,
+        MatchState.EXACT,
+        "com/example/lib/2.0.0/lib-2.0.0.jar",
+        "hash2",
+        v2,
+        now,
+        null,
+        null);
+
+    tempEntity.newRepositoryPolicyViolation(
+        repositoryId,
+        8,
+        preCachedWithWaivedViolation.getPathname(),
+        true,
+        "fail",
+        "policy-id",
+        "Security Policy",
+        v2,
+        now);
+
+    List<RepositoryComponent> result = dao.getOtherVersionRepositoryComponentsByPathnameFilter(
+        repositoryId,
+        "com/example/lib/",
+        quarantined.getPathname());
+
+    assertThat(result).hasSize(1);
+    assertThat(result.get(0).getId()).isEqualTo(preCachedWithWaivedViolation.getId());
+  }
 }

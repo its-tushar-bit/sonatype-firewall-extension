@@ -26,6 +26,7 @@ import jakarta.inject.Singleton;
 
 import com.sonatype.clm.dto.model.component.ComponentDisplayNameUtil;
 import com.sonatype.clm.dto.model.component.ComponentIdentifier;
+import com.sonatype.clm.dto.model.policy.Action;
 import com.sonatype.insight.brain.dataaccess.AbstractOperationalSqlDAO;
 import com.sonatype.insight.brain.dataaccess.component.ComponentIdentifierAdapter;
 import com.sonatype.insight.brain.dataaccess.repository.FirewallFilterField.FirewallFilterableField;
@@ -755,11 +756,22 @@ public class RepositoryComponentDAO
       String pathnamePrefix,
       String pathname)
   {
+    // Returns components that are safe to suggest as "other allowed versions" for a quarantined component.
+    // Includes components that are EITHER:
+    // 1. Never quarantined AND have no active 'fail' policy violations (excludes pre-cached components with violations)
+    // 2. Previously quarantined but later released (quarantineTime and unquarantineTime both set)
+    // Excludes the currently quarantined component itself (pathname <> ?3)
     String sQuery = "SELECT component FROM RepositoryComponent component" + //
         " WHERE component.repositoryId=?1" + //
         " AND component.pathname like ?2" + //
         " AND component.pathname <> ?3" + //
         " AND (component.quarantineTime IS NULL" + //
+        " AND NOT EXISTS (SELECT 1 FROM RepositoryPolicyViolation v" +
+        " WHERE v.repositoryId = component.repositoryId" +
+        " AND v.pathname = component.pathname" +
+        " AND v.actionTypeId = '" + Action.ID_FAIL + "'" +
+        " AND v.isWaived = false" +
+        " AND v.active = true) " +
         " OR (component.quarantineTime IS NOT NULL AND component.unquarantineTime IS NOT NULL))";
 
     return getList(sQuery, repositoryId, pathnamePrefix + "%", pathname);

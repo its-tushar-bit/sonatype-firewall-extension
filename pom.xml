@@ -1549,7 +1549,7 @@
           <dependency>
             <groupId>com.sonatype</groupId>
             <artifactId>pmd-ruleset</artifactId>
-            <version>18</version>
+            <version>22</version>
           </dependency>
         </dependencies>
       </plugin>

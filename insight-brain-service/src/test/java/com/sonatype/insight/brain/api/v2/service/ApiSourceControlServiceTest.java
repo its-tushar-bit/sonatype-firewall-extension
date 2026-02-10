@@ -1270,7 +1270,7 @@ public class ApiSourceControlServiceTest
     tempEntity.newSourceControl(application.getId(), "https://github.com/orgName/repoName",
         passwordHandler.encryptPassword(TOKEN), SourceControlProvider.GITHUB);
     GitApiClient mockGitApiClient = createMockGitApiClient("userId2");
-    when(mockGitApiClient.getUserId()).thenThrow(new RuntimeException("Some Error"));
+    when(mockGitApiClient.getSynchronizationKey()).thenThrow(new RuntimeException("Some Error"));
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitApiClient);
 
     ApiOwnerUserRateLimitsDTO dto = sourceControlService.getRateLimits(application.getType(), application.getId());
@@ -1519,7 +1519,7 @@ public class ApiSourceControlServiceTest
 
   private GitApiClient createMockGitApiClient(String userId) {
     GitApiClient mockGitApiClient = mock(GitApiClient.class);
-    lenient().when(mockGitApiClient.getUserId()).thenReturn(userId);
+    lenient().when(mockGitApiClient.getSynchronizationKey()).thenReturn(userId);
     return mockGitApiClient;
   }
 

@@ -180,7 +180,7 @@ public class SourceControlUtils
     GitRepositoryInfo gitRepositoryInfo = getGitRepositoryInfoForApplication(applicationId);
     GitApiClient gitApiClient = gitClientFactory.createApiClient(gitRepositoryInfo);
 
-    return gitApiClient.getUserId();
+    return gitApiClient.getSynchronizationKey();
   }
 
   /**

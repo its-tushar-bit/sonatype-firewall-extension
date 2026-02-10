@@ -281,13 +281,13 @@ public class SourceControlUtilsTest
     when(mockGitClientFactory.createApiClient(any())).thenReturn(mockGitClientApi);
     when(mockSourceControlDataService.getCompositeSourceControlByOwnerDecrypted(eq(application.getId())))
         .thenReturn(sourceControl);
-    when(mockGitClientApi.getUserId()).thenReturn("scmUser");
+    when(mockGitClientApi.getSynchronizationKey()).thenReturn("scmUser");
 
     String userId = sourceControlUtils.getScmUserIdForApplication(application.getId());
 
     verify(mockSourceControlDataService, times(1)).getCompositeSourceControlByOwnerDecrypted(application.getId());
     verify(mockGitClientFactory, times(1)).createApiClient(any());
-    verify(mockGitClientApi, times(1)).getUserId();
+    verify(mockGitClientApi, times(1)).getSynchronizationKey();
     assertThat(userId).isNotNull();
     assertThat(userId).isEqualTo("scmUser");
   }

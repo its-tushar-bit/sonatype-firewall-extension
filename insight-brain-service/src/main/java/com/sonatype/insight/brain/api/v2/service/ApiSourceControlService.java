@@ -669,7 +669,7 @@ public class ApiSourceControlService
   }
 
   private String getUser(GitRepositoryInfo gitRepositoryInfo) {
-    return gitClientFactory.createApiClient(gitRepositoryInfo).getUserId();
+    return gitClientFactory.createApiClient(gitRepositoryInfo).getSynchronizationKey();
   }
 
   private void trySaveRepoUserActivityOrFailSilently(

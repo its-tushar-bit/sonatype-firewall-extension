@@ -1,0 +1,64 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "serialNumber": "urn:uuid:3e671687-395b-41f5-a30f-a58921a69b79",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2020-04-13T20:20:39+00:00",
+    "tools": [
+      {
+        "vendor": "Sonatype",
+        "name": "IQ Server",
+        "version": "1.0.0"
+      }
+    ],
+    "component": {
+      "type": "application",
+      "name": "Test Application",
+      "version": "1.0.0"
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:maven/com.google.guava/guava@30.1-jre?type=jar",
+      "type": "library",
+      "publisher": "Google",
+      "group": "com.google.guava",
+      "name": "guava",
+      "version": "30.1-jre",
+      "licenses": [
+        {
+          "license": {
+            "id": "Apache-2.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/com.google.guava/guava@30.1-jre?type=jar"
+    },
+    {
+      "bom-ref": "pkg:maven/junit/junit@4.12?type=jar",
+      "type": "library",
+      "group": "junit",
+      "name": "junit",
+      "version": "4.12",
+      "licenses": [
+        {
+          "license": {
+            "id": "EPL-1.0"
+          }
+        }
+      ],
+      "purl": "pkg:maven/junit/junit@4.12?type=jar"
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:maven/com.google.guava/guava@30.1-jre?type=jar",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:maven/junit/junit@4.12?type=jar",
+      "dependsOn": []
+    }
+  ]
+}

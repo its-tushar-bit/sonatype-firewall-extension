@@ -16,12 +16,10 @@ import { getChildCount } from '../utils/jsonTreeUtils';
 const getXmlChildCount = (xmlNode) => {
   let count = 0;
 
-  // Count attributes
   if (xmlNode.attributes) {
     count += xmlNode.attributes.length;
   }
 
-  // Count element and text children
   for (let i = 0; i < xmlNode.childNodes.length; i++) {
     const child = xmlNode.childNodes[i];
     if (child.nodeType === Node.ELEMENT_NODE) {
@@ -56,11 +54,9 @@ export default function TreeNodeItems({
         const children = nodeChildren[node.id];
         const isLastVisible = index === visibleNodes.length - 1;
 
-        // Node has children if either: 1) children are already loaded, or 2) node has data that can be expanded
         const hasChildren = !!((children && children.length > 0) || node.rawData || node.xmlNode);
         const icon = hasChildren ? (isOpen ? faFolderOpen : faFolder) : faFile;
 
-        // Calculate child count: use loaded children if available, otherwise calculate from rawData/xmlNode
         let childCount = 0;
         if (hasChildren) {
           if (children) {
@@ -71,6 +67,8 @@ export default function TreeNodeItems({
             childCount = getXmlChildCount(node.xmlNode);
           }
         }
+
+        const preview = hasChildren && !isOpen ? node.preview || '' : '';
 
         return (
           <NxTree.Item
@@ -89,6 +87,7 @@ export default function TreeNodeItems({
                   <span className="iq-original-bom-viewer__value">{node.value}</span>
                 </>
               )}
+              {preview && <span className="iq-original-bom-viewer__preview">{` {${preview}}`}</span>}
             </NxTree.ItemLabel>
             {hasChildren && isOpen && children && (
               <NxTree>

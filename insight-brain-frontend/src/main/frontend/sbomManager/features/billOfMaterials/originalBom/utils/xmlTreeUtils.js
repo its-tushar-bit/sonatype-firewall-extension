@@ -29,6 +29,7 @@ const createXmlElementNode = (node, path, elementIndex = null) => {
       name: node.nodeName,
       value: node.childNodes[0].textContent?.trim(),
       xmlNode: null,
+      preview: null,
     };
   }
 
@@ -37,6 +38,7 @@ const createXmlElementNode = (node, path, elementIndex = null) => {
     name: node.nodeName,
     value: null,
     xmlNode: node,
+    preview: generateXmlPreview(node),
   };
 };
 
@@ -139,4 +141,39 @@ export const expandXmlChildren = (xmlNode, parentPath) => {
   }
 
   return children;
+};
+
+export const generateXmlPreview = (xmlNode) => {
+  if (!xmlNode || xmlNode.nodeType !== 1) {
+    return xmlNode?.textContent?.trim() || '';
+  }
+
+  try {
+    const MAX_ITEMS = 3;
+    const previewParts = [];
+    let count = 0;
+
+    if (xmlNode.attributes) {
+      for (let i = 0; i < xmlNode.attributes.length && count < MAX_ITEMS; i++) {
+        previewParts.push(`@${xmlNode.attributes[i].name}: ${JSON.stringify(xmlNode.attributes[i].value)}`);
+        count++;
+      }
+    }
+
+    if (xmlNode.children && count < MAX_ITEMS) {
+      for (let i = 0; i < xmlNode.children.length && count < MAX_ITEMS; i++) {
+        previewParts.push(`${xmlNode.children[i].nodeName}: {…}`);
+        count++;
+      }
+    }
+
+    // Calculate hasMore based on total items, not collected count
+    const totalItems = (xmlNode.attributes?.length || 0) + (xmlNode.children?.length || 0);
+    const hasMore = totalItems > MAX_ITEMS;
+    const displayParts = previewParts.slice(0, MAX_ITEMS);
+    return hasMore ? `${displayParts.join(', ')}, …` : displayParts.join(', ');
+  } catch (e) {
+    console.error('Error generating XML preview:', e);
+    return xmlNode.nodeName || '';
+  }
 };

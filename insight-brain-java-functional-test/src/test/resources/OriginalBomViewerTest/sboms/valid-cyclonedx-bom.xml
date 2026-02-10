@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bom serialNumber="urn:uuid:33dfc2b6-6d6f-4174-8f4f-2b09cd3ba363" version="1" xmlns="http://cyclonedx.org/schema/bom/1.4">
+  <metadata>
+    <timestamp>2022-10-10T16:50:51Z</timestamp>
+    <component type="application" bom-ref="pkg:maven/com.sonatype/test-application@1.0.0?type=pom">
+      <group>com.sonatype</group>
+      <name>test-application</name>
+      <version>1.0.0</version>
+      <purl>pkg:maven/com.sonatype/test-application@1.0.0?type=pom</purl>
+    </component>
+  </metadata>
+  <components>
+    <component type="library" bom-ref="pkg:maven/com.google.guava/guava@30.1-jre?type=jar">
+      <group>com.google.guava</group>
+      <name>guava</name>
+      <version>30.1-jre</version>
+      <licenses>
+        <license>
+          <id>Apache-2.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/com.google.guava/guava@30.1-jre?type=jar</purl>
+    </component>
+    <component type="library" bom-ref="pkg:maven/junit/junit@4.12?type=jar">
+      <group>junit</group>
+      <name>junit</name>
+      <version>4.12</version>
+      <licenses>
+        <license>
+          <id>EPL-1.0</id>
+        </license>
+      </licenses>
+      <purl>pkg:maven/junit/junit@4.12?type=jar</purl>
+    </component>
+  </components>
+  <dependencies>
+    <dependency ref="pkg:maven/com.google.guava/guava@30.1-jre?type=jar"/>
+    <dependency ref="pkg:maven/junit/junit@4.12?type=jar"/>
+  </dependencies>
+</bom>

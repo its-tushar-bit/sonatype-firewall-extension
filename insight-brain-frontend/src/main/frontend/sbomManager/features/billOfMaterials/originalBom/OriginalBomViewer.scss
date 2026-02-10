@@ -3,6 +3,8 @@
  * Includes the third-party code listed at http://links.sonatype.com/products/clm/attributions.
  * "Sonatype" is a trademark of Sonatype, Inc.
  */
+@use '~@sonatype/react-shared-components/scss-shared/nx-dark-mode-helpers';
+
 .iq-original-bom-viewer {
   &__info {
     margin-bottom: 16px;
@@ -31,6 +33,20 @@
     overflow-wrap: break-word;
     min-width: 0;
     flex: 1;
+  }
+
+  &__preview {
+    color: var(--nx-color-text-subtle);
+    font-style: italic;
+    margin-left: 0.5rem;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    @include nx-dark-mode-helpers.dark-mode {
+      color: var(--nx-color-text-dark-subtle);
+    }
   }
 
   &__loading {

@@ -70,7 +70,8 @@ public class ApiAdvancedSearchResourceV2
   @Produces(MediaType.APPLICATION_JSON)
   @Audited(AuditEvent.PERFORM_ADVANCED_SEARCH)
   @Operation(description = "Use this method to perform an Advanced Search. ")
-  @ApiResponse(responseCode = "409", description = "Search index does not exist or is unreadable.")
+  @ApiResponse(responseCode = "409", description = "Search index not found. The Advanced Search " +
+      "index is unavailable or has not been created yet. Re-indexing is required before results can be returned.")
   @ApiResponse(responseCode = "200", description = "Response JSON containing the search query sent in the API call, " +
       "and other response fields as follows: \n" +
       "1. searchQuery: search query sent in the request \n" +

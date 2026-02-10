@@ -5,7 +5,11 @@
  */
 package com.sonatype.clm.testing.functional.brain;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.sonatype.clm.dto.model.policy.Stage;
 import com.sonatype.clm.testing.functional.AbstractFunctionalTest;
@@ -19,9 +23,14 @@ import com.sonatype.insight.brain.model.Organization;
 import com.sonatype.insight.brain.model.configuration.SystemConfigurationProperty;
 import com.sonatype.insight.brain.model.policy.PolicyEvaluation;
 import com.sonatype.insight.brain.report.ReportTestUtils;
+import com.sonatype.insight.brain.search.index.HybridSearchIndexClient;
 import com.sonatype.insight.brain.search.index.IndexService;
+import com.sonatype.insight.brain.search.index.SearchIndexClient;
+import com.sonatype.insight.brain.search.lucene.LuceneSearchIndexClient;
+import com.sonatype.insight.brain.search.opensearch.OpenSearchSearchIndexClient;
 import com.sonatype.insight.brain.service.InsightWork;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -41,6 +50,8 @@ public class AdvancedSearchPageTest
     extends AbstractFunctionalTest
 {
   private final IndexService indexService = testCLMServer.getCLMServer().getInstance(IndexService.class);
+
+  private final SearchIndexClient searchIndexClient = testCLMServer.getCLMServer().getInstance(SearchIndexClient.class);
 
   private final AdvancedSearchPage page = new AdvancedSearchPage();
 
@@ -66,6 +77,11 @@ public class AdvancedSearchPageTest
   @Before
   public void setUp() {
     dao = lookup(SystemConfigurationPropertyDAO.class);
+  }
+
+  @After
+  public void tearDown() {
+    cleanupIndexes();
   }
 
   @Test
@@ -183,6 +199,24 @@ public class AdvancedSearchPageTest
     page.searchInput().setValue("itemType:ORGANIZATION");
     page.searchButton().click();
     page.queryError().shouldBe(hidden);
+  }
+
+  @Test
+  public void testIndexNotFoundError() {
+    enableAdvancedSearch();
+
+    // MUST clean up any existing indexes from previous tests before this test runs
+    // This ensures we're testing the "no index" error scenario regardless of test execution order
+    cleanupIndexes();
+
+    refreshOrOpen(AdvancedSearchPage.url());
+    page.searchInput().setValue("itemType:ORGANIZATION");
+    page.searchButton().click();
+    FormMask.seeAndWaitForDismissal();
+
+    page.queryError().shouldBe(visible).shouldHave(text(
+        "Search index not found. The Advanced Search index is unavailable or has not been created yet. " +
+            "Re-indexing is required before results can be returned."));
   }
 
   private void enableAdvancedSearch() {
@@ -620,5 +654,59 @@ public class AdvancedSearchPageTest
 
     // Verify query was updated
     page.searchInput().shouldHave(value("itemType:*APPLICATION*"));
+  }
+
+  private void cleanupIndexes() {
+    if (searchIndexClient instanceof OpenSearchSearchIndexClient openSearchClient) {
+      cleanupOpenSearchIndex(openSearchClient);
+    }
+    else if (searchIndexClient instanceof HybridSearchIndexClient hybridClient) {
+      cleanupHybridIndex(hybridClient);
+    }
+    else if (searchIndexClient instanceof LuceneSearchIndexClient) {
+      cleanupLuceneIndex();
+    }
+  }
+
+  private void cleanupOpenSearchIndex(OpenSearchSearchIndexClient openSearchClient) {
+    try {
+      openSearchClient.deleteIndex();
+    }
+    catch (Exception e) {
+      // Ignore errors if index doesn't exist
+    }
+  }
+
+  private void cleanupHybridIndex(HybridSearchIndexClient hybridClient) {
+    if (hybridClient.getPrimaryClient() instanceof OpenSearchSearchIndexClient primaryClient) {
+      cleanupOpenSearchIndex(primaryClient);
+    }
+    cleanupLuceneIndex();
+  }
+
+  private void cleanupLuceneIndex() {
+    try {
+      deleteLuceneIndexDirectory();
+    }
+    catch (Exception e) {
+      // Ignore errors if directory doesn't exist
+    }
+  }
+
+  private void deleteLuceneIndexDirectory() throws Exception {
+    Path indexDir = insightWork.getSearchIndexDir().toPath();
+    if (Files.exists(indexDir)) {
+      try (Stream<Path> walk = Files.walk(indexDir)) {
+        walk.sorted(Comparator.reverseOrder())
+            .forEach(path -> {
+              try {
+                Files.delete(path);
+              }
+              catch (Exception e) {
+                // Ignore errors during cleanup
+              }
+            });
+      }
+    }
   }
 }

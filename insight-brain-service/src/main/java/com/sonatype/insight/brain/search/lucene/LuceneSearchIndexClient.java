@@ -72,9 +72,6 @@ public class LuceneSearchIndexClient
 {
   private static final Logger log = LoggerFactory.getLogger(LuceneSearchIndexClient.class);
 
-  private static final String NO_INDEX_ERROR_MESSAGE =
-      "Index does not exist or is unreadable, please (re)create your index.";
-
   private final InsightWork insightWork;
 
   @Inject

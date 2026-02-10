@@ -97,6 +97,10 @@ public abstract class AbstractSearchIndexClient
 
   public static final String ADVANCED_SEARCH_CREATE_SEARCH_INDEX = "AdvancedSearch.createSearchIndex";
 
+  protected static final String NO_INDEX_ERROR_MESSAGE =
+      "Search index not found. The Advanced Search index is unavailable or has not been created yet. " +
+          "Re-indexing is required before results can be returned.";
+
   private static final int INDEX_THREADS_MIN = 1;
 
   private static final int INDEX_THREADS_MAX = Integer.MAX_VALUE;

@@ -11,6 +11,7 @@ import java.util.function.Consumer;
 
 import com.sonatype.insight.brain.model.SearchIndexChange;
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
+import com.sonatype.insight.error.exception.ConflictException;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -186,19 +187,27 @@ public class HybridSearchIndexClient
    */
   @Override
   public Long getLastIndexTime() {
+    Long lastIndexTime = null;
     try {
-      return primaryClient.getLastIndexTime();
+      lastIndexTime = primaryClient.getLastIndexTime();
     }
     catch (Exception e) {
       log.warn("Failed to get last index time from primary client, falling back to secondary", e);
-      try {
-        return secondaryClient.getLastIndexTime();
-      }
-      catch (Exception e2) {
-        log.error("Failed to get last index time from both primary and secondary clients", e2);
-        return null;
-      }
     }
+
+    if (lastIndexTime != null) {
+      return lastIndexTime;
+    }
+
+    // Fallback to secondary
+    try {
+      lastIndexTime = secondaryClient.getLastIndexTime();
+    }
+    catch (Exception e) {
+      log.error("Failed to get last index time from both primary and secondary clients", e);
+    }
+
+    return lastIndexTime;
   }
 
   /**
@@ -212,14 +221,17 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.warn("Failed to get index size from primary client, falling back to secondary", e);
-      try {
-        return secondaryClient.getIndexSize();
-      }
-      catch (Exception e2) {
-        log.error("Failed to get index size from both primary and secondary clients", e2);
-        return 0L;
-      }
     }
+
+    // Fallback to secondary
+    try {
+      return secondaryClient.getIndexSize();
+    }
+    catch (Exception e) {
+      log.error("Failed to get index size from both primary and secondary clients", e);
+    }
+
+    return 0L;
   }
 
   /**
@@ -240,7 +252,7 @@ public class HybridSearchIndexClient
   {
     log.debug("Searching index with query: {}", searchQuery);
 
-    // Try primary client first
+    Exception primaryException;
     try {
       SearchResultDTO result = primaryClient.searchIndex(
           searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter);
@@ -249,19 +261,29 @@ public class HybridSearchIndexClient
     }
     catch (Exception e) {
       log.debug("Search failed on primary client, falling back to secondary. Error: {}", e.getMessage(), e);
-      // Fall back to secondary client
-      try {
-        SearchResultDTO result = secondaryClient.searchIndex(
-            searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter);
-        log.debug("Search completed successfully using secondary client (fallback)");
-        return result;
-      }
-      catch (Exception e2) {
-        log.error("Search failed on both primary and secondary clients", e2);
-        throw new SearchIndexException(
-            "Search failed on both primary and secondary clients. " +
-                "Primary error: " + e.getMessage() + ", Secondary error: " + e2.getMessage(), e2);
-      }
+      primaryException = e;
+    }
+
+    // Fallback to secondary client
+    Exception secondaryException;
+    try {
+      SearchResultDTO result = secondaryClient.searchIndex(
+          searchQuery, pageSize, page, allComponents, isSbomManagerMode, searchAfter);
+      log.debug("Search completed successfully using secondary client (fallback)");
+      return result;
+    }
+    catch (Exception e) {
+      log.error("Search failed on both primary and secondary clients", e);
+      secondaryException = e;
+    }
+
+    if (primaryException instanceof ConflictException conflictException) {
+      throw conflictException;
+    }
+    else {
+      throw new SearchIndexException(
+          "Search failed on both primary and secondary clients. " + "Primary error: " + primaryException.getMessage() +
+              ", Secondary error: " + secondaryException.getMessage(), secondaryException);
     }
   }
 

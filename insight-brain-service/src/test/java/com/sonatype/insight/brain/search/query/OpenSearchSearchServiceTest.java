@@ -25,6 +25,7 @@ import com.sonatype.insight.brain.search.opensearch.TestOpenSearchTransportFacto
 import com.sonatype.insight.brain.search.results.SearchResultDTO;
 import com.sonatype.insight.brain.security.InternalRealm;
 import com.sonatype.insight.brain.service.InsightConfig;
+import com.sonatype.insight.error.exception.ConflictException;
 import com.sonatype.insight.test.ContainerRule;
 
 import com.google.inject.Binder;
@@ -36,6 +37,7 @@ import org.opensearch.client.transport.OpenSearchTransport;
 import org.opensearch.testcontainers.OpensearchContainer;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
 @Category(SlowTest.class)
@@ -121,5 +123,14 @@ public class OpenSearchSearchServiceTest
   @Test
   public void testSearchIndex_TooManyBooleanClauses() {
     // no-op, this error is not thrown with OpenSearchSearchService
+  }
+
+  @Test
+  public void testSearchIndex_NoSearchIndex() {
+    openSearchSearchIndexClient.deleteIndex();
+    assertThatExceptionOfType(ConflictException.class).isThrownBy(
+            () -> searchService.searchIndex("query", 1, 1, false, null, null))
+        .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
+            "been created yet. Re-indexing is required before results can be returned.");
   }
 }

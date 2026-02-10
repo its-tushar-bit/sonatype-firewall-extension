@@ -112,7 +112,7 @@ describe('AdvancedSearch', function () {
       const toggle = screen.getByText('Craft your search terms for the best results.');
       await user.click(toggle);
 
-      helpLink = screen.getByRole('link', { name: 'documentation' });
+      helpLink = screen.getByRole('link', { name: 'Advanced Search' });
       expect(helpLink).toBeInTheDocument();
       expect(helpLink).toHaveAttribute('href', 'https://links.sonatype.com/products/nxiq/doc/advanced-search');
     });

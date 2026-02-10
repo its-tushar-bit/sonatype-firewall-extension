@@ -51,6 +51,7 @@ import com.sonatype.insight.brain.shutdown.ShutdownHandler;
 import com.sonatype.insight.brain.telemetry.AdvancedSearchTelemetryMetrics;
 import com.sonatype.insight.brain.telemetry.TelemetrySender;
 import com.sonatype.insight.error.exception.BadRequestException;
+import com.sonatype.insight.error.exception.ConflictException;
 
 import com.google.common.annotations.VisibleForTesting;
 import jakarta.inject.Inject;
@@ -456,8 +457,10 @@ public class OpenSearchSearchIndexClient
       return searchResultDTO;
     }
     catch (Exception e) {
+      throwIfIndexNotFound(e);
       if (e instanceof OpenSearchException openSearchException) {
-        if (openSearchException.response().toJsonString().contains("too_many_clauses")) {
+        String responseJson = openSearchException.response().toJsonString();
+        if (responseJson.contains("too_many_clauses")) {
           throw TOO_MANY_CLAUSES_EXCEPTION;
         }
       }
@@ -567,6 +570,22 @@ public class OpenSearchSearchIndexClient
 
   private String generateIndexName() {
     return indexConfigProvider.getIndexConfig().getIndexName() + "-" + UUID.randomUUID().toString().replace("-", "");
+  }
+
+  /**
+   * Checks if the given exception is an OpenSearchException with an "index_not_found_exception" error.
+   * If so, throws a ConflictException with a user-friendly error message.
+   *
+   * @param e the exception to check
+   * @throws ConflictException if the exception indicates the index was not found
+   */
+  private void throwIfIndexNotFound(final Exception e) {
+    if (e instanceof OpenSearchException openSearchException) {
+      if (openSearchException.status() == 404 ||
+          openSearchException.response().toJsonString().contains("index_not_found_exception")) {
+        throw new ConflictException(NO_INDEX_ERROR_MESSAGE);
+      }
+    }
   }
 
   private boolean indexExists(final String name) {

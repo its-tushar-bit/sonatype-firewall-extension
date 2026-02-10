@@ -64,7 +64,8 @@ public class LuceneSearchServiceTest
   public void testSearchIndex_NoSearchIndexDirectory() {
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
             () -> searchService.searchIndex("query", 1, 1, false, null, null))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
+        .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
+            "been created yet. Re-indexing is required before results can be returned.");
   }
 
   @Test
@@ -72,7 +73,8 @@ public class LuceneSearchServiceTest
     Files.createDirectories(insightWork.getSearchIndexDir().toPath());
     assertThatExceptionOfType(ConflictException.class).isThrownBy(
             () -> searchService.searchIndex("query", 1, 1, false, null, null))
-        .withMessageContaining("Index does not exist or is unreadable, please (re)create your index.");
+        .withMessageContaining("Search index not found. The Advanced Search index is unavailable or has not " +
+            "been created yet. Re-indexing is required before results can be returned.");
   }
 
   // TODO: the order this test assumes seems to be lucene specific - consider making a generic version if possible

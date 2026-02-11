@@ -92,7 +92,7 @@ pipeline {
           echo "=== Staging Artifact URLs ==="
           echo "Bundle: https://download-staging.sonatype.com/clm/server/nexus-iq-server-${params.releaseVersion}-bundle.tar.gz"
           echo "CLI: https://download-staging.sonatype.com/clm/server/nexus-iq-cli-${params.releaseVersion}.jar"
-          echo "SBOM URLs: https://repo.sonatype.com/repository/sonatype-sboms/insight-brain/${params.releaseVersion}/"
+          echo "SBOM URLs: https://sonatype.repo.sonatype.app/repository/sonatype-sboms/insight-brain/${params.releaseVersion}/"
           echo ""
           echo "=== Binary Validation Complete ==="
           echo "Note: Artifacts will be gathered and validated during deployment stages."

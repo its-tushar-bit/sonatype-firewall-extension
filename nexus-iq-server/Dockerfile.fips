@@ -9,7 +9,7 @@ ARG IQ_HOME="/opt/sonatype/nexus-iq-server"
 ARG CONFIG_HOME="/etc/nexus-iq-server"
 ARG LOGS_HOME="/var/log/nexus-iq-server"
 
-ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
+ARG SONATYPE_PRIVATE_REGISTRY=sonatype.repo.sonatype.app/docker-all
 
 FROM $SONATYPE_PRIVATE_REGISTRY/chainguard/wolfi-base AS builder
 

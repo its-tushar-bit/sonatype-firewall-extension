@@ -704,8 +704,8 @@ void mvnDirectForTests(String mavenOptions, String goals) {
       String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
       mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
-      mvnCmdLine += " -DnodeDownloadRoot=https://repo.sonatype.com/repository/nodejs-dist/"
-      mvnCmdLine += " -DnpmDownloadRoot=https://repo.sonatype.com/repository/npm-all/npm/-/"
+      mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"
+      mvnCmdLine += " -DnpmDownloadRoot=https://sonatype.repo.sonatype.app/repository/npm-all/npm/-/"
       mvnCmdLine += " -DserverId=rsc-npm-all-ro"
       mvnCmdLine += " ${mavenOptions}"
 
@@ -1558,8 +1558,8 @@ void mvnDirectForDistributedTests(String mavenOptions, String goals, String loca
       String mvnCmdLine = "mvn ${goals} -Dmaven.repo.local='${localRepo}'"
       mvnCmdLine += " -DnpmRegistryURL="
       mvnCmdLine += " -DyarnDownloadRoot=https://rsc-proxy.ci.sonatype.dev/repository/yarn-binaries/"
-      mvnCmdLine += " -DnodeDownloadRoot=https://repo.sonatype.com/repository/nodejs-dist/"
-      mvnCmdLine += " -DnpmDownloadRoot=https://repo.sonatype.com/repository/npm-all/npm/-/"
+      mvnCmdLine += " -DnodeDownloadRoot=https://sonatype.repo.sonatype.app/repository/nodejs-dist/"
+      mvnCmdLine += " -DnpmDownloadRoot=https://sonatype.repo.sonatype.app/repository/npm-all/npm/-/"
       mvnCmdLine += " -DserverId=rsc-npm-all-ro"
       mvnCmdLine += " ${mavenOptions}"
 

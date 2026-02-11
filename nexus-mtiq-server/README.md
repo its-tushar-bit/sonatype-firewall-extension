@@ -30,15 +30,15 @@ mvn -pl :nexus-mtiq-server jreleaser:assemble
 docker buildx create --use
 docker buildx build \
   --platform=linux/amd64,linux/arm64
-  --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout) \ 
-  --tag docker-all.repo.sonatype.com/mtiq/server:local .
+  --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout) \
+  --tag sonatype.repo.sonatype.app/docker-all/mtiq/server:local .
 ```
 
 ### Build for your system
 ```shell
 docker build \
-  --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout) \ 
-  --tag docker-all.repo.sonatype.com/mtiq/server:local .
+  --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate -Dexpression=project.version -q -DforceStdout) \
+  --tag sonatype.repo.sonatype.app/docker-all/mtiq/server:local .
 ```
 
 ### Running the MTIQ image locally

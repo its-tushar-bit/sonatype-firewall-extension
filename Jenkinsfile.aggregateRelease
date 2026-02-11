@@ -237,7 +237,7 @@ Docker images will be published by the releaseIQServer job.""".toString()
           )
           archiveArtifacts artifacts: 'release-candidates.txt', fingerprint: true
 
-          def sbomBaseUrl = 'https://repo.sonatype.com/repository/sonatype-sboms/insight-brain'
+          def sbomBaseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms/insight-brain'
           writeFile(
             file: 'sbom-urls.txt',
             text: """${sbomBaseUrl}/${FULL_RELEASE_VERSION}/insight-brain-${FULL_RELEASE_VERSION}-spdx.json
@@ -360,7 +360,7 @@ private void storeLifecycleSboms(String applicationName, String version, String 
  * Uploads SBOM artifacts to the Sonatype SBOM repository.
  */
 private void uploadSbom(String applicationName, String version, String fileName) {
-  String baseUrl = 'https://repo.sonatype.com/repository/sonatype-sboms'
+  String baseUrl = 'https://sonatype.repo.sonatype.app/repository/sonatype-sboms'
   def targetUrl = "${baseUrl}/${applicationName}/${version}/${fileName}"
   httpRequest(
     url: targetUrl,

@@ -90,8 +90,8 @@ The project is organized as a multi-module Maven project:
 
 Configure Maven and npm to use Sonatype's internal repository:
 
-- [**Maven** setup instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10394202/Setting+up+maven+to+use+repo.sonatype.com)
-- [**npm** setup instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10393715/Setting+up+npm+to+use+repo.sonatype.com)
+- [**Maven** setup instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/1921712289/Setting+up+maven+to+use+sonatype.repo.sonatype.app)
+- [**npm** setup instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/1947467777/Setting+up+npm+to+use+sonatype.repo.sonatype.app)
 
 ## First Time Setup
 

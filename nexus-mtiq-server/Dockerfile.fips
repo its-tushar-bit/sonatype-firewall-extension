@@ -6,16 +6,16 @@
 # MTIQ Docker image:
 # - To build locally:
 # docker build --build-arg IQ_SERVER_VERSION=$(mvn org.apache.maven.plugins:maven-help-plugin:evaluate \
-# -Dexpression=project.version -q -DforceStdout) --tag docker-all.repo.sonatype.com/mtiq/server:local-dev --file ./Dockerfile.fips .
+# -Dexpression=project.version -q -DforceStdout) --tag sonatype.repo.sonatype.app/docker-all/mtiq/server:local-dev --file ./Dockerfile.fips .
 #
 # - To run locally:
 # (Note: container must have access to your Postgres DB. This can be achieved by specifying a DB host of
 # docker.for.mac.localhost (Docker Desktop) in your config, or specifying a Docker network with --net that both containers (this and Postgres) can use):
 # docker run --rm -it -v /path/to/your/docker/config.yml:/etc/mtiq-server/config.yaml -p 8070:8070 -e "IS_MTIQ_BATCH=true" \
 # -e "NXIQ_ENABLE_SSO_ONLY=false" -e "USING_DEFAULT_ENCRYPTION_KEY_STORE=true" -e "DELETE_BUILT_IN_ADMIN=false" \
-# -e "NXIQ_ENABLE_LOCAL_JWK_PROVIDER=true" -e "FIPS_MODE_ENABLED=true" -e "AWS_REGION=us-east-1" docker-all.repo.sonatype.com/mtiq/server:local-dev
+# -e "NXIQ_ENABLE_LOCAL_JWK_PROVIDER=true" -e "FIPS_MODE_ENABLED=true" -e "AWS_REGION=us-east-1" sonatype.repo.sonatype.app/docker-all/mtiq/server:local-dev
 
-ARG SONATYPE_PRIVATE_REGISTRY=docker-all.repo.sonatype.com
+ARG SONATYPE_PRIVATE_REGISTRY=sonatype.repo.sonatype.app/docker-all
 
 FROM $SONATYPE_PRIVATE_REGISTRY/chainguard/wolfi-base AS builder
 

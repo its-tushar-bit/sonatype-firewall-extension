@@ -50,10 +50,10 @@ This project requires the following local installs:
 2. Maven 3.9.x
 3. npm and yarn (for the frontend; see [that readme](insight-brain-frontend/README.md) for more specific detail)
 
-Be sure to configure both Maven and npm to use repo.s.c (https://repo.sonatype.com) as the source for packages. You will need to use your own personal user credentials for repo.s.c (instructions for how to do this are included in the following Maven repo.s.c instructions):
+Be sure to configure both Maven and npm to use repo.s.c (https://sonatype.repo.sonatype.app) as the source for packages. You will need to use your own personal user credentials for repo.s.c (instructions for how to do this are included in the following Maven repo.s.c instructions):
 
-* [**Maven** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10394202/Setting+up+maven+to+use+repo.sonatype.com)
-* [**npm** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/10393715/Setting+up+npm+to+use+repo.sonatype.com)
+* [**Maven** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/1921712289/Setting+up+maven+to+use+sonatype.repo.sonatype.app)
+* [**npm** instructions](https://sonatype.atlassian.net/wiki/spaces/CDI/pages/1947467777/Setting+up+npm+to+use+sonatype.repo.sonatype.app)
 
 ## Building ##
 

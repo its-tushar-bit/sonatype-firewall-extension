@@ -31,7 +31,7 @@ public class MultiTenantPostgresTestCluster
 {
   private static final Logger log = LoggerFactory.getLogger(MultiTenantPostgresTestCluster.class);
 
-  private static final String MTIQ_IMAGE_VERSION = "14.0-alpine";
+  private static final String MTIQ_IMAGE_VERSION = "14.17-alpine";
 
   private static final String TEMPLATE_TENANT_NAME = "templatetenant";
 

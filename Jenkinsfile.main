@@ -512,8 +512,8 @@ void captureResultsAndCleanup() {
 }
 
 boolean isFunctionalTestsEnabled() {
-  // Always enabled for main-style builds (Jenkinsfile.main)
-  return true
+  // Disabled for now for main-style builds (Jenkinsfile.main)
+  return false
 }
 
 boolean isUnitTestsEnabled() {

@@ -33,6 +33,7 @@ import {
   selectEnterpriseReportingLandingPage,
   selectEnterpriseDashboards,
   selectDataInsightsDashboards,
+  selectPartnerDashboards,
 } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSelectors';
 import { actions } from 'MainRoot/enterpriseReporting/enterpriseReportingLandingPageSlice';
 import { actions as dashboardActions } from 'MainRoot/enterpriseReporting/dashboard/enterpriseReportingDashboardSlice';
@@ -47,9 +48,11 @@ export default function EnterpriseReportingLandingPage() {
   const { iqVersion, loading, loadError } = useSelector(selectEnterpriseReportingLandingPage);
   const allEnterpriseDashboards = useSelector(selectEnterpriseDashboards);
   const allDataInsightsDashboards = useSelector(selectDataInsightsDashboards);
+  const allPartnerDashboards = useSelector(selectPartnerDashboards);
 
   const activeEnterpriseDashboards = filterRetiredDashboards(allEnterpriseDashboards);
   const activeDataInsightsDashboards = filterRetiredDashboards(allDataInsightsDashboards);
+  const activePartnerDashboards = filterRetiredDashboards(allPartnerDashboards);
   const { telemetryStatus, loading: loadingTelemetry, loadError: loadTelemetryError } = useSelector(
     selectEnterpriseReportingSupportInfo
   );
@@ -177,6 +180,31 @@ export default function EnterpriseReportingLandingPage() {
           id="enterprise-reporting-dashboards--insights"
         >
           {activeDataInsightsDashboards.map((dashboard, idx) => (
+            <EnterpriseReportCard
+              dashboard={
+                dashboard.groupedDashboards
+                  ? { ...dashboard, features: dashboard.features.map((f) => boldFeatureText(f)) }
+                  : dashboard
+              }
+              key={idx}
+              iqVersion={iqVersion}
+            />
+          ))}
+        </NxCard.Container>
+      </NxLoadWrapper>
+
+      <NxH2>
+        <span className="iq-enterprise-reporting__dashboard-grouping__title">Partner Solutions</span>
+        <NxTooltip title="Partner Solutions provide specialized integrations and extended capabilities through our trusted technology partners.">
+          <NxFontAwesomeIcon icon={faInfoCircle} className="iq-enterprise-reporting__dashboard-grouping__icon" />
+        </NxTooltip>
+      </NxH2>
+      <NxLoadWrapper loading={isLoading} retryHandler={load} error={error}>
+        <NxCard.Container
+          className="iq-enterprise-reporting-card__container"
+          id="enterprise-reporting-dashboards--partners"
+        >
+          {activePartnerDashboards.map((dashboard, idx) => (
             <EnterpriseReportCard
               dashboard={
                 dashboard.groupedDashboards

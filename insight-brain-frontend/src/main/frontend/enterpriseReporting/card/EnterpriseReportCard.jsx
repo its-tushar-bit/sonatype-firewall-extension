@@ -50,6 +50,8 @@ export default function EnterpriseReportCard(props) {
   });
 
   const icon = fas[dashboard.previewImageIcon] ? fas[dashboard.previewImageIcon] : fasPro[dashboard.previewImageIcon];
+  const hasCustomImage = dashboard.previewImage && dashboard.previewImage.endsWith('.svg');
+  const customImagePath = hasCustomImage ? `/assets/img/${dashboard.previewImage}` : null;
 
   const cleanedIqVersion = parseInt(iqVersion.split('.')[1]);
   const isDashboardDisabled = (dashboard) => cleanedIqVersion < parseInt(dashboard.sinceIQVersion);
@@ -98,7 +100,11 @@ export default function EnterpriseReportCard(props) {
 
         <NxCard.Content>
           <NxCard.CallOut className={classNames('iq-enterprise-reporting-card__icon', { enterprise: isEnterprise })}>
-            <NxFontAwesomeIcon icon={icon} />
+            {hasCustomImage ? (
+              <img src={customImagePath} alt={dashboard.title} className="iq-enterprise-reporting-card__custom-icon" />
+            ) : (
+              <NxFontAwesomeIcon icon={icon} />
+            )}
           </NxCard.CallOut>
           <NxCard.Text>{dashboard.description}</NxCard.Text>
           <NxList bulleted className="iq-enterprise-reporting-card__features">
@@ -138,7 +144,17 @@ export default function EnterpriseReportCard(props) {
                   variant="tertiary"
                   className={`iq-enterprise-reporting-card__button dashboard-id-btn-${dashboard.dashboardId}`}
                   disabled={buttonDisabled}
-                  onClick={() => dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }))}
+                  onClick={() => {
+                    // Special route for HeroDevs EOL
+                    if (dashboard.dashboardId === 'herodevs_eol') {
+                      dispatch(stateGo('heroDevsEol'));
+                    } else {
+                      dispatch(stateGo('enterpriseReportingDashboard', { id: dashboard.dashboardId }));
+                    }
+                  }}
+                  data-analytics-id={
+                    dashboard.dashboardId === 'herodevs_eol' ? 'lc-reporting-herodevs-view-cta' : undefined
+                  }
                 >
                   {dashboard.accessButtonText}
                 </NxButton>

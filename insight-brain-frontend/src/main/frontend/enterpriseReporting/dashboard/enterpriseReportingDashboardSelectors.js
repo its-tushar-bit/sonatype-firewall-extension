@@ -30,3 +30,10 @@ export const selectDataInsightsDashboards = createSelector(selectCombinedDashboa
   }
   return filter(propEq('category', 'dataInsight'), dashboards);
 });
+
+export const selectPartnerDashboards = createSelector(selectCombinedDashboards, (dashboards) => {
+  if (isNilOrEmpty(dashboards)) {
+    return [];
+  }
+  return filter(propEq('category', 'partner'), dashboards);
+});

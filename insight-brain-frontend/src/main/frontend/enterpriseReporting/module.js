@@ -7,6 +7,7 @@ import iqReact2Angular from 'MainRoot/reactAdapter/iqReact2Angular';
 import withStoreProvider from 'MainRoot/reactAdapter/StoreProvider';
 import EnterpriseReportingLandingPage from 'MainRoot/enterpriseReporting/EnterpriseReportingLandingPage';
 import EnterpriseReportingDashboardPage from 'MainRoot/enterpriseReporting/dashboard/EnterpriseReportingDashboardPage';
+import HeroDevsEolPage from 'MainRoot/enterpriseReporting/HeroDevsEolPage';
 
 export default angular
   .module('embeddedLookerDashboard', [])
@@ -18,6 +19,7 @@ export default angular
     'enterpriseReportingDashboardPage',
     iqReact2Angular(withStoreProvider(EnterpriseReportingDashboardPage), ['clmServerVersion'], ['$state'])
   )
+  .component('heroDevsEolPage', iqReact2Angular(withStoreProvider(HeroDevsEolPage), [], ['$state']))
   .config(routes);
 
 function routes($stateProvider) {
@@ -27,6 +29,14 @@ function routes($stateProvider) {
       component: 'enterpriseReportingLandingPage',
       data: {
         title: 'Enterprise Data Insights',
+        authenticationRequired: true,
+      },
+    })
+    .state('heroDevsEol', {
+      url: '/enterpriseReportingDashboard/herodevs_eol',
+      component: 'heroDevsEolPage',
+      data: {
+        title: 'HeroDevs End Of Life Components',
         authenticationRequired: true,
       },
     })

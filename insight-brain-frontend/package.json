@@ -140,7 +140,9 @@
     "core-js-pure": "3.28.0",
     "cookie": "0.7.0",
     "dompurify": "3.2.4",
-    "js-yaml": "4.1.1"
+    "js-yaml": "4.1.1",
+    "sha.js": "2.4.12",
+    "form-data": "4.0.4"
   },
   "repository": {
     "type": "git",

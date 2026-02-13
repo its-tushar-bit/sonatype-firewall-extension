@@ -13,8 +13,8 @@ import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.ContactCard;
 import com.sonatype.clm.testing.functional.pages.EnterpriseReportingLandingPage.DashboardCard;
 import com.sonatype.insight.brain.api.v2.service.ApiConfigurationService;
-import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardGroupMetadataDTO;
+import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardMetadataListDTO;
 import com.sonatype.insight.brain.enterprise.reporting.DashboardsVersionDTO;
 import com.sonatype.insight.brain.enterprise.reporting.EnterpriseReportingConfigDTO;
@@ -29,6 +29,7 @@ import com.codeborne.selenide.SelenideElement;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.codeborne.selenide.Condition.attribute;
@@ -84,6 +85,7 @@ public class EnterpriseReportingLandingPageTest
     contactUsShouldBeVisible();
   }
 
+  @Ignore // See CLM-38696
   @Test
   public void testFeatureEnabled_ReportContent() {
     var noGroupId = "";
